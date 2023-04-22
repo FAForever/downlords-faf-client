@@ -140,7 +140,10 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   public void installGameTooltip(GameTooltipController gameInfoController, Tooltip tooltip) {
-    mapImageView.setOnMouseEntered(event -> gameInfoController.gameProperty().bind(chatUser.flatMap(ChatChannelUser::playerProperty).flatMap(PlayerBean::gameProperty)));
+    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+
+    mapImageView.setOnMouseEntered(event -> gameInfoController.gameProperty()
+        .bind(chatUser.flatMap(ChatChannelUser::playerProperty).flatMap(PlayerBean::gameProperty).when(showing)));
     Tooltip.install(mapImageView, tooltip);
   }
 
@@ -199,17 +202,28 @@ public class ChatUserItemController implements Controller<Node> {
     this.chatUser.set(chatUser);
   }
 
+  public ObjectProperty<ChatChannelUser> chatUserProperty() {
+    return chatUser;
+  }
+
   private void bindProperties() {
+    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+
     ObservableValue<PlayerBean> playerProperty = chatUser.flatMap(ChatChannelUser::playerProperty);
     ObservableValue<GameBean> gameProperty = playerProperty.flatMap(PlayerBean::gameProperty);
     BooleanExpression gameNotClosedObservable = BooleanExpression.booleanExpression(gameProperty.flatMap(GameBean::statusProperty)
         .map(status -> status != GameStatus.CLOSED));
 
-
     JavaFxUtil.bindManagedToVisible(mapNameLabel, mapImageView, noteIcon);
+
     noteIcon.visibleProperty().bind(noteTooltip.textProperty().isNotEmpty());
-    mapNameLabel.visibleProperty().bind(chatPrefs.showMapNameProperty().and(mapNameLabel.textProperty().isNotEmpty()).and(gameNotClosedObservable));
-    mapImageView.visibleProperty().bind(chatPrefs.showMapPreviewProperty().and(gameNotClosedObservable));
+    mapNameLabel.visibleProperty()
+        .bind(chatPrefs.showMapNameProperty()
+            .and(mapNameLabel.textProperty().isNotEmpty())
+            .and(gameNotClosedObservable)
+            .when(showing));
+
+    mapImageView.visibleProperty().bind(chatPrefs.showMapPreviewProperty().and(gameNotClosedObservable).when(showing));
 
     mapNameLabel.textProperty().bind(gameProperty.flatMap(GameBean::mapFolderNameProperty).map(mapFolderName -> {
       if (mapGeneratorService.isGeneratedMap(mapFolderName)) {
@@ -219,43 +233,43 @@ public class ChatUserItemController implements Controller<Node> {
             .map(mapVersion -> mapVersion.getMap().getDisplayName())
             .orElseGet(() -> mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName));
       }
-    }).map(mapName -> i18n.get("game.onMapFormat", mapName)));
+    }).map(mapName -> i18n.get("game.onMapFormat", mapName)).when(showing));
 
     mapImageView.imageProperty()
         .bind(gameProperty.flatMap(GameBean::mapFolderNameProperty)
             .map(mapFolderName -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL))
-            .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
+            .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
+            .when(showing));
 
     ObservableValue<PlayerStatus> statusProperty = playerProperty.flatMap(PlayerBean::statusProperty);
-    gameStatusImageView.imageProperty()
-        .bind(statusProperty
-            .map(status -> switch (status) {
-              case HOSTING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING);
-              case LOBBYING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_LOBBYING);
-              case PLAYING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING);
-              default -> null;
-            }));
+    gameStatusImageView.imageProperty().bind(statusProperty.map(status -> switch (status) {
+      case HOSTING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING);
+      case LOBBYING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_LOBBYING);
+      case PLAYING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING);
+      default -> null;
+    }).when(showing));
 
-    statusTooltip.textProperty().bind(statusProperty.map(PlayerStatus::getI18nKey).map(i18n::get));
+    statusTooltip.textProperty().bind(statusProperty.map(PlayerStatus::getI18nKey).map(i18n::get).when(showing));
 
-    noteTooltip.textProperty().bind(playerProperty.flatMap(PlayerBean::noteProperty));
+    noteTooltip.textProperty().bind(playerProperty.flatMap(PlayerBean::noteProperty).when(showing));
 
     ObservableValue<AvatarBean> avatarProperty = playerProperty.flatMap(PlayerBean::avatarProperty);
-    avatarTooltip.textProperty().bind(avatarProperty.flatMap(AvatarBean::descriptionProperty));
-    avatarImageView.imageProperty().bind(avatarProperty.map(avatarService::loadAvatar));
+    avatarTooltip.textProperty().bind(avatarProperty.flatMap(AvatarBean::descriptionProperty).when(showing));
+    avatarImageView.imageProperty().bind(avatarProperty.map(avatarService::loadAvatar).when(showing));
 
     ObservableValue<String> countryProperty = playerProperty.flatMap(PlayerBean::countryProperty);
-    countryTooltip.textProperty().bind(countryProperty.map(i18n::getCountryNameLocalized));
+    countryTooltip.textProperty().bind(countryProperty.map(i18n::getCountryNameLocalized).when(showing));
 
     countryImageView.imageProperty()
-        .bind(countryProperty
-            .map(countryFlagService::loadCountryFlag)
-            .map(possibleFlag -> possibleFlag.orElse(null)));
+        .bind(countryProperty.map(countryFlagService::loadCountryFlag)
+            .map(possibleFlag -> possibleFlag.orElse(null))
+            .when(showing));
 
     usernameLabel.styleProperty()
         .bind(chatUser.flatMap(ChatChannelUser::colorProperty)
             .map(JavaFxUtil::toRgbCode)
-            .map(rgb -> String.format("-fx-text-fill: %s", rgb)));
+            .map(rgb -> String.format("-fx-text-fill: %s", rgb))
+            .when(showing));
 
     ObservableValue<String> clanTagProperty = chatUser.flatMap(ChatChannelUser::playerProperty)
         .flatMap(PlayerBean::clanProperty)
@@ -265,7 +279,7 @@ public class ChatUserItemController implements Controller<Node> {
       String clanTag = clanTagProperty.getValue();
       String username = usernameProperty.getValue();
       return StringUtils.isEmpty(clanTag) ? username : clanTag + " " + username;
-    }, clanTagProperty, usernameProperty));
+    }, clanTagProperty, usernameProperty).when(showing));
   }
 
 }

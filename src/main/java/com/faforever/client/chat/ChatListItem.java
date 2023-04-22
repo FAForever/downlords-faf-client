@@ -4,4 +4,5 @@ import javafx.beans.value.ObservableValue;
 import lombok.NonNull;
 
 public record ChatListItem(ChatChannelUser user, @NonNull ChatUserCategory category,
-                           String channelName, ObservableValue<Integer> numCategoryItemsProperty) {}
+                           ObservableValue<String> channelNameProperty,
+                           ObservableValue<Integer> numCategoryItemsProperty) {}

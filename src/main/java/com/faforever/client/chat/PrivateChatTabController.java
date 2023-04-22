@@ -20,6 +20,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.MapChangeListener;
 import javafx.collections.MapChangeListener.Change;
@@ -57,6 +58,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
   public ScrollPane gameDetailScrollPane;
 
   private final MapChangeListener<String, ChatChannelUser> chatUsersByNameListener = this::handlerPlayerChange;
+  private final WeakMapChangeListener<String, ChatChannelUser> weakUsersChangeListener = new WeakMapChangeListener<>(chatUsersByNameListener);
 
   private boolean userOffline;
 
@@ -75,10 +77,35 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   public void initialize() {
     super.initialize();
+
+    ObservableValue<Boolean> showing = getRoot().selectedProperty()
+        .and(BooleanExpression.booleanExpression(getRoot().tabPaneProperty().flatMap(JavaFxUtil::showingProperty)));
+
     JavaFxUtil.bindManagedToVisible(avatarImageView, defaultIconImageView);
     avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
     defaultIconImageView.visibleProperty().bind(avatarImageView.imageProperty().isNull());
     userOffline = false;
+
+    privateChatTabRoot.idProperty().bind(receiver);
+    privateChatTabRoot.textProperty().bind(receiver);
+    privatePlayerInfoController.chatUserProperty()
+        .bind(receiver.map(username -> chatService.getOrCreateChatUser(username, username)));
+
+    avatarImageView.imageProperty()
+        .bind(receiver.map(username -> playerService.getPlayerByNameIfOnline(username).orElse(null))
+            .flatMap(PlayerBean::avatarProperty)
+            .map(avatarService::loadAvatar)
+            .when(showing));
+
+    receiver.addListener(((observable, oldValue, newValue) -> {
+      if (oldValue != null) {
+        chatService.removeUsersListener(oldValue, weakUsersChangeListener);
+      }
+
+      if (newValue != null) {
+        chatService.addUsersListener(newValue, weakUsersChangeListener);
+      }
+    }));
   }
 
   boolean isUserOffline() {
@@ -88,22 +115,6 @@ public class PrivateChatTabController extends AbstractChatTabController {
   @Override
   public Tab getRoot() {
     return privateChatTabRoot;
-  }
-
-  @Override
-  public void setReceiver(String username) {
-    super.setReceiver(username);
-
-    ObservableValue<Boolean> showing = getRoot().tabPaneProperty().flatMap(JavaFxUtil::showingProperty);
-
-    privateChatTabRoot.setId(username);
-    privateChatTabRoot.setText(username);
-    playerService.getPlayerByNameIfOnline(username)
-        .ifPresent(player -> avatarImageView.imageProperty()
-            .bind(player.avatarProperty().map(avatarService::loadAvatar).when(showing)));
-    ChatChannelUser chatUser = chatService.getOrCreateChatUser(username, username);
-    privatePlayerInfoController.setChatUser(chatUser);
-    chatService.addUsersListener(username, new WeakMapChangeListener<>(chatUsersByNameListener));
   }
 
   @Override
@@ -124,7 +135,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   @Override
   public void onChatMessage(ChatMessage chatMessage) {
-    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.getUsername());
+    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.username());
 
     if (playerOptional.isPresent() && playerOptional.get().getSocialStatus() == FOE && chatPrefs.isHideFoeMessages()) {
       return;

@@ -118,6 +118,14 @@ public class PrivatePlayerInfoController implements Controller<Node> {
     this.chatUser.set(chatUser);
   }
 
+  public ChatChannelUser getChatUser() {
+    return chatUser.get();
+  }
+
+  public ObjectProperty<ChatChannelUser> chatUserProperty() {
+    return chatUser;
+  }
+
   private void populateUnlockedAchievementsLabel(PlayerBean player) {
     achievementService.getAchievementDefinitions()
         .thenApply(achievementDefinitions -> {

@@ -38,6 +38,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -199,8 +200,7 @@ public class TeamMatchmakingControllerTest extends UITest {
 
   @Test
   public void testOnPartyChatMessage() {
-    ChatMessage message = mock(ChatMessage.class);
-    when(message.getSource()).thenReturn("#tester'sParty");
+    ChatMessage message = new ChatMessage("#tester'sParty", Instant.now(), "user", "message");
     when(instance.matchmakingChatController.getReceiver()).thenReturn("#tester'sParty");
 
     instance.onChatMessage(new ChatMessageEvent(message));
@@ -211,8 +211,7 @@ public class TeamMatchmakingControllerTest extends UITest {
 
   @Test
   public void testOnOtherChatMessage() {
-    ChatMessage message = mock(ChatMessage.class);
-    when(message.getSource()).thenReturn("#other'sParty");
+    ChatMessage message = new ChatMessage("#other'sParty", Instant.now(), "user", "message");
     when(instance.matchmakingChatController.getReceiver()).thenReturn("#tester'sParty");
 
     instance.onChatMessage(new ChatMessageEvent(message));

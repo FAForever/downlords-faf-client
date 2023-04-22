@@ -25,6 +25,7 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.image.Image;
@@ -112,6 +113,8 @@ public class PrivateChatTabControllerTest extends UITest {
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
     when(uiService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(".*"));
+    when(privatePlayerInfoController.chatUserProperty()).thenReturn(new SimpleObjectProperty<>());
+    when(avatarService.loadAvatar(player.getAvatar())).thenReturn(mock(Image.class));
 
     loadFxml("theme/chat/private_chat_tab.fxml", clazz -> {
       if (clazz == PrivatePlayerInfoController.class) {
@@ -166,8 +169,6 @@ public class PrivateChatTabControllerTest extends UITest {
 
   @Test
   public void checkSetAvatarToTabIfPlayerHasAvatar() {
-    when(avatarService.loadAvatar(player.getAvatar())).thenReturn(mock(Image.class));
-    runOnFxThreadAndWait(() -> instance.setReceiver(playerName));
     assertTrue(instance.avatarImageView.isVisible());
     assertNotNull(instance.avatarImageView.getImage());
     assertFalse(instance.defaultIconImageView.isVisible());
@@ -176,7 +177,6 @@ public class PrivateChatTabControllerTest extends UITest {
   @Test
   public void checkSetDefaultIconForTabIfPlayerHasNoAvatar() {
     player.setAvatar(null);
-    runOnFxThreadAndWait(() -> instance.setReceiver(playerName));
     assertFalse(instance.avatarImageView.isVisible());
     assertNull(instance.avatarImageView.getImage());
     assertTrue(instance.defaultIconImageView.isVisible());
@@ -184,11 +184,7 @@ public class PrivateChatTabControllerTest extends UITest {
 
   @Test
   public void checkPlayerAvatarListener() throws Exception {
-    Image oldAvatar = mock(Image.class);
-    when(avatarService.loadAvatar(player.getAvatar())).thenReturn(oldAvatar);
-
-    runOnFxThreadAndWait(() -> instance.setReceiver(playerName));
-    assertEquals(oldAvatar, instance.avatarImageView.getImage());
+    assertNotNull(instance.avatarImageView.getImage());
 
     Image newAvatar = mock(Image.class);
     AvatarBean avatarBean = AvatarBeanBuilder.create().defaultValues().url(new URL("https://test11.com")).get();

@@ -330,7 +330,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private void createChannelTab(String channelName) {
     JavaFxUtil.runLater(() -> {
       matchmakingChatController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml");
-      matchmakingChatController.setChannel(channelName);
+      matchmakingChatController.setReceiver(channelName);
       chatTabPane.getTabs().clear();
       chatTabPane.getTabs().add(matchmakingChatController.getRoot());
     });
@@ -339,7 +339,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   @Subscribe
   public void onChatMessage(ChatMessageEvent event) {
     ChatMessage message = event.message();
-    if (matchmakingChatController != null && message.getSource().equals(matchmakingChatController.getReceiver())) {
+    if (matchmakingChatController != null && message.source().equals(matchmakingChatController.getReceiver())) {
       JavaFxUtil.runLater(() -> matchmakingChatController.onChatMessage(message));
     }
   }

@@ -51,19 +51,23 @@ public class ChatCategoryItemControllerTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     loadFxml("theme/chat/chat_user_category.fxml", clazz -> instance);
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test
   public void testSetCategoryText() {
     when(i18n.get(ChatUserCategory.OTHER.getI18nKey())).thenReturn("other");
 
-    instance.setDetails(ChatUserCategory.OTHER, CHANNEL_NAME, null);
+    instance.setChatUserCategory(ChatUserCategory.OTHER);
+    instance.setChannelName(CHANNEL_NAME);
+
     assertEquals("other", instance.categoryLabel.getText());
   }
 
   @Test
   public void testCheckCategoryColorListener() {
-    instance.setDetails(ChatUserCategory.OTHER, CHANNEL_NAME, null);
+    instance.setChatUserCategory(ChatUserCategory.OTHER);
+    instance.setChannelName(CHANNEL_NAME);
     assertTrue(StringUtils.isBlank(instance.categoryLabel.getStyle()));
 
     chatPrefs.getGroupToColor().put(ChatUserCategory.OTHER, Color.RED);
@@ -76,14 +80,19 @@ public class ChatCategoryItemControllerTest extends UITest {
   @Test
   public void testCheckCategoryColorAlreadyInitialized() {
     chatPrefs.getGroupToColor().put(ChatUserCategory.OTHER, Color.RED);
-    instance.setDetails(ChatUserCategory.OTHER, CHANNEL_NAME, null);
+    runOnFxThreadAndWait(() -> {
+      instance.setChatUserCategory(ChatUserCategory.OTHER);
+      instance.setChannelName(CHANNEL_NAME);
+    });
     assertTrue(StringUtils.contains(instance.categoryLabel.getStyle(), JavaFxUtil.toRgbCode(Color.RED)));
   }
 
   @Test
   public void testOnContextMenuRequested() {
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
-    runOnFxThreadAndWait(() -> instance.setDetails(ChatUserCategory.OTHER, CHANNEL_NAME, null));
+    runOnFxThreadAndWait(() -> {
+      instance.setChatUserCategory(ChatUserCategory.OTHER);
+      instance.setChannelName(CHANNEL_NAME);
+    });
     ContextMenu contextMenuMock = ContextMenuBuilderHelper.mockContextMenuBuilderAndGetContextMenuMock(contextMenuBuilder);
 
     runOnFxThreadAndWait(() -> instance.onContextMenuRequested(mock(ContextMenuEvent.class)));
@@ -93,19 +102,22 @@ public class ChatCategoryItemControllerTest extends UITest {
   @Test
   public void testArrowLabelWhenCategoryHidden() {
     setHiddenCategoryToPrefs(ChatUserCategory.OTHER);
-    instance.setDetails(ChatUserCategory.OTHER, CHANNEL_NAME, null);
+    instance.setChatUserCategory(ChatUserCategory.OTHER);
+    instance.setChannelName(CHANNEL_NAME);
     assertEquals("˃", instance.arrowLabel.getText());
   }
 
   @Test
   public void testArrowLabelWhenCategoryVisible() {
-    instance.setDetails(ChatUserCategory.OTHER, CHANNEL_NAME, null);
+    instance.setChatUserCategory(ChatUserCategory.OTHER);
+    instance.setChannelName(CHANNEL_NAME);
     assertEquals("˅", instance.arrowLabel.getText());
   }
 
   @Test
   public void testOnCategoryClickedWhenCategoryVisible() {
-    instance.setDetails(ChatUserCategory.OTHER, CHANNEL_NAME, null);
+    instance.setChatUserCategory(ChatUserCategory.OTHER);
+    instance.setChannelName(CHANNEL_NAME);
     instance.onCategoryClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
     assertTrue(chatPrefs.getChannelNameToHiddenCategories().get(CHANNEL_NAME).contains(ChatUserCategory.OTHER));
     assertEquals("˃", instance.arrowLabel.getText());
@@ -114,7 +126,8 @@ public class ChatCategoryItemControllerTest extends UITest {
   @Test
   public void testOnCategoryClickedWhenCategoryHidden() {
     setHiddenCategoryToPrefs(ChatUserCategory.OTHER);
-    instance.setDetails(ChatUserCategory.OTHER, CHANNEL_NAME, null);
+    instance.setChatUserCategory(ChatUserCategory.OTHER);
+    instance.setChannelName(CHANNEL_NAME);
     instance.onCategoryClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
     assertFalse(chatPrefs.getChannelNameToHiddenCategories().containsKey(CHANNEL_NAME));
     assertEquals("˅", instance.arrowLabel.getText());
@@ -123,7 +136,8 @@ public class ChatCategoryItemControllerTest extends UITest {
   @Test
   public void testOnCategoryClickedWhenCategoryVisibleAndOtherCategoryHidden() {
     setHiddenCategoryToPrefs(ChatUserCategory.MODERATOR);
-    instance.setDetails(ChatUserCategory.OTHER, CHANNEL_NAME, null);
+    instance.setChatUserCategory(ChatUserCategory.OTHER);
+    instance.setChannelName(CHANNEL_NAME);
     instance.onCategoryClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
     assertTrue(chatPrefs.getChannelNameToHiddenCategories().get(CHANNEL_NAME).contains(ChatUserCategory.OTHER));
     assertEquals("˃", instance.arrowLabel.getText());
@@ -133,8 +147,11 @@ public class ChatCategoryItemControllerTest extends UITest {
   public void testOnCategoryClickedWhenCategoryHiddenAndOtherCategoryHidden() {
     setHiddenCategoryToPrefs(ChatUserCategory.MODERATOR);
     setHiddenCategoryToPrefs(ChatUserCategory.OTHER);
-    instance.setDetails(ChatUserCategory.OTHER, CHANNEL_NAME, null);
-    instance.onCategoryClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
+    runOnFxThreadAndWait(() -> {
+      instance.setChatUserCategory(ChatUserCategory.OTHER);
+      instance.setChannelName(CHANNEL_NAME);
+      instance.onCategoryClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
+    });
     assertFalse(chatPrefs.getChannelNameToHiddenCategories().get(CHANNEL_NAME).contains(ChatUserCategory.OTHER));
     assertEquals("˅", instance.arrowLabel.getText());
   }

@@ -96,6 +96,7 @@ public class ChatUserItemControllerTest extends UITest {
         .createPlaceholderImageOnErrorObservable(any());
 
     loadFxml("theme/chat/chat_user_item.fxml", param -> instance);
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test

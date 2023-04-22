@@ -109,7 +109,7 @@ public class ChatControllerTest extends UITest {
   @Test
   public void testOnPrivateMessage() throws Exception {
     when(privateChatTabController.getRoot()).thenReturn(new Tab());
-    ChatMessage chatMessage = new ChatMessage(null, Instant.now(), TEST_USER_NAME, "message");
+    ChatMessage chatMessage = new ChatMessage("test", Instant.now(), TEST_USER_NAME, "message");
     instance.onChatMessage(new ChatMessageEvent(chatMessage));
     WaitForAsyncUtils.waitForFxEvents();
 

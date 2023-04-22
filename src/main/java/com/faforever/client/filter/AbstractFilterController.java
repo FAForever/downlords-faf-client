@@ -7,7 +7,6 @@ import com.faforever.client.theme.UiService;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -36,7 +35,7 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
   protected final UiService uiService;
   protected final I18n i18n;
 
-  private final ObservableMap<Property<?>, Predicate<T>> externalFilters = FXCollections.observableHashMap();
+  private final ObservableMap<ObservableValue<?>, Predicate<T>> externalFilters = FXCollections.observableHashMap();
   private final List<AbstractFilterNodeController<?, ? extends ObservableValue<?>, T>> filters = new ArrayList<>();
   private Predicate<T> defaultPredicate = t -> true;
   private boolean resetInProgress = false;
@@ -110,7 +109,7 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
     resetAllButton.setDisable(hasDefaultValues);
   }
 
-  public <U> void bindExternalFilter(Property<U> property, BiFunction<U, T, Boolean> filter) {
+  public <U> void bindExternalFilter(ObservableValue<U> property, BiFunction<U, T, Boolean> filter) {
     JavaFxUtil.addListener(property, observable -> externalFilters.put(property, item -> filter.apply(property.getValue(), item)));
   }
 
