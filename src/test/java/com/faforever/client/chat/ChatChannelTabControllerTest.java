@@ -20,7 +20,9 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Labeled;
+import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
@@ -113,6 +115,8 @@ public class ChatChannelTabControllerTest extends UITest {
     when(timeService.asShortTime(any())).thenReturn("now");
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile("-----"));
     when(chatService.getOrCreateChatUser(any(String.class), eq(CHANNEL_NAME))).thenReturn(new ChatChannelUser("junit", "test"));
+    when(chatUserListController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
+    when(userService.getUsername()).thenReturn(USER_NAME);
 
     loadFxml("theme/chat/channel_tab.fxml", clazz -> {
       if (clazz == ChatUserListController.class) {
@@ -120,6 +124,7 @@ public class ChatChannelTabControllerTest extends UITest {
       }
       return instance;
     });
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(new TabPane(instance.getRoot())));
   }
 
   @Test
@@ -167,6 +172,8 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testChannelTopicUpdate() {
+    when(i18n.get(eq("chat.topicUpdated"), any(), any())).thenReturn("topic updated");
+
     defaultChatChannel.setTopic(new ChannelTopic(USER_NAME, "topic1: https://faforever.com"));
     initializeDefaultChatChannel();
 
@@ -205,7 +212,6 @@ public class ChatChannelTabControllerTest extends UITest {
   public void testCheckModeratorListener() {
     ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().moderator(true).get();
     defaultChatChannel.addUser(user);
-    when(userService.getUsername()).thenReturn(USER_NAME);
     initializeDefaultChatChannel();
     assertTrue(instance.changeTopicTextButton.isVisible());
     runOnFxThreadAndWait(() -> user.setModerator(false));

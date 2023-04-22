@@ -171,15 +171,15 @@ public class ChatController extends AbstractViewController<AnchorPane> {
     }
     JavaFxUtil.runLater(() -> {
       if (!message.isPrivate()) {
-        getOrCreateChannelTab(message.getSource()).onChatMessage(message);
+        getOrCreateChannelTab(message.source()).onChatMessage(message);
       } else {
-        addAndGetPrivateMessageTab(message.getSource()).onChatMessage(message);
+        addAndGetPrivateMessageTab(message.source()).onChatMessage(message);
       }
     });
   }
 
   private boolean isMatchmakerPartyMessage(ChatMessage message) {
-    return message.getSource() != null && isMatchmakerPartyMessage(message.getSource());
+    return message.source() != null && isMatchmakerPartyMessage(message.source());
   }
 
   private boolean isMatchmakerPartyMessage(String channelName) {

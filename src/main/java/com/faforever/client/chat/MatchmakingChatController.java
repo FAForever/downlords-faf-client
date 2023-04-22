@@ -18,6 +18,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.MapChangeListener;
 import javafx.collections.WeakMapChangeListener;
 import javafx.scene.control.Hyperlink;
@@ -51,8 +52,10 @@ public class MatchmakingChatController extends AbstractChatTabController {
       onPlayerDisconnected(change.getValueRemoved().getUsername());
     }
   };
+  private final WeakMapChangeListener<String, ChatChannelUser> weakUsersChangeListener = new WeakMapChangeListener<>(usersChangeListener);
 
-  private ChatChannel channel;
+  private final ObservableValue<ChatChannel> channel = receiver.map(chatService::getOrCreateChannel);
+  private final ObservableValue<String> channelName = channel.map(ChatChannel::getName);
 
   // TODO cut dependencies
   public MatchmakingChatController(UserService userService, PreferencesService preferencesService,
@@ -66,16 +69,21 @@ public class MatchmakingChatController extends AbstractChatTabController {
   }
 
   @Override
-  public Tab getRoot() {
-    return matchmakingChatTabRoot;
-  }
+  public void initialize() {
+    super.initialize();
+    matchmakingChatTabRoot.idProperty().bind(receiver);
+    matchmakingChatTabRoot.textProperty().bind(receiver);
 
-  public void setChannel(String partyName) {
-    channel = chatService.getOrCreateChannel(partyName);
-    chatService.joinChannel(partyName);
-    setReceiver(partyName);
-    matchmakingChatTabRoot.setId(partyName);
-    matchmakingChatTabRoot.setText(partyName);
+    receiver.addListener(((observable, oldValue, newValue) -> {
+      if (oldValue != null) {
+        chatService.removeUsersListener(oldValue, weakUsersChangeListener);
+      }
+
+      if (newValue != null) {
+        chatService.addUsersListener(newValue, weakUsersChangeListener);
+      }
+    }));
+
     String topic = i18n.get("teammatchmaking.chat.topic");
     topicText.getChildren().clear();
     Arrays.stream(topic.split("\\s")).forEach(word -> {
@@ -84,13 +92,21 @@ public class MatchmakingChatController extends AbstractChatTabController {
       topicText.getChildren().add(label);
     });
     topicText.getChildren().add(discordLink);
+  }
 
-    chatService.addUsersListener(partyName, new WeakMapChangeListener<>(usersChangeListener));
+  @Override
+  public Tab getRoot() {
+    return matchmakingChatTabRoot;
+  }
+
+  public void setReceiver(String partyName) {
+    super.setReceiver(partyName);
+    chatService.joinChannel(partyName);
   }
 
   public void closeChannel() {
-    chatService.leaveChannel(channel.getName());
-    chatService.removeUsersListener(channel.getName(), usersChangeListener);
+    chatService.leaveChannel(channelName.getValue());
+    chatService.removeUsersListener(channelName.getValue(), usersChangeListener);
   }
 
   @Override

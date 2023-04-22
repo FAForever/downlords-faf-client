@@ -90,9 +90,8 @@ public class MatchmakingChatControllerTest extends UITest {
 
   @Test
   public void testSetChannel() {
-    instance.setChannel("partyName");
+    instance.setReceiver("partyName");
 
-    verify(chatService).getOrCreateChannel("partyName");
     verify(chatService).joinChannel("partyName");
   }
 

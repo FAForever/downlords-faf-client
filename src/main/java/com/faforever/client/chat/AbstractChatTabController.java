@@ -37,6 +37,8 @@ import javafx.beans.Observable;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.WeakChangeListener;
 import javafx.concurrent.Worker.State;
 import javafx.css.PseudoClass;
@@ -88,8 +90,8 @@ import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
 
 /**
  * A chat tab displays messages in a {@link WebView}. The WebView is used since text on a JavaFX canvas isn't
- * selectable, but text within a WebView is. This comes with some ugly implications; some logic has to be
- * performed in interaction with JavaScript, like when the user clicks a link.
+ * selectable, but text within a WebView is. This comes with some ugly implications; some logic has to be performed in
+ * interaction with JavaScript, like when the user clicks a link.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -143,6 +145,10 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    */
   private final List<ChatMessage> waitingMessages = new ArrayList<>();
   private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
+  /**
+   * Either a channel like "#aeolus" or a user like "Visionik".
+   */
+  protected final StringProperty receiver = new SimpleStringProperty();
 
   private final SimpleInvalidationListener stageFocusedListener = this::focusTextFieldIfStageFocused;
   private final SimpleInvalidationListener resetUnreadMessagesListener = this::clearUnreadIfFocused;
@@ -158,10 +164,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   public Button emoticonsButton;
   @VisibleForTesting
   protected WeakReference<Popup> emoticonsPopupWindowWeakReference;
-  /**
-   * Either a channel like "#aeolus" or a user like "Visionik".
-   */
-  private String receiver;
+
   private ChatMessage lastMessage;
   private WebEngine engine;
 
@@ -170,9 +173,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   private void focusTextFieldIfStageFocused() {
     Tab root = getRoot();
-    if (root != null
-        && root.getTabPane() != null
-        && root.getTabPane().isVisible()) {
+    if (root != null && root.getTabPane() != null && root.getTabPane().isVisible()) {
       JavaFxUtil.runLater(() -> messageTextField().requestFocus());
     }
   }
@@ -240,11 +241,15 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   public String getReceiver() {
-    return receiver;
+    return receiver.get();
   }
 
   public void setReceiver(String receiver) {
-    this.receiver = receiver;
+    this.receiver.set(receiver);
+  }
+
+  public StringProperty receiverProperty() {
+    return receiver;
   }
 
   public void initialize() {
@@ -267,7 +272,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   protected void onClosed(Event event) {
     getRoot().setOnClosed(null);
-    getRoot().setOnCloseRequest(null);
     messageTextField().setOnKeyReleased(null);
   }
 
@@ -319,7 +323,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   private void configureLoadListener() {
-    engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> sendWaitingMessagesIfLoaded(newValue));
+    engine.getLoadWorker()
+        .stateProperty()
+        .addListener((observable, oldValue, newValue) -> sendWaitingMessagesIfLoaded(newValue));
   }
 
   private void sendWaitingMessagesIfLoaded(State newValue) {
@@ -390,12 +396,11 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     messageTextField.setDisable(true);
 
     final String text = messageTextField.getText();
-    chatService.sendMessageInBackground(receiver, text).thenAccept(message ->
-        JavaFxUtil.runLater(() -> {
-          messageTextField.clear();
-          messageTextField.setDisable(false);
-          messageTextField.requestFocus();
-        })).exceptionally(throwable -> {
+    chatService.sendMessageInBackground(receiver.get(), text).thenAccept(message -> JavaFxUtil.runLater(() -> {
+      messageTextField.clear();
+      messageTextField.setDisable(false);
+      messageTextField.requestFocus();
+    })).exceptionally(throwable -> {
       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
       log.warn("Message could not be sent: {}", text, throwable);
       notificationService.addImmediateErrorNotification(throwable, "chat.sendFailed");
@@ -410,7 +415,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private void sendAction(final TextInputControl messageTextField, final String text) {
     messageTextField.setDisable(true);
 
-    chatService.sendActionInBackground(receiver, text.replaceFirst(Pattern.quote(ACTION_PREFIX), ""))
+    chatService.sendActionInBackground(receiver.get(), text.replaceFirst(Pattern.quote(ACTION_PREFIX), ""))
         .thenAccept(message -> {
           JavaFxUtil.runLater(() -> {
             messageTextField.clear();
@@ -478,9 +483,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   private boolean requiresNewChatSection(ChatMessage chatMessage) {
     return lastMessage == null
-        || !lastMessage.getUsername().equals(chatMessage.getUsername())
-        || lastMessage.getTime().isBefore(chatMessage.getTime().minus(1, MINUTES))
-        || lastMessage.isAction();
+        || !lastMessage.username().equals(chatMessage.username())
+        || lastMessage.time().isBefore(chatMessage.time().minus(1, MINUTES))
+        || lastMessage.action();
   }
 
   private void appendMessage(ChatMessage chatMessage) throws IOException {
@@ -515,19 +520,17 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       html = CharStreams.toString(reader);
     }
 
-    String login = chatMessage.getUsername();
+    String login = chatMessage.username();
     String avatarUrl = "";
     String clanTag = "";
     String decoratedClanTag = "";
     String countryFlagUrl = "";
 
-    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.getUsername());
+    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.username());
     if (playerOptional.isPresent()) {
       PlayerBean player = playerOptional.get();
       avatarUrl = Optional.ofNullable(player.getAvatar()).map(AvatarBean::getUrl).map(URL::toExternalForm).orElse("");
-      countryFlagUrl = countryFlagService.getCountryFlagUrl(player.getCountry())
-          .map(URL::toString)
-          .orElse("");
+      countryFlagUrl = countryFlagService.getCountryFlagUrl(player.getCountry()).map(URL::toString).orElse("");
 
       if (StringUtils.isNotEmpty(player.getClan())) {
         clanTag = player.getClan();
@@ -535,7 +538,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       }
     }
 
-    String timeString = timeService.asShortTime(chatMessage.getTime());
+    String timeString = timeService.asShortTime(chatMessage.time());
     html = html.replace("{time}", timeString)
         .replace("{avatar}", avatarUrl)
         .replace("{username}", login)
@@ -545,8 +548,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
         .replace("{section-id}", String.valueOf(sectionId));
 
     Collection<String> cssClasses = new ArrayList<>();
-    cssClasses.add(String.format("user-%s", chatMessage.getUsername()));
-    if (chatMessage.isAction()) {
+    cssClasses.add(String.format("user-%s", chatMessage.username()));
+    if (chatMessage.action()) {
       cssClasses.add(ACTION_CSS_CLASS);
     } else {
       cssClasses.add(MESSAGE_CSS_CLASS);
@@ -556,7 +559,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
     Optional.ofNullable(getMessageCssClass(login)).ifPresent(cssClasses::add);
 
-    String text = htmlEscaper().escape(chatMessage.getMessage()).replace("\\", "\\\\");
+    String text = htmlEscaper().escape(chatMessage.message()).replace("\\", "\\\\");
     text = convertUrlsToHyperlinks(text);
     text = replaceChannelNamesWithHyperlinks(text);
     text = transformEmoticonShortcodesToImages(text);
@@ -567,8 +570,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       onMention(chatMessage);
     }
 
-    return html
-        .replace("{css-classes}", Joiner.on(' ').join(cssClasses))
+    return html.replace("{css-classes}", Joiner.on(' ').join(cssClasses))
         .replace("{inline-style}", getInlineStyle(login))
         // Always replace text last in case the message contains one of the placeholders.
         .replace("{text}", text);
@@ -576,8 +578,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   @VisibleForTesting
   protected String transformEmoticonShortcodesToImages(String text) {
-    return emoticonService.getEmoticonShortcodeDetectorPattern().matcher(text).replaceAll((matchResult) ->
-        String.format(EMOTICON_IMG_TEMPLATE, emoticonService.getBase64SvgContentByShortcode(matchResult.group())));
+    return emoticonService.getEmoticonShortcodeDetectorPattern()
+        .matcher(text)
+        .replaceAll((matchResult) -> String.format(EMOTICON_IMG_TEMPLATE, emoticonService.getBase64SvgContentByShortcode(matchResult.group())));
   }
 
   @VisibleForTesting
@@ -603,20 +606,16 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       return;
     }
 
-    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.getUsername());
-    String identIconSource = playerOptional.map(player -> String.valueOf(player.getId())).orElseGet(chatMessage::getUsername);
+    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.username());
+    String identIconSource = playerOptional.map(player -> String.valueOf(player.getId()))
+        .orElseGet(chatMessage::username);
 
     if (notificationPrefs.isPrivateMessageToastEnabled()) {
-      notificationService.addNotification(new TransientNotification(
-          chatMessage.getUsername(),
-          chatMessage.getMessage(),
-          IdenticonUtil.createIdenticon(identIconSource),
-          event -> {
-            eventBus.post(new NavigateEvent(NavigationItem.CHAT));
-            stage.toFront();
-            getRoot().getTabPane().getSelectionModel().select(getRoot());
-          })
-      );
+      notificationService.addNotification(new TransientNotification(chatMessage.username(), chatMessage.message(), IdenticonUtil.createIdenticon(identIconSource), event -> {
+        eventBus.post(new NavigateEvent(NavigationItem.CHAT));
+        stage.toFront();
+        getRoot().getTabPane().getSelectionModel().select(getRoot());
+      }));
     }
   }
 
@@ -645,8 +644,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   private void insertIntoContainer(String html, String containerId) {
-    ((JSObject) engine.executeScript("document.getElementById('" + containerId + "')"))
-        .call("insertAdjacentHTML", "beforeend", html);
+    ((JSObject) engine.executeScript("document.getElementById('" + containerId + "')")).call("insertAdjacentHTML", "beforeend", html);
     getMessagesWebView().requestLayout();
   }
 

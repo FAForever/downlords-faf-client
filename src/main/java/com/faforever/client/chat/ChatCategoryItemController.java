@@ -7,16 +7,16 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.theme.UiService;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleSetProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.input.ContextMenuEvent;
@@ -41,7 +41,7 @@ public class ChatCategoryItemController implements Controller<Node> {
   private final ObjectProperty<ChatUserCategory> chatUserCategory = new SimpleObjectProperty<>();
   private final StringProperty channelName = new SimpleStringProperty();
   private final IntegerProperty numCategoryItems = new SimpleIntegerProperty();
-  private final SetProperty<ChatUserCategory> channelHiddenCategories = new SimpleSetProperty<>(FXCollections.observableSet());
+  private final ObjectProperty<ObservableSet<ChatUserCategory>> channelHiddenCategories = new SimpleObjectProperty<>(FXCollections.observableSet());
 
   public Node root;
   public Label categoryLabel;
@@ -53,29 +53,27 @@ public class ChatCategoryItemController implements Controller<Node> {
     bindProperties();
   }
 
-  public void setDetails(ChatUserCategory chatUserCategory, String channelName, ObservableValue<Integer> numCategoryItems) {
-    this.chatUserCategory.set(chatUserCategory);
-    this.channelName.set(channelName);
-    if (numCategoryItems != null) {
-      this.numCategoryItems.bind(numCategoryItems);
-    } else {
-      this.numCategoryItems.unbind();
-    }
-  }
-
   private void bindProperties() {
+    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+
     categoryLabel.styleProperty()
         .bind(chatPrefs.groupToColorProperty()
             .flatMap(groupToColor -> chatUserCategory.map(groupToColor::get))
             .map(JavaFxUtil::toRgbCode)
             .map(color -> String.format("-fx-text-fill: %s", color))
-            .orElse(""));
+            .orElse("")
+            .when(showing));
+
     categoryLabel.textProperty().bind(chatUserCategory.map(ChatUserCategory::getI18nKey).map(i18n::get));
-    channelHiddenCategories.bind(chatPrefs.getChannelNameToHiddenCategories()
-        .flatMap(nameToHiddenCategories -> channelName.map(channelName -> nameToHiddenCategories.getOrDefault(channelName, FXCollections.observableSet()))));
+
+    channelHiddenCategories.bind(Bindings.valueAt(chatPrefs.getChannelNameToHiddenCategories(), channelName)
+        .orElse(FXCollections.observableSet())
+        .when(showing));
+
     arrowLabel.textProperty()
-        .bind(channelHiddenCategories.flatMap(hiddenCategories -> chatUserCategory.map(hiddenCategories::contains)
-            .map(hidden -> hidden ? "˃" : "˅")));
+        .bind(channelHiddenCategories.flatMap(hiddenCategories -> Bindings.createBooleanBinding(() -> hiddenCategories.contains(chatUserCategory.get()), hiddenCategories, chatUserCategory))
+            .map(hidden -> hidden ? "˃" : "˅"));
+
     userCounterLabel.textProperty().bind(numCategoryItems.map(String::valueOf));
   }
 
@@ -86,18 +84,20 @@ public class ChatCategoryItemController implements Controller<Node> {
         return;
       }
 
-      if (channelHiddenCategories.contains(category)) {
-        channelHiddenCategories.remove(category);
+      ObservableSet<ChatUserCategory> hiddenCategories = channelHiddenCategories.get();
+
+      if (hiddenCategories.contains(category)) {
+        hiddenCategories.remove(category);
       } else {
-        channelHiddenCategories.add(category);
+        hiddenCategories.add(category);
       }
 
       String channel = channelName.get();
       if (channel != null) {
-        if (channelHiddenCategories.isEmpty()) {
+        if (hiddenCategories.isEmpty()) {
           chatPrefs.getChannelNameToHiddenCategories().remove(channel);
         } else {
-          chatPrefs.getChannelNameToHiddenCategories().put(channel, channelHiddenCategories.get());
+          chatPrefs.getChannelNameToHiddenCategories().put(channel, hiddenCategories);
         }
       }
     }
@@ -113,6 +113,42 @@ public class ChatCategoryItemController implements Controller<Node> {
         .addCustomItem(uiService.loadFxml("theme/chat/color_picker_menu_item.fxml", ChatCategoryColorPickerCustomMenuItemController.class), category)
         .build()
         .show(categoryLabel.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+  }
+
+  public ChatUserCategory getChatUserCategory() {
+    return chatUserCategory.get();
+  }
+
+  public ObjectProperty<ChatUserCategory> chatUserCategoryProperty() {
+    return chatUserCategory;
+  }
+
+  public void setChatUserCategory(ChatUserCategory chatUserCategory) {
+    this.chatUserCategory.set(chatUserCategory);
+  }
+
+  public String getChannelName() {
+    return channelName.get();
+  }
+
+  public StringProperty channelNameProperty() {
+    return channelName;
+  }
+
+  public void setChannelName(String channelName) {
+    this.channelName.set(channelName);
+  }
+
+  public int getNumCategoryItems() {
+    return numCategoryItems.get();
+  }
+
+  public IntegerProperty numCategoryItemsProperty() {
+    return numCategoryItems;
+  }
+
+  public void setNumCategoryItems(int numCategoryItems) {
+    this.numCategoryItems.set(numCategoryItems);
   }
 
   @Override

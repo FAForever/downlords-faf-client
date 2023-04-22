@@ -10,13 +10,14 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.SetProperty;
-import javafx.beans.property.SimpleSetProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 import javafx.collections.WeakListChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
@@ -46,7 +47,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -83,56 +83,72 @@ public class ChatUserListController implements Controller<VBox> {
 
   private Popup filterPopup;
 
+  private final ObjectProperty<ChatChannel> chatChannel = new SimpleObjectProperty<>();
+  private final ObservableValue<ObservableList<ChatChannelUser>> users = chatChannel.map(ChatChannel::getUsers);
+  private final ObservableValue<String> channelName = chatChannel.map(ChatChannel::getName);
   private final ObservableList<ChatListItem> unfilteredSource = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
   private final FilteredList<ChatListItem> items = new FilteredList<>(new SortedList<>(unfilteredSource, CHAT_LIST_ITEM_COMPARATOR));
-  private final SetProperty<ChatUserCategory> hiddenCategories = new SimpleSetProperty<>(FXCollections.emptyObservableSet());
+  private final ObjectProperty<ObservableSet<ChatUserCategory>> hiddenCategories = new SimpleObjectProperty<>(FXCollections.emptyObservableSet());
   private final Map<ChatChannelUser, Set<ChatListItem>> userChatListItemMap = new HashMap<>();
-  private final ObservableValue<Predicate<ChatListItem>> hiddenCategoryPredicate = hiddenCategories.map(categories -> categories.stream()
+  private final ObservableValue<Predicate<ChatListItem>> hiddenCategoryPredicate = hiddenCategories.flatMap(categories -> Bindings.createObjectBinding(() -> categories.stream()
       .map(category -> (Predicate<ChatListItem>) item -> item.user() == null || item.category() != category)
-      .reduce(Predicate::and)
-      .orElse(item -> true));
+      .reduce(item -> true, Predicate::and), categories)).orElse(item -> true);
 
   private final ListChangeListener<ChatChannelUser> channelUserListListener = this::onUserChange;
+  private final WeakListChangeListener<ChatChannelUser> weakUserListChangeListener = new WeakListChangeListener<>(channelUserListListener);
 
   private ChatUserFilterController chatUserFilterController;
-  private ChatChannel chatChannel;
 
   @Override
   public void initialize() {
+    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+
+    hiddenCategories.bind(Bindings.valueAt(chatPrefs.getChannelNameToHiddenCategories(), chatChannel.map(ChatChannel::getName))
+        .orElse(FXCollections.observableSet())
+        .when(showing));
+
+    searchUsernameTextField.promptTextProperty()
+        .bind(users.flatMap(Bindings::size).map(size -> i18n.get("chat.userCount", size)).when(showing));
+
+    users.addListener((observable, oldValue, newValue) -> {
+      unfilteredSource.removeIf(item -> item.user() != null);
+
+      if (oldValue != null) {
+        JavaFxUtil.removeListener(oldValue, weakUserListChangeListener);
+      }
+
+      if (newValue != null) {
+        JavaFxUtil.addListener(newValue, weakUserListChangeListener);
+        List.copyOf(newValue).forEach(this::onUserJoined);
+      }
+
+      chatItemListView.showAsFirst(0);
+    });
+
     initializeFilter();
     initializeList();
     initializeGameTooltip();
-  }
 
-  public void dispose() {
-    chatItemListView.dispose();
+    for (ChatUserCategory category : ChatUserCategory.values()) {
+      FilteredList<ChatListItem> categoryFilteredList = new FilteredList<>(unfilteredSource);
+      categoryFilteredList.predicateProperty()
+          .bind(chatUserFilterController.predicateProperty()
+              .map(filterPredicate -> filterPredicate.and(item -> item.user() != null && item.category() == category)));
+      JavaFxUtil.runLater(() -> unfilteredSource.add(new ChatListItem(null, category, channelName, Bindings.size(categoryFilteredList)
+          .asObject())));
+    }
   }
 
   public void setChatChannel(ChatChannel chatChannel) {
-    unfilteredSource.clear();
+    this.chatChannel.set(chatChannel);
+  }
 
-    this.chatChannel = chatChannel;
-    hiddenCategories.bind(chatPrefs
-        .getChannelNameToHiddenCategories()
-        .map(nameToHidden -> nameToHidden.getOrDefault(this.chatChannel.getName(), FXCollections.observableSet())));
+  public ChatChannel getChatChannel() {
+    return chatChannel.get();
+  }
 
-    ObservableList<ChatChannelUser> users = this.chatChannel.getUsers();
-    searchUsernameTextField.promptTextProperty()
-        .bind(Bindings.size(users).map(size -> i18n.get("chat.userCount", size)));
-
-    Arrays.stream(ChatUserCategory.values())
-        .forEach(category -> {
-          FilteredList<ChatListItem> categoryFilteredList = new FilteredList<>(unfilteredSource);
-          categoryFilteredList.predicateProperty()
-              .bind(chatUserFilterController.predicateProperty()
-                  .map(filterPredicate -> filterPredicate.and(item -> item.user() != null && item.category() == category)));
-          JavaFxUtil.runLater(() -> unfilteredSource.add(new ChatListItem(null, category, chatChannel.getName(), Bindings.size(categoryFilteredList)
-              .asObject())));
-        });
-
-    JavaFxUtil.addListener(users, new WeakListChangeListener<>(channelUserListListener));
-    List.copyOf(users).forEach(this::onUserJoined);
-    chatItemListView.showAsFirst(0);
+  public ObjectProperty<ChatChannel> chatChannelProperty() {
+    return chatChannel;
   }
 
   private ChatListItemCell createCellWithItem(ChatListItem item) {
@@ -167,13 +183,11 @@ public class ChatUserListController implements Controller<VBox> {
   }
 
   private void onUserJoined(ChatChannelUser user) {
-    user.getCategories()
-        .stream()
-        .map(category -> new ChatListItem(user, category, null, null))
-        .forEach(item -> {
-          userChatListItemMap.computeIfAbsent(user, newUser -> new HashSet<>()).add(item);
-          JavaFxUtil.runLater(() -> unfilteredSource.add(item));
-        });
+    for (ChatUserCategory category : user.getCategories()) {
+      ChatListItem item = new ChatListItem(user, category, null, null);
+      userChatListItemMap.computeIfAbsent(user, newUser -> new HashSet<>()).add(item);
+      JavaFxUtil.runLater(() -> unfilteredSource.add(item));
+    }
   }
 
   private void onUserLeft(ChatChannelUser user) {
@@ -199,10 +213,8 @@ public class ChatUserListController implements Controller<VBox> {
 
   private void initializeFilter() {
     chatUserFilterController = uiService.loadFxml("theme/filter/filter.fxml", ChatUserFilterController.class);
-    chatUserFilterController.bindExternalFilter(searchUsernameTextField.textProperty(),
-        (text, item) -> text.isEmpty()
-            || item.user() == null
-            || StringUtils.containsIgnoreCase(item.user().getUsername(), text));
+    chatUserFilterController.bindExternalFilter(searchUsernameTextField.textProperty(), (text, item) -> text.isEmpty() || item.user() == null || StringUtils.containsIgnoreCase(item.user()
+        .getUsername(), text));
     chatUserFilterController.completeSetting();
 
     filterPopup = PopupUtil.createPopup(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT, chatUserFilterController.getRoot());
@@ -252,19 +264,11 @@ public class ChatUserListController implements Controller<VBox> {
 
   @VisibleForTesting
   List<ChatChannelUser> getFilteredUserList() {
-    return items
-        .stream()
-        .map(ChatListItem::user)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+    return items.stream().map(ChatListItem::user).filter(Objects::nonNull).collect(Collectors.toList());
   }
 
   @VisibleForTesting
   List<ChatChannelUser> getUserList() {
-    return unfilteredSource
-        .stream()
-        .map(ChatListItem::user)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+    return unfilteredSource.stream().map(ChatListItem::user).filter(Objects::nonNull).collect(Collectors.toList());
   }
 }

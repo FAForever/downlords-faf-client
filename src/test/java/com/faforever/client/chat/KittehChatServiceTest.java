@@ -457,8 +457,8 @@ public class KittehChatServiceTest extends UITest {
         new DefaultChannelTopic(null, "new topic", new DefaultActor(mock(WithManagement.class), "junit2!IP")),
         false));
 
-    assertEquals("junit2", chatChannel.getTopic().getAuthor());
-    assertEquals("new topic", chatChannel.getTopic().getContent());
+    assertEquals("junit2", chatChannel.getTopic().author());
+    assertEquals("new topic", chatChannel.getTopic().content());
   }
 
   @Test
@@ -475,10 +475,10 @@ public class KittehChatServiceTest extends UITest {
 
     ChatMessage chatMessage = chatMessageFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(chatMessage.getSource(), is(defaultChannel.getName()));
-    assertThat(chatMessage.getMessage(), is(message));
-    assertThat(chatMessage.getUsername(), is(user1.getNick()));
-    assertThat(chatMessage.isAction(), is(false));
+    assertThat(chatMessage.source(), is(defaultChannel.getName()));
+    assertThat(chatMessage.message(), is(message));
+    assertThat(chatMessage.username(), is(user1.getNick()));
+    assertThat(chatMessage.action(), is(false));
   }
 
   @Test
@@ -495,10 +495,10 @@ public class KittehChatServiceTest extends UITest {
 
     ChatMessage chatMessage = chatMessageFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(chatMessage.getSource(), is(defaultChannel.getName()));
-    assertThat(chatMessage.getMessage(), is(message));
-    assertThat(chatMessage.getUsername(), is(user1.getNick()));
-    assertThat(chatMessage.isAction(), is(true));
+    assertThat(chatMessage.source(), is(defaultChannel.getName()));
+    assertThat(chatMessage.message(), is(message));
+    assertThat(chatMessage.username(), is(user1.getNick()));
+    assertThat(chatMessage.action(), is(true));
   }
 
   @Test
@@ -518,10 +518,10 @@ public class KittehChatServiceTest extends UITest {
 
     ChatMessage chatMessage = chatMessageFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(chatMessage.getMessage(), is(message));
-    assertThat(chatMessage.getSource(), is(user1.getNick()));
-    assertThat(chatMessage.getUsername(), is(user1.getNick()));
-    assertThat(chatMessage.isAction(), is(false));
+    assertThat(chatMessage.message(), is(message));
+    assertThat(chatMessage.source(), is(user1.getNick()));
+    assertThat(chatMessage.username(), is(user1.getNick()));
+    assertThat(chatMessage.action(), is(false));
   }
 
   @Test

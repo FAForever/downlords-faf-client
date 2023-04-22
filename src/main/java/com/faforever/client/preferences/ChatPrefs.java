@@ -58,7 +58,7 @@ public class ChatPrefs {
   ListProperty<String> autoJoinChannels = new SimpleListProperty<>(FXCollections.observableArrayList());
   BooleanProperty showMapName = new SimpleBooleanProperty(false);
   BooleanProperty showMapPreview = new SimpleBooleanProperty(false);
-  MapProperty<String, ObservableSet<ChatUserCategory>> channelNameToHiddenCategories = new SimpleMapProperty<>(FXCollections.synchronizedObservableMap(FXCollections.observableHashMap()));
+  ObservableMap<String, ObservableSet<ChatUserCategory>> channelNameToHiddenCategories = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
 
   public ChatPrefs() {
     Locale localeLanguage = new Locale(Locale.getDefault().getLanguage());
@@ -210,7 +210,7 @@ public class ChatPrefs {
     this.showMapName.set(showMapName);
   }
 
-  public MapProperty<String, ObservableSet<ChatUserCategory>> getChannelNameToHiddenCategories() {
+  public ObservableMap<String, ObservableSet<ChatUserCategory>> getChannelNameToHiddenCategories() {
     return channelNameToHiddenCategories;
   }
 
