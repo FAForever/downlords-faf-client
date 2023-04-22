@@ -18,9 +18,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.MapChangeListener;
-import javafx.collections.WeakMapChangeListener;
+import javafx.collections.ListChangeListener;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
@@ -34,6 +32,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.List;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -45,17 +44,15 @@ public class MatchmakingChatController extends AbstractChatTabController {
   public TextFlow topicText;
   public Hyperlink discordLink;
 
-  private final MapChangeListener<String, ChatChannelUser> usersChangeListener = change -> {
-    if (change.wasAdded()) {
-      onPlayerConnected(change.getValueAdded().getUsername());
-    } else if (change.wasRemoved()) {
-      onPlayerDisconnected(change.getValueRemoved().getUsername());
+  private final ListChangeListener<ChatChannelUser> usersChangeListener = change -> {
+    while (change.next()) {
+      if (change.wasAdded()) {
+        List.copyOf(change.getAddedSubList()).forEach(chatUser -> onPlayerConnected(chatUser.getUsername()));
+      } else if (change.wasRemoved()) {
+        change.getRemoved().forEach(chatUser -> onPlayerDisconnected(chatUser.getUsername()));
+      }
     }
   };
-  private final WeakMapChangeListener<String, ChatChannelUser> weakUsersChangeListener = new WeakMapChangeListener<>(usersChangeListener);
-
-  private final ObservableValue<ChatChannel> channel = receiver.map(chatService::getOrCreateChannel);
-  private final ObservableValue<String> channelName = channel.map(ChatChannel::getName);
 
   // TODO cut dependencies
   public MatchmakingChatController(UserService userService, PreferencesService preferencesService,
@@ -71,16 +68,16 @@ public class MatchmakingChatController extends AbstractChatTabController {
   @Override
   public void initialize() {
     super.initialize();
-    matchmakingChatTabRoot.idProperty().bind(receiver);
-    matchmakingChatTabRoot.textProperty().bind(receiver);
+    matchmakingChatTabRoot.idProperty().bind(channelName);
+    matchmakingChatTabRoot.textProperty().bind(channelName);
 
-    receiver.addListener(((observable, oldValue, newValue) -> {
+    chatChannel.addListener(((observable, oldValue, newValue) -> {
       if (oldValue != null) {
-        chatService.removeUsersListener(oldValue, weakUsersChangeListener);
+        oldValue.removeUserListener(usersChangeListener);
       }
 
       if (newValue != null) {
-        chatService.addUsersListener(newValue, weakUsersChangeListener);
+        newValue.addUsersListeners(usersChangeListener);
       }
     }));
 
@@ -99,14 +96,9 @@ public class MatchmakingChatController extends AbstractChatTabController {
     return matchmakingChatTabRoot;
   }
 
-  public void setReceiver(String partyName) {
-    super.setReceiver(partyName);
-    chatService.joinChannel(partyName);
-  }
-
   public void closeChannel() {
-    chatService.leaveChannel(channelName.getValue());
-    chatService.removeUsersListener(channelName.getValue(), usersChangeListener);
+    chatService.leaveChannel(chatChannel.getValue());
+    chatChannel.getValue().removeUserListener(usersChangeListener);
   }
 
   @Override
@@ -120,7 +112,7 @@ public class MatchmakingChatController extends AbstractChatTabController {
   }
 
   @Override
-  public void onChatMessage(ChatMessage chatMessage) {
+  protected void onChatMessage(ChatMessage chatMessage) {
     super.onChatMessage(chatMessage);
 
     if (!hasFocus()) {
@@ -134,11 +126,11 @@ public class MatchmakingChatController extends AbstractChatTabController {
 
   @VisibleForTesting
   void onPlayerDisconnected(String userName) {
-    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerDisconnect", userName), true)));
+    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerDisconnect", userName), true)));
   }
 
   @VisibleForTesting
   void onPlayerConnected(String userName) {
-    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerConnect", userName), true)));
+    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerConnect", userName), true)));
   }
 }

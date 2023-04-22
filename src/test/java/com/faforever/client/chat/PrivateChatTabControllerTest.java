@@ -134,7 +134,7 @@ public class PrivateChatTabControllerTest extends UITest {
       tabPane.setSkin(new TabPaneSkin(tabPane));
       getRoot().getChildren().setAll(tabPane);
       tabPane.getTabs().add(instance.getRoot());
-      instance.setReceiver(playerName);
+      instance.setChatChannel(new ChatChannel(playerName));
     });
     verify(webViewConfigurer).configureWebView(eq(instance.messagesWebView));
   }
@@ -144,7 +144,7 @@ public class PrivateChatTabControllerTest extends UITest {
     // TODO this test throws exceptions if another test runs before it or after it, but not if run alone
     // In that case AbstractChatTabController.hasFocus throws NPE because tabPane.getScene().getWindow() is null
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> getRoot().getScene().getWindow().hide());
-    instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
+    instance.onChatMessage(new ChatMessage(Instant.now(), playerName, "Test message"));
     verify(notificationService).addNotification(any(TransientNotification.class));
   }
 

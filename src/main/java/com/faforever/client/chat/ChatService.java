@@ -14,7 +14,7 @@ public interface ChatService {
 
   void disconnect();
 
-  CompletableFuture<String> sendMessageInBackground(String target, String message);
+  CompletableFuture<Void> sendMessageInBackground(ChatChannel chatChannel, String message);
 
   boolean userExistsInAnyChannel(String username);
 
@@ -22,19 +22,17 @@ public interface ChatService {
 
   ChatChannelUser getOrCreateChatUser(String username, String channel);
 
-  void addUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener);
-
   void addChannelsListener(MapChangeListener<String, ChatChannel> listener);
 
-  void removeUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener);
+  void removeChannelsListener(MapChangeListener<String, ChatChannel> listener);
 
-  void leaveChannel(String channelName);
+  void leaveChannel(ChatChannel channel);
 
-  CompletableFuture<String> sendActionInBackground(String target, String action);
+  CompletableFuture<Void> sendActionInBackground(ChatChannel chatChannel, String action);
 
   void joinChannel(String channelName);
 
-  boolean isDefaultChannel(String channelName);
+  boolean isDefaultChannel(ChatChannel chatChannel);
 
   void close();
 
@@ -46,7 +44,7 @@ public interface ChatService {
 
   void whois(String username);
 
-  void setChannelTopic(String channelName, String text);
+  void setChannelTopic(ChatChannel chatChannel, String text);
 
   /**
    * Increase or decrease the number of unread messages.
@@ -54,4 +52,6 @@ public interface ChatService {
    * @param delta a positive or negative number
    */
   void incrementUnreadMessagesCount(int delta);
+
+  void onInitiatePrivateChat(InitiatePrivateChatEvent event);
 }

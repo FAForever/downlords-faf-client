@@ -1,9 +1,9 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.chat.ChatMessage;
+import com.faforever.client.chat.ChatChannel;
+import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.MatchmakingChatController;
-import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
@@ -21,8 +21,6 @@ import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.Faction;
 import com.google.common.base.Strings;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.value.WeakChangeListener;
@@ -77,8 +75,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private final I18n i18n;
   private final UiService uiService;
   private final TeamMatchmakingService teamMatchmakingService;
-  private final EventBus eventBus;
   private final MatchmakerPrefs matchmakerPrefs;
+  private final ChatService chatService;
 
   public StackPane teamMatchmakingRoot;
   public Button invitePlayerButton;
@@ -124,7 +122,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView, leagueImageView);
     JavaFxUtil.fixScrollSpeed(scrollPane);
-    eventBus.register(this);
 
     factionsToButtons = Map.of(Faction.UEF, uefButton, Faction.AEON, aeonButton,
         Faction.CYBRAN, cybranButton, Faction.SERAPHIM, seraphimButton);
@@ -328,20 +325,14 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   private void createChannelTab(String channelName) {
+    chatService.joinChannel(channelName);
+    ChatChannel chatChannel = chatService.getOrCreateChannel(channelName);
+    matchmakingChatController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml");
+    matchmakingChatController.setChatChannel(chatChannel);
     JavaFxUtil.runLater(() -> {
-      matchmakingChatController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml");
-      matchmakingChatController.setReceiver(channelName);
       chatTabPane.getTabs().clear();
       chatTabPane.getTabs().add(matchmakingChatController.getRoot());
     });
-  }
-
-  @Subscribe
-  public void onChatMessage(ChatMessageEvent event) {
-    ChatMessage message = event.message();
-    if (matchmakingChatController != null && message.source().equals(matchmakingChatController.getReceiver())) {
-      JavaFxUtil.runLater(() -> matchmakingChatController.onChatMessage(message));
-    }
   }
 
   private synchronized void renderQueues() {

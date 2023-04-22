@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
@@ -27,6 +26,7 @@ import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -274,20 +274,19 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private void onChannelMessage(ChannelMessageEvent event) {
     User user = event.getActor();
 
-    String source = event.getChannel().getName();
+    String channelName = event.getChannel().getName();
 
-    eventBus.post(new ChatMessageEvent(new ChatMessage(source, Instant.now(), user.getNick(), event.getMessage(), false)));
+    getOrCreateChannel(channelName).addMessage(new ChatMessage(Instant.now(), user.getNick(), event.getMessage(), false));
   }
 
   @Handler
   private void onChannelCTCP(ChannelCtcpEvent event) {
     User user = event.getActor();
 
-    Channel channel = event.getChannel();
-    String source = channel.getName();
+    String channelName = event.getChannel().getName();
 
-    eventBus.post(new ChatMessageEvent(new ChatMessage(source, Instant.now(), user.getNick(), event.getMessage()
-        .replace("ACTION", user.getNick()), true)));
+    String message = event.getMessage().replace("ACTION", user.getNick());
+    getOrCreateChannel(channelName).addMessage(new ChatMessage(Instant.now(), user.getNick(), message, true));
   }
 
   @Handler
@@ -320,7 +319,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       ircLog.debug("Suppressing chat message from foe '{}'", user.getNick());
       return;
     }
-    eventBus.post(new ChatMessageEvent(new ChatMessage(user.getNick(), Instant.now(), user.getNick(), event.getMessage())));
+
+    getOrCreateChannel(user.getNick()).addMessage(new ChatMessage(Instant.now(), user.getNick(), event.getMessage()));
   }
 
   @Handler
@@ -455,11 +455,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Override
-  public CompletableFuture<String> sendMessageInBackground(String target, String message) {
-    eventBus.post(new ChatMessageEvent(new ChatMessage(target, Instant.now(), client.getNick(), message)));
-    return CompletableFuture.supplyAsync(() -> {
-      client.sendMessage(target, message);
-      return message;
+  public CompletableFuture<Void> sendMessageInBackground(ChatChannel chatChannel, String message) {
+    return CompletableFuture.runAsync(() -> {
+      client.sendMessage(chatChannel.getName(), message);
+      chatChannel.addMessage(new ChatMessage(Instant.now(), client.getNick(), message));
     });
   }
 
@@ -468,8 +467,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     return channels.computeIfAbsent(channelName, ChatChannel::new);
   }
 
-  @Override
-  public void addUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener) {
+  public void addUsersListener(String channelName, ListChangeListener<ChatChannelUser> listener) {
     getOrCreateChannel(channelName).addUsersListeners(listener);
   }
 
@@ -479,20 +477,24 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Override
-  public void removeUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener) {
-    getOrCreateChannel(channelName).removeUserListener(listener);
+  public void removeChannelsListener(MapChangeListener<String, ChatChannel> listener) {
+    JavaFxUtil.removeListener(channels, listener);
   }
 
   @Override
-  public void leaveChannel(String channelName) {
-    client.removeChannel(channelName);
+  public void leaveChannel(ChatChannel channel) {
+    if (!channel.isPrivateChannel()) {
+      client.removeChannel(channel.getName());
+    } else {
+      channels.remove(channel.getName());
+    }
   }
 
   @Override
-  public CompletableFuture<String> sendActionInBackground(String target, String action) {
-    return CompletableFuture.supplyAsync(() -> {
-      client.sendCtcpMessage(target, "ACTION " + action);
-      return action;
+  public CompletableFuture<Void> sendActionInBackground(ChatChannel chatChannel, String action) {
+    return CompletableFuture.runAsync(() -> {
+      client.sendCtcpMessage(chatChannel.getName(), "ACTION " + action);
+      chatChannel.addMessage(new ChatMessage(Instant.now(), client.getNick(), action, true));
     });
   }
 
@@ -503,15 +505,15 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Override
-  public void setChannelTopic(String channelName, String text) {
-    client.getChannel(channelName)
-        .orElseThrow(() -> new IllegalArgumentException(String.format("No channel with `%s` name", channelName)))
+  public void setChannelTopic(ChatChannel chatChannel, String text) {
+    client.getChannel(chatChannel.getName())
+        .orElseThrow(() -> new IllegalArgumentException(String.format("No channel with `%s` name", chatChannel.getName())))
         .setTopic(text);
   }
 
   @Override
-  public boolean isDefaultChannel(String channelName) {
-    return defaultChannelName.equals(channelName);
+  public boolean isDefaultChannel(ChatChannel chatChannel) {
+    return defaultChannelName.equals(chatChannel.getName());
   }
 
   @Override
@@ -552,5 +554,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Override
   public void incrementUnreadMessagesCount(int delta) {
     eventBus.post(UpdateApplicationBadgeEvent.ofDelta(delta));
+  }
+
+  @Override
+  @Subscribe
+  public void onInitiatePrivateChat(InitiatePrivateChatEvent event) {
+    getOrCreateChannel(event.username());
   }
 }

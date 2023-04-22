@@ -228,7 +228,7 @@ public class ChatChannelTabControllerTest extends UITest {
       instance.onTopicTextFieldEntered();
     });
 
-    verify(chatService).setChannelTopic(CHANNEL_NAME, "New Topic");
+    verify(chatService).setChannelTopic(defaultChatChannel, "New Topic");
   }
 
   @Test
@@ -330,8 +330,8 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testOnTabClosed() {
     initializeDefaultChatChannel();
-    runOnFxThreadAndWait(() -> instance.getRoot().getOnCloseRequest().handle(null));
-    verify(chatService).leaveChannel(CHANNEL_NAME);
+    runOnFxThreadAndWait(() -> instance.getRoot().getOnClosed().handle(null));
+    verify(chatService).leaveChannel(defaultChatChannel);
   }
 
   @Test
@@ -352,7 +352,7 @@ public class ChatChannelTabControllerTest extends UITest {
   public void testAtMentionTriggersNotification() {
     this.getRoot().setVisible(false);
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
-    instance.onMention(new ChatMessage(CHANNEL_NAME, Instant.now(), USER_NAME, "hello @" + USER_NAME + "!!"));
+    instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello @" + USER_NAME + "!!"));
     verify(audioService).playChatMentionSound();
   }
 
@@ -360,7 +360,7 @@ public class ChatChannelTabControllerTest extends UITest {
   public void testAtMentionTriggersNotificationWhenFlagIsEnabled() {
     this.getRoot().setVisible(false);
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
-    instance.onMention(new ChatMessage(CHANNEL_NAME, Instant.now(), USER_NAME, "hello @" + USER_NAME + "!!"));
+    instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello @" + USER_NAME + "!!"));
     verify(audioService).playChatMentionSound();
   }
 
@@ -368,7 +368,7 @@ public class ChatChannelTabControllerTest extends UITest {
   public void testNormalMentionTriggersNotification() {
     this.getRoot().setVisible(false);
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
-    instance.onMention(new ChatMessage(CHANNEL_NAME, Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
+    instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
     verify(audioService).playChatMentionSound();
   }
 
@@ -376,7 +376,7 @@ public class ChatChannelTabControllerTest extends UITest {
   public void testNormalMentionDoesNotTriggerNotificationWhenFlagIsEnabled() {
     this.getRoot().setVisible(false);
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
-    instance.onMention(new ChatMessage(CHANNEL_NAME, Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
+    instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
     verify(audioService, never()).playChatMentionSound();
   }
 
@@ -389,7 +389,7 @@ public class ChatChannelTabControllerTest extends UITest {
         .username("junit")
         .socialStatus(FOE)
         .get()));
-    instance.onMention(new ChatMessage(CHANNEL_NAME, Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
+    instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
     verify(audioService, never()).playChatMentionSound();
   }
 
@@ -403,6 +403,8 @@ public class ChatChannelTabControllerTest extends UITest {
       chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
       chatPrefs.setHideFoeMessages(false);
     });
+
+    defaultChatChannel.addUser(chatUser);
 
     Color color = ColorGeneratorUtil.generateRandomColor();
     chatUser.setColor(color);
@@ -419,12 +421,13 @@ public class ChatChannelTabControllerTest extends UITest {
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
     chatUser.setColor(color);
 
-    when(chatService.getOrCreateChatUser(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> {
       chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
       chatPrefs.setHideFoeMessages(false);
     });
+
+    defaultChatChannel.addUser(chatUser);
 
     String expected = instance.createInlineStyleFromColor(color);
     String result = instance.getInlineStyle(USER_NAME);
@@ -446,6 +449,8 @@ public class ChatChannelTabControllerTest extends UITest {
       chatPrefs.setHideFoeMessages(true);
     });
 
+    defaultChatChannel.addUser(chatUser);
+
     String result = instance.getInlineStyle(USER_NAME);
     assertEquals("display: none;", result);
   }
@@ -466,6 +471,8 @@ public class ChatChannelTabControllerTest extends UITest {
       chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
       chatPrefs.setHideFoeMessages(false);
     });
+
+    defaultChatChannel.addUser(chatUser);
 
     String result = instance.getInlineStyle(USER_NAME);
     assertEquals("", result);
@@ -574,7 +581,7 @@ public class ChatChannelTabControllerTest extends UITest {
   }
 
   private void sendMessage(String username, String message) {
-    runOnFxThreadAndWait(() -> instance.onChatMessage(new ChatMessage(CHANNEL_NAME, Instant.now(), username, message)));
+    runOnFxThreadAndWait(() -> instance.onChatMessage(new ChatMessage(Instant.now(), username, message)));
   }
 
   private void initializeDefaultChatChannel() {
