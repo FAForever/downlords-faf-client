@@ -127,15 +127,19 @@ public class TeamMatchmakingService implements InitializingBean {
   public void afterPropertiesSet() throws Exception {
     inQueue.bind(Bindings.createBooleanBinding(() -> queues.stream()
         .map(MatchmakerQueueBean::getMatchingStatus)
-        .anyMatch(MatchingStatus.SEARCHING::equals), queues).or(searching));
+        .anyMatch(MatchingStatus.SEARCHING::equals), queues));
 
     inQueue.addListener(((observable, oldValue, newValue) -> {
       if (newValue) {
+        searching.set(true);
         gameService.startSearchMatchmaker();
       }
 
-      if (!newValue && !matchFoundAndWaitingForGameLaunch.get()) {
-        gameService.stopSearchMatchmaker();
+      if (!newValue) {
+        searching.set(false);
+        if (!matchFoundAndWaitingForGameLaunch.get()) {
+          gameService.stopSearchMatchmaker();
+        }
       }
     }));
 
