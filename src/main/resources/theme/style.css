@@ -1033,7 +1033,35 @@
   -fx-background-color: -fx-accent;
 }
 
+.toggle-button.queue:selected:hover {
+  -fx-background-color: #2f7bed;
+}
+
 .toggle-button.queue .text {
+  -fx-font-family: 'Source Sans Pro Semibold';
+  -fx-text-fill: -fx-text-color;
+  -fx-font-size: 24px;
+}
+
+.toggle-button.start-search {
+  -fx-border-color: #9b7634;
+  -fx-pref-height: 80px;
+  -fx-padding: 8 5;
+}
+
+.toggle-button.start-search:hover {
+  -fx-background-color: #e19e3b30;
+}
+
+.toggle-button.start-search:selected {
+  -fx-background-color: #9b7634;
+}
+
+.toggle-button.start-search:selected:hover {
+  -fx-background-color: #9b7634;
+}
+
+.toggle-button.start-search .text {
   -fx-font-family: 'Source Sans Pro Semibold';
   -fx-text-fill: -fx-text-color;
   -fx-font-size: 24px;

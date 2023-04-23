@@ -6,15 +6,15 @@
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="queueItemRoot" xmlns="http://javafx.com/javafx/11.0.1"
       fx:controller="com.faforever.client.teammatchmaking.MatchmakingQueueItemController"
       spacing="10.0" HBox.hgrow="ALWAYS" alignment="TOP_CENTER">
-        <ToggleButton fx:id="joinLeaveQueueButton" styleClass="tmm, queue" alignment="TOP_CENTER" text="&lt;QueueName&gt;"
-                      maxWidth="1.7976931348623157E308" maxHeight="50" onAction="#onJoinLeaveQueueClicked" />
-        <Button fx:id="mapPoolButton" text="%teammatchmaking.mapPool" styleClass="tmm, player-card-text, map-pool" alignment="TOP_CENTER" maxWidth="1.7976931348623157E308"
-        onAction="#showMapPool"/>
+    <ToggleButton fx:id="selectButton" styleClass="tmm, queue" alignment="TOP_CENTER" text="&lt;QueueName&gt;"
+                  maxWidth="1.7976931348623157E308" maxHeight="50"/>
+    <Button fx:id="mapPoolButton" text="%teammatchmaking.mapPool" styleClass="tmm, player-card-text, map-pool"
+            alignment="TOP_CENTER" maxWidth="1.7976931348623157E308"
+            onAction="#showMapPool"/>
     <FlowPane hgap="10">
         <Label fx:id="queuePopTimeLabel" styleClass="player-card-text" text="%teammatchmaking.queuePopTimer"/>
         <Label fx:id="playersInQueueLabel" styleClass="player-card-text" text="%teammatchmaking.playersInQueue"/>
@@ -23,15 +23,12 @@
             <Insets left="15.0"/>
         </padding>
     </FlowPane>
+    <Label fx:id="searchingLabel" style="-fx-font-weight: bold;-fx-text-fill: #83be15"
+           text="%teammatchmaking.match.searching" visible="false"/>
     <Label fx:id="matchFoundLabel" style="-fx-font-weight: bold;-fx-text-fill: #83be15"
            text="%teammatchmaking.match.found" visible="false"/>
     <Label fx:id="matchStartingLabel" style="-fx-font-weight: bold;-fx-text-fill: #83be15"
            text="%teammatchmaking.match.starting" visible="false"/>
     <Label fx:id="matchCancelledLabel" style="-fx-font-weight: bold;-fx-text-fill: #be6800"
            text="%teammatchmaking.match.cancelled" visible="false"/>
-    <Label fx:id="refreshingLabel" visible="false" >
-        <graphic>
-            <Region styleClass="icon, refresh-icon" />
-        </graphic>
-    </Label>
 </VBox>
