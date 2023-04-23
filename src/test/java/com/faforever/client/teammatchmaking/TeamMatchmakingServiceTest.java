@@ -46,6 +46,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -68,6 +69,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.notification.Severity.INFO;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -555,5 +557,35 @@ public class TeamMatchmakingServiceTest extends UITest {
 
     verify(notificationService).addImmediateWarnNotification(anyString());
     assertThat(success, is(false));
+  }
+
+  @Test
+  public void testSelectDeselectQueuesWhileSearching() {
+    instance.getParty().setOwner(player);
+    matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
+    instance.setSearching(true);
+
+    when(mapService.downloadAllMatchmakerMaps(any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
+    when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+
+    SearchInfo message1 = new SearchInfo("queue1", MatchmakerState.START);
+    SearchInfo message2 = new SearchInfo("queue2", MatchmakerState.START);
+    searchInfoTestPublisher.next(message1, message2);
+
+    instance.getQueues().forEach(queue -> queue.setSelected(false));
+
+    assertThat(matchmakerPrefs.getUnselectedQueueIds(), hasItems(1, 2));
+    verify(fafServerAccessor, times(2)).gameMatchmaking(any(), eq(MatchmakerState.STOP));
+
+    SearchInfo message3 = new SearchInfo("queue1", MatchmakerState.STOP);
+    SearchInfo message4 = new SearchInfo("queue2", MatchmakerState.STOP);
+    searchInfoTestPublisher.next(message3, message4);
+
+    instance.setSearching(true);
+    instance.getQueues().forEach(queue -> queue.setSelected(true));
+
+    Assertions.assertTrue(matchmakerPrefs.getUnselectedQueueIds().isEmpty());
+    verify(fafServerAccessor, times(2)).gameMatchmaking(any(), eq(MatchmakerState.START));
   }
 }
