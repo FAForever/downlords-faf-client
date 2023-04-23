@@ -1,8 +1,8 @@
 package com.faforever.client.builders;
 
 import com.faforever.client.domain.LeaderboardBean;
+import com.faforever.client.domain.MatchingStatus;
 import com.faforever.client.domain.MatchmakerQueueBean;
-import com.faforever.client.domain.MatchmakerQueueBean.MatchingStatus;
 
 import java.time.OffsetDateTime;
 
@@ -53,7 +53,7 @@ public class MatchmakerQueueBeanBuilder {
   }
 
   public MatchmakerQueueBeanBuilder joined(boolean joined) {
-    matchmakerQueueBean.setJoined(joined);
+    matchmakerQueueBean.setSelected(joined);
     return this;
   }
 

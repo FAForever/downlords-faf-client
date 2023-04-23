@@ -22,6 +22,7 @@ import com.faforever.commons.lobby.PlayerInfo;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.MapChangeListener;
@@ -261,6 +262,10 @@ public class PlayerService implements InitializingBean {
 
   public PlayerBean getCurrentPlayer() {
     return currentPlayer.get();
+  }
+
+  public ReadOnlyObjectProperty<PlayerBean> currentPlayerProperty() {
+    return currentPlayer.getReadOnlyProperty();
   }
 
   public Optional<PlayerBean> getPlayerByIdIfOnline(int playerId) {
