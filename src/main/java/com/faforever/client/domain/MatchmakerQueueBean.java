@@ -11,10 +11,7 @@ import javafx.beans.property.StringProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
-import org.springframework.scheduling.TaskScheduler;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.time.OffsetDateTime;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
@@ -27,23 +24,10 @@ public class MatchmakerQueueBean extends AbstractEntityBean<MatchmakerQueueBean>
   IntegerProperty teamSize = new SimpleIntegerProperty(0);
   IntegerProperty playersInQueue = new SimpleIntegerProperty(0);
   IntegerProperty activeGames = new SimpleIntegerProperty(0);
-  BooleanProperty joined = new SimpleBooleanProperty(false);
+  BooleanProperty selected = new SimpleBooleanProperty(true);
   ObjectProperty<MatchingStatus> matchingStatus = new SimpleObjectProperty<>();
   ObjectProperty<LeaderboardBean> leaderboard = new SimpleObjectProperty<>();
   ObjectProperty<FeaturedModBean> featuredMod = new SimpleObjectProperty<>();
-
-  public void setTimedOutMatchingStatus(MatchingStatus status, Duration timeout, TaskScheduler taskScheduler) {
-    setMatchingStatus(status);
-    taskScheduler.schedule(() -> {
-      if (getMatchingStatus() == status) {
-        setMatchingStatus(null);
-      }
-    }, Instant.now().plus(timeout));
-  }
-
-  public enum MatchingStatus {
-    MATCH_FOUND, GAME_LAUNCHING, MATCH_CANCELLED
-  }
 
   public MatchingStatus getMatchingStatus() {
     return matchingStatus.get();
@@ -141,15 +125,15 @@ public class MatchmakerQueueBean extends AbstractEntityBean<MatchmakerQueueBean>
     this.activeGames.set(activeGames);
   }
 
-  public boolean isJoined() {
-    return joined.get();
+  public boolean isSelected() {
+    return selected.get();
   }
 
-  public void setJoined(boolean joined) {
-    this.joined.set(joined);
+  public void setSelected(boolean selected) {
+    this.selected.set(selected);
   }
 
-  public BooleanProperty joinedProperty() {
-    return joined;
+  public BooleanProperty selectedProperty() {
+    return selected;
   }
 }

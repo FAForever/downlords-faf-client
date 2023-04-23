@@ -3,8 +3,8 @@ package com.faforever.client.teammatchmaking;
 import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
 import com.faforever.client.builders.PartyBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.MatchingStatus;
 import com.faforever.client.domain.MatchmakerQueueBean;
-import com.faforever.client.domain.MatchmakerQueueBean.MatchingStatus;
 import com.faforever.client.domain.PartyBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
@@ -17,6 +17,7 @@ import com.faforever.commons.lobby.Player;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,6 +69,7 @@ public class MatchmakingQueueItemControllerTest extends UITest {
     when(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())).thenReturn(String.valueOf(queue.getPlayersInQueue()));
     when(i18n.get("teammatchmaking.activeGames", queue.getActiveGames())).thenReturn(String.valueOf(queue.getActiveGames()));
     when(playerService.getCurrentPlayer()).thenReturn(player);
+    when(playerService.currentPlayerProperty()).thenReturn(new ReadOnlyObjectWrapper<>(player));
     Player ownPlayer = new Player(0, "junit", null, null, "us", null, Map.of());
     when(userService.getOwnPlayer()).thenReturn(ownPlayer);
     when(userService.ownPlayerProperty()).thenReturn(new SimpleObjectProperty<>(ownPlayer));
@@ -77,12 +79,15 @@ public class MatchmakingQueueItemControllerTest extends UITest {
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(partyMembersNotReadyProperty);
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(partyMembersNotReadyProperty.get());
     loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml", clazz -> instance);
-    runOnFxThreadAndWait(() -> instance.setQueue(queue));
+    runOnFxThreadAndWait(() -> {
+      getRoot().getChildren().add(instance.getRoot());
+      instance.setQueue(queue);
+    });
   }
 
   @Test
   public void testQueueNameSet() {
-    assertThat(instance.joinLeaveQueueButton.getText(), is(queue.getTechnicalName()));
+    assertThat(instance.selectButton.getText(), is(queue.getTechnicalName()));
   }
 
   @Test
@@ -94,27 +99,15 @@ public class MatchmakingQueueItemControllerTest extends UITest {
 
   @Test
   public void testOnJoinLeaveQueueButtonClicked() {
-    when(teamMatchmakingService.joinQueue(any())).thenReturn(CompletableFuture.completedFuture(true));
+    when(teamMatchmakingService.joinQueues()).thenReturn(CompletableFuture.completedFuture(true));
 
-    runOnFxThreadAndWait(() -> instance.joinLeaveQueueButton.fire());
+    runOnFxThreadAndWait(() -> instance.selectButton.fire());
 
-    verify(teamMatchmakingService).joinQueue(queue);
-    assertThat(instance.refreshingLabel.isVisible(), is(true));
+    assertThat(instance.getQueue().isSelected(), is(true));
 
-    queue.setJoined(true);
-    runOnFxThreadAndWait(() -> instance.joinLeaveQueueButton.fire());
+    runOnFxThreadAndWait(() -> instance.selectButton.fire());
 
-    verify(teamMatchmakingService).leaveQueue(instance.getQueue());
-    assertThat(instance.refreshingLabel.isVisible(), is(true));
-  }
-
-  @Test
-  public void testOnJoinQueueFailed() {
-    when(teamMatchmakingService.joinQueue(any())).thenReturn(CompletableFuture.completedFuture(false));
-
-    runOnFxThreadAndWait(() -> instance.joinLeaveQueueButton.fire());
-
-    assertThat(instance.joinLeaveQueueButton.isSelected(), is(false));
+    assertThat(instance.getQueue().isSelected(), is(false));
   }
 
   @Test
@@ -163,59 +156,49 @@ public class MatchmakingQueueItemControllerTest extends UITest {
   }
 
   @Test
-  public void testQueueStateListener() {
-    assertThat(instance.refreshingLabel.isVisible(), is(false));
-    assertThat(instance.joinLeaveQueueButton.isSelected(), is(false));
-    instance.refreshingLabel.setVisible(true);
-    runOnFxThreadAndWait(() -> queue.setJoined(true));
-    assertThat(instance.refreshingLabel.isVisible(), is(false));
-    assertThat(instance.joinLeaveQueueButton.isSelected(), is(true));
-    instance.refreshingLabel.setVisible(true);
-    runOnFxThreadAndWait(() -> queue.setJoined(false));
-    assertThat(instance.refreshingLabel.isVisible(), is(false));
-    assertThat(instance.joinLeaveQueueButton.isSelected(), is(false));
-  }
-
-  @Test
   public void testPartySizeListener() {
-    assertThat(instance.joinLeaveQueueButton.isDisabled(), is(false));
+    assertThat(instance.selectButton.isDisabled(), is(false));
 
     runOnFxThreadAndWait(() -> party.getMembers().add(new PartyBuilder.PartyMemberBuilder(
         PlayerBeanBuilder.create().defaultValues().username("notMe").get()).defaultValues().get()));
-    assertThat(instance.joinLeaveQueueButton.isDisabled(), is(true));
+    assertThat(instance.selectButton.isDisabled(), is(true));
 
     runOnFxThreadAndWait(() -> party.getMembers().setAll(party.getMembers().get(0)));
-    assertThat(instance.joinLeaveQueueButton.isDisabled(), is(false));
+    assertThat(instance.selectButton.isDisabled(), is(false));
   }
 
   @Test
   public void testTeamSizeListener() {
-    assertThat(instance.joinLeaveQueueButton.isDisabled(), is(false));
+    assertThat(instance.selectButton.isDisabled(), is(false));
 
     runOnFxThreadAndWait(() -> queue.setTeamSize(0));
-    assertThat(instance.joinLeaveQueueButton.isDisabled(), is(true));
+    assertThat(instance.selectButton.isDisabled(), is(true));
 
     runOnFxThreadAndWait(() -> queue.setTeamSize(2));
-    assertThat(instance.joinLeaveQueueButton.isDisabled(), is(false));
+    assertThat(instance.selectButton.isDisabled(), is(false));
   }
 
   @Test
   public void testPartyOwnerListener() {
-    assertThat(instance.joinLeaveQueueButton.isDisabled(), is(false));
+    assertThat(instance.selectButton.isDisabled(), is(false));
 
-    runOnFxThreadAndWait(() -> party.setOwner(PlayerBeanBuilder.create().defaultValues().username("notMe").id(100).get()));
-    assertThat(instance.joinLeaveQueueButton.isDisabled(), is(true));
+    runOnFxThreadAndWait(() -> party.setOwner(PlayerBeanBuilder.create()
+        .defaultValues()
+        .username("notMe")
+        .id(100)
+        .get()));
+    assertThat(instance.selectButton.isDisabled(), is(true));
 
     runOnFxThreadAndWait(() -> party.setOwner(player));
-    assertThat(instance.joinLeaveQueueButton.isDisabled(), is(false));
+    assertThat(instance.selectButton.isDisabled(), is(false));
   }
 
   @Test
   public void testMembersNotReadyListener() {
-    assertThat(instance.joinLeaveQueueButton.isDisabled(), is(false));
+    assertThat(instance.selectButton.isDisabled(), is(false));
 
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(true);
     runOnFxThreadAndWait(() -> partyMembersNotReadyProperty.set(true));
-    assertThat(instance.joinLeaveQueueButton.isDisabled(), is(true));
+    assertThat(instance.selectButton.isDisabled(), is(true));
   }
 }

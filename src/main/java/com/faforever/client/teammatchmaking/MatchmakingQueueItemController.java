@@ -1,14 +1,13 @@
 package com.faforever.client.teammatchmaking;
 
+import com.faforever.client.domain.MatchingStatus;
 import com.faforever.client.domain.MatchmakerQueueBean;
-import com.faforever.client.domain.MatchmakerQueueBean.MatchingStatus;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -43,7 +42,6 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
   private final static String QUEUE_I18N_PATTERN = "teammatchmaking.queue.%s";
 
-  private final UserService userService;
   private final PlayerService playerService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final I18n i18n;
@@ -53,8 +51,8 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
   public Label playersInQueueLabel;
   public Label activeGamesLabel;
   public Label queuePopTimeLabel;
-  public ToggleButton joinLeaveQueueButton;
-  public Label refreshingLabel;
+  public ToggleButton selectButton;
+  public Label searchingLabel;
   public Label matchFoundLabel;
   public Label matchStartingLabel;
   public Label matchCancelledLabel;
@@ -62,29 +60,39 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
   @VisibleForTesting
   private final ObjectProperty<MatchmakerQueueBean> queue = new SimpleObjectProperty<>();
-  private final ObservableValue<Boolean> queueJoined = queue.flatMap(MatchmakerQueueBean::joinedProperty).orElse(false);
-
-  private final SimpleChangeListener<Boolean> queueStateInvalidationListener = newValue -> JavaFxUtil.runLater(() -> {
-    refreshingLabel.setVisible(false);
-    joinLeaveQueueButton.setSelected(newValue);
-  });
 
   @Override
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(matchFoundLabel, matchStartingLabel, matchCancelledLabel);
 
-    eventBus.register(this);
-    joinLeaveQueueButton.setTextOverrun(OverrunStyle.WORD_ELLIPSIS);
+    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+
+    queue.addListener(((observable, oldValue, newValue) -> {
+      if (oldValue != null) {
+        selectButton.selectedProperty().unbindBidirectional(oldValue.selectedProperty());
+      }
+
+      if (newValue != null) {
+        selectButton.selectedProperty().bindBidirectional(newValue.selectedProperty());
+      }
+    }));
+
+    selectButton.setTextOverrun(OverrunStyle.WORD_ELLIPSIS);
     mapPoolButton.setText(i18n.get("teammatchmaking.mapPool").toUpperCase());
 
     ObservableValue<MatchingStatus> matchingStatus = queue.flatMap(MatchmakerQueueBean::matchingStatusProperty);
-    matchFoundLabel.visibleProperty().bind(matchingStatus.map(status -> status == MatchingStatus.MATCH_FOUND).orElse(false));
-    matchStartingLabel.visibleProperty().bind(matchingStatus.map(status -> status == MatchingStatus.GAME_LAUNCHING).orElse(false));
-    matchCancelledLabel.visibleProperty().bind(matchingStatus.map(status -> status == MatchingStatus.MATCH_CANCELLED).orElse(false));
+    searchingLabel.visibleProperty()
+        .bind(matchingStatus.map(status -> status == MatchingStatus.SEARCHING).orElse(false).when(showing));
+    matchFoundLabel.visibleProperty()
+        .bind(matchingStatus.map(status -> status == MatchingStatus.MATCH_FOUND).orElse(false).when(showing));
+    matchStartingLabel.visibleProperty()
+        .bind(matchingStatus.map(status -> status == MatchingStatus.GAME_LAUNCHING).orElse(false).when(showing));
+    matchCancelledLabel.visibleProperty()
+        .bind(matchingStatus.map(status -> status == MatchingStatus.MATCH_CANCELLED).orElse(false).when(showing));
 
-    joinLeaveQueueButton.textProperty()
+    selectButton.textProperty()
         .bind(queue.map(MatchmakerQueueBean::getTechnicalName)
-            .map(technicalName -> i18n.getOrDefault(technicalName, String.format(QUEUE_I18N_PATTERN, technicalName))));
+            .map(technicalName -> i18n.getOrDefault(technicalName, QUEUE_I18N_PATTERN.formatted(technicalName))));
 
     playersInQueueLabel.textProperty()
         .bind(queue.flatMap(MatchmakerQueueBean::playersInQueueProperty)
@@ -101,16 +109,15 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
     BooleanExpression notPartyOwner = BooleanBinding.booleanExpression(teamMatchmakingService.getParty()
         .ownerProperty()
-        .map(owner -> !owner.equals(playerService.getCurrentPlayer())));
+        .isNotEqualTo(playerService.currentPlayerProperty()));
 
-    joinLeaveQueueButton.disableProperty()
-        .bind(userService.ownPlayerProperty().isNull()
+    selectButton.disableProperty()
+        .bind(playerService.currentPlayerProperty().isNull()
             .or(queue.isNull())
             .or(partyTooBig)
             .or(teamMatchmakingService.partyMembersNotReadyProperty())
-            .or(notPartyOwner));
-
-    queueJoined.addListener(queueStateInvalidationListener);
+            .or(notPartyOwner)
+            .when(showing));
 
     queue.addListener((SimpleChangeListener<MatchmakerQueueBean>) this::setQueuePopTimeUpdater);
   }
@@ -137,20 +144,6 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
     }), new KeyFrame(javafx.util.Duration.seconds(1)));
     queuePopTimeUpdater.setCycleCount(Timeline.INDEFINITE);
     queuePopTimeUpdater.play();
-  }
-
-  public void onJoinLeaveQueueClicked() {
-    if (queueJoined.getValue()) {
-      teamMatchmakingService.leaveQueue(getQueue());
-    } else {
-      teamMatchmakingService.joinQueue(getQueue()).thenAccept(success -> {
-        if (!success) {
-          joinLeaveQueueButton.setSelected(false);
-          refreshingLabel.setVisible(false);
-        }
-      });
-    }
-    refreshingLabel.setVisible(true);
   }
 
   public void showMapPool() {

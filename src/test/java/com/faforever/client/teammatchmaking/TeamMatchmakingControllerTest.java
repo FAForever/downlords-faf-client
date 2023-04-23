@@ -1,7 +1,6 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
 import com.faforever.client.builders.PartyBuilder;
@@ -24,6 +23,7 @@ import com.faforever.commons.lobby.Faction;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Tab;
@@ -97,15 +97,19 @@ public class TeamMatchmakingControllerTest extends UITest {
     matchmakerPrefs.getFactions().setAll(List.of(Faction.SERAPHIM, Faction.AEON));
 
     when(teamMatchmakingService.getParty()).thenReturn(party);
-    
+
     when(i18n.get(anyString(), any(Object.class))).thenReturn("");
     when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
         CompletableFuture.completedFuture(Optional.empty()));
     when(teamMatchmakingService.inQueueProperty()).thenReturn(new SimpleBooleanProperty(false));
+    when(teamMatchmakingService.searchingProperty()).thenReturn(new SimpleBooleanProperty());
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(new ReadOnlyBooleanWrapper());
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(false);
+    when(teamMatchmakingService.anyQueueSelectedProperty()).thenReturn(new SimpleBooleanProperty().not());
+    when(teamMatchmakingService.isAnyQueueSelected()).thenReturn(false);
     when(teamMatchmakingService.getQueues()).thenReturn(matchmakerQueues);
     when(playerService.getCurrentPlayer()).thenReturn(player);
+    when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(player));
     when(i18n.get(anyString())).thenReturn("");
     when(i18n.getOrDefault(anyString(), anyString())).thenReturn("");
     when(i18n.get("teammatchmaking.inPlacement")).thenReturn("In Placement");
@@ -198,21 +202,29 @@ public class TeamMatchmakingControllerTest extends UITest {
 
   @Test
   public void testQueueHeadingListener() {
-    verify(i18n, times(1)).get("teammatchmaking.queueTitle");
+    verify(i18n, times(1)).get("teammatchmaking.playerTitle");
 
-    runOnFxThreadAndWait(() -> player.setGame(GameBeanBuilder.create().defaultValues().get()));
-    verify(i18n).get("teammatchmaking.queueTitle.inGame");
+    when(teamMatchmakingService.isAnyQueueSelected()).thenReturn(false);
+    runOnFxThreadAndWait(() -> party.setOwner(player));
+    verify(i18n).get("teammatchmaking.searchButton.noQueueSelected");
 
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(true);
-    runOnFxThreadAndWait(() -> player.setGame(null));
-    verify(i18n).get("teammatchmaking.queueTitle.memberInGame");
+    runOnFxThreadAndWait(() -> {
+      party.setOwner(PlayerBeanBuilder.create().defaultValues().username("test").id(100).get());
+      party.setOwner(player);
+    });
+    verify(i18n).get("teammatchmaking.searchButton.memberInGame");
 
-    runOnFxThreadAndWait(() -> party.setOwner(PlayerBeanBuilder.create().defaultValues().username("test").id(100).get()));
-    verify(i18n).get("teammatchmaking.queueTitle.inParty");
+    runOnFxThreadAndWait(() -> party.setOwner(PlayerBeanBuilder.create()
+        .defaultValues()
+        .username("test")
+        .id(100)
+        .get()));
+    verify(i18n, times(2)).get("teammatchmaking.searchButton.inParty");
 
     when(teamMatchmakingService.isInQueue()).thenReturn(true);
     runOnFxThreadAndWait(() -> party.setOwner(player));
-    verify(i18n).get("teammatchmaking.queueTitle.inParty");
+    verify(i18n).get("teammatchmaking.searchButton.inQueue");
   }
 
   @Test

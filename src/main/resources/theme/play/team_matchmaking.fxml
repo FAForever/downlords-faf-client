@@ -137,7 +137,9 @@
                         </columnConstraints>
                     </GridPane>
                     <Separator/>
-                    <Label fx:id="queueHeadingLabel" styleClass="h1-tmm" text="%teammatchmaking.queueTitle"/>
+                    <ToggleButton fx:id="searchButton" mnemonicParsing="false" styleClass="tmm, start-search"
+                                  alignment="CENTER" maxWidth="1.7976931348623157E308"
+                                  text="%teammatchmaking.searchButton" onAction="#onSearchButtonClicked"/>
                     <FlowPane fx:id="queuePane" hgap="12.0"/>
                 </children>
                 <padding>
