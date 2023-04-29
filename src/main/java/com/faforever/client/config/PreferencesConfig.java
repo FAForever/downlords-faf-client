@@ -260,7 +260,7 @@ public class PreferencesConfig implements DisposableBean {
     }
 
     try (Writer writer = Files.newBufferedWriter(preferencesFilePath, StandardCharsets.UTF_8)) {
-      log.debug("Writing preferences file `{}`", preferencesFilePath.toAbsolutePath());
+      log.info("Writing preferences file `{}`", preferencesFilePath.toAbsolutePath());
       preferencesWriter.writeValue(writer, preferences);
     } catch (IOException e) {
       log.error("Preferences file `{}` could not be written", preferencesFilePath.toAbsolutePath(), e);

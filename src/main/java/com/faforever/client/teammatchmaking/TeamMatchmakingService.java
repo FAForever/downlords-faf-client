@@ -252,16 +252,6 @@ public class TeamMatchmakingService implements InitializingBean {
 
     ObservableSet<Integer> unselectedQueueIds = matchmakerPrefs.getUnselectedQueueIds();
     while (change.next()) {
-      if (change.wasAdded()) {
-        List<MatchmakerQueueBean> added = List.copyOf(change.getAddedSubList());
-        added.stream().map(MatchmakerQueueBean::getId).forEach(unselectedQueueIds::remove);
-        if (searching) {
-          added.stream()
-              .filter(queue -> queue.getMatchingStatus() != MatchingStatus.SEARCHING)
-              .forEach(this::joinQueue);
-        }
-      }
-
       if (change.wasRemoved()) {
         List<MatchmakerQueueBean> removed = List.copyOf(change.getRemoved());
         removed.stream().map(MatchmakerQueueBean::getId).forEach(unselectedQueueIds::add);
@@ -269,6 +259,16 @@ public class TeamMatchmakingService implements InitializingBean {
           removed.stream()
               .filter(queue -> queue.getMatchingStatus() == MatchingStatus.SEARCHING)
               .forEach(this::leaveQueue);
+        }
+      }
+
+      if (change.wasAdded()) {
+        List<MatchmakerQueueBean> added = List.copyOf(change.getAddedSubList());
+        added.stream().map(MatchmakerQueueBean::getId).forEach(unselectedQueueIds::remove);
+        if (searching) {
+          added.stream()
+              .filter(queue -> queue.getMatchingStatus() != MatchingStatus.SEARCHING)
+              .forEach(this::joinQueue);
         }
       }
     }

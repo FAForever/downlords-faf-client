@@ -5,20 +5,20 @@ buildscript {
   repositories {
     mavenCentral()
   }
-
-  dependencies {
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:3.0.5"
-  }
 }
 
 plugins {
+  id 'org.springframework.boot' version '3.0.6'
   id "com.install4j.gradle" version "10.0.5"
   id "de.undercouch.download" version "5.4.0"
   id 'jacoco'
+  id 'java'
 }
 
+apply plugin: 'io.spring.dependency-management'
+
 // source: https://github.com/mendhak/Gradle-Travis-Colored-Output/blob/master/ColoredOutput.gradle
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
 
   maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
 
@@ -96,12 +96,6 @@ jacoco {
   toolVersion = "0.8.7"
 }
 
-apply plugin: 'java'
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-apply plugin: 'distribution'
-
-
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
@@ -142,7 +136,8 @@ configurations {
 
 jacocoTestReport {
   reports {
-    xml.enabled = true
+    xml.getRequired().set(true)
+    html.getRequired().set(false)
   }
 }
 
@@ -162,7 +157,7 @@ configurations {
 
 
 bootRun {
-    main = "com.faforever.client.Main"
+  mainClass = "com.faforever.client.Main"
     jvmArgs = [
             "-DnativeDir=build/resources/native",
             "-Dprism.forceGPU=true",
@@ -191,23 +186,6 @@ jar {
   }
 }
 
-distributions {
-  main {
-    contents {
-      from {
-        [
-            configurations.runtimeClasspath,
-            jar,
-            downloadIceAdapter.outputs.files,
-            downloadUnixUid.outputs.files,
-            downloadWindowsUid.outputs.files
-        ]
-      }
-      exclude('**/i4jruntime*.jar')
-    }
-  }
-}
-
 install4j {
   if (project.hasProperty('install4jHomeDir')) {
     installDir = file(install4jHomeDir)
@@ -217,7 +195,7 @@ install4j {
   }
 }
 
-task buildInstall4jMediaFiles(type: Install4jTask) {
+tasks.register('buildInstall4jMediaFiles', Install4jTask) {
   group "distribution"
   description 'Creates install4j media files'
   dependsOn 'installDist'
@@ -237,7 +215,7 @@ task buildInstall4jMediaFiles(type: Install4jTask) {
       break
   }
 
-  doFirst {
+  it.doFirst {
     println "Building version ${version}"
     if (!project.hasProperty('install4jHomeDir')) {
       throw new RuntimeException('Specify install4jHomeDir in gradle.properties and set it to an install4j installation directory')
@@ -245,38 +223,40 @@ task buildInstall4jMediaFiles(type: Install4jTask) {
   }
 }
 
-task downloadIceAdapter(type: Download) {
+tasks.register('downloadIceAdapter', Download) {
   group "native dependencies"
   src "https://github.com/FAForever/java-ice-adapter/releases/download/${iceAdapterVersion}/faf-ice-adapter-${iceAdapterVersion}-nojfx.jar"
   dest file("${buildDir}/resources/native/faf-ice-adapter.jar")
   onlyIfNewer true
 }
 
-task downloadUnixUid(type: Download) {
+tasks.register('downloadUnixUid', Download) {
   group "native dependencies"
   src "https://github.com/FAForever/uid/releases/download/v4.0.4/faf-uid"
   dest file("${buildDir}/resources/native/faf-uid")
   onlyIfNewer true
-  doLast {
+  it.doLast {
     file("${buildDir}/resources/native/faf-uid").setExecutable(true, false)
   }
 }
 
-task downloadWindowsUid(type: Download) {
+tasks.register('downloadWindowsUid', Download) {
   group "native dependencies"
   src "https://github.com/FAForever/uid/releases/download/v4.0.4/faf-uid.exe"
   dest file("${buildDir}/resources/native/faf-uid.exe")
   onlyIfNewer true
 }
 
-task downloadNativeDependencies(dependsOn: [downloadUnixUid, downloadWindowsUid, downloadIceAdapter]) {
+tasks.register('downloadNativeDependencies') {
+  dependsOn downloadUnixUid, downloadWindowsUid, downloadIceAdapter
   group "native dependencies"
 }
 
 compileJava.dependsOn 'downloadNativeDependencies'
 
-task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
-  main = "com.codacy.CodacyCoverageReporter"
+tasks.register('sendCoverageToCodacy', JavaExec) {
+  dependsOn jacocoTestReport
+  mainClass = "com.codacy.CodacyCoverageReporter"
   classpath = configurations.codacy
   args = ["-l", "Java", "-r", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"]
 }

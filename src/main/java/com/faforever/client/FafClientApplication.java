@@ -21,9 +21,6 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.Banner.Mode;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -35,10 +32,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
-@SpringBootApplication(exclude = {
-    JmxAutoConfiguration.class,
-    SecurityAutoConfiguration.class,
-})
 public class FafClientApplication extends Application {
   /**
    * Does always reload root tabs in the MainController. This is useful if you do hot swap and you want to see your
@@ -61,7 +54,7 @@ public class FafClientApplication extends Application {
     Font.loadFont(FafClientApplication.class.getResourceAsStream("/font/dfc-icons.ttf"), 10);
     JavaFxUtil.fixTooltipDuration();
 
-    applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
+    applicationContext = new SpringApplicationBuilder(Main.class)
         .bannerMode(Mode.OFF)
         .run(getParameters().getRaw().toArray(new String[0]));
 
