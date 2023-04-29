@@ -8,6 +8,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.update.GitHubRelease;
 import com.faforever.client.util.Assert;
 import com.google.common.annotations.VisibleForTesting;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +20,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClient.Builder;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 @Lazy
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class MapGeneratorService implements DisposableBean {
 
   /**
@@ -54,26 +55,12 @@ public class MapGeneratorService implements DisposableBean {
   private final ClientProperties clientProperties;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final DataPrefs dataPrefs;
-  private final WebClient webClient;
+  private final WebClient defaultWebClient;
   private final ObjectFactory<GenerateMapTask> generateMapTaskFactory;
   private final ObjectFactory<DownloadMapGeneratorTask> downloadMapGeneratorTaskFactory;
   private final ObjectFactory<GeneratorOptionsTask> generatorOptionsTaskFactory;
 
   private ComparableVersion defaultGeneratorVersion;
-
-  public MapGeneratorService(TaskService taskService, ClientProperties clientProperties, ForgedAlliancePrefs forgedAlliancePrefs, DataPrefs dataPrefs, Builder webClientBuilder,
-                             ObjectFactory<GenerateMapTask> generateMapTaskFactory,
-                             ObjectFactory<DownloadMapGeneratorTask> downloadMapGeneratorTaskFactory,
-                             ObjectFactory<GeneratorOptionsTask> generatorOptionsTaskFactory) {
-    this.taskService = taskService;
-    this.clientProperties = clientProperties;
-    this.forgedAlliancePrefs = forgedAlliancePrefs;
-    this.dataPrefs = dataPrefs;
-    this.webClient = webClientBuilder.build();
-    this.generateMapTaskFactory = generateMapTaskFactory;
-    this.downloadMapGeneratorTaskFactory = downloadMapGeneratorTaskFactory;
-    this.generatorOptionsTaskFactory = generatorOptionsTaskFactory;
-  }
 
   @Override
   public void destroy() throws Exception {
@@ -109,7 +96,7 @@ public class MapGeneratorService implements DisposableBean {
     ComparableVersion maxVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator()
         .getMaxSupportedMajorVersion() + 1));
 
-    return webClient.get()
+    return defaultWebClient.get()
         .uri(clientProperties.getMapGenerator().getQueryVersionsUrl())
         .accept(MediaType.parseMediaType("application/vnd.github.v3+json"))
         .retrieve()

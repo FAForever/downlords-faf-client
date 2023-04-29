@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClient.Builder;
 import reactor.core.publisher.Mono;
 
 import java.util.Comparator;
@@ -26,16 +25,15 @@ public class CheckForBetaUpdateTask extends CompletableTask<UpdateInfo> {
   private final OperatingSystem operatingSystem;
   private final PreferencesService preferencesService;
   private final I18n i18n;
-  private final WebClient webClient;
+  private final WebClient defaulWebClient;
 
-  public CheckForBetaUpdateTask(OperatingSystem operatingSystem, PreferencesService preferencesService,
-                                I18n i18n,
-                                Builder webClientBuilder) {
+  public CheckForBetaUpdateTask(OperatingSystem operatingSystem, PreferencesService preferencesService, I18n i18n,
+                                WebClient defaultWebClient) {
     super(Priority.LOW);
     this.operatingSystem = operatingSystem;
     this.preferencesService = preferencesService;
     this.i18n = i18n;
-    webClient = webClientBuilder.build();
+    defaulWebClient = defaultWebClient;
   }
 
   @Override
@@ -43,34 +41,31 @@ public class CheckForBetaUpdateTask extends CompletableTask<UpdateInfo> {
     updateTitle(i18n.get("clientUpdateCheckTask.title"));
     log.info("Checking for client update (pre-release channel)");
 
-    return preferencesService.getRemotePreferencesAsync().thenApply(clientConfiguration -> webClient.get()
-        .uri(clientConfiguration.getGitHubRepo().getApiUrl() + PATH_FOR_RELEASE)
-        .accept(MediaType.parseMediaType("application/vnd.github.v3+json"))
-        .retrieve()
-        .bodyToFlux(GitHubRelease.class)
-        .filter(release -> Version.followsSemverPattern(release.getTagName()))
-        .sort(Comparator.comparing(release -> new ComparableVersion(Version.removePrefix(release.getTagName()))))
-        .last()
-        .flatMap(release -> {
-          try {
-            GitHubAssets asset = getAssetOfFileWithEnding(release, operatingSystem.getGithubAssetFileEnding());
-            return Mono.just(new UpdateInfo(
-                Version.removePrefix(release.getTagName()),
-                asset.getName(),
-                asset.getBrowserDownloadUrl(),
-                asset.getSize(),
-                release.getReleaseNotes(),
-                release.isPrerelease()
-            ));
-          } catch (NotImplementedException e) {
-            log.warn("Could not determine operating system");
-            return Mono.empty();
-          }
-        }).block()).join();
+    return preferencesService.getRemotePreferencesAsync()
+        .thenApply(clientConfiguration -> defaulWebClient.get()
+            .uri(clientConfiguration.getGitHubRepo().getApiUrl() + PATH_FOR_RELEASE)
+            .accept(MediaType.parseMediaType("application/vnd.github.v3+json"))
+            .retrieve()
+            .bodyToFlux(GitHubRelease.class)
+            .filter(release -> Version.followsSemverPattern(release.getTagName()))
+            .sort(Comparator.comparing(release -> new ComparableVersion(Version.removePrefix(release.getTagName()))))
+            .last()
+            .flatMap(release -> {
+              try {
+                GitHubAssets asset = getAssetOfFileWithEnding(release, operatingSystem.getGithubAssetFileEnding());
+                return Mono.just(new UpdateInfo(Version.removePrefix(release.getTagName()), asset.getName(), asset.getBrowserDownloadUrl(), asset.getSize(), release.getReleaseNotes(), release.isPrerelease()));
+              } catch (NotImplementedException e) {
+                log.warn("Could not determine operating system");
+                return Mono.empty();
+              }
+            })
+            .block())
+        .join();
   }
 
   private GitHubAssets getAssetOfFileWithEnding(GitHubRelease latestRelease, String ending) {
-    return latestRelease.getAssets().stream()
+    return latestRelease.getAssets()
+        .stream()
         .filter(asset -> asset.getName().contains(ending))
         .findFirst()
         .orElseThrow();

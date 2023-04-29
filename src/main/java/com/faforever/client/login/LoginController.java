@@ -272,12 +272,12 @@ public class LoginController implements Controller<Pane> {
     return oAuthValuesReceiver.receiveValues(redirectUriCandidates, state, verifier)
         .thenCompose(values -> {
           platformService.focusWindow(i18n.get("login.title"));
-          String actualState = values.getState();
+          String actualState = values.state();
           if (!state.equals(actualState)) {
             handleInvalidSate(actualState, state);
             return CompletableFuture.completedFuture(null);
           }
-          return loginWithCode(values.getCode(), values.getRedirectUri(), verifier);
+          return loginWithCode(values.code(), values.redirectUri(), verifier);
         }).thenAccept(aVoid -> {
           state = null;
           verifier = null;

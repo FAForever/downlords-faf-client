@@ -35,25 +35,26 @@ public class DownloadFAFDebuggerTask extends CompletableTask<Void> {
   private final I18n i18n;
   private final PlatformService platformService;
   private final ForgedAllianceService forgedAllianceService;
-  private final WebClient webClient;
+  private final WebClient defaultWebClient;
 
   @Autowired
-  public DownloadFAFDebuggerTask(ClientProperties clientProperties, I18n i18n, PlatformService platformService, ForgedAllianceService forgedAllianceService,
-                                 WebClient.Builder webClientBuilder) {
+  public DownloadFAFDebuggerTask(ClientProperties clientProperties, I18n i18n, PlatformService platformService,
+                                 ForgedAllianceService forgedAllianceService,
+                                 WebClient defaultWebClient) {
     super(Priority.HIGH);
 
     this.clientProperties = clientProperties;
     this.i18n = i18n;
     this.platformService = platformService;
     this.forgedAllianceService = forgedAllianceService;
-    this.webClient = webClientBuilder.build();
+    this.defaultWebClient = defaultWebClient;
   }
 
   @Override
   protected Void call() throws Exception {
     updateTitle(i18n.get("game.fa.downloadDebugger.title"));
 
-    String version = webClient.get()
+    String version = defaultWebClient.get()
         .uri(clientProperties.getFafDebugger().getQueryLatestVersionUrl())
         .accept(MediaType.parseMediaType("application/vnd.github.v3+json"))
         .retrieve()

@@ -116,7 +116,7 @@ public class UserServiceTest extends ServiceTest {
     assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
     assertEquals(meResult.getUserName(), instance.getUsername());
     verify(tokenService).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
-    verify(fafApiAccessor).authorize();
+    verify(fafApiAccessor).getMe();
     verify(fafServerAccessor).connectAndLogIn();
     verify(eventBus).post(any(LoginSuccessEvent.class));
   }
@@ -133,7 +133,7 @@ public class UserServiceTest extends ServiceTest {
     assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
     assertEquals(meResult.getUserName(), instance.getUsername());
     verify(tokenService).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
-    verify(fafApiAccessor).authorize();
+    verify(fafApiAccessor).getMe();
     verify(fafServerAccessor, never()).connectAndLogIn();
     verify(eventBus).post(any(LoginSuccessEvent.class));
   }
@@ -152,7 +152,7 @@ public class UserServiceTest extends ServiceTest {
     assertEquals(testException, thrown.getCause());
     assertNull(instance.getOwnUser());
     verify(tokenService).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
-    verify(fafApiAccessor, never()).authorize();
+    verify(fafApiAccessor, never()).getMe();
     verify(fafServerAccessor, never()).connectAndLogIn();
     verify(eventBus, never()).post(any(LoginSuccessEvent.class));
   }
@@ -165,14 +165,14 @@ public class UserServiceTest extends ServiceTest {
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     when(tokenService.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
     FakeTestException testException = new FakeTestException("failed");
-    doThrow(testException).when(fafApiAccessor).authorize();
+    doThrow(testException).when(fafApiAccessor).getMe();
 
     CompletionException thrown = assertThrows(CompletionException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI).join());
 
     assertEquals(testException, thrown.getCause());
     assertNull(instance.getOwnUser());
     verify(tokenService).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
-    verify(fafApiAccessor).authorize();
+    verify(fafApiAccessor).getMe();
     verify(fafServerAccessor, never()).connectAndLogIn();
     verify(eventBus, never()).post(any(LoginSuccessEvent.class));
   }
@@ -192,7 +192,7 @@ public class UserServiceTest extends ServiceTest {
     assertEquals(testException, thrown.getCause());
     assertNull(instance.getOwnUser());
     verify(tokenService).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
-    verify(fafApiAccessor).authorize();
+    verify(fafApiAccessor).getMe();
     verify(fafServerAccessor, never()).connectAndLogIn();
     verify(eventBus, never()).post(any(LoginSuccessEvent.class));
   }
@@ -213,7 +213,7 @@ public class UserServiceTest extends ServiceTest {
     assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
     assertEquals(meResult.getUserName(), instance.getUsername());
     verify(tokenService).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
-    verify(fafApiAccessor).authorize();
+    verify(fafApiAccessor).getMe();
     verify(fafServerAccessor).connectAndLogIn();
     verify(eventBus, never()).post(any(LoginSuccessEvent.class));
   }
@@ -236,7 +236,7 @@ public class UserServiceTest extends ServiceTest {
     assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
     assertEquals(meResult.getUserName(), instance.getUsername());
     verify(tokenService).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
-    verify(fafApiAccessor).authorize();
+    verify(fafApiAccessor).getMe();
     verify(fafServerAccessor).connectAndLogIn();
     verify(eventBus, never()).post(any(LoginSuccessEvent.class));
   }
@@ -280,7 +280,7 @@ public class UserServiceTest extends ServiceTest {
     assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
     assertEquals(meResult.getUserName(), instance.getUsername());
     verify(tokenService).loginWithRefreshToken();
-    verify(fafApiAccessor).authorize();
+    verify(fafApiAccessor).getMe();
     verify(fafServerAccessor).connectAndLogIn();
     verify(eventBus).post(any(LoginSuccessEvent.class));
   }
@@ -299,7 +299,7 @@ public class UserServiceTest extends ServiceTest {
     assertEquals(testException, thrown.getCause());
     assertNull(instance.getOwnUser());
     verify(tokenService).loginWithRefreshToken();
-    verify(fafApiAccessor, never()).authorize();
+    verify(fafApiAccessor, never()).getMe();
     verify(fafServerAccessor, never()).connectAndLogIn();
     verify(eventBus, never()).post(any(LoginSuccessEvent.class));
   }

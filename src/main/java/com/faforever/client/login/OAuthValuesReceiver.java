@@ -4,7 +4,6 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.user.UserService;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -151,10 +150,5 @@ public class OAuthValuesReceiver {
     return matcher.group(1);
   }
 
-  @Value
-  public static class Values {
-    String code;
-    String state;
-    URI redirectUri;
-  }
+  public record Values(String code, String state, URI redirectUri) {}
 }

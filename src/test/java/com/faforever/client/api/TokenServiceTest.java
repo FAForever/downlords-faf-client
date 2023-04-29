@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.http.MediaType;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.test.StepVerifier;
 
@@ -35,6 +34,10 @@ public class TokenServiceTest extends ServiceTest {
 
   private static final String VERIFIER = "def";
   private static final URI REDIRECT_URI = URI.create("http://localhost:123");
+  private static final String ACCESS_TOKEN = "access_token";
+  private static final String REFRESH_TOKEN = "refresh_token";
+  private static final String EXPIRES_IN = "expires_in";
+  private static final String TOKEN_TYPE = "token_type";
   private TokenService instance;
 
   @Mock
@@ -57,32 +60,32 @@ public class TokenServiceTest extends ServiceTest {
     loginPrefs = new LoginPrefs();
     loginPrefs.setRefreshToken("abc");
 
-    instance = new TokenService(clientProperties, eventBus, WebClient.builder(), loginPrefs);
+    instance = new TokenService(clientProperties, eventBus, WebClient.builder().build(), loginPrefs);
     instance.afterPropertiesSet();
 
     verify(eventBus).register(instance);
   }
 
-  private void prepareTokenResponse(Map<String, String> tokenProperties) throws Exception{
-    mockApi.enqueue(new MockResponse()
-        .setBody(objectMapper.writeValueAsString(tokenProperties))
+  private void prepareTokenResponse(Map<String, String> tokenProperties) throws Exception {
+    mockApi.enqueue(new MockResponse().setBody(objectMapper.writeValueAsString(tokenProperties))
         .addHeader("Content-Type", MediaType.APPLICATION_JSON));
+  }
+
+  private void prepareErrorResponse() {
+    mockApi.enqueue(new MockResponse().setResponseCode(400).addHeader("Content-Type", MediaType.APPLICATION_JSON));
   }
 
   @Test
   public void testLoginWithCode() throws Exception {
-    Map<String, String> tokenProperties = Map.of(
-        OAuth2AccessToken.ACCESS_TOKEN, "test",
-        OAuth2AccessToken.REFRESH_TOKEN, "refresh",
-        OAuth2AccessToken.EXPIRES_IN, "90"
-    );
+    Map<String, String> tokenProperties = Map.of(ACCESS_TOKEN, "test", REFRESH_TOKEN, "refresh", EXPIRES_IN, "90", TOKEN_TYPE, "bearer");
     prepareTokenResponse(tokenProperties);
 
-    StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI))
-        .verifyComplete();
-    Map<String, String> requestParams = URLEncodedUtils
-        .parse(mockApi.takeRequest().getBody().readString(StandardCharsets.UTF_8), StandardCharsets.UTF_8)
-        .stream().collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue));
+    StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).verifyComplete();
+    Map<String, String> requestParams = URLEncodedUtils.parse(mockApi.takeRequest()
+            .getBody()
+            .readString(StandardCharsets.UTF_8), StandardCharsets.UTF_8)
+        .stream()
+        .collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue));
 
     assertEquals("abc", requestParams.get("code"));
     assertEquals("authorization_code", requestParams.get("grant_type"));
@@ -92,135 +95,114 @@ public class TokenServiceTest extends ServiceTest {
     Thread.sleep(10);
 
     StepVerifier.create(instance.getRefreshedTokenValue())
-        .expectNext(tokenProperties.get(OAuth2AccessToken.ACCESS_TOKEN))
+        .expectNext(tokenProperties.get(ACCESS_TOKEN))
         .verifyComplete();
   }
 
   @Test
   public void testLoginWithRefresh() throws Exception {
-    Map<String, String> tokenProperties = Map.of(
-        OAuth2AccessToken.ACCESS_TOKEN, "test",
-        OAuth2AccessToken.REFRESH_TOKEN, "refresh",
-        OAuth2AccessToken.EXPIRES_IN, "90"
-    );
+    Map<String, String> tokenProperties = Map.of(ACCESS_TOKEN, "test", REFRESH_TOKEN, "refresh", EXPIRES_IN, "90", TOKEN_TYPE, "bearer");
     prepareTokenResponse(tokenProperties);
 
-    StepVerifier.create(instance.loginWithRefreshToken())
-        .verifyComplete();
-    Map<String, String> requestParams = URLEncodedUtils
-        .parse(mockApi.takeRequest().getBody().readString(StandardCharsets.UTF_8), StandardCharsets.UTF_8)
-        .stream().collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue));
+    StepVerifier.create(instance.loginWithRefreshToken()).verifyComplete();
+    Map<String, String> requestParams = URLEncodedUtils.parse(mockApi.takeRequest()
+            .getBody()
+            .readString(StandardCharsets.UTF_8), StandardCharsets.UTF_8)
+        .stream()
+        .collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue));
 
     instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI).block();
 
-    assertEquals("refresh_token", requestParams.get("grant_type"));
+    assertEquals(REFRESH_TOKEN, requestParams.get("grant_type"));
     assertEquals(oauth.getClientId(), requestParams.get("client_id"));
 
     Thread.sleep(10);
 
     StepVerifier.create(instance.getRefreshedTokenValue())
-        .expectNext(tokenProperties.get(OAuth2AccessToken.ACCESS_TOKEN))
+        .expectNext(tokenProperties.get(ACCESS_TOKEN))
         .verifyComplete();
   }
 
   @Test
   public void testGetRefreshedTokenExpired() throws Exception {
-    prepareTokenResponse(Map.of(
-        OAuth2AccessToken.EXPIRES_IN, "-1",
-        OAuth2AccessToken.REFRESH_TOKEN, "refresh",
-        OAuth2AccessToken.ACCESS_TOKEN, "test"
-    ));
+    prepareTokenResponse(Map.of(EXPIRES_IN, "0", REFRESH_TOKEN, "refresh", ACCESS_TOKEN, "test", TOKEN_TYPE, "bearer"));
 
-    StepVerifier.create(instance.loginWithRefreshToken())
-        .verifyComplete();
+    StepVerifier.create(instance.loginWithRefreshToken()).verifyComplete();
 
     Thread.sleep(100);
 
-    Map<String, String> tokenProperties = Map.of(OAuth2AccessToken.ACCESS_TOKEN, "new");
+    Map<String, String> tokenProperties = Map.of(EXPIRES_IN, "100", REFRESH_TOKEN, "refresh", ACCESS_TOKEN, "new", TOKEN_TYPE, "bearer");
     prepareTokenResponse(tokenProperties);
 
     StepVerifier.create(instance.getRefreshedTokenValue())
-        .expectNext(tokenProperties.get(OAuth2AccessToken.ACCESS_TOKEN))
+        .expectNext(tokenProperties.get(ACCESS_TOKEN))
         .verifyComplete();
   }
 
   @Test
   public void testGetRefreshedTokenError() throws Exception {
-    prepareTokenResponse(Map.of(
-        OAuth2AccessToken.EXPIRES_IN, "-1",
-        OAuth2AccessToken.REFRESH_TOKEN, "refresh",
-        OAuth2AccessToken.ACCESS_TOKEN, "test"
-    ));
+    prepareTokenResponse(Map.of(EXPIRES_IN, "-1", REFRESH_TOKEN, "refresh", ACCESS_TOKEN, "test", TOKEN_TYPE, "bearer"));
 
-    StepVerifier.create(instance.loginWithRefreshToken())
-        .verifyComplete();
+    StepVerifier.create(instance.loginWithRefreshToken()).verifyComplete();
 
     Thread.sleep(100);
 
-    prepareTokenResponse(null);
+    prepareErrorResponse();
 
-    StepVerifier.create(instance.getRefreshedTokenValue())
-        .verifyError(TokenRetrievalException.class);
+    StepVerifier.create(instance.getRefreshedTokenValue()).verifyError(TokenRetrievalException.class);
 
     verify(eventBus).post(any(SessionExpiredEvent.class));
   }
 
   @Test
   public void testLogOutInvalidates() throws Exception {
-    prepareTokenResponse(Map.of(
-        OAuth2AccessToken.EXPIRES_IN, "3600",
-        OAuth2AccessToken.REFRESH_TOKEN, "refresh",
-        OAuth2AccessToken.ACCESS_TOKEN, "test"
-    ));
+    prepareTokenResponse(Map.of(EXPIRES_IN, "3600", REFRESH_TOKEN, "refresh", ACCESS_TOKEN, "test", TOKEN_TYPE, "bearer"));
 
-    StepVerifier.create(instance.loginWithRefreshToken())
-        .verifyComplete();
+    StepVerifier.create(instance.loginWithRefreshToken()).verifyComplete();
 
     Thread.sleep(100);
 
     instance.onLogOut(new LoggedOutEvent());
 
-    prepareTokenResponse(null);
+    prepareErrorResponse();
 
-    StepVerifier.create(instance.getRefreshedTokenValue())
-        .verifyError(TokenRetrievalException.class);
+    StepVerifier.create(instance.getRefreshedTokenValue()).verifyError(TokenRetrievalException.class);
 
     verify(eventBus).post(any(SessionExpiredEvent.class));
   }
 
   @Test
   public void testNoToken() {
-    StepVerifier.create(instance.getRefreshedTokenValue())
-        .verifyError(NoRefreshTokenException.class);
+    StepVerifier.create(instance.getRefreshedTokenValue()).verifyError(NoRefreshTokenException.class);
 
     verify(eventBus).post(any(SessionExpiredEvent.class));
   }
 
   @Test
-  public void testTokenIsNull() throws Exception {
-    prepareTokenResponse(null);
+  public void testTokenError() throws Exception {
+    prepareErrorResponse();
     StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI))
-            .verifyError(TokenRetrievalException.class);
+        .verifyError(TokenRetrievalException.class);
   }
 
   @Test
   public void testGetRefreshToken() throws Exception {
     loginPrefs.setRememberMe(true);
-    Map<String, String> tokenProperties = Map.of(OAuth2AccessToken.REFRESH_TOKEN, "refresh");
+    Map<String, String> tokenProperties = Map.of(EXPIRES_IN, "3600", REFRESH_TOKEN, "refresh", ACCESS_TOKEN, "test", TOKEN_TYPE, "bearer");
     prepareTokenResponse(tokenProperties);
 
-    StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI))
-        .verifyComplete();
+    StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).verifyComplete();
 
-    assertEquals(tokenProperties.get(OAuth2AccessToken.REFRESH_TOKEN), loginPrefs.getRefreshToken());
+    assertEquals(tokenProperties.get(REFRESH_TOKEN), loginPrefs.getRefreshToken());
   }
 
   @Test
   public void testGetRefreshTokenNull() throws Exception {
     loginPrefs.setRememberMe(false);
-    prepareTokenResponse(Map.of(OAuth2AccessToken.REFRESH_TOKEN, "refresh"));
+    prepareErrorResponse();
 
-    instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI).block();
+    StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI))
+        .verifyError(TokenRetrievalException.class);
 
     assertNull(loginPrefs.getRefreshToken());
   }
