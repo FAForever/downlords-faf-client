@@ -3,12 +3,12 @@ package com.faforever.client.map;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.task.CompletableTask;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileSystemUtils;
 
-import javax.inject.Inject;
 import java.nio.file.Path;
 import java.util.Objects;
 
@@ -21,7 +21,7 @@ public class UninstallMapTask extends CompletableTask<Void> {
 
   private MapVersionBean map;
 
-  @Inject
+  @Autowired
   public UninstallMapTask(MapService mapService) {
     super(Priority.LOW);
     this.mapService = mapService;

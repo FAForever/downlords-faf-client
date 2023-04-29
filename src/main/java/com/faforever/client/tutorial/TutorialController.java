@@ -11,11 +11,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +33,7 @@ public class TutorialController extends AbstractViewController<Node> {
   public VBox nothingToShow;
   private final List<TutorialListItemController> tutorialListItemControllers = new ArrayList<>();
 
-  @Inject
+  @Autowired
   public TutorialController(TutorialService tutorialService, UiService uiService) {
     this.tutorialService = tutorialService;
     this.uiService = uiService;

@@ -7,11 +7,11 @@ import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.commons.io.ByteCopier;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.InputStream;
@@ -34,7 +34,7 @@ public class ReplayDownloadTask extends CompletableTask<Path> {
 
   private int replayId;
 
-  @Inject
+  @Autowired
   public ReplayDownloadTask(I18n i18n, ClientProperties clientProperties, DataPrefs dataPrefs) {
     super(Priority.HIGH);
 

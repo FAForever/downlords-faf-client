@@ -11,13 +11,13 @@ import com.google.common.io.BaseEncoding;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import javax.imageio.ImageIO;
-import javax.inject.Inject;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -46,7 +46,7 @@ public class ImgurUploadTask extends CompletableTask<String> implements Initiali
   private String baseUrl;
   private String clientId;
 
-  @Inject
+  @Autowired
   public ImgurUploadTask(I18n i18n, ClientProperties clientProperties, ObjectMapper objectMapper) {
     super(Priority.HIGH);
 

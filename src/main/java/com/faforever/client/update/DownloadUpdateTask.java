@@ -6,11 +6,11 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.commons.io.ByteCopier;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -29,7 +29,7 @@ public class DownloadUpdateTask extends CompletableTask<Path> {
 
   private UpdateInfo updateInfo;
 
-  @Inject
+  @Autowired
   public DownloadUpdateTask(I18n i18n, DataPrefs dataPrefs) {
     super(Priority.MEDIUM);
 

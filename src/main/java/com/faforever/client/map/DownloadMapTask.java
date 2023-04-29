@@ -5,11 +5,11 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.commons.io.Unzipper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -27,7 +27,7 @@ public class DownloadMapTask extends CompletableTask<Void> {
   private URL mapUrl;
   private String folderName;
 
-  @Inject
+  @Autowired
   public DownloadMapTask(I18n i18n, ForgedAlliancePrefs forgedAlliancePrefs) {
     super(Priority.HIGH);
 

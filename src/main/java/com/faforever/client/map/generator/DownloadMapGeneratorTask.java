@@ -11,11 +11,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,7 +41,7 @@ public class DownloadMapGeneratorTask extends CompletableTask<Void> {
   @VisibleForTesting
   private ComparableVersion version;
 
-  @Inject
+  @Autowired
   public DownloadMapGeneratorTask(MapGeneratorService mapGeneratorService, ClientProperties clientProperties, I18n i18n, PlatformService platformService) {
     super(Priority.HIGH);
 

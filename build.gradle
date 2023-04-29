@@ -297,7 +297,6 @@ dependencies {
   implementation("org.luaj:luaj-jse:3.0.1")
   implementation("commons-validator:commons-validator:1.7")
   implementation("com.github.micheljung:JJsonRpc:01a7fba5f4")
-  implementation("javax.inject:javax.inject:1")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.github.rutledgepaulv:q-builders:1.6")

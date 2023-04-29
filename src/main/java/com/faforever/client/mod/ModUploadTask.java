@@ -9,11 +9,11 @@ import com.faforever.client.util.Validator;
 import com.faforever.commons.io.ByteCountListener;
 import com.faforever.commons.io.Zipper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,7 +35,7 @@ public class ModUploadTask extends CompletableTask<Void> {
 
   private Path modPath;
 
-  @Inject
+  @Autowired
   public ModUploadTask(FafApiAccessor fafApiAccessor, I18n i18n, DataPrefs dataPrefs) {
     super(Priority.HIGH);
     this.dataPrefs = dataPrefs;

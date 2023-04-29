@@ -9,6 +9,7 @@ import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.update.GitHubRelease;
 import com.faforever.commons.io.ByteCopier;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,7 +37,7 @@ public class DownloadFAFDebuggerTask extends CompletableTask<Void> {
   private final ForgedAllianceService forgedAllianceService;
   private final WebClient webClient;
 
-  @Inject
+  @Autowired
   public DownloadFAFDebuggerTask(ClientProperties clientProperties, I18n i18n, PlatformService platformService, ForgedAllianceService forgedAllianceService,
                                  WebClient.Builder webClientBuilder) {
     super(Priority.HIGH);

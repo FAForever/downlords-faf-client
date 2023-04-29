@@ -12,11 +12,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
@@ -42,7 +42,7 @@ public class GenerateMapTask extends CompletableTask<String> {
   private String seed;
   private String mapName;
 
-  @Inject
+  @Autowired
   public GenerateMapTask(NotificationService notificationService, I18n i18n, OperatingSystem operatingSystem, EventBus eventBus, ForgedAlliancePrefs forgedAlliancePrefs) {
     super(Priority.HIGH);
     this.forgedAlliancePrefs = forgedAlliancePrefs;

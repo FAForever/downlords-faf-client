@@ -5,12 +5,12 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.task.CompletableTask;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileSystemUtils;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Objects;
@@ -26,7 +26,7 @@ public class DeleteDirectoryTask extends CompletableTask<Void> {
   @Setter
   private Path directory;
 
-  @Inject
+  @Autowired
   public DeleteDirectoryTask(I18n i18n, NotificationService notificationService) {
     super(Priority.HIGH);
     this.i18n = i18n;

@@ -9,11 +9,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +35,7 @@ public class GeneratorOptionsTask extends CompletableTask<List<String>> {
   private String query;
   private List<String> options;
 
-  @Inject
+  @Autowired
   public GeneratorOptionsTask(I18n i18n, OperatingSystem operatingSystem) {
     super(Priority.HIGH);
 

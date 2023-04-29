@@ -9,12 +9,12 @@ import com.faforever.commons.io.ByteCopier;
 import com.faforever.commons.io.Unzipper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.ArchiveException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileSystemUtils;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -39,7 +39,7 @@ public class DownloadModTask extends CompletableTask<Void> {
 
   private URL url;
 
-  @Inject
+  @Autowired
   public DownloadModTask(I18n i18n, DataPrefs dataPrefs, ForgedAlliancePrefs forgedAlliancePrefs) {
     super(HIGH);
 

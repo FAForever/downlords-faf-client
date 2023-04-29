@@ -3,12 +3,12 @@ package com.faforever.client.mod;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.task.CompletableTask;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileSystemUtils;
 
-import javax.inject.Inject;
 import java.nio.file.Path;
 import java.util.Objects;
 
@@ -21,7 +21,7 @@ public class UninstallModTask extends CompletableTask<Void> {
 
   private ModVersionBean modVersion;
 
-  @Inject
+  @Autowired
   public UninstallModTask(ModService modService) {
     super(CompletableTask.Priority.LOW);
 
