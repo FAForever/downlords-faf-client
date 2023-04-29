@@ -7,6 +7,7 @@ import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.domain.ReplayBean.ChatMessage;
 import com.faforever.client.domain.ReplayBean.GameOption;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
@@ -149,7 +150,8 @@ public class ReplayService {
   }
 
   @Async
-  public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> loadLocalReplayPage(int pageSize, int page) throws IOException {
+  public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> loadLocalReplayPage(int pageSize,
+                                                                                  int page) throws IOException {
     String replayFileGlob = clientProperties.getReplay().getReplayFileGlob();
 
     Path replaysDirectory = dataPrefs.getReplaysDirectory();
@@ -194,7 +196,8 @@ public class ReplayService {
       ReplayDataParser replayData = replayFileReader.parseReplay(replayFile);
       ReplayMetadata replayMetadata = replayData.getMetadata();
 
-      CompletableFuture<FeaturedModBean> featuredModFuture = modService.getFeaturedMod(replayMetadata.getFeaturedMod()).toFuture();
+      CompletableFuture<FeaturedModBean> featuredModFuture = modService.getFeaturedMod(replayMetadata.getFeaturedMod())
+          .toFuture();
       CompletableFuture<Optional<MapVersionBean>> mapVersionFuture = mapService.findByMapFolderName(replayMetadata.getMapname());
 
       return CompletableFuture.allOf(featuredModFuture, mapVersionFuture).thenApply(ignoredVoid -> {
@@ -277,30 +280,22 @@ public class ReplayService {
   /**
    * Reads the specified replay file in order to add more information to the specified replay instance.
    */
-  public void enrich(ReplayBean replay, Path path) {
-    try {
-      ReplayDataParser replayDataParser = replayFileReader.parseReplay(path);
-      replay.setChatMessages(replayDataParser.getChatMessages()
-              .stream()
-              .map(replayMapper::map)
-              .collect(Collectors.toList()));
-      replay.setGameOptions(Stream.concat(Stream.of(new GameOption("FAF Version", String.valueOf(parseSupComVersion(replayDataParser)))), replayDataParser.getGameOptions()
-              .stream()
-              .map(replayMapper::map))
-              .toList());
-      if (replay.getMapVersion() == null) {
-        MapVersionBean mapVersion = new MapVersionBean();
-        MapBean map = new MapBean();
-        mapVersion.setMap(map);
-        String mapFolderName = parseMapFolderName(replayDataParser);
-        mapVersion.setFolderName(mapFolderName);
-        mapVersion.setMap(map);
-        map.setDisplayName(mapFolderName);
-        replay.setMapVersion(mapVersion);
-      }
-    } catch (Exception e) {
-      log.error("Could not read replay file `{}`", path, e);
-    }
+  public ReplayDetails loadReplayDetails(Path path) throws CompressorException, IOException {
+    ReplayDataParser replayDataParser = replayFileReader.parseReplay(path);
+    List<ChatMessage> chatMessages = replayDataParser.getChatMessages().stream().map(replayMapper::map).toList();
+    List<GameOption> gameOptions = Stream.concat(Stream.of(new GameOption("FAF Version", String.valueOf(parseSupComVersion(replayDataParser)))), replayDataParser.getGameOptions()
+        .stream()
+        .map(replayMapper::map)).toList();
+
+    MapVersionBean mapVersion = new MapVersionBean();
+    MapBean map = new MapBean();
+    mapVersion.setMap(map);
+    String mapFolderName = parseMapFolderName(replayDataParser);
+    mapVersion.setFolderName(mapFolderName);
+    mapVersion.setMap(map);
+    map.setDisplayName(mapFolderName);
+
+    return new ReplayDetails(chatMessages, gameOptions, mapVersion);
   }
 
   public CompletableFuture<Integer> getFileSize(ReplayBean replay) {
@@ -398,7 +393,8 @@ public class ReplayService {
   }
 
   @Cacheable(value = CacheNames.REPLAYS_SEARCH, sync = true)
-  public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getReplaysForPlayerWithPageCount(int playerId, int count, int page) {
+  public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getReplaysForPlayerWithPageCount(int playerId, int count,
+                                                                                               int page) {
     ElideNavigatorOnCollection<Game> navigator = ElideNavigator.of(Game.class)
         .collection()
         .setFilter(qBuilder().intNum("playerStats.player.id")
@@ -425,7 +421,8 @@ public class ReplayService {
   }
 
   @Cacheable(value = CacheNames.REPLAYS_SEARCH, sync = true)
-  public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig, int count, int page) {
+  public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig,
+                                                                                       int count, int page) {
     SortConfig sortConfig = searchConfig.getSortConfig();
     ElideNavigatorOnCollection<Game> navigator = ElideNavigator.of(Game.class)
         .collection()
@@ -447,7 +444,8 @@ public class ReplayService {
     return getReplaysForPlayerWithPageCount(userService.getUserId(), count, page);
   }
 
-  private CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getReplayPage(ElideNavigatorOnCollection<Game> navigator, int count, int page) {
+  private CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getReplayPage(ElideNavigatorOnCollection<Game> navigator,
+                                                                             int count, int page) {
     navigator.pageSize(count).pageNumber(page);
     return fafApiAccessor.getManyWithPageCount(navigator)
         .map(tuple -> tuple.mapT1(mods -> mods.stream()
@@ -456,7 +454,8 @@ public class ReplayService {
         .toFuture();
   }
 
-  private CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getReplayPage(ElideNavigatorOnCollection<Game> navigator, String customFilter, int count, int page) {
+  private CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getReplayPage(ElideNavigatorOnCollection<Game> navigator,
+                                                                             String customFilter, int count, int page) {
     navigator.pageNumber(page).pageSize(count);
     return fafApiAccessor.getManyWithPageCount(navigator, customFilter)
         .map(tuple -> tuple.mapT1(mods -> mods.stream()

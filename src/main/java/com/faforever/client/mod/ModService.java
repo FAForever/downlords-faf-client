@@ -32,8 +32,11 @@ import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.mod.ModReader;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -267,6 +270,10 @@ public class ModService implements InitializingBean, DisposableBean {
 
   public boolean isInstalled(String uid) {
     return modsByUid.containsKey(uid);
+  }
+
+  public BooleanExpression isInstalledBinding(ObservableValue<ModVersionBean> modVersionObservable) {
+    return BooleanExpression.booleanExpression(Bindings.createBooleanBinding(() -> isInstalled(modVersionObservable.getValue()), modVersionObservable, installedMods));
   }
 
   public CompletableFuture<Void> uninstallMod(ModVersionBean modVersion) {

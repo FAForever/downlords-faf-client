@@ -6,10 +6,17 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanExpression;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -17,20 +24,13 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import java.util.Optional;
+import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ReviewController<T extends ReviewBean> implements Controller<Pane> {
-  private static final String[] STARS_TIP_KEYS = {
-      "review.starsTip.one",
-      "review.starsTip.two",
-      "review.starsTip.three",
-      "review.starsTip.four",
-      "review.starsTip.five"
-  };
+  private static final String[] STARS_TIP_KEYS = {"review.starsTip.one", "review.starsTip.two", "review.starsTip.three", "review.starsTip.four", "review.starsTip.five"};
 
   private final I18n i18n;
   private final PlayerService playerService;
@@ -42,18 +42,20 @@ public class ReviewController<T extends ReviewBean> implements Controller<Pane> 
   public Label starsTipLabel;
   public Label usernameLabel;
   public Label versionLabel;
+  public HBox selectionStars;
+  public HBox displayStars;
   public StarsController selectionStarsController;
   public StarsController displayStarsController;
-  public ImageView avatarImageView;
   public Label reviewTextLabel;
   public Button deleteButton;
   public Button editButton;
+  public Button sendButton;
 
-  private Supplier<T> reviewSupplier;
+  private final ObjectProperty<T> review = new SimpleObjectProperty<>();
+  private final BooleanProperty editing = new SimpleBooleanProperty();
+
   private Consumer<T> onSendReviewListener;
   private Consumer<T> onDeleteReviewListener;
-  private T review;
-  private Runnable onCancelReviewListener;
 
   public ReviewController(I18n i18n, PlayerService playerService) {
     this.i18n = i18n;
@@ -61,53 +63,66 @@ public class ReviewController<T extends ReviewBean> implements Controller<Pane> 
   }
 
   public void initialize() {
-    selectionStarsController.valueProperty().addListener((observable, oldValue, newValue)
-        -> starsTipLabel.setText(i18n.get(STARS_TIP_KEYS[newValue.intValue() - 1])));
+    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+
+    JavaFxUtil.bindManagedToVisible(displayReviewPane, editReviewPane, editButton, deleteButton);
+
+    starsTipLabel.textProperty()
+        .bind(selectionStarsController.valueProperty()
+            .map(val -> val.intValue() - 1)
+            .map(i -> i >= 0 && i < STARS_TIP_KEYS.length ? STARS_TIP_KEYS[i] : null)
+            .map(i18n::get));
+
     selectionStarsController.setSelectable(true);
-    selectionStarsController.setValue(4);
 
-    displayReviewPane.managedProperty().bind(displayReviewPane.visibleProperty());
-    editReviewPane.managedProperty().bind(editReviewPane.visibleProperty());
-    editButton.managedProperty().bind(editButton.visibleProperty());
-    deleteButton.managedProperty().bind(deleteButton.visibleProperty());
+    editReviewPane.visibleProperty().bind(editing.and(review.isNotNull()));
+    displayReviewPane.visibleProperty().bind(editing.not().and(review.isNotNull()));
 
-    displayReviewPane.setVisible(false);
-    editButton.setVisible(false);
-    deleteButton.setVisible(false);
+    BooleanExpression reviewCreated = BooleanExpression.booleanExpression(review.flatMap(ReviewBean::idProperty)
+        .map(Objects::nonNull));
+    ObservableValue<PlayerBean> reviewerObservable = review.flatMap(ReviewBean::playerProperty);
+    BooleanExpression ownedByPlayer = BooleanExpression.booleanExpression(playerService.currentPlayerProperty()
+        .flatMap(player -> reviewerObservable.map(reviewer -> Objects.equals(reviewer, player))));
+    displayStars.visibleProperty().bind(reviewCreated.when(showing));
+    usernameLabel.visibleProperty().bind(reviewCreated.when(showing));
+    versionLabel.visibleProperty().bind(reviewCreated.when(showing));
+    reviewTextLabel.visibleProperty().bind(reviewCreated.when(showing));
+    editButton.textProperty()
+        .bind(reviewCreated.map(created -> created ? "" : i18n.get("reviews.create")).when(showing));
+    editButton.visibleProperty().bind(ownedByPlayer.when(showing));
+    deleteButton.visibleProperty().bind(Bindings.and(reviewCreated, ownedByPlayer).when(showing));
+
+    ObservableValue<Number> scoreObservable = review.flatMap(ReviewBean::scoreProperty);
+    sendButton.disableProperty()
+        .bind(selectionStarsController.valueProperty().map(score -> score.intValue() < 1).when(showing));
+    displayStarsController.valueProperty().bind(scoreObservable.when(showing));
+    usernameLabel.textProperty()
+        .bind(reviewerObservable.flatMap(PlayerBean::usernameProperty).when(showing));
+    reviewTextLabel.textProperty().bind(review.flatMap(ReviewBean::textProperty).when(showing));
+    versionLabel.textProperty().bind(review.flatMap(reviewValue -> Bindings.createStringBinding(() -> {
+      ComparableVersion versionReviewed = reviewValue.getVersion();
+      if (versionReviewed == null || versionReviewed.toString().isBlank()) {
+        return null;
+      }
+
+      if (versionReviewed.compareTo(reviewValue.getLatestVersion()) == 0) {
+        return i18n.get("review.currentVersion");
+      } else {
+        return i18n.get("review.version", versionReviewed.toString());
+      }
+    }, reviewValue.latestVersionProperty(), reviewValue.versionProperty())).when(showing));
   }
 
   public void setReview(T review) {
-    JavaFxUtil.assertApplicationThread();
-    this.review = review;
-    if (review == null) {
-      editReviewPane.setVisible(true);
-      displayReviewPane.setVisible(false);
-      return;
-    }
+    this.review.set(review);
+  }
 
-    PlayerBean currentPlayer = playerService.getCurrentPlayer();
+  public ReviewBean getReview() {
+    return review.get();
+  }
 
-    boolean isReviewOwnedByCurrentUser = currentPlayer.equals(review.getPlayer());
-
-    int rating = review.getScore();
-    selectionStarsController.setValue(rating);
-    displayStarsController.setValue(rating);
-    usernameLabel.setText(review.getPlayer().getUsername());
-    reviewTextLabel.setText(review.getText());
-    ComparableVersion versionReviewed = review.getVersion();
-    if (versionReviewed != null && !versionReviewed.toString().isBlank()) {
-      if (versionReviewed.compareTo(review.getLatestVersion()) == 0) {
-        versionLabel.setText(i18n.get("review.currentVersion"));
-      } else {
-        versionLabel.setText(i18n.get("review.version", versionReviewed.toString()));
-      }
-    } else {
-      versionLabel.setVisible(false);
-    }
-    displayReviewPane.setVisible(true);
-    editReviewPane.setVisible(false);
-    editButton.setVisible(isReviewOwnedByCurrentUser);
-    deleteButton.setVisible(isReviewOwnedByCurrentUser);
+  public ObjectProperty<T> reviewProperty() {
+    return review;
   }
 
   @Override
@@ -116,50 +131,46 @@ public class ReviewController<T extends ReviewBean> implements Controller<Pane> 
   }
 
   public void onDeleteButtonClicked() {
-    Optional.ofNullable(onDeleteReviewListener).ifPresent(listener -> {
-      Assert.notNull(review, "No review has been set");
-      listener.accept(review);
-    });
+    T reviewValue = review.getValue();
+    Assert.notNull(reviewValue, "No review has been set");
+
+    if (onDeleteReviewListener != null) {
+      onDeleteReviewListener.accept(reviewValue);
+    }
+
+    editing.set(false);
   }
 
   public void onEditButtonClicked() {
-    Assert.notNull(review, "No review has been set");
+    T reviewValue = review.get();
+    Assert.notNull(reviewValue, "No review has been set");
 
-    reviewTextArea.setText(review.getText());
-    displayReviewPane.setVisible(false);
-    editReviewPane.setVisible(true);
-  }
-
-  public void onSendReview() {
-    if (review == null) {
-      review = reviewSupplier.get();
-    }
-    review.setScore(Math.round(selectionStarsController.getValue()));
-    review.setText(reviewTextArea.getText());
-    this.onSendReviewListener.accept(review);
-  }
-
-  public void setReviewSupplier(Supplier<T> reviewSupplier) {
-    this.reviewSupplier = reviewSupplier;
-  }
-
-  void setOnSendReviewListener(Consumer<T> onSendReviewListener) {
-    this.onSendReviewListener = onSendReviewListener;
+    selectionStarsController.setValue(reviewValue.getScore());
+    reviewTextArea.setText(reviewValue.getText());
+    editing.set(true);
   }
 
   public void onCancelButtonClicked() {
-    boolean reviewPresent = review != null;
-    displayReviewPane.setVisible(reviewPresent);
-    editReviewPane.setVisible(false);
-
-    Optional.ofNullable(onCancelReviewListener).ifPresent(Runnable::run);
+    editing.set(false);
   }
 
-  void setOnCancelListener(Runnable onCancelReviewListener) {
-    this.onCancelReviewListener = onCancelReviewListener;
+  public void onSendReview() {
+    T reviewValue = review.get();
+    reviewValue.setScore(Math.round(selectionStarsController.getValue()));
+    reviewValue.setText(reviewTextArea.getText());
+
+    if (onSendReviewListener != null) {
+      onSendReviewListener.accept(reviewValue);
+    }
+
+    editing.set(false);
   }
 
-  void setOnDeleteReviewListener(Consumer<T> onDeleteReviewListener) {
+  public void setOnSendReviewListener(Consumer<T> onSendReviewListener) {
+    this.onSendReviewListener = onSendReviewListener;
+  }
+
+  public void setOnDeleteReviewListener(Consumer<T> onDeleteReviewListener) {
     this.onDeleteReviewListener = onDeleteReviewListener;
   }
 }

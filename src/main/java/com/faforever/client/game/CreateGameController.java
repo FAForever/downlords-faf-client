@@ -524,7 +524,7 @@ public class CreateGameController implements Controller<Pane> {
       Optional.ofNullable(mapListView.getSelectionModel())
           .map(SelectionModel::getSelectedItem)
           .map(MapVersionBean::getFolderName)
-          .ifPresent(mapName -> PopupUtil.showImagePopup(mapService.loadPreview(mapName, PreviewSize.LARGE)));
+          .ifPresent(mapName -> PopupUtil.showImagePopup(mapService.loadPreview(mapName, PreviewSize.SMALL)));
     }
   }
 

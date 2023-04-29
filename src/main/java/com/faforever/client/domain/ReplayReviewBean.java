@@ -1,7 +1,9 @@
 package com.faforever.client.domain;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -10,6 +12,7 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 @Value
 public class ReplayReviewBean extends ReviewBean {
   ObjectProperty<ReplayBean> replay = new SimpleObjectProperty<>();
+  ReadOnlyObjectWrapper<ComparableVersion> stubVersion = new ReadOnlyObjectWrapper<>(new ComparableVersion("0"));
 
   public ReplayBean getReplay() {
     return replay.get();
@@ -24,12 +27,12 @@ public class ReplayReviewBean extends ReviewBean {
   }
 
   @Override
-  public ComparableVersion getVersion() {
-    return null;
+  public ObservableValue<ComparableVersion> versionProperty() {
+    return stubVersion.getReadOnlyProperty();
   }
 
   @Override
-  public ComparableVersion getLatestVersion() {
-    return new ComparableVersion("0");
+  public ObservableValue<ComparableVersion> latestVersionProperty() {
+    return stubVersion.getReadOnlyProperty();
   }
 }

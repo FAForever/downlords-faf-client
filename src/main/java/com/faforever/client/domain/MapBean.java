@@ -8,8 +8,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +15,6 @@ import lombok.ToString;
 import lombok.Value;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
@@ -34,7 +31,6 @@ public class MapBean extends AbstractEntityBean<MapBean> {
   ObjectProperty<MapType> mapType = new SimpleObjectProperty<>();
   ObjectProperty<MapVersionBean> latestVersion = new SimpleObjectProperty<>();
   ObjectProperty<MapReviewsSummaryBean> mapReviewsSummary = new SimpleObjectProperty<>();
-  ObservableList<MapVersionBean> versions = FXCollections.observableArrayList();
 
   public PlayerBean getAuthor() {
     return author.get();
@@ -94,17 +90,6 @@ public class MapBean extends AbstractEntityBean<MapBean> {
 
   public ObjectProperty<MapReviewsSummaryBean> mapReviewsSummaryProperty() {
     return mapReviewsSummary;
-  }
-
-  public ObservableList<MapVersionBean> getVersions() {
-    return versions;
-  }
-
-  public void setVersions(List<MapVersionBean> versions) {
-    if (versions == null) {
-      versions = List.of();
-    }
-    this.versions.setAll(versions);
   }
 
   public boolean getRecommended() {

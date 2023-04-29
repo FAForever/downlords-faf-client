@@ -36,6 +36,8 @@ import static com.faforever.client.util.TimeUtil.fromPythonTime;
 
 @Mapper(collectionMappingStrategy = CollectionMappingStrategy.TARGET_IMMUTABLE, uses = {ModMapper.class, PlayerMapper.class, MapMapper.class, LeaderboardMapper.class, ReviewMapper.class}, config = MapperConfiguration.class)
 public interface ReplayMapper {
+
+  @Mapping(target = "local", ignore = true)
   @Mapping(target = "title", source = "name")
   @Mapping(target = "teamPlayerStats", source = "dto", qualifiedBy = MapTeamStats.class)
   @Mapping(target = "teams", source = "dto", qualifiedBy = MapTeams.class)
@@ -68,6 +70,7 @@ public interface ReplayMapper {
         .collect(Collectors.groupingBy(gamePlayerStats -> String.valueOf(gamePlayerStats.getTeam()), Collectors.mapping(gamePlayerStats -> map(gamePlayerStats, context), Collectors.toList())));
   }
 
+  @Mapping(target = "local", constant = "true")
   @Mapping(target = "id", source = "parser.metadata.uid")
   @Mapping(target = "title", source = "parser.metadata.title")
   @Mapping(target = "replayAvailable", constant = "true")
@@ -79,7 +82,6 @@ public interface ReplayMapper {
   @Mapping(target = "teamPlayerStats", source = "parser", qualifiedBy = MapTeamStats.class)
   @Mapping(target = "teams", source = "parser", qualifiedBy = MapTeams.class)
   @Mapping(target = "host", ignore = true)
-  @Mapping(target = "reviews", ignore = true)
   ReplayBean map(ReplayDataParser parser, Path replayFile, FeaturedModBean featuredModBean,
                  MapVersionBean mapVersionBean);
 

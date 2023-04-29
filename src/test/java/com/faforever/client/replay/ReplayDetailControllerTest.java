@@ -220,7 +220,7 @@ public class ReplayDetailControllerTest extends UITest {
     instance.setReplay(localReplay);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(replayService).enrich(localReplay, localReplay.getReplayFile());
+    verify(replayService).loadReplayDetails(localReplay.getReplayFile());
     assertEquals(String.valueOf(localReplay.getId()), instance.replayIdField.getText());
     assertFalse(instance.ratingSeparator.isVisible());
     assertFalse(instance.reviewSeparator.isVisible());
@@ -350,7 +350,7 @@ public class ReplayDetailControllerTest extends UITest {
     instance.onDownloadMoreInfoClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(replayService).enrich(replay, tmpPath);
+    verify(replayService).loadReplayDetails(tmpPath);
     assertTrue(instance.optionsTable.isVisible());
     assertTrue(instance.chatTable.isVisible());
     assertFalse(instance.downloadMoreInfoButton.isVisible());

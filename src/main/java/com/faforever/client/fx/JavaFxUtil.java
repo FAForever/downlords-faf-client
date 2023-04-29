@@ -189,7 +189,7 @@ public final class JavaFxUtil {
         (int) (color.getBlue() * 255));
   }
 
-  public static ObservableValue<Boolean> showingProperty(Node node) {
+  public static BooleanExpression showingProperty(Node node) {
     ObservableValue<Boolean> attachedToVisibleWindow = node.sceneProperty()
         .flatMap(Scene::windowProperty)
         .flatMap(Window::showingProperty)

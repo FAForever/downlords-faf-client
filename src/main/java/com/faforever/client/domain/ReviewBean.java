@@ -6,6 +6,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -16,6 +17,8 @@ public abstract class ReviewBean extends AbstractEntityBean<ReviewBean> {
   private final StringProperty text = new SimpleStringProperty();
   private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
   private final IntegerProperty score = new SimpleIntegerProperty();
+  protected final ObjectProperty<ComparableVersion> version = new SimpleObjectProperty<>();
+  protected final ObjectProperty<ComparableVersion> latestVersion = new SimpleObjectProperty<>();
 
   public String getText() {
     return text.get();
@@ -53,7 +56,15 @@ public abstract class ReviewBean extends AbstractEntityBean<ReviewBean> {
     return score;
   }
 
-  public abstract ComparableVersion getVersion();
+  public ComparableVersion getVersion() {
+    return versionProperty().getValue();
+  }
 
-  public abstract ComparableVersion getLatestVersion();
+  public ComparableVersion getLatestVersion() {
+    return latestVersionProperty().getValue();
+  }
+
+  public abstract ObservableValue<ComparableVersion> versionProperty();
+
+  public abstract ObservableValue<ComparableVersion> latestVersionProperty();
 }

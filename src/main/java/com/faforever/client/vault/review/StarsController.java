@@ -1,45 +1,40 @@
 package com.faforever.client.vault.review;
 
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.theme.UiService;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.css.PseudoClass;
 import javafx.scene.layout.Pane;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class StarsController implements Controller<Pane> {
   private static final PseudoClass SELECTABLE_PSEUDO_CLASS = PseudoClass.getPseudoClass("selectable");
-  private final FloatProperty value;
-  public StarController star1Controller;
-  public StarController star2Controller;
-  public StarController star3Controller;
-  public StarController star4Controller;
-  public StarController star5Controller;
+
+  private final UiService uiService;
+
+  private final FloatProperty value = new SimpleFloatProperty();
+
   public Pane starsRoot;
   private List<StarController> starControllers;
 
-  public StarsController() {
-    value = new SimpleFloatProperty();
-  }
-
   public void initialize() {
-    starControllers = Arrays.asList(star1Controller, star2Controller, star3Controller, star4Controller, star5Controller);
-    value.addListener((observable, oldValue, newValue) -> {
-      int value = newValue.intValue();
-      star1Controller.setFill(Math.max(0, Math.min(1f, newValue.floatValue())));
-      star2Controller.setFill(Math.max(0, Math.min(1f, newValue.floatValue() - 1)));
-      star3Controller.setFill(Math.max(0, Math.min(1f, newValue.floatValue() - 2)));
-      star4Controller.setFill(Math.max(0, Math.min(1f, newValue.floatValue() - 3)));
-      star5Controller.setFill(Math.max(0, Math.min(1f, newValue.floatValue() - 4)));
-    });
+    starControllers = IntStream.range(0, 5).mapToObj(index -> {
+      StarController starController = uiService.loadFxml("theme/vault/review/star.fxml");
+      starController.fillProperty()
+          .bind(value.subtract(index).map(val -> Math.min(1f, val.floatValue())).map(val -> Math.max(0f, val)));
+      starsRoot.getChildren().add(starController.getRoot());
+      return starController;
+    }).toList();
   }
 
   @Override
@@ -48,16 +43,7 @@ public class StarsController implements Controller<Pane> {
   }
 
   private void onStarSelected(StarController starController) {
-    JavaFxUtil.assertApplicationThread();
-    int maxActiveStarIndex = starControllers.indexOf(starController);
-    for (int starIndex = 0; starIndex < starControllers.size(); starIndex++) {
-      starControllers.get(starIndex).setFill(starIndex <= maxActiveStarIndex ? 1 : 0);
-    }
-    value.set(countActivatedStars());
-  }
-
-  private int countActivatedStars() {
-    return (int) starControllers.stream().filter(starController -> starController.getFill() >= 1f).count();
+    value.set(starControllers.indexOf(starController) + 1);
   }
 
   public float getValue() {

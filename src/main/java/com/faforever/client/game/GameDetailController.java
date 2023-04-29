@@ -271,7 +271,7 @@ public class GameDetailController implements Controller<Pane> {
     JavaFxUtil.runLater(() -> {
       mapImageView.imageProperty()
           .bind(game.flatMap(GameBean::mapFolderNameProperty)
-              .map(folderName -> mapService.loadPreview(folderName, PreviewSize.LARGE))
+              .map(folderName -> mapService.loadPreview(folderName, PreviewSize.SMALL))
               .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
       generateMapButton.visibleProperty()
           .bind(game.flatMap(GameBean::mapFolderNameProperty)

@@ -303,8 +303,8 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     lobbyClient.kickPlayerFromParty(kickedPlayer.getId());
   }
 
-  public void readyParty() {
-    lobbyClient.readyParty();
+  public void sendReady(String requestId) {
+    lobbyClient.sendReady(requestId);
   }
 
   public void unreadyParty() {

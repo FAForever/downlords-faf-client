@@ -50,31 +50,35 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(installButton, uninstallButton);
+    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
 
     ObservableValue<ModBean> modObservable = entity.flatMap(ModVersionBean::modProperty);
     numberOfReviewsLabel.textProperty()
         .bind(modObservable.flatMap(ModBean::modReviewsSummaryProperty)
             .flatMap(ModReviewsSummaryBean::numReviewsProperty)
             .orElse(0)
-            .map(i18n::number));
+            .map(i18n::number)
+            .when(showing));
     starsController.valueProperty()
         .bind(modObservable.flatMap(ModBean::modReviewsSummaryProperty)
-            .flatMap(reviewsSummary -> reviewsSummary.scoreProperty().divide(reviewsSummary.numReviewsProperty())));
+            .flatMap(reviewsSummary -> reviewsSummary.scoreProperty().divide(reviewsSummary.numReviewsProperty()))
+            .when(showing));
 
     BooleanExpression isModInstalled = BooleanExpression.booleanExpression(entity.flatMap(modVersionBean ->
-        Bindings.createBooleanBinding(() -> modService.isInstalled(modVersionBean), modService.getInstalledMods())));
+            Bindings.createBooleanBinding(() -> modService.isInstalled(modVersionBean), modService.getInstalledMods()))
+        .when(showing));
 
-    installButton.visibleProperty().bind(isModInstalled.not());
-    uninstallButton.visibleProperty().bind(isModInstalled);
+    installButton.visibleProperty().bind(isModInstalled.not().when(showing));
+    uninstallButton.visibleProperty().bind(isModInstalled.when(showing));
 
     thumbnailImageView.imageProperty()
         .bind(entity.map(modService::loadThumbnail)
-            .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
+            .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable).when(showing));
 
-    nameLabel.textProperty().bind(modObservable.flatMap(ModBean::displayNameProperty));
-    authorLabel.textProperty().bind(modObservable.flatMap(ModBean::authorProperty));
+    nameLabel.textProperty().bind(modObservable.flatMap(ModBean::displayNameProperty).when(showing));
+    authorLabel.textProperty().bind(modObservable.flatMap(ModBean::authorProperty).when(showing));
     typeLabel.textProperty()
-        .bind(entity.flatMap(ModVersionBean::modTypeProperty).map(ModType::getI18nKey).map(i18n::get));
+        .bind(entity.flatMap(ModVersionBean::modTypeProperty).map(ModType::getI18nKey).map(i18n::get).when(showing));
   }
 
   public void onInstallButtonClicked() {

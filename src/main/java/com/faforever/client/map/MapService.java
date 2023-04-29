@@ -17,6 +17,7 @@ import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapMapper;
 import com.faforever.client.mapstruct.ReplayMapper;
+import com.faforever.client.mapstruct.ReviewMapper;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -44,8 +45,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -121,6 +125,7 @@ public class MapService implements InitializingBean, DisposableBean {
   private final PlayerService playerService;
   private final MapMapper mapMapper;
   private final ReplayMapper replayMapper;
+  private final ReviewMapper reviewMapper;
   private final FileSizeReader fileSizeReader;
   private final ClientProperties clientProperties;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
@@ -371,6 +376,14 @@ public class MapService implements InitializingBean, DisposableBean {
     return mapVersion != null && isInstalled(mapVersion.getFolderName());
   }
 
+  public BooleanExpression isInstalledBinding(ObservableValue<MapVersionBean> mapVersionObservable) {
+    return Bindings.createBooleanBinding(() -> isInstalled(mapVersionObservable.getValue()), mapVersionObservable, installedMaps);
+  }
+
+  public BooleanExpression isInstalledBinding(MapVersionBean mapVersion) {
+    return Bindings.createBooleanBinding(() -> isInstalled(mapVersion), installedMaps);
+  }
+
   public CompletableFuture<String> generateIfNotInstalled(String mapName) {
     if (isInstalled(mapName)) {
       return CompletableFuture.completedFuture(mapName);
@@ -544,13 +557,13 @@ public class MapService implements InitializingBean, DisposableBean {
     }
   }
 
-  public CompletableFuture<Void> hideMapVersion(MapVersionBean map) {
+  public Mono<Void> hideMapVersion(MapVersionBean map) {
     String id = String.valueOf(map.getId());
     MapVersion mapVersion = new MapVersion();
     mapVersion.setHidden(true);
     mapVersion.setId(id);
     ElideNavigatorOnId<MapVersion> navigator = ElideNavigator.of(mapVersion);
-    return fafApiAccessor.patch(navigator, mapVersion).toFuture();
+    return fafApiAccessor.patch(navigator, mapVersion);
   }
 
   /**
@@ -634,7 +647,7 @@ public class MapService implements InitializingBean, DisposableBean {
     ).toFuture();
   }
 
-  public CompletableFuture<Boolean> hasPlayedMap(PlayerBean player, MapVersionBean mapVersion) {
+  public Mono<Boolean> hasPlayedMap(PlayerBean player, MapVersionBean mapVersion) {
     ElideNavigatorOnCollection<Game> navigator = ElideNavigator.of(Game.class).collection()
         .setFilter(qBuilder()
             .intNum("mapVersion.id").eq(mapVersion.getId()).and()
@@ -642,11 +655,7 @@ public class MapService implements InitializingBean, DisposableBean {
         .addSortingRule("endTime", false)
         .pageSize(1);
     return fafApiAccessor.getMany(navigator)
-        .next()
-        .map(dto -> replayMapper.map(dto, new CycleAvoidingMappingContext()))
-        .toFuture()
-        .thenApply(Optional::ofNullable)
-        .thenApply(Optional::isPresent);
+        .hasElements();
   }
 
   public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getOwnedMapsWithPageCount(int count, int page) {

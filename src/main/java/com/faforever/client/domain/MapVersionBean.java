@@ -9,16 +9,12 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
-import java.util.List;
 
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
@@ -39,7 +35,6 @@ public class MapVersionBean extends AbstractEntityBean<MapVersionBean> {
   ObjectProperty<URL> thumbnailUrlSmall = new SimpleObjectProperty<>();
   ObjectProperty<URL> thumbnailUrlLarge = new SimpleObjectProperty<>();
   ObjectProperty<MapBean> map = new SimpleObjectProperty<>();
-  ObservableList<MapVersionReviewBean> reviews = FXCollections.observableArrayList();
 
   public URL getDownloadUrl() {
     return downloadUrl.get();
@@ -101,7 +96,6 @@ public class MapVersionBean extends AbstractEntityBean<MapVersionBean> {
     return maxPlayers;
   }
 
-  @Nullable
   public ComparableVersion getVersion() {
     return version.get();
   }
@@ -184,16 +178,5 @@ public class MapVersionBean extends AbstractEntityBean<MapVersionBean> {
 
   public void setMap(MapBean map) {
     this.map.set(map);
-  }
-
-  public ObservableList<MapVersionReviewBean> getReviews() {
-    return reviews;
-  }
-
-  public void setReviews(List<MapVersionReviewBean> reviews) {
-    if (reviews == null) {
-      reviews = List.of();
-    }
-    this.reviews.setAll(reviews);
   }
 }

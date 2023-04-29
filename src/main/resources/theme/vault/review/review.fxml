@@ -5,7 +5,6 @@
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextArea?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -27,8 +26,6 @@
                 <RowConstraints maxHeight="1.7976931348623157E308" minHeight="10.0" vgrow="ALWAYS" />
             </rowConstraints>
             <children>
-                <ImageView fx:id="avatarImageView" fitHeight="48.0" fitWidth="48.0" pickOnBounds="true"
-                           preserveRatio="true" GridPane.rowSpan="2147483647" GridPane.valignment="TOP"/>
                 <Label fx:id="usernameLabel" styleClass="h3" text="&lt;Username&gt;" GridPane.columnIndex="1"
                        GridPane.valignment="TOP"/>
                 <HBox styleClass="medium-stars" GridPane.columnIndex="1" GridPane.rowIndex="1"
@@ -75,8 +72,9 @@
                 <TextArea fx:id="reviewTextArea" minHeight="10.0" minWidth="10.0" prefHeight="120.0" prefWidth="240.0" wrapText="true" />
                 <ButtonBar prefHeight="40.0" prefWidth="200.0">
                     <buttons>
-                        <Button mnemonicParsing="false" onAction="#onCancelButtonClicked" text="%cancel" />
-                        <Button defaultButton="true" mnemonicParsing="false" onAction="#onSendReview" text="%review.send" />
+                        <Button mnemonicParsing="false" onAction="#onCancelButtonClicked" text="%cancel"/>
+                        <Button fx:id="sendButton" defaultButton="true" mnemonicParsing="false" onAction="#onSendReview"
+                                text="%review.send"/>
                     </buttons>
                 </ButtonBar>
             </children>
