@@ -71,8 +71,8 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
     }
 
     Values values = future.get();
-    assertThat(values.getCode(), is("1234"));
-    assertThat(values.getState(), is("abcd"));
+    assertThat(values.code(), is("1234"));
+    assertThat(values.state(), is("abcd"));
   }
 
   @Test
@@ -103,8 +103,8 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
     }
 
     Values values = future1.get();
-    assertThat(values.getCode(), is("1234"));
-    assertThat(values.getState(), is("abcd"));
+    assertThat(values.code(), is("1234"));
+    assertThat(values.state(), is("abcd"));
   }
 
   @Test
@@ -181,8 +181,8 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
     }
 
     Values values = future.get();
-    assertThat(values.getCode(), is("1234"));
-    assertThat(values.getState(), is("abcd"));
+    assertThat(values.code(), is("1234"));
+    assertThat(values.state(), is("abcd"));
   }
 
   @Test

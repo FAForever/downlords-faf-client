@@ -57,15 +57,17 @@ public class UserService implements InitializingBean {
 
   public String getHydraUrl(String state, String codeVerifier, URI redirectUri) {
     Oauth oauth = clientProperties.getOauth();
-    String codeChallenge = BASE64_ENCODER.encodeToString(Hashing.sha256().hashString(codeVerifier, StandardCharsets.US_ASCII).asBytes());
-    return String.format("%s/oauth2/auth?response_type=code&client_id=%s&state=%s&redirect_uri=%s&scope=%s&code_challenge_method=S256&code_challenge=%s",
-        oauth.getBaseUrl(), oauth.getClientId(), state, redirectUri.toASCIIString(), oauth.getScopes(), codeChallenge);
+    String codeChallenge = BASE64_ENCODER.encodeToString(Hashing.sha256()
+        .hashString(codeVerifier, StandardCharsets.US_ASCII)
+        .asBytes());
+    return String.format("%s/oauth2/auth?response_type=code&client_id=%s&state=%s&redirect_uri=%s&scope=%s&code_challenge_method=S256&code_challenge=%s", oauth.getBaseUrl(), oauth.getClientId(), state, redirectUri.toASCIIString(), oauth.getScopes(), codeChallenge);
   }
 
   public CompletableFuture<Void> login(String code, String codeVerifier, URI redirectUri) {
     if (loginFuture == null || loginFuture.isDone()) {
       log.info("Logging in with authorization code");
-      loginFuture = tokenService.loginWithAuthorizationCode(code, codeVerifier, redirectUri).toFuture()
+      loginFuture = tokenService.loginWithAuthorizationCode(code, codeVerifier, redirectUri)
+          .toFuture()
           .thenCompose(aVoid -> loginToServices());
     }
     return loginFuture;
@@ -74,31 +76,29 @@ public class UserService implements InitializingBean {
   public CompletableFuture<Void> loginWithRefreshToken() {
     if (loginFuture == null || loginFuture.isDone()) {
       log.info("Logging in with refresh token");
-      loginFuture = tokenService.loginWithRefreshToken().toFuture()
-          .thenCompose(aVoid -> loginToServices());
+      loginFuture = tokenService.loginWithRefreshToken().toFuture().thenCompose(aVoid -> loginToServices());
     }
     return loginFuture;
   }
 
   private CompletableFuture<Void> loginToServices() {
-    return loginToApi().thenCompose(aVoid -> loginToLobbyServer()).thenRun(() -> eventBus.post(new LoginSuccessEvent()));
+    return loginToApi().thenCompose(aVoid -> loginToLobbyServer())
+        .thenRun(() -> eventBus.post(new LoginSuccessEvent()));
   }
 
   private CompletableFuture<Void> loginToApi() {
-    return CompletableFuture.runAsync(fafApiAccessor::authorize)
-        .thenCompose(aVoid -> fafApiAccessor.getMe().toFuture())
-        .thenAccept(me -> {
-          if (getOwnUser() == null) {
-            ownUser.set(me);
-          } else if (getOwnUser() != me) {
-            logOut();
-            ownUser.set(me);
-          }
-        }).whenComplete((aVoid, throwable) -> {
-          if (throwable != null) {
-            log.error("Could not log into the api", throwable);
-          }
-        });
+    return fafApiAccessor.getMe().toFuture().thenAccept(me -> {
+      if (getOwnUser() == null) {
+        ownUser.set(me);
+      } else if (getOwnUser() != me) {
+        logOut();
+        ownUser.set(me);
+      }
+    }).whenComplete((aVoid, throwable) -> {
+      if (throwable != null) {
+        log.error("Could not log into the api", throwable);
+      }
+    });
   }
 
   private CompletableFuture<Void> loginToLobbyServer() {
@@ -106,19 +106,19 @@ public class UserService implements InitializingBean {
     if (lobbyConnectionState == ConnectionState.CONNECTED || lobbyConnectionState == ConnectionState.CONNECTING) {
       return CompletableFuture.completedFuture(null);
     }
-    return fafServerAccessor.connectAndLogIn()
-        .handle((loginMessage, throwable) -> {
-          if (throwable != null) {
-            log.error("Could not log into the server", throwable);
-            throw new CompletionException(throwable);
-          }
-          if (loginMessage.getMe().getId() != getUserId()) {
-            log.error("Player id from server `{}` does not match player id from api `{}`", loginMessage.getMe().getId(), getUserId());
-            throw new IllegalStateException("Player id returned by server does not match player id from api");
-          }
-          ownPlayer.set(loginMessage.getMe());
-          return null;
-        });
+    return fafServerAccessor.connectAndLogIn().handle((loginMessage, throwable) -> {
+      if (throwable != null) {
+        log.error("Could not log into the server", throwable);
+        throw new CompletionException(throwable);
+      }
+      if (loginMessage.getMe().getId() != getUserId()) {
+        log.error("Player id from server `{}` does not match player id from api `{}`", loginMessage.getMe()
+            .getId(), getUserId());
+        throw new IllegalStateException("Player id returned by server does not match player id from api");
+      }
+      ownPlayer.set(loginMessage.getMe());
+      return null;
+    });
   }
 
   public String getUsername() {

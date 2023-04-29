@@ -9,7 +9,6 @@ import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.ReviewMapper;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.commons.api.dto.ApiException;
 import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GameReview;
@@ -22,7 +21,6 @@ import com.github.jasminb.jsonapi.ResourceConverter;
 import com.github.jasminb.jsonapi.models.errors.Error;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
-import com.google.common.eventbus.EventBus;
 import io.netty.resolver.DefaultAddressResolverGroup;
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
@@ -32,13 +30,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mapstruct.factory.Mappers;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.testfx.util.WaitForAsyncUtils;
-import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.test.StepVerifier;
 
@@ -47,24 +42,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 public class FafApiAccessorTest extends ServiceTest {
 
   private FafApiAccessor instance;
 
-  @Mock
-  private EventBus eventBus;
-  @Mock
-  private TokenService tokenService;
-  private OAuthTokenFilter oAuthTokenFilter;
   @TempDir
   public Path tempDirectory;
   private ClientProperties clientProperties;
@@ -81,6 +68,9 @@ public class FafApiAccessorTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    mockApi = new MockWebServer();
+    mockApi.start();
+
     MapperSetup.injectMappers(reviewMapper);
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.registerModule(new JavaTimeModule());
@@ -89,26 +79,21 @@ public class FafApiAccessorTest extends ServiceTest {
     JsonApiWriter jsonApiWriter = new JsonApiWriter(resourceConverter);
     HttpClient httpClient = HttpClient.create().resolver(DefaultAddressResolverGroup.INSTANCE);
     ReactorClientHttpConnector clientHttpConnector = new ReactorClientHttpConnector(httpClient);
-    WebClient.Builder webClientBuilder = WebClient.builder()
+
+    WebClient webClient = WebClient.builder()
+        .baseUrl(String.format("http://localhost:%s", mockApi.getPort()))
         .clientConnector(clientHttpConnector)
         .codecs(clientCodecConfigurer -> {
           clientCodecConfigurer.customCodecs().register(jsonApiReader);
           clientCodecConfigurer.customCodecs().register(jsonApiWriter);
-        });
-    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just(""));
-
-    mockApi = new MockWebServer();
-    mockApi.start();
+        }).build();
 
     clientProperties = new ClientProperties();
     Api api = clientProperties.getApi();
     api.setMaxPageSize(100);
-    api.setBaseUrl(String.format("http://localhost:%s", mockApi.getPort()));
     api.setRetryBackoffSeconds(0);
-    oAuthTokenFilter = new OAuthTokenFilter(tokenService);
-    instance = new FafApiAccessor(eventBus, clientProperties, oAuthTokenFilter, webClientBuilder);
+    instance = new FafApiAccessor(clientProperties, webClient);
     instance.afterPropertiesSet();
-    instance.authorize();
   }
 
   private void prepareJsonApiResponse(Object object) throws Exception {
@@ -144,20 +129,6 @@ public class FafApiAccessorTest extends ServiceTest {
   @Test
   public void testGetMaxPageSize() {
     assertEquals(100, instance.getMaxPageSize());
-  }
-
-  @Test
-  public void testSessionExpired() {
-    instance.onSessionExpiredEvent(new SessionExpiredEvent());
-    RuntimeException exception = assertThrows(RuntimeException.class, () -> WaitForAsyncUtils.waitForAsync(1000, () -> instance.getMe()));
-    assertEquals(TimeoutException.class, exception.getCause().getClass());
-  }
-
-  @Test
-  public void testLoggedOut() {
-    instance.onLoggedOutEvent(new LoggedOutEvent());
-    RuntimeException exception = assertThrows(RuntimeException.class, () -> WaitForAsyncUtils.waitForAsync(1000, () -> instance.getMe()));
-    assertEquals(TimeoutException.class, exception.getCause().getClass());
   }
 
   @Test

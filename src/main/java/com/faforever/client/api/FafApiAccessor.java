@@ -3,7 +3,6 @@ package com.faforever.client.api;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Api;
 import com.faforever.client.io.CountingFileSystemResource;
-import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.commons.api.dto.ApiException;
 import com.faforever.commons.api.dto.Clan;
 import com.faforever.commons.api.dto.CoopResult;
@@ -35,9 +34,6 @@ import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.jasminb.jsonapi.exceptions.ResourceParseException;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +62,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
@@ -131,20 +126,13 @@ public class FafApiAccessor implements InitializingBean {
 
   private static final String JSONAPI_MEDIA_TYPE = "application/vnd.api+json;charset=utf-8";
 
-  private final EventBus eventBus;
   private final ClientProperties clientProperties;
-  private final OAuthTokenFilter oAuthTokenFilter;
-  private final WebClient.Builder webClientBuilder;
+  private final WebClient apiWebClient;
 
-  private CountDownLatch authorizedLatch = new CountDownLatch(1);
-  private WebClient webClient;
-  @Getter
-  private int maxPageSize;
   private Retry apiRetrySpec;
 
   @Override
   public void afterPropertiesSet() {
-    eventBus.register(this);
     Api api = clientProperties.getApi();
     apiRetrySpec = Retry.backoff(api.getRetryAttempts(), Duration.ofSeconds(api.getRetryBackoffSeconds()))
         .jitter(api.getRetryJitter())
@@ -154,35 +142,18 @@ public class FafApiAccessor implements InitializingBean {
             new UnreachableApiException(String.format("API is unreachable after %d attempts", retryBackoffSpec.maxAttempts), retrySignal.failure()));
   }
 
-  public void authorize() {
-    Api apiProperties = clientProperties.getApi();
-    maxPageSize = apiProperties.getMaxPageSize();
-
-    webClient = webClientBuilder
-        .baseUrl(apiProperties.getBaseUrl())
-        .filter(oAuthTokenFilter)
-        .build();
-
-    authorizedLatch.countDown();
-  }
-
-  @Subscribe
-  public void onLoggedOutEvent(LoggedOutEvent event) {
-    authorizedLatch = new CountDownLatch(1);
-  }
-
-  @Subscribe
-  public void onSessionExpiredEvent(SessionExpiredEvent event) {
-    authorizedLatch = new CountDownLatch(1);
+  public int getMaxPageSize() {
+    return clientProperties.getApi().getMaxPageSize();
   }
 
   public Mono<MeResult> getMe() {
-    return retrieveMonoWithErrorHandling(MeResult.class, webClient.get().uri("/me"))
+    return retrieveMonoWithErrorHandling(MeResult.class, apiWebClient.get().uri("/me"))
         .cache()
         .doOnNext(object -> log.trace("Retrieved {} from /me with type MeResult", object));
   }
 
-  public Mono<Void> uploadFile(String endpoint, Path file, ByteCountListener listener, java.util.Map<String, java.util.Map<String, ?>> params) {
+  public Mono<Void> uploadFile(String endpoint, Path file, ByteCountListener listener,
+                               java.util.Map<String, java.util.Map<String, ?>> params) {
     MultiValueMap<String, Object> multipartContent = createFileMultipart(file, listener);
     params.forEach(multipartContent::add);
     return postMultipartForm(endpoint, multipartContent);
@@ -196,7 +167,7 @@ public class FafApiAccessor implements InitializingBean {
   }
 
   public Mono<Void> postMultipartForm(String endpointPath, MultiValueMap<String, Object> request) {
-    return retrieveMonoWithErrorHandling(Void.class, webClient.post().uri(endpointPath)
+    return retrieveMonoWithErrorHandling(Void.class, apiWebClient.post().uri(endpointPath)
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .bodyValue(request))
         .doOnSuccess(aVoid -> log.trace("Posted {} to {}", request, endpointPath));
@@ -205,7 +176,7 @@ public class FafApiAccessor implements InitializingBean {
   public <T extends ElideEntity> Mono<T> post(ElideNavigatorOnCollection<T> navigator, T request) {
     Class<T> type = navigator.getDtoClass();
     String endpointPath = navigator.build();
-    return retrieveMonoWithErrorHandling(type, webClient.post().uri(endpointPath)
+    return retrieveMonoWithErrorHandling(type, apiWebClient.post().uri(endpointPath)
         .contentType(MediaType.parseMediaType(JSONAPI_MEDIA_TYPE))
         .bodyValue(request))
         .doOnNext(object -> log.trace("Posted {} to {} with type {}", object, endpointPath, type));
@@ -213,7 +184,7 @@ public class FafApiAccessor implements InitializingBean {
 
   public <T extends ElideEntity> Mono<Void> patch(ElideNavigatorOnId<T> navigator, T request) {
     String endpointPath = navigator.build();
-    return retrieveMonoWithErrorHandling(Void.class, webClient.patch().uri(endpointPath)
+    return retrieveMonoWithErrorHandling(Void.class, apiWebClient.patch().uri(endpointPath)
         .contentType(MediaType.parseMediaType(JSONAPI_MEDIA_TYPE))
         .bodyValue(request))
         .doOnSuccess(aVoid -> log.trace("Patched {} at {}", request, endpointPath));
@@ -221,7 +192,7 @@ public class FafApiAccessor implements InitializingBean {
 
   public Mono<Void> delete(ElideNavigatorOnId<?> navigator) {
     String endpointPath = navigator.build();
-    return retrieveMonoWithErrorHandling(Void.class, webClient.delete().uri(endpointPath))
+    return retrieveMonoWithErrorHandling(Void.class, apiWebClient.delete().uri(endpointPath))
         .doOnSuccess(aVoid -> log.trace("Deleted {}", endpointPath));
   }
 
@@ -230,7 +201,7 @@ public class FafApiAccessor implements InitializingBean {
 
     Class<T> type = navigator.getDtoClass();
     String endpointPath = navigator.build();
-    return retrieveMonoWithErrorHandling(type, webClient.get().uri(endpointPath))
+    return retrieveMonoWithErrorHandling(type, apiWebClient.get().uri(endpointPath))
         .cache()
         .doOnNext(object -> log.trace("Retrieved {} from {} with type {}", object, endpointPath, type));
   }
@@ -248,7 +219,7 @@ public class FafApiAccessor implements InitializingBean {
 
     String url = uriComponents.toUriString();
 
-    return retrieveFluxWithErrorHandling(type, webClient.get().uri(url))
+    return retrieveFluxWithErrorHandling(type, apiWebClient.get().uri(url))
         .cache()
         .doOnNext(list -> log.trace("Retrieved {} from {}", list, url));
   }
@@ -267,7 +238,7 @@ public class FafApiAccessor implements InitializingBean {
       endpointPath = navigator.build();
     }
 
-    return retrieveFluxWithErrorHandling(navigator.getDtoClass(), webClient.get().uri(endpointPath))
+    return retrieveFluxWithErrorHandling(navigator.getDtoClass(), apiWebClient.get().uri(endpointPath))
         .cache()
         .doOnNext(object -> log.trace("Retrieved {} from {}", object, endpointPath));
   }
@@ -290,7 +261,7 @@ public class FafApiAccessor implements InitializingBean {
 
   @NotNull
   private <T extends ElideEntity> Mono<Tuple2<List<T>, Integer>> getFromEndpointWithPageCount(String endpointPath) {
-    return retrieveMonoWithErrorHandling(JSONAPIDocument.class, webClient.get().uri(endpointPath))
+    return retrieveMonoWithErrorHandling(JSONAPIDocument.class, apiWebClient.get().uri(endpointPath))
         .map(jsonapiDocument -> (JSONAPIDocument<List<T>>) jsonapiDocument)
         .flatMap(document -> Mono.zip(
             Mono.fromCallable(document::get),
@@ -314,12 +285,6 @@ public class FafApiAccessor implements InitializingBean {
   }
 
   private WebClient.ResponseSpec retrieveWithErrorHandling(WebClient.RequestHeadersSpec<?> requestSpec) {
-    try {
-      authorizedLatch.await();
-    } catch (InterruptedException e) {
-      log.warn("Api thread interrupted while waiting for authorization, will retry", e);
-      return retrieveWithErrorHandling(requestSpec);
-    }
     return requestSpec
         .retrieve()
         .onStatus(HttpStatusCode::isError, response -> {

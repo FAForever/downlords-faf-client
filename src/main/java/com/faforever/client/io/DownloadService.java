@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -20,6 +19,7 @@ import java.nio.file.StandardCopyOption;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.Map;
 import java.util.Objects;
 
@@ -56,7 +56,7 @@ public class DownloadService {
 
       // NOTE: It is crucial that we verify the checksum before using the file when downloading from mirrors! We don't
       // want to be running unverified executables!
-      String checksum = DatatypeConverter.printHexBinary(messageDigest.digest()).toLowerCase();
+      String checksum = HexFormat.of().formatHex(messageDigest.digest()).toLowerCase();
       if (!Objects.equals(md5sum, checksum)) {
         throw new ChecksumMismatchException(url, checksum, md5sum);
       }
