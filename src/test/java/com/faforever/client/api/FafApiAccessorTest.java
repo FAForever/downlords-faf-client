@@ -38,6 +38,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.test.StepVerifier;
 
@@ -53,6 +54,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 public class FafApiAccessorTest extends ServiceTest {
 
@@ -61,6 +63,7 @@ public class FafApiAccessorTest extends ServiceTest {
   @Mock
   private EventBus eventBus;
   @Mock
+  private TokenService tokenService;
   private OAuthTokenFilter oAuthTokenFilter;
   @TempDir
   public Path tempDirectory;
@@ -92,6 +95,7 @@ public class FafApiAccessorTest extends ServiceTest {
           clientCodecConfigurer.customCodecs().register(jsonApiReader);
           clientCodecConfigurer.customCodecs().register(jsonApiWriter);
         });
+    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just(""));
 
     mockApi = new MockWebServer();
     mockApi.start();
@@ -101,6 +105,7 @@ public class FafApiAccessorTest extends ServiceTest {
     api.setMaxPageSize(100);
     api.setBaseUrl(String.format("http://localhost:%s", mockApi.getPort()));
     api.setRetryBackoffSeconds(0);
+    oAuthTokenFilter = new OAuthTokenFilter(tokenService);
     instance = new FafApiAccessor(eventBus, clientProperties, oAuthTokenFilter, webClientBuilder);
     instance.afterPropertiesSet();
     instance.authorize();
