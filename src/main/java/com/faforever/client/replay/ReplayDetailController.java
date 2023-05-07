@@ -291,12 +291,16 @@ public class ReplayDetailController implements Controller<Node> {
 
   private void onReplayChanged(ReplayBean newValue) {
     if (newValue == null) {
+      reviewsController.setCanWriteReview(false);
+      reviews.clear();
       return;
     }
 
     if (newValue.getReplayFile() != null) {
       enrichReplayLater(newValue.getReplayFile(), newValue);
     }
+
+    reviewsController.setCanWriteReview(true);
 
     reviewService.getReplayReviews(newValue)
         .collectList()
@@ -382,12 +386,12 @@ public class ReplayDetailController implements Controller<Node> {
 
   public void onDownloadMoreInfoClicked() {
     // TODO display loading indicator
-    downloadMoreInfoButton.setVisible(false);
     ReplayBean replayValue = replay.get();
     replayService.downloadReplay(replayValue.getId()).thenCompose(path -> enrichReplayLater(path, replayValue));
   }
 
   private CompletableFuture<Void> enrichReplayLater(Path path, ReplayBean replay) {
+    replay.setReplayFile(path);
     CompletableFuture<ReplayDetails> replayDetailsFuture = CompletableFuture.supplyAsync(() -> {
       try {
         return replayService.loadReplayDetails(path);
@@ -403,14 +407,14 @@ public class ReplayDetailController implements Controller<Node> {
       }
     });
 
-    return replayDetailsFuture.thenAccept(replayDetails -> JavaFxUtil.runLater(() -> {
+    return replayDetailsFuture.thenAcceptAsync(replayDetails -> {
       if (replay.getMapVersion() == null) {
         replay.setMapVersion(replayDetails.mapVersion());
       }
 
       replay.setChatMessages(replayDetails.chatMessages());
       replay.setGameOptions(replayDetails.gameOptions());
-    })).exceptionally(throwable -> {
+    }, JavaFxUtil::runLater).exceptionally(throwable -> {
       if (throwable.getCause() instanceof FileNotFoundException) {
         log.warn("Replay file not available", throwable);
         notificationService.addImmediateWarnNotification("replayNotAvailable", replay.getId());
@@ -542,7 +546,7 @@ public class ReplayDetailController implements Controller<Node> {
   public void onMapPreviewImageClicked() {
     ReplayBean replayValue = replay.get();
     if (replayValue != null && replayValue.getMapVersion() != null) {
-      PopupUtil.showImagePopup(mapService.loadPreview(replayValue.getMapVersion(), PreviewSize.SMALL));
+      PopupUtil.showImagePopup(mapService.loadPreview(replayValue.getMapVersion(), PreviewSize.LARGE));
     }
   }
 }

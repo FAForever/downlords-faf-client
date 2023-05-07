@@ -549,9 +549,9 @@ public class ServerAccessorTest extends ServiceTest {
   @Test
   public void testReadyParty() {
 
-    instance.readyParty();
+    instance.sendReady("1");
 
-    assertMessageContainsComponents("ready_party");
+    assertMessageContainsComponents("is_ready_response", "1");
   }
 
   @Test

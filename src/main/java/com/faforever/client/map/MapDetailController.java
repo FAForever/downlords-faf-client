@@ -172,8 +172,8 @@ public class MapDetailController implements Controller<Node> {
     BooleanExpression notOfficial = BooleanExpression.booleanExpression(mapVersion.map(mapService::isOfficialMap))
         .not();
     BooleanExpression installed = mapService.isInstalledBinding(mapVersion);
-    installButton.visibleProperty().bind(notOfficial.and(installed.not()).when(showing));
-    uninstallButton.visibleProperty().bind(notOfficial.and(installed).when(showing));
+    installButton.visibleProperty().bind(Bindings.and(notOfficial, installed.not()).when(showing));
+    uninstallButton.visibleProperty().bind(Bindings.and(notOfficial, installed).when(showing));
     progressBar.visibleProperty()
         .bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
     progressLabel.visibleProperty().bind(progressBar.visibleProperty());
@@ -194,9 +194,10 @@ public class MapDetailController implements Controller<Node> {
   }
 
   private void onMapVersionChanged(MapVersionBean newValue) {
-    reviewsController.setCanWriteReview(false);
-
     if (newValue == null) {
+      reviewsController.setCanWriteReview(false);
+      reviews.clear();
+      installButton.setText("");
       return;
     }
 

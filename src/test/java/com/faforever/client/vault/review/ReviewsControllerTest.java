@@ -8,13 +8,9 @@ import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 public class ReviewsControllerTest extends UITest {
@@ -52,16 +48,5 @@ public class ReviewsControllerTest extends UITest {
       }
       return instance;
     });
-  }
-
-  @Test
-  public void testGetRoot() throws Exception {
-    assertThat(instance.getRoot(), is(instance.reviewsRoot));
-    assertThat(instance.getRoot().getParent(), is(nullValue()));
-  }
-
-  @Test
-  public void onCreateReviewButtonClicked() throws Exception {
-    instance.onCreateReviewButtonClicked();
   }
 }

@@ -319,7 +319,7 @@ public class GameDetailControllerTest extends UITest {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     Image noImageMock = mock(Image.class);
     Image imageMock = mock(Image.class);
-    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(noImageMock, imageMock);
+    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(noImageMock, imageMock);
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(true);
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(false);
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(CompletableFuture.completedFuture(game.getMapFolderName()));
@@ -334,7 +334,7 @@ public class GameDetailControllerTest extends UITest {
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
     runOnFxThreadAndWait(() -> instance.onMapGeneratedEvent(new MapGeneratedEvent(game.getMapFolderName())));
 
-    assertEquals(instance.mapImageView.getImage(), imageMock);
+    assertEquals(imageMock, instance.mapImageView.getImage());
     assertFalse(instance.generateMapButton.isVisible());
   }
 
@@ -395,8 +395,8 @@ public class GameDetailControllerTest extends UITest {
     GameBean anotherGame = GameBeanBuilder.create().defaultValues().mapFolderName("non_neroxis").get();
     Image image = mock(Image.class);
     Image anotherImage = mock(Image.class);
-    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(image);
-    when(mapService.loadPreview(anotherGame.getMapFolderName(), PreviewSize.LARGE)).thenReturn(anotherImage);
+    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(image);
+    when(mapService.loadPreview(anotherGame.getMapFolderName(), PreviewSize.SMALL)).thenReturn(anotherImage);
 
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenAnswer(invocation -> {
       assertEquals(image, instance.mapImageView.getImage());

@@ -154,16 +154,17 @@ public class ModDetailController implements Controller<Node> {
   }
 
   private void onModVersionChanged(ModVersionBean newValue) {
-    reviewsController.setCanWriteReview(false);
-
     if (newValue == null) {
+      reviewsController.setCanWriteReview(false);
+      reviews.clear();
+      installButton.setText("");
       return;
     }
 
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
-    reviewsController.setCanWriteReview(modService.isInstalled(modVersion.get().getUid())
+    reviewsController.setCanWriteReview(modService.isInstalled(newValue.getUid())
         && !currentPlayer.getUsername()
-        .equals(modVersion.get().getMod().getAuthor()) && !currentPlayer.equals(modVersion.get()
+        .equals(newValue.getMod().getAuthor()) && !currentPlayer.equals(newValue
         .getMod()
         .getUploader()));
 
@@ -174,7 +175,7 @@ public class ModDetailController implements Controller<Node> {
         .publishOn(javaFxService.getSingleScheduler())
         .subscribe(null, throwable -> log.error("Unable to populate reviews", throwable));
 
-    modService.getFileSize(modVersion.get())
+    modService.getFileSize(newValue)
         .thenAccept(modFileSize -> JavaFxUtil.runLater(() -> {
           if (modFileSize > -1) {
             String size = Bytes.formatSize(modFileSize, i18n.getUserSpecificLocale());

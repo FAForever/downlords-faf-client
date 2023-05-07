@@ -123,7 +123,7 @@ public class GameDetailController implements Controller<Pane> {
     ObservableValue<String> mapFolderNameObservable = game.flatMap(GameBean::mapFolderNameProperty);
     mapLabel.textProperty().bind(mapFolderNameObservable.when(showing));
     mapImageView.imageProperty()
-        .bind(mapFolderNameObservable.map(folderName -> mapService.loadPreview(folderName, PreviewSize.LARGE))
+        .bind(mapFolderNameObservable.map(folderName -> mapService.loadPreview(folderName, PreviewSize.SMALL))
             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
             .when(showing));
 
@@ -250,7 +250,7 @@ public class GameDetailController implements Controller<Pane> {
   public void onMapPreviewImageClicked() {
     GameBean gameBean = getGame();
     if (gameBean != null) {
-      PopupUtil.showImagePopup(mapImageView.getImage());
+      PopupUtil.showImagePopup(mapService.loadPreview(gameBean.getMapFolderName(), PreviewSize.LARGE));
     }
   }
 

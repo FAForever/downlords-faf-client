@@ -16,8 +16,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapMapper;
-import com.faforever.client.mapstruct.ReplayMapper;
-import com.faforever.client.mapstruct.ReviewMapper;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -124,8 +122,6 @@ public class MapService implements InitializingBean, DisposableBean {
   private final MapGeneratorService mapGeneratorService;
   private final PlayerService playerService;
   private final MapMapper mapMapper;
-  private final ReplayMapper replayMapper;
-  private final ReviewMapper reviewMapper;
   private final FileSizeReader fileSizeReader;
   private final ClientProperties clientProperties;
   private final ForgedAlliancePrefs forgedAlliancePrefs;

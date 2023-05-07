@@ -18,7 +18,6 @@ import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.MatchmakerMapper;
-import com.faforever.client.mapstruct.ReplayMapper;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -127,8 +126,6 @@ public class MapServiceTest extends UITest {
   @Spy
   private MapMapper mapMapper = Mappers.getMapper(MapMapper.class);
   @Spy
-  private ReplayMapper replayMapper = Mappers.getMapper(ReplayMapper.class);
-  @Spy
   private MatchmakerMapper matchmakerMapper = Mappers.getMapper(MatchmakerMapper.class);
   @Spy
   private ClientProperties clientProperties;
@@ -142,7 +139,6 @@ public class MapServiceTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(mapMapper);
-    MapperSetup.injectMappers(replayMapper);
     MapperSetup.injectMappers(matchmakerMapper);
     clientProperties.getVault().setMapPreviewUrlFormat("http://127.0.0.1:65534/preview/%s/%s");
     clientProperties.getVault().setMapDownloadUrlFormat("http://127.0.0.1:65534/fakeDownload/%s");
@@ -160,7 +156,7 @@ public class MapServiceTest extends UITest {
       return task;
     }).when(taskService).submitTask(any());
 
-    instance = new MapService(notificationService, taskService, fafApiAccessor, assetService, i18n, uiService, mapGeneratorService, playerService, mapMapper, replayMapper, fileSizeReader, clientProperties, forgedAlliancePrefs, preferences, mapUploadTaskFactory, downloadMapTaskFactory, uninstallMapTaskFactory);
+    instance = new MapService(notificationService, taskService, fafApiAccessor, assetService, i18n, uiService, mapGeneratorService, playerService, mapMapper, fileSizeReader, clientProperties, forgedAlliancePrefs, preferences, mapUploadTaskFactory, downloadMapTaskFactory, uninstallMapTaskFactory);
     instance.officialMaps = ImmutableSet.of();
     instance.afterPropertiesSet();
   }
@@ -466,7 +462,7 @@ public class MapServiceTest extends UITest {
 
     MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().get();
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
-    Boolean result = instance.hasPlayedMap(player, mapVersion).join();
+    Boolean result = instance.hasPlayedMap(player, mapVersion).blockOptional().orElseThrow();
 
     verify(fafApiAccessor).getMany(argThat(
         ElideMatchers.hasFilter(qBuilder()

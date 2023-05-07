@@ -10,7 +10,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.review.StarsController;
-import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
@@ -64,16 +63,15 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
             .flatMap(reviewsSummary -> reviewsSummary.scoreProperty().divide(reviewsSummary.numReviewsProperty()))
             .when(showing));
 
-    BooleanExpression isModInstalled = BooleanExpression.booleanExpression(entity.flatMap(modVersionBean ->
-            Bindings.createBooleanBinding(() -> modService.isInstalled(modVersionBean), modService.getInstalledMods()))
-        .when(showing));
+    BooleanExpression isModInstalled = modService.isInstalledBinding(entity);
 
     installButton.visibleProperty().bind(isModInstalled.not().when(showing));
     uninstallButton.visibleProperty().bind(isModInstalled.when(showing));
 
     thumbnailImageView.imageProperty()
         .bind(entity.map(modService::loadThumbnail)
-            .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable).when(showing));
+            .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
+            .when(showing));
 
     nameLabel.textProperty().bind(modObservable.flatMap(ModBean::displayNameProperty).when(showing));
     authorLabel.textProperty().bind(modObservable.flatMap(ModBean::authorProperty).when(showing));
@@ -83,24 +81,22 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
 
   public void onInstallButtonClicked() {
     ModVersionBean modVersionBean = entity.get();
-    modService.downloadAndInstallMod(modVersionBean, null, null)
-        .exceptionally(throwable -> {
-          log.error("Could not install mod", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed",
-              modVersionBean.getMod().getDisplayName(), throwable.getLocalizedMessage());
-          return null;
-        });
+    modService.downloadAndInstallMod(modVersionBean, null, null).exceptionally(throwable -> {
+      log.error("Could not install mod", throwable);
+      notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed", modVersionBean.getMod()
+          .getDisplayName(), throwable.getLocalizedMessage());
+      return null;
+    });
   }
 
   public void onUninstallButtonClicked() {
     ModVersionBean modVersionBean = entity.get();
-    modService.uninstallMod(modVersionBean)
-        .exceptionally(throwable -> {
-          log.error("Could not delete mod", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod",
-              modVersionBean.getMod().getDisplayName(), throwable.getLocalizedMessage());
-          return null;
-        });
+    modService.uninstallMod(modVersionBean).exceptionally(throwable -> {
+      log.error("Could not delete mod", throwable);
+      notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod", modVersionBean.getMod()
+          .getDisplayName(), throwable.getLocalizedMessage());
+      return null;
+    });
   }
 
   public Node getRoot() {

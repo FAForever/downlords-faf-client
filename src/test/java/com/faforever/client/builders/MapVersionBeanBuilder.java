@@ -2,13 +2,11 @@ package com.faforever.client.builders;
 
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.map.MapSize;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.net.URL;
 import java.time.OffsetDateTime;
-import java.util.List;
 
 
 public class MapVersionBeanBuilder {
@@ -89,11 +87,6 @@ public class MapVersionBeanBuilder {
 
   public MapVersionBeanBuilder map(MapBean map) {
     mapVersionBean.setMap(map);
-    return this;
-  }
-
-  public MapVersionBeanBuilder reviews(List<MapVersionReviewBean> reviews) {
-    mapVersionBean.setReviews(reviews);
     return this;
   }
 

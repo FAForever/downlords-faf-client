@@ -11,14 +11,12 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
 import javafx.beans.property.SimpleFloatProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -40,7 +38,9 @@ public class ReviewControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
+    when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(PlayerBeanBuilder.create()
+        .defaultValues()
+        .get()));
     when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
 
     loadFxml("theme/vault/review/review.fxml", param -> {
@@ -52,6 +52,8 @@ public class ReviewControllerTest extends UITest {
       }
       return instance;
     });
+
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test
@@ -60,7 +62,11 @@ public class ReviewControllerTest extends UITest {
     MapBean map = MapBeanBuilder.create().defaultValues().get();
     MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().map(map).get();
     map.setLatestVersion(mapVersion);
-    MapVersionReviewBean review = MapVersionReviewBeanBuilder.create().defaultValues().mapVersion(mapVersion).get();
+    MapVersionReviewBean review = MapVersionReviewBeanBuilder.create()
+        .defaultValues()
+        .id(1)
+        .mapVersion(mapVersion)
+        .get();
 
     runOnFxThreadAndWait(() -> instance.setReview(review));
 
@@ -78,11 +84,5 @@ public class ReviewControllerTest extends UITest {
     runOnFxThreadAndWait(() -> instance.setReview(review));
 
     assertFalse(instance.versionLabel.isVisible());
-  }
-
-  @Test
-  public void testGetRoot() throws Exception {
-    assertThat(instance.getRoot(), is(instance.ownReviewRoot));
-    assertThat(instance.getRoot().getParent(), is(nullValue()));
   }
 }

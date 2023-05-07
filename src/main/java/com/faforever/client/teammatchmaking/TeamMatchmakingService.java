@@ -361,7 +361,7 @@ public class TeamMatchmakingService implements InitializingBean {
     return modService.getFeaturedMod(FAF.getTechnicalName())
         .toFuture()
         .thenCompose(featuredModBean -> gameService.updateGameIfNecessary(featuredModBean, Set.of()))
-        .thenCompose(aVoid -> selectedQueues.stream()
+        .thenCompose(aVoid -> validQueues.stream()
             .map(this::joinQueue)
             .reduce((future1, future2) -> future1.thenCombine(future2, (result1, result2) -> result1 || result2))
             .orElse(CompletableFuture.completedFuture(false)))

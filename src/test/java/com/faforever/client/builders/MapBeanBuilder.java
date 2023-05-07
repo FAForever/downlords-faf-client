@@ -7,7 +7,6 @@ import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.PlayerBean;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 
 
 public class MapBeanBuilder {
@@ -24,7 +23,6 @@ public class MapBeanBuilder {
     recommended(true);
     id(0);
     mapType(MapType.SKIRMISH);
-    versions(List.of());
     return this;
   }
 
@@ -60,11 +58,6 @@ public class MapBeanBuilder {
 
   public MapBeanBuilder mapReviewsSummary(MapReviewsSummaryBean mapReviewsSummary) {
     mapBean.setMapReviewsSummary(mapReviewsSummary);
-    return this;
-  }
-
-  public MapBeanBuilder versions(List<MapVersionBean> versions) {
-    mapBean.setVersions(versions);
     return this;
   }
 
