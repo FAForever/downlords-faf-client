@@ -46,7 +46,6 @@ import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -258,7 +257,7 @@ public class GameDetailControllerTest extends UITest {
           .get());
     });
     assertTrue(instance.playtimeLabel.isVisible());
-    assertSame(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
+    assertEquals(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
   }
 
   @Test
@@ -273,11 +272,12 @@ public class GameDetailControllerTest extends UITest {
       instance.setPlaytimeVisible(true);
       instance.setGame(game);
     });
-    assertSame(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
+    assertEquals(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
     runOnFxThreadAndWait(() -> game.setStatus(GameStatus.CLOSED));
+    Thread.sleep(2000);
 
     assertFalse(instance.playtimeLabel.isVisible());
-    assertSame(Status.STOPPED, instance.getPlayTimeTimeline().getStatus());
+    assertEquals(Status.STOPPED, instance.getPlayTimeTimeline().getStatus());
   }
 
   @Test
