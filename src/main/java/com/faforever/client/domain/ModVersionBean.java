@@ -46,7 +46,6 @@ public class ModVersionBean extends AbstractEntityBean<ModVersionBean> {
   ObjectProperty<URL> downloadUrl = new SimpleObjectProperty<>();
   ObservableList<MountInfo> mountPoints = FXCollections.observableArrayList();
   ObservableList<String> hookDirectories = FXCollections.observableArrayList();
-  ObservableList<ModVersionReviewBean> reviews = FXCollections.observableArrayList();
   ObjectProperty<ModVersionReviewsSummaryBean> reviewsSummary = new SimpleObjectProperty<>();
   ObjectProperty<ModType> modType = new SimpleObjectProperty<>();
   StringProperty filename = new SimpleStringProperty();
@@ -182,17 +181,6 @@ public class ModVersionBean extends AbstractEntityBean<ModVersionBean> {
       hookDirectories = List.of();
     }
     this.hookDirectories.setAll(hookDirectories);
-  }
-
-  public ObservableList<ModVersionReviewBean> getReviews() {
-    return reviews;
-  }
-
-  public void setReviews(List<ModVersionReviewBean> reviews) {
-    if (reviews == null) {
-      reviews = List.of();
-    }
-    this.reviews.setAll(reviews);
   }
 
   public String getUid() {

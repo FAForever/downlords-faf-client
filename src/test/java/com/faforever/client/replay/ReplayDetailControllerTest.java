@@ -14,6 +14,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayReviewBean;
 import com.faforever.client.fx.ImageViewHelper;
+import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.i18n.I18n;
@@ -36,8 +37,10 @@ import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
 import com.faforever.commons.api.dto.Validity;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
@@ -46,7 +49,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -61,7 +68,6 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -114,11 +120,15 @@ public class ReplayDetailControllerTest extends UITest {
   private TeamCardController teamCardController;
   @Mock
   private ReportDialogController reportDialogController;
+  @Mock
+  private JavaFxService javaFxService;
 
   private PlayerBean currentPlayer;
   private ReplayBean onlineReplay;
   private ReplayBean localReplay;
   private MapVersionBean mapBean;
+
+  private final BooleanProperty installed = new SimpleBooleanProperty();
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -127,24 +137,33 @@ public class ReplayDetailControllerTest extends UITest {
     onlineReplay = ReplayBeanBuilder.create().defaultValues()
         .validity(Validity.VALID)
         .featuredMod(new FeaturedModBean())
-        .reviews(FXCollections.emptyObservableList())
         .title("test")
         .mapVersion(mapBean)
         .teamPlayerStats(PlayerStatsMapBuilder.create().defaultValues().get())
         .get();
 
     localReplay = ReplayBeanBuilder.create().defaultValues()
+        .local(true)
         .validity(null)
         .featuredMod(new FeaturedModBean())
-        .reviews(FXCollections.emptyObservableList())
         .title("test")
         .replayFile(Path.of("foo.tmp"))
         .get();
 
+    when(i18n.get("game.notRatedYet")).thenReturn("not rated yet");
+    when(replayService.loadReplayDetails(any())).thenReturn(new ReplayDetails(List.of(), List.of(), mapBean));
+    when(mapService.isInstalledBinding(Mockito.<MapVersionBean>any())).thenReturn(installed);
+    when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
+    when(reviewService.getReplayReviews(any())).thenReturn(Flux.empty());
+    when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
+    when(javaFxService.getSingleScheduler()).thenReturn(Schedulers.immediate());
+    when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(currentPlayer));
     when(reviewsController.getRoot()).thenReturn(new Pane());
     when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE))).thenReturn(mock(Image.class));
     when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
-    when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(List.of(PlayerBeanBuilder.create().defaultValues().get())));
+    when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(List.of(PlayerBeanBuilder.create()
+        .defaultValues()
+        .get())));
     when(replayService.getFileSize(onlineReplay)).thenReturn(CompletableFuture.completedFuture(12));
     when(replayService.replayChangedRating(onlineReplay)).thenReturn(true);
     when(timeService.asDate(onlineReplay.getStartTime())).thenReturn("Min Date");
@@ -178,8 +197,7 @@ public class ReplayDetailControllerTest extends UITest {
       return instance;
     });
 
-    assertFalse(instance.moreInformationPane.isVisible());
-    assertFalse(instance.moreInformationPane.isManaged());
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test
@@ -188,10 +206,9 @@ public class ReplayDetailControllerTest extends UITest {
     when(ratingService.calculateQuality(onlineReplay)).thenReturn(0.427);
     when(i18n.get(eq("percentage"), eq(Math.round(0.427 * 100)))).thenReturn("42");
 
-    instance.setReplay(onlineReplay);
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.setReplay(onlineReplay));
 
-    verify(mapService).loadPreview(mapBean.getFolderName(), PreviewSize.LARGE);
+    verify(mapService).loadPreview(mapBean, PreviewSize.SMALL);
     assertTrue(instance.ratingSeparator.isVisible());
     assertTrue(instance.reviewSeparator.isVisible());
     assertTrue(instance.reviewsContainer.isVisible());
@@ -214,18 +231,17 @@ public class ReplayDetailControllerTest extends UITest {
   }
 
   @Test
-  public void setReplayLocal() {
+  public void setReplayLocal() throws Exception {
+    when(replayService.loadReplayDetails(any())).thenReturn(new ReplayDetails(localReplay.getChatMessages(), localReplay.getGameOptions(), mapBean));
     when(ratingService.calculateQuality(localReplay)).thenReturn(Double.NaN);
 
-    instance.setReplay(localReplay);
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.setReplay(localReplay));
 
-    verify(replayService).enrich(localReplay, localReplay.getReplayFile());
+    verify(replayService).loadReplayDetails(localReplay.getReplayFile());
     assertEquals(String.valueOf(localReplay.getId()), instance.replayIdField.getText());
     assertFalse(instance.ratingSeparator.isVisible());
     assertFalse(instance.reviewSeparator.isVisible());
     assertFalse(instance.reviewsContainer.isVisible());
-    assertFalse(instance.teamsInfoBox.isVisible());
     assertFalse(instance.downloadMoreInfoButton.isVisible());
     assertFalse(instance.showRatingChangeButton.isVisible());
     assertTrue(instance.deleteButton.isVisible());
@@ -240,8 +256,7 @@ public class ReplayDetailControllerTest extends UITest {
   public void setReplayNoEndTime() {
     onlineReplay.setEndTime(null);
 
-    instance.setReplay(onlineReplay);
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.setReplay(onlineReplay));
 
     assertFalse(instance.durationLabel.isVisible());
   }
@@ -250,7 +265,7 @@ public class ReplayDetailControllerTest extends UITest {
   public void setReplayNoTeamStats() {
     onlineReplay.setTeamPlayerStats(FXCollections.emptyObservableMap());
 
-    instance.setReplay(onlineReplay);
+    runOnFxThreadAndWait(() -> instance.setReplay(onlineReplay));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals("-", instance.ratingLabel.getText());
@@ -263,37 +278,34 @@ public class ReplayDetailControllerTest extends UITest {
 
     when(i18n.get("game.replayFileMissing")).thenReturn("missing");
 
-    instance.setReplay(onlineReplay);
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.setReplay(onlineReplay));
 
     assertEquals("missing", instance.watchButton.getText());
     assertEquals("missing", instance.downloadMoreInfoButton.getText());
     assertTrue(instance.watchButton.isDisabled());
-    assertTrue(instance.downloadMoreInfoButton.isDisabled());
+    assertFalse(instance.downloadMoreInfoButton.isVisible());
   }
 
   @Test
   public void setReplayNotAvailable() {
     onlineReplay.setReplayAvailable(false);
+    onlineReplay.setReplayFile(null);
 
-    when(i18n.get("game.replayNotAvailable")).thenReturn("not available");
+    when(i18n.get("game.replayFileMissing")).thenReturn("not available");
 
-    instance.setReplay(onlineReplay);
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.setReplay(onlineReplay));
 
     assertEquals("not available", instance.watchButton.getText());
-    assertEquals("not available", instance.downloadMoreInfoButton.getText());
     assertTrue(instance.watchButton.isDisabled());
-    assertTrue(instance.downloadMoreInfoButton.isDisabled());
+    assertFalse(instance.downloadMoreInfoButton.isVisible());
   }
 
   @Test
   public void setReplayNoRatingChange() {
+    onlineReplay.setValidity(null);
     when(replayService.replayChangedRating(onlineReplay)).thenReturn(false);
-    when(i18n.get("game.notRatedYet")).thenReturn("not rated yet");
 
-    instance.setReplay(onlineReplay);
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.setReplay(onlineReplay));
 
     assertFalse(instance.showRatingChangeButton.isVisible());
     assertTrue(instance.notRatedReasonLabel.isVisible());
@@ -311,7 +323,7 @@ public class ReplayDetailControllerTest extends UITest {
     when(ratingService.calculateQuality(replay)).thenReturn(0.427);
     when(i18n.getOrDefault(replay.getValidity().toString(), "game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()))).thenReturn("Reason: HAS_AI");
 
-    instance.setReplay(replay);
+    runOnFxThreadAndWait(() -> instance.setReplay(replay));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.notRatedReasonLabel.isVisible());
@@ -324,8 +336,7 @@ public class ReplayDetailControllerTest extends UITest {
     when(timeService.shortDuration(any())).thenReturn("16min 40s");
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().replayTicks(10_000).get();
 
-    instance.setReplay(replay);
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
     assertTrue(instance.replayDurationLabel.isVisible());
     assertTrue(instance.durationLabel.isVisible());
@@ -334,23 +345,24 @@ public class ReplayDetailControllerTest extends UITest {
   }
 
   @Test
-  public void onDownloadMoreInfoClicked() {
+  public void onDownloadMoreInfoClicked() throws Exception {
     when(replayService.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(PlayerBeanBuilder.create().defaultValues().get()).get();
-    replay.setReviews(List.of(review));
+    ReplayReviewBean review = ReplayReviewBeanBuilder.create()
+        .defaultValues()
+        .player(PlayerBeanBuilder.create().defaultValues().get())
+        .get();
     review.setReplay(replay);
 
-    instance.setReplay(replay);
+    runOnFxThreadAndWait(() -> instance.setReplay(replay));
     WaitForAsyncUtils.waitForFxEvents();
 
     Path tmpPath = Path.of("foo.tmp");
     when(replayService.downloadReplay(replay.getId())).thenReturn(CompletableFuture.completedFuture(tmpPath));
 
-    instance.onDownloadMoreInfoClicked();
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.onDownloadMoreInfoClicked());
 
-    verify(replayService).enrich(replay, tmpPath);
+    verify(replayService).loadReplayDetails(tmpPath);
     assertTrue(instance.optionsTable.isVisible());
     assertTrue(instance.chatTable.isVisible());
     assertFalse(instance.downloadMoreInfoButton.isVisible());
@@ -360,14 +372,12 @@ public class ReplayDetailControllerTest extends UITest {
   public void onDownloadMoreInfoClickedException() {
     when(replayService.downloadReplay(anyInt())).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
 
-    instance.setReplay(onlineReplay);
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> {
+      instance.setReplay(onlineReplay);
+      instance.onDownloadMoreInfoClicked();
+    });
 
-    instance.onDownloadMoreInfoClicked();
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(notificationService).addImmediateErrorNotification(any(), eq("replay.enrich.error"));
-    assertFalse(instance.downloadMoreInfoButton.isVisible());
+    assertTrue(instance.downloadMoreInfoButton.isVisible());
   }
 
   @Test
@@ -393,15 +403,8 @@ public class ReplayDetailControllerTest extends UITest {
   }
 
   @Test
-  public void testGetRoot() {
-    Node root = instance.getRoot();
-    assertEquals(instance.replayDetailRoot, root);
-    assertNull(root.getParent());
-  }
-
-  @Test
   public void testOnWatchButtonClicked() {
-    instance.setReplay(onlineReplay);
+    runOnFxThreadAndWait(() -> instance.setReplay(onlineReplay));
     instance.onWatchButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -434,30 +437,20 @@ public class ReplayDetailControllerTest extends UITest {
   }
 
   @Test
-  public void testShowRatingChange() {
-    instance.showRatingChange();
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertTrue(instance.showRatingChangeButton.isDisabled());
-  }
-
-  @Test
   public void testOnDeleteReview() {
     ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
 
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    replay.setReviews(List.of(review));
     review.setReplay(replay);
 
-    instance.setReplay(replay);
+    runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
-    when(reviewService.deleteGameReview(review)).thenReturn(CompletableFuture.completedFuture(null));
+    when(reviewService.deleteGameReview(review)).thenReturn(Mono.empty());
 
     instance.onDeleteReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(reviewService).deleteGameReview(review);
-    verify(reviewsController).setOwnReview(null);
   }
 
   @Test
@@ -465,18 +458,16 @@ public class ReplayDetailControllerTest extends UITest {
     ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
 
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    replay.setReviews(List.of(review));
     review.setReplay(replay);
 
-    instance.setReplay(replay);
+    runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
-    when(reviewService.deleteGameReview(review)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    when(reviewService.deleteGameReview(review)).thenReturn(Mono.error(new FakeTestException()));
 
     instance.onDeleteReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(notificationService).addImmediateErrorNotification(any(), eq("review.delete.error"));
-    assertTrue(replay.getReviews().contains(review));
   }
 
   @Test
@@ -486,15 +477,14 @@ public class ReplayDetailControllerTest extends UITest {
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
     review.setReplay(replay);
 
-    instance.setReplay(replay);
+    runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
-    when(reviewService.saveReplayReview(review)).thenReturn(CompletableFuture.completedFuture(null));
+    when(reviewService.saveReplayReview(review)).thenReturn(Mono.empty());
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(reviewService).saveReplayReview(review);
-    verify(reviewsController).setOwnReview(review);
     assertEquals(currentPlayer, review.getPlayer());
   }
 
@@ -503,20 +493,17 @@ public class ReplayDetailControllerTest extends UITest {
     ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().id(0).get();
 
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    replay.setReviews(List.of(review));
     review.setReplay(replay);
 
-    instance.setReplay(replay);
+    runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
-    when(reviewService.saveReplayReview(review)).thenReturn(CompletableFuture.completedFuture(null));
+    when(reviewService.saveReplayReview(review)).thenReturn(Mono.empty());
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(reviewService).saveReplayReview(review);
-    assertTrue(replay.getReviews().contains(review));
     assertEquals(currentPlayer, review.getPlayer());
-    assertEquals(1, replay.getReviews().size());
   }
 
   @Test
@@ -524,23 +511,21 @@ public class ReplayDetailControllerTest extends UITest {
     ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
 
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    replay.setReviews(List.of(review));
     review.setReplay(replay);
 
-    instance.setReplay(replay);
+    runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
-    when(reviewService.saveReplayReview(review)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    when(reviewService.saveReplayReview(review)).thenReturn(Mono.error(new FakeTestException()));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(notificationService).addImmediateErrorNotification(any(), eq("review.save.error"));
-    assertTrue(replay.getReviews().contains(review));
   }
 
   @Test
   public void testReport() {
-    instance.setReplay(onlineReplay);
+    runOnFxThreadAndWait(() -> instance.setReplay(onlineReplay));
     instance.onReport();
 
     verify(reportDialogController).setReplay(onlineReplay);

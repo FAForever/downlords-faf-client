@@ -75,17 +75,44 @@ import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 public class FafApiAccessor implements InitializingBean {
 
   @VisibleForTesting
-  static final java.util.Map<Class<? extends ElideEntity>, List<String>> INCLUDES = java.util.Map.ofEntries(java.util.Map.entry(CoopResult.class, List.of("game.playerStats.player")), java.util.Map.entry(Clan.class, List.of("leader", "founder", "memberships", "memberships.player")), java.util.Map.entry(LeaderboardEntry.class, List.of("player", "leaderboard")), java.util.Map.entry(LeaderboardRatingJournal.class, List.of("gamePlayerStats")), java.util.Map.entry(GameReviewsSummary.class, List.of("game", "game.featuredMod", "game.playerStats", "game.playerStats.player", "game.playerStats.ratingChanges", "game.reviews", "game.reviews.player", "game.mapVersion", "game.mapVersion.map", "game.mapVersion.map")), java.util.Map.entry(Game.class, List.of("featuredMod", "playerStats", "playerStats.player", "playerStats.ratingChanges", "reviews", "reviews.player", "mapVersion", "mapVersion.map", "mapVersion.map.versions", "reviewsSummary")), java.util.Map.entry(LeagueSeason.class, List.of("leaderboard", "league")), java.util.Map.entry(LeagueSeasonScore.class, List.of("leagueSeason", "leagueSeason.leaderboard", "leagueSeason.league", "leagueSeasonDivisionSubdivision", "leagueSeasonDivisionSubdivision.leagueSeasonDivision")), java.util.Map.entry(LeagueSeasonDivisionSubdivision.class, List.of("leagueSeasonDivision", "leagueSeasonDivision.leagueSeason")), java.util.Map.entry(MapVersion.class, List.of("map", "map.latestVersion", "map.versions", "map.versions.reviews", "map.versions.reviews.player", "map.reviewsSummary", "map.author")), java.util.Map.entry(MapReviewsSummary.class, List.of("map.latestVersion", "map.author", "map.versions", "map.versions.reviews", "map.versions.reviews.player", "map.reviewsSummary")), java.util.Map.entry(Map.class, List.of("latestVersion", "author", "versions", "versions.reviews", "versions.reviews.player", "reviewsSummary")), java.util.Map.entry(MapPoolAssignment.class, List.of("mapVersion", "mapVersion.map", "mapVersion.map.latestVersion", "mapVersion.map.author", "mapVersion.map.reviewsSummary", "mapVersion.map.versions.reviews", "mapVersion.map.versions.reviews.player")), java.util.Map.entry(ModVersion.class, List.of("mod", "mod.latestVersion", "mod.versions", "mod.versions.reviews", "mod.versions.reviews.player", "mod.reviewsSummary", "mod.uploader")), java.util.Map.entry(ModReviewsSummary.class, List.of("mod.latestVersion", "mod.versions", "mod.versions.reviews", "mod.versions.reviews.player", "mod.reviewsSummary", "mod.uploader")), java.util.Map.entry(Mod.class, List.of("latestVersion", "versions", "versions.reviews", "versions.reviews.player", "reviewsSummary", "uploader")), java.util.Map.entry(ModerationReport.class, List.of("reporter", "lastModerator", "reportedUsers", "game", "game.playerStats", "game.playerStats.player")), java.util.Map.entry(MatchmakerQueue.class, List.of("leaderboard")), java.util.Map.entry(TutorialCategory.class, List.of("tutorials", "tutorials.mapVersion.map", "tutorials.mapVersion.map.latestVersion", "tutorials.mapVersion.map.author")));
+  static final java.util.Map<Class<? extends ElideEntity>, List<String>> INCLUDES = java.util.Map.ofEntries(
+      java.util.Map.entry(CoopResult.class, List.of("game.playerStats.player")),
+      java.util.Map.entry(Clan.class, List.of("leader", "founder", "memberships", "memberships.player")),
+      java.util.Map.entry(LeaderboardEntry.class, List.of("player", "leaderboard")),
+      java.util.Map.entry(LeaderboardRatingJournal.class, List.of("gamePlayerStats")),
+      java.util.Map.entry(GameReviewsSummary.class,
+          List.of("game", "game.featuredMod", "game.playerStats", "game.playerStats.player", "game.playerStats.ratingChanges",
+              "game.reviews", "game.reviews.player", "game.mapVersion", "game.mapVersion.map", "game.mapVersion.map")),
+      java.util.Map.entry(Game.class,
+          List.of("featuredMod", "playerStats", "playerStats.player", "playerStats.ratingChanges",
+              "mapVersion", "mapVersion.map", "mapVersion.map", "reviewsSummary")),
+      java.util.Map.entry(LeagueSeason.class, List.of("leaderboard", "league")),
+      java.util.Map.entry(LeagueSeasonScore.class, List.of("leagueSeason", "leagueSeason.leaderboard", "leagueSeason.league",
+          "leagueSeasonDivisionSubdivision", "leagueSeasonDivisionSubdivision.leagueSeasonDivision")),
+      java.util.Map.entry(LeagueSeasonDivisionSubdivision.class, List.of("leagueSeasonDivision", "leagueSeasonDivision.leagueSeason")),
+      java.util.Map.entry(MapVersion.class, List.of("map", "map.reviewsSummary", "map.author")),
+      java.util.Map.entry(MapReviewsSummary.class, List.of("map.latestVersion", "map.author", "map.reviewsSummary")),
+      java.util.Map.entry(Map.class, List.of("latestVersion", "author", "reviewsSummary")),
+      java.util.Map.entry(MapPoolAssignment.class, List.of("mapVersion", "mapVersion.map", "mapVersion.map.author", "mapVersion.map.reviewsSummary")),
+      java.util.Map.entry(ModVersion.class, List.of("mod", "mod.latestVersion", "mod.reviewsSummary", "mod.uploader")),
+      java.util.Map.entry(ModReviewsSummary.class, List.of("mod.latestVersion", "mod.reviewsSummary", "mod.uploader")),
+      java.util.Map.entry(Mod.class, List.of("latestVersion", "reviewsSummary", "uploader")),
+      java.util.Map.entry(ModerationReport.class, List.of("reporter", "lastModerator", "reportedUsers", "game", "game.playerStats", "game.playerStats.player")),
+      java.util.Map.entry(MatchmakerQueue.class, List.of("leaderboard")),
+      java.util.Map.entry(TutorialCategory.class, List.of("tutorials", "tutorials.mapVersion.map", "tutorials.mapVersion.map.latestVersion",
+          "tutorials.mapVersion.map.author"))
+  );
 
   @VisibleForTesting
-  static final java.util.Map<Class<? extends ElideEntity>, List<Condition<?>>> FILTERS = java.util.Map.ofEntries(java.util.Map.entry(CoturnServer.class, List.of(qBuilder().bool("active")
-      .isTrue())), java.util.Map.entry(ModVersion.class, List.of(qBuilder().bool("hidden")
-      .isFalse())), java.util.Map.entry(Mod.class, List.of(qBuilder().bool("latestVersion.hidden")
-      .isFalse())), java.util.Map.entry(ModReviewsSummary.class, List.of(qBuilder().bool("mod.latestVersion.hidden")
-      .isFalse())), java.util.Map.entry(MapVersion.class, List.of(qBuilder().bool("hidden")
-      .isFalse())), java.util.Map.entry(Map.class, List.of(qBuilder().bool("latestVersion.hidden")
-      .isFalse())), java.util.Map.entry(MapReviewsSummary.class, List.of(qBuilder().bool("map.latestVersion.hidden")
-      .isFalse())));
+  static final java.util.Map<Class<? extends ElideEntity>, List<Condition<?>>> FILTERS = java.util.Map.ofEntries(
+      java.util.Map.entry(CoturnServer.class, List.of(qBuilder().bool("active").isTrue())),
+      java.util.Map.entry(ModVersion.class, List.of(qBuilder().bool("hidden").isFalse())),
+      java.util.Map.entry(Mod.class, List.of(qBuilder().bool("latestVersion.hidden").isFalse())),
+      java.util.Map.entry(ModReviewsSummary.class, List.of(qBuilder().bool("mod.latestVersion.hidden").isFalse())),
+      java.util.Map.entry(MapVersion.class, List.of(qBuilder().bool("hidden").isFalse())),
+      java.util.Map.entry(Map.class, List.of(qBuilder().bool("latestVersion.hidden").isFalse())),
+      java.util.Map.entry(MapReviewsSummary.class, List.of(qBuilder().bool("map.latestVersion.hidden").isFalse()))
+  );
 
   private static final String JSONAPI_MEDIA_TYPE = "application/vnd.api+json;charset=utf-8";
 
@@ -249,7 +276,8 @@ public class FafApiAccessor implements InitializingBean {
               mapping only exists to satisfy the typing of onStatus*/
         return response.bodyToMono(JSONAPIDocument.class)
             .flatMap(jsonapiDocument -> response.createException())
-            .onErrorMap(ResourceParseException.class, exception -> new ApiException(exception.getErrors().getErrors()));
+            .onErrorMap(ResourceParseException.class, exception -> new ApiException(exception.getErrors()
+                    .getErrors()));
       } else if (httpStatus.equals(HttpStatus.SERVICE_UNAVAILABLE)) {
         return response.createException().map(error -> new UnreachableApiException("API is unreachable", error));
       } else if (httpStatus.equals(HttpStatus.TOO_MANY_REQUESTS)) {
@@ -267,12 +295,18 @@ public class FafApiAccessor implements InitializingBean {
   }
 
   private void enrichCollectionFilter(ElideNavigatorOnCollection<?> navigator) {
+    if (!navigator.isRoot()) {
+      return;
+    }
+
     List<Condition<?>> additionalConditions = FILTERS.getOrDefault(navigator.getDtoClass(), List.of());
     if (!additionalConditions.isEmpty()) {
       Optional<Condition<?>> currentFilter = navigator.getFilter();
       currentFilter.ifPresentOrElse(condition -> navigator.setFilter(new QBuilder().and(additionalConditions)
-          .and()
-          .and(List.of(condition))), () -> navigator.setFilter(new QBuilder().and(additionalConditions)));
+              .and()
+              .and(List.of(condition))),
+          () -> navigator.setFilter(new QBuilder().and(additionalConditions))
+      );
     }
   }
 

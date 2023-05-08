@@ -6,7 +6,6 @@ import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.PlayerBean;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 
 
 public class ModBeanBuilder {
@@ -21,7 +20,6 @@ public class ModBeanBuilder {
     displayName("test mod");
     author("test author");
     uploader(PlayerBeanBuilder.create().defaultValues().get());
-    versions(List.of());
     id(0);
     return this;
   }
@@ -48,11 +46,6 @@ public class ModBeanBuilder {
 
   public ModBeanBuilder modReviewsSummary(ModReviewsSummaryBean modReviewsSummary) {
     modBean.setModReviewsSummary(modReviewsSummary);
-    return this;
-  }
-
-  public ModBeanBuilder versions(List<ModVersionBean> versions) {
-    modBean.setVersions(versions);
     return this;
   }
 

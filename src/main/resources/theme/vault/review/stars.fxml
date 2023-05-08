@@ -6,11 +6,4 @@
       maxWidth="-Infinity" minHeight="-Infinity"
       minWidth="-Infinity" xmlns="http://javafx.com/javafx/8.0.111"
       fx:controller="com.faforever.client.vault.review.StarsController">
-    <children>
-        <fx:include fx:id="star1" source="star.fxml"/>
-        <fx:include fx:id="star2" source="star.fxml"/>
-        <fx:include fx:id="star3" source="star.fxml"/>
-        <fx:include fx:id="star4" source="star.fxml"/>
-        <fx:include fx:id="star5" source="star.fxml"/>
-    </children>
 </HBox>

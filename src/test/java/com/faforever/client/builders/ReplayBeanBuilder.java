@@ -6,7 +6,6 @@ import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayBean.ChatMessage;
-import com.faforever.client.domain.ReplayReviewBean;
 import com.faforever.client.domain.ReplayReviewsSummaryBean;
 import com.faforever.commons.api.dto.Validity;
 import javafx.collections.FXCollections;
@@ -100,11 +99,6 @@ public class ReplayBeanBuilder {
     return this;
   }
 
-  public ReplayBeanBuilder reviews(List<ReplayReviewBean> reviews) {
-    replayBean.setReviews(reviews);
-    return this;
-  }
-
   public ReplayBeanBuilder validity(Validity validity) {
     replayBean.setValidity(validity);
     return this;
@@ -130,11 +124,16 @@ public class ReplayBeanBuilder {
     return this;
   }
 
+  public ReplayBeanBuilder local(boolean local) {
+    replayBean.setLocal(local);
+    return this;
+  }
+
   public ReplayBean get() {
     return replayBean;
   }
 
-    abstract class SubReplayBeanBuilder {
+  abstract class SubReplayBeanBuilder {
     public ReplayBeanBuilder then() {
       return ReplayBeanBuilder.this;
     }

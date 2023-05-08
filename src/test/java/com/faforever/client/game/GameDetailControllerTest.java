@@ -34,7 +34,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -46,7 +45,6 @@ import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -166,10 +164,11 @@ public class GameDetailControllerTest extends UITest {
     assertEquals(game.getTitle(), instance.gameTitleLabel.getText());
     assertEquals(game.getHost(), instance.hostLabel.getText());
     assertEquals(game.getMapFolderName(), instance.mapLabel.getText());
-    game.setTitle("blah");
-    game.setHost("me");
-    game.setMapFolderName("lala");
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> {
+      game.setTitle("blah");
+      game.setHost("me");
+      game.setMapFolderName("lala");
+    });
     assertEquals(game.getTitle(), instance.gameTitleLabel.getText());
     assertEquals(game.getHost(), instance.hostLabel.getText());
     assertEquals(game.getMapFolderName(), instance.mapLabel.getText());
@@ -258,7 +257,7 @@ public class GameDetailControllerTest extends UITest {
           .get());
     });
     assertTrue(instance.playtimeLabel.isVisible());
-    assertSame(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
+    assertEquals(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
   }
 
   @Test
@@ -273,13 +272,12 @@ public class GameDetailControllerTest extends UITest {
       instance.setPlaytimeVisible(true);
       instance.setGame(game);
     });
-    Thread.sleep(2000);
-    assertSame(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
+    assertEquals(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
     runOnFxThreadAndWait(() -> game.setStatus(GameStatus.CLOSED));
-    Thread.sleep(1000);
+    Thread.sleep(2000);
 
     assertFalse(instance.playtimeLabel.isVisible());
-    assertSame(Status.STOPPED, instance.getPlayTimeTimeline().getStatus());
+    assertEquals(Status.STOPPED, instance.getPlayTimeTimeline().getStatus());
   }
 
   @Test
@@ -319,7 +317,7 @@ public class GameDetailControllerTest extends UITest {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     Image noImageMock = mock(Image.class);
     Image imageMock = mock(Image.class);
-    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(noImageMock, imageMock);
+    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(noImageMock, imageMock);
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(true);
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(false);
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(CompletableFuture.completedFuture(game.getMapFolderName()));
@@ -334,7 +332,7 @@ public class GameDetailControllerTest extends UITest {
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
     runOnFxThreadAndWait(() -> instance.onMapGeneratedEvent(new MapGeneratedEvent(game.getMapFolderName())));
 
-    assertEquals(instance.mapImageView.getImage(), imageMock);
+    assertEquals(imageMock, instance.mapImageView.getImage());
     assertFalse(instance.generateMapButton.isVisible());
   }
 
@@ -395,8 +393,8 @@ public class GameDetailControllerTest extends UITest {
     GameBean anotherGame = GameBeanBuilder.create().defaultValues().mapFolderName("non_neroxis").get();
     Image image = mock(Image.class);
     Image anotherImage = mock(Image.class);
-    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(image);
-    when(mapService.loadPreview(anotherGame.getMapFolderName(), PreviewSize.LARGE)).thenReturn(anotherImage);
+    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(image);
+    when(mapService.loadPreview(anotherGame.getMapFolderName(), PreviewSize.SMALL)).thenReturn(anotherImage);
 
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenAnswer(invocation -> {
       assertEquals(image, instance.mapImageView.getImage());

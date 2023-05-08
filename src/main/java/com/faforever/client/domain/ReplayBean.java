@@ -5,19 +5,14 @@ import com.faforever.commons.api.dto.Validity;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyListProperty;
-import javafx.beans.property.ReadOnlyListWrapper;
-import javafx.beans.property.ReadOnlyMapProperty;
-import javafx.beans.property.ReadOnlyMapWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -44,8 +39,8 @@ public class ReplayBean {
   @ToString.Include
   StringProperty title = new SimpleStringProperty();
   BooleanProperty replayAvailable = new SimpleBooleanProperty();
-  ReadOnlyMapWrapper<String, List<String>> teams = new ReadOnlyMapWrapper<>(FXCollections.emptyObservableMap());
-  ReadOnlyMapWrapper<String, List<GamePlayerStatsBean>> teamPlayerStats = new ReadOnlyMapWrapper<>(FXCollections.emptyObservableMap());
+  ReadOnlyObjectWrapper<Map<String, List<String>>> teams = new ReadOnlyObjectWrapper<>(Map.of());
+  ReadOnlyObjectWrapper<Map<String, List<GamePlayerStatsBean>>> teamPlayerStats = new ReadOnlyObjectWrapper<>(Map.of());
   ObjectProperty<PlayerBean> host = new SimpleObjectProperty<>();
   ObjectProperty<OffsetDateTime> startTime = new SimpleObjectProperty<>();
   ObjectProperty<OffsetDateTime> endTime = new SimpleObjectProperty<>();
@@ -54,11 +49,11 @@ public class ReplayBean {
   ObjectProperty<Path> replayFile = new SimpleObjectProperty<>();
   ObjectProperty<Integer> replayTicks = new SimpleObjectProperty<>();
   IntegerProperty views = new SimpleIntegerProperty();
-  ReadOnlyListWrapper<ChatMessage> chatMessages = new ReadOnlyListWrapper<>(FXCollections.emptyObservableList());
-  ReadOnlyListWrapper<GameOption> gameOptions = new ReadOnlyListWrapper<>(FXCollections.emptyObservableList());
-  ReadOnlyListWrapper<ReplayReviewBean> reviews = new ReadOnlyListWrapper<>(FXCollections.emptyObservableList());
+  ReadOnlyObjectWrapper<List<ChatMessage>> chatMessages = new ReadOnlyObjectWrapper<>(List.of());
+  ReadOnlyObjectWrapper<List<GameOption>> gameOptions = new ReadOnlyObjectWrapper<>(List.of());
   ObjectProperty<Validity> validity = new SimpleObjectProperty<>();
   ObjectProperty<ReplayReviewsSummaryBean> gameReviewsSummary = new SimpleObjectProperty<>();
+  BooleanProperty local = new SimpleBooleanProperty();
   ObservableValue<Integer> numPlayers = teams.map(team -> team.values().stream().mapToInt(Collection::size).sum())
       .orElse(0);
   ObservableValue<Double> averageRating = teamPlayerStats.map(playerStats -> playerStats.values()
@@ -125,15 +120,15 @@ public class ReplayBean {
     return title;
   }
 
-  public ObservableMap<String, List<String>> getTeams() {
-    return teams;
+  public Map<String, List<String>> getTeams() {
+    return teams.get();
   }
 
   public void setTeams(Map<String, List<String>> teams) {
-    this.teams.set(FXCollections.unmodifiableObservableMap(FXCollections.observableMap(teams)));
+    this.teams.set(teams == null ? Map.of() : Map.copyOf(teams));
   }
 
-  public ReadOnlyMapProperty<String, List<String>> teamsProperty() {
+  public ReadOnlyObjectProperty<Map<String, List<String>>> teamsProperty() {
     return teams.getReadOnlyProperty();
   }
 
@@ -224,56 +219,40 @@ public class ReplayBean {
     return views;
   }
 
-  public ObservableList<ChatMessage> getChatMessages() {
-    return chatMessages;
+  public List<ChatMessage> getChatMessages() {
+    return chatMessages.get();
   }
 
   public void setChatMessages(List<ChatMessage> chatMessages) {
-    this.chatMessages.set(FXCollections.unmodifiableObservableList(FXCollections.observableList(chatMessages)));
+    this.chatMessages.set(chatMessages == null ? List.of() : List.copyOf(chatMessages));
   }
 
-  public ReadOnlyListProperty<ChatMessage> chatMessagesProperty() {
+  public ReadOnlyObjectProperty<List<ChatMessage>> chatMessagesProperty() {
     return chatMessages.getReadOnlyProperty();
   }
 
-  public ObservableList<GameOption> getGameOptions() {
-    return gameOptions;
+  public List<GameOption> getGameOptions() {
+    return gameOptions.get();
   }
 
   public void setGameOptions(List<GameOption> gameOptions) {
-    this.gameOptions.set(FXCollections.unmodifiableObservableList(FXCollections.observableList(gameOptions)));
+    this.gameOptions.set(gameOptions == null ? List.of() : List.copyOf(gameOptions));
   }
 
-  public ReadOnlyListProperty<GameOption> gameOptionsProperty() {
+  public ReadOnlyObjectProperty<List<GameOption>> gameOptionsProperty() {
     return gameOptions.getReadOnlyProperty();
   }
 
-  public ObservableMap<String, List<GamePlayerStatsBean>> getTeamPlayerStats() {
-    return teamPlayerStats;
+  public Map<String, List<GamePlayerStatsBean>> getTeamPlayerStats() {
+    return teamPlayerStats.get();
   }
 
   public void setTeamPlayerStats(Map<String, List<GamePlayerStatsBean>> teamPlayerStats) {
-    this.teamPlayerStats.set(FXCollections.unmodifiableObservableMap(FXCollections.observableMap(teamPlayerStats)));
+    this.teamPlayerStats.set(teamPlayerStats == null ? Map.of() : Map.copyOf(teamPlayerStats));
   }
 
-  public ReadOnlyMapProperty<String, List<GamePlayerStatsBean>> teamPlayerStatsProperty() {
+  public ReadOnlyObjectProperty<Map<String, List<GamePlayerStatsBean>>> teamPlayerStatsProperty() {
     return teamPlayerStats.getReadOnlyProperty();
-  }
-
-  public ObservableList<ReplayReviewBean> getReviews() {
-    return reviews;
-  }
-
-  public void setReviews(List<ReplayReviewBean> reviews) {
-    if (reviews == null) {
-      this.reviews.set(FXCollections.emptyObservableList());
-    } else {
-      this.reviews.set(FXCollections.unmodifiableObservableList(FXCollections.observableList(reviews)));
-    }
-  }
-
-  public ReadOnlyListProperty<ReplayReviewBean> reviewsProperty() {
-    return reviews.getReadOnlyProperty();
   }
 
   public ObjectProperty<ReplayReviewsSummaryBean> gameReviewsSummaryProperty() {
@@ -318,6 +297,18 @@ public class ReplayBean {
 
   public ObservableValue<Double> averageRatingProperty() {
     return averageRating;
+  }
+
+  public boolean isLocal() {
+    return local.get();
+  }
+
+  public BooleanProperty localProperty() {
+    return local;
+  }
+
+  public void setLocal(boolean local) {
+    this.local.set(local);
   }
 
   @Value

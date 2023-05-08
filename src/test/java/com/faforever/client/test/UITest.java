@@ -47,7 +47,7 @@ public abstract class UITest extends ApplicationTest {
 
     root = new Pane();
     Thread.setDefaultUncaughtExceptionHandler((thread, e) -> {
-      log.error("Unresolved Throwable in none junit thread, please resolve even if test does not fail", e);
+      log.error("Unresolved Throwable in non junit thread, please resolve even if test does not fail", e);
     });
   }
 
@@ -62,6 +62,11 @@ public abstract class UITest extends ApplicationTest {
     if (showStage()) {
       stage.show();
     }
+  }
+
+  public void stop() throws Exception {
+    getRoot().getChildren().clear();
+    stage.close();
   }
 
   protected Scene createScene() {

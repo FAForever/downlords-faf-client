@@ -3,7 +3,6 @@ package com.faforever.client.builders;
 import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
-import com.faforever.client.domain.ModVersionReviewBean;
 import com.faforever.client.domain.ModVersionReviewsSummaryBean;
 import com.faforever.commons.mod.MountInfo;
 import javafx.collections.FXCollections;
@@ -106,11 +105,6 @@ public class ModVersionBeanBuilder {
 
   public ModVersionBeanBuilder hookDirectories(List<String> hookDirectories) {
     modVersionBean.setHookDirectories(hookDirectories);
-    return this;
-  }
-
-  public ModVersionBeanBuilder reviews(List<ModVersionReviewBean> reviews) {
-    modVersionBean.setReviews(reviews);
     return this;
   }
 

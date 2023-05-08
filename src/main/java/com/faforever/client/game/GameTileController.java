@@ -85,7 +85,7 @@ public class GameTileController implements Controller<Node> {
       hostLabel.setText(game.getHost());
       avatarImageView.setImage(avatar.orElse(null));
       gameMapLabel.setText(game.getMapFolderName());
-      mapImageView.setImage(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE));
+      mapImageView.setImage(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL));
       modsLabel.setText(getSimModsLabelContent(game.getSimMods()));
       lockIconLabel.setVisible(game.isPasswordProtected());
     });

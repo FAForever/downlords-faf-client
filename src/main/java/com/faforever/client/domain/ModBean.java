@@ -6,13 +6,9 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
-
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
@@ -26,7 +22,6 @@ public class ModBean extends AbstractEntityBean<ModBean> {
   StringProperty author = new SimpleStringProperty();
   ObjectProperty<PlayerBean> uploader = new SimpleObjectProperty<>();
   ObjectProperty<ModReviewsSummaryBean> modReviewsSummary = new SimpleObjectProperty<>();
-  ObservableList<ModVersionBean> versions = FXCollections.observableArrayList();
   ObjectProperty<ModVersionBean> latestVersion = new SimpleObjectProperty<>();
 
   public String getDisplayName() {
@@ -75,17 +70,6 @@ public class ModBean extends AbstractEntityBean<ModBean> {
 
   public ObjectProperty<PlayerBean> uploaderProperty() {
     return uploader;
-  }
-
-  public ObservableList<ModVersionBean> getVersions() {
-    return versions;
-  }
-
-  public void setVersions(List<ModVersionBean> versions) {
-    if (versions == null) {
-      versions = List.of();
-    }
-    this.versions.setAll(versions);
   }
 
   public ModVersionBean getLatestVersion() {

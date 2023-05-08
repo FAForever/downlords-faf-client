@@ -422,7 +422,7 @@ public class ReplayServiceTest extends ServiceTest {
     Path path = Path.of("foo.bar");
     when(replayFileReader.parseReplay(path)).thenReturn(replayDataParser);
 
-    instance.enrich(new ReplayBean(), path);
+    instance.loadReplayDetails(path);
 
     verify(replayDataParser).getChatMessages();
     verify(replayDataParser, times(2)).getGameOptions();

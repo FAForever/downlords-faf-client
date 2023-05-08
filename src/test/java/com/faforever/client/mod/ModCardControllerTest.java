@@ -10,15 +10,15 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -26,7 +26,6 @@ import java.util.function.Consumer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -53,19 +52,23 @@ public class ModCardControllerTest extends UITest {
   @InjectMocks
   private ModCardController instance;
   private ModVersionBean modVersion;
-  private ObservableList<ModVersionBean> installedMods;
+
+  private final SimpleBooleanProperty installed = new SimpleBooleanProperty();
 
   @BeforeEach
   public void setUp() throws Exception {
-    installedMods = FXCollections.observableArrayList();
     doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
         .createPlaceholderImageOnErrorObservable(any());
 
+    when(modService.isInstalledBinding(Mockito.any())).thenReturn(installed);
+    when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
     when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
-    when(modService.getInstalledMods()).thenReturn(installedMods);
     when(i18n.get(ModType.UI.getI18nKey())).thenReturn(ModType.UI.name());
 
-    modVersion = ModVersionBeanBuilder.create().defaultValues().mod(ModBeanBuilder.create().defaultValues().get()).get();
+    modVersion = ModVersionBeanBuilder.create()
+        .defaultValues()
+        .mod(ModBeanBuilder.create().defaultValues().get())
+        .get();
 
     when(modService.uninstallMod(any())).thenReturn(CompletableFuture.runAsync(() -> {
     }));
@@ -81,12 +84,14 @@ public class ModCardControllerTest extends UITest {
       }
       return instance;
     });
+
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test
   public void testSetMod() {
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
-    instance.setEntity(modVersion);
+    runOnFxThreadAndWait(() -> instance.setEntity(modVersion));
 
     assertEquals(modVersion.getMod().getDisplayName(), instance.nameLabel.getText());
     assertEquals(modVersion.getMod().getAuthor(), instance.authorLabel.getText());
@@ -99,14 +104,13 @@ public class ModCardControllerTest extends UITest {
     Image image = mock(Image.class);
     when(modService.loadThumbnail(modVersion)).thenReturn(image);
 
-    instance.setEntity(modVersion);
+    runOnFxThreadAndWait(() -> instance.setEntity(modVersion));
 
     assertNotNull(instance.thumbnailImageView.getImage());
   }
 
   @Test
   public void testGetRoot() throws Exception {
-    assertNull(instance.getRoot().getParent());
     assertEquals(instance.modTileRoot, instance.getRoot());
   }
 
@@ -121,21 +125,18 @@ public class ModCardControllerTest extends UITest {
 
   @Test
   public void testUiModLabel() {
-    instance.setEntity(modVersion);
+    runOnFxThreadAndWait(() -> instance.setEntity(modVersion));
     assertEquals(ModType.UI.name(), instance.typeLabel.getText());
   }
 
   @Test
   public void installedButtonVisibility() {
-    instance.setEntity(modVersion);
+    runOnFxThreadAndWait(() -> instance.setEntity(modVersion));
 
-    when(modService.isInstalled(modVersion)).thenReturn(false);
-    installedMods.add(modVersion);
     assertFalse(instance.uninstallButton.isVisible());
     assertTrue(instance.installButton.isVisible());
 
-    when(modService.isInstalled(modVersion)).thenReturn(true);
-    installedMods.remove(modVersion);
+    runOnFxThreadAndWait(() -> installed.set(true));
     assertTrue(instance.uninstallButton.isVisible());
     assertFalse(instance.installButton.isVisible());
   }

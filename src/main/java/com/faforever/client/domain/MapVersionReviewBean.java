@@ -2,6 +2,7 @@ package com.faforever.client.domain;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -24,12 +25,14 @@ public class MapVersionReviewBean extends ReviewBean {
   }
 
   @Override
-  public ComparableVersion getVersion() {
-    return getMapVersion().getVersion();
+  public ObservableValue<ComparableVersion> versionProperty() {
+    return mapVersion.flatMap(MapVersionBean::versionProperty);
   }
 
   @Override
-  public ComparableVersion getLatestVersion() {
-    return getMapVersion().getMap().getLatestVersion().getVersion();
+  public ObservableValue<ComparableVersion> latestVersionProperty() {
+    return mapVersion.flatMap(MapVersionBean::mapProperty)
+        .flatMap(MapBean::latestVersionProperty)
+        .flatMap(MapVersionBean::versionProperty);
   }
 }
