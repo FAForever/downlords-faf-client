@@ -79,6 +79,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -229,7 +230,11 @@ public class ReplayDetailController implements Controller<Node> {
     durationLabel.visibleProperty()
         .bind(replay.flatMap(ReplayBean::endTimeProperty).map(Objects::nonNull).orElse(false).when(showing));
     durationLabel.textProperty()
-        .bind(replay.flatMap(replayValue -> Bindings.createObjectBinding(() -> Duration.between(replayValue.getStartTime(), replayValue.getEndTime()), replayValue.startTimeProperty(), replayValue.endTimeProperty())
+        .bind(replay.flatMap(replayValue -> Bindings.createObjectBinding(() -> {
+              OffsetDateTime startTime = replayValue.getStartTime();
+              OffsetDateTime endTime = replayValue.getEndTime();
+              return startTime == null || endTime == null ? null : Duration.between(startTime, endTime);
+            }, replayValue.startTimeProperty(), replayValue.endTimeProperty())
             .map(timeService::shortDuration)));
     replayDurationLabel.visibleProperty()
         .bind(replay.flatMap(ReplayBean::replayTicksProperty).map(Objects::nonNull).orElse(false).when(showing));

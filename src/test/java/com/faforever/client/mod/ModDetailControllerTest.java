@@ -131,7 +131,7 @@ public class ModDetailControllerTest extends UITest {
   @Test
   public void testSetMod() {
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
-    instance.setModVersion(modVersion);
+    runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
 
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -148,7 +148,8 @@ public class ModDetailControllerTest extends UITest {
     modVersion.getMod().setUploader(null);
 
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
-    instance.setModVersion(modVersion);
+    runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
+    ;
 
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -165,7 +166,8 @@ public class ModDetailControllerTest extends UITest {
     Image image = mock(Image.class);
     when(modService.loadThumbnail(modVersion)).thenReturn(image);
 
-    instance.setModVersion(modVersion);
+    runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
+    ;
 
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -176,7 +178,8 @@ public class ModDetailControllerTest extends UITest {
   public void testOnInstallButtonClicked() {
     when(modService.downloadAndInstallMod(any(ModVersionBean.class), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
-    instance.setModVersion(modVersion);
+    runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
+    ;
     instance.onInstallButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -190,7 +193,8 @@ public class ModDetailControllerTest extends UITest {
     future.completeExceptionally(new FakeTestException());
     when(modService.downloadAndInstallMod(any(ModVersionBean.class), any(), any())).thenReturn(future);
 
-    instance.setModVersion(modVersion);
+    runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
+    ;
 
     instance.onInstallButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
@@ -201,7 +205,8 @@ public class ModDetailControllerTest extends UITest {
 
   @Test
   public void testOnUninstallButtonClicked() {
-    instance.setModVersion(modVersion);
+    runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
+    ;
     when(modService.uninstallMod(modVersion)).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onUninstallButtonClicked();
@@ -215,7 +220,8 @@ public class ModDetailControllerTest extends UITest {
     when(modService.getFileSize(modVersion)).thenReturn(CompletableFuture.completedFuture(-1));
     when(i18n.get("modVault.install")).thenReturn("install");
 
-    instance.setModVersion(modVersion);
+    runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
+    ;
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.installButton.isDisabled());
@@ -225,7 +231,8 @@ public class ModDetailControllerTest extends UITest {
   @Test
   public void testOnUninstallButtonClickedThrowsException() {
     modVersion.setMod(ModBeanBuilder.create().defaultValues().get());
-    instance.setModVersion(modVersion);
+    runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
+    ;
 
     CompletableFuture<Void> future = new CompletableFuture<>();
     future.completeExceptionally(new FakeTestException());
@@ -268,8 +275,7 @@ public class ModDetailControllerTest extends UITest {
   @Test
   public void testSetUninstalledMod() {
     when(modService.isInstalled(modVersion.getUid())).thenReturn(false);
-    instance.setModVersion(modVersion);
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
 
     verify(reviewsController, times(2)).setCanWriteReview(false);
     assertTrue(instance.installButton.isVisible());
@@ -336,7 +342,8 @@ public class ModDetailControllerTest extends UITest {
   public void testOnDeleteReviewThrowsException() {
     ModVersionReviewBean review = ModVersionReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
 
-    instance.setModVersion(modVersion);
+    runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
+    ;
 
     when(reviewService.deleteModVersionReview(review)).thenReturn(Mono.error(new FakeTestException()));
 

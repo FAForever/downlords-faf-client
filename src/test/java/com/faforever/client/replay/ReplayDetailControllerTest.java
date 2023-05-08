@@ -257,7 +257,6 @@ public class ReplayDetailControllerTest extends UITest {
     onlineReplay.setEndTime(null);
 
     runOnFxThreadAndWait(() -> instance.setReplay(onlineReplay));
-    WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.durationLabel.isVisible());
   }
