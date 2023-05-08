@@ -273,10 +273,8 @@ public class GameDetailControllerTest extends UITest {
       instance.setPlaytimeVisible(true);
       instance.setGame(game);
     });
-    Thread.sleep(2000);
     assertSame(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
     runOnFxThreadAndWait(() -> game.setStatus(GameStatus.CLOSED));
-    Thread.sleep(1000);
 
     assertFalse(instance.playtimeLabel.isVisible());
     assertSame(Status.STOPPED, instance.getPlayTimeTimeline().getStatus());
