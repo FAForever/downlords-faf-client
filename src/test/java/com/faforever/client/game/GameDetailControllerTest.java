@@ -34,7 +34,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -165,10 +164,11 @@ public class GameDetailControllerTest extends UITest {
     assertEquals(game.getTitle(), instance.gameTitleLabel.getText());
     assertEquals(game.getHost(), instance.hostLabel.getText());
     assertEquals(game.getMapFolderName(), instance.mapLabel.getText());
-    game.setTitle("blah");
-    game.setHost("me");
-    game.setMapFolderName("lala");
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> {
+      game.setTitle("blah");
+      game.setHost("me");
+      game.setMapFolderName("lala");
+    });
     assertEquals(game.getTitle(), instance.gameTitleLabel.getText());
     assertEquals(game.getHost(), instance.hostLabel.getText());
     assertEquals(game.getMapFolderName(), instance.mapLabel.getText());

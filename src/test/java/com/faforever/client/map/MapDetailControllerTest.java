@@ -264,8 +264,7 @@ public class MapDetailControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
     when(mapService.uninstallMap(testMap)).thenReturn(CompletableFuture.completedFuture(null));
 
-    instance.onUninstallButtonClicked();
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.onUninstallButtonClicked());
 
     verify(mapService).uninstallMap(testMap);
   }
@@ -279,7 +278,7 @@ public class MapDetailControllerTest extends UITest {
     future.completeExceptionally(new FakeTestException());
     when(mapService.uninstallMap(testMap)).thenReturn(future);
 
-    instance.onUninstallButtonClicked();
+    runOnFxThreadAndWait(() -> instance.onUninstallButtonClicked());
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(mapService).uninstallMap(testMap);
@@ -292,8 +291,7 @@ public class MapDetailControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
     when(mapService.hideMapVersion(ownedMap)).thenReturn(Mono.empty());
 
-    instance.hideMap();
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.hideMap());
 
     assertFalse(instance.hideButton.isVisible());
     verify(mapService).hideMapVersion(ownedMap);
