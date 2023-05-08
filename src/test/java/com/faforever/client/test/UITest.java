@@ -64,6 +64,11 @@ public abstract class UITest extends ApplicationTest {
     }
   }
 
+  public void stop() throws Exception {
+    getRoot().getChildren().clear();
+    stage.close();
+  }
+
   protected Scene createScene() {
     return new Scene(getRoot());
   }
