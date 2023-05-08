@@ -337,7 +337,6 @@ public class ReplayDetailControllerTest extends UITest {
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().replayTicks(10_000).get();
 
     runOnFxThreadAndWait(() -> instance.setReplay(replay));
-    WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.replayDurationLabel.isVisible());
     assertTrue(instance.durationLabel.isVisible());
