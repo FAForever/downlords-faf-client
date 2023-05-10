@@ -156,6 +156,22 @@ configurations {
   codacy
 }
 
+distributions {
+  main {
+    contents {
+      from {
+        [
+                configurations.runtimeClasspath,
+                jar,
+                downloadIceAdapter.outputs.files,
+                downloadUnixUid.outputs.files,
+                downloadWindowsUid.outputs.files
+        ]
+      }
+      exclude('**/i4jruntime*.jar')
+    }
+  }
+}
 
 bootRun {
   mainClass = "com.faforever.client.Main"
