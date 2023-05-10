@@ -133,7 +133,7 @@ public class SpecificationController implements Controller<Node> {
     propertyField.setConverter(new StringConverter<String>() {
       @Override
       public String toString(String object) {
-        return i18n.get(properties.get(object).getI18nKey());
+        return i18n.get(properties.get(object).i18nKey());
       }
 
       @Override

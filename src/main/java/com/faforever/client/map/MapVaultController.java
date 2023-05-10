@@ -36,9 +36,6 @@ import java.util.Random;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-// TODO I'd like to avoid the additional "getMost*" methods and always use the map query function instead, however,
-// this is currently not viable since Elide can't yet sort by relationship attributes. Once it supports that
-// (see https://github.com/yahoo/elide/issues/353), this can be refactored.
 public class MapVaultController extends VaultEntityController<MapVersionBean> {
 
   private final MapService mapService;

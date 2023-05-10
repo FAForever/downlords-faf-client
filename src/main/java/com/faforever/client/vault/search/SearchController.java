@@ -34,7 +34,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.StringConverter;
 import lombok.Getter;
-import lombok.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -73,7 +72,8 @@ public class SearchController implements Controller<Pane> {
   public HBox sortBox;
   public FlowPane filterPane;
   public CheckBox onlyShowLastYearCheckBox;
-  private final SimpleInvalidationListener queryInvalidationListener = () -> queryTextField.setText(buildQuery());;
+  private final SimpleInvalidationListener queryInvalidationListener = () -> queryTextField.setText(buildQuery());
+  ;
   /**
    * Called with the query string when the user hits "search".
    */
@@ -119,7 +119,7 @@ public class SearchController implements Controller<Pane> {
     sortPropertyComboBox.setConverter(new StringConverter<>() {
       @Override
       public String toString(Property property) {
-        return i18n.get(property.getI18nKey());
+        return i18n.get(property.i18nKey());
       }
 
       @Override
@@ -148,14 +148,14 @@ public class SearchController implements Controller<Pane> {
 
   public void setSortConfig(ObjectProperty<SortConfig> sortConfigObjectProperty) {
     List<Property> sortableProperties = searchableProperties.values().stream()
-        .filter(Property::isSortable)
+        .filter(Property::sortable)
         .toList();
     sortPropertyComboBox.getItems().addAll(sortableProperties);
-    sortOrderChoiceBox.getSelectionModel().select(sortConfigObjectProperty.get().getSortOrder());
+    sortOrderChoiceBox.getSelectionModel().select(sortConfigObjectProperty.get().sortOrder());
 
-    Property savedSortProperty = searchableProperties.get(sortConfigObjectProperty.get().getSortProperty());
+    Property savedSortProperty = searchableProperties.get(sortConfigObjectProperty.get().sortProperty());
 
-    if (savedSortProperty == null || !savedSortProperty.isSortable()) {
+    if (savedSortProperty == null || !savedSortProperty.sortable()) {
       savedSortProperty = sortableProperties.iterator().next();
     }
 
@@ -184,7 +184,8 @@ public class SearchController implements Controller<Pane> {
       boolean isFreeTextField = !logicalNodeController.specificationController.valueField.valueProperty().isBound()
           && logicalNodeController.specificationController.valueField.getItems().isEmpty();
       if (isFreeTextField) {
-        JavaFxUtil.runLater(() -> logicalNodeController.specificationController.valueField.setValue(logicalNodeController.specificationController.valueField.getEditor().getText()));
+        JavaFxUtil.runLater(() -> logicalNodeController.specificationController.valueField.setValue(logicalNodeController.specificationController.valueField.getEditor()
+            .getText()));
       }
     });
   }
@@ -205,7 +206,7 @@ public class SearchController implements Controller<Pane> {
     return searchableProperties.entrySet().stream()
         .filter(stringStringEntry -> stringStringEntry.getValue().equals(sortPropertyComboBox.getValue()))
         .findFirst()
-        .get()
+        .orElseThrow()
         .getKey();
   }
 
@@ -307,7 +308,8 @@ public class SearchController implements Controller<Pane> {
     return categoryFilterController;
   }
 
-  public RangeFilterController addRangeFilter(String propertyName, String title, double min, double max, double tickUnit, Function<Double, ? extends Number> valueTransform) {
+  public RangeFilterController addRangeFilter(String propertyName, String title, double min, double max,
+                                              double tickUnit, Function<Double, ? extends Number> valueTransform) {
     RangeFilterController rangeFilterController = uiService.loadFxml("theme/vault/search/rangeFilter.fxml");
     rangeFilterController.setTitle(title);
     rangeFilterController.setPropertyName(propertyName);
@@ -340,7 +342,8 @@ public class SearchController implements Controller<Pane> {
     return toggleFilterController;
   }
 
-  public BinaryFilterController addBinaryFilter(String propertyName, String title, String firstValue, String secondValue, String firstLabel, String secondLabel) {
+  public BinaryFilterController addBinaryFilter(String propertyName, String title, String firstValue,
+                                                String secondValue, String firstLabel, String secondLabel) {
     BinaryFilterController binaryFilterController = uiService.loadFxml("theme/vault/search/binaryFilter.fxml");
     binaryFilterController.setTitle(title);
     binaryFilterController.setPropertyName(propertyName);
@@ -381,7 +384,8 @@ public class SearchController implements Controller<Pane> {
     }
   }
 
-  private Condition getCompositeCondition(SpecificationController initialSpecification, List<LogicalNodeController> queryNodes) {
+  private Condition getCompositeCondition(SpecificationController initialSpecification,
+                                          List<LogicalNodeController> queryNodes) {
     QBuilder qBuilder = new QBuilder<>();
     boolean isLastYearChecked = onlyShowLastYearCheckBox.isVisible() && onlyShowLastYearCheckBox.isSelected();
     Optional<Condition> condition = initialSpecification.appendTo(qBuilder);
@@ -399,7 +403,10 @@ public class SearchController implements Controller<Pane> {
       condition = currentCondition;
     }
 
-    return isLastYearChecked ? condition.get().and().instant("endTime").after(OffsetDateTime.now().minusYears(1).toInstant(), false)
+    return isLastYearChecked ? condition.get()
+        .and()
+        .instant("endTime")
+        .after(OffsetDateTime.now().minusYears(1).toInstant(), false)
         : condition.get();
   }
 
@@ -449,23 +456,7 @@ public class SearchController implements Controller<Pane> {
     }
   }
 
-  @Value
-  public static class SortConfig {
-    String sortProperty;
-    SortOrder sortOrder;
+  public record SortConfig(String sortProperty, SortOrder sortOrder) {}
 
-    public String toQuery() {
-      return sortOrder.getQuery() + sortProperty;
-    }
-  }
-
-  @Value
-  public static class SearchConfig {
-    SortConfig sortConfig;
-    String searchQuery;
-
-    public boolean hasCustomQuery() {
-      return searchQuery != null && !searchQuery.isEmpty();
-    }
-  }
+  public record SearchConfig(SortConfig sortConfig, String searchQuery) {}
 }

@@ -672,10 +672,10 @@ public class MapService implements InitializingBean, DisposableBean {
   @Cacheable(value = CacheNames.MAPS, sync = true)
   public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig,
                                                                                            int count, int page) {
-    SortConfig sortConfig = searchConfig.getSortConfig();
+    SortConfig sortConfig = searchConfig.sortConfig();
     ElideNavigatorOnCollection<Map> navigator = ElideNavigator.of(Map.class).collection()
-        .addSortingRule(sortConfig.getSortProperty(), sortConfig.getSortOrder().equals(SortOrder.ASC));
-    return getMapPage(navigator, searchConfig.getSearchQuery(), count, page);
+        .addSortingRule(sortConfig.sortProperty(), sortConfig.sortOrder().equals(SortOrder.ASC));
+    return getMapPage(navigator, searchConfig.searchQuery(), count, page);
   }
 
   @Cacheable(value = CacheNames.MAPS, sync = true)
