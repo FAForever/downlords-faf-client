@@ -13,7 +13,7 @@ plugins {
   id "de.undercouch.download" version "5.4.0"
   id 'jacoco'
   id 'java'
-  id 'application'
+  id 'distribution'
 }
 
 apply plugin: 'io.spring.dependency-management'
