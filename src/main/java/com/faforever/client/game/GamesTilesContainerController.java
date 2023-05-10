@@ -53,7 +53,6 @@ public class GamesTilesContainerController implements Controller<Node> {
   Map<Integer, Node> gameIdToGameCard = new HashMap<>();
   private GameTooltipController gameTooltipController;
   private Tooltip tooltip;
-  private ObservableList<GameBean> games;
   private ComboBox<TilesSortingOrder> sortingTypeChoiceBox;
 
   private final ReadOnlyObjectWrapper<GameBean> selectedGame = new ReadOnlyObjectWrapper<>();
@@ -118,7 +117,6 @@ public class GamesTilesContainerController implements Controller<Node> {
   }
 
   public void createTiledFlowPane(ObservableList<GameBean> games, ComboBox<TilesSortingOrder> sortingTypeChoiceBox) {
-    this.games = games;
     this.sortingTypeChoiceBox = sortingTypeChoiceBox;
     initializeChoiceBox();
     JavaFxUtil.addListener(games, gameListChangeListener);
@@ -170,17 +168,6 @@ public class GamesTilesContainerController implements Controller<Node> {
     if (game.equals(selectedGame.getValue()) && game.getStatus() != GameStatus.OPEN) {
       selectFirstGame();
     }
-  }
-
-  public void recreateTile(String mapName) {
-    games.stream()
-        .filter(game -> game.getMapFolderName().equals(mapName))
-        .findFirst()
-        .ifPresentOrElse(game -> JavaFxUtil.runLater(() -> {
-          removeGameCard(game);
-          addGameCard(game);
-          sortNodes();
-        }), () -> log.warn("No tile with {} map to recreate", mapName));
   }
 
   public Node getRoot() {

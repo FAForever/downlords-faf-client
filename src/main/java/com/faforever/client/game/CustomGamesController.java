@@ -9,7 +9,6 @@ import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.main.event.NavigateEvent;
-import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
@@ -18,7 +17,6 @@ import com.faforever.client.util.PopupUtil;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.value.ObservableValue;
@@ -76,7 +74,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
   public ComboBox<TilesSortingOrder> chooseSortingTypeChoiceBox;
   public Label filteredGamesCountLabel;
 
-  private FilteredList<GameBean> filteredGames;
   private CustomGamesFilterController customGamesFilterController;
   private Popup gameFilterPopup;
 
@@ -93,7 +90,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
     chooseSortingTypeChoiceBox.getItems().addAll(TilesSortingOrder.values());
     chooseSortingTypeChoiceBox.setConverter(new ToStringOnlyConverter<>(tilesSortingOrder -> tilesSortingOrder == null ? "null" : i18n.get(tilesSortingOrder.getDisplayNameKey())));
 
-    filteredGames = new FilteredList<>(gameService.getGames());
+    FilteredList<GameBean> filteredGames = new FilteredList<>(gameService.getGames());
     filteredGames.predicateProperty().bind(customGamesFilterController.predicateProperty());
 
     IntegerBinding filteredGameCount = Bindings.size(filteredGames);
@@ -135,8 +132,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
     gamesTilesContainerController.createTiledFlowPane(filteredGames, chooseSortingTypeChoiceBox);
     gamesTableController.initializeGameTable(filteredGames);
-
-    eventBus.register(this);
   }
 
   private void initializeFilterController() {
@@ -202,21 +197,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
   public void onTilesButtonClicked() {
     gameDetailController.gameProperty().bind(gamesTilesContainerController.selectedGameProperty());
     populateContainer(gamesTilesContainerController.getRoot());
-  }
-
-  @Subscribe
-  public void onMapGeneratedEvent(MapGeneratedEvent event) {
-    filteredGames.stream()
-        .filter(game -> game.getMapFolderName().equals(event.mapName()) && game.getStatus() == GameStatus.OPEN)
-        .findFirst()
-        .ifPresent(game -> {
-          if (gamesTilesContainerController != null) {
-            gamesTilesContainerController.recreateTile(event.mapName());
-          }
-          if (gamesTableController != null) {
-            gamesTableController.refreshTable();
-          }
-        });
   }
 
   public void onFilterButtonClicked() {

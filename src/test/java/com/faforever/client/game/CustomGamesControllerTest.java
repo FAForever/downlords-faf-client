@@ -1,10 +1,8 @@
 package com.faforever.client.game;
 
-import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.CustomGamesFilterController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.replay.WatchButtonController;
 import com.faforever.client.test.UITest;
@@ -23,7 +21,6 @@ import org.mockito.Spy;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -121,49 +118,5 @@ public class CustomGamesControllerTest extends UITest {
 
     assertFalse(instance.gameDetailPane.isManaged());
     assertFalse(instance.gameDetailPane.isVisible());
-  }
-
-  @Test
-  public void testOnMapGeneratedEventInTableView() {
-    GameBean neroxisGame = GameBeanBuilder.create().defaultValues().mapFolderName("neroxis").get();
-    games.add(neroxisGame);
-
-    runOnFxThreadAndWait(() -> instance.onTableButtonClicked());
-    instance.onMapGeneratedEvent(new MapGeneratedEvent(neroxisGame.getMapFolderName()));
-
-    verify(gamesTableController).refreshTable();
-  }
-
-  @Test
-  public void testOnMapGeneratedEventInTilesView() {
-    GameBean neroxisGame = GameBeanBuilder.create().defaultValues().mapFolderName("neroxis").get();
-    games.add(neroxisGame);
-
-    runOnFxThreadAndWait(() -> instance.onTilesButtonClicked());
-    instance.onMapGeneratedEvent(new MapGeneratedEvent(neroxisGame.getMapFolderName()));
-
-    verify(gamesTilesContainerController).recreateTile(neroxisGame.getMapFolderName());
-  }
-
-  @Test
-  public void testOnMapGeneratedEventWhenNoGeneratedMapInTableView() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
-    games.add(game);
-
-    runOnFxThreadAndWait(() -> instance.onTableButtonClicked());
-    instance.onMapGeneratedEvent(new MapGeneratedEvent("neroxis"));
-
-    verify(gamesTableController, never()).refreshTable();
-  }
-
-  @Test
-  public void testOnMapGeneratedEventWhenNoGeneratedMapInTilesView() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
-    games.add(game);
-
-    runOnFxThreadAndWait(() -> instance.onTilesButtonClicked());
-    instance.onMapGeneratedEvent(new MapGeneratedEvent("neroxis"));
-
-    verify(gamesTilesContainerController, never()).recreateTile("neroxis");
   }
 }
