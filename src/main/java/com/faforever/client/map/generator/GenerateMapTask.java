@@ -6,7 +6,6 @@ import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsUtils;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.task.CompletableTask;
-import com.google.common.eventbus.EventBus;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -33,7 +32,6 @@ public class GenerateMapTask extends CompletableTask<String> {
   private final NotificationService notificationService;
   private final I18n i18n;
   private final OperatingSystem operatingSystem;
-  private final EventBus eventBus;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   private Path generatorExecutableFile;
@@ -43,13 +41,13 @@ public class GenerateMapTask extends CompletableTask<String> {
   private String mapName;
 
   @Autowired
-  public GenerateMapTask(NotificationService notificationService, I18n i18n, OperatingSystem operatingSystem, EventBus eventBus, ForgedAlliancePrefs forgedAlliancePrefs) {
+  public GenerateMapTask(NotificationService notificationService, I18n i18n, OperatingSystem operatingSystem,
+                         ForgedAlliancePrefs forgedAlliancePrefs) {
     super(Priority.HIGH);
     this.forgedAlliancePrefs = forgedAlliancePrefs;
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.operatingSystem = operatingSystem;
-    this.eventBus = eventBus;
   }
 
   @Override
@@ -109,8 +107,6 @@ public class GenerateMapTask extends CompletableTask<String> {
         log.warn("Map generation timed out, killing process");
         process.destroyForcibly();
         notificationService.addImmediateErrorNotification(new RuntimeException("Map generation timed out"), "game.mapGeneration.failed.message");
-      } else if (!process.isAlive()) {
-        eventBus.post(new MapGeneratedEvent(mapName));
       }
     } catch (Exception e) {
       log.error("Could not start map generator", e);
