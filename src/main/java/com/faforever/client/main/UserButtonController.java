@@ -1,18 +1,15 @@
 package com.faforever.client.main;
 
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LogOutRequestEvent;
-import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
-import javafx.event.ActionEvent;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuButton;
@@ -29,17 +26,13 @@ public class UserButtonController implements Controller<Node> {
   private final EventBus eventBus;
   private final PlayerService playerService;
   private final UiService uiService;
-  private final UserService userService;
-  private final PreferencesService preferencesService;
   public MenuButton userMenuButtonRoot;
 
   public void initialize() {
-    eventBus.register(this);
-  }
+    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
 
-  @Subscribe
-  public void onLoginSuccessEvent(LoginSuccessEvent event) {
-    JavaFxUtil.runLater(() -> userMenuButtonRoot.setText(userService.getUsername()));
+    userMenuButtonRoot.textProperty()
+        .bind(playerService.currentPlayerProperty().flatMap(PlayerBean::usernameProperty).when(showing));
   }
 
   @Override
@@ -47,7 +40,7 @@ public class UserButtonController implements Controller<Node> {
     return userMenuButtonRoot;
   }
 
-  public void onShowProfile(ActionEvent event) {
+  public void onShowProfile() {
     PlayerInfoWindowController playerInfoWindowController = uiService.loadFxml("theme/user_info_window.fxml");
     playerInfoWindowController.setPlayer(playerService.getCurrentPlayer());
     Scene scene = userMenuButtonRoot.getScene();
@@ -57,7 +50,7 @@ public class UserButtonController implements Controller<Node> {
     playerInfoWindowController.show();
   }
 
-  public void onReport(ActionEvent event) {
+  public void onReport() {
     ReportDialogController reportDialogController = uiService.loadFxml("theme/reporting/report_dialog.fxml");
     reportDialogController.setAutoCompleteWithOnlinePlayers();
     Scene scene = userMenuButtonRoot.getScene();
@@ -67,7 +60,7 @@ public class UserButtonController implements Controller<Node> {
     reportDialogController.show();
   }
 
-  public void onLogOut(ActionEvent actionEvent) {
+  public void onLogOut() {
     eventBus.post(new LogOutRequestEvent());
   }
 }
