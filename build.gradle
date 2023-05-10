@@ -198,7 +198,6 @@ install4j {
 tasks.register('buildInstall4jMediaFiles', Install4jTask) {
   group "distribution"
   description 'Creates install4j media files'
-  dependsOn 'installDist'
 
   projectFile = file('faf-client.install4j')
   release = version
