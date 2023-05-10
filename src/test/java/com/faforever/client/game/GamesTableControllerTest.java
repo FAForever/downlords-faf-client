@@ -10,6 +10,8 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
@@ -28,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 public class GamesTableControllerTest extends UITest {
@@ -57,6 +60,9 @@ public class GamesTableControllerTest extends UITest {
     when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);
     when(gameTooltipController.getRoot()).thenReturn(new Pane());
     when(i18n.get(any())).then(invocation -> invocation.getArguments()[0]);
+    when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
+    when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
+    when(playerService.getAverageRatingPropertyForGame(any())).thenReturn(new SimpleObjectProperty<>(0d));
 
     loadFxml("theme/play/games_table.fxml", param -> instance);
 

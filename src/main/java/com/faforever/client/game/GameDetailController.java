@@ -12,7 +12,6 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
@@ -24,8 +23,6 @@ import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import javafx.animation.Animation.Status;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -75,7 +72,6 @@ public class GameDetailController implements Controller<Pane> {
   private final NotificationService notificationService;
   private final JavaFxService javaFxService;
   private final ImageViewHelper imageViewHelper;
-  private final EventBus eventBus;
 
   private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
   private final BooleanProperty playtimeVisible = new SimpleBooleanProperty();
@@ -123,7 +119,7 @@ public class GameDetailController implements Controller<Pane> {
     ObservableValue<String> mapFolderNameObservable = game.flatMap(GameBean::mapFolderNameProperty);
     mapLabel.textProperty().bind(mapFolderNameObservable.when(showing));
     mapImageView.imageProperty()
-        .bind(mapFolderNameObservable.map(folderName -> mapService.loadPreview(folderName, PreviewSize.SMALL))
+        .bind(mapFolderNameObservable.flatMap(folderName -> Bindings.createObjectBinding(() -> mapService.loadPreview(folderName, PreviewSize.SMALL), mapService.isInstalledBinding(folderName)))
             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
             .when(showing));
 
@@ -143,7 +139,7 @@ public class GameDetailController implements Controller<Pane> {
             .and(gameBean.gameTypeProperty().isNotEqualTo(GameType.MATCHMAKER))).orElse(false).when(showing));
 
     generateMapButton.visibleProperty()
-        .bind(mapFolderNameObservable.map(mapName -> mapGeneratorService.isGeneratedMap(mapName) && !mapService.isInstalled(mapName))
+        .bind(mapFolderNameObservable.flatMap(mapName -> Bindings.createBooleanBinding(() -> mapGeneratorService.isGeneratedMap(mapName) && !mapService.isInstalled(mapName), mapService.isInstalledBinding(mapName)))
             .orElse(false)
             .when(showing));
 
@@ -177,8 +173,6 @@ public class GameDetailController implements Controller<Pane> {
       JavaFxUtil.bindManagedToVisible(teamCardControllerRoot);
       teamListPane.getChildren().add(teamCardControllerRoot);
     }
-
-    eventBus.register(this);
   }
 
   private void onFeaturedModChanged(String featuredModTechnicalName) {
@@ -219,7 +213,6 @@ public class GameDetailController implements Controller<Pane> {
   public void dispose() {
     playTimeTimeline.stop();
     watchButtonController.dispose();
-    eventBus.unregister(this);
   }
 
   public void setGame(GameBean game) {
@@ -260,24 +253,6 @@ public class GameDetailController implements Controller<Pane> {
       notificationService.addImmediateErrorNotification(throwable, "game.mapGeneration.failed.title");
       return null;
     }).whenComplete((unused, throwable) -> setGeneratingMapInProgress(false));
-  }
-
-  @Subscribe
-  public void onMapGeneratedEvent(MapGeneratedEvent event) {
-    rebindGeneratedProperties();
-  }
-
-  private void rebindGeneratedProperties() {
-    JavaFxUtil.runLater(() -> {
-      mapImageView.imageProperty()
-          .bind(game.flatMap(GameBean::mapFolderNameProperty)
-              .map(folderName -> mapService.loadPreview(folderName, PreviewSize.SMALL))
-              .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
-      generateMapButton.visibleProperty()
-          .bind(game.flatMap(GameBean::mapFolderNameProperty)
-              .map(mapName -> mapGeneratorService.isGeneratedMap(mapName) && !mapService.isInstalled(mapName))
-              .orElse(false));
-    });
   }
 
   private void setGeneratingMapInProgress(boolean inProgress) {

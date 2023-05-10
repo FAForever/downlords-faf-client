@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
@@ -50,6 +51,7 @@ public class GameTileController implements Controller<Node> {
   private final ModService modService;
   private final PlayerService playerService;
   private final JavaFxService javaFxService;
+  private final ImageViewHelper imageViewHelper;
 
   public Node lockIconLabel;
   public Label gameTypeLabel;
@@ -91,6 +93,7 @@ public class GameTileController implements Controller<Node> {
     mapImageView.imageProperty()
         .bind(game.flatMap(GameBean::mapFolderNameProperty)
             .flatMap(mapFolderName -> Bindings.createObjectBinding(() -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL), mapService.isInstalledBinding(mapFolderName)))
+            .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
             .when(showing));
     modsLabel.textProperty()
         .bind(game.flatMap(GameBean::simModsProperty).map(this::getSimModsLabelContent).when(showing));

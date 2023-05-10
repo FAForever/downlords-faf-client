@@ -237,7 +237,7 @@ public class ChatUserItemController implements Controller<Node> {
 
     mapImageView.imageProperty()
         .bind(gameProperty.flatMap(GameBean::mapFolderNameProperty)
-            .map(mapFolderName -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL))
+            .flatMap(mapFolderName -> Bindings.createObjectBinding(() -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL), mapService.isInstalledBinding(mapFolderName)))
             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
             .when(showing));
 

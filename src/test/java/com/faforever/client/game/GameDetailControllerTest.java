@@ -10,7 +10,6 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
@@ -22,6 +21,7 @@ import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
 import com.google.common.eventbus.EventBus;
 import javafx.animation.Animation.Status;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
@@ -47,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -107,6 +108,7 @@ public class GameDetailControllerTest extends UITest {
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
         .get()));
+    when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(mock(Image.class));
     when(timeService.shortDuration(any())).thenReturn("duration");
     when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
@@ -309,30 +311,6 @@ public class GameDetailControllerTest extends UITest {
 
     runOnFxThreadAndWait(() -> instance.setGame(game));
 
-    assertFalse(instance.generateMapButton.isVisible());
-  }
-
-  @Test
-  public void testOnGenerateMapClickedAndSucceed() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
-    Image noImageMock = mock(Image.class);
-    Image imageMock = mock(Image.class);
-    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(noImageMock, imageMock);
-    when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(true);
-    when(mapService.isInstalled(game.getMapFolderName())).thenReturn(false);
-    when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(CompletableFuture.completedFuture(game.getMapFolderName()));
-
-    runOnFxThreadAndWait(() -> {
-      instance.setGame(game);
-      instance.onGenerateMapClicked();
-    });
-    verify(mapService).generateIfNotInstalled(game.getMapFolderName());
-    assertEquals(noImageMock, instance.mapImageView.getImage());
-
-    when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
-    runOnFxThreadAndWait(() -> instance.onMapGeneratedEvent(new MapGeneratedEvent(game.getMapFolderName())));
-
-    assertEquals(imageMock, instance.mapImageView.getImage());
     assertFalse(instance.generateMapButton.isVisible());
   }
 

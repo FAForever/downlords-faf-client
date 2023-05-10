@@ -112,6 +112,7 @@ public class GamesTableController implements Controller<Node> {
     mapPreviewColumn.setCellValueFactory(param -> param.getValue()
         .mapFolderNameProperty()
         .flatMap(mapFolderName -> Bindings.createObjectBinding(() -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL), mapService.isInstalledBinding(mapFolderName)))
+        .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
         .when(showing));
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty().when(showing));

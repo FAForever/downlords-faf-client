@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.i18n.I18n;
@@ -11,6 +12,7 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
@@ -46,6 +48,8 @@ public class GameTileControllerTest extends UITest {
   @Mock
   private JoinGameHelper joinGameHelper;
   @Mock
+  private ImageViewHelper imageViewHelper;
+  @Mock
   private I18n i18n;
   @Mock
   private MapService mapService;
@@ -70,6 +74,7 @@ public class GameTileControllerTest extends UITest {
     when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
     when(javaFxService.getSingleScheduler()).thenReturn(Schedulers.immediate());
     when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
+    when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
 
     loadFxml("theme/play/game_card.fxml", clazz -> instance);
     instance.setOnSelectedListener(onSelectedConsumer);
