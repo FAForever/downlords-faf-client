@@ -23,6 +23,7 @@ import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.image.Image;
@@ -90,6 +91,7 @@ public class ChatUserItemControllerTest extends UITest {
   public void setUp() throws Exception {
     defaultUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
 
+    when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
     when(i18n.get(eq("clan.messageLeader"))).thenReturn("Message clan leader");
     when(i18n.get(eq("clan.visitPage"))).thenReturn("Visit clan website");
     doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
