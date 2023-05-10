@@ -15,8 +15,10 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Joiner;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.transformation.SortedList;
@@ -89,6 +91,8 @@ public class GamesTableController implements Controller<Node> {
 
   public void initializeGameTable(ObservableList<GameBean> games, Function<String, String> coopMissionNameProvider,
                                   boolean listenToFilterPreferences) {
+    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+
     gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
 
@@ -107,44 +111,54 @@ public class GamesTableController implements Controller<Node> {
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(imageViewHelper));
     mapPreviewColumn.setCellValueFactory(param -> param.getValue()
         .mapFolderNameProperty()
-        .map(mapFolderName -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL)));
+        .flatMap(mapFolderName -> Bindings.createObjectBinding(() -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL), mapService.isInstalledBinding(mapFolderName)))
+        .when(showing));
 
-    gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
+    gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty().when(showing));
     gameTitleColumn.setCellFactory(param -> new StringCell<>(StringUtils::normalizeSpace));
     playersColumn.setCellValueFactory(param -> param.getValue()
         .maxPlayersProperty()
         .flatMap(max -> param.getValue()
             .numActivePlayersProperty()
             .map(Number::intValue)
-            .map(active -> new PlayerFill(active, max.intValue()))));
+            .map(active -> new PlayerFill(active, max.intValue())))
+        .when(showing));
     playersColumn.setCellFactory(param -> playersCell());
     ratingRangeColumn.setCellValueFactory(param -> param.getValue()
         .ratingMaxProperty()
-        .flatMap(max -> param.getValue().ratingMinProperty().map(min -> new RatingRange(min, max))));
+        .flatMap(max -> param.getValue().ratingMinProperty().map(min -> new RatingRange(min, max)))
+        .when(showing));
     ratingRangeColumn.setCellFactory(param -> ratingTableCell());
-    hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
+    hostColumn.setCellValueFactory(param -> param.getValue().hostProperty().when(showing));
     hostColumn.setCellFactory(param -> new HostTableCell(playerService));
-    modsColumn.setCellValueFactory(param -> param.getValue().simModsProperty());
+    modsColumn.setCellValueFactory(param -> param.getValue().simModsProperty().when(showing));
     modsColumn.setCellFactory(param -> new StringCell<>(this::convertSimModsToContent));
     coopMissionName.setVisible(coopMissionNameProvider != null);
 
     if (averageRatingColumn != null) {
-      averageRatingColumn.setCellValueFactory(param -> playerService.getAverageRatingPropertyForGame(param.getValue()));
+      averageRatingColumn.setCellValueFactory(param -> playerService.getAverageRatingPropertyForGame(param.getValue())
+          .when(showing));
       averageRatingColumn.setCellFactory(param -> new DecimalCell<>(new DecimalFormat("0"), number -> Math.round(number / 100.0) * 100.0));
     }
 
     if (coopMissionNameProvider != null) {
       coopMissionName.setCellFactory(param -> new StringCell<>(name -> name));
-      coopMissionName.setCellValueFactory(param -> new SimpleObjectProperty<>(coopMissionNameProvider.apply(param.getValue()
-          .getMapFolderName())));
+      coopMissionName.setCellValueFactory(param -> param.getValue()
+          .mapFolderNameProperty()
+          .map(coopMissionNameProvider)
+          .when(showing));
     }
 
-    selectedGameProperty().bind(gamesTable.selectionModelProperty().flatMap(TableViewSelectionModel::selectedItemProperty));
+    selectedGameProperty().bind(gamesTable.selectionModelProperty()
+        .flatMap(TableViewSelectionModel::selectedItemProperty)
+        .when(showing));
 
     //bindings do not work as that interferes with some bidirectional bindings in the TableView itself
     if (listenToFilterPreferences && coopMissionNameProvider == null) {
-      JavaFxUtil.addAndTriggerListener(preferences.hideModdedGamesProperty(), observable -> modsColumn.setVisible(!preferences.isHideModdedGames()));
-      JavaFxUtil.addAndTriggerListener(preferences.hidePrivateGamesProperty(), observable -> passwordProtectionColumn.setVisible(!preferences.isHidePrivateGames()));
+      JavaFxUtil.addAndTriggerListener(preferences.hideModdedGamesProperty()
+          .when(showing), observable -> modsColumn.setVisible(!preferences.isHideModdedGames()));
+      JavaFxUtil.addAndTriggerListener(preferences.hidePrivateGamesProperty()
+          .when(showing), observable -> passwordProtectionColumn.setVisible(!preferences.isHidePrivateGames()));
     }
 
     selectFirstGame();

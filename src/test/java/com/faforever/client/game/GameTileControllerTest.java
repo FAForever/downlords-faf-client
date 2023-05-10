@@ -3,12 +3,14 @@ package com.faforever.client.game;
 import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
@@ -18,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -48,6 +51,8 @@ public class GameTileControllerTest extends UITest {
   private MapService mapService;
   @Mock
   private PlayerService playerService;
+  @Mock
+  private JavaFxService javaFxService;
 
   private GameBean game;
 
@@ -62,23 +67,28 @@ public class GameTileControllerTest extends UITest {
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(
         FeaturedModBeanBuilder.create().defaultValues().get()
     ));
+    when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
+    when(javaFxService.getSingleScheduler()).thenReturn(Schedulers.immediate());
+    when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
 
     loadFxml("theme/play/game_card.fxml", clazz -> instance);
     instance.setOnSelectedListener(onSelectedConsumer);
+
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test
   public void testOnLeftDoubleClick() {
-    instance.setGame(game);
-    instance.onClick(MouseEvents.generateClick(MouseButton.PRIMARY, 2));
+    runOnFxThreadAndWait(() -> instance.setGame(game));
+    runOnFxThreadAndWait(() -> instance.onClick(MouseEvents.generateClick(MouseButton.PRIMARY, 2)));
     verify(joinGameHelper).join(any());
     verify(onSelectedConsumer).accept(game);
   }
 
   @Test
   public void testOnLeftSingleClick() {
-    instance.setGame(game);
-    instance.onClick(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
+    runOnFxThreadAndWait(() -> instance.setGame(game));
+    runOnFxThreadAndWait(() -> instance.onClick(MouseEvents.generateClick(MouseButton.PRIMARY, 1)));
     verify(joinGameHelper, never()).join(any());
     verify(onSelectedConsumer).accept(game);
   }
@@ -91,7 +101,7 @@ public class GameTileControllerTest extends UITest {
     simMods.put("test3", "test3");
     simMods.put("test4", "test4");
     game.setSimMods(FXCollections.observableMap(simMods));
-    instance.setGame(game);
+    runOnFxThreadAndWait(() -> instance.setGame(game));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(i18n).get(eq("game.mods.twoAndMore"), contains("test"), eq(3));
@@ -103,7 +113,7 @@ public class GameTileControllerTest extends UITest {
     simMods.put("test1", "test1");
     simMods.put("test2", "test2");
     game.setSimMods(FXCollections.observableMap(simMods));
-    instance.setGame(game);
+    runOnFxThreadAndWait(() -> instance.setGame(game));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(i18n).get("textSeparator");

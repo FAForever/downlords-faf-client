@@ -380,6 +380,10 @@ public class MapService implements InitializingBean, DisposableBean {
     return Bindings.createBooleanBinding(() -> isInstalled(mapVersion), installedMaps);
   }
 
+  public BooleanExpression isInstalledBinding(String mapFolderName) {
+    return Bindings.createBooleanBinding(() -> isInstalled(mapFolderName), installedMaps);
+  }
+
   public CompletableFuture<String> generateIfNotInstalled(String mapName) {
     if (isInstalled(mapName)) {
       return CompletableFuture.completedFuture(mapName);
