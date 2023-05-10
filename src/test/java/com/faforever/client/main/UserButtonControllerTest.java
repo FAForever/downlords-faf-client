@@ -7,17 +7,14 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LogOutRequestEvent;
-import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.SimpleObjectProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.testfx.util.WaitForAsyncUtils;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,8 +32,6 @@ public class UserButtonControllerTest extends UITest {
   private ReportDialogController reportDialogController;
   @Mock
   private PlayerInfoWindowController playerInfoWindowController;
-  @Mock
-  private UserService userService;
 
 
   @InjectMocks
@@ -50,27 +45,16 @@ public class UserButtonControllerTest extends UITest {
 
     player = PlayerBeanBuilder.create().defaultValues().username(TEST_USER_NAME).get();
     when(playerService.getCurrentPlayer()).thenReturn(player);
-    when(userService.getUsername()).thenReturn(TEST_USER_NAME);
+    when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(player));
 
     loadFxml("theme/user_button.fxml", clazz -> instance);
-  }
 
-  @Test
-  public void testOnLoginSuccess() {
-    instance.onLoginSuccessEvent(new LoginSuccessEvent());
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertEquals(TEST_USER_NAME, instance.userMenuButtonRoot.getText());
-  }
-
-  @Test
-  public void testOnGetRoot() {
-    assertEquals(instance.userMenuButtonRoot, instance.getRoot());
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test
   public void testShowProfile() {
-    instance.onShowProfile(null);
+    instance.onShowProfile();
 
     verify(playerInfoWindowController).setPlayer(player);
     verify(playerInfoWindowController).show();
@@ -78,7 +62,7 @@ public class UserButtonControllerTest extends UITest {
 
   @Test
   public void testReport() {
-    instance.onReport(null);
+    instance.onReport();
 
     verify(reportDialogController).setAutoCompleteWithOnlinePlayers();
     verify(reportDialogController).show();
@@ -86,7 +70,7 @@ public class UserButtonControllerTest extends UITest {
 
   @Test
   public void testLogOut() {
-    instance.onLogOut(null);
+    instance.onLogOut();
 
     verify(eventBus).post(any(LogOutRequestEvent.class));
   }
