@@ -518,11 +518,11 @@ public class ModService implements InitializingBean, DisposableBean {
   @Cacheable(value = CacheNames.MODS, sync = true)
   public CompletableFuture<Tuple2<List<ModVersionBean>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig,
                                                                                            int count, int page) {
-    SortConfig sortConfig = searchConfig.getSortConfig();
+    SortConfig sortConfig = searchConfig.sortConfig();
     ElideNavigatorOnCollection<Mod> navigator = ElideNavigator.of(Mod.class)
         .collection()
-        .addSortingRule(sortConfig.getSortProperty(), sortConfig.getSortOrder().equals(SortOrder.ASC));
-    return getModPage(navigator, searchConfig.getSearchQuery(), count, page);
+        .addSortingRule(sortConfig.sortProperty(), sortConfig.sortOrder().equals(SortOrder.ASC));
+    return getModPage(navigator, searchConfig.searchQuery(), count, page);
   }
 
   @Cacheable(value = CacheNames.MODS, sync = true)

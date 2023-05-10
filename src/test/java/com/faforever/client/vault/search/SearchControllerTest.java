@@ -223,7 +223,7 @@ public class SearchControllerTest extends UITest {
     instance.onSearchButtonClicked();
 
     SortConfig mapSortConfig = vaultPrefs.getOnlineReplaySortConfig();
-    assertEquals(mapSortConfig.getSortOrder(), SortOrder.ASC);
+    assertEquals(mapSortConfig.sortOrder(), SortOrder.ASC);
     verify(searchListener).accept(new SearchConfig(mapSortConfig, "query"));
   }
 

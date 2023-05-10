@@ -423,11 +423,11 @@ public class ReplayService {
   @Cacheable(value = CacheNames.REPLAYS_SEARCH, sync = true)
   public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig,
                                                                                        int count, int page) {
-    SortConfig sortConfig = searchConfig.getSortConfig();
+    SortConfig sortConfig = searchConfig.sortConfig();
     ElideNavigatorOnCollection<Game> navigator = ElideNavigator.of(Game.class)
         .collection()
-        .addSortingRule(sortConfig.getSortProperty(), sortConfig.getSortOrder().equals(SortOrder.ASC));
-    return getReplayPage(navigator, searchConfig.getSearchQuery(), count, page);
+        .addSortingRule(sortConfig.sortProperty(), sortConfig.sortOrder().equals(SortOrder.ASC));
+    return getReplayPage(navigator, searchConfig.searchQuery(), count, page);
   }
 
   @Cacheable(value = CacheNames.REPLAYS_SEARCH, sync = true)
