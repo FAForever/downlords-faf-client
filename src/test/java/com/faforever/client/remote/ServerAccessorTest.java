@@ -42,6 +42,7 @@ import com.faforever.commons.lobby.PartyInfo;
 import com.faforever.commons.lobby.PartyInfo.PartyMember;
 import com.faforever.commons.lobby.PartyInvite;
 import com.faforever.commons.lobby.PartyKick;
+import com.faforever.commons.lobby.Player;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.PlayerInfo;
 import com.faforever.commons.lobby.SearchInfo;
@@ -218,7 +219,7 @@ public class ServerAccessorTest extends ServiceTest {
   }
 
   private void connectAndLogIn() throws Exception {
-    CompletableFuture<LoginSuccessResponse> loginFuture = instance.connectAndLogIn();
+    CompletableFuture<Player> loginFuture = instance.connectAndLogIn();
 
     assertMessageContainsComponents("ask_session",
         "downlords-faf-client",
@@ -245,10 +246,10 @@ public class ServerAccessorTest extends ServiceTest {
 
     sendFromServer(loginServerMessage);
 
-    LoginSuccessResponse result = loginFuture.get(TIMEOUT, TIMEOUT_UNIT);
+    Player player = loginFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(result.getMe().getId(), is(playerUid));
-    assertThat(result.getMe().getLogin(), is("Junit"));
+    assertThat(player.getId(), is(playerUid));
+    assertThat(player.getLogin(), is("Junit"));
   }
 
   /**

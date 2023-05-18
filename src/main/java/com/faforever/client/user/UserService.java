@@ -106,17 +106,17 @@ public class UserService implements InitializingBean {
     if (lobbyConnectionState == ConnectionState.CONNECTED || lobbyConnectionState == ConnectionState.CONNECTING) {
       return CompletableFuture.completedFuture(null);
     }
-    return fafServerAccessor.connectAndLogIn().handle((loginMessage, throwable) -> {
+    return fafServerAccessor.connectAndLogIn().handle((me, throwable) -> {
       if (throwable != null) {
         log.error("Could not log into the server", throwable);
         throw new CompletionException(throwable);
       }
-      if (loginMessage.getMe().getId() != getUserId()) {
-        log.error("Player id from server `{}` does not match player id from api `{}`", loginMessage.getMe()
+      if (me.getId() != getUserId()) {
+        log.error("Player id from server `{}` does not match player id from api `{}`", me
             .getId(), getUserId());
         throw new IllegalStateException("Player id returned by server does not match player id from api");
       }
-      ownPlayer.set(loginMessage.getMe());
+      ownPlayer.set(me);
       return null;
     });
   }
