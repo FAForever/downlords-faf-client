@@ -119,7 +119,7 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
             .map(ticks -> Duration.ofMillis(ticks * 100))
             .map(timeService::shortDuration)
             .when(showing));
-    realTimeDurationLabel.visibleProperty().bind(realTimeDurationLabel.textProperty().isEmpty());
+    realTimeDurationLabel.visibleProperty().bind(realTimeDurationLabel.textProperty().isNotEmpty());
     realTimeDurationLabel.textProperty()
         .bind(entity.flatMap(replayBean -> replayBean.endTimeProperty()
             .flatMap(endTime -> replayBean.startTimeProperty()
