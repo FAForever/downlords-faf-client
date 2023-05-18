@@ -34,11 +34,12 @@ import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.jasminb.jsonapi.exceptions.ResourceParseException;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
@@ -62,6 +63,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
@@ -71,7 +73,6 @@ import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 @Slf4j
 @Component
 @Profile("!offline")
-@RequiredArgsConstructor
 public class FafApiAccessor implements InitializingBean {
 
   @VisibleForTesting
@@ -117,9 +118,18 @@ public class FafApiAccessor implements InitializingBean {
   private static final String JSONAPI_MEDIA_TYPE = "application/vnd.api+json;charset=utf-8";
 
   private final ClientProperties clientProperties;
-  private final WebClient apiWebClient;
+  private final ObjectFactory<WebClient> apiWebClientFactory;
 
+  private WebClient apiWebClient;
   private Retry apiRetrySpec;
+
+  private CountDownLatch authorizedLatch = new CountDownLatch(1);
+
+  public FafApiAccessor(ClientProperties clientProperties,
+                        @Qualifier("apiWebClient") ObjectFactory<WebClient> apiWebClientFactory) {
+    this.clientProperties = clientProperties;
+    this.apiWebClientFactory = apiWebClientFactory;
+  }
 
   @Override
   public void afterPropertiesSet() {
@@ -128,6 +138,16 @@ public class FafApiAccessor implements InitializingBean {
         .jitter(api.getRetryJitter())
         .filter(error -> error instanceof UnreachableApiException || error instanceof RateLimitApiException)
         .doBeforeRetry(retry -> log.warn("Could not retrieve value from api retrying: Attempt #{} of {}", retry.totalRetries(), api.getRetryAttempts()));
+  }
+
+  public void authorize() {
+    apiWebClient = apiWebClientFactory.getObject();
+
+    authorizedLatch.countDown();
+  }
+
+  public void reset() {
+    authorizedLatch = new CountDownLatch(1);
   }
 
   public int getMaxPageSize() {
@@ -267,6 +287,12 @@ public class FafApiAccessor implements InitializingBean {
   }
 
   private WebClient.ResponseSpec retrieveWithErrorHandling(WebClient.RequestHeadersSpec<?> requestSpec) {
+    try {
+      authorizedLatch.await();
+    } catch (InterruptedException e) {
+      log.warn("Api thread interrupted while waiting for authorization, will retry", e);
+      return retrieveWithErrorHandling(requestSpec);
+    }
     return requestSpec.retrieve().onStatus(HttpStatusCode::isError, response -> {
       HttpStatusCode httpStatus = response.statusCode();
       if (httpStatus.equals(HttpStatus.BAD_REQUEST) || httpStatus.equals(HttpStatus.UNPROCESSABLE_ENTITY)) {

@@ -34,6 +34,7 @@ import org.mockito.Spy;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.testfx.util.WaitForAsyncUtils;
 import reactor.netty.http.client.HttpClient;
 import reactor.test.StepVerifier;
 
@@ -42,11 +43,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FafApiAccessorTest extends ServiceTest {
 
@@ -92,8 +95,9 @@ public class FafApiAccessorTest extends ServiceTest {
     Api api = clientProperties.getApi();
     api.setMaxPageSize(100);
     api.setRetryBackoffSeconds(0);
-    instance = new FafApiAccessor(clientProperties, webClient);
+    instance = new FafApiAccessor(clientProperties, () -> webClient);
     instance.afterPropertiesSet();
+    instance.authorize();
   }
 
   private void prepareJsonApiResponse(Object object) throws Exception {
@@ -124,6 +128,13 @@ public class FafApiAccessorTest extends ServiceTest {
 
   private void prepareVoidResponse() throws Exception {
     mockApi.enqueue(new MockResponse());
+  }
+
+  @Test
+  public void testReset() {
+    instance.reset();
+    RuntimeException exception = assertThrows(RuntimeException.class, () -> WaitForAsyncUtils.waitForAsync(1000, () -> instance.getMe()));
+    assertEquals(TimeoutException.class, exception.getCause().getClass());
   }
 
   @Test

@@ -22,6 +22,7 @@ import com.faforever.commons.lobby.AvatarListInfo;
 import com.faforever.commons.lobby.ConnectToPeerGpgCommand;
 import com.faforever.commons.lobby.DisconnectFromPeerGpgCommand;
 import com.faforever.commons.lobby.Faction;
+import com.faforever.commons.lobby.FafLobbyClient;
 import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameType;
@@ -153,7 +154,7 @@ public class ServerAccessorTest extends ServiceTest {
         .setPort(disposableServer.port() - 1);
     clientProperties.setUserAgent("downlords-faf-client");
 
-    instance = new FafServerAccessor(notificationService, i18n, taskScheduler, clientProperties, uidService, tokenService, eventBus, objectMapper);
+    instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenService, uidService, eventBus, clientProperties, new FafLobbyClient(objectMapper));
 
     instance.afterPropertiesSet();
     instance.addEventListener(ServerMessage.class, serverMessage -> {

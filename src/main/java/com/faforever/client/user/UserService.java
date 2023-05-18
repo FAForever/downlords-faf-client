@@ -8,7 +8,6 @@ import com.faforever.client.config.ClientProperties.Oauth;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LoginPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.faforever.client.user.event.LoggedOutEvent;
@@ -47,7 +46,6 @@ public class UserService implements InitializingBean {
   private final ClientProperties clientProperties;
   private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
-  private final PreferencesService preferencesService;
   private final EventBus eventBus;
   private final TokenService tokenService;
   private final NotificationService notificationService;
@@ -87,18 +85,21 @@ public class UserService implements InitializingBean {
   }
 
   private CompletableFuture<Void> loginToApi() {
-    return fafApiAccessor.getMe().toFuture().thenAccept(me -> {
-      if (getOwnUser() == null) {
-        ownUser.set(me);
-      } else if (getOwnUser() != me) {
-        logOut();
-        ownUser.set(me);
-      }
-    }).whenComplete((aVoid, throwable) -> {
-      if (throwable != null) {
-        log.error("Could not log into the api", throwable);
-      }
-    });
+    return CompletableFuture.runAsync(fafApiAccessor::authorize)
+        .thenCompose(aVoid -> fafApiAccessor.getMe().toFuture())
+        .thenAccept(me -> {
+          if (getOwnUser() == null) {
+            ownUser.set(me);
+          } else if (getOwnUser() != me) {
+            logOut();
+            ownUser.set(me);
+          }
+        })
+        .whenComplete((aVoid, throwable) -> {
+          if (throwable != null) {
+            log.error("Could not log into the api", throwable);
+          }
+        });
   }
 
   private CompletableFuture<Void> loginToLobbyServer() {
@@ -112,8 +113,7 @@ public class UserService implements InitializingBean {
         throw new CompletionException(throwable);
       }
       if (me.getId() != getUserId()) {
-        log.error("Player id from server `{}` does not match player id from api `{}`", me
-            .getId(), getUserId());
+        log.error("Player id from server `{}` does not match player id from api `{}`", me.getId(), getUserId());
         throw new IllegalStateException("Player id returned by server does not match player id from api");
       }
       ownPlayer.set(me);
@@ -132,6 +132,7 @@ public class UserService implements InitializingBean {
   private void logOut() {
     log.info("Logging out");
     loginPrefs.setRefreshToken(null);
+    fafApiAccessor.reset();
     fafServerAccessor.disconnect();
     ownUser.set(null);
     ownPlayer.set(null);

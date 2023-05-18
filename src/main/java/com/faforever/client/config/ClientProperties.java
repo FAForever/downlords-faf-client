@@ -142,8 +142,6 @@ public class ClientProperties {
   @Data
   public static class Api {
     private String baseUrl;
-    private String clientId;
-    private String clientSecret;
     private int retryBackoffSeconds = 5;
     private int retryAttempts = 5;
     private double retryJitter = .5;

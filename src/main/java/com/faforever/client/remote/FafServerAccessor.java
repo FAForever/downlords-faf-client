@@ -31,11 +31,11 @@ import com.faforever.commons.lobby.NoticeInfo;
 import com.faforever.commons.lobby.Player;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.ServerMessage;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -59,6 +59,7 @@ import java.util.function.Consumer;
 @Lazy
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   private final ReadOnlyObjectWrapper<ConnectionState> connectionState = new ReadOnlyObjectWrapper<>(ConnectionState.DISCONNECTED);
@@ -66,29 +67,11 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   private final NotificationService notificationService;
   private final I18n i18n;
   private final TaskScheduler taskScheduler;
+  private final TokenService tokenService;
+  private final UidService uidService;
   private final EventBus eventBus;
   private final ClientProperties clientProperties;
   private final FafLobbyClient lobbyClient;
-  private final Config config;
-
-  public FafServerAccessor(NotificationService notificationService, I18n i18n, TaskScheduler taskScheduler, ClientProperties clientProperties, UidService uidService, TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.taskScheduler = taskScheduler;
-    this.eventBus = eventBus;
-    this.clientProperties = clientProperties;
-
-    lobbyClient = new FafLobbyClient(objectMapper);
-    config = new Config(tokenService.getRefreshedTokenValue(), Version.getCurrentVersion(), clientProperties.getUserAgent(), clientProperties.getServer()
-        .getHost(), clientProperties.getServer().getPort() + 1, sessionId -> {
-      try {
-        return uidService.generate(String.valueOf(sessionId));
-      } catch (IOException e) {
-        throw new UIDException("Cannot generate UID", e, "uid.generate.error");
-      }
-    }, 1024 * 1024, false, clientProperties.getServer().getRetryAttempts(), clientProperties.getServer()
-        .getRetryDelaySeconds());
-  }
 
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -147,6 +130,15 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<Player> connectAndLogIn() {
+    Config config = new Config(tokenService.getRefreshedTokenValue(), Version.getCurrentVersion(), clientProperties.getUserAgent(), clientProperties.getServer()
+        .getHost(), clientProperties.getServer().getPort() + 1, sessionId -> {
+      try {
+        return uidService.generate(String.valueOf(sessionId));
+      } catch (IOException e) {
+        throw new UIDException("Cannot generate UID", e, "uid.generate.error");
+      }
+    }, 1024 * 1024, false, clientProperties.getServer().getRetryAttempts(), clientProperties.getServer()
+        .getRetryDelaySeconds());
     return lobbyClient.connectAndLogin(config).toFuture();
   }
 

@@ -23,8 +23,6 @@ faf-client:
 
   api:
     base-url: http://localhost:8010
-    client-id: test
-    client-secret: test
 
   forged-alliance:
     exe-url: https://content.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
