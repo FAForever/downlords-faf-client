@@ -2,7 +2,6 @@ package com.faforever.client.remote;
 
 import com.faforever.client.api.TokenService;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.exception.UIDException;
@@ -26,10 +25,10 @@ import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameVisibility;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.IrcPasswordInfo;
-import com.faforever.commons.lobby.LoginSuccessResponse;
 import com.faforever.commons.lobby.MatchmakerState;
 import com.faforever.commons.lobby.MessageTarget;
 import com.faforever.commons.lobby.NoticeInfo;
+import com.faforever.commons.lobby.Player;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.ServerMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -67,25 +66,28 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   private final NotificationService notificationService;
   private final I18n i18n;
   private final TaskScheduler taskScheduler;
-  private final TokenService tokenService;
   private final EventBus eventBus;
   private final ClientProperties clientProperties;
-  private final UidService uidService;
-
   private final FafLobbyClient lobbyClient;
-
-  private CompletableFuture<LoginSuccessResponse> loginFuture;
+  private final Config config;
 
   public FafServerAccessor(NotificationService notificationService, I18n i18n, TaskScheduler taskScheduler, ClientProperties clientProperties, UidService uidService, TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.taskScheduler = taskScheduler;
-    this.tokenService = tokenService;
     this.eventBus = eventBus;
     this.clientProperties = clientProperties;
-    this.uidService = uidService;
 
     lobbyClient = new FafLobbyClient(objectMapper);
+    config = new Config(tokenService.getRefreshedTokenValue(), Version.getCurrentVersion(), clientProperties.getUserAgent(), clientProperties.getServer()
+        .getHost(), clientProperties.getServer().getPort() + 1, sessionId -> {
+      try {
+        return uidService.generate(String.valueOf(sessionId));
+      } catch (IOException e) {
+        throw new UIDException("Cannot generate UID", e, "uid.generate.error");
+      }
+    }, 1024 * 1024, false, clientProperties.getServer().getRetryAttempts(), clientProperties.getServer()
+        .getRetryDelaySeconds());
   }
 
   @Override
@@ -96,7 +98,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
         .retry()
         .subscribe(this::onIrcPassword);
     getEvents(NoticeInfo.class)
-        .doOnError( throwable -> log.error("Error processing notice", throwable))
+        .doOnError(throwable -> log.error("Error processing notice", throwable))
         .retry()
         .subscribe(this::onNotice);
 
@@ -144,24 +146,8 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     return connectionState.getReadOnlyProperty();
   }
 
-  public CompletableFuture<LoginSuccessResponse> connectAndLogIn() {
-    if (loginFuture == null || (loginFuture.isDone() && connectionState.get() != ConnectionState.CONNECTED)) {
-      lobbyClient.setAutoReconnect(false);
-      Server server = clientProperties.getServer();
-      Config config = new Config(tokenService.getRefreshedTokenValue(), Version.getCurrentVersion(), clientProperties.getUserAgent(), clientProperties.getServer()
-          .getHost(), clientProperties.getServer().getPort() + 1, sessionId -> {
-        try {
-          return uidService.generate(String.valueOf(sessionId));
-        } catch (IOException e) {
-          throw new UIDException("Cannot generate UID", e, "uid.generate.error");
-        }
-      }, 1024 * 1024, false, server.getRetryAttempts(), server.getRetryDelaySeconds());
-
-      loginFuture = lobbyClient.connectAndLogin(config)
-          .doOnNext(loginMessage -> lobbyClient.setAutoReconnect(true))
-          .toFuture();
-    }
-    return loginFuture;
+  public CompletableFuture<Player> connectAndLogIn() {
+    return lobbyClient.connectAndLogin(config).toFuture();
   }
 
   public CompletableFuture<GameLaunchResponse> requestHostGame(NewGameInfo newGameInfo) {
@@ -176,7 +162,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public void disconnect() {
-    loginFuture.cancel(true);
     log.info("Closing lobby server connection");
     lobbyClient.disconnect();
   }
