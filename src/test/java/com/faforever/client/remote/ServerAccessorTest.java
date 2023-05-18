@@ -64,7 +64,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.scheduling.TaskScheduler;
@@ -128,14 +127,11 @@ public class ServerAccessorTest extends ServiceTest {
   @Spy
   private ObjectMapper objectMapper;
 
-  @InjectMocks
   private FafServerAccessor instance;
   private CountDownLatch messageReceivedByClientLatch;
   private ServerMessage receivedMessage;
 
   private final String token = "abc";
-  private final int playerUid = 123;
-  private final long sessionId = 456;
   private final Sinks.Many<String> serverReceivedSink = Sinks.many().replay().latest();
   private final Flux<String> serverMessagesReceived = serverReceivedSink.asFlux();
   private final Sinks.Many<String> serverSentSink = Sinks.many().unicast().onBackpressureBuffer();
@@ -156,6 +152,8 @@ public class ServerAccessorTest extends ServiceTest {
         .setHost(disposableServer.host())
         .setPort(disposableServer.port() - 1);
     clientProperties.setUserAgent("downlords-faf-client");
+
+    instance = new FafServerAccessor(notificationService, i18n, taskScheduler, clientProperties, uidService, tokenService, eventBus, objectMapper);
 
     instance.afterPropertiesSet();
     instance.addEventListener(ServerMessage.class, serverMessage -> {
@@ -228,6 +226,7 @@ public class ServerAccessorTest extends ServiceTest {
         Version.getCurrentVersion()
     );
 
+    long sessionId = 456;
     SessionResponse sessionMessage = new SessionResponse(sessionId);
     sendFromServer(sessionMessage);
 
@@ -241,6 +240,7 @@ public class ServerAccessorTest extends ServiceTest {
         "unique_id"
     );
 
+    int playerUid = 123;
     com.faforever.commons.lobby.Player me = new com.faforever.commons.lobby.Player(playerUid, "Junit", null, null, "", new HashMap<>(), new HashMap<>());
     LoginSuccessResponse loginServerMessage = new LoginSuccessResponse(me);
 
