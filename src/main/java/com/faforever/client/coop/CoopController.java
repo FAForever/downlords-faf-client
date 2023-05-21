@@ -171,7 +171,7 @@ public class CoopController extends AbstractViewController<Node> {
       JavaFxUtil.runLater(() -> {
         missionComboBox.setItems(observableList(coopMaps));
         GamesTableController gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
-        gamesTableController.getMapPreviewColumn().setVisible(true);
+        gamesTableController.getMapPreviewColumn().setVisible(false);
         gamesTableController.getRatingRangeColumn().setVisible(false);
 
         Function<String, String> coopMissionNameProvider = (mapFolderName -> coopMissionFromFolderNamer(coopMaps, mapFolderName));

@@ -16,9 +16,9 @@ import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Joiner;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.transformation.SortedList;
@@ -91,7 +91,7 @@ public class GamesTableController implements Controller<Node> {
 
   public void initializeGameTable(ObservableList<GameBean> games, Function<String, String> coopMissionNameProvider,
                                   boolean listenToFilterPreferences) {
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    BooleanExpression showing = JavaFxUtil.showingProperty(getRoot());
 
     gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
@@ -113,7 +113,7 @@ public class GamesTableController implements Controller<Node> {
         .mapFolderNameProperty()
         .flatMap(mapFolderName -> Bindings.createObjectBinding(() -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL), mapService.isInstalledBinding(mapFolderName)))
         .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
-        .when(showing));
+        .when(mapPreviewColumn.visibleProperty().and(showing)));
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty().when(showing));
     gameTitleColumn.setCellFactory(param -> new StringCell<>(StringUtils::normalizeSpace));
@@ -128,7 +128,7 @@ public class GamesTableController implements Controller<Node> {
     ratingRangeColumn.setCellValueFactory(param -> param.getValue()
         .ratingMaxProperty()
         .flatMap(max -> param.getValue().ratingMinProperty().map(min -> new RatingRange(min, max)))
-        .when(showing));
+        .when(ratingRangeColumn.visibleProperty().and(showing)));
     ratingRangeColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty().when(showing));
     hostColumn.setCellFactory(param -> new HostTableCell(playerService));
