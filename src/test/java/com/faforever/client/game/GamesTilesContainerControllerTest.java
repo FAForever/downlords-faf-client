@@ -3,13 +3,11 @@ package com.faforever.client.game;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
-import javafx.scene.control.ComboBox;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -17,7 +15,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 
 import java.util.List;
 import java.util.Map;
@@ -39,8 +36,6 @@ public class GamesTilesContainerControllerTest extends UITest {
 
   @Mock
   private GameTooltipController gameTooltipController;
-  @Spy
-  private Preferences preferences;
 
   @InjectMocks
   private GamesTilesContainerController instance;
@@ -59,7 +54,7 @@ public class GamesTilesContainerControllerTest extends UITest {
   public void testCreateTiledFlowPaneWithEmptyList() {
     ObservableList<GameBean> observableList = FXCollections.observableArrayList();
 
-    runOnFxThreadAndWait(() -> instance.createTiledFlowPane(observableList, new ComboBox<>()));
+    runOnFxThreadAndWait(() -> instance.createTiledFlowPane(observableList));
     assertThat(instance.tiledFlowPane.getChildren(), empty());
   }
 
@@ -69,7 +64,7 @@ public class GamesTilesContainerControllerTest extends UITest {
     ObservableList<GameBean> observableList = FXCollections.observableArrayList();
     observableList.add(new GameBean());
 
-    runOnFxThreadAndWait(() -> instance.createTiledFlowPane(observableList, new ComboBox<>()));
+    runOnFxThreadAndWait(() -> instance.createTiledFlowPane(observableList));
     assertThat(instance.tiledFlowPane.getChildren(), hasSize(1));
   }
 
@@ -79,7 +74,7 @@ public class GamesTilesContainerControllerTest extends UITest {
     ObservableList<GameBean> observableList = FXCollections.observableArrayList();
 
     runOnFxThreadAndWait(() -> {
-      instance.createTiledFlowPane(observableList, new ComboBox<>());
+      instance.createTiledFlowPane(observableList);
       observableList.add(new GameBean());
     });
     assertThat(instance.tiledFlowPane.getChildren(), hasSize(1));
@@ -92,9 +87,9 @@ public class GamesTilesContainerControllerTest extends UITest {
 
     ObservableList<GameBean> observableList = FXCollections.observableArrayList();
     runOnFxThreadAndWait(() -> {
-      observableList.add(GameBeanBuilder.create().defaultValues().get());
-      instance.createTiledFlowPane(observableList, new ComboBox<>());
-      observableList.add(GameBeanBuilder.create().defaultValues().get());
+      observableList.add(GameBeanBuilder.create().defaultValues().id(1).get());
+      instance.createTiledFlowPane(observableList);
+      observableList.add(GameBeanBuilder.create().defaultValues().id(2).get());
     });
     assertThat(children, hasSize(2));
   }
@@ -117,9 +112,9 @@ public class GamesTilesContainerControllerTest extends UITest {
 
 
     observableList.addAll(game1, game2);
-    preferences.setGameTileSortingOrder(TilesSortingOrder.PLAYER_ASC);
+    instance.setSortingOrder(TilesSortingOrder.PLAYER_ASC);
 
-    runOnFxThreadAndWait(() -> instance.createTiledFlowPane(observableList, new ComboBox<>()));
-    assertEquals(instance.gameIdToGameCard.get(game2.getId()), instance.tiledFlowPane.getChildren().get(0));
+    runOnFxThreadAndWait(() -> instance.createTiledFlowPane(observableList));
+    assertEquals(game2, instance.tiledFlowPane.getChildren().get(0).getUserData());
   }
 }

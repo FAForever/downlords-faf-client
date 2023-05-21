@@ -107,7 +107,7 @@ public class CustomGamesControllerTest extends UITest {
   @Test
   public void testDisplayTiles() {
     runOnFxThreadAndWait(() -> instance.tilesButton.fire());
-    verify(gamesTilesContainerController).createTiledFlowPane(games, instance.chooseSortingTypeChoiceBox);
+    verify(gamesTilesContainerController).createTiledFlowPane(games);
   }
 
   @Test

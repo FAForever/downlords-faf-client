@@ -89,6 +89,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
     chooseSortingTypeChoiceBox.getItems().addAll(TilesSortingOrder.values());
     chooseSortingTypeChoiceBox.setConverter(new ToStringOnlyConverter<>(tilesSortingOrder -> tilesSortingOrder == null ? "null" : i18n.get(tilesSortingOrder.getDisplayNameKey())));
+    chooseSortingTypeChoiceBox.valueProperty().bindBidirectional(preferences.gameTileSortingOrderProperty());
 
     FilteredList<GameBean> filteredGames = new FilteredList<>(gameService.getGames());
     filteredGames.predicateProperty().bind(customGamesFilterController.predicateProperty());
@@ -130,8 +131,12 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
     toggleGameDetailPaneButton.selectedProperty().bindBidirectional(preferences.showGameDetailsSidePaneProperty());
 
-    gamesTilesContainerController.createTiledFlowPane(filteredGames, chooseSortingTypeChoiceBox);
+    gamesTilesContainerController.createTiledFlowPane(filteredGames);
     gamesTableController.initializeGameTable(filteredGames);
+
+    gamesTilesContainerController.sortingOrderProperty().bind(chooseSortingTypeChoiceBox.valueProperty());
+    chooseSortingTypeChoiceBox.visibleProperty()
+        .bind(gamesTilesContainerController.getRoot().parentProperty().isNotNull());
   }
 
   private void initializeFilterController() {
@@ -186,7 +191,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
   }
 
   private void populateContainer(Node root) {
-    chooseSortingTypeChoiceBox.setVisible(false);
     gameViewContainer.getChildren().setAll(root);
     AnchorPane.setBottomAnchor(root, 0d);
     AnchorPane.setLeftAnchor(root, 0d);
