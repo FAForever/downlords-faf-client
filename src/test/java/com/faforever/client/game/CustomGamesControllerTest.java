@@ -71,6 +71,7 @@ public class CustomGamesControllerTest extends UITest {
     when(uiService.loadFxml("theme/filter/filter.fxml", CustomGamesFilterController.class)).thenReturn(customGamesFilterController);
     when(customGamesFilterController.filterStateProperty()).thenReturn(new SimpleBooleanProperty());
     when(customGamesFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
+    when(gamesTilesContainerController.sortingOrderProperty()).thenReturn(new SimpleObjectProperty<>());
 
     when(gameDetailController.getRoot()).thenReturn(new Pane());
 
