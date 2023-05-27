@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.emoticons.EmoticonService;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.SimpleChangeListener;
@@ -133,8 +134,7 @@ public class ChannelTabController extends AbstractChatTabController {
     ObservableValue<Boolean> isModerator = chatChannel.map(channel -> channel.getUser(userService.getUsername())
         .orElse(null)).flatMap(ChatChannelUser::moderatorProperty).orElse(false);
     changeTopicTextButton.visibleProperty()
-        .bind(BooleanExpression.booleanExpression(isModerator)
-            .and(topicTextField.visibleProperty().not()));
+        .bind(BooleanExpression.booleanExpression(isModerator).and(topicTextField.visibleProperty().not()));
 
     chatMessageSearchTextField.textProperty().addListener((SimpleChangeListener<String>) this::highlightText);
 
@@ -144,8 +144,7 @@ public class ChannelTabController extends AbstractChatTabController {
     chatPrefs.chatColorModeProperty()
         .when(showing)
         .addListener((SimpleInvalidationListener) () -> users.getValue().forEach(this::updateUserMessageColor));
-    channelTopic
-        .addListener(((observable, oldValue, newValue) -> updateChannelTopic(oldValue, newValue)));
+    channelTopic.addListener(((observable, oldValue, newValue) -> updateChannelTopic(oldValue, newValue)));
     users.addListener((observable, oldValue, newValue) -> {
       if (oldValue != null) {
         oldValue.removeListener(channelUserListChangeListener);
@@ -309,8 +308,9 @@ public class ChannelTabController extends AbstractChatTabController {
     }
 
     if (playerService.getPlayerByNameIfOnline(chatMessage.username())
-        .filter(player -> player.getSocialStatus() == FOE)
-        .isPresent()) {
+        .map(PlayerBean::getSocialStatus)
+        .map(FOE::equals)
+        .orElse(false)) {
       log.debug("Ignored ping from {}", chatMessage.username());
     } else if (!hasFocus()) {
       audioService.playChatMentionSound();

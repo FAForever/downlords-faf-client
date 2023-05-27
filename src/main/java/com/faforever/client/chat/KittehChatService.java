@@ -138,20 +138,18 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public boolean userExistsInAnyChannel(String username) {
-    return client.getChannels().stream().anyMatch(channel -> channel.getUser(username).isPresent());
+    return client.getChannels().stream().map(channel -> channel.getUser(username)).anyMatch(Optional::isPresent);
   }
 
   @Override
   public ChatChannelUser getOrCreateChatUser(String username, String channelName) {
     Optional<Channel> channel = client.getChannel(channelName);
-    Optional<User> user = channel.flatMap(chan -> chan.getUser(username));
 
-    if (channel.isPresent() && user.isPresent()) {
-      return getOrCreateChatUser(user.get(), channel.get());
-    } else {
-      ChatChannel chatChannel = getOrCreateChannel(channelName);
-      return chatChannel.getUser(username).orElseGet(() -> initializeUserForChannel(username, chatChannel));
-    }
+    return channel.flatMap(chan -> chan.getUser(username).map(user -> getOrCreateChatUser(user, chan)))
+        .orElseGet(() -> {
+          ChatChannel chatChannel = getOrCreateChannel(channelName);
+          return chatChannel.getUser(username).orElseGet(() -> initializeUserForChannel(username, chatChannel));
+        });
   }
 
   private ChatChannelUser getOrCreateChatUser(User user, Channel channel) {
@@ -314,8 +312,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     ChatChannelUser sender = getOrCreateChatUser(user.getNick(), user.getNick());
     if (sender.getPlayer()
         .map(PlayerBean::getSocialStatus)
-        .filter(status -> status == SocialStatus.FOE)
-        .isPresent() && chatPrefs.isHideFoeMessages()) {
+        .map(status -> status == SocialStatus.FOE)
+        .orElse(false) && chatPrefs.isHideFoeMessages()) {
       ircLog.debug("Suppressing chat message from foe '{}'", user.getNick());
       return;
     }

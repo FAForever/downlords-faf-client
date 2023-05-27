@@ -4,6 +4,8 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
+import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent.Delta;
+import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent.NewValue;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.embed.swing.SwingFXUtils;
@@ -25,7 +27,6 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.awt.RenderingHints.KEY_ANTIALIASING;
@@ -50,25 +51,23 @@ public class TrayIconManager implements InitializingBean {
    */
   @Subscribe
   public void onSetApplicationBadgeEvent(UpdateApplicationBadgeEvent event) {
-    JavaFxUtil.runLater(() -> {
-      if (event.getDelta().isPresent()) {
-        badgeCount += event.getDelta().get();
-      } else if (event.getNewValue().isPresent()) {
-        badgeCount = event.getNewValue().get();
-      } else {
-        throw new IllegalStateException("No delta nor new value is available");
-      }
+    if (event instanceof Delta delta) {
+      badgeCount += delta.value();
+    } else if (event instanceof NewValue newValue) {
+      badgeCount = newValue.value();
+    }
 
+    JavaFxUtil.runLater(() -> {
       List<Image> icons;
       if (badgeCount < 1) {
         icons = IntStream.range(4, 9)
             .mapToObj(power -> generateTrayIcon((int) Math.pow(2, power)))
-            .collect(Collectors.toList());
+            .toList();
       } else {
         icons = IntStream.range(4, 9)
             .mapToObj(power -> generateTrayIcon((int) Math.pow(2, power)))
             .map(image -> addBadge(image, badgeCount))
-            .collect(Collectors.toList());
+            .toList();
       }
       StageHolder.getStage().getIcons().setAll(icons);
     });
@@ -111,7 +110,7 @@ public class TrayIconManager implements InitializingBean {
     graphicsContext2D.setFill(Color.BLACK);
     graphicsContext2D.fillOval(0, 0, dimension, dimension);
     graphicsContext2D.setFill(Color.WHITE);
-    graphicsContext2D.fillText("\uE901", dimension / 2, dimension / 2);
+    graphicsContext2D.fillText("\uE901", dimension / 2d, dimension / 2d);
 
     SnapshotParameters snapshotParameters = new SnapshotParameters();
     snapshotParameters.setFill(javafx.scene.paint.Color.TRANSPARENT);

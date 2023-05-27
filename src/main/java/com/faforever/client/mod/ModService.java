@@ -444,18 +444,16 @@ public class ModService implements InitializingBean, DisposableBean {
     selectedModVersions.forEach(installedModVersion -> {
       try {
         Optional<ModVersionBean> modVersionFromApi = getModVersionByUid(installedModVersion.getUid()).get();
-        if (modVersionFromApi.isPresent()) {
-          ModVersionBean latestVersion = modVersionFromApi.get().getMod().getLatestVersion();
+        modVersionFromApi.ifPresentOrElse(modVersion -> {
+          ModVersionBean latestVersion = modVersion.getMod().getLatestVersion();
           boolean isLatest = latestVersion.getUid().equals(installedModVersion.getUid());
           if (!isLatest) {
-            downloadAndInstallMod(latestVersion.getDownloadUrl()).get();
+            downloadAndInstallMod(latestVersion.getDownloadUrl()).join();
             newlySelectedMods.remove(installedModVersion);
             newlySelectedMods.add(latestVersion);
           }
-        } else {
-          log.info("Could not find mod `{}` `{}`", installedModVersion.getMod()
-              .getDisplayName(), installedModVersion.getUid());
-        }
+        }, () -> log.info("Could not find mod `{}` `{}`", installedModVersion.getMod()
+            .getDisplayName(), installedModVersion.getUid()));
       } catch (Exception e) {
         log.info("Failed fetching info about mod from the api.", e);
       }

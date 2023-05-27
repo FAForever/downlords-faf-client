@@ -40,7 +40,6 @@ import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.Bindings;
@@ -133,10 +132,11 @@ public class MapService implements InitializingBean, DisposableBean {
   private final ObservableMap<String, MapVersionBean> mapsByFolderName = FXCollections.observableHashMap();
   @Getter
   private final ObservableList<MapVersionBean> installedMaps = JavaFxUtil.attachListToMap(FXCollections.synchronizedObservableList(FXCollections.observableArrayList()), mapsByFolderName);
+  private final InvalidationListener mapsDirectoryInvalidationListener = observable -> tryLoadMaps();
   private String mapDownloadUrlFormat;
   private String mapPreviewUrlFormat;
   @VisibleForTesting
-  Set<String> officialMaps = ImmutableSet.of(
+  Set<String> officialMaps = Set.of(
       "SCMP_001", "SCMP_002", "SCMP_003", "SCMP_004", "SCMP_005", "SCMP_006", "SCMP_007", "SCMP_008", "SCMP_009", "SCMP_010", "SCMP_011",
       "SCMP_012", "SCMP_013", "SCMP_014", "SCMP_015", "SCMP_016", "SCMP_017", "SCMP_018", "SCMP_019", "SCMP_020", "SCMP_021", "SCMP_022",
       "SCMP_023", "SCMP_024", "SCMP_025", "SCMP_026", "SCMP_027", "SCMP_028", "SCMP_029", "SCMP_030", "SCMP_031", "SCMP_032", "SCMP_033",
@@ -144,7 +144,6 @@ public class MapService implements InitializingBean, DisposableBean {
       "X1MP_005", "X1MP_006", "X1MP_007", "X1MP_008", "X1MP_009", "X1MP_010", "X1MP_011", "X1MP_012", "X1MP_014", "X1MP_017"
   );
   private Thread directoryWatcherThread;
-  private InvalidationListener mapsDirectoryInvalidationListener = observable -> tryLoadMaps();
 
   private static URL getDownloadUrl(String mapName, String baseUrl) throws MalformedURLException {
     return new URL(format(baseUrl, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US)));
@@ -574,6 +573,7 @@ public class MapService implements InitializingBean, DisposableBean {
     if (installed.isPresent()) {
       return CompletableFuture.completedFuture(installed);
     }
+
     ElideNavigatorOnCollection<MapVersion> navigator = ElideNavigator.of(MapVersion.class).collection()
         .setFilter(qBuilder().string("folderName").eq(folderName));
     return fafApiAccessor.getMany(navigator)
