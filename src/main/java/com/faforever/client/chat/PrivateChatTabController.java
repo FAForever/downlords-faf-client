@@ -39,7 +39,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 import static com.faforever.client.player.SocialStatus.FOE;
 
@@ -135,9 +134,11 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   @Override
   public void onChatMessage(ChatMessage chatMessage) {
-    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.username());
 
-    if (playerOptional.isPresent() && playerOptional.get().getSocialStatus() == FOE && chatPrefs.isHideFoeMessages()) {
+    if (playerService.getPlayerByNameIfOnline(chatMessage.username())
+        .map(PlayerBean::getSocialStatus)
+        .map(FOE::equals)
+        .orElse(false) && chatPrefs.isHideFoeMessages()) {
       return;
     }
 

@@ -429,13 +429,11 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     messageTextField.setDisable(true);
 
     chatService.sendActionInBackground(chatChannel.get(), text.replaceFirst(Pattern.quote(ACTION_PREFIX), ""))
-        .thenRun(() -> {
-          JavaFxUtil.runLater(() -> {
-            messageTextField.clear();
-            messageTextField.setDisable(false);
-            messageTextField.requestFocus();
-          });
-        })
+        .thenRun(() -> JavaFxUtil.runLater(() -> {
+          messageTextField.clear();
+          messageTextField.setDisable(false);
+          messageTextField.requestFocus();
+        }))
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           log.warn("Message could not be sent: {}", text, throwable);
@@ -533,22 +531,17 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     }
 
     String username = chatMessage.username();
-    String avatarUrl = "";
-    String clanTag = "";
-    String decoratedClanTag = "";
-    String countryFlagUrl = "";
 
     Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.username());
-    if (playerOptional.isPresent()) {
-      PlayerBean player = playerOptional.get();
-      avatarUrl = Optional.ofNullable(player.getAvatar()).map(AvatarBean::getUrl).map(URL::toExternalForm).orElse("");
-      countryFlagUrl = countryFlagService.getCountryFlagUrl(player.getCountry()).map(URL::toString).orElse("");
+    Optional<String> clanOptional = playerOptional.map(PlayerBean::getClan);
 
-      if (StringUtils.isNotEmpty(player.getClan())) {
-        clanTag = player.getClan();
-        decoratedClanTag = i18n.get("chat.clanTagFormat", clanTag);
-      }
-    }
+    String avatarUrl = playerOptional.map(PlayerBean::getAvatar).map(AvatarBean::getUrl).map(URL::toString).orElse("");
+    String countryFlagUrl = playerOptional.map(PlayerBean::getCountry)
+        .flatMap(countryFlagService::getCountryFlagUrl)
+        .map(URL::toString)
+        .orElse("");
+    String clanTag = clanOptional.orElse("");
+    String decoratedClanTag = clanOptional.map(tag -> i18n.get("chat.clanTagFormat", tag)).orElse("");
 
     String timeString = timeService.asShortTime(chatMessage.time());
     html = html.replace("{time}", timeString)
