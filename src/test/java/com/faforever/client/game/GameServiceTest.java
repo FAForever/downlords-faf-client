@@ -18,7 +18,7 @@ import com.faforever.client.fa.GameParameters;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
-import com.faforever.client.fx.JavaFxService;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -160,7 +160,7 @@ public class GameServiceTest extends ServiceTest {
   @Mock
   private CoturnService coturnService;
   @Mock
-  private JavaFxService javaFxService;
+  private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Spy
   private GameMapper gameMapper = Mappers.getMapper(GameMapper.class);
   @Spy
@@ -184,8 +184,7 @@ public class GameServiceTest extends ServiceTest {
     MapperSetup.injectMappers(gameMapper);
     junitPlayer = PlayerBeanBuilder.create().defaultValues().get();
 
-    when(javaFxService.getSingleScheduler()).thenReturn(Schedulers.immediate());
-    when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
+    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
     when(fafServerAccessor.getEvents(GameInfo.class)).thenReturn(testPublisher.flux());
     when(coturnService.getSelectedCoturns()).thenReturn(completedFuture(List.of()));
     when(preferencesService.isGamePathValid()).thenReturn(true);

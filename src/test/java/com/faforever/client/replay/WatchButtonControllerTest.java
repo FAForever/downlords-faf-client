@@ -6,9 +6,11 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.UITest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import javafx.animation.Timeline;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.ContextMenu;
 import org.junit.jupiter.api.AfterEach;
@@ -30,6 +32,8 @@ import static org.mockito.Mockito.when;
 
 public class WatchButtonControllerTest extends UITest {
 
+  @Mock
+  private UiService uiService;
   @Mock
   private TimeService timeService;
   @Mock
@@ -53,6 +57,7 @@ public class WatchButtonControllerTest extends UITest {
     when(liveReplayService.trackingLiveReplayProperty()).thenReturn(trackingLiveReplayProperty);
     when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.ofNullable(trackingLiveReplayProperty.get()));
     when(i18n.get("game.watch")).thenReturn("watch");
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/vault/replay/watch_button.fxml", clazz -> instance);
     runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));

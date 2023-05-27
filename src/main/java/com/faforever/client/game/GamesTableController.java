@@ -91,7 +91,7 @@ public class GamesTableController implements Controller<Node> {
 
   public void initializeGameTable(ObservableList<GameBean> games, Function<String, String> coopMissionNameProvider,
                                   boolean listenToFilterPreferences) {
-    BooleanExpression showing = JavaFxUtil.showingProperty(getRoot());
+    BooleanExpression showing = uiService.createShowingProperty(getRoot());
 
     gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());

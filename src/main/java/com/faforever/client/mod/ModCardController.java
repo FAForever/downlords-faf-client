@@ -8,6 +8,7 @@ import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.review.StarsController;
 import javafx.beans.binding.BooleanExpression;
@@ -30,6 +31,7 @@ import java.util.function.Consumer;
 @Slf4j
 public class ModCardController extends VaultEntityCardController<ModVersionBean> {
 
+  private final UiService uiService;
   private final ModService modService;
   private final ImageViewHelper imageViewHelper;
   private final NotificationService notificationService;
@@ -49,7 +51,7 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(installButton, uninstallButton);
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     ObservableValue<ModBean> modObservable = entity.flatMap(ModVersionBean::modProperty);
     numberOfReviewsLabel.textProperty()

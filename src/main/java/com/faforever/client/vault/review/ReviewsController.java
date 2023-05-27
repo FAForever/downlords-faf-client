@@ -77,7 +77,7 @@ public class ReviewsController<T extends ReviewBean> implements Controller<Pane>
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(ownReviewLabel, ownReview, pageLeftButton, reviewsPagination, pageRightButton);
     JavaFxUtil.setAnchors(ownReview, 0d);
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     FilteredList<T> otherNonEmptyReviews = new FilteredList<>(new SortedList<>(reviews, Comparator.comparing(ReviewBean::getVersion)
         .reversed()));

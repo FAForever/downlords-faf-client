@@ -8,14 +8,15 @@ import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionReviewBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
-import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewService;
@@ -53,6 +54,8 @@ import static org.mockito.Mockito.when;
 public class ModDetailControllerTest extends UITest {
 
   @Mock
+  private UiService uiService;
+  @Mock
   private NotificationService notificationService;
   @Mock
   private ModService modService;
@@ -77,7 +80,7 @@ public class ModDetailControllerTest extends UITest {
   @Mock
   private StarController starController;
   @Mock
-  private JavaFxService javaFxService;
+  private FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   @InjectMocks
   private ModDetailController instance;
@@ -97,8 +100,8 @@ public class ModDetailControllerTest extends UITest {
 
     when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
     when(reviewService.getModReviews(any())).thenReturn(Flux.empty());
-    when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
-    when(javaFxService.getSingleScheduler()).thenReturn(Schedulers.immediate());
+    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
+
     when(modService.isInstalledBinding(any())).thenReturn(installed);
     when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(currentPlayer));
     when(modService.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
@@ -108,6 +111,7 @@ public class ModDetailControllerTest extends UITest {
         .getUploader()
         .getUsername())).thenReturn(modVersion.getMod().getUploader().getUsername());
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/vault/mod/mod_detail.fxml", clazz -> {
       if (clazz == ReviewsController.class) {
@@ -124,8 +128,6 @@ public class ModDetailControllerTest extends UITest {
       }
       return instance;
     });
-
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test
@@ -247,9 +249,7 @@ public class ModDetailControllerTest extends UITest {
 
   @Test
   public void testOnCloseButtonClicked() {
-    assertNotNull(instance.modDetailRoot.getParent());
-    WaitForAsyncUtils.asyncFx(() -> instance.onCloseButtonClicked());
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.onCloseButtonClicked());
 
     assertFalse(instance.modDetailRoot.isVisible());
   }

@@ -39,6 +39,7 @@ import static com.faforever.client.player.SocialStatus.FRIEND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -82,8 +83,8 @@ public class ChatUserListControllerTest extends UITest {
     when(chatUserFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
     when(chatUserFilterController.getPredicate()).thenReturn(item -> true);
     when(chatUserFilterController.getRoot()).thenReturn(new SplitPane());
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     loadFxml("theme/chat/user_list.fxml", clazz -> instance);
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test
@@ -362,7 +363,10 @@ public class ChatUserListControllerTest extends UITest {
     when(controllerMock.getRoot()).thenReturn(popupContent);
     when(uiService.loadFxml("theme/chat/user_list_customization.fxml")).thenReturn(controllerMock);
 
-    runOnFxThreadAndWait(() -> instance.onListCustomizationButtonClicked());
+    runOnFxThreadAndWait(() -> {
+      getRoot().getChildren().add(instance.getRoot());
+      instance.onListCustomizationButtonClicked();
+    });
     Window window = popupContent.getParent().getScene().getWindow();
     assertTrue(window.getClass().isAssignableFrom(Popup.class));
     assertTrue(window.isShowing());
@@ -370,6 +374,7 @@ public class ChatUserListControllerTest extends UITest {
 
   @Test
   public void testOnFilterButtonClicked() {
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
     runOnFxThreadAndWait(() -> instance.onFilterButtonClicked());
     Window window = chatUserFilterController.getRoot().getParent().getScene().getWindow();
     assertTrue(window.getClass().isAssignableFrom(Popup.class));
@@ -454,7 +459,8 @@ public class ChatUserListControllerTest extends UITest {
     assertNotContainUsersInCategory(category, Arrays.stream(users).toList());
   }
 
-  private void assertNotContainUsersInCategory(ChatUserCategory category, Collection<ChatChannelUser> users) throws Exception {
+  private void assertNotContainUsersInCategory(ChatUserCategory category,
+                                               Collection<ChatChannelUser> users) throws Exception {
     List<ChatChannelUser> userList = instance.getFilteredUserListByCategory(category);
     assertTrue(users.stream().noneMatch(userList::contains));
   }
@@ -463,7 +469,8 @@ public class ChatUserListControllerTest extends UITest {
     assertContainUsersInCategory(category, Arrays.stream(users).toList());
   }
 
-  private void assertContainUsersInCategory(ChatUserCategory category, Collection<ChatChannelUser> users) throws Exception {
+  private void assertContainUsersInCategory(ChatUserCategory category,
+                                            Collection<ChatChannelUser> users) throws Exception {
     assertTrue(instance.getUserListByCategory(category).containsAll(users));
   }
 

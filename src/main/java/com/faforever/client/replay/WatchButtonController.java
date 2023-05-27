@@ -10,6 +10,7 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.NotifyMeMenuItem;
 import com.faforever.client.fx.contextmenu.RunReplayImmediatelyMenuItem;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.animation.KeyFrame;
@@ -41,6 +42,7 @@ public class WatchButtonController implements Controller<Node> {
 
   public static final PseudoClass TRACKABLE_PSEUDO_CLASS = PseudoClass.getPseudoClass("trackable");
 
+  private final UiService uiService;
   private final LiveReplayService liveReplayService;
   private final TimeService timeService;
   private final I18n i18n;
@@ -54,7 +56,7 @@ public class WatchButtonController implements Controller<Node> {
   private ContextMenu contextMenu;
 
   public void initialize() {
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     watchTimeTimeline.setCycleCount(Timeline.INDEFINITE);
 

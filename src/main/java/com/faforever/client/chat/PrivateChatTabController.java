@@ -77,7 +77,8 @@ public class PrivateChatTabController extends AbstractChatTabController {
     super.initialize();
 
     ObservableValue<Boolean> showing = getRoot().selectedProperty()
-        .and(BooleanExpression.booleanExpression(getRoot().tabPaneProperty().flatMap(JavaFxUtil::showingProperty)));
+        .and(BooleanExpression.booleanExpression(getRoot().tabPaneProperty()
+            .flatMap(uiService::createShowingProperty)));
 
     JavaFxUtil.bindManagedToVisible(avatarImageView, defaultIconImageView);
     avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());

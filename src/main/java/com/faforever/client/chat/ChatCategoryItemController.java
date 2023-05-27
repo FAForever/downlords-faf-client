@@ -54,7 +54,7 @@ public class ChatCategoryItemController implements Controller<Node> {
   }
 
   private void bindProperties() {
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     categoryLabel.styleProperty()
         .bind(chatPrefs.groupToColorProperty()

@@ -14,12 +14,12 @@ import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Optional;
@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -35,6 +36,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PlayerCardControllerTest extends UITest {
+  @Mock
+  private UiService uiService;
   @Mock
   private I18n i18n;
   @Mock
@@ -46,13 +49,14 @@ public class PlayerCardControllerTest extends UITest {
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
 
-  @InjectMocks
   private PlayerCardController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
+    instance = new PlayerCardController(uiService, countryFlagService, avatarService, contextMenuBuilder, i18n);
+
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     loadFxml("theme/player_card.fxml", clazz -> instance);
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test
@@ -174,6 +178,7 @@ public class PlayerCardControllerTest extends UITest {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
     ContextMenu contextMenuMock = ContextMenuBuilderHelper.mockContextMenuBuilderAndGetContextMenuMock(contextMenuBuilder);
     runOnFxThreadAndWait(() -> {
+      getRoot().getChildren().add(instance.getRoot());
       instance.setPlayer(player);
       instance.setRating(1000);
       instance.setFaction(Faction.RANDOM);

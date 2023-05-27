@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
 import static com.faforever.client.test.IsUtilityClassMatcher.isUtilityClass;
@@ -37,12 +36,6 @@ public class JavaFxUtilTest extends UITest {
   @Test
   public void testIsUtilityClass() throws Exception {
     assertThat(JavaFxUtil.class, isUtilityClass());
-  }
-
-  @Test
-  public void testFixTooltipDuration() throws Exception {
-    JavaFxUtil.fixTooltipDuration();
-    // Smoke test, no assertions
   }
 
   @Test

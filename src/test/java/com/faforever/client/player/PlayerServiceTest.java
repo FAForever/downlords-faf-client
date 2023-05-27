@@ -6,7 +6,7 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.JavaFxService;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.PlayerMapper;
@@ -76,7 +76,7 @@ public class PlayerServiceTest extends ServiceTest {
   private EventBus eventBus;
 
   @Mock
-  private JavaFxService javaFxService;
+  private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Spy
   private PlayerMapper playerMapper = Mappers.getMapper(PlayerMapper.class);
   @Spy
@@ -94,8 +94,7 @@ public class PlayerServiceTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(playerMapper);
-    when(javaFxService.getSingleScheduler()).thenReturn(Schedulers.immediate());
-    when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
+    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
     when(fafServerAccessor.getEvents(PlayerInfo.class)).thenReturn(playerInfoTestPublisher.flux());
     when(fafServerAccessor.getEvents(SocialInfo.class)).thenReturn(socialInfoTestPublisher.flux());
     currentPlayer = new Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>());

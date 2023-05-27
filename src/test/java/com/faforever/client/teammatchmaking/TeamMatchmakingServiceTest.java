@@ -10,7 +10,7 @@ import com.faforever.client.domain.MatchingStatus;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.JavaFxService;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
@@ -105,7 +105,7 @@ public class TeamMatchmakingServiceTest extends UITest {
   @Mock
   private TaskScheduler taskScheduler;
   @Mock
-  private JavaFxService javaFxService;
+  private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Mock
   private GameService gameService;
   @Spy
@@ -135,8 +135,8 @@ public class TeamMatchmakingServiceTest extends UITest {
     when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(otherPlayer));
     when(playerService.getPlayerByIdIfOnline(1)).thenReturn(Optional.of(player));
     when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
-    when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
-    when(javaFxService.getSingleScheduler()).thenReturn(Schedulers.immediate());
+    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
+
     when(fafServerAccessor.getEvents(MatchmakerInfo.class)).thenReturn(matchmakerInfoTestPublisher.flux());
     when(fafServerAccessor.getEvents(MatchmakerMatchFoundResponse.class)).thenReturn(matchmakerFoundTestPublisher.flux());
     when(fafServerAccessor.getEvents(MatchmakerMatchCancelledResponse.class)).thenReturn(matchmakerCancelledTestPublisher.flux());

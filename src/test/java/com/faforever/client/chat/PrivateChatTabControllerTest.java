@@ -25,6 +25,7 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
@@ -115,6 +116,7 @@ public class PrivateChatTabControllerTest extends UITest {
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(".*"));
     when(privatePlayerInfoController.chatUserProperty()).thenReturn(new SimpleObjectProperty<>());
     when(avatarService.loadAvatar(player.getAvatar())).thenReturn(mock(Image.class));
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/chat/private_chat_tab.fxml", clazz -> {
       if (clazz == PrivatePlayerInfoController.class) {

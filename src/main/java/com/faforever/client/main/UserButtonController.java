@@ -2,7 +2,6 @@ package com.faforever.client.main;
 
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportDialogController;
@@ -29,7 +28,7 @@ public class UserButtonController implements Controller<Node> {
   public MenuButton userMenuButtonRoot;
 
   public void initialize() {
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     userMenuButtonRoot.textProperty()
         .bind(playerService.currentPlayerProperty().flatMap(PlayerBean::usernameProperty).when(showing));

@@ -10,6 +10,8 @@ import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
+import com.faforever.client.theme.UiService;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +22,7 @@ import org.mockito.Mock;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class ReviewControllerTest extends UITest {
@@ -27,6 +30,8 @@ public class ReviewControllerTest extends UITest {
   @InjectMocks
   private ReviewController<MapVersionReviewBean> instance;
 
+  @Mock
+  private UiService uiService;
   @Mock
   private I18n i18n;
   @Mock
@@ -42,6 +47,7 @@ public class ReviewControllerTest extends UITest {
         .defaultValues()
         .get()));
     when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/vault/review/review.fxml", param -> {
       if (param == StarsController.class) {
@@ -52,8 +58,6 @@ public class ReviewControllerTest extends UITest {
       }
       return instance;
     });
-
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test

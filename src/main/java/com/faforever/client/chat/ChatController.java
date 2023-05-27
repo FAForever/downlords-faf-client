@@ -55,7 +55,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
   public void initialize() {
     super.initialize();
 
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     chatService.addChannelsListener(channelChangeListener);
 

@@ -12,7 +12,7 @@ import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
-import com.faforever.client.fx.JavaFxService;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.error.GameCleanupException;
@@ -64,6 +64,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.InitializingBean;
@@ -109,6 +110,7 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 @Lazy
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class GameService implements InitializingBean {
 
   private static final Pattern GAME_PREFS_ALLOW_MULTI_LAUNCH_PATTERN = Pattern.compile("debug\\s*=(\\s)*[{][^}]*enable_debug_facilities\\s*=\\s*true");
@@ -137,9 +139,9 @@ public class GameService implements InitializingBean {
   private final DiscordRichPresenceService discordRichPresenceService;
   private final ReplayServer replayServer;
   private final OperatingSystem operatingSystem;
-  private final String faWindowTitle;
+  private final ClientProperties clientProperties;
   private final GameMapper gameMapper;
-  private final JavaFxService javaFxService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final LastGamePrefs lastGamePrefs;
   private final NotificationPrefs notificationPrefs;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
@@ -165,42 +167,6 @@ public class GameService implements InitializingBean {
   private int localReplayPort;
   private boolean inOthersParty;
 
-  public GameService(ClientProperties clientProperties, FafServerAccessor fafServerAccessor,
-                     ForgedAllianceService forgedAllianceService, CoturnService coturnService, MapService mapService,
-                     PreferencesService preferencesService, LoggingService loggingService, GameUpdater gameUpdater,
-                     LeaderboardService leaderboardService, NotificationService notificationService, I18n i18n,
-                     PlayerService playerService, EventBus eventBus, IceAdapter iceAdapter, ModService modService,
-                     PlatformService platformService, DiscordRichPresenceService discordRichPresenceService,
-                     ReplayServer replayServer, OperatingSystem operatingSystem, GameMapper gameMapper,
-                     JavaFxService javaFxService, LastGamePrefs lastGamePrefs, NotificationPrefs notificationPrefs,
-                     ForgedAlliancePrefs forgedAlliancePrefs) {
-    this.fafServerAccessor = fafServerAccessor;
-    this.forgedAllianceService = forgedAllianceService;
-    this.coturnService = coturnService;
-    this.mapService = mapService;
-    this.preferencesService = preferencesService;
-    this.loggingService = loggingService;
-    this.gameUpdater = gameUpdater;
-    this.leaderboardService = leaderboardService;
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.playerService = playerService;
-    this.eventBus = eventBus;
-    this.iceAdapter = iceAdapter;
-    this.modService = modService;
-    this.platformService = platformService;
-    this.discordRichPresenceService = discordRichPresenceService;
-    this.replayServer = replayServer;
-    this.operatingSystem = operatingSystem;
-    this.gameMapper = gameMapper;
-    this.javaFxService = javaFxService;
-    this.lastGamePrefs = lastGamePrefs;
-    this.notificationPrefs = notificationPrefs;
-    this.forgedAlliancePrefs = forgedAlliancePrefs;
-
-    faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
-  }
-
   @Override
   public void afterPropertiesSet() {
     currentGame.addListener((observable, oldValue, newValue) -> {
@@ -217,6 +183,7 @@ public class GameService implements InitializingBean {
     });
 
     currentGame.flatMap(GameBean::statusProperty).addListener((observable, oldValue, newValue) -> {
+      String faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
       if (oldValue == GameStatus.OPEN && newValue == GameStatus.PLAYING && !platformService.isWindowFocused(faWindowTitle)) {
         platformService.focusWindow(faWindowTitle);
       }
@@ -228,7 +195,7 @@ public class GameService implements InitializingBean {
         .flatMap(gameInfo -> gameInfo.getGames() == null ? Flux.just(gameInfo) : Flux.fromIterable(gameInfo.getGames()))
         .flatMap(gameInfo -> Mono.zip(Mono.just(gameInfo), Mono.justOrEmpty(gameIdToGame.get(gameInfo.getUid()))
             .switchIfEmpty(initializeGameBean(gameInfo))))
-        .publishOn(javaFxService.getFxApplicationScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .map(TupleUtils.function(gameMapper::update))
         .doOnError(throwable -> log.error("Error processing game", throwable))
         .retry()
@@ -237,7 +204,7 @@ public class GameService implements InitializingBean {
     gameUpdateFlux.filter(game -> game.getStatus() == GameStatus.CLOSED)
         .doOnNext(GameBean::removeListeners)
         .map(GameBean::getId)
-        .publishOn(javaFxService.getFxApplicationScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .doOnNext(gameIdToGame::remove)
         .doOnError(throwable -> log.error("Error closing game", throwable))
         .retry()
@@ -278,7 +245,7 @@ public class GameService implements InitializingBean {
           newGame.addPlayerChangeListener(generatePlayerChangeListener(newGame));
           return newGame;
         })
-        .publishOn(javaFxService.getFxApplicationScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .doOnNext(game -> gameMapper.update(gameInfo, game))
         .doOnNext(game -> gameIdToGame.put(game.getId(), game));
   }

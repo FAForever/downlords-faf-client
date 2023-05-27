@@ -116,6 +116,7 @@ public class TeamMatchmakingControllerTest extends UITest {
     when(i18n.get(eq("leaderboard.divisionName"), anyString(), anyString())).thenReturn("division V");
     when(matchmakingChatController.getRoot()).thenReturn(new Tab());
     when(uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml")).thenAnswer(invocation -> matchmakingChatController);
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/play/team_matchmaking.fxml", clazz -> instance);
   }

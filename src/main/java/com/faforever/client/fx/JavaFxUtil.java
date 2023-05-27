@@ -4,12 +4,9 @@ import com.google.common.base.Strings;
 import com.sun.javafx.stage.PopupWindowHelper;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.User32;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.MapProperty;
@@ -28,7 +25,6 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -37,8 +33,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.Window;
-import javafx.util.Duration;
 import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +43,6 @@ import org.springframework.util.Assert;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
@@ -115,29 +108,6 @@ public final class JavaFxUtil {
   }
 
   /**
-   * Uses reflection to change to tooltip delay/duration to some sane values.
-   * <p>
-   * See <a href="https://javafx-jira.kenai.com/browse/RT-19538">https://javafx-jira.kenai.com/browse/RT-19538</a>
-   */
-  public static void fixTooltipDuration() throws NoSuchFieldException, IllegalAccessException {
-    Field fieldBehavior = Tooltip.class.getDeclaredField("BEHAVIOR");
-    fieldBehavior.setAccessible(true);
-    Object objBehavior = fieldBehavior.get(null);
-
-    Field activationTimerField = objBehavior.getClass().getDeclaredField("activationTimer");
-    activationTimerField.setAccessible(true);
-    Timeline objTimer = (Timeline) activationTimerField.get(objBehavior);
-
-    objTimer.getKeyFrames().setAll(new KeyFrame(new Duration(500)));
-
-    Field hideTimerField = objBehavior.getClass().getDeclaredField("hideTimer");
-    hideTimerField.setAccessible(true);
-    objTimer = (Timeline) hideTimerField.get(objBehavior);
-
-    objTimer.getKeyFrames().setAll(new KeyFrame(new Duration(100000)));
-  }
-
-  /**
    * Better version of {@link Tooltip#setGraphic(Node)} that does not add unnecessary space. Javadoc of
    * {@link Tooltip#setGraphic(Node)} explains that this method is meant for adding icons.
    *
@@ -176,10 +146,7 @@ public final class JavaFxUtil {
     }
 
     Parent parent = node.getParent();
-    if (parent == null) {
-      return node.getScene() != null;
-    }
-    return isVisibleRecursively(parent);
+    return parent == null ? node.getScene() != null : isVisibleRecursively(parent);
   }
 
   public static String toRgbCode(Color color) {
@@ -187,14 +154,6 @@ public final class JavaFxUtil {
         (int) (color.getRed() * 255),
         (int) (color.getGreen() * 255),
         (int) (color.getBlue() * 255));
-  }
-
-  public static BooleanExpression showingProperty(Node node) {
-    ObservableValue<Boolean> attachedToVisibleWindow = node.sceneProperty()
-        .flatMap(Scene::windowProperty)
-        .flatMap(Window::showingProperty)
-        .orElse(false);
-    return node.visibleProperty().and(BooleanExpression.booleanExpression(attachedToVisibleWindow));
   }
 
   /**
@@ -249,20 +208,16 @@ public final class JavaFxUtil {
     if (image == null) {
       return;
     }
-    if (image.isBackgroundLoading() && image.getProgress() < 1) {
-      // Let's hope that loading doesn't finish before the listener is added
-      JavaFxUtil.addListener(image.progressProperty(), new ChangeListener<>() {
-        @Override
-        public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-          if (newValue.intValue() >= 1) {
-            writeImageLater(image, path, format);
-            image.progressProperty().removeListener(this);
-          }
+
+    JavaFxUtil.addAndTriggerListener(image.progressProperty(), new ChangeListener<>() {
+      @Override
+      public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+        if (newValue.intValue() >= 1) {
+          writeImageLater(image, path, format);
+          observable.removeListener(this);
         }
-      });
-    } else {
-      writeImageLater(image, path, format);
-    }
+      }
+    });
   }
 
   private static void writeImageLater(Image image, Path path, String format) {

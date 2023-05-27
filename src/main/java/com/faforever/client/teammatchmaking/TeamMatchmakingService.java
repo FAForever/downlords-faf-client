@@ -7,7 +7,7 @@ import com.faforever.client.domain.PartyBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.exception.NotifiableException;
-import com.faforever.client.fx.JavaFxService;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.SimpleInvalidationListener;
@@ -75,6 +75,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.function.TupleUtils;
 
 import java.time.Duration;
@@ -106,7 +107,7 @@ public class TeamMatchmakingService implements InitializingBean {
   private final I18n i18n;
   private final TaskScheduler taskScheduler;
   private final GameService gameService;
-  private final JavaFxService javaFxService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final MatchmakerMapper matchmakerMapper;
   private final MatchmakerPrefs matchmakerPrefs;
 
@@ -143,32 +144,32 @@ public class TeamMatchmakingService implements InitializingBean {
     fafServerAccessor.getEvents(GameLaunchResponse.class)
         .map(GameLaunchResponse::getGameType)
         .filter(GameType.MATCHMAKER::equals)
-        .publishOn(javaFxService.getFxApplicationScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .doOnNext(ignored -> changeLabelForQueues(MatchingStatus.GAME_LAUNCHING))
-        .publishOn(javaFxService.getSingleScheduler())
+        .publishOn(Schedulers.single())
         .doOnNext(ignored -> matchFoundAndWaitingForGameLaunch.set(false))
         .doOnError(throwable -> log.error("Error processing game launch response", throwable))
         .retry()
         .subscribe();
 
     fafServerAccessor.getEvents(SearchInfo.class)
-        .publishOn(javaFxService.getFxApplicationScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .doOnNext(this::onSearchInfo)
-        .publishOn(javaFxService.getSingleScheduler())
+        .publishOn(Schedulers.single())
         .doOnError(throwable -> log.error("Error processing search info", throwable))
         .retry()
         .subscribe();
 
 
     fafServerAccessor.getEvents(PartyInfo.class)
-        .publishOn(javaFxService.getFxApplicationScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .doOnNext(this::onPartyInfo)
         .doOnError(throwable -> log.error("Error processing party info", throwable))
         .retry()
         .subscribe();
 
     fafServerAccessor.getEvents(PartyKick.class)
-        .publishOn(javaFxService.getFxApplicationScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .doOnNext(message -> initializeParty())
         .doOnError(throwable -> log.error("Error processing party kick", throwable))
         .retry()
@@ -185,19 +186,19 @@ public class TeamMatchmakingService implements InitializingBean {
     fafServerAccessor.getEvents(MatchmakerMatchFoundResponse.class)
         .doOnNext(ignored -> matchFoundAndWaitingForGameLaunch.set(true))
         .doOnNext(ignored -> notifyMatchFound())
-        .publishOn(javaFxService.getFxApplicationScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .doOnNext(ignored -> queues.forEach(matchmakingQueue -> matchmakingQueue.setMatchingStatus(null)))
         .doOnNext(ignored -> searching.set(false))
         .doOnNext(this::setFoundStatusForQueue)
-        .publishOn(javaFxService.getSingleScheduler())
+        .publishOn(Schedulers.single())
         .doOnError(throwable -> log.error("Error processing found response", throwable))
         .retry()
         .subscribe();
 
     fafServerAccessor.getEvents(MatchmakerMatchCancelledResponse.class)
-        .publishOn(javaFxService.getFxApplicationScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .doOnNext(ignored -> changeLabelForQueues(MatchingStatus.MATCH_CANCELLED))
-        .publishOn(javaFxService.getSingleScheduler())
+        .publishOn(Schedulers.single())
         .doOnError(throwable -> log.error("Error handling cancelled response", throwable))
         .doOnNext(ignored -> matchFoundAndWaitingForGameLaunch.set(false))
         .doOnNext(ignored -> gameService.stopSearchMatchmaker())
@@ -208,7 +209,7 @@ public class TeamMatchmakingService implements InitializingBean {
         .flatMapIterable(MatchmakerInfo::getQueues)
         .concatMap(matchmakerQueue -> Mono.zip(Mono.just(matchmakerQueue), Mono.justOrEmpty(nameToQueue.get(matchmakerQueue.getName()))
             .switchIfEmpty(Mono.defer(() -> getQueueFromApi(matchmakerQueue)))))
-        .publishOn(javaFxService.getFxApplicationScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .map(TupleUtils.function(matchmakerMapper::update))
         .doOnError(throwable -> log.error("Error updating queue", throwable))
         .retry()

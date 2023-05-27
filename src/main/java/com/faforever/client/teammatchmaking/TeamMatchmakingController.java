@@ -128,7 +128,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
     factionsToButtons = Map.of(Faction.UEF, uefButton, Faction.AEON, aeonButton, Faction.CYBRAN, cybranButton, Faction.SERAPHIM, seraphimButton);
 
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     searchButton.selectedProperty().bindBidirectional(teamMatchmakingService.searchingProperty());
 

@@ -6,8 +6,8 @@ import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.FaStrings;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
-import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -16,6 +16,7 @@ import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewService;
@@ -49,7 +50,6 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -60,13 +60,14 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class MapDetailController implements Controller<Node> {
 
+  private final UiService uiService;
   private final MapService mapService;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final TimeService timeService;
   private final PlayerService playerService;
   private final ReviewService reviewService;
-  private final JavaFxService javaFxService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final ImageViewHelper imageViewHelper;
   private final EventBus eventBus;
   private final ContextMenuBuilder contextMenuBuilder;
@@ -116,7 +117,7 @@ public class MapDetailController implements Controller<Node> {
   }
 
   private void bindProperties() {
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
     ObservableValue<MapBean> mapObservable = mapVersion.flatMap(MapVersionBean::mapProperty);
     thumbnailImageView.imageProperty()
         .bind(mapVersion.map(map -> mapService.loadPreview(map, PreviewSize.SMALL))
@@ -143,10 +144,11 @@ public class MapDetailController implements Controller<Node> {
     dateLabel.textProperty()
         .bind(mapVersion.flatMap(MapVersionBean::createTimeProperty).map(timeService::asDate).when(showing));
 
-    mapDescriptionLabel.textProperty().bind(mapVersion.flatMap(MapVersionBean::descriptionProperty)
-        .map(FaStrings::removeLocalizationTag)
-        .map(description -> StringUtils.isBlank(description) ? i18n.get("map.noDescriptionAvailable") : description)
-        .when(showing));
+    mapDescriptionLabel.textProperty()
+        .bind(mapVersion.flatMap(MapVersionBean::descriptionProperty)
+            .map(FaStrings::removeLocalizationTag)
+            .map(description -> StringUtils.isBlank(description) ? i18n.get("map.noDescriptionAvailable") : description)
+            .when(showing));
 
     mapVersionLabel.textProperty()
         .bind(mapVersion.flatMap(MapVersionBean::versionProperty).map(ComparableVersion::toString).when(showing));
@@ -202,18 +204,18 @@ public class MapDetailController implements Controller<Node> {
     }
 
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
-    mapService.hasPlayedMap(currentPlayer, newValue)
-        .publishOn(javaFxService.getFxApplicationScheduler())
-        .doOnNext(hasPlayed -> reviewsController.setCanWriteReview(hasPlayed && (newValue.getMap()
-            .getAuthor() == null || !currentPlayer.equals(newValue.getMap().getAuthor()))))
-        .subscribe(null, throwable -> log.error("Unable to set has played for review", throwable));
+    if (!currentPlayer.equals(newValue.getMap().getAuthor())) {
+      mapService.hasPlayedMap(currentPlayer, newValue)
+          .publishOn(fxApplicationThreadExecutor.asScheduler())
+          .subscribe(reviewsController::setCanWriteReview, throwable -> log.error("Unable to set has played for review", throwable));
+    } else {
+      reviewsController.setCanWriteReview(false);
+    }
 
     reviewService.getMapReviews(newValue.getMap())
         .collectList()
-        .publishOn(javaFxService.getFxApplicationScheduler())
-        .doOnNext(reviews::setAll)
-        .publishOn(javaFxService.getSingleScheduler())
-        .subscribe(null, throwable -> log.error("Unable to populate reviews", throwable));
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
+        .subscribe(reviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
 
     mapService.getFileSize(newValue).thenAccept(mapFileSize -> JavaFxUtil.runLater(() -> {
       if (mapFileSize > -1) {
@@ -239,26 +241,22 @@ public class MapDetailController implements Controller<Node> {
   @VisibleForTesting
   void onDeleteReview(MapVersionReviewBean review) {
     reviewService.deleteMapVersionReview(review)
-        .publishOn(javaFxService.getFxApplicationScheduler())
-        .then(Mono.fromRunnable(() -> reviews.remove(review)))
-        .publishOn(javaFxService.getSingleScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(null, throwable -> {
           log.error("Review could not be deleted", throwable);
           notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
-        });
+        }, () -> reviews.remove(review));
   }
 
   @VisibleForTesting
   void onSendReview(MapVersionReviewBean review) {
     reviewService.saveMapVersionReview(review)
         .filter(savedReview -> !reviews.contains(savedReview))
-        .publishOn(javaFxService.getFxApplicationScheduler())
-        .doOnNext(savedReview -> {
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
+        .subscribe(savedReview -> {
           reviews.remove(review);
           reviews.add(savedReview);
-        })
-        .publishOn(javaFxService.getSingleScheduler())
-        .subscribe(null, throwable -> {
+        }, throwable -> {
           log.error("Review could not be saved", throwable);
           notificationService.addImmediateErrorNotification(throwable, "review.save.error");
         });
@@ -312,13 +310,11 @@ public class MapDetailController implements Controller<Node> {
   public void hideMap() {
     MapVersionBean mapVersion = this.mapVersion.get();
     mapService.hideMapVersion(mapVersion)
-        .publishOn(javaFxService.getFxApplicationScheduler())
-        .then(Mono.fromRunnable(() -> mapVersion.setHidden(true)))
-        .publishOn(javaFxService.getSingleScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(null, throwable -> {
           log.error("Could not hide map", throwable);
           notificationService.addImmediateErrorNotification(throwable, "map.couldNotHide");
-        });
+        }, () -> mapVersion.setHidden(true));
   }
 
   public void onMapPreviewImageClicked() {

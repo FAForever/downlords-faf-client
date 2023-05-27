@@ -15,6 +15,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.replay.WatchButtonController;
 import com.faforever.client.test.UITest;
+import com.faforever.client.theme.UiService;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +42,8 @@ public class PrivatePlayerInfoControllerTest extends UITest {
   private static final String CHANNEL_NAME = "testChannel";
   private static final String USERNAME = "junit";
 
+  @Mock
+  private UiService uiService;
   @Mock
   private I18n i18n;
   @Mock
@@ -72,6 +76,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     when(i18n.get("leaderboard.rating", leaderboard.getTechnicalName())).thenReturn(leaderboard.getTechnicalName());
     when(i18n.get(eq("chat.privateMessage.achievements.unlockedFormat"), any(), any())).thenReturn("0/0");
     when(i18n.number(anyInt())).thenReturn("123");
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/chat/private_user_info.fxml", clazz -> {
       if (clazz == GameDetailController.class) {
@@ -82,8 +87,6 @@ public class PrivatePlayerInfoControllerTest extends UITest {
       }
       return instance;
     });
-
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test

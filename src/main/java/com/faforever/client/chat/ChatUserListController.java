@@ -101,7 +101,7 @@ public class ChatUserListController implements Controller<VBox> {
 
   @Override
   public void initialize() {
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     hiddenCategories.bind(Bindings.valueAt(chatPrefs.getChannelNameToHiddenCategories(), chatChannel.map(ChatChannel::getName))
         .orElse(FXCollections.observableSet())

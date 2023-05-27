@@ -6,14 +6,15 @@ import com.faforever.client.domain.ModVersionReviewBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.FaStrings;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
-import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
@@ -41,7 +42,6 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -56,8 +56,9 @@ public class ModDetailController implements Controller<Node> {
   private final ImageViewHelper imageViewHelper;
   private final ReviewService reviewService;
   private final PlayerService playerService;
-  private final JavaFxService javaFxService;
+  private final UiService uiService;
   private final ContextMenuBuilder contextMenuBuilder;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final ObjectProperty<ModVersionBean> modVersion = new SimpleObjectProperty<>();
   private final ObservableList<ModVersionReviewBean> reviews = FXCollections.observableArrayList();
@@ -103,7 +104,7 @@ public class ModDetailController implements Controller<Node> {
   }
 
   private void bindProperties() {
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
     ObservableValue<ModBean> modObservable = modVersion.flatMap(ModVersionBean::modProperty);
     thumbnailImageView.imageProperty()
         .bind(modVersion.map(modService::loadThumbnail)
@@ -170,10 +171,8 @@ public class ModDetailController implements Controller<Node> {
 
     reviewService.getModReviews(newValue.getMod())
         .collectList()
-        .publishOn(javaFxService.getFxApplicationScheduler())
-        .doOnNext(reviews::setAll)
-        .publishOn(javaFxService.getSingleScheduler())
-        .subscribe(null, throwable -> log.error("Unable to populate reviews", throwable));
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
+        .subscribe(reviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
 
     modService.getFileSize(newValue)
         .thenAccept(modFileSize -> JavaFxUtil.runLater(() -> {
@@ -204,26 +203,22 @@ public class ModDetailController implements Controller<Node> {
   @VisibleForTesting
   void onDeleteReview(ModVersionReviewBean review) {
     reviewService.deleteModVersionReview(review)
-        .publishOn(javaFxService.getFxApplicationScheduler())
-        .then(Mono.fromRunnable(() -> reviews.remove(review)))
-        .publishOn(javaFxService.getSingleScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(null, throwable -> {
           log.error("Review could not be deleted", throwable);
           notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
-        });
+        }, () -> reviews.remove(review));
   }
 
   @VisibleForTesting
   void onSendReview(ModVersionReviewBean review) {
     reviewService.saveModVersionReview(review)
         .filter(savedReview -> !reviews.contains(savedReview))
-        .publishOn(javaFxService.getFxApplicationScheduler())
-        .doOnNext(savedReview -> {
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
+        .subscribe(savedReview -> {
           reviews.remove(review);
           reviews.add(savedReview);
-        })
-        .publishOn(javaFxService.getSingleScheduler())
-        .subscribe(null, throwable -> {
+        }, throwable -> {
           log.error("Review could not be saved", throwable);
           notificationService.addImmediateErrorNotification(throwable, "review.save.error");
         });

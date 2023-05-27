@@ -4,8 +4,8 @@ import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
-import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -62,7 +62,7 @@ public class GameDetailControllerTest extends UITest {
   @Mock
   private ModService modService;
   @Mock
-  private JavaFxService javaFxService;
+  private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Mock
   private UiService uiService;
   @Mock
@@ -98,7 +98,7 @@ public class GameDetailControllerTest extends UITest {
 
     doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
         .createPlaceholderImageOnErrorObservable(any());
-    when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
+    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
     when(watchButtonController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
     when(watchButtonController.getRoot()).thenReturn(new Button());
     when(teamCardController.getRoot()).then(invocation -> new Pane());
@@ -114,6 +114,7 @@ public class GameDetailControllerTest extends UITest {
     when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
     when(i18n.get("game.detail.players.format", game.getNumActivePlayers(), game.getMaxPlayers())).thenReturn(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()));
     when(i18n.get("unknown")).thenReturn("unknown");
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/play/game_detail.fxml", clazz -> {
       if (clazz == WatchButtonController.class) {
@@ -122,10 +123,7 @@ public class GameDetailControllerTest extends UITest {
       return instance;
     });
 
-    runOnFxThreadAndWait(() -> {
-      getRoot().getChildren().add(instance.getRoot());
-      instance.setGame(game);
-    });
+    runOnFxThreadAndWait(() -> instance.setGame(game));
   }
 
   @Test

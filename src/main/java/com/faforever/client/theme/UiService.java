@@ -13,9 +13,11 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.ui.dialog.Dialog.DialogTransition;
 import com.faforever.client.ui.dialog.DialogLayout;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -31,6 +33,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
+import javafx.stage.Window;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
@@ -533,5 +536,13 @@ public class UiService implements InitializingBean, DisposableBean {
     } catch (IOException e) {
       throw new AssetLoadException("Could not load theme from " + theme.getDisplayName(), e, "theme.directory.readError", theme.getDisplayName());
     }
+  }
+
+  public BooleanExpression createShowingProperty(Node node) {
+    ObservableValue<Boolean> attachedToVisibleWindow = node.sceneProperty()
+        .flatMap(Scene::windowProperty)
+        .flatMap(Window::showingProperty)
+        .orElse(false);
+    return node.visibleProperty().and(BooleanExpression.booleanExpression(attachedToVisibleWindow));
   }
 }

@@ -110,7 +110,8 @@ public class ChannelTabController extends AbstractChatTabController {
     JavaFxUtil.bind(chatUserList.visibleProperty(), userListVisibilityToggleButton.selectedProperty());
 
     ObservableValue<Boolean> showing = getRoot().selectedProperty()
-        .and(BooleanExpression.booleanExpression(getRoot().tabPaneProperty().flatMap(JavaFxUtil::showingProperty)));
+        .and(BooleanExpression.booleanExpression(getRoot().tabPaneProperty()
+            .flatMap(uiService::createShowingProperty)));
 
     userListVisibilityToggleButton.selectedProperty().bindBidirectional(chatPrefs.playerListShownProperty());
     topicTextField.setTextFormatter(new TextFormatter<>(change -> change.getControlNewText()
