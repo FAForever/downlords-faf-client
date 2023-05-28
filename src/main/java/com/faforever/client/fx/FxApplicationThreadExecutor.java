@@ -17,6 +17,7 @@ public class FxApplicationThreadExecutor implements Executor {
 
   private final Scheduler fxApplicationScheduler = Schedulers.fromExecutor(this);
 
+  @Override
   public void execute(Runnable runnable) {
     if (Platform.isFxApplicationThread()) {
       try {
