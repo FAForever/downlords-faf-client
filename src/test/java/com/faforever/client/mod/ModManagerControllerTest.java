@@ -3,7 +3,6 @@ package com.faforever.client.mod;
 import com.faforever.client.builders.ModVersionBeanBuilder;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.test.UITest;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -44,7 +43,7 @@ public class ModManagerControllerTest extends UITest {
 
   @Test
   public void testCorrectModsSelected() {
-    JavaFxUtil.runLater(() -> {
+    runOnFxThreadAndWait(() -> {
       instance.viewToggleGroup.selectToggle(instance.uiModsButton);
       instance.uiModsButton.fireEvent(new ActionEvent());
     });
@@ -52,7 +51,7 @@ public class ModManagerControllerTest extends UITest {
     assertThat(instance.modListView.getItems(), Matchers.contains(modUI));
     assertThat(instance.modListView.getSelectionModel().getSelectedItems(), Matchers.contains(modUI));
 
-    JavaFxUtil.runLater(() -> {
+    runOnFxThreadAndWait(() -> {
       instance.viewToggleGroup.selectToggle(instance.simModsButton);
       instance.simModsButton.fireEvent(new ActionEvent());
     });

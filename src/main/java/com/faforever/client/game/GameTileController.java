@@ -3,8 +3,8 @@ package com.faforever.client.game;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
-import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
@@ -12,6 +12,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
@@ -50,8 +51,9 @@ public class GameTileController implements Controller<Node> {
   private final JoinGameHelper joinGameHelper;
   private final ModService modService;
   private final PlayerService playerService;
-  private final JavaFxService javaFxService;
+  private final UiService uiService;
   private final ImageViewHelper imageViewHelper;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public Node lockIconLabel;
   public Label gameTypeLabel;
@@ -79,7 +81,7 @@ public class GameTileController implements Controller<Node> {
     JavaFxUtil.bind(defaultHostIcon.visibleProperty(), avatarImageView.imageProperty().isNull());
     JavaFxUtil.bind(avatarImageView.visibleProperty(), avatarImageView.imageProperty().isNotNull());
 
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     gameTitleLabel.textProperty()
         .bind(game.flatMap(GameBean::titleProperty).map(StringUtils::normalizeSpace).when(showing));
@@ -118,10 +120,8 @@ public class GameTileController implements Controller<Node> {
     modService.getFeaturedMod(newValue.getFeaturedMod())
         .map(FeaturedModBean::getDisplayName)
         .map(StringUtils::defaultString)
-        .publishOn(javaFxService.getFxApplicationScheduler())
-        .doOnNext(gameTypeLabel::setText)
-        .publishOn(javaFxService.getSingleScheduler())
-        .subscribe(null, throwable -> log.error("Unable to set game type label", throwable));
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
+        .subscribe(gameTypeLabel::setText, throwable -> log.error("Unable to set game type label", throwable));
   }
 
   public void setGame(GameBean game) {

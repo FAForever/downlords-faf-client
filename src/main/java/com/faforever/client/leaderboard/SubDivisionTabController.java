@@ -4,7 +4,7 @@ import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
 import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
@@ -40,6 +40,8 @@ public class SubDivisionTabController implements Controller<Tab> {
   private final LeaderboardService leaderboardService;
   private final NotificationService notificationService;
   private final I18n i18n;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   public Tab subDivisionTab;
   public TableColumn<LeagueEntryBean, Number> rankColumn;
   public TableColumn<LeagueEntryBean, String> nameColumn;
@@ -96,7 +98,7 @@ public class SubDivisionTabController implements Controller<Tab> {
   }
 
   public void populate(SubdivisionBean subdivision) {
-    JavaFxUtil.runLater(() -> subDivisionTab.setText(subdivision.getNameKey()));
+    fxApplicationThreadExecutor.execute(() -> subDivisionTab.setText(subdivision.getNameKey()));
 
     leaderboardService.getEntries(subdivision).thenAccept(leagueEntryBeans -> {
       leaderboardService.getPlayerNumberInHigherDivisions(subdivision).thenAccept(count ->

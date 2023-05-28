@@ -3,7 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.discord.DiscordJoinEvent;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
@@ -40,6 +40,7 @@ public class JoinGameHelper {
   private final UiService uiService;
   private final EventBus eventBus;
   private final Preferences preferences;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public void join(GameBean game) {
     this.join(game, null, false);
@@ -104,6 +105,6 @@ public class JoinGameHelper {
       log.info("Join was requested via Discord but was rejected due to it being disabled in settings");
       return;
     }
-    JavaFxUtil.runLater(() -> join(gameId));
+    fxApplicationThreadExecutor.execute(() -> join(gameId));
   }
 }

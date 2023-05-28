@@ -44,6 +44,7 @@ public class PlatformService {
   public static final Pattern URL_REGEX_PATTERN = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
 
   private final OperatingSystem operatingSystem;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   /**
    * Opens the specified URI in a new browser window or tab. Note: The code is copied from
@@ -260,7 +261,7 @@ public class PlatformService {
   public Optional<Path> askForPath(String title, Path initialDirectory) {
     AtomicReference<File> result = new AtomicReference<>();
     CountDownLatch waitForUserInput = new CountDownLatch(1);
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       DirectoryChooser directoryChooser = new DirectoryChooser();
       directoryChooser.setTitle(title);
       if (initialDirectory != null) {
@@ -280,7 +281,7 @@ public class PlatformService {
   public Optional<Path> askForFile(String title, @Nullable Path initialDirectoryOrFile, ExtensionFilter extensionFilter) {
     AtomicReference<File> result = new AtomicReference<>();
     CountDownLatch waitForUserInput = new CountDownLatch(1);
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       FileChooser fileChooser = new FileChooser();
       fileChooser.setTitle(title);
       fileChooser.getExtensionFilters().add(extensionFilter);

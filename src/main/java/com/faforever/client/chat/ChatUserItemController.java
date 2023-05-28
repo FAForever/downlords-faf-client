@@ -140,7 +140,7 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   public void installGameTooltip(GameTooltipController gameInfoController, Tooltip tooltip) {
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     mapImageView.setOnMouseEntered(event -> gameInfoController.gameProperty()
         .bind(chatUser.flatMap(ChatChannelUser::playerProperty).flatMap(PlayerBean::gameProperty).when(showing)));
@@ -207,7 +207,7 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   private void bindProperties() {
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     ObservableValue<PlayerBean> playerProperty = chatUser.flatMap(ChatChannelUser::playerProperty);
     ObservableValue<GameBean> gameProperty = playerProperty.flatMap(PlayerBean::gameProperty);

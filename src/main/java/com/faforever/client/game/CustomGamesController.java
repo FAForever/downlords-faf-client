@@ -81,7 +81,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(chooseSortingTypeChoiceBox, gameDetailPane);
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     initializeFilterController();
 

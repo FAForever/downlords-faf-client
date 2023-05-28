@@ -2,7 +2,6 @@ package com.faforever.client.replay;
 
 import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.domain.ReplayBean;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.VaultPrefs;
@@ -18,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
@@ -52,14 +52,13 @@ public class LocalReplayVaultControllerTest extends UITest {
   private SearchController searchController;
   @Mock
   private SpecificationController specificationController;
+  @Spy
+  private VaultPrefs vaultPrefs = new VaultPrefs();
 
   private ReplayDetailController replayDetailController;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new LocalReplayVaultController(replayService, uiService, notificationService, i18n, eventBus,
-        reportingService, new VaultPrefs());
-
     doAnswer(invocation -> {
       replayDetailController = mock(ReplayDetailController.class);
       when(replayDetailController.getRoot()).then(invocation1 -> new Pane());
@@ -90,7 +89,7 @@ public class LocalReplayVaultControllerTest extends UITest {
   @Test
   public void testShowLocalReplayDetail() {
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    JavaFxUtil.runLater(() -> instance.onDisplayDetails(replay));
+    runOnFxThreadAndWait(() -> instance.onDisplayDetails(replay));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(replayDetailController).setReplay(replay);

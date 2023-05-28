@@ -6,7 +6,7 @@ import com.faforever.client.avatar.event.AvatarChangedEvent;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.NameRecordBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.JavaFxService;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.PlayerMapper;
@@ -73,7 +73,7 @@ public class PlayerService implements InitializingBean {
   private final AvatarService avatarService;
   private final EventBus eventBus;
   private final PlayerMapper playerMapper;
-  private final JavaFxService javaFxService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final UserPrefs userPrefs;
 
   private ObservableMap<Integer, String> notesByPlayerId;
@@ -86,7 +86,7 @@ public class PlayerService implements InitializingBean {
         .flatMap(playerInfo -> Flux.fromIterable(playerInfo.getPlayers()))
         .flatMap(player -> Mono.zip(Mono.just(player), Mono.justOrEmpty(playersById.get(player.getId()))
             .switchIfEmpty(initializePlayer(player))))
-        .publishOn(javaFxService.getFxApplicationScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .map(TupleUtils.function(playerMapper::update))
         .doOnError(throwable -> log.error("Error processing player", throwable))
         .retry()
@@ -108,7 +108,7 @@ public class PlayerService implements InitializingBean {
         })
         .doOnError(throwable -> log.error("Error processing social info", throwable))
         .retry()
-        .publishOn(javaFxService.getFxApplicationScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(this::setPlayerSocialStatus);
 
     notesByPlayerId = userPrefs.getNotesByPlayerId();

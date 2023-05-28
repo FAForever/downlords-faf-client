@@ -1,6 +1,6 @@
 package com.faforever.client.ui.tray;
 
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
@@ -38,6 +38,8 @@ public class TrayIconManager implements InitializingBean {
 
   private final I18n i18n;
   private final EventBus eventBus;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   private int badgeCount;
 
   @Override
@@ -57,7 +59,7 @@ public class TrayIconManager implements InitializingBean {
       badgeCount = newValue.value();
     }
 
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       List<Image> icons;
       if (badgeCount < 1) {
         icons = IntStream.range(4, 9)

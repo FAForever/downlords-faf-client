@@ -3,6 +3,7 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.StringListCell;
@@ -28,6 +29,7 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
 
   private final AvatarService avatarService;
   private final I18n i18n;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final SimpleInvalidationListener selectedItemPropertyListener = this::setAvatar;
 
@@ -50,7 +52,7 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
   private StringListCell<AvatarBean> avatarCell() {
     return new StringListCell<>(
         AvatarBean::getDescription,
-        avatarBean -> new ImageView(avatarService.loadAvatar(avatarBean)));
+        avatarBean -> new ImageView(avatarService.loadAvatar(avatarBean)), fxApplicationThreadExecutor);
   }
 
   @Override
@@ -60,24 +62,23 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
   }
 
   private void loadAvailableAvatars() {
-    avatarService.getAvailableAvatars().thenAccept(avatars -> {
+    avatarService.getAvailableAvatars().thenAcceptAsync(avatars -> {
       ObservableList<AvatarBean> items = FXCollections.observableArrayList(avatars);
       items.add(0, noAvatar);
 
       AvatarBean currentAvatar = object.getAvatar();
-      JavaFxUtil.runLater(() -> {
-        avatarComboBox.getItems().setAll(items);
-        avatarComboBox.getSelectionModel().select(items.stream()
-            .filter(avatarBean -> Objects.equals(avatarBean, currentAvatar))
-            .findFirst()
-            .orElse(null));
+      avatarComboBox.getItems().setAll(items);
+      avatarComboBox.getSelectionModel().select(items.stream()
+          .filter(avatarBean -> Objects.equals(avatarBean, currentAvatar))
+          .findFirst()
+          .orElse(null));
 
-        // Only after the box has been populated, and we selected the current value, we add the listener.
-        // Otherwise, the code above already triggers a changeAvatar()
-        JavaFxUtil.addListener(avatarComboBox.getSelectionModel().selectedItemProperty(), new WeakInvalidationListener(selectedItemPropertyListener));
-        getRoot().setVisible(isItemVisible());
-      });
-    });
+      // Only after the box has been populated, and we selected the current value, we add the listener.
+      // Otherwise, the code above already triggers a changeAvatar()
+      JavaFxUtil.addListener(avatarComboBox.getSelectionModel()
+          .selectedItemProperty(), new WeakInvalidationListener(selectedItemPropertyListener));
+      getRoot().setVisible(isItemVisible());
+    }, fxApplicationThreadExecutor);
   }
 
   private void setAvatar() {

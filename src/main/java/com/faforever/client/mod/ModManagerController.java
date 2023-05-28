@@ -3,6 +3,7 @@ package com.faforever.client.mod;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
 import javafx.collections.ObservableList;
@@ -41,6 +42,8 @@ public class ModManagerController implements Controller<Parent> {
   private static final Predicate<ModVersionBean> SIM_FILTER = modVersion -> modVersion.getModType() == ModType.SIM;
 
   private final ModService modService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   private final Set<ModVersionBean> selectedMods = new HashSet<>();
   public Button closeButton;
   private Runnable onCloseButtonClickedListener;
@@ -126,7 +129,8 @@ public class ModManagerController implements Controller<Parent> {
   @NotNull
   private Callback<ListView<ModVersionBean>, ListCell<ModVersionBean>> modListCellFactory() {
     return param -> {
-      ListCell<ModVersionBean> cell = new StringListCell<>(modVersion -> modVersion.getMod().getDisplayName());
+      ListCell<ModVersionBean> cell = new StringListCell<>(modVersion -> modVersion.getMod()
+          .getDisplayName(), fxApplicationThreadExecutor);
       cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
         modListView.requestFocus();
         MultipleSelectionModel<ModVersionBean> selectionModel = modListView.getSelectionModel();

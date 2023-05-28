@@ -10,6 +10,7 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.UITest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.client.vault.review.StarController;
@@ -40,6 +41,8 @@ import static org.mockito.Mockito.when;
 
 public class MapCardControllerTest extends UITest {
 
+  @Mock
+  private UiService uiService;
   @Mock
   private MapService mapService;
   @Mock
@@ -75,6 +78,7 @@ public class MapCardControllerTest extends UITest {
     when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
     when(mapService.downloadAndInstallMap(any(), isNull(), isNull())).thenReturn(CompletableFuture.runAsync(() -> {}));
     when(mapService.uninstallMap(any())).thenReturn(CompletableFuture.runAsync(() -> {}));
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     mapBean = MapVersionBeanBuilder.create()
         .defaultValues()
         .map(MapBeanBuilder.create().defaultValues().get())
@@ -100,8 +104,6 @@ public class MapCardControllerTest extends UITest {
       }
       return instance;
     });
-
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test

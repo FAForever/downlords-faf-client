@@ -4,13 +4,13 @@ import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.ImageViewHelper;
-import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
+import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -42,6 +42,8 @@ import static org.mockito.Mockito.when;
 public class GameTileControllerTest extends UITest {
 
   @Mock
+  private UiService uiService;
+  @Mock
   private ModService modService;
   @InjectMocks
   private GameTileController instance;
@@ -55,8 +57,6 @@ public class GameTileControllerTest extends UITest {
   private MapService mapService;
   @Mock
   private PlayerService playerService;
-  @Mock
-  private JavaFxService javaFxService;
 
   private GameBean game;
 
@@ -71,15 +71,13 @@ public class GameTileControllerTest extends UITest {
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(
         FeaturedModBeanBuilder.create().defaultValues().get()
     ));
-    when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
-    when(javaFxService.getSingleScheduler()).thenReturn(Schedulers.immediate());
+    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
     when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
     when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/play/game_card.fxml", clazz -> instance);
     instance.setOnSelectedListener(onSelectedConsumer);
-
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test

@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.DecimalCell;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.IconCell;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
@@ -63,6 +64,8 @@ public class GamesTableController implements Controller<Node> {
   private final ImageViewHelper imageViewHelper;
   private final PlayerService playerService;
   private final Preferences preferences;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
 
   public TableView<GameBean> gamesTable;
   public TableColumn<GameBean, Image> mapPreviewColumn;
@@ -91,7 +94,7 @@ public class GamesTableController implements Controller<Node> {
 
   public void initializeGameTable(ObservableList<GameBean> games, Function<String, String> coopMissionNameProvider,
                                   boolean listenToFilterPreferences) {
-    BooleanExpression showing = JavaFxUtil.showingProperty(getRoot());
+    BooleanExpression showing = uiService.createShowingProperty(getRoot());
 
     gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
@@ -264,6 +267,6 @@ public class GamesTableController implements Controller<Node> {
   }
 
   public void refreshTable() {
-    JavaFxUtil.runLater(() -> gamesTable.refresh());
+    fxApplicationThreadExecutor.execute(() -> gamesTable.refresh());
   }
 }

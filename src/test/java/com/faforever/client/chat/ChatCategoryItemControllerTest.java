@@ -8,6 +8,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.scene.control.ContextMenu;
@@ -25,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyDouble;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -50,8 +52,8 @@ public class ChatCategoryItemControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     loadFxml("theme/chat/chat_user_category.fxml", clazz -> instance);
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test
@@ -95,7 +97,10 @@ public class ChatCategoryItemControllerTest extends UITest {
     });
     ContextMenu contextMenuMock = ContextMenuBuilderHelper.mockContextMenuBuilderAndGetContextMenuMock(contextMenuBuilder);
 
-    runOnFxThreadAndWait(() -> instance.onContextMenuRequested(mock(ContextMenuEvent.class)));
+    runOnFxThreadAndWait(() -> {
+      getRoot().getChildren().add(instance.getRoot());
+      instance.onContextMenuRequested(mock(ContextMenuEvent.class));
+    });
     verify(contextMenuMock).show(eq(instance.getRoot().getScene().getWindow()), anyDouble(), anyDouble());
   }
 

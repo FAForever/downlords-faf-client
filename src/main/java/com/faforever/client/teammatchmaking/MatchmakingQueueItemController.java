@@ -8,6 +8,7 @@ import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -42,6 +43,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
   private final static String QUEUE_I18N_PATTERN = "teammatchmaking.queue.%s";
 
+  private final UiService uiService;
   private final PlayerService playerService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final I18n i18n;
@@ -65,7 +67,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(matchFoundLabel, matchStartingLabel, matchCancelledLabel);
 
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     queue.addListener(((observable, oldValue, newValue) -> {
       if (oldValue != null) {

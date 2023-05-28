@@ -4,11 +4,10 @@ package com.faforever.client.tournament;
 import com.faforever.client.domain.TournamentBean;
 import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fx.AbstractViewController;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.io.CharStreams;
@@ -41,7 +40,7 @@ public class TournamentsController extends AbstractViewController<Node> {
   private final TournamentService tournamentService;
   private final UiService uiService;
   private final WebViewConfigurer webViewConfigurer;
-  private final NotificationService notificationService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public Pane tournamentRoot;
   public WebView tournamentDetailWebView;
@@ -64,11 +63,11 @@ public class TournamentsController extends AbstractViewController<Node> {
   }
 
   private void onLoadingStart() {
-    JavaFxUtil.runLater(() -> loadingIndicator.setVisible(true));
+    fxApplicationThreadExecutor.execute(() -> loadingIndicator.setVisible(true));
   }
 
   private void onLoadingStop() {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       tournamentRoot.getChildren().remove(loadingIndicator);
       loadingIndicator = null;
       contentPane.setVisible(true);
@@ -86,7 +85,7 @@ public class TournamentsController extends AbstractViewController<Node> {
     webViewConfigurer.configureWebView(tournamentDetailWebView);
 
     tournamentService.getAllTournaments()
-        .thenAccept(tournaments -> JavaFxUtil.runLater(() -> {
+        .thenAcceptAsync(tournaments -> {
           tournaments.sort(
               Comparator.<TournamentBean, Integer>comparing(o -> o.getStatus().getSortOrderPriority())
                   .thenComparing(TournamentBean::getCreatedAt)
@@ -95,10 +94,10 @@ public class TournamentsController extends AbstractViewController<Node> {
           tournamentListView.getItems().setAll(tournaments);
           tournamentListView.getSelectionModel().selectFirst();
           onLoadingStop();
-        })).exceptionally(throwable -> {
-      log.error("Tournaments could not be loaded", throwable);
-      return null;
-    });
+        }, fxApplicationThreadExecutor).exceptionally(throwable -> {
+          log.error("Tournaments could not be loaded", throwable);
+          return null;
+        });
   }
 
   private void displayTournamentItem(TournamentBean tournamentBean) {

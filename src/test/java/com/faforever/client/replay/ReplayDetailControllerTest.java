@@ -14,7 +14,6 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayReviewBean;
 import com.faforever.client.fx.ImageViewHelper;
-import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.i18n.I18n;
@@ -120,9 +119,6 @@ public class ReplayDetailControllerTest extends UITest {
   private TeamCardController teamCardController;
   @Mock
   private ReportDialogController reportDialogController;
-  @Mock
-  private JavaFxService javaFxService;
-
   private PlayerBean currentPlayer;
   private ReplayBean onlineReplay;
   private ReplayBean localReplay;
@@ -155,8 +151,8 @@ public class ReplayDetailControllerTest extends UITest {
     when(mapService.isInstalledBinding(Mockito.<MapVersionBean>any())).thenReturn(installed);
     when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
     when(reviewService.getReplayReviews(any())).thenReturn(Flux.empty());
-    when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
-    when(javaFxService.getSingleScheduler()).thenReturn(Schedulers.immediate());
+    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
+
     when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(currentPlayer));
     when(reviewsController.getRoot()).thenReturn(new Pane());
     when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE))).thenReturn(mock(Image.class));
@@ -180,6 +176,7 @@ public class ReplayDetailControllerTest extends UITest {
     when(teamCardController.getRoot()).thenReturn(new HBox());
     when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
     when(reportDialogController.getRoot()).thenReturn(new Pane());
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/vault/replay/replay_detail.fxml", param -> {
       if (param == ReviewsController.class) {
@@ -196,8 +193,6 @@ public class ReplayDetailControllerTest extends UITest {
       }
       return instance;
     });
-
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test
@@ -321,7 +316,8 @@ public class ReplayDetailControllerTest extends UITest {
 
     when(replayService.getFileSize(replay)).thenReturn(CompletableFuture.completedFuture(1024));
     when(ratingService.calculateQuality(replay)).thenReturn(0.427);
-    when(i18n.getOrDefault(replay.getValidity().toString(), "game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()))).thenReturn("Reason: HAS_AI");
+    when(i18n.getOrDefault(replay.getValidity().toString(), "game.reasonNotValid", i18n.get(replay.getValidity()
+        .getI18nKey()))).thenReturn("Reason: HAS_AI");
 
     runOnFxThreadAndWait(() -> instance.setReplay(replay));
     WaitForAsyncUtils.waitForFxEvents();

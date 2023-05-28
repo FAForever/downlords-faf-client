@@ -21,6 +21,7 @@ import org.mockito.Spy;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -72,7 +73,7 @@ public class CustomGamesControllerTest extends UITest {
     when(customGamesFilterController.filterStateProperty()).thenReturn(new SimpleBooleanProperty());
     when(customGamesFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
     when(gamesTilesContainerController.sortingOrderProperty()).thenReturn(new SimpleObjectProperty<>());
-
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     when(gameDetailController.getRoot()).thenReturn(new Pane());
 
     loadFxml("theme/play/custom_games.fxml", clazz -> {

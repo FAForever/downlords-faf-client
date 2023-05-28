@@ -1,7 +1,6 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.domain.ReplayBean;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
@@ -150,8 +149,8 @@ public class OnlineReplayVaultControllerTest extends UITest {
 
   @Test
   public void testShowReplayEventWhenInitialized() {
-    JavaFxUtil.runLater(() -> instance.display(new OpenOnlineReplayVaultEvent()));
-    JavaFxUtil.runLater(() -> instance.display(new ShowReplayEvent(123)));
+    runOnFxThreadAndWait(() -> instance.display(new OpenOnlineReplayVaultEvent()));
+    runOnFxThreadAndWait(() -> instance.display(new ShowReplayEvent(123)));
     WaitForAsyncUtils.waitForFxEvents();
     verify(replayDetailController).setReplay(testReplay);
   }

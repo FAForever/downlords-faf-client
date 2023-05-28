@@ -4,7 +4,7 @@ import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.discord.JoinDiscordEvent;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -61,8 +61,9 @@ public class MatchmakingChatController extends AbstractChatTabController {
                                    AudioService audioService, ChatService chatService,
                                    WebViewConfigurer webViewConfigurer, CountryFlagService countryFlagService,
                                    EmoticonService emoticonService, ChatPrefs chatPrefs,
-                                   NotificationPrefs notificationPrefs) {
-    super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs);
+                                   NotificationPrefs notificationPrefs,
+                                   FxApplicationThreadExecutor fxApplicationThreadExecutor) {
+    super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
   }
 
   @Override
@@ -126,11 +127,11 @@ public class MatchmakingChatController extends AbstractChatTabController {
 
   @VisibleForTesting
   void onPlayerDisconnected(String userName) {
-    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerDisconnect", userName), true)));
+    fxApplicationThreadExecutor.execute(() -> onChatMessage(new ChatMessage(Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerDisconnect", userName), true)));
   }
 
   @VisibleForTesting
   void onPlayerConnected(String userName) {
-    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerConnect", userName), true)));
+    fxApplicationThreadExecutor.execute(() -> onChatMessage(new ChatMessage(Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerConnect", userName), true)));
   }
 }

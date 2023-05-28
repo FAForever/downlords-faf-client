@@ -5,7 +5,6 @@ import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.TutorialBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.TutorialBean;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -48,7 +47,7 @@ public class TutorialDetailControllerTest extends UITest {
     tutorial.setMapVersion(mapVersion);
     Image image = new Image("http://example.com");
     when(mapService.loadPreview(mapVersion, PreviewSize.LARGE)).thenReturn(image);
-    JavaFxUtil.runLater(() -> instance.setTutorial(tutorial));
+    runOnFxThreadAndWait(() -> instance.setTutorial(tutorial));
     WaitForAsyncUtils.waitForFxEvents();
     verify(mapService).loadPreview(mapVersion, PreviewSize.LARGE);
     assertEquals(instance.mapImage.getImage(),image);

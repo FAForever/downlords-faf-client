@@ -1,6 +1,6 @@
 package com.faforever.client.filter;
 
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.theme.UiService;
 import javafx.beans.value.ObservableValue;
 import javafx.util.StringConverter;
@@ -13,10 +13,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-@RequiredArgsConstructor(access = AccessLevel.MODULE)
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public class FilterBuilder<T> {
 
   private final UiService uiService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final Consumer<AbstractFilterNodeController<?, ? extends ObservableValue<?>, T>> onFilterBuilt;
 
   public FilterCheckboxController<T> checkbox(String text, BiFunction<Boolean, T, Boolean> filter) {
@@ -65,10 +66,10 @@ public class FilterBuilder<T> {
     controller.setText(text);
     controller.setMinMaxValue(minValue, maxValue);
     controller.setConverter(converter);
-    future.thenAccept(items -> JavaFxUtil.runLater(() -> {
+    future.thenAcceptAsync(items -> {
       controller.setItems(items);
       controller.registerListener(filter);
-    }));
+    }, fxApplicationThreadExecutor);
     onFilterBuilt.accept(controller);
     return controller;
   }

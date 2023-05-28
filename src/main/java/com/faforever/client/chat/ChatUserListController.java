@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.filter.ChatUserFilterController;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
@@ -69,6 +70,7 @@ public class ChatUserListController implements Controller<VBox> {
   private final UiService uiService;
   private final I18n i18n;
   private final ChatPrefs chatPrefs;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final ObjectFactory<ChatListItemCell> chatListItemCellFactory;
 
   public VBox root;
@@ -101,7 +103,7 @@ public class ChatUserListController implements Controller<VBox> {
 
   @Override
   public void initialize() {
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     hiddenCategories.bind(Bindings.valueAt(chatPrefs.getChannelNameToHiddenCategories(), chatChannel.map(ChatChannel::getName))
         .orElse(FXCollections.observableSet())
@@ -134,7 +136,7 @@ public class ChatUserListController implements Controller<VBox> {
       categoryFilteredList.predicateProperty()
           .bind(chatUserFilterController.predicateProperty()
               .map(filterPredicate -> filterPredicate.and(item -> item.user() != null && item.category() == category)));
-      JavaFxUtil.runLater(() -> unfilteredSource.add(new ChatListItem(null, category, channelName, Bindings.size(categoryFilteredList)
+      fxApplicationThreadExecutor.execute(() -> unfilteredSource.add(new ChatListItem(null, category, channelName, Bindings.size(categoryFilteredList)
           .asObject())));
     }
   }
@@ -186,14 +188,14 @@ public class ChatUserListController implements Controller<VBox> {
     for (ChatUserCategory category : user.getCategories()) {
       ChatListItem item = new ChatListItem(user, category, null, null);
       userChatListItemMap.computeIfAbsent(user, newUser -> new HashSet<>()).add(item);
-      JavaFxUtil.runLater(() -> unfilteredSource.add(item));
+      fxApplicationThreadExecutor.execute(() -> unfilteredSource.add(item));
     }
   }
 
   private void onUserLeft(ChatChannelUser user) {
     Set<ChatListItem> userItems = userChatListItemMap.remove(user);
     if (userItems != null) {
-      userItems.forEach(item -> JavaFxUtil.runLater(() -> unfilteredSource.remove(item)));
+      fxApplicationThreadExecutor.execute(() -> userItems.forEach(unfilteredSource::remove));
     }
   }
 
@@ -260,11 +262,6 @@ public class ChatUserListController implements Controller<VBox> {
         .map(ChatListItem::user)
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
-  }
-
-  @VisibleForTesting
-  List<ChatChannelUser> getFilteredUserList() {
-    return items.stream().map(ChatListItem::user).filter(Objects::nonNull).collect(Collectors.toList());
   }
 
   @VisibleForTesting

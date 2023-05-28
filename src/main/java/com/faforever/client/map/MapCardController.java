@@ -9,6 +9,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.review.StarsController;
 import javafx.beans.binding.BooleanExpression;
@@ -32,6 +33,7 @@ import java.util.function.Consumer;
 @Slf4j
 public class MapCardController extends VaultEntityCardController<MapVersionBean> {
 
+  private final UiService uiService;
   private final MapService mapService;
   private final NotificationService notificationService;
   private final I18n i18n;
@@ -53,7 +55,7 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
   private Consumer<MapVersionBean> onOpenDetailListener;
 
   public void initialize() {
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     imageViewHelper.setDefaultPlaceholderImage(thumbnailImageView);
     JavaFxUtil.bindManagedToVisible(installButton, uninstallButton);

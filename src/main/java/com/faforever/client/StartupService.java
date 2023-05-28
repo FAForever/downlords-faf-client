@@ -1,6 +1,6 @@
 package com.faforever.client;
 
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.GeneralPrefs;
@@ -22,6 +22,7 @@ public class StartupService {
   private final OperatingSystem operatingSystem;
   private final I18n i18n;
   private final GeneralPrefs generalPrefs;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private void checkCyrillic() {
     if (!generalPrefs.isShowCyrillicWarning()) {
@@ -35,7 +36,7 @@ public class StartupService {
       return;
     }
 
-    JavaFxUtil.runLaterAndAwait(() -> {
+    fxApplicationThreadExecutor.executeAndWait(() -> {
       Alert alert = new Alert(AlertType.WARNING, i18n.get("home.directory.warning.cyrillic"),
           new ButtonType(i18n.get("ignoreWarning"), ButtonData.CANCEL_CLOSE),
           new ButtonType(i18n.get("close"), ButtonData.OK_DONE));
@@ -50,7 +51,7 @@ public class StartupService {
       return;
     }
 
-    JavaFxUtil.runLaterAndAwait(() -> {
+    fxApplicationThreadExecutor.executeAndWait(() -> {
       Alert alert = new Alert(AlertType.WARNING, "Please don't run the client as admin. Because if you do you might need to delete C:\\ProgramData\\FAForever to be able to run it as a normal user again. Do you want to ignore the warning and continue?", ButtonType.YES, ButtonType.NO);
       alert.showAndWait()
           .filter(buttonType -> buttonType == ButtonType.NO)

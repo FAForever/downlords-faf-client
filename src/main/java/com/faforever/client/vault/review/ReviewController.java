@@ -6,6 +6,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.theme.UiService;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.BooleanProperty;
@@ -18,6 +19,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import lombok.RequiredArgsConstructor;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -29,10 +31,12 @@ import java.util.function.Consumer;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class ReviewController<T extends ReviewBean> implements Controller<Pane> {
   private static final String[] STARS_TIP_KEYS = {"review.starsTip.one", "review.starsTip.two", "review.starsTip.three", "review.starsTip.four", "review.starsTip.five"};
 
   private final I18n i18n;
+  private final UiService uiService;
   private final PlayerService playerService;
 
   public Pane ownReviewRoot;
@@ -57,13 +61,8 @@ public class ReviewController<T extends ReviewBean> implements Controller<Pane> 
   private Consumer<T> onSendReviewListener;
   private Consumer<T> onDeleteReviewListener;
 
-  public ReviewController(I18n i18n, PlayerService playerService) {
-    this.i18n = i18n;
-    this.playerService = playerService;
-  }
-
   public void initialize() {
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     JavaFxUtil.bindManagedToVisible(displayReviewPane, editReviewPane, editButton, deleteButton);
 

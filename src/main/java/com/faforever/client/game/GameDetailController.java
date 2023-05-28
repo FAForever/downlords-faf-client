@@ -4,8 +4,8 @@ import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
-import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -70,8 +70,8 @@ public class GameDetailController implements Controller<Pane> {
   private final ContextMenuBuilder contextMenuBuilder;
   private final MapGeneratorService mapGeneratorService;
   private final NotificationService notificationService;
-  private final JavaFxService javaFxService;
   private final ImageViewHelper imageViewHelper;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
   private final BooleanProperty playtimeVisible = new SimpleBooleanProperty();
@@ -104,7 +104,7 @@ public class GameDetailController implements Controller<Pane> {
 
     contextMenuBuilder.addCopyLabelContextMenu(gameTitleLabel, mapLabel, gameTypeLabel);
 
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     playTimeTimeline.setCycleCount(Timeline.INDEFINITE);
 
@@ -180,7 +180,7 @@ public class GameDetailController implements Controller<Pane> {
         .flatMap(modService::getFeaturedMod)
         .map(FeaturedModBean::getDisplayName)
         .switchIfEmpty(Mono.just(i18n.get("unknown")))
-        .publishOn(javaFxService.getFxApplicationScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(gameTypeLabel::setText);
   }
 
@@ -207,7 +207,7 @@ public class GameDetailController implements Controller<Pane> {
       durationText = timeService.shortDuration(java.time.Duration.between(gameBean.getStartTime(), OffsetDateTime.now()));
     }
 
-    JavaFxUtil.runLater(() -> playtimeLabel.setText(durationText));
+    fxApplicationThreadExecutor.execute(() -> playtimeLabel.setText(durationText));
   }
 
   public void dispose() {
@@ -256,7 +256,7 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void setGeneratingMapInProgress(boolean inProgress) {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       generateMapButton.setDisable(inProgress);
       generateMapButton.setText(i18n.get(inProgress ? "game.mapGeneration.notification.title" : "game.create.generatedMap"));
     });

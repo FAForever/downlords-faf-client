@@ -5,6 +5,7 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.exception.AssetLoadException;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
@@ -120,6 +121,7 @@ public class ModService implements InitializingBean, DisposableBean {
   private final ObjectFactory<ModUploadTask> modUploadTaskFactory;
   private final ObjectFactory<DownloadModTask> downloadModTaskFactory;
   private final ObjectFactory<UninstallModTask> uninstallModTaskFactory;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final ModReader modReader = new ModReader();
 
@@ -423,7 +425,7 @@ public class ModService implements InitializingBean, DisposableBean {
     ModVersionBean modVersion = extractModInfo(modFolder);
     pathToMod.put(modFolder, modVersion);
     if (!modsByUid.containsKey(modVersion.getUid())) {
-      JavaFxUtil.runLater(() -> modsByUid.put(modVersion.getUid(), modVersion));
+      fxApplicationThreadExecutor.execute(() -> modsByUid.put(modVersion.getUid(), modVersion));
       log.debug("Added mod from {}", modFolder);
     }
   }

@@ -7,12 +7,12 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.StringListCell;
-import com.faforever.client.game.GameService;
 import com.faforever.client.game.VaultPathHandler;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigationItem;
@@ -105,7 +105,6 @@ public class SettingsController implements Controller<Node> {
   private final PlatformService platformService;
   private final ClientProperties clientProperties;
   private final ClientUpdateService clientUpdateService;
-  private final GameService gameService;
   private final TaskService taskService;
   private final CoturnService coturnService;
   private final IceServerMapper iceServerMapper;
@@ -114,6 +113,7 @@ public class SettingsController implements Controller<Node> {
   private final ObjectFactory<MoveDirectoryTask> moveDirectoryTaskFactory;
   private final ObjectFactory<DeleteDirectoryTask> deleteDirectoryTaskFactory;
   private final ObjectFactory<DownloadFAFDebuggerTask> downloadFAFDebuggerTaskFactory;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
@@ -186,8 +186,8 @@ public class SettingsController implements Controller<Node> {
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(vaultLocationWarningLabel);
     eventBus.register(this);
-    themeComboBox.setButtonCell(new StringListCell<>(Theme::getDisplayName));
-    themeComboBox.setCellFactory(param -> new StringListCell<>(Theme::getDisplayName));
+    themeComboBox.setButtonCell(new StringListCell<>(Theme::getDisplayName, fxApplicationThreadExecutor));
+    themeComboBox.setCellFactory(param -> new StringListCell<>(Theme::getDisplayName, fxApplicationThreadExecutor));
 
     toastScreenComboBox.setButtonCell(screenListCell());
     toastScreenComboBox.setCellFactory(param -> screenListCell());
@@ -336,10 +336,10 @@ public class SettingsController implements Controller<Node> {
   }
 
   private void initPreferredCoturnListView() {
-    coturnService.getActiveCoturns().thenAccept(coturnServers -> JavaFxUtil.runLater(() -> {
+    coturnService.getActiveCoturns().thenAcceptAsync(coturnServers -> {
       preferredCoturnListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
       preferredCoturnListView.setItems(FXCollections.observableList(coturnServers));
-      preferredCoturnListView.setCellFactory(param -> new StringListCell<>(CoturnServer::getRegion));
+      preferredCoturnListView.setCellFactory(param -> new StringListCell<>(CoturnServer::getRegion, fxApplicationThreadExecutor));
       ObservableSet<CoturnHostPort> preferredCoturnServers = preferences
           .getForgedAlliance()
           .getPreferredCoturnServers();
@@ -357,7 +357,7 @@ public class SettingsController implements Controller<Node> {
         preferredCoturnServers.clear();
         selectedCoturns.stream().map(iceServerMapper::mapToHostPort).forEach(preferredCoturnServers::add);
       });
-    }));
+    }, fxApplicationThreadExecutor);
   }
 
   private void initAutoChannelListView() {
@@ -440,8 +440,8 @@ public class SettingsController implements Controller<Node> {
   }
 
   private void initUnitDatabaseSelection() {
-    unitDatabaseComboBox.setButtonCell(new StringListCell<>(unitDataBaseType -> i18n.get(unitDataBaseType.getI18nKey())));
-    unitDatabaseComboBox.setCellFactory(param -> new StringListCell<>(unitDataBaseType -> i18n.get(unitDataBaseType.getI18nKey())));
+    unitDatabaseComboBox.setButtonCell(new StringListCell<>(unitDataBaseType -> i18n.get(unitDataBaseType.getI18nKey()), fxApplicationThreadExecutor));
+    unitDatabaseComboBox.setCellFactory(param -> new StringListCell<>(unitDataBaseType -> i18n.get(unitDataBaseType.getI18nKey()), fxApplicationThreadExecutor));
     unitDatabaseComboBox.setItems(FXCollections.observableArrayList(UnitDataBaseType.values()));
     unitDatabaseComboBox.setFocusTraversable(true);
 
@@ -450,13 +450,15 @@ public class SettingsController implements Controller<Node> {
     unitDataBaseTypeChangeListener.changed(null, null, preferences.getUnitDataBaseType());
     JavaFxUtil.addListener(preferences.unitDataBaseTypeProperty(), unitDataBaseTypeChangeListener);
 
-    unitDatabaseComboBox.getSelectionModel().selectedItemProperty().addListener((SimpleChangeListener<UnitDataBaseType>) preferences::setUnitDataBaseType);
+    unitDatabaseComboBox.getSelectionModel()
+        .selectedItemProperty()
+        .addListener((SimpleChangeListener<UnitDataBaseType>) preferences::setUnitDataBaseType);
   }
 
   private void configureTimeSetting() {
     ChatPrefs chatPrefs = preferences.getChat();
-    timeComboBox.setButtonCell(new StringListCell<>(timeInfo -> i18n.get(timeInfo.getDisplayNameKey())));
-    timeComboBox.setCellFactory(param -> new StringListCell<>(timeInfo -> i18n.get(timeInfo.getDisplayNameKey())));
+    timeComboBox.setButtonCell(new StringListCell<>(timeInfo -> i18n.get(timeInfo.getDisplayNameKey()), fxApplicationThreadExecutor));
+    timeComboBox.setCellFactory(param -> new StringListCell<>(timeInfo -> i18n.get(timeInfo.getDisplayNameKey()), fxApplicationThreadExecutor));
     timeComboBox.setItems(FXCollections.observableArrayList(TimeInfo.values()));
     timeComboBox.setDisable(false);
     timeComboBox.setFocusTraversable(true);
@@ -470,8 +472,8 @@ public class SettingsController implements Controller<Node> {
 
   private void configureDateSetting() {
     LocalizationPrefs localizationPrefs = preferences.getLocalization();
-    dateComboBox.setButtonCell(new StringListCell<>(dateInfo -> i18n.get(dateInfo.getDisplayNameKey())));
-    dateComboBox.setCellFactory(param -> new StringListCell<>(dateInfo -> i18n.get(dateInfo.getDisplayNameKey())));
+    dateComboBox.setButtonCell(new StringListCell<>(dateInfo -> i18n.get(dateInfo.getDisplayNameKey()), fxApplicationThreadExecutor));
+    dateComboBox.setCellFactory(param -> new StringListCell<>(dateInfo -> i18n.get(dateInfo.getDisplayNameKey()), fxApplicationThreadExecutor));
     dateComboBox.setItems(FXCollections.observableArrayList(DateInfo.values()));
     dateComboBox.setDisable(false);
     dateComboBox.setFocusTraversable(true);
@@ -485,8 +487,8 @@ public class SettingsController implements Controller<Node> {
 
   private void configureChatSetting() {
     ChatPrefs chatPrefs = preferences.getChat();
-    chatComboBox.setButtonCell(new StringListCell<>(chatFormat -> i18n.get(chatFormat.getI18nKey())));
-    chatComboBox.setCellFactory(param -> new StringListCell<>(chatFormat -> i18n.get(chatFormat.getI18nKey())));
+    chatComboBox.setButtonCell(new StringListCell<>(chatFormat -> i18n.get(chatFormat.getI18nKey()), fxApplicationThreadExecutor));
+    chatComboBox.setCellFactory(param -> new StringListCell<>(chatFormat -> i18n.get(chatFormat.getI18nKey()), fxApplicationThreadExecutor));
     chatComboBox.setItems(FXCollections.observableArrayList(ChatFormat.values()));
     chatComboBox.getSelectionModel().select(chatPrefs.getChatFormat());
   }
@@ -497,7 +499,8 @@ public class SettingsController implements Controller<Node> {
   }
 
   private StringListCell<Screen> screenListCell() {
-    return new StringListCell<>(screen -> i18n.get("settings.screenFormat", Screen.getScreens().indexOf(screen) + 1));
+    return new StringListCell<>(screen -> i18n.get("settings.screenFormat", Screen.getScreens()
+        .indexOf(screen) + 1), fxApplicationThreadExecutor);
   }
 
   private void setSelectedColorMode(ChatColorMode newValue) {

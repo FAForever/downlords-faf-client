@@ -9,6 +9,7 @@ import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.SimpleInvalidationListener;
@@ -80,6 +81,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private final TeamMatchmakingService teamMatchmakingService;
   private final MatchmakerPrefs matchmakerPrefs;
   private final ChatService chatService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public StackPane teamMatchmakingRoot;
   public Button invitePlayerButton;
@@ -128,7 +130,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
     factionsToButtons = Map.of(Faction.UEF, uefButton, Faction.AEON, aeonButton, Faction.CYBRAN, cybranButton, Faction.SERAPHIM, seraphimButton);
 
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     searchButton.selectedProperty().bindBidirectional(teamMatchmakingService.searchingProperty());
 
@@ -257,12 +259,12 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     } else {
       buttonText = i18n.get("teammatchmaking.searchButton").toUpperCase();
     }
-    JavaFxUtil.runLater(() -> searchButton.setText(buttonText));
+    fxApplicationThreadExecutor.execute(() -> searchButton.setText(buttonText));
   }
 
   private void setLeagueInfo() {
     leaderboardService.getHighestActiveLeagueEntryForPlayer(playerService.getCurrentPlayer())
-        .thenAccept(leagueEntry -> JavaFxUtil.runLater(() -> {
+        .thenAcceptAsync(leagueEntry -> {
           if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
             leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
             leagueImageView.setVisible(false);
@@ -273,7 +275,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
             leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
             leagueImageView.setVisible(true);
           }
-        }));
+        }, fxApplicationThreadExecutor);
   }
 
   private synchronized void renderPartyMembers() {
@@ -286,7 +288,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         controller.setMember(member);
         return controller.getRoot();
       }).toList();
-      JavaFxUtil.runLater(() -> {
+      fxApplicationThreadExecutor.execute(() -> {
         playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS, (teamMatchmakingService.getParty()
             .getOwner()
             .equals(currentPlayer) && teamMatchmakingService.getParty().getMembers().size() > 1));
@@ -356,7 +358,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     ChatChannel chatChannel = chatService.getOrCreateChannel(channelName);
     matchmakingChatController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml");
     matchmakingChatController.setChatChannel(chatChannel);
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       chatTabPane.getTabs().clear();
       chatTabPane.getTabs().add(matchmakingChatController.getRoot());
     });
@@ -374,13 +376,13 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
           .bind(queuePane.widthProperty().divide(queuesPerRow).subtract(queuePane.getHgap()));
       return controller.getRoot();
     }).collect(Collectors.toList());
-    JavaFxUtil.runLater(() -> queuePane.getChildren().setAll(queueCards));
+    fxApplicationThreadExecutor.execute(() -> queuePane.getChildren().setAll(queueCards));
   }
 
   public void onSearchButtonClicked() {
     if (searchButton.isSelected()) {
       teamMatchmakingService.joinQueues()
-          .thenAccept(success -> JavaFxUtil.runLater(() -> searchButton.setSelected(success)));
+          .thenAcceptAsync(searchButton::setSelected, fxApplicationThreadExecutor);
     } else {
       teamMatchmakingService.leaveQueues();
     }

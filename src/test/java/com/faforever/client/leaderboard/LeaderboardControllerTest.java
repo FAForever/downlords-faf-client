@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -108,8 +109,13 @@ public class LeaderboardControllerTest extends UITest {
         CompletableFuture.completedFuture(null));
     when(leaderboardService.getLeagueEntryForPlayer(sheikah, season)).thenReturn(
         CompletableFuture.completedFuture(leagueEntryBean2));
+    doAnswer(invocation -> {
+      Runnable runnable = invocation.getArgument(0);
+      runnable.run();
+      return null;
+    }).when(fxApplicationThreadExecutor).execute(any());
 
-    subDivisionTabController = new SubDivisionTabController(contextMenuBuilder, leaderboardService, notificationService, i18n);
+    subDivisionTabController = new SubDivisionTabController(contextMenuBuilder, leaderboardService, notificationService, i18n, fxApplicationThreadExecutor);
     loadFxml("theme/leaderboard/subDivisionTab.fxml", clazz -> subDivisionTabController);
     subDivisionTabController.initialize();
     when(uiService.loadFxml("theme/leaderboard/subDivisionTab.fxml")).thenReturn(subDivisionTabController);

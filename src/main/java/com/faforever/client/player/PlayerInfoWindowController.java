@@ -9,6 +9,7 @@ import com.faforever.client.domain.LeaderboardRatingJournalBean;
 import com.faforever.client.domain.NameRecordBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.OffsetDateTimeCell;
 import com.faforever.client.i18n.I18n;
@@ -98,8 +99,11 @@ public class PlayerInfoWindowController implements Controller<Node> {
   private final PlayerService playerService;
   private final NotificationService notificationService;
   private final LeaderboardService leaderboardService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   private final Map<String, AchievementItemController> achievementItemById = new HashMap<>();
   private final Map<String, AchievementDefinition> achievementDefinitionById = new HashMap<>();
+
   public Label lockedAchievementsHeaderLabel;
   public Label unlockedAchievementsHeaderLabel;
   public PieChart gamesPlayedChart;
@@ -167,12 +171,12 @@ public class PlayerInfoWindowController implements Controller<Node> {
     timePeriodComboBox.getItems().addAll(TimePeriod.values());
     timePeriodComboBox.setValue(TimePeriod.ALL_TIME);
 
-    leaderboardService.getLeaderboards().thenAccept(leaderboards -> JavaFxUtil.runLater(() -> {
+    leaderboardService.getLeaderboards().thenAcceptAsync(leaderboards -> {
       ratingTypeComboBox.getItems().clear();
       ratingTypeComboBox.getItems().addAll(leaderboards);
       ratingTypeComboBox.setConverter(leaderboardStringConverter());
       ratingTypeComboBox.getSelectionModel().selectFirst();
-    }));
+    }, fxApplicationThreadExecutor);
 
     ratingData = List.of();
     ratingHistoryChart.initializeTooltip(uiService);
@@ -184,20 +188,20 @@ public class PlayerInfoWindowController implements Controller<Node> {
 
   private void setAvailableAchievements(List<AchievementDefinition> achievementDefinitions) {
     ObservableList<Node> children = lockedAchievementsContainer.getChildren();
-    JavaFxUtil.runLater(children::clear);
+    fxApplicationThreadExecutor.execute(children::clear);
 
     achievementDefinitions.forEach(achievementDefinition -> {
       AchievementItemController controller = uiService.loadFxml("theme/achievement_item.fxml");
       controller.setAchievementDefinition(achievementDefinition);
       achievementDefinitionById.put(achievementDefinition.getId(), achievementDefinition);
       achievementItemById.put(achievementDefinition.getId(), controller);
-      JavaFxUtil.runLater(() -> children.add(controller.getRoot()));
+      fxApplicationThreadExecutor.execute(() -> children.add(controller.getRoot()));
     });
   }
 
   public void setPlayer(PlayerBean player) {
     if (player.getLeaderboardRatings().isEmpty()) {
-      updateRatings(player).thenAccept(updatedPlayer -> JavaFxUtil.runLater(() -> setOnlinePlayer(updatedPlayer)));
+      updateRatings(player).thenAcceptAsync(this::setOnlinePlayer, fxApplicationThreadExecutor);
     } else {
       setOnlinePlayer(player);
     }
@@ -259,7 +263,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
                   leagueEntry.ifPresentOrElse(controller::setLeagueInfo, controller::setUnlistedLeague));
             }
 
-            JavaFxUtil.runLater(() -> leaderboardBox.getChildren().add(controller.getRoot()));
+            fxApplicationThreadExecutor.execute(() -> leaderboardBox.getChildren().add(controller.getRoot()));
           }
         })
       )
@@ -332,7 +336,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
     lossSeries.getData().add(new XYChart.Data<>("UEF", uefPlays - uefWins));
     lossSeries.getData().add(new XYChart.Data<>("Seraphim", seraphimPlays - seraphimWins));
 
-    JavaFxUtil.runLater(() -> factionsChart.getData().addAll(List.of(winsSeries, lossSeries)));
+    fxApplicationThreadExecutor.execute(() -> factionsChart.getData().addAll(List.of(winsSeries, lossSeries)));
   }
 
   private void plotUnitsByCategoriesChart(Map<String, PlayerEvent> playerEvents) {
@@ -340,7 +344,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
     int landBuilt = playerEvents.containsKey(EVENT_BUILT_LAND_UNITS) ? playerEvents.get(EVENT_BUILT_LAND_UNITS).getCurrentCount() : 0;
     int navalBuilt = playerEvents.containsKey(EVENT_BUILT_NAVAL_UNITS) ? playerEvents.get(EVENT_BUILT_NAVAL_UNITS).getCurrentCount() : 0;
 
-    JavaFxUtil.runLater(() -> unitsBuiltChart.setData(FXCollections.observableArrayList(
+    fxApplicationThreadExecutor.execute(() -> unitsBuiltChart.setData(FXCollections.observableArrayList(
         new PieChart.Data(i18n.get("stats.air"), airBuilt),
         new PieChart.Data(i18n.get("stats.land"), landBuilt),
         new PieChart.Data(i18n.get("stats.naval"), navalBuilt)
@@ -352,7 +356,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
     int tech2Built = playerEvents.containsKey(EVENT_BUILT_TECH_2_UNITS) ? playerEvents.get(EVENT_BUILT_TECH_2_UNITS).getCurrentCount() : 0;
     int tech3Built = playerEvents.containsKey(EVENT_BUILT_TECH_3_UNITS) ? playerEvents.get(EVENT_BUILT_TECH_3_UNITS).getCurrentCount() : 0;
 
-    JavaFxUtil.runLater(() -> techBuiltChart.setData(FXCollections.observableArrayList(
+    fxApplicationThreadExecutor.execute(() -> techBuiltChart.setData(FXCollections.observableArrayList(
         new PieChart.Data(i18n.get("stats.tech1"), tech1Built),
         new PieChart.Data(i18n.get("stats.tech2"), tech2Built),
         new PieChart.Data(i18n.get("stats.tech3"), tech3Built)
@@ -360,11 +364,13 @@ public class PlayerInfoWindowController implements Controller<Node> {
   }
 
   private void plotGamesPlayedChart() {
-    JavaFxUtil.runLater(() -> gamesPlayedChart.getData().clear());
-    leaderboardService.getEntriesForPlayer(player).thenAccept(leaderboardEntries -> JavaFxUtil.runLater(() ->
-        leaderboardEntries.forEach(leaderboardEntry ->
-            gamesPlayedChart.getData().add(new PieChart.Data(i18n.getOrDefault(leaderboardEntry.getLeaderboard().getTechnicalName(), leaderboardEntry.getLeaderboard().getNameKey()),
-                leaderboardEntry.getGamesPlayed())))))
+    fxApplicationThreadExecutor.execute(() -> gamesPlayedChart.getData().clear());
+    leaderboardService.getEntriesForPlayer(player).thenAcceptAsync(leaderboardEntries ->
+            leaderboardEntries.forEach(leaderboardEntry ->
+                gamesPlayedChart.getData()
+                    .add(new PieChart.Data(i18n.getOrDefault(leaderboardEntry.getLeaderboard()
+                        .getTechnicalName(), leaderboardEntry.getLeaderboard().getNameKey()),
+                        leaderboardEntry.getGamesPlayed()))), fxApplicationThreadExecutor)
         .exceptionally(throwable -> {
           log.error("Leaderboard entry could not be read for player: " + player.getUsername(), throwable);
           return null;
@@ -380,14 +386,14 @@ public class PlayerInfoWindowController implements Controller<Node> {
     PlayerAchievement mostRecentPlayerAchievement = null;
 
     ObservableList<Node> children = unlockedAchievementsContainer.getChildren();
-    JavaFxUtil.runLater(children::clear);
+    fxApplicationThreadExecutor.execute(children::clear);
 
     for (PlayerAchievement playerAchievement : playerAchievements) {
       AchievementItemController achievementItemController = achievementItemById.get(playerAchievement.getAchievement().getId());
       achievementItemController.setPlayerAchievement(playerAchievement);
 
       if (isUnlocked(playerAchievement)) {
-        JavaFxUtil.runLater(() -> children.add(achievementItemController.getRoot()));
+        fxApplicationThreadExecutor.execute(() -> children.add(achievementItemController.getRoot()));
         if (mostRecentPlayerAchievement == null
             || playerAchievement.getUpdateTime().compareTo(mostRecentPlayerAchievement.getUpdateTime()) > 0) {
           mostRecentPlayerAchievement = playerAchievement;
@@ -406,7 +412,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
       String mostRecentAchievementName = mostRecentAchievement.getName();
       String mostRecentAchievementDescription = mostRecentAchievement.getDescription();
 
-      JavaFxUtil.runLater(() -> {
+      fxApplicationThreadExecutor.execute(() -> {
         mostRecentAchievementNameLabel.setText(mostRecentAchievementName);
         mostRecentAchievementDescriptionLabel.setText(mostRecentAchievementDescription);
         mostRecentAchievementImageView.setImage(achievementService.getImage(mostRecentAchievement, AchievementState.UNLOCKED));
@@ -424,7 +430,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
       ratingHistoryChart.setVisible(false);
       loadingHistoryPane.setVisible(true);
       if (player != null) {
-        loadStatistics(ratingTypeComboBox.getValue()).thenRun(() -> JavaFxUtil.runLater(this::plotPlayerRatingGraph));
+        loadStatistics(ratingTypeComboBox.getValue()).thenRun(() -> fxApplicationThreadExecutor.execute(this::plotPlayerRatingGraph));
       }
     }
   }

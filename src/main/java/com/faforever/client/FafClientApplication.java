@@ -2,7 +2,6 @@ package com.faforever.client;
 
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.exception.GlobalExceptionHandler;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.MainController;
@@ -52,7 +51,6 @@ public class FafClientApplication extends Application {
   public void init() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
     SvgImageLoaderFactory.install();
     Font.loadFont(FafClientApplication.class.getResourceAsStream("/font/dfc-icons.ttf"), 10);
-    JavaFxUtil.fixTooltipDuration();
 
     applicationContext = new SpringApplicationBuilder(Main.class)
         .bannerMode(Mode.OFF)

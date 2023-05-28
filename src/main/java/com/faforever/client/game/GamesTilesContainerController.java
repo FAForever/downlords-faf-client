@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
@@ -39,6 +40,7 @@ public class GamesTilesContainerController implements Controller<Node> {
 
   private final UiService uiService;
   private final PlayerService playerService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final Comparator<Node> averageRatingComparator = Comparator.comparingDouble(this::getAverageRatingForGame);
   private final Comparator<Node> titleComparator = Comparator.comparing(o -> ((GameBean) o.getUserData()).getTitle()
@@ -121,11 +123,11 @@ public class GamesTilesContainerController implements Controller<Node> {
     root.setOnMouseEntered(event -> gameTooltipController.setGame(game));
     Tooltip.install(root, tooltip);
 
-    JavaFxUtil.runLater(() -> gameToGameCard.put(game, root));
+    fxApplicationThreadExecutor.execute(() -> gameToGameCard.put(game, root));
   }
 
   private void removeGameCard(GameBean game) {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       Node card = gameToGameCard.remove(game);
       if (card != null) {
         Tooltip.uninstall(card, tooltip);

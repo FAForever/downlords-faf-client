@@ -2,6 +2,7 @@ package com.faforever.client.replay;
 
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -49,8 +50,12 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
   private int playerId;
   private ReplayDetailController replayDetailController;
 
-  public OnlineReplayVaultController(ModService modService, LeaderboardService leaderboardService, ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, ReportingService reportingService, VaultPrefs vaultPrefs) {
-    super(uiService, notificationService, i18n, reportingService, vaultPrefs);
+  public OnlineReplayVaultController(ModService modService, LeaderboardService leaderboardService,
+                                     ReplayService replayService, UiService uiService,
+                                     NotificationService notificationService, I18n i18n,
+                                     ReportingService reportingService, VaultPrefs vaultPrefs,
+                                     FxApplicationThreadExecutor fxApplicationThreadExecutor) {
+    super(uiService, notificationService, i18n, reportingService, vaultPrefs, fxApplicationThreadExecutor);
     this.leaderboardService = leaderboardService;
     this.replayService = replayService;
     this.modService = modService;
@@ -129,7 +134,7 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
         i18n.get("featuredMod.displayName"), List.of());
 
     modService.getFeaturedMods().thenAccept(featuredMods ->
-        JavaFxUtil.runLater(() ->
+        fxApplicationThreadExecutor.execute(() ->
             featuredModFilterController.setItems(featuredMods.stream().map(FeaturedModBean::getDisplayName)
                 .collect(Collectors.toList()))));
 
@@ -139,7 +144,7 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
     leaderboardService.getLeaderboards().thenAccept(leaderboards -> {
       Map<String, String> leaderboardItems = new LinkedHashMap<>();
       leaderboards.forEach(leaderboard -> leaderboardItems.put(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()), String.valueOf(leaderboard.getId())));
-      JavaFxUtil.runLater(() ->
+      fxApplicationThreadExecutor.execute(() ->
           leaderboardFilterController.setItems(leaderboardItems));
     });
 
@@ -191,8 +196,9 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
   }
 
   private void showReplayWithID(int replayId) {
-    replayService.findById(replayId).thenAccept(possibleReplay -> possibleReplay.ifPresentOrElse(replayBean -> JavaFxUtil.runLater(() -> onDisplayDetails(replayBean)),
-        () -> notificationService.addImmediateWarnNotification("replay.replayNotFoundText", replayId)));
+    replayService.findById(replayId)
+        .thenAccept(possibleReplay -> possibleReplay.ifPresentOrElse(replayBean -> fxApplicationThreadExecutor.execute(() -> onDisplayDetails(replayBean)),
+            () -> notificationService.addImmediateWarnNotification("replay.replayNotFoundText", replayId)));
   }
 
   private void onShowUserReplaysEvent(ShowUserReplaysEvent event) {

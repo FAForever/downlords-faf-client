@@ -1,6 +1,7 @@
 package com.faforever.client.vault;
 
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
@@ -57,6 +58,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   protected final I18n i18n;
   protected final ReportingService reportingService;
   protected final VaultPrefs vaultPrefs;
+  protected final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   protected final ObjectProperty<State> state = new SimpleObjectProperty<>(State.UNINITIALIZED);
 
@@ -189,12 +191,12 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
       showRoomController.setChildren(categoryRoots);
       showRoomRoots.add(showRoomController.getRoot());
     });
-    JavaFxUtil.runLater(() -> showRoomGroup.getChildren().setAll(showRoomRoots));
+    fxApplicationThreadExecutor.execute(() -> showRoomGroup.getChildren().setAll(showRoomRoots));
   }
 
   private void onPerPageCountChanged(Integer oldValue, Integer newValue) {
     if (newValue < oldValue) {
-      JavaFxUtil.runLater(() -> resultCardRoots.remove(newValue, oldValue));
+      fxApplicationThreadExecutor.execute(() -> resultCardRoots.remove(newValue, oldValue));
     } else if (newValue > oldValue) {
       CompletableFuture.runAsync(() -> {
         List<Node> newNodes = IntStream.range(oldValue, newValue).mapToObj(i -> {
@@ -206,7 +208,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
           return entityCardRoot;
         }).toList();
 
-        JavaFxUtil.runLater(() -> resultCardRoots.addAll(newNodes));
+        fxApplicationThreadExecutor.execute(() -> resultCardRoots.addAll(newNodes));
       });
     }
 
@@ -218,15 +220,15 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   }
 
   protected void enterSearchingState() {
-    JavaFxUtil.runLater(() -> state.set(State.SEARCHING));
+    fxApplicationThreadExecutor.execute(() -> state.set(State.SEARCHING));
   }
 
   protected void enterResultState() {
-    JavaFxUtil.runLater(() -> state.set(State.RESULT));
+    fxApplicationThreadExecutor.execute(() -> state.set(State.RESULT));
   }
 
   protected void enterShowRoomState() {
-    JavaFxUtil.runLater(() -> state.set(State.SHOWROOM));
+    fxApplicationThreadExecutor.execute(() -> state.set(State.SHOWROOM));
   }
 
   protected void loadShowRooms() {
@@ -236,7 +238,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
         .map(entry -> entry.getKey()
             .getEntitySupplier()
             .get()
-            .thenAcceptAsync(results -> JavaFxUtil.runLater(() -> entry.getValue().setAll(results.getT1()))))
+            .thenAcceptAsync(results -> entry.getValue().setAll(results.getT1()), fxApplicationThreadExecutor))
         .toArray(CompletableFuture[]::new))).thenRunAsync(this::enterShowRoomState);
   }
 
@@ -265,7 +267,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   }
 
   protected void displaySearchResult(List<T> results) {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       resultEntities.setAll(results);
       enterResultState();
     });
@@ -277,7 +279,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
       displaySearchResult(tuple.getT1());
       if (firstLoad) {
         //when theres no search results the page count should be 1, 0 (which is returned) results in infinite pages
-        JavaFxUtil.runLater(() -> pagination.setPageCount(Math.max(1, tuple.getT2())));
+        fxApplicationThreadExecutor.execute(() -> pagination.setPageCount(Math.max(1, tuple.getT2())));
       }
     }).exceptionally(throwable -> {
       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);

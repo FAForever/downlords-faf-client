@@ -5,7 +5,7 @@ import com.faforever.client.domain.ModerationReportBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.WrappingStringCell;
 import com.faforever.client.i18n.I18n;
@@ -57,6 +57,7 @@ public class ReportDialogController implements Controller<Node> {
   private final UiService uiService;
   private final TimeService timeService;
   private final ReplayService replayService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public VBox reportDialogRoot;
   public Label reportLabel;
@@ -190,7 +191,7 @@ public class ReportDialogController implements Controller<Node> {
   }
 
   private void setSendingReport(boolean sending) {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       reportDialogRoot.setDisable(sending);
       reportButton.setText(i18n.get(sending ? "report.sending" : "report.submit"));
     });
@@ -254,7 +255,7 @@ public class ReportDialogController implements Controller<Node> {
 
   private void populateReportTable() {
     moderationService.getModerationReports().thenAccept(reports ->
-        JavaFxUtil.runLater(() -> reportTable.setItems(FXCollections.observableList(reports))));
+        fxApplicationThreadExecutor.execute(() -> reportTable.setItems(FXCollections.observableList(reports))));
   }
 
   public Pane getRoot() {

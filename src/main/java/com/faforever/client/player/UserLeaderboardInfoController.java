@@ -4,6 +4,7 @@ import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -27,9 +28,11 @@ import java.io.IOException;
 @Slf4j
 @RequiredArgsConstructor
 public class UserLeaderboardInfoController implements Controller<Node> {
-  
+
   private final I18n i18n;
   private final LeaderboardService leaderboardService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   public ImageView divisionImage;
   public Label divisionLabel;
   public Label leaderboardNameLabel;
@@ -52,7 +55,7 @@ public class UserLeaderboardInfoController implements Controller<Node> {
     String gameNumber = i18n.get("leaderboard.gameNumber", player.getNumberOfGamesForLeaderboard(leaderboard.getTechnicalName()));
     String ratingNumber = i18n.get("leaderboard.rating", RatingUtil.getLeaderboardRating(player, leaderboard));
 
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       leaderboardNameLabel.setText(leaderboardName);
       gamesPlayedLabel.setText(gameNumber);
       ratingLabel.setText(ratingNumber);
@@ -65,7 +68,7 @@ public class UserLeaderboardInfoController implements Controller<Node> {
         i18n.getOrDefault(leagueEntry.getSubdivision().getDivision().getNameKey(), leagueEntry.getSubdivision().getDivisionI18nKey()),
         leagueEntry.getSubdivision().getNameKey()).toUpperCase();
 
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       divisionImage.setImage(image);
       divisionImage.setVisible(true);
       divisionLabel.setText(divisionName);
@@ -74,9 +77,10 @@ public class UserLeaderboardInfoController implements Controller<Node> {
   }
 
   public void setUnlistedLeague() {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       try {
-        divisionImage.setImage(new Image(new ClassPathResource("/images/leagueUnlistedDivision.png").getURL().toString(), true));
+        divisionImage.setImage(new Image(new ClassPathResource("/images/leagueUnlistedDivision.png").getURL()
+            .toString(), true));
         divisionImage.setVisible(true);
       } catch (IOException e) {
         log.error("Could not load unlisted division image.", e);

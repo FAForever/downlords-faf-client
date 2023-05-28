@@ -5,6 +5,7 @@ import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.config.ClientProperties.Replay;
 import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
@@ -64,6 +65,7 @@ public class LoginController implements Controller<Pane> {
   private final PlatformService platformService;
   private final OAuthValuesReceiver oAuthValuesReceiver;
   private final LoginPrefs loginPrefs;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public Pane messagesContainer;
   public Pane errorPane;
@@ -157,11 +159,11 @@ public class LoginController implements Controller<Pane> {
               shouldUpdate = Version.shouldUpdate(Version.getCurrentVersion(), minimumVersion);
 
               if (shouldUpdate) {
-                JavaFxUtil.runLater(() -> showClientOutdatedPane(minimumVersion));
+                fxApplicationThreadExecutor.execute(() -> showClientOutdatedPane(minimumVersion));
               }
             }
 
-            JavaFxUtil.runLater(() -> {
+            fxApplicationThreadExecutor.execute(() -> {
               environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
               environmentComboBox.getSelectionModel().select(defaultEndpoint);
             });
@@ -181,7 +183,7 @@ public class LoginController implements Controller<Pane> {
 
   private void showClientOutdatedPane(String minimumVersion) {
     log.info("Client Update required");
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       errorPane.setVisible(true);
       loginErrorLabel.setText(i18n.get("login.clientTooOldError", Version.getCurrentVersion(), minimumVersion));
       loginErrorLabel.setVisible(true);
@@ -198,7 +200,7 @@ public class LoginController implements Controller<Pane> {
   }
 
   private void populateEndpointFields() {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       Server server = clientProperties.getServer();
       serverHostField.setText(server.getHost());
       serverPortField.setText(String.valueOf(server.getPort()));
@@ -333,7 +335,7 @@ public class LoginController implements Controller<Pane> {
   }
 
   private void showLoginForm() {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       loginFormPane.setVisible(true);
       loginProgressPane.setVisible(false);
       loginButton.setVisible(true);
@@ -341,7 +343,7 @@ public class LoginController implements Controller<Pane> {
   }
 
   private void showLoginProgress() {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       loginFormPane.setVisible(false);
       loginProgressPane.setVisible(true);
       loginButton.setVisible(false);

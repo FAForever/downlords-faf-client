@@ -117,7 +117,7 @@ public class AbstractChatTabControllerTest extends UITest {
 
     instance = new AbstractChatTabController(userService, chatService, preferencesService, playerService,
         audioService, timeService, i18n, notificationService, uiService, eventBus,
-        webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs) {
+        webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor) {
       private final Tab root = new Tab();
       private final WebView webView = new WebView();
       private final TextInputControl messageTextField = new TextField();
@@ -230,13 +230,13 @@ public class AbstractChatTabControllerTest extends UITest {
   @Test
   public void testOnChatMessage() {
     // TODO assert something, maybe we can spy on engine
-    instance.onChatMessage(new ChatMessage(Instant.now(), "junit", "Test message"));
+    runOnFxThreadAndWait(() -> instance.onChatMessage(new ChatMessage(Instant.now(), "junit", "Test message")));
   }
 
   @Test
   public void testOnChatMessageAction() {
     // TODO assert something, maybe we can spy on engine
-    instance.onChatMessage(new ChatMessage(Instant.now(), "junit", "Test action", true));
+    runOnFxThreadAndWait(() -> instance.onChatMessage(new ChatMessage(Instant.now(), "junit", "Test action", true)));
   }
 
   @Test

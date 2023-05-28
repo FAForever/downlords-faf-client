@@ -13,8 +13,8 @@ import com.faforever.client.domain.ReplayBean.ChatMessage;
 import com.faforever.client.domain.ReplayBean.GameOption;
 import com.faforever.client.domain.ReplayReviewBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
-import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.SimpleInvalidationListener;
@@ -73,7 +73,6 @@ import org.apache.commons.compress.compressors.CompressorException;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -109,9 +108,9 @@ public class ReplayDetailController implements Controller<Node> {
   private final ClientProperties clientProperties;
   private final NotificationService notificationService;
   private final ReviewService reviewService;
-  private final JavaFxService javaFxService;
   private final ContextMenuBuilder contextMenuBuilder;
   private final ImageViewHelper imageViewHelper;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
   private final ObjectProperty<ReplayBean> replay = new SimpleObjectProperty<>();
@@ -180,7 +179,7 @@ public class ReplayDetailController implements Controller<Node> {
   }
 
   private void bindProperties() {
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     ObservableValue<Validity> validityObservable = replay.flatMap(ReplayBean::validityProperty);
     BooleanExpression isValidObservable = BooleanExpression.booleanExpression(validityObservable.map(Validity.VALID::equals));
@@ -309,10 +308,8 @@ public class ReplayDetailController implements Controller<Node> {
 
     reviewService.getReplayReviews(newValue)
         .collectList()
-        .publishOn(javaFxService.getFxApplicationScheduler())
-        .doOnNext(reviews::setAll)
-        .publishOn(javaFxService.getSingleScheduler())
-        .subscribe(null, throwable -> log.error("Unable to populate reviews", throwable));
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
+        .subscribe(reviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
   }
 
   public void setReplay(ReplayBean replay) {
@@ -364,26 +361,22 @@ public class ReplayDetailController implements Controller<Node> {
   @VisibleForTesting
   void onDeleteReview(ReplayReviewBean review) {
     reviewService.deleteGameReview(review)
-        .publishOn(javaFxService.getFxApplicationScheduler())
-        .then(Mono.fromRunnable(() -> reviews.remove(review)))
-        .publishOn(javaFxService.getSingleScheduler())
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(null, throwable -> {
           log.error("Review could not be saved", throwable);
           notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
-        });
+        }, () -> reviews.remove(review));
   }
 
   @VisibleForTesting
   void onSendReview(ReplayReviewBean review) {
     reviewService.saveReplayReview(review)
         .filter(savedReview -> !reviews.contains(savedReview))
-        .publishOn(javaFxService.getFxApplicationScheduler())
-        .doOnNext(savedReview -> {
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
+        .subscribe(savedReview -> {
           reviews.remove(review);
           reviews.add(savedReview);
-        })
-        .publishOn(javaFxService.getSingleScheduler())
-        .subscribe(null, throwable -> {
+        }, throwable -> {
           log.error("Review could not be saved", throwable);
           notificationService.addImmediateErrorNotification(throwable, "review.save.error");
         });
@@ -419,7 +412,7 @@ public class ReplayDetailController implements Controller<Node> {
 
       replay.setChatMessages(replayDetails.chatMessages());
       replay.setGameOptions(replayDetails.gameOptions());
-    }, JavaFxUtil::runLater).exceptionally(throwable -> {
+    }, fxApplicationThreadExecutor).exceptionally(throwable -> {
       if (throwable.getCause() instanceof FileNotFoundException) {
         log.warn("Replay file not available", throwable);
         notificationService.addImmediateWarnNotification("replayNotAvailable", replay.getId());
@@ -463,7 +456,7 @@ public class ReplayDetailController implements Controller<Node> {
         return controller;
       }).toList();
 
-      JavaFxUtil.runLater(() -> {
+      fxApplicationThreadExecutor.execute(() -> {
         teamCardControllers.clear();
         teamCardControllers.addAll(newControllers);
         teamsContainer.getChildren().setAll(teamCardControllers.stream().map(TeamCardController::getRoot).toList());

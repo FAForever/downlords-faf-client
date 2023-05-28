@@ -2,7 +2,7 @@ package com.faforever.client.replay;
 
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.contextmenu.CancelActionNotifyMeMenuItem;
 import com.faforever.client.fx.contextmenu.CancelActionRunReplayImmediatelyMenuItem;
@@ -10,6 +10,7 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.NotifyMeMenuItem;
 import com.faforever.client.fx.contextmenu.RunReplayImmediatelyMenuItem;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.animation.KeyFrame;
@@ -41,10 +42,12 @@ public class WatchButtonController implements Controller<Node> {
 
   public static final PseudoClass TRACKABLE_PSEUDO_CLASS = PseudoClass.getPseudoClass("trackable");
 
+  private final UiService uiService;
   private final LiveReplayService liveReplayService;
   private final TimeService timeService;
   private final I18n i18n;
   private final ContextMenuBuilder contextMenuBuilder;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
   private final Timeline watchTimeTimeline = new Timeline(new KeyFrame(Duration.ZERO, event -> updateDisplay()), new KeyFrame(Duration.seconds(1)));
@@ -54,7 +57,7 @@ public class WatchButtonController implements Controller<Node> {
   private ContextMenu contextMenu;
 
   public void initialize() {
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     watchTimeTimeline.setCycleCount(Timeline.INDEFINITE);
 
@@ -120,18 +123,18 @@ public class WatchButtonController implements Controller<Node> {
   private void updateDisplay() {
     if (liveReplayService.canWatchReplay(getGame())) {
       watchTimeTimeline.stop();
-      JavaFxUtil.runLater(() -> watchButton.setText(i18n.get("game.watch")));
+      fxApplicationThreadExecutor.execute(() -> watchButton.setText(i18n.get("game.watch")));
       if (contextMenu != null && contextMenu.isShowing()) {
         contextMenu.hide();
       }
     } else {
       String waitDuration = timeService.shortDuration(liveReplayService.getWatchDelayTime(getGame()));
-      JavaFxUtil.runLater(() -> watchButton.setText(i18n.get("game.watchDelayedFormat", waitDuration)));
+      fxApplicationThreadExecutor.execute(() -> watchButton.setText(i18n.get("game.watchDelayedFormat", waitDuration)));
     }
   }
 
   private void updateButtonTrackingClass(boolean isTracking) {
-    JavaFxUtil.runLater(() -> watchButton.pseudoClassStateChanged(TRACKABLE_PSEUDO_CLASS, isTracking));
+    fxApplicationThreadExecutor.execute(() -> watchButton.pseudoClassStateChanged(TRACKABLE_PSEUDO_CLASS, isTracking));
   }
 
   @VisibleForTesting

@@ -1,6 +1,7 @@
 package com.faforever.client.filter;
 
 import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.theme.UiService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -11,8 +12,8 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MapFilterController extends AbstractFilterController<MapVersionBean> {
 
-  public MapFilterController(UiService uiService, I18n i18n) {
-    super(uiService, i18n);
+  public MapFilterController(UiService uiService, I18n i18n, FxApplicationThreadExecutor fxApplicationThreadExecutor) {
+    super(uiService, i18n, fxApplicationThreadExecutor);
   }
 
   @Override

@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerOnlineEvent;
@@ -98,6 +99,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private final ClientProperties clientProperties;
   private final PlayerService playerService;
   private final ChatPrefs chatPrefs;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
 
   /**
    * Maps channels by name.
@@ -213,7 +216,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
         .stream()
         .map(channel -> channel.getUser(player.getUsername()))
         .flatMap(Optional::stream)
-        .forEach(chatChannelUser -> JavaFxUtil.runLater(() -> {
+        .forEach(chatChannelUser -> fxApplicationThreadExecutor.execute(() -> {
           chatChannelUser.setPlayer(player);
           populateColor(chatChannelUser);
         }));

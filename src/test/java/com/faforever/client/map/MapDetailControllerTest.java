@@ -8,7 +8,6 @@ import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.ImageViewHelper;
-import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
@@ -17,6 +16,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewService;
@@ -60,6 +60,8 @@ import static org.mockito.Mockito.when;
 public class MapDetailControllerTest extends UITest {
 
   @Mock
+  private UiService uiService;
+  @Mock
   private MapService mapService;
   @Mock
   private MapGeneratorService mapGeneratorService;
@@ -87,8 +89,6 @@ public class MapDetailControllerTest extends UITest {
   private EventBus eventBus;
   @Mock
   private ImageViewHelper imageViewHelper;
-  @Mock
-  private JavaFxService javaFxService;
 
   @InjectMocks
   private MapDetailController instance;
@@ -116,8 +116,7 @@ public class MapDetailControllerTest extends UITest {
     when(mapService.isInstalledBinding(Mockito.<ObservableValue<MapVersionBean>>any())).thenReturn(installed);
     when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
     when(reviewService.getMapReviews(any())).thenReturn(Flux.empty());
-    when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
-    when(javaFxService.getSingleScheduler()).thenReturn(Schedulers.immediate());
+    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
     when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(currentPlayer));
     when(timeService.asDate(any(OffsetDateTime.class))).thenReturn("test date");
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
@@ -131,6 +130,7 @@ public class MapDetailControllerTest extends UITest {
     when(mapService.isInstalled(testMap.getFolderName())).thenReturn(true);
     when(mapService.hasPlayedMap(eq(currentPlayer), eq(testMap))).thenReturn(Mono.just(true));
     when(mapService.getFileSize(any(MapVersionBean.class))).thenReturn(CompletableFuture.completedFuture(12));
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/vault/map/map_detail.fxml", param -> {
       if (param == ReviewsController.class) {
@@ -147,8 +147,6 @@ public class MapDetailControllerTest extends UITest {
       }
       return instance;
     });
-
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test
@@ -184,10 +182,9 @@ public class MapDetailControllerTest extends UITest {
 
   @Test
   public void testSetVisibleOwnedMap() {
-    when(mapService.isInstalled(testMap.getFolderName())).thenReturn(true);
+    when(mapService.isInstalled(ownedMap.getFolderName())).thenReturn(true);
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(ownedMap));
-    WaitForAsyncUtils.waitForFxEvents();
 
     assertNotEquals(instance.hideRow.getPrefHeight(), 0);
     assertTrue(instance.hideButton.isVisible());
@@ -317,8 +314,7 @@ public class MapDetailControllerTest extends UITest {
   public void testSetMapNotPlayed() {
     when(mapService.hasPlayedMap(currentPlayer, testMap)).thenReturn(Mono.just(false));
 
-    runOnFxThreadAndWait(() -> instance.setMapVersion(ownedMap));
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
 
     verify(reviewsController, times(2)).setCanWriteReview(false);
   }
@@ -339,7 +335,6 @@ public class MapDetailControllerTest extends UITest {
     when(i18n.get("mapVault.install")).thenReturn("install");
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
-    WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.installButton.isDisabled());
     assertEquals("install", instance.installButton.getText());

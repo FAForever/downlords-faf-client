@@ -5,6 +5,7 @@ import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -55,6 +56,7 @@ public class PartyMemberItemController implements Controller<Node> {
   private final UiService uiService;
   private final I18n i18n;
   private final ContextMenuBuilder contextMenuBuilder;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public Node playerItemRoot;
   public ImageView avatarImageView;
@@ -104,7 +106,7 @@ public class PartyMemberItemController implements Controller<Node> {
 
   private void setMemberGameStatus() {
     boolean inGame = player.getStatus() != PlayerStatus.IDLE;
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       playerStatusImageView.setVisible(inGame);
       playerCard.pseudoClassStateChanged(PLAYING_PSEUDO_CLASS, inGame);
     });
@@ -113,7 +115,7 @@ public class PartyMemberItemController implements Controller<Node> {
   private void setPartyOwnerProperties() {
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
     PlayerBean owner = teamMatchmakingService.getParty().getOwner();
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       crownLabel.setVisible(owner == player);
       kickPlayerButton.setVisible(owner == currentPlayer && player != currentPlayer);
       playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS, owner == player);
@@ -125,7 +127,7 @@ public class PartyMemberItemController implements Controller<Node> {
     Image avatarImage = avatarService.loadAvatar(player.getAvatar());
     String clanTag = Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan());
     setLeagueInfo();
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       countryImageView.setImage(countryFlag);
       avatarImageView.setImage(avatarImage);
       clanLabel.setVisible(!Strings.isNullOrEmpty(player.getClan()));
@@ -137,7 +139,7 @@ public class PartyMemberItemController implements Controller<Node> {
 
   @VisibleForTesting
   protected void setLeagueInfo() {
-    leaderboardService.getHighestActiveLeagueEntryForPlayer(player).thenAccept(leagueEntry -> JavaFxUtil.runLater(() -> {
+    leaderboardService.getHighestActiveLeagueEntryForPlayer(player).thenAcceptAsync(leagueEntry -> {
       if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
         leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
         leagueImageView.setVisible(false);
@@ -149,7 +151,7 @@ public class PartyMemberItemController implements Controller<Node> {
         leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
         leagueImageView.setVisible(true);
       }
-    }));
+    }, fxApplicationThreadExecutor);
   }
 
   private void addListeners() {

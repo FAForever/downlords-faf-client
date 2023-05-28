@@ -166,7 +166,7 @@ public class ModServiceTest extends UITest {
 
     copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
 
-    instance = new ModService(fafApiAccessor, taskService, notificationService, i18n, platformService, assetService, uiService, fileSizeReader, modMapper, forgedAlliancePrefs, preferences, modUploadTaskFactory, downloadModTaskFactory, uninstallModTaskFactory);
+    instance = new ModService(fafApiAccessor, taskService, notificationService, i18n, platformService, assetService, uiService, fileSizeReader, modMapper, forgedAlliancePrefs, preferences, modUploadTaskFactory, downloadModTaskFactory, uninstallModTaskFactory, fxApplicationThreadExecutor);
 
     instance.afterPropertiesSet();
   }

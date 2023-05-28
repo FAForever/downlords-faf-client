@@ -1,10 +1,10 @@
 package com.faforever.client.vault.search;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.BinaryFilterController;
 import com.faforever.client.query.CategoryFilterController;
 import com.faforever.client.query.DateRangeFilterController;
@@ -34,6 +34,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.StringConverter;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -48,12 +49,14 @@ import java.util.function.Function;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class SearchController implements Controller<Pane> {
   private final UiService uiService;
   private final I18n i18n;
-  private final PreferencesService preferencesService;
-  private final List<FilterNodeController> filterNodes;
-  private final List<LogicalNodeController> queryNodes;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
+  private final List<FilterNodeController> filterNodes = new ArrayList<>();
+  private final List<LogicalNodeController> queryNodes = new ArrayList<>();
   /**
    * The first query element.
    */
@@ -87,14 +90,6 @@ public class SearchController implements Controller<Pane> {
   private boolean showLastYearCheckBox;
   public StackPane vaultRoot;
   private ObservableMap<String, String> savedQueries;
-
-  public SearchController(UiService uiService, I18n i18n, PreferencesService preferencesService) {
-    this.uiService = uiService;
-    this.i18n = i18n;
-    this.preferencesService = preferencesService;
-    queryNodes = new ArrayList<>();
-    filterNodes = new ArrayList<>();
-  }
 
   @Override
   public void initialize() {
@@ -184,7 +179,7 @@ public class SearchController implements Controller<Pane> {
       boolean isFreeTextField = !logicalNodeController.specificationController.valueField.valueProperty().isBound()
           && logicalNodeController.specificationController.valueField.getItems().isEmpty();
       if (isFreeTextField) {
-        JavaFxUtil.runLater(() -> logicalNodeController.specificationController.valueField.setValue(logicalNodeController.specificationController.valueField.getEditor()
+        fxApplicationThreadExecutor.execute(() -> logicalNodeController.specificationController.valueField.setValue(logicalNodeController.specificationController.valueField.getEditor()
             .getText()));
       }
     });

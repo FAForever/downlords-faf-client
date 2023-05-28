@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.SimpleChangeListener;
@@ -96,8 +97,9 @@ public class ChannelTabController extends AbstractChatTabController {
                               NotificationService notificationService, UiService uiService, EventBus eventBus,
                               CountryFlagService countryFlagService, EmoticonService emoticonService,
                               PlatformService platformService, ChatPrefs chatPrefs,
-                              NotificationPrefs notificationPrefs) {
-    super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs);
+                              NotificationPrefs notificationPrefs,
+                              FxApplicationThreadExecutor fxApplicationThreadExecutor) {
+    super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
     this.platformService = platformService;
   }
 
@@ -110,7 +112,8 @@ public class ChannelTabController extends AbstractChatTabController {
     JavaFxUtil.bind(chatUserList.visibleProperty(), userListVisibilityToggleButton.selectedProperty());
 
     ObservableValue<Boolean> showing = getRoot().selectedProperty()
-        .and(BooleanExpression.booleanExpression(getRoot().tabPaneProperty().flatMap(JavaFxUtil::showingProperty)));
+        .and(BooleanExpression.booleanExpression(getRoot().tabPaneProperty()
+            .flatMap(uiService::createShowingProperty)));
 
     userListVisibilityToggleButton.selectedProperty().bindBidirectional(chatPrefs.playerListShownProperty());
     topicTextField.setTextFormatter(new TextFormatter<>(change -> change.getControlNewText()
@@ -224,7 +227,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private void updateChannelTopic(ChannelTopic oldTopic, ChannelTopic newTopic) {
     String newTopicContent = newTopic.content();
 
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       setChannelTopic(newTopicContent);
 
       if (topicPane.isDisable()) {
@@ -266,12 +269,12 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private void updateUserMessageColor(ChatChannelUser user) {
     String color = user.getColor().map(JavaFxUtil::toRgbCode).orElse("");
-    JavaFxUtil.runLater(() -> callJsMethod("updateUserMessageColor", user.getUsername(), color));
+    fxApplicationThreadExecutor.execute(() -> callJsMethod("updateUserMessageColor", user.getUsername(), color));
   }
 
   private void updateUserMessageVisibility(ChatChannelUser user, boolean shouldHide) {
     String displayPropertyValue = shouldHide ? "none" : "";
-    JavaFxUtil.runLater(() -> callJsMethod("updateUserMessageDisplay", user.getUsername(), displayPropertyValue));
+    fxApplicationThreadExecutor.execute(() -> callJsMethod("updateUserMessageDisplay", user.getUsername(), displayPropertyValue));
   }
 
   private void updateStyleClass(ChatChannelUser user) {
@@ -285,12 +288,12 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void addUserMessageStyleClass(ChatChannelUser user, String styleClass) {
-    JavaFxUtil.runLater(() -> callJsMethod("addUserMessageClass", String.format(USER_STYLE_CLASS, user.getUsername()), styleClass));
+    fxApplicationThreadExecutor.execute(() -> callJsMethod("addUserMessageClass", String.format(USER_STYLE_CLASS, user.getUsername()), styleClass));
   }
 
   private void removeUserMessageStyleClass(ChatChannelUser user, String styleClass) {
     if (StringUtils.isNotBlank(styleClass)) {
-      JavaFxUtil.runLater(() -> callJsMethod("removeUserMessageClass", String.format(USER_STYLE_CLASS, user.getUsername()), styleClass));
+      fxApplicationThreadExecutor.execute(() -> callJsMethod("removeUserMessageClass", String.format(USER_STYLE_CLASS, user.getUsername()), styleClass));
     }
   }
 

@@ -49,6 +49,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PlayerCardController implements Controller<Node> {
 
+  private final UiService uiService;
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
   private final ContextMenuBuilder contextMenuBuilder;
@@ -75,7 +76,7 @@ public class PlayerCardController implements Controller<Node> {
     countryImageView.visibleProperty().bind(countryImageView.imageProperty().isNotNull());
     avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
 
-    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     factionImage.setImage(new Image(UiService.RANDOM_FACTION_IMAGE));
     factionImage.visibleProperty().bind(faction.map(value -> value == Faction.RANDOM));

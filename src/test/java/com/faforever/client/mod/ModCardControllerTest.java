@@ -8,6 +8,7 @@ import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.UITest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -37,9 +38,11 @@ import static org.mockito.Mockito.when;
 public class ModCardControllerTest extends UITest {
 
   @Mock
-  public ModService modService;
+  private UiService uiService;
   @Mock
-  public ImageViewHelper imageViewHelper;
+  private ModService modService;
+  @Mock
+  private ImageViewHelper imageViewHelper;
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -64,6 +67,7 @@ public class ModCardControllerTest extends UITest {
     when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
     when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
     when(i18n.get(ModType.UI.getI18nKey())).thenReturn(ModType.UI.name());
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     modVersion = ModVersionBeanBuilder.create()
         .defaultValues()
@@ -84,8 +88,6 @@ public class ModCardControllerTest extends UITest {
       }
       return instance;
     });
-
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test

@@ -38,6 +38,8 @@ public class BrowserCallback implements InitializingBean {
   private final UiService uiService;
   private final ClientProperties clientProperties;
   private final ChatService chatService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   @VisibleForTesting
   Popup clanInfoPopup;
   private Tooltip linkPreviewTooltip;
@@ -105,7 +107,7 @@ public class BrowserCallback implements InitializingBean {
       linkPreviewTooltip.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_LEFT);
       linkPreviewTooltip.setGraphic(preview.getNode());
       linkPreviewTooltip.setContentDisplay(ContentDisplay.TOP);
-      JavaFxUtil.runLater(() -> linkPreviewTooltip.show(StageHolder.getStage(), lastMouseX + 20, lastMouseY));
+      fxApplicationThreadExecutor.execute(() -> linkPreviewTooltip.show(StageHolder.getStage(), lastMouseX + 20, lastMouseY));
     }));
   }
 
@@ -114,7 +116,7 @@ public class BrowserCallback implements InitializingBean {
    */
   @SuppressWarnings("unused")
   public void showClanInfo(String clanTag) {
-    clanService.getClanByTag(clanTag).thenAccept(clan -> JavaFxUtil.runLater(() -> {
+    clanService.getClanByTag(clanTag).thenAcceptAsync(clan -> {
       if (clan.isEmpty() || clanTag.isEmpty()) {
         return;
       }
@@ -124,7 +126,7 @@ public class BrowserCallback implements InitializingBean {
 
       clanInfoPopup = PopupUtil.createPopup(AnchorLocation.CONTENT_TOP_LEFT, clanTooltipController.getRoot());
       clanInfoPopup.show(StageHolder.getStage(), lastMouseX, lastMouseY + 10);
-    }));
+    }, fxApplicationThreadExecutor);
   }
 
   /**
@@ -135,7 +137,7 @@ public class BrowserCallback implements InitializingBean {
     if (clanInfoPopup == null) {
       return;
     }
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       clanInfoPopup.hide();
       clanInfoPopup = null;
     });

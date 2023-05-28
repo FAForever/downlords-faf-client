@@ -12,12 +12,14 @@ import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
 import com.faforever.commons.lobby.Player;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +40,8 @@ import static org.mockito.Mockito.when;
 
 public class MatchmakingQueueItemControllerTest extends UITest {
 
+  @Mock
+  private UiService uiService;
   @Mock
   private UserService userService;
   @Mock
@@ -75,6 +79,7 @@ public class MatchmakingQueueItemControllerTest extends UITest {
     when(userService.ownPlayerProperty()).thenReturn(new SimpleObjectProperty<>(ownPlayer));
     when(userService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
     when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(partyMembersNotReadyProperty);
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(partyMembersNotReadyProperty.get());

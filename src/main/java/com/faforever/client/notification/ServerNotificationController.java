@@ -1,7 +1,7 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.ui.dialog.DialogLayout;
 import javafx.scene.Node;
@@ -12,6 +12,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -23,20 +24,18 @@ import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class ServerNotificationController implements Controller<Node> {
 
   private final WebViewConfigurer webViewConfigurer;
-  private final DialogLayout dialogLayout;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
+  private final DialogLayout dialogLayout = new DialogLayout();
   public WebView errorMessageView;
   public Label exceptionAreaTitleLabel;
   public TextArea exceptionTextArea;
   public VBox serverNotificationRoot;
   private Runnable closeListener;
-
-  public ServerNotificationController(WebViewConfigurer webViewConfigurer) {
-    this.webViewConfigurer = webViewConfigurer;
-    dialogLayout = new DialogLayout();
-  }
 
   public void initialize() {
     exceptionAreaTitleLabel.managedProperty().bind(exceptionAreaTitleLabel.visibleProperty());
@@ -60,7 +59,7 @@ public class ServerNotificationController implements Controller<Node> {
     }
 
     dialogLayout.setHeading(new Label(notification.getTitle()));
-    JavaFxUtil.runLater(() -> errorMessageView.getEngine().loadContent(notification.getText()));
+    fxApplicationThreadExecutor.execute(() -> errorMessageView.getEngine().loadContent(notification.getText()));
 
     Optional.ofNullable(notification.getActions())
         .map(actions -> actions.stream().map(this::createButton).collect(Collectors.toList()))

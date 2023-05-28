@@ -9,6 +9,7 @@ import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,14 +43,13 @@ public class UserButtonControllerTest extends UITest {
   public void setUp() throws Exception {
     when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
     when(uiService.loadFxml("theme/user_info_window.fxml")).thenReturn(playerInfoWindowController);
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     player = PlayerBeanBuilder.create().defaultValues().username(TEST_USER_NAME).get();
     when(playerService.getCurrentPlayer()).thenReturn(player);
     when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(player));
 
     loadFxml("theme/user_button.fxml", clazz -> instance);
-
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test

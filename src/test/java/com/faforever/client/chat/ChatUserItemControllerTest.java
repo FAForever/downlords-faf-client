@@ -91,6 +91,7 @@ public class ChatUserItemControllerTest extends UITest {
   public void setUp() throws Exception {
     defaultUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
 
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
     when(i18n.get(eq("clan.messageLeader"))).thenReturn("Message clan leader");
     when(i18n.get(eq("clan.visitPage"))).thenReturn("Visit clan website");
@@ -98,7 +99,6 @@ public class ChatUserItemControllerTest extends UITest {
         .createPlaceholderImageOnErrorObservable(any());
 
     loadFxml("theme/chat/chat_user_item.fxml", param -> instance);
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test
@@ -133,7 +133,7 @@ public class ChatUserItemControllerTest extends UITest {
     runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
     ContextMenu contextMenuMock = ContextMenuBuilderHelper.mockContextMenuBuilderAndGetContextMenuMock(contextMenuBuilder);
 
-    instance.setChatUser(defaultUser);
+    runOnFxThreadAndWait(() -> instance.setChatUser(defaultUser));
     instance.onContextMenuRequested(mock(ContextMenuEvent.class));
     verify(contextMenuMock).show(eq(instance.getRoot().getScene().getWindow()), anyDouble(), anyDouble());
   }

@@ -4,7 +4,6 @@ import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.api.SessionExpiredEvent;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.i18n.I18n;
@@ -174,7 +173,7 @@ public class MainControllerTest extends UITest {
 
   @Test
   public void testHideNotifications() throws Exception {
-    JavaFxUtil.runLater(() -> instance.new ToastDisplayer(transientNotificationsController).invalidated(mock(SimpleBooleanProperty.class)));
+    runOnFxThreadAndWait(() -> instance.new ToastDisplayer(transientNotificationsController).invalidated(mock(SimpleBooleanProperty.class)));
     assertFalse(instance.transientNotificationsPopup.isShowing());
   }
 
