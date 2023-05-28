@@ -5,6 +5,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.filter.converter.FeaturedModConverter;
 import com.faforever.client.filter.function.FeaturedModFilterFunction;
 import com.faforever.client.filter.function.SimModsFilterFunction;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
@@ -29,8 +30,10 @@ public class LiveGamesFilterController extends AbstractFilterController<GameBean
   private final ModService modService;
   private final MapGeneratorService mapGeneratorService;
 
-  public LiveGamesFilterController(UiService uiService, I18n i18n, ModService modService, PlayerService playerService, MapGeneratorService mapGeneratorService) {
-    super(uiService, i18n);
+  public LiveGamesFilterController(UiService uiService, I18n i18n, ModService modService, PlayerService playerService,
+                                   MapGeneratorService mapGeneratorService,
+                                   FxApplicationThreadExecutor fxApplicationThreadExecutor) {
+    super(uiService, i18n, fxApplicationThreadExecutor);
     this.modService = modService;
     this.playerService = playerService;
     this.mapGeneratorService = mapGeneratorService;

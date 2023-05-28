@@ -8,7 +8,6 @@ import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionReviewBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
@@ -79,8 +78,6 @@ public class ModDetailControllerTest extends UITest {
   private StarsController starsController;
   @Mock
   private StarController starController;
-  @Mock
-  private FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   @InjectMocks
   private ModDetailController instance;

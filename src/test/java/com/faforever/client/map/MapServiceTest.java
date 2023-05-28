@@ -157,7 +157,7 @@ public class MapServiceTest extends UITest {
       return task;
     }).when(taskService).submitTask(any());
 
-    instance = new MapService(notificationService, taskService, fafApiAccessor, assetService, i18n, uiService, mapGeneratorService, playerService, mapMapper, fileSizeReader, clientProperties, forgedAlliancePrefs, preferences, mapUploadTaskFactory, downloadMapTaskFactory, uninstallMapTaskFactory);
+    instance = new MapService(notificationService, taskService, fafApiAccessor, assetService, i18n, uiService, mapGeneratorService, playerService, mapMapper, fileSizeReader, clientProperties, forgedAlliancePrefs, preferences, mapUploadTaskFactory, downloadMapTaskFactory, uninstallMapTaskFactory, fxApplicationThreadExecutor);
     instance.officialMaps = ImmutableSet.of();
     instance.afterPropertiesSet();
   }
@@ -370,7 +370,6 @@ public class MapServiceTest extends UITest {
     prepareUninstallMapTask(outdatedMap);
     assertThat(instance.updateLatestVersionIfNecessary(outdatedMap).join().getId(), is(updatedMap.getId()));
 
-    WaitForAsyncUtils.waitForFxEvents();
     assertThat(checkCustomMapFolderExist(outdatedMap), is(false));
     assertThat(checkCustomMapFolderExist(updatedMap), is(true));
   }
@@ -414,7 +413,6 @@ public class MapServiceTest extends UITest {
     prepareDownloadMapTask(mapVersionBean);
 
     copyMapsToCustomMapsDirectory(mapVersionBean);
-    WaitForAsyncUtils.waitForFxEvents();
     assertThat(checkCustomMapFolderExist(mapVersionBean), is(true));
     assertThat(instance.updateLatestVersionIfNecessary(mapVersionBean).join(), is(mapVersionBean));
     assertThat(checkCustomMapFolderExist(mapVersionBean), is(true));

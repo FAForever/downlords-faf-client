@@ -13,7 +13,6 @@ import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayReviewBean;
-import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.game.TeamCardController;
@@ -120,9 +119,6 @@ public class ReplayDetailControllerTest extends UITest {
   private TeamCardController teamCardController;
   @Mock
   private ReportDialogController reportDialogController;
-  @Mock
-  private FxApplicationThreadExecutor fxApplicationThreadExecutor;
-
   private PlayerBean currentPlayer;
   private ReplayBean onlineReplay;
   private ReplayBean localReplay;

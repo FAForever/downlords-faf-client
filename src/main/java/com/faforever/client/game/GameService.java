@@ -225,7 +225,7 @@ public class GameService implements InitializingBean {
 
     fafServerAccessor.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == ConnectionState.DISCONNECTED) {
-        JavaFxUtil.runLater(gameIdToGame::clear);
+        fxApplicationThreadExecutor.execute(gameIdToGame::clear);
       } else if (newValue == ConnectionState.CONNECTED && oldValue != ConnectionState.CONNECTED) {
         onLoggedIn();
       }

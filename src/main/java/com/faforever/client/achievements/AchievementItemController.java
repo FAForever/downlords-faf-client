@@ -1,7 +1,7 @@
 package com.faforever.client.achievements;
 
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.Assert;
 import com.faforever.commons.api.dto.AchievementDefinition;
@@ -28,6 +28,8 @@ public class AchievementItemController implements Controller<Node> {
 
   private final I18n i18n;
   private final AchievementService achievementService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   public GridPane achievementItemRoot;
   public Label nameLabel;
   public Label descriptionLabel;
@@ -82,7 +84,7 @@ public class AchievementItemController implements Controller<Node> {
       Integer currentSteps = MoreObjects.firstNonNull(playerAchievement.getCurrentSteps(), 0);
       Integer totalSteps = achievementDefinition.getTotalSteps();
       progressBar.setProgress((double) currentSteps / totalSteps);
-      JavaFxUtil.runLater(() -> progressLabel.setText(i18n.get("achievement.stepsFormat", currentSteps, totalSteps)));
+      fxApplicationThreadExecutor.execute(() -> progressLabel.setText(i18n.get("achievement.stepsFormat", currentSteps, totalSteps)));
     }
   }
 }

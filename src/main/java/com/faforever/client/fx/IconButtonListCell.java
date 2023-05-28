@@ -14,12 +14,14 @@ import java.util.function.Consumer;
 public class IconButtonListCell<T> extends ListCell<T> {
   private final Consumer<IconButtonListCellControllerAndItem<T>> configureControllerCallback;
   private final UiService uiService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   private IconButtonListCellController iconButtonListCellController;
 
   @Override
   protected void updateItem(T item, boolean empty) {
     super.updateItem(item, empty);
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       if (empty || item == null) {
         setText(null);
         setGraphic(null);

@@ -3,7 +3,7 @@ package com.faforever.client.news;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Website;
 import com.faforever.client.fx.AbstractViewController;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.main.event.NavigateEvent;
@@ -14,34 +14,32 @@ import javafx.scene.Node;
 import javafx.scene.control.Control;
 import javafx.scene.layout.Pane;
 import javafx.scene.web.WebView;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class NewsController extends AbstractViewController<Node> {
   private final EventBus eventBus;
   private final WebViewConfigurer webViewConfigurer;
   private final ClientProperties clientProperties;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   public Pane newsRoot;
   public WebView newsWebView;
   public Control loadingIndicator;
   private final SimpleChangeListener<Boolean> loadingIndicatorListener = newValue
       -> loadingIndicator.getParent().getChildrenUnmodifiable().stream()
       .filter(node -> node != loadingIndicator)
-      .forEach(node -> node.setVisible(!newValue));;
-
-  public NewsController(EventBus eventBus, WebViewConfigurer webViewConfigurer, ClientProperties clientProperties) {
-    this.eventBus = eventBus;
-    this.webViewConfigurer = webViewConfigurer;
-    this.clientProperties = clientProperties;
-
-    eventBus.register(this);
-  }
+      .forEach(node -> node.setVisible(!newValue));
+  ;
 
   @Override
   public void initialize() {
+    eventBus.register(this);
     newsWebView.setContextMenuEnabled(false);
     webViewConfigurer.configureWebView(newsWebView);
 
@@ -59,11 +57,11 @@ public class NewsController extends AbstractViewController<Node> {
   }
 
   private void onLoadingStart() {
-    JavaFxUtil.runLater(() -> loadingIndicator.setVisible(true));
+    fxApplicationThreadExecutor.execute(() -> loadingIndicator.setVisible(true));
   }
 
   private void onLoadingStop() {
-    JavaFxUtil.runLater(() -> loadingIndicator.setVisible(false));
+    fxApplicationThreadExecutor.execute(() -> loadingIndicator.setVisible(false));
   }
 
   @Override
@@ -83,7 +81,7 @@ public class NewsController extends AbstractViewController<Node> {
 
 
   private void loadNews() {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       Website website = clientProperties.getWebsite();
       newsWebView.getEngine().load(website.getNewsHubUrl());
     });

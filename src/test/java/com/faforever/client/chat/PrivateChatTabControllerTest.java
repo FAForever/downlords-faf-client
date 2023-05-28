@@ -85,7 +85,6 @@ public class PrivateChatTabControllerTest extends UITest {
   private GameDetailController gameDetailController;
   @Mock
   private WatchButtonController watchButtonController;
-
   @Mock
   private EmoticonService emoticonService;
   @Mock

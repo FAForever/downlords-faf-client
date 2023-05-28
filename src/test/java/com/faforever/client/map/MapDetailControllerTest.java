@@ -7,7 +7,6 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
@@ -90,8 +89,6 @@ public class MapDetailControllerTest extends UITest {
   private EventBus eventBus;
   @Mock
   private ImageViewHelper imageViewHelper;
-  @Mock
-  private FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   @InjectMocks
   private MapDetailController instance;
@@ -338,7 +335,6 @@ public class MapDetailControllerTest extends UITest {
     when(i18n.get("mapVault.install")).thenReturn("install");
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
-    WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.installButton.isDisabled());
     assertEquals("install", instance.installButton.getText());

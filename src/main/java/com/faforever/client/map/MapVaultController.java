@@ -2,6 +2,7 @@ package com.faforever.client.map;
 
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.MatchmakerQueueBean;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
@@ -49,9 +50,12 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
   private MatchmakerQueueBean matchmakerQueue;
 
   public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus,
-                            UiService uiService, NotificationService notificationService, ReportingService reportingService,
-                            PlatformService platformService, VaultPrefs vaultPrefs, ForgedAlliancePrefs forgedAlliancePrefs) {
-    super(uiService, notificationService, i18n, reportingService, vaultPrefs);
+                            UiService uiService, NotificationService notificationService,
+                            ReportingService reportingService,
+                            PlatformService platformService, VaultPrefs vaultPrefs,
+                            ForgedAlliancePrefs forgedAlliancePrefs,
+                            FxApplicationThreadExecutor fxApplicationThreadExecutor) {
+    super(uiService, notificationService, i18n, reportingService, vaultPrefs, fxApplicationThreadExecutor);
     this.mapService = mapService;
     this.eventBus = eventBus;
     this.platformService = platformService;

@@ -6,6 +6,7 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
@@ -42,6 +43,7 @@ public class PrivatePlayerInfoController implements Controller<Node> {
   private final UiService uiService;
   private final AchievementService achievementService;
   private final LeaderboardService leaderboardService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public ImageView userImageView;
   public Label username;
@@ -138,7 +140,7 @@ public class PrivatePlayerInfoController implements Controller<Node> {
                     .filter(playerAchievement -> playerAchievement.getState() == AchievementState.UNLOCKED)
                     .count();
 
-                JavaFxUtil.runLater(() -> unlockedAchievements.setText(
+                fxApplicationThreadExecutor.execute(() -> unlockedAchievements.setText(
                     i18n.get("chat.privateMessage.achievements.unlockedFormat", numUnlockedAchievements, totalAchievements))
                 );
               })
@@ -161,7 +163,7 @@ public class PrivatePlayerInfoController implements Controller<Node> {
           ratingNumbers.append(i18n.number(RatingUtil.getLeaderboardRating(player, leaderboard))).append("\n\n");
         }
       });
-      JavaFxUtil.runLater(() -> {
+      fxApplicationThreadExecutor.execute(() -> {
         ratingsLabels.setText(ratingNames.toString());
         ratingsValues.setText(ratingNumbers.toString());
       });

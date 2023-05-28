@@ -11,6 +11,7 @@ import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fa.FaStrings;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratorService;
@@ -128,6 +129,7 @@ public class MapService implements InitializingBean, DisposableBean {
   private final ObjectFactory<MapUploadTask> mapUploadTaskFactory;
   private final ObjectFactory<DownloadMapTask> downloadMapTaskFactory;
   private final ObjectFactory<UninstallMapTask> uninstallMapTaskFactory;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final ObservableMap<String, MapVersionBean> mapsByFolderName = FXCollections.observableHashMap();
   @Getter
@@ -263,7 +265,8 @@ public class MapService implements InitializingBean, DisposableBean {
   private void addInstalledMap(Path mapFolder) throws MapLoadException {
     MapVersionBean mapVersion = readMap(mapFolder);
     if (!isInstalled(mapVersion.getFolderName())) {
-      JavaFxUtil.runLater(() -> mapsByFolderName.put(mapVersion.getFolderName().toLowerCase(Locale.ROOT), mapVersion));
+      fxApplicationThreadExecutor.execute(() -> mapsByFolderName.put(mapVersion.getFolderName()
+          .toLowerCase(Locale.ROOT), mapVersion));
       log.debug("Added map from {}", mapFolder);
     }
   }

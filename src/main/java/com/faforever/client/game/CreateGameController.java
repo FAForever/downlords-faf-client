@@ -9,6 +9,7 @@ import com.faforever.client.fa.FaStrings;
 import com.faforever.client.filter.MapFilterController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.DualStringListCell;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.StringListCell;
@@ -100,6 +101,7 @@ public class CreateGameController implements Controller<Pane> {
   private final UiService uiService;
   private final ContextMenuBuilder contextMenuBuilder;
   private final LastGamePrefs lastGamePrefs;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final SimpleInvalidationListener createButtonStateListener = this::setCreateGameButtonState;
 
@@ -156,16 +158,16 @@ public class CreateGameController implements Controller<Pane> {
 
     Function<FeaturedModBean, String> isDefaultModString = mod -> Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ? " " + i18n.get("game.create.defaultGameTypeMarker") : null;
 
-    featuredModListView.setCellFactory(param -> new DualStringListCell<>(FeaturedModBean::getDisplayName, isDefaultModString, FeaturedModBean::getDescription, STYLE_CLASS_DUAL_LIST_CELL, uiService));
+    featuredModListView.setCellFactory(param -> new DualStringListCell<>(FeaturedModBean::getDisplayName, isDefaultModString, FeaturedModBean::getDescription, STYLE_CLASS_DUAL_LIST_CELL, uiService, fxApplicationThreadExecutor));
 
     JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH, true);
     JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH, true);
 
-    modService.getFeaturedMods().thenAccept(featuredModBeans -> JavaFxUtil.runLater(() -> {
+    modService.getFeaturedMods().thenAcceptAsync(featuredModBeans -> {
       featuredModListView.setItems(FXCollections.observableList(featuredModBeans)
           .filtered(FeaturedModBean::getVisible));
       selectLastOrDefaultGameType();
-    }));
+    }, fxApplicationThreadExecutor);
 
     bindGameVisibility();
     initMapSelection();
@@ -216,7 +218,7 @@ public class CreateGameController implements Controller<Pane> {
       }
     };
 
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       createGameButton.setDisable(!Objects.equals(createGameTextKey, "game.create.create"));
       createGameButton.setText(i18n.get(createGameTextKey));
     });
@@ -277,7 +279,8 @@ public class CreateGameController implements Controller<Pane> {
     });
 
     mapListView.setItems(filteredMaps);
-    mapListView.setCellFactory(param -> new StringListCell<>(mapVersion -> mapVersion.getMap().getDisplayName()));
+    mapListView.setCellFactory(param -> new StringListCell<>(mapVersion -> mapVersion.getMap()
+        .getDisplayName(), fxApplicationThreadExecutor));
     mapListView.getSelectionModel()
         .selectedItemProperty()
         .addListener((observable, oldValue, newValue) -> setSelectedMap(newValue));
@@ -285,7 +288,7 @@ public class CreateGameController implements Controller<Pane> {
 
   private void setSelectedMap(MapVersionBean mapVersion) {
     if (mapVersion == null) {
-      JavaFxUtil.runLater(() -> mapNameLabel.setText(""));
+      fxApplicationThreadExecutor.execute(() -> mapNameLabel.setText(""));
       return;
     }
 
@@ -294,7 +297,7 @@ public class CreateGameController implements Controller<Pane> {
     Image largePreview = mapService.loadPreview(mapVersion.getFolderName(), PreviewSize.LARGE);
     lastGamePrefs.setLastMap(mapVersion.getFolderName());
 
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       mapPreviewPane.setBackground(new Background(new BackgroundImage(largePreview, NO_REPEAT, NO_REPEAT, CENTER, new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
       mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInKm(), mapSize.getHeightInKm()));
       mapNameLabel.setText(mapVersion.getMap().getDisplayName());
@@ -395,14 +398,14 @@ public class CreateGameController implements Controller<Pane> {
     mapGeneratorService.getNewestGenerator()
         .thenCompose(aVoid -> mapGeneratorService.getGeneratorStyles())
         .thenAccept(generateMapController::setStyles)
-        .thenRun(() -> JavaFxUtil.runLater(() -> {
+        .thenRunAsync(() -> {
           Pane root = generateMapController.getRoot();
           generateMapController.setCreateGameController(this);
           Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generateMap.dialog"));
           generateMapController.setOnCloseButtonClickedListener(dialog::close);
 
           root.requestFocus();
-        }))
+        }, fxApplicationThreadExecutor)
         .exceptionally(throwable -> {
           log.error("Opening map generation ui failed", throwable);
           notificationService.addImmediateErrorNotification(throwable, "mapGenerator.generationUIFailed");

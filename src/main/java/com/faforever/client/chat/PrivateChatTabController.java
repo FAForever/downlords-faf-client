@@ -5,6 +5,7 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
@@ -68,8 +69,9 @@ public class PrivateChatTabController extends AbstractChatTabController {
                                   AudioService audioService, ChatService chatService,
                                   WebViewConfigurer webViewConfigurer, CountryFlagService countryFlagService,
                                   EmoticonService emoticonService, AvatarService avatarService, ChatPrefs chatPrefs,
-                                  NotificationPrefs notificationPrefs) {
-    super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs);
+                                  NotificationPrefs notificationPrefs,
+                                  FxApplicationThreadExecutor fxApplicationThreadExecutor) {
+    super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
     this.avatarService = avatarService;
   }
 
@@ -171,7 +173,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
       return;
     }
     userOffline = true;
-    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerLeft", userName), true)));
+    fxApplicationThreadExecutor.execute(() -> onChatMessage(new ChatMessage(Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerLeft", userName), true)));
   }
 
   @VisibleForTesting
@@ -180,6 +182,6 @@ public class PrivateChatTabController extends AbstractChatTabController {
       return;
     }
     userOffline = false;
-    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerReconnect", userName), true)));
+    fxApplicationThreadExecutor.execute(() -> onChatMessage(new ChatMessage(Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerReconnect", userName), true)));
   }
 }

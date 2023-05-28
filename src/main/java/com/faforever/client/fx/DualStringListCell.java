@@ -16,12 +16,13 @@ public class DualStringListCell<T> extends ListCell<T> {
   private final Function<T, String> functionWebViewToolTip;
   private final String styleClasses;
   private final UiService uiService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   public DualStringListCellController dualStringListCellController;
 
   @Override
   protected void updateItem(T item, boolean empty) {
     super.updateItem(item, empty);
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       if (empty || item == null) {
         setText(null);
         setGraphic(null);

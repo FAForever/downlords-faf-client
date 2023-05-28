@@ -1,7 +1,7 @@
 package com.faforever.client.leaderboard;
 
 import com.faforever.client.fx.AbstractViewController;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenLeaderboardEvent;
@@ -33,6 +33,7 @@ public class LeaderboardsController extends AbstractViewController<Node> {
   private final LeaderboardService leaderboardService;
   private final NotificationService notificationService;
   private final UiService uiService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public TabPane leaderboardRoot;
 
@@ -53,15 +54,16 @@ public class LeaderboardsController extends AbstractViewController<Node> {
           leaderboardService.getLatestSeason(league).thenAccept(season -> {
             LeaderboardController controller = uiService.loadFxml("theme/leaderboard/leaderboard.fxml");
             controller.setSeason(season);
-            controller.getRoot().setText(i18n.getOrDefault(league.getTechnicalName(), String.format("leaderboard.%s", league.getTechnicalName())));
+            controller.getRoot()
+                .setText(i18n.getOrDefault(league.getTechnicalName(), String.format("leaderboard.%s", league.getTechnicalName())));
             controller.getRoot().setUserData(league.getId());
-            JavaFxUtil.runLater(() -> leaderboardRoot.getTabs().add(controller.getRoot()));
+            fxApplicationThreadExecutor.execute(() -> leaderboardRoot.getTabs().add(controller.getRoot()));
             controllers.add(controller);
-          }).thenRun(() -> JavaFxUtil.runLater(() -> {
+          }).thenRunAsync(() -> {
             leaderboardRoot.getTabs().sort(Comparator.comparing(tab -> (int) tab.getUserData()));
             leaderboardRoot.getSelectionModel().select(0);
             lastTab = leaderboardRoot.getTabs().get(0);
-          })).exceptionally(throwable -> {
+          }, fxApplicationThreadExecutor).exceptionally(throwable -> {
             log.error("Error while loading seasons", throwable);
             notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoadLeaderboards");
             return null;

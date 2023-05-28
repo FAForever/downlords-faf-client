@@ -2,7 +2,6 @@ package com.faforever.client.mod;
 
 import com.faforever.client.builders.ModVersionBeanBuilder;
 import com.faforever.client.domain.ModVersionBean;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -24,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
@@ -122,8 +120,7 @@ public class ModVaultControllerTest extends UITest {
   @Test
   public void testShowModDetail() throws MalformedURLException {
     ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().get();
-    JavaFxUtil.runLater(() -> instance.onDisplayDetails(modVersion));
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.onDisplayDetails(modVersion));
 
     verify(modDetailController).setModVersion(modVersion);
     assertThat(modDetailController.getRoot().isVisible(), is(true));

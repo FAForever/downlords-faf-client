@@ -6,7 +6,6 @@ import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.domain.CoopMissionBean;
 import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.fx.ImageViewHelper;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesTableController;
@@ -89,7 +88,7 @@ public class CoopControllerTest extends UITest {
   @Test
   public void onPlayButtonClicked() {
     when(coopService.getMissions()).thenReturn(completedFuture(singletonList(new CoopMissionBean())));
-    JavaFxUtil.runLater(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> instance.initialize());
 
     WaitForAsyncUtils.waitForFxEvents();
     instance.onPlayButtonClicked();

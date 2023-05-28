@@ -4,13 +4,14 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.remote.FafServerAccessor;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
 import com.faforever.commons.lobby.IrcPasswordInfo;
 import com.faforever.commons.lobby.SocialInfo;
@@ -76,13 +77,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class KittehChatServiceTest extends UITest {
+public class KittehChatServiceTest extends ServiceTest {
 
   private static final String CHAT_USER_NAME = "junit";
   private static final String CHAT_PASSWORD = "123";
@@ -117,6 +119,8 @@ public class KittehChatServiceTest extends UITest {
   private PlayerService playerService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Spy
   private ClientProperties clientProperties;
   @Spy
@@ -200,6 +204,12 @@ public class KittehChatServiceTest extends UITest {
     when(defaultChannel.getUser(user1.getNick())).thenReturn(Optional.of(user1));
     when(otherChannel.getUser(user1.getNick())).thenReturn(Optional.of(user1));
     when(defaultChannel.getUser(user2.getNick())).thenReturn(Optional.of(user2));
+
+    doAnswer(invocation -> {
+      Runnable runnable = invocation.getArgument(0);
+      runnable.run();
+      return null;
+    }).when(fxApplicationThreadExecutor).execute(any());
 
     instance.afterPropertiesSet();
 
@@ -369,7 +379,7 @@ public class KittehChatServiceTest extends UITest {
 
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(user2.getNick()).get();
 
-    runOnFxThreadAndWait(() -> instance.onPlayerOnline(new PlayerOnlineEvent(player)));
+    instance.onPlayerOnline(new PlayerOnlineEvent(player));
 
     assertEquals(player, instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
         .getUser(user2.getNick())

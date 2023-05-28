@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.main.event.NavigateEvent;
@@ -34,6 +35,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
 
   private final ChatService chatService;
   private final UiService uiService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final Map<ChatChannel, AbstractChatTabController> channelToChatTabController = new HashMap<>();
   private final MapChangeListener<String, ChatChannel> channelChangeListener = change -> {
@@ -91,7 +93,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
   }
 
   private void onDisconnected() {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       connectingProgressPane.setVisible(true);
       tabPane.setVisible(false);
       tabPane.getTabs().removeIf(Tab::isClosable);
@@ -99,14 +101,14 @@ public class ChatController extends AbstractViewController<AnchorPane> {
   }
 
   private void onConnected() {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       connectingProgressPane.setVisible(false);
       tabPane.setVisible(true);
     });
   }
 
   private void onConnecting() {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       connectingProgressPane.setVisible(true);
       tabPane.setVisible(false);
     });
@@ -115,13 +117,13 @@ public class ChatController extends AbstractViewController<AnchorPane> {
   private void removeTab(ChatChannel chatChannel) {
     AbstractChatTabController controller = channelToChatTabController.remove(chatChannel);
     if (controller != null) {
-      JavaFxUtil.runLater(() -> tabPane.getTabs().remove(controller.getRoot()));
+      fxApplicationThreadExecutor.execute(() -> tabPane.getTabs().remove(controller.getRoot()));
     }
   }
 
   private void addAndSelectTab(ChatChannel chatChannel) {
     if (!channelToChatTabController.containsKey(chatChannel)) {
-      JavaFxUtil.runLater(() -> {
+      fxApplicationThreadExecutor.execute(() -> {
         AbstractChatTabController tabController;
         if (chatChannel.isPrivateChannel()) {
           tabController = uiService.loadFxml("theme/chat/private_chat_tab.fxml");

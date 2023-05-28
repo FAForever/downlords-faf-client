@@ -47,7 +47,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 
 import static java.nio.file.Files.createDirectories;
 import static javax.imageio.ImageIO.write;
@@ -482,35 +481,6 @@ public final class JavaFxUtil {
   public static Pointer getNativeWindow() {
 
     return User32.INSTANCE.GetActiveWindow().getPointer();
-  }
-
-  public static void runLater(Runnable runnable) {
-    if (Platform.isFxApplicationThread()) {
-      try {
-        runnable.run();
-      } catch (Exception e) {
-        log.error("Uncaught Application Thread Error", e);
-      }
-    } else {
-      Platform.runLater(runnable);
-    }
-  }
-
-  public static void runLaterAndAwait(Runnable runnable) {
-    CountDownLatch doneLatch = new CountDownLatch(1);
-    runLater(() -> {
-      try {
-        runnable.run();
-      } finally {
-        doneLatch.countDown();
-      }
-    });
-
-    try {
-      doneLatch.await();
-    } catch (InterruptedException e) {
-      log.error("A thread interrupted", e);
-    }
   }
 
   public static void bindManagedToVisible(Node... nodes) {

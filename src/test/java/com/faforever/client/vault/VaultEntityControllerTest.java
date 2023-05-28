@@ -1,6 +1,5 @@
 package com.faforever.client.vault;
 
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
@@ -95,7 +94,7 @@ public class VaultEntityControllerTest extends UITest {
     when(vaultEntityShowRoomController.getPane()).thenReturn(showRoomPane);
 
     items = IntStream.range(0, 50).boxed().toList();
-    instance = new VaultEntityController<>(uiService, notificationService, i18n, reportingService, vaultPrefs) {
+    instance = new VaultEntityController<>(uiService, notificationService, i18n, reportingService, vaultPrefs, fxApplicationThreadExecutor) {
       @Override
       protected void initSearchController() {
         //Do Nothing
@@ -167,15 +166,14 @@ public class VaultEntityControllerTest extends UITest {
 
   @Test
   public void testGetRoot() throws Exception {
-    JavaFxUtil.runLater(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
+    runOnFxThreadAndWait(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
     assertEquals(instance.root, instance.getRoot());
     assertNull(instance.getRoot().getParent());
   }
 
   @Test
   public void testOnDisplay() {
-    JavaFxUtil.runLater(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
     assertTrue(instance.showRoomGroup.isVisible());
     assertFalse(instance.searchResultGroup.isVisible());
   }
@@ -183,15 +181,14 @@ public class VaultEntityControllerTest extends UITest {
   @Test
   public void testEmptyShowRoom() {
     items = IntStream.range(0, 0).boxed().toList();
-    JavaFxUtil.runLater(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
     assertFalse(showRoomRoot.isVisible());
     assertEquals(1, instance.showRoomGroup.getChildren().size());
   }
 
   @Test
   public void testPagination() {
-    JavaFxUtil.runLater(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
+    runOnFxThreadAndWait(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
     WaitForAsyncUtils.waitForFxEvents();
 
     // first page / search results
@@ -208,7 +205,7 @@ public class VaultEntityControllerTest extends UITest {
 
   @Test
   public void testLastPageButton() {
-    JavaFxUtil.runLater(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
+    runOnFxThreadAndWait(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
     WaitForAsyncUtils.waitForFxEvents();
 
     moreButton.fire();
@@ -220,7 +217,7 @@ public class VaultEntityControllerTest extends UITest {
 
   @Test
   public void testFirstPageButton() {
-    JavaFxUtil.runLater(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
+    runOnFxThreadAndWait(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
     WaitForAsyncUtils.waitForFxEvents();
 
     moreButton.fire();
@@ -234,7 +231,7 @@ public class VaultEntityControllerTest extends UITest {
   public void testPageSize() {
     int newPageSize = 30;
 
-    JavaFxUtil.runLater(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
+    runOnFxThreadAndWait(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.perPageComboBox.setValue(newPageSize);
@@ -249,7 +246,7 @@ public class VaultEntityControllerTest extends UITest {
   public void testPageSizeChange() {
     int newPageSize = 30;
 
-    JavaFxUtil.runLater(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
+    runOnFxThreadAndWait(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
     WaitForAsyncUtils.waitForFxEvents();
 
     moreButton.fire();
@@ -270,7 +267,7 @@ public class VaultEntityControllerTest extends UITest {
 
   @Test
   public void testOnFirstPageChange() {
-    JavaFxUtil.runLater(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
+    runOnFxThreadAndWait(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
     WaitForAsyncUtils.waitForFxEvents();
 
     moreButton.fire();
@@ -288,7 +285,7 @@ public class VaultEntityControllerTest extends UITest {
 
   @Test
   public void testOnBackButton() {
-    JavaFxUtil.runLater(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
+    runOnFxThreadAndWait(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
     WaitForAsyncUtils.waitForFxEvents();
     assertTrue(instance.showRoomGroup.isVisible());
     assertFalse(instance.searchResultGroup.isVisible());
@@ -298,7 +295,7 @@ public class VaultEntityControllerTest extends UITest {
     assertFalse(instance.showRoomGroup.isVisible());
     assertTrue(instance.searchResultGroup.isVisible());
 
-    JavaFxUtil.runLater(() -> instance.backButton.fire());
+    runOnFxThreadAndWait(() -> instance.backButton.fire());
     WaitForAsyncUtils.waitForFxEvents();
     assertTrue(instance.showRoomGroup.isVisible());
     assertFalse(instance.searchResultGroup.isVisible());
@@ -307,12 +304,12 @@ public class VaultEntityControllerTest extends UITest {
   @Test
   @Disabled("Flaky Test")
   public void testOnSearch() {
-    JavaFxUtil.runLater(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
+    runOnFxThreadAndWait(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
     WaitForAsyncUtils.waitForFxEvents();
     assertTrue(instance.showRoomGroup.isVisible());
     assertFalse(instance.searchResultGroup.isVisible());
 
-    JavaFxUtil.runLater(() -> instance.onSearch(null));
+    runOnFxThreadAndWait(() -> instance.onSearch(null));
     WaitForAsyncUtils.waitForFxEvents();
     assertFalse(instance.showRoomGroup.isVisible());
     assertTrue(instance.searchResultGroup.isVisible());
@@ -320,12 +317,12 @@ public class VaultEntityControllerTest extends UITest {
 
   @Test
   public void testRefreshShowRoom() {
-    JavaFxUtil.runLater(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
+    runOnFxThreadAndWait(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
     WaitForAsyncUtils.waitForFxEvents();
     assertTrue(instance.showRoomGroup.isVisible());
     assertFalse(instance.searchResultGroup.isVisible());
 
-    JavaFxUtil.runLater(() -> instance.refreshButton.fire());
+    runOnFxThreadAndWait(() -> instance.refreshButton.fire());
     WaitForAsyncUtils.waitForFxEvents();
     assertTrue(instance.showRoomGroup.isVisible());
     assertFalse(instance.searchResultGroup.isVisible());
@@ -333,17 +330,17 @@ public class VaultEntityControllerTest extends UITest {
 
   @Test
   public void testRefreshSearch() {
-    JavaFxUtil.runLater(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
+    runOnFxThreadAndWait(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
     WaitForAsyncUtils.waitForFxEvents();
     assertTrue(instance.showRoomGroup.isVisible());
     assertFalse(instance.searchResultGroup.isVisible());
 
-    JavaFxUtil.runLater(() -> instance.onSearch(null));
+    runOnFxThreadAndWait(() -> instance.onSearch(null));
     WaitForAsyncUtils.waitForFxEvents();
     assertFalse(instance.showRoomGroup.isVisible());
     assertTrue(instance.searchResultGroup.isVisible());
 
-    JavaFxUtil.runLater(() -> instance.refreshButton.fire());
+    runOnFxThreadAndWait(() -> instance.refreshButton.fire());
     WaitForAsyncUtils.waitForFxEvents();
     assertFalse(instance.showRoomGroup.isVisible());
     assertTrue(instance.searchResultGroup.isVisible());

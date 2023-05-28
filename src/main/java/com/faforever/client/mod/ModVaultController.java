@@ -2,6 +2,7 @@ package com.faforever.client.mod;
 
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
@@ -48,8 +49,9 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
                             UiService uiService, NotificationService notificationService,
                             ReportingService reportingService,
                             PlatformService platformService, VaultPrefs vaultPrefs,
-                            ForgedAlliancePrefs forgedAlliancePrefs) {
-    super(uiService, notificationService, i18n, reportingService, vaultPrefs);
+                            ForgedAlliancePrefs forgedAlliancePrefs,
+                            FxApplicationThreadExecutor fxApplicationThreadExecutor) {
+    super(uiService, notificationService, i18n, reportingService, vaultPrefs, fxApplicationThreadExecutor);
     this.eventBus = eventBus;
     this.modService = modService;
     this.platformService = platformService;
@@ -72,7 +74,7 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
 
   @Override
   protected void onDisplayDetails(ModVersionBean modVersion) {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       modDetailController.setModVersion(modVersion);
       modDetailController.getRoot().setVisible(true);
       modDetailController.getRoot().requestFocus();

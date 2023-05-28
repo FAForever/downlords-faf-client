@@ -7,6 +7,7 @@ import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.ControllerTableCell;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
@@ -87,6 +88,7 @@ public class CoopController extends AbstractViewController<Node> {
   private final MapService mapService;
   private final WebViewConfigurer webViewConfigurer;
   private final ModService modService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public GridPane coopRoot;
   public ComboBox<CoopMissionBean> missionComboBox;
@@ -168,7 +170,7 @@ public class CoopController extends AbstractViewController<Node> {
     filteredItems.setPredicate(OPEN_COOP_GAMES_PREDICATE);
 
     coopService.getMissions().thenAccept(coopMaps -> {
-      JavaFxUtil.runLater(() -> {
+      fxApplicationThreadExecutor.execute(() -> {
         missionComboBox.setItems(observableList(coopMaps));
         GamesTableController gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
         gamesTableController.getMapPreviewColumn().setVisible(false);
@@ -184,7 +186,7 @@ public class CoopController extends AbstractViewController<Node> {
 
       SingleSelectionModel<CoopMissionBean> selectionModel = missionComboBox.getSelectionModel();
       if (selectionModel.isEmpty()) {
-        JavaFxUtil.runLater(selectionModel::selectFirst);
+        fxApplicationThreadExecutor.execute(selectionModel::selectFirst);
       }
     }).exceptionally(throwable -> {
       notificationService.addPersistentErrorNotification(throwable, "coop.couldNotLoad", throwable.getLocalizedMessage());
@@ -214,11 +216,11 @@ public class CoopController extends AbstractViewController<Node> {
         return i18n.get("coop.leaderboard.singlePlayer");
       }
       return i18n.get("coop.leaderboard.numberOfPlayersFormat", numberOfPlayers);
-    });
+    }, fxApplicationThreadExecutor);
   }
 
   private ListCell<CoopMissionBean> missionListCell() {
-    return new StringListCell<>(CoopMissionBean::getName, mission -> {
+    return new StringListCell<>(fxApplicationThreadExecutor, CoopMissionBean::getName, mission -> {
       Label label = new Label();
       Region iconRegion = new Region();
       label.setGraphic(iconRegion);
@@ -241,7 +243,7 @@ public class CoopController extends AbstractViewController<Node> {
         .thenAccept(coopLeaderboardEntries -> {
           AtomicInteger ranking = new AtomicInteger();
           coopLeaderboardEntries.forEach(coopResult -> coopResult.setRanking(ranking.incrementAndGet()));
-          JavaFxUtil.runLater(() -> leaderboardTable.setItems(observableList(coopLeaderboardEntries)));
+          fxApplicationThreadExecutor.execute(() -> leaderboardTable.setItems(observableList(coopLeaderboardEntries)));
         })
         .exceptionally(throwable -> {
           log.warn("Could not load coop leaderboard", throwable);
@@ -271,7 +273,7 @@ public class CoopController extends AbstractViewController<Node> {
   }
 
   private void setSelectedMission(CoopMissionBean mission) {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       descriptionWebView.getEngine().loadContent(mission.getDescription());
       mapPreviewImageView.setImage(mapService.loadPreview(mission.getMapFolderName(), PreviewSize.LARGE));
     });

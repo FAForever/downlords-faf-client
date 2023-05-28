@@ -1,10 +1,10 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.IconButtonListCell;
 import com.faforever.client.fx.IconButtonListCell.IconButtonListCellControllerAndItem;
 import com.faforever.client.fx.IconButtonListCellController;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
@@ -33,6 +33,8 @@ public class InvitePlayerController implements Controller<Pane> {
   private final PlayerService playerService;
   private final UiService uiService;
   private final TeamMatchmakingService teamMatchmakingService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   private final ObservableList<String> playerList = FXCollections.observableArrayList();
   private final FilteredList<String> filteredPlayerList = new FilteredList<>(playerList, player -> true);
   private final SortedList<String> sortedPlayerList = new SortedList<>(filteredPlayerList, Comparator.naturalOrder());
@@ -64,10 +66,10 @@ public class InvitePlayerController implements Controller<Pane> {
     }));
 
     invitedPlayersListView.setSelectionModel(new NoSelectionModelListView<>());
-    invitedPlayersListView.setCellFactory(param -> new IconButtonListCell<>(this::invitedPlayerListCellConfiguration, uiService));
+    invitedPlayersListView.setCellFactory(param -> new IconButtonListCell<>(this::invitedPlayerListCellConfiguration, uiService, fxApplicationThreadExecutor));
 
     playersListView.setSelectionModel(new NoSelectionModelListView<>());
-    playersListView.setCellFactory(param -> new IconButtonListCell<>(this::playerListCellConfiguration, uiService));
+    playersListView.setCellFactory(param -> new IconButtonListCell<>(this::playerListCellConfiguration, uiService, fxApplicationThreadExecutor));
     playersListView.setItems(sortedPlayerList);
     playersListView.getSelectionModel().selectFirst();
     requestFocus();
@@ -92,7 +94,7 @@ public class InvitePlayerController implements Controller<Pane> {
   }
 
   public void requestFocus() {
-    JavaFxUtil.runLater(() -> playerTextField.requestFocus());
+    fxApplicationThreadExecutor.execute(() -> playerTextField.requestFocus());
   }
 
   private Collection<String> getPlayerNames() {

@@ -460,7 +460,7 @@ public class TeamMatchmakingService implements InitializingBean {
   private void initializeParty() {
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
 
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       PartyMember newPartyMember = new PartyMember(currentPlayer);
       party.getMembers()
           .stream()

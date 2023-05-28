@@ -5,6 +5,7 @@ import com.faforever.client.filter.LiveGamesFilterController;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.ControllerTableCell;
 import com.faforever.client.fx.DecimalCell;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleInvalidationListener;
@@ -69,6 +70,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
   private final MapService mapService;
   private final TimeService timeService;
   private final PlayerService playerService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public VBox root;
   public ToggleButton filterButton;
@@ -120,7 +122,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     IntegerBinding filteredGamesSizeBinding = Bindings.size(filteredGameList);
     IntegerBinding gameListSizeBinding = Bindings.size(new FilteredList<>(gameService.getGames(), onlineGamesPredicate));
     JavaFxUtil.bind(filteredGamesCountLabel.visibleProperty(), filteredGamesSizeBinding.isNotEqualTo(gameListSizeBinding));
-    SimpleInvalidationListener gameListSizeListener = () -> JavaFxUtil.runLater(() -> {
+    SimpleInvalidationListener gameListSizeListener = () -> fxApplicationThreadExecutor.execute(() -> {
       int gameListSize = gameListSizeBinding.get();
       filteredGamesCountLabel.setText(i18n.get("filteredOutItemsCount", gameListSize - filteredGamesSizeBinding.get(), gameListSize));
     });

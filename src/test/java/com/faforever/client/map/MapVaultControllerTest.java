@@ -2,7 +2,6 @@ package com.faforever.client.map;
 
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -26,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
@@ -133,8 +131,7 @@ public class MapVaultControllerTest extends UITest {
   @Test
   public void testShowMapDetail() throws MalformedURLException {
     MapVersionBean mapBean = MapVersionBeanBuilder.create().defaultValues().get();
-    JavaFxUtil.runLater(() -> instance.onDisplayDetails(mapBean));
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.onDisplayDetails(mapBean));
 
     verify(mapDetailController).setMapVersion(mapBean);
     assertTrue(mapDetailController.getRoot().isVisible());

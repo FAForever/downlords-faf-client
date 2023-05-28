@@ -4,6 +4,7 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.converter.FeaturedModConverter;
 import com.faforever.client.filter.function.FeaturedModFilterFunction;
 import com.faforever.client.filter.function.SimModsFilterFunction;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModService;
@@ -27,8 +28,10 @@ public class CustomGamesFilterController extends AbstractFilterController<GameBe
   private FilterCheckboxController<GameBean> privateGameFilter;
   private FilterCheckboxController<GameBean> simModsFilter;
 
-  public CustomGamesFilterController(UiService uiService, I18n i18n, ModService modService, Preferences preferences, FiltersPrefs filtersPrefs) {
-    super(uiService, i18n);
+  public CustomGamesFilterController(UiService uiService, I18n i18n, ModService modService, Preferences preferences,
+                                     FiltersPrefs filtersPrefs,
+                                     FxApplicationThreadExecutor fxApplicationThreadExecutor) {
+    super(uiService, i18n, fxApplicationThreadExecutor);
     this.modService = modService;
     this.preferences = preferences;
     this.filtersPrefs = filtersPrefs;

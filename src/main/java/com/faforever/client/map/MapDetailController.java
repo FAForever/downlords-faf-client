@@ -217,13 +217,13 @@ public class MapDetailController implements Controller<Node> {
         .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(reviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
 
-    mapService.getFileSize(newValue).thenAccept(mapFileSize -> JavaFxUtil.runLater(() -> {
+    mapService.getFileSize(newValue).thenAcceptAsync(mapFileSize -> {
       if (mapFileSize > -1) {
         installButton.setText(i18n.get("mapVault.installButtonFormat", Bytes.formatSize(mapFileSize, i18n.getUserSpecificLocale())));
       } else {
         installButton.setText(i18n.get("mapVault.install"));
       }
-    }));
+    }, fxApplicationThreadExecutor);
   }
 
   public void setMapVersion(MapVersionBean mapVersion) {

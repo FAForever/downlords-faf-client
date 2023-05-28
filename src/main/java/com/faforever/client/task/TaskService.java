@@ -1,6 +1,6 @@
 package com.faforever.client.task;
 
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
@@ -23,27 +23,28 @@ import java.util.concurrent.ExecutorService;
 @Slf4j
 public class TaskService {
 
-  private final ExecutorService executorService;
-  private final ObservableList<Worker<?>> activeTasks = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
+  private final ExecutorService taskExecutor;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
+  private final ObservableList<Worker<?>> activeTasks = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
   private final ObservableList<Worker<?>> unmodifiableObservableList = FXCollections.unmodifiableObservableList(activeTasks);
 
   /**
    * Submits a task for execution in background.
+   *
    * @param <T> the task's result type
    * @param task the task to execute
    */
-  @SuppressWarnings("unchecked")
-  public <T extends PrioritizedCompletableTask> T submitTask(T task) {
+  public <T extends PrioritizedCompletableTask<?>> T submitTask(T task) {
     task.getFuture().whenComplete((o, throwable) -> {
       activeTasks.remove(task);
       if (throwable != null) {
-        log.error("Task failed", (Throwable) throwable);
+        log.error("Task failed", throwable);
       }
     });
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       activeTasks.add(task);
-      executorService.execute(task);
+      taskExecutor.execute(task);
     });
 
     return task;

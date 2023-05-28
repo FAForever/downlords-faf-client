@@ -2,7 +2,7 @@ package com.faforever.client.map.management;
 
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.notification.NotificationService;
@@ -31,11 +31,12 @@ public class RemovableMapCellController extends ListCell<MapVersionBean> impleme
 
   private final MapService mapService;
   private final NotificationService notificationService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   @Override
   protected void updateItem(MapVersionBean mapVersion, boolean empty) {
     super.updateItem(mapVersion, empty);
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       setText(null);
 
       if (mapVersion == null || empty) {

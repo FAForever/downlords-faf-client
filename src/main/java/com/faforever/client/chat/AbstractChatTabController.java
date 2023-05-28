@@ -7,6 +7,7 @@ import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.SimpleInvalidationListener;
@@ -140,6 +141,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   protected final CountryFlagService countryFlagService;
   protected final ChatPrefs chatPrefs;
   protected final NotificationPrefs notificationPrefs;
+  protected final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   /**
    * Messages that arrived before the web view was ready. Those are appended as soon as it is ready.
@@ -151,11 +153,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   private final SimpleInvalidationListener stageFocusedListener = this::focusTextFieldIfStageFocused;
   private final SimpleInvalidationListener resetUnreadMessagesListener = this::clearUnreadIfFocused;
-  private final SimpleChangeListener<Boolean> tabPaneFocusedListener = newTabPaneFocus -> {
-    if (newTabPaneFocus) {
-      JavaFxUtil.runLater(() -> messageTextField().requestFocus());
-    }
-  };
+  private final SimpleChangeListener<Boolean> tabPaneFocusedListener = this::onTabPaneFocused;
+
   private final Consumer<ChatMessage> messageListener = this::onChatMessage;
 
   private int lastEntryId;
@@ -197,7 +196,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private void focusTextFieldIfStageFocused() {
     Tab root = getRoot();
     if (root != null && root.getTabPane() != null && root.getTabPane().isVisible()) {
-      JavaFxUtil.runLater(() -> messageTextField().requestFocus());
+      fxApplicationThreadExecutor.execute(() -> messageTextField().requestFocus());
     }
   }
 
@@ -225,10 +224,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     }
 
     TabPane tabPane = getRoot().getTabPane();
-    return tabPane != null
-        && JavaFxUtil.isVisibleRecursively(tabPane)
-        && tabPane.getScene().getWindow().isFocused()
-        && tabPane.getScene().getWindow().isShowing();
+    return tabPane != null && JavaFxUtil.isVisibleRecursively(tabPane) && tabPane.getScene()
+        .getWindow()
+        .isFocused() && tabPane.getScene().getWindow().isShowing();
   }
 
   protected void setUnread(boolean unread) {
@@ -297,7 +295,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       if (newValue) {
         // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
         // So let's schedule the focus to be executed afterwards
-        JavaFxUtil.runLater(messageTextField()::requestFocus);
+        fxApplicationThreadExecutor.execute(messageTextField()::requestFocus);
       }
     });
     getRoot().tabPaneProperty().addListener((tabPane, oldTabPane, newTabPane) -> addTabListeners(newTabPane));
@@ -368,6 +366,12 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     }
   }
 
+  private void onTabPaneFocused(Boolean newTabPaneFocus) {
+    if (newTabPaneFocus) {
+      fxApplicationThreadExecutor.execute(() -> messageTextField().requestFocus());
+    }
+  }
+
   protected void onWebViewLoaded() {
     // Default implementation does nothing, can be overridden by subclass.
   }
@@ -409,15 +413,15 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     messageTextField.setDisable(true);
 
     final String text = messageTextField.getText();
-    chatService.sendMessageInBackground(chatChannel.get(), text).thenRun(() -> JavaFxUtil.runLater(() -> {
+    chatService.sendMessageInBackground(chatChannel.get(), text).thenRunAsync(() -> {
       messageTextField.clear();
       messageTextField.setDisable(false);
       messageTextField.requestFocus();
-    })).exceptionally(throwable -> {
+    }, fxApplicationThreadExecutor).exceptionally(throwable -> {
       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
       log.warn("Message could not be sent: {}", text, throwable);
       notificationService.addImmediateErrorNotification(throwable, "chat.sendFailed");
-      JavaFxUtil.runLater(() -> {
+      fxApplicationThreadExecutor.execute(() -> {
         messageTextField.setDisable(false);
         messageTextField.requestFocus();
       });
@@ -429,16 +433,16 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     messageTextField.setDisable(true);
 
     chatService.sendActionInBackground(chatChannel.get(), text.replaceFirst(Pattern.quote(ACTION_PREFIX), ""))
-        .thenRun(() -> JavaFxUtil.runLater(() -> {
+        .thenRunAsync(() -> {
           messageTextField.clear();
           messageTextField.setDisable(false);
           messageTextField.requestFocus();
-        }))
+        }, fxApplicationThreadExecutor)
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           log.warn("Message could not be sent: {}", text, throwable);
           notificationService.addImmediateErrorNotification(throwable, "chat.sendFailed");
-          JavaFxUtil.runLater(() -> messageTextField.setDisable(false));
+          fxApplicationThreadExecutor.execute(() -> messageTextField.setDisable(false));
           return null;
         });
   }
@@ -448,7 +452,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       if (!isChatReady) {
         waitingMessages.add(chatMessage);
       } else {
-        JavaFxUtil.runLater(() -> {
+        fxApplicationThreadExecutor.execute(() -> {
           addMessage(chatMessage);
           removeTopmostMessages();
           scrollToBottomIfDesired();
@@ -492,10 +496,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   private boolean requiresNewChatSection(ChatMessage chatMessage) {
-    return lastMessage == null
-        || !lastMessage.username().equals(chatMessage.username())
-        || lastMessage.time().isBefore(chatMessage.time().minus(1, MINUTES))
-        || lastMessage.action();
+    return lastMessage == null || !lastMessage.username().equals(chatMessage.username()) || lastMessage.time()
+        .isBefore(chatMessage.time().minus(1, MINUTES)) || lastMessage.action();
   }
 
   private void appendMessage(ChatMessage chatMessage) throws IOException {
@@ -663,12 +665,12 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
         @Override
         public void invalidated(Observable observable) {
           messageTextField().sceneProperty().removeListener(this);
-          JavaFxUtil.runLater(() -> messageTextField().requestFocus());
+          fxApplicationThreadExecutor.execute(() -> messageTextField().requestFocus());
         }
       };
       JavaFxUtil.addListener(messageTextField().sceneProperty(), listener);
     } else {
-      JavaFxUtil.runLater(() -> messageTextField().requestFocus());
+      fxApplicationThreadExecutor.execute(() -> messageTextField().requestFocus());
     }
   }
 
@@ -699,7 +701,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   String getHtmlBodyContent() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     String[] content = new String[1];
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       try {
         content[0] = (String) engine.executeScript("document.body.innerHTML");
       } finally {

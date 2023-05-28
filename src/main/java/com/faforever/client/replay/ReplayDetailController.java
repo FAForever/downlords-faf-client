@@ -412,7 +412,7 @@ public class ReplayDetailController implements Controller<Node> {
 
       replay.setChatMessages(replayDetails.chatMessages());
       replay.setGameOptions(replayDetails.gameOptions());
-    }, JavaFxUtil::runLater).exceptionally(throwable -> {
+    }, fxApplicationThreadExecutor).exceptionally(throwable -> {
       if (throwable.getCause() instanceof FileNotFoundException) {
         log.warn("Replay file not available", throwable);
         notificationService.addImmediateWarnNotification("replayNotAvailable", replay.getId());
@@ -456,7 +456,7 @@ public class ReplayDetailController implements Controller<Node> {
         return controller;
       }).toList();
 
-      JavaFxUtil.runLater(() -> {
+      fxApplicationThreadExecutor.execute(() -> {
         teamCardControllers.clear();
         teamCardControllers.addAll(newControllers);
         teamsContainer.getChildren().setAll(teamCardControllers.stream().map(TeamCardController::getRoot).toList());

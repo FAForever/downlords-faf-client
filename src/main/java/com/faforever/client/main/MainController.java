@@ -10,6 +10,7 @@ import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.exception.FxmlLoadException;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GamePathHandler;
@@ -128,6 +129,8 @@ public class MainController implements Controller<Node>, InitializingBean {
   private final WindowPrefs windowPrefs;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final DataPrefs dataPrefs;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   private final ChangeListener<Path> backgroundImageListener = (observable, oldValue, newValue) ->
       setBackgroundImage(newValue);
 
@@ -208,10 +211,10 @@ public class MainController implements Controller<Node>, InitializingBean {
         .addListener(new ToastDisplayer(transientNotificationsController));
 
     updateNotificationsButton(notificationService.getPersistentNotifications());
-    notificationService.addPersistentNotificationListener(change -> JavaFxUtil.runLater(() -> updateNotificationsButton(change.getSet())));
-    notificationService.addImmediateNotificationListener(notification -> JavaFxUtil.runLater(() -> displayImmediateNotification(notification)));
-    notificationService.addServerNotificationListener(notification -> JavaFxUtil.runLater(() -> displayServerNotification(notification)));
-    notificationService.addTransientNotificationListener(notification -> JavaFxUtil.runLater(() -> transientNotificationsController.addNotification(notification)));
+    notificationService.addPersistentNotificationListener(change -> fxApplicationThreadExecutor.execute(() -> updateNotificationsButton(change.getSet())));
+    notificationService.addImmediateNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> displayImmediateNotification(notification)));
+    notificationService.addServerNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> displayServerNotification(notification)));
+    notificationService.addTransientNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> transientNotificationsController.addNotification(notification)));
     // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
     getView(NavigationItem.CHAT);
 
@@ -248,33 +251,33 @@ public class MainController implements Controller<Node>, InitializingBean {
 
   @Subscribe
   public void onLoginSuccessEvent(LoginSuccessEvent event) {
-    JavaFxUtil.runLater(this::enterLoggedInState);
+    fxApplicationThreadExecutor.execute(this::enterLoggedInState);
   }
 
   @Subscribe
   public void onLoggedOutEvent(LoggedOutEvent event) {
     viewCache.invalidateAll();
-    JavaFxUtil.runLater(this::enterLoggedOutState);
+    fxApplicationThreadExecutor.execute(this::enterLoggedOutState);
   }
 
   @Subscribe
   public void onSessionExpiredEvent(SessionExpiredEvent event) {
-    JavaFxUtil.runLater(this::enterLoggedOutState);
+    fxApplicationThreadExecutor.execute(this::enterLoggedOutState);
   }
 
   @Subscribe
   public void onUnreadNews(UnreadNewsEvent event) {
-    JavaFxUtil.runLater(() -> newsButton.pseudoClassStateChanged(HIGHLIGHTED, event.hasUnreadNews()));
+    fxApplicationThreadExecutor.execute(() -> newsButton.pseudoClassStateChanged(HIGHLIGHTED, event.hasUnreadNews()));
   }
 
   @Subscribe
   public void onUnreadPartyMessage(UnreadPartyMessageEvent event) {
-    JavaFxUtil.runLater(() -> playButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.PLAY)));
+    fxApplicationThreadExecutor.execute(() -> playButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.PLAY)));
   }
 
   @Subscribe
   public void onUnreadPrivateMessage(UnreadPrivateMessageEvent event) {
-    JavaFxUtil.runLater(() -> chatButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.CHAT)));
+    fxApplicationThreadExecutor.execute(() -> chatButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.CHAT)));
   }
 
   private void displayView(AbstractViewController<?> controller, NavigateEvent navigateEvent) {
@@ -587,7 +590,7 @@ public class MainController implements Controller<Node>, InitializingBean {
   }
 
   private void displayImmediateNotification(ImmediateNotification notification) {
-    Alert<?> dialog = new Alert<>(fxStage.getStage());
+    Alert<?> dialog = new Alert<>(fxStage.getStage(), fxApplicationThreadExecutor);
 
     ImmediateNotificationController controller = ((ImmediateNotificationController) uiService.loadFxml("theme/immediate_notification.fxml"))
         .setNotification(notification)
@@ -599,7 +602,7 @@ public class MainController implements Controller<Node>, InitializingBean {
   }
 
   private void displayServerNotification(ImmediateNotification notification) {
-    Alert<?> dialog = new Alert<>(fxStage.getStage());
+    Alert<?> dialog = new Alert<>(fxStage.getStage(), fxApplicationThreadExecutor);
 
     ServerNotificationController controller = ((ServerNotificationController) uiService.loadFxml("theme/server_notification.fxml"))
         .setNotification(notification)

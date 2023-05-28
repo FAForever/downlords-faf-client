@@ -1,6 +1,7 @@
 package com.faforever.client.filter;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.theme.UiService;
@@ -15,6 +16,7 @@ import javafx.collections.ObservableMap;
 import javafx.scene.control.Button;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.VBox;
+import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +24,7 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+@RequiredArgsConstructor
 public abstract class AbstractFilterController<T> implements Controller<SplitPane> {
 
 
@@ -34,6 +37,7 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
 
   protected final UiService uiService;
   protected final I18n i18n;
+  protected final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final ObservableMap<ObservableValue<?>, Predicate<T>> externalFilters = FXCollections.observableHashMap();
   private final List<AbstractFilterNodeController<?, ? extends ObservableValue<?>, T>> filters = new ArrayList<>();
@@ -43,14 +47,9 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
   private final BooleanProperty filterState = new SimpleBooleanProperty(false);
   private final ObjectProperty<Predicate<T>> predicate = new SimpleObjectProperty<>(defaultPredicate);
 
-  public AbstractFilterController(UiService uiService, I18n i18n) {
-    this.i18n = i18n;
-    this.uiService = uiService;
-  }
-
   @Override
   public void initialize() {
-    build(new FilterBuilder<>(uiService, filters::add));
+    build(new FilterBuilder<>(uiService, fxApplicationThreadExecutor, filters::add));
     afterBuilt();
   }
 

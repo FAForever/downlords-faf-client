@@ -3,7 +3,6 @@ package com.faforever.client.game;
 import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.i18n.I18n;
@@ -58,8 +57,6 @@ public class GameTileControllerTest extends UITest {
   private MapService mapService;
   @Mock
   private PlayerService playerService;
-  @Mock
-  private FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private GameBean game;
 

@@ -4,7 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.event.ModUploadedEvent;
@@ -55,6 +55,8 @@ public class ModUploadController implements Controller<Node> {
   private final PlatformService platformService;
   private final ClientProperties clientProperties;
   private final EventBus eventBus;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   public Label uploadTaskMessageLabel;
   public Label uploadTaskTitleLabel;
   public Pane parseProgressPane;
@@ -109,7 +111,7 @@ public class ModUploadController implements Controller<Node> {
 
   private void setModVersionInfo(ModVersionBean modVersion) {
     this.modVersionInfo = modVersion;
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       enterModInfoState();
       modNameLabel.textProperty().bind(modVersion.modProperty().flatMap(ModBean::displayNameProperty));
       descriptionLabel.textProperty().bind(modVersion.descriptionProperty());

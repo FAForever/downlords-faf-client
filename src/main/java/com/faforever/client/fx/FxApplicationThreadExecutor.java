@@ -6,8 +6,11 @@ import org.springframework.stereotype.Component;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 
+/* Guarantees tasks are executed on the JavaFX Application Thread
+ */
 @Slf4j
 @Component
 public class FxApplicationThreadExecutor implements Executor {
@@ -23,6 +26,23 @@ public class FxApplicationThreadExecutor implements Executor {
       }
     } else {
       Platform.runLater(runnable);
+    }
+  }
+
+  public void executeAndWait(Runnable runnable) {
+    CountDownLatch doneLatch = new CountDownLatch(1);
+    execute(() -> {
+      try {
+        runnable.run();
+      } finally {
+        doneLatch.countDown();
+      }
+    });
+
+    try {
+      doneLatch.await();
+    } catch (InterruptedException e) {
+      log.error("A thread interrupted", e);
     }
   }
 

@@ -1,6 +1,6 @@
 package com.faforever.client.ui.alert;
 
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.ui.alert.animation.AlertAnimation;
 import com.faforever.client.ui.effects.DepthManager;
@@ -34,6 +34,8 @@ import java.util.List;
 public class Alert<R> extends Dialog<R> {
 
   private final StackPane contentContainer;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   private final EventHandlerManager eventHandlerManager = new EventHandlerManager(this);
 
   /**
@@ -57,7 +59,8 @@ public class Alert<R> extends Dialog<R> {
   private boolean animateClosing = true;
   private Animation transition = null;
 
-  public Alert(Window window) {
+  public Alert(Window window, FxApplicationThreadExecutor fxApplicationThreadExecutor) {
+    this.fxApplicationThreadExecutor = fxApplicationThreadExecutor;
     contentContainer = new StackPane();
     contentContainer.getStyleClass().add("alert-content-container");
     // add depth effect
@@ -258,7 +261,7 @@ public class Alert<R> extends Dialog<R> {
       } else {
         animateClosing = false;
         transition = null;
-        JavaFxUtil.runLater(this::hide);
+        fxApplicationThreadExecutor.execute(this::hide);
       }
     }
   }

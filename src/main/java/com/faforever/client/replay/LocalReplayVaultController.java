@@ -1,6 +1,7 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.DeleteLocalReplayEvent;
@@ -38,8 +39,11 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
   private ReplayDetailController replayDetailController;
 
 
-  public LocalReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, EventBus eventBus, ReportingService reportingService, VaultPrefs vaultPrefs) {
-    super(uiService, notificationService, i18n, reportingService, vaultPrefs);
+  public LocalReplayVaultController(ReplayService replayService, UiService uiService,
+                                    NotificationService notificationService, I18n i18n, EventBus eventBus,
+                                    ReportingService reportingService, VaultPrefs vaultPrefs,
+                                    FxApplicationThreadExecutor fxApplicationThreadExecutor) {
+    super(uiService, notificationService, i18n, reportingService, vaultPrefs, fxApplicationThreadExecutor);
     this.replayService = replayService;
     this.eventBus = eventBus;
     this.vaultPrefs = vaultPrefs;

@@ -3,15 +3,15 @@ package com.faforever.client.tutorial;
 import com.faforever.client.domain.TutorialBean;
 import com.faforever.client.domain.TutorialCategoryBean;
 import com.faforever.client.fx.AbstractViewController;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.theme.UiService;
 import javafx.scene.Node;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -22,9 +22,12 @@ import java.util.List;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class TutorialController extends AbstractViewController<Node> {
   private final TutorialService tutorialService;
   private final UiService uiService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   public StackPane rootPane;
   public VBox tutorialOverviewPane;
   public TutorialDetailController tutorialDetailController;
@@ -32,12 +35,6 @@ public class TutorialController extends AbstractViewController<Node> {
   public VBox loadingSpinner;
   public VBox nothingToShow;
   private final List<TutorialListItemController> tutorialListItemControllers = new ArrayList<>();
-
-  @Autowired
-  public TutorialController(TutorialService tutorialService, UiService uiService) {
-    this.tutorialService = tutorialService;
-    this.uiService = uiService;
-  }
 
   @Override
   public void onDisplay(NavigateEvent navigateEvent) {
@@ -60,7 +57,7 @@ public class TutorialController extends AbstractViewController<Node> {
   }
 
   private void displayTutorials(List<TutorialCategoryBean> categories) {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       if (categories.isEmpty()) {
         setLoading(false);
         setNothingToShow(true);

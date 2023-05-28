@@ -26,7 +26,7 @@ import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ElideMatchers;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.Leaderboard;
 import com.faforever.commons.api.dto.MatchmakerQueue;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
@@ -77,12 +77,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TeamMatchmakingServiceTest extends UITest {
+public class TeamMatchmakingServiceTest extends ServiceTest {
 
   @Mock
   private MapService mapService;
@@ -148,6 +149,13 @@ public class TeamMatchmakingServiceTest extends UITest {
 
     when(preferencesService.isGamePathValid()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(player);
+    doAnswer(invocation -> {
+      Runnable runnable = invocation.getArgument(0);
+      runnable.run();
+      return null;
+    }).when(fxApplicationThreadExecutor).execute(any());
+
+
     instance.getParty().setOwner(player);
 
     instance.afterPropertiesSet();
@@ -195,7 +203,7 @@ public class TeamMatchmakingServiceTest extends UITest {
     setPartyMembers();
     setOwnerByName("member2");
 
-    runOnFxThreadAndWait(() -> kickTestPublisher.next(new PartyKick()));
+    kickTestPublisher.next(new PartyKick());
 
     assertThat(instance.getParty().getMembers().size(), is(1));
     assertThat(instance.getParty().getOwner(), is(player));
@@ -208,7 +216,7 @@ public class TeamMatchmakingServiceTest extends UITest {
     setOwnerByName("member2");
     player.setGame(GameBeanBuilder.create().defaultValues().get());
 
-    runOnFxThreadAndWait(() -> kickTestPublisher.next(new PartyKick()));
+    kickTestPublisher.next(new PartyKick());
 
     assertThat(instance.getParty().getMembers().size(), is(1));
     assertThat(instance.getParty().getOwner(), is(player));
@@ -230,7 +238,7 @@ public class TeamMatchmakingServiceTest extends UITest {
     List<PartyInfo.PartyMember> testMembers = generatePartyMembers(List.of(2));
     PartyInfo message = new PartyInfo(player.getId(), testMembers);
 
-    runOnFxThreadAndWait(() -> partyInfoTestPublisher.next(message));
+    partyInfoTestPublisher.next(message);
 
     assertThat(instance.getParty().getMembers().size(), is(1));
     assertThat(instance.getParty().getOwner(), is(player));
@@ -419,7 +427,7 @@ public class TeamMatchmakingServiceTest extends UITest {
 
   @Test
   public void testLeaveParty() {
-    runOnFxThreadAndWait(() -> instance.leaveParty());
+    instance.leaveParty();
 
     verify(fafServerAccessor).leaveParty();
     assertThat(instance.getParty().getMembers().size(), is(1));

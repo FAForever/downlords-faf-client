@@ -207,7 +207,7 @@ public class GameDetailController implements Controller<Pane> {
       durationText = timeService.shortDuration(java.time.Duration.between(gameBean.getStartTime(), OffsetDateTime.now()));
     }
 
-    JavaFxUtil.runLater(() -> playtimeLabel.setText(durationText));
+    fxApplicationThreadExecutor.execute(() -> playtimeLabel.setText(durationText));
   }
 
   public void dispose() {
@@ -256,7 +256,7 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void setGeneratingMapInProgress(boolean inProgress) {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       generateMapButton.setDisable(inProgress);
       generateMapButton.setText(i18n.get(inProgress ? "game.mapGeneration.notification.title" : "game.create.generatedMap"));
     });

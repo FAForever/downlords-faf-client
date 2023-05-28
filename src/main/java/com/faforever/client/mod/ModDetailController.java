@@ -175,7 +175,7 @@ public class ModDetailController implements Controller<Node> {
         .subscribe(reviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
 
     modService.getFileSize(newValue)
-        .thenAccept(modFileSize -> JavaFxUtil.runLater(() -> {
+        .thenAcceptAsync(modFileSize -> {
           if (modFileSize > -1) {
             String size = Bytes.formatSize(modFileSize, i18n.getUserSpecificLocale());
             installButton.setText(i18n.get("modVault.install", size));
@@ -184,7 +184,7 @@ public class ModDetailController implements Controller<Node> {
             installButton.setText(i18n.get("modVault.install"));
             sizeLabel.setText(i18n.get("notAvailable"));
           }
-        }));
+        }, fxApplicationThreadExecutor);
   }
 
   private void initializeReviewsController() {

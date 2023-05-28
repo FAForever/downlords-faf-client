@@ -1,8 +1,9 @@
 package com.faforever.client.test;
 
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.ui.StageHolder;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -11,6 +12,7 @@ import javafx.util.Callback;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -37,6 +39,9 @@ public abstract class UITest extends ApplicationTest {
     System.setProperty("prism.order", "sw");
     System.setProperty("prism.text", "t2k");
   }
+
+  @Spy
+  protected FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final Pane root;
   private Scene scene;
@@ -112,7 +117,7 @@ public abstract class UITest extends ApplicationTest {
       loader.setController(controller);
     }
     CountDownLatch latch = new CountDownLatch(1);
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       try {
         loader.load();
       } catch (Exception e) {
@@ -135,7 +140,7 @@ public abstract class UITest extends ApplicationTest {
   }
 
   protected void runOnFxThreadAndWait(Runnable runnable) {
-    JavaFxUtil.runLater(runnable);
+    Platform.runLater(runnable);
     WaitForAsyncUtils.waitForFxEvents();
   }
 }

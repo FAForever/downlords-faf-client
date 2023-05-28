@@ -4,6 +4,7 @@ import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.LeagueSeasonBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.i18n.I18n;
@@ -68,6 +69,8 @@ public class LeaderboardController implements Controller<Tab> {
   private final PlayerService playerService;
   private final TimeService timeService;
   private final UiService uiService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   public Tab leaderboardRoot;
   public TextField searchTextField;
   public Pane connectionProgressPane;
@@ -111,7 +114,7 @@ public class LeaderboardController implements Controller<Tab> {
     // The tabs always appear 40px wider, maybe because of some obscure padding rule.
     // We also need to subtract the tab area padding to prevent horizontal scrolling.
     double tabWidth = Math.floor((tabPaneWidth - 20.0) / tabNumber) - 40.0;
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       subDivisionTabPane.setTabMinWidth(tabWidth);
       subDivisionTabPane.setTabMaxWidth(tabWidth);
     });
@@ -158,7 +161,7 @@ public class LeaderboardController implements Controller<Tab> {
   }
 
   private void setUsernamesAutoCompletion(List<SubdivisionBean> subdivisions) {
-    JavaFxUtil.runLater(() -> {
+    fxApplicationThreadExecutor.execute(() -> {
       majorDivisionPicker.getItems().clear();
       List<SubdivisionBean> majorDivisions = subdivisions
           .stream()
@@ -181,7 +184,7 @@ public class LeaderboardController implements Controller<Tab> {
           leagueEntryNames);
       usernamesAutoCompletion.setDelay(0);
       usernamesAutoCompletion.setOnAutoCompleted(event -> processSearchInput());
-      JavaFxUtil.runLater(() -> contentPane.setVisible(true));
+      fxApplicationThreadExecutor.execute(() -> contentPane.setVisible(true));
     });
   }
 
@@ -198,7 +201,7 @@ public class LeaderboardController implements Controller<Tab> {
           selectHighestDivision();
         } else {
           if (leagueEntry.getSubdivision() == null) {
-            JavaFxUtil.runLater(() -> {
+            fxApplicationThreadExecutor.execute(() -> {
               playerDivisionNameLabel.setVisible(false);
               placementLabel.setVisible(true);
               int gamesNeeded = leagueEntry.getReturningPlayer() ? season.getPlacementGamesReturningPlayer() : season.getPlacementGames();
@@ -206,7 +209,7 @@ public class LeaderboardController implements Controller<Tab> {
             });
             selectHighestDivision();
           } else {
-            JavaFxUtil.runLater(() -> {
+            fxApplicationThreadExecutor.execute(() -> {
               playerDivisionNameLabel.setVisible(true);
               placementLabel.setVisible(false);
               playerDivisionImageView.setImage(
@@ -235,7 +238,7 @@ public class LeaderboardController implements Controller<Tab> {
 
   private void selectHighestDivision() {
     entryToSelect = null;
-    JavaFxUtil.runLater(() -> majorDivisionPicker.getSelectionModel().selectFirst());
+    fxApplicationThreadExecutor.execute(() -> majorDivisionPicker.getSelectionModel().selectFirst());
   }
 
   private void selectLeagueEntry(LeagueEntryBean leagueEntry) {
@@ -245,9 +248,12 @@ public class LeaderboardController implements Controller<Tab> {
     if (majorDivisionPicker.getValue() != null && hasSameDivisionIndex(entryToSelect, majorDivisionPicker.getValue())) {
       selectAssociatedTab();
     } else {
-      majorDivisionPicker.getItems().stream()
+      majorDivisionPicker.getItems()
+          .stream()
           .filter(item -> hasSameDivisionIndex(entryToSelect, item))
-          .findFirst().ifPresent(item -> JavaFxUtil.runLater(() -> majorDivisionPicker.getSelectionModel().select(item)));
+          .findFirst()
+          .ifPresent(item -> fxApplicationThreadExecutor.execute(() -> majorDivisionPicker.getSelectionModel()
+              .select(item)));
     }
   }
 
@@ -260,14 +266,16 @@ public class LeaderboardController implements Controller<Tab> {
       throw new IllegalStateException("majorDivisionPicker has no item selected");
     }
     leaderboardService.getAllSubdivisions(season).thenAccept(subdivisions -> {
-      JavaFxUtil.runLater(() -> subDivisionTabPane.getTabs().clear());
+      fxApplicationThreadExecutor.execute(() -> subDivisionTabPane.getTabs().clear());
       subdivisions.stream()
-          .filter(subdivision -> subdivision.getDivision().getIndex() == majorDivisionPicker.getValue().getDivision().getIndex())
+          .filter(subdivision -> subdivision.getDivision().getIndex() == majorDivisionPicker.getValue()
+              .getDivision()
+              .getIndex())
           .forEach(subdivision -> {
             SubDivisionTabController controller = uiService.loadFxml("theme/leaderboard/subDivisionTab.fxml");
             controller.getRoot().setUserData(subdivision.getIndex());
             controller.populate(subdivision);
-            JavaFxUtil.runLater(() -> {
+            fxApplicationThreadExecutor.execute(() -> {
               subDivisionTabPane.getTabs().add(controller.getRoot());
               subDivisionTabPane.getSelectionModel().selectLast();
             });
@@ -282,7 +290,7 @@ public class LeaderboardController implements Controller<Tab> {
   private void selectAssociatedTab() {
     subDivisionTabPane.getTabs().stream()
         .filter(tab -> tab.getUserData().equals(entryToSelect.getSubdivision().getIndex()))
-        .findFirst().ifPresent(tab -> JavaFxUtil.runLater(() -> {
+        .findFirst().ifPresent(tab -> fxApplicationThreadExecutor.execute(() -> {
           subDivisionTabPane.getSelectionModel().select(tab);
           TableView<LeagueEntryBean> newTable = (TableView<LeagueEntryBean>) tab.getContent();
           newTable.scrollTo(entryToSelect);
@@ -291,7 +299,7 @@ public class LeaderboardController implements Controller<Tab> {
   }
 
   private void plotDivisionDistributions(List<SubdivisionBean> subdivisions, LeagueEntryBean leagueEntry) {
-    JavaFxUtil.runLater(() -> ratingDistributionChart.getData().clear());
+    fxApplicationThreadExecutor.execute(() -> ratingDistributionChart.getData().clear());
     // We need to set the categories first, to ensure they have the right order.
     ObservableList<String> categories = FXCollections.observableArrayList();
     subdivisions.stream()
@@ -316,12 +324,13 @@ public class LeaderboardController implements Controller<Tab> {
               }
               addNodeOnTopOfBar(data, label);
             });
-            JavaFxUtil.runLater(() -> series.getData().add(data));
+            fxApplicationThreadExecutor.execute(() -> series.getData().add(data));
           }));
-      JavaFxUtil.runLater(() -> ratingDistributionChart.getData().add(series));
+      fxApplicationThreadExecutor.execute(() -> ratingDistributionChart.getData().add(series));
     });
     leaderboardService.getTotalPlayers(season).thenAccept(totalPlayers ->
-        JavaFxUtil.runLater(() -> xAxis.labelProperty().setValue(i18n.get("leaderboard.totalPlayers", totalPlayers))));
+        fxApplicationThreadExecutor.execute(() -> xAxis.labelProperty()
+            .setValue(i18n.get("leaderboard.totalPlayers", totalPlayers))));
   }
 
   private void addNodeOnTopOfBar(XYChart.Data<String, Integer> data, Node nodeToAdd) {

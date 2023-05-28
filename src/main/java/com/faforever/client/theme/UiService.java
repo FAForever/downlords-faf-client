@@ -6,6 +6,7 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.exception.FxmlLoadException;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.DataPrefs;
@@ -135,6 +136,7 @@ public class UiService implements InitializingBean, DisposableBean {
   private final I18n i18n;
   private final DataPrefs dataPrefs;
   private final Preferences preferences;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final Set<Scene> scenes = Collections.synchronizedSet(new HashSet<>());
   private final Set<WeakReference<WebView>> webViews = new HashSet<>();
@@ -285,7 +287,7 @@ public class UiService implements InitializingBean, DisposableBean {
   }
 
   private void setSceneStyleSheet(Scene scene, String[] styleSheets) {
-    JavaFxUtil.runLater(() -> scene.getStylesheets().setAll(styleSheets));
+    fxApplicationThreadExecutor.execute(() -> scene.getStylesheets().setAll(styleSheets));
   }
 
   private String getSceneStyleSheet() throws IOException {
@@ -478,7 +480,7 @@ public class UiService implements InitializingBean, DisposableBean {
       webViews.stream()
           .map(Reference::get)
           .filter(Objects::nonNull)
-          .forEach(webView -> JavaFxUtil.runLater(
+          .forEach(webView -> fxApplicationThreadExecutor.execute(
               () -> {
                 webView.getEngine().setUserStyleSheetLocation(urlString);
               }));

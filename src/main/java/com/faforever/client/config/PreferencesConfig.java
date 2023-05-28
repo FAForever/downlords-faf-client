@@ -1,6 +1,6 @@
 package com.faforever.client.config;
 
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.DataPrefs;
@@ -72,13 +72,15 @@ public class PreferencesConfig implements DisposableBean {
   private final Path preferencesFilePath;
   private final ObjectWriter preferencesWriter;
   private final ObjectReader preferencesUpdater;
-  private final Preferences preferences;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  public PreferencesConfig(OperatingSystem operatingSystem, ObjectMapper objectMapper) throws IOException, InterruptedException {
+  private final Preferences preferences = new Preferences();
+
+  public PreferencesConfig(OperatingSystem operatingSystem, ObjectMapper objectMapper,
+                           FxApplicationThreadExecutor fxApplicationThreadExecutor) throws IOException, InterruptedException {
+    this.fxApplicationThreadExecutor = fxApplicationThreadExecutor;
+
     ObjectMapper configuredObjectMapper = configureObjectMapper(objectMapper);
-
-    preferences = new Preferences();
-
     preferencesUpdater = configuredObjectMapper.readerForUpdating(preferences);
     preferencesFilePath = operatingSystem.getPreferencesDirectory().resolve(PREFS_FILE_NAME);
 
@@ -222,7 +224,7 @@ public class PreferencesConfig implements DisposableBean {
       migratePreferences(preferences);
     } catch (Exception e) {
       log.warn("Preferences file `{}` could not be read", path, e);
-      JavaFxUtil.runLaterAndAwait(() -> {
+      fxApplicationThreadExecutor.executeAndWait(() -> {
         Alert errorReading = new Alert(AlertType.ERROR, "Error reading setting. Reset settings? ", ButtonType.YES, ButtonType.CANCEL);
         errorReading.showAndWait();
 

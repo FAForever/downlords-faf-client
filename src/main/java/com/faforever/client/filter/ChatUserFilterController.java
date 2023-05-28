@@ -3,6 +3,7 @@ package com.faforever.client.filter;
 import com.faforever.client.chat.ChatListItem;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -65,8 +66,10 @@ public class ChatUserFilterController extends AbstractFilterController<ChatListI
     }
   };
 
-  public ChatUserFilterController(UiService uiService, I18n i18n, CountryFlagService countryFlagService, LeaderboardService leaderboardService) {
-    super(uiService, i18n);
+  public ChatUserFilterController(UiService uiService, I18n i18n, CountryFlagService countryFlagService,
+                                  LeaderboardService leaderboardService,
+                                  FxApplicationThreadExecutor fxApplicationThreadExecutor) {
+    super(uiService, i18n, fxApplicationThreadExecutor);
     this.countryFlagService = countryFlagService;
     this.leaderboardService = leaderboardService;
   }
