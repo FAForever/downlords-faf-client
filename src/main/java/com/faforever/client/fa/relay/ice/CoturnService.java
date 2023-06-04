@@ -35,9 +35,9 @@ public class CoturnService {
     ElideNavigatorOnCollection<CoturnServer> navigator = ElideNavigator.of(CoturnServer.class).collection();
     Flux<CoturnServer> coturnServerFlux = fafApiAccessor.getMany(navigator);
 
-    Set<String> preferredCoturnRegions = forgedAlliancePrefs.getPreferredCoturnIds();
+    Set<String> preferredCoturnIds = forgedAlliancePrefs.getPreferredCoturnIds();
 
-    return coturnServerFlux.filter(coturnServer -> preferredCoturnRegions.contains(coturnServer.getId()))
+    return coturnServerFlux.filter(coturnServer -> preferredCoturnIds.contains(coturnServer.getId()))
         .switchIfEmpty(coturnServerFlux)
         .switchIfEmpty(Flux.error(new IllegalStateException("No Coturn Servers Available")))
         .collectList()
