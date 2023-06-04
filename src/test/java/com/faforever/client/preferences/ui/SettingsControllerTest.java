@@ -12,7 +12,6 @@ import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.CoturnHostPort;
 import com.faforever.client.preferences.LanguageChannel;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -124,7 +123,8 @@ public class SettingsControllerTest extends UITest {
     when(uiService.getCurrentTheme()).thenReturn(FIRST_THEME);
     when(uiService.getAvailableThemes()).thenReturn(Arrays.asList(FIRST_THEME, SECOND_THEME));
     CoturnServer coturnServer = new CoturnServer();
-    coturnServer.setHost("Test");
+    coturnServer.setId("0");
+    coturnServer.setRegion("Test");
     when(coturnService.getActiveCoturns()).thenReturn(CompletableFuture.completedFuture(List.of(coturnServer)));
     when(gameService.isGamePrefsPatchedToAllowMultiInstances()).thenReturn(CompletableFuture.completedFuture(true));
 
@@ -231,7 +231,7 @@ public class SettingsControllerTest extends UITest {
 
   @Test
   public void testCoturnSelected() throws Exception {
-    ObservableSet<CoturnHostPort> preferredCoturnServers = preferences.getForgedAlliance().getPreferredCoturnServers();
+    ObservableSet<String> preferredCoturnServers = preferences.getForgedAlliance().getPreferredCoturnIds();
     preferredCoturnServers.clear();
     runOnFxThreadAndWait(() -> instance.initialize());
 
@@ -240,7 +240,7 @@ public class SettingsControllerTest extends UITest {
     runOnFxThreadAndWait(() -> instance.preferredCoturnListView.getSelectionModel().select(0));
 
     assertEquals(1, preferredCoturnServers.size());
-    assertTrue(preferredCoturnServers.contains(new CoturnHostPort("Test", null)));
+    assertTrue(preferredCoturnServers.contains("0"));
 
     runOnFxThreadAndWait(() -> instance.initialize());
 

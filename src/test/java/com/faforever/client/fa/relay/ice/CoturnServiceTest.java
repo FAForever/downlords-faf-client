@@ -3,7 +3,6 @@ package com.faforever.client.fa.relay.ice;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.mapstruct.MapperSetup;
-import com.faforever.client.preferences.CoturnHostPort;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
@@ -50,46 +49,46 @@ public class CoturnServiceTest extends ServiceTest {
 
   @Test
   public void TestGetSelectedCoturnsNoActiveSelected() {
-    forgedAlliancePrefs.getPreferredCoturnServers().add(new CoturnHostPort("test", null));
+    forgedAlliancePrefs.getPreferredCoturnIds().add("1");
 
     CoturnServer otherServer = new CoturnServer();
-    otherServer.setHost("other");
+    otherServer.setId("0");
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(otherServer));
 
     List<CoturnServer> servers = instance.getSelectedCoturns().join();
 
     assertEquals(1, servers.size());
-    assertEquals("other", servers.get(0).getHost());
+    assertEquals("0", servers.get(0).getId());
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasDtoClass(CoturnServer.class)));
   }
 
   @Test
   public void testGetSelectedCoturnsNoneSelected() {
     CoturnServer otherServer = new CoturnServer();
-    otherServer.setHost("other");
+    otherServer.setId("0");
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(otherServer));
 
     List<CoturnServer> servers = instance.getSelectedCoturns().join();
 
     assertEquals(1, servers.size());
-    assertEquals("other", servers.get(0).getHost());
+    assertEquals("0", servers.get(0).getId());
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasDtoClass(CoturnServer.class)));
   }
 
   @Test
   public void testGetSelectedCoturnsActiveSelected() {
-    forgedAlliancePrefs.getPreferredCoturnServers().add(new CoturnHostPort("test", null));
+    forgedAlliancePrefs.getPreferredCoturnIds().add("1");
 
     CoturnServer otherServer = new CoturnServer();
-    otherServer.setHost("other");
+    otherServer.setId("0");
     CoturnServer selectedServer = new CoturnServer();
-    otherServer.setHost("test");
+    otherServer.setId("1");
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(otherServer, selectedServer));
 
     List<CoturnServer> servers = instance.getSelectedCoturns().join();
 
     assertEquals(1, servers.size());
-    assertEquals("test", servers.get(0).getHost());
+    assertEquals("1", servers.get(0).getId());
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasDtoClass(CoturnServer.class)));
   }
 }

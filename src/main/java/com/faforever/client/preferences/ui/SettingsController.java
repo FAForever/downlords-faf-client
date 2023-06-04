@@ -23,7 +23,6 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.CoturnHostPort;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.DateInfo;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -86,6 +85,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
@@ -340,11 +340,11 @@ public class SettingsController implements Controller<Node> {
       preferredCoturnListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
       preferredCoturnListView.setItems(FXCollections.observableList(coturnServers));
       preferredCoturnListView.setCellFactory(param -> new StringListCell<>(CoturnServer::getRegion, fxApplicationThreadExecutor));
-      ObservableSet<CoturnHostPort> preferredCoturnServers = preferences
+      ObservableSet<String> preferredCoturnServers = preferences
           .getForgedAlliance()
-          .getPreferredCoturnServers();
-      Map<CoturnHostPort, CoturnServer> hostPortCoturnServerMap = coturnServers.stream()
-          .collect(Collectors.toMap(iceServerMapper::mapToHostPort, server -> server));
+          .getPreferredCoturnIds();
+      Map<String, CoturnServer> hostPortCoturnServerMap = coturnServers.stream()
+          .collect(Collectors.toMap(CoturnServer::getId, Function.identity()));
 
       preferredCoturnServers.stream()
           .filter(hostPortCoturnServerMap::containsKey)
@@ -355,7 +355,7 @@ public class SettingsController implements Controller<Node> {
           .getSelectedItems(), (InvalidationListener) observable -> {
         List<CoturnServer> selectedCoturns = preferredCoturnListView.getSelectionModel().getSelectedItems();
         preferredCoturnServers.clear();
-        selectedCoturns.stream().map(iceServerMapper::mapToHostPort).forEach(preferredCoturnServers::add);
+        selectedCoturns.stream().map(CoturnServer::getId).forEach(preferredCoturnServers::add);
       });
     }, fxApplicationThreadExecutor);
   }

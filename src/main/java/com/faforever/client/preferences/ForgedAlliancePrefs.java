@@ -40,7 +40,7 @@ public class ForgedAlliancePrefs {
   ObjectProperty<Path> executionDirectory = new SimpleObjectProperty<>();
   BooleanProperty runFAWithDebugger = new SimpleBooleanProperty(false);
   BooleanProperty showIceAdapterDebugWindow = new SimpleBooleanProperty(false);
-  ObservableSet<CoturnHostPort> preferredCoturnServers = FXCollections.observableSet();
+  ObservableSet<String> preferredCoturnIds = FXCollections.observableSet();
 
   /**
    * Whether the game process' priority should be set to high after launch. Enabling this may cause issues with some
@@ -176,8 +176,8 @@ public class ForgedAlliancePrefs {
     return showIceAdapterDebugWindow;
   }
 
-  public ObservableSet<CoturnHostPort> getPreferredCoturnServers() {
-    return preferredCoturnServers;
+  public ObservableSet<String> getPreferredCoturnIds() {
+    return preferredCoturnIds;
   }
 
   public boolean getWarnNonAsciiVaultPath() {
