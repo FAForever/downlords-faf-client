@@ -54,6 +54,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -155,7 +156,7 @@ public class ReplayDetailControllerTest extends UITest {
 
     when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(currentPlayer));
     when(reviewsController.getRoot()).thenReturn(new Pane());
-    when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE))).thenReturn(mock(Image.class));
+    when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE))).thenReturn(new Image(InputStream.nullInputStream()));
     when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
     when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(List.of(PlayerBeanBuilder.create()
         .defaultValues()

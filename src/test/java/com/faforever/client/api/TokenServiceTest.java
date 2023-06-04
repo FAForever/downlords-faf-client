@@ -11,8 +11,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.eventbus.EventBus;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -21,8 +19,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.test.StepVerifier;
 
 import java.net.URI;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -81,11 +82,14 @@ public class TokenServiceTest extends ServiceTest {
     prepareTokenResponse(tokenProperties);
 
     StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).verifyComplete();
-    Map<String, String> requestParams = URLEncodedUtils.parse(mockApi.takeRequest()
-            .getBody()
-            .readString(StandardCharsets.UTF_8), StandardCharsets.UTF_8)
-        .stream()
-        .collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue));
+    String request = URLDecoder.decode(mockApi.takeRequest()
+        .getBody()
+        .readString(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
+
+    Map<String, String> requestParams = Arrays.stream(request.split("&"))
+        .map(param -> param.split("="))
+        .map(keyValue -> Map.entry(keyValue[0], keyValue[1]))
+        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
     assertEquals("abc", requestParams.get("code"));
     assertEquals("authorization_code", requestParams.get("grant_type"));
@@ -105,11 +109,14 @@ public class TokenServiceTest extends ServiceTest {
     prepareTokenResponse(tokenProperties);
 
     StepVerifier.create(instance.loginWithRefreshToken()).verifyComplete();
-    Map<String, String> requestParams = URLEncodedUtils.parse(mockApi.takeRequest()
-            .getBody()
-            .readString(StandardCharsets.UTF_8), StandardCharsets.UTF_8)
-        .stream()
-        .collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue));
+    String request = URLDecoder.decode(mockApi.takeRequest()
+        .getBody()
+        .readString(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
+
+    Map<String, String> requestParams = Arrays.stream(request.split("&"))
+        .map(param -> param.split("="))
+        .map(keyValue -> Map.entry(keyValue[0], keyValue[1]))
+        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
     instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI).block();
 

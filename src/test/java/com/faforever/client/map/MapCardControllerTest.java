@@ -26,6 +26,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
+import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -36,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class MapCardControllerTest extends UITest {
@@ -108,7 +108,7 @@ public class MapCardControllerTest extends UITest {
 
   @Test
   public void testSetMap() {
-    when(mapService.loadPreview(mapBean, PreviewSize.SMALL)).thenReturn(mock(Image.class));
+    when(mapService.loadPreview(mapBean, PreviewSize.SMALL)).thenReturn(new Image(InputStream.nullInputStream()));
 
     runOnFxThreadAndWait(() -> instance.setEntity(mapBean));
 

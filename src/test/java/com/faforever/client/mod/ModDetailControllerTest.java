@@ -35,6 +35,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -162,7 +163,7 @@ public class ModDetailControllerTest extends UITest {
   @Test
   public void testSetModNoThumbnailLoadsDefault() {
     modVersion.setThumbnailUrl(null);
-    Image image = mock(Image.class);
+    Image image = new Image(InputStream.nullInputStream());
     when(modService.loadThumbnail(modVersion)).thenReturn(image);
 
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));

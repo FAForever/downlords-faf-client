@@ -12,7 +12,6 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
@@ -35,11 +34,11 @@ public class ChangeUsernameColorMenuItemTest extends UITest {
   @Spy
   private ChatPrefs chatPrefs;
 
-  @InjectMocks
   private ChangeUsernameColorMenuItem instance;
 
   @BeforeEach
   public void setUp() throws Exception {
+    instance = new ChangeUsernameColorMenuItem(uiService, i18n, contextMenuBuilder, chatPrefs);
     chatPrefs.setChatColorMode(ChatColorMode.DEFAULT);
   }
 

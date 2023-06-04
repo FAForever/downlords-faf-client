@@ -32,11 +32,11 @@ import javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.time.Instant;
 import java.util.Optional;
@@ -49,7 +49,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -96,7 +95,6 @@ public class PrivateChatTabControllerTest extends UITest {
   @Spy
   private NotificationPrefs notificationPrefs;
 
-  @InjectMocks
   private PrivateChatTabController instance;
 
   private String playerName;
@@ -104,6 +102,8 @@ public class PrivateChatTabControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    instance = new PrivateChatTabController(userService, null, playerService, timeService, i18n, notificationService, uiService, eventBus, audioService, chatService, webViewConfigurer, countryFlagService, emoticonService, avatarService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
+
     player = PlayerBeanBuilder.create().defaultValues().get();
     playerName = player.getUsername();
 
@@ -114,7 +114,7 @@ public class PrivateChatTabControllerTest extends UITest {
     when(uiService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(".*"));
     when(privatePlayerInfoController.chatUserProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(avatarService.loadAvatar(player.getAvatar())).thenReturn(mock(Image.class));
+    when(avatarService.loadAvatar(player.getAvatar())).thenReturn(new Image(InputStream.nullInputStream()));
     when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/chat/private_chat_tab.fxml", clazz -> {
@@ -187,7 +187,7 @@ public class PrivateChatTabControllerTest extends UITest {
   public void checkPlayerAvatarListener() throws Exception {
     assertNotNull(instance.avatarImageView.getImage());
 
-    Image newAvatar = mock(Image.class);
+    Image newAvatar = new Image(InputStream.nullInputStream());
     AvatarBean avatarBean = AvatarBeanBuilder.create().defaultValues().url(new URL("https://test11.com")).get();
     when(avatarService.loadAvatar(avatarBean)).thenReturn(newAvatar);
     runOnFxThreadAndWait(() -> player.setAvatar(avatarBean));

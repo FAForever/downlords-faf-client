@@ -8,8 +8,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.LiveReplayService;
 import com.faforever.client.test.UITest;
 import com.faforever.commons.lobby.GameStatus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -26,8 +26,12 @@ public class WatchGameMenuItemTest extends UITest {
   @Mock
   private LiveReplayService liveReplayService;
 
-  @InjectMocks
   private WatchGameMenuItem instance;
+
+  @BeforeEach
+  public void setUp() throws Exception {
+    instance = new WatchGameMenuItem(i18n, liveReplayService, notificationService);
+  }
 
   @Test
   public void testWatchGame() {

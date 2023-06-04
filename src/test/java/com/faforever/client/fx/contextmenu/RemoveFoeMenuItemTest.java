@@ -6,8 +6,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.UITest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -20,8 +20,13 @@ public class RemoveFoeMenuItemTest extends UITest {
   private I18n i18n;
   @Mock
   private PlayerService playerService;
-  @InjectMocks
+
   private RemoveFoeMenuItem instance;
+
+  @BeforeEach
+  public void setUp() throws Exception {
+    instance = new RemoveFoeMenuItem(i18n, playerService);
+  }
 
   @Test
   public void testRemoveFoeIfPlayerIsFoe() {

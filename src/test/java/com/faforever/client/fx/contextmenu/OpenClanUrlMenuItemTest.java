@@ -6,8 +6,8 @@ import com.faforever.client.clan.ClanService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.UITest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Optional;
@@ -29,8 +29,12 @@ public class OpenClanUrlMenuItemTest extends UITest {
   @Mock
   private ClanService clanService;
 
-  @InjectMocks
   private OpenClanUrlMenuItem instance;
+
+  @BeforeEach
+  public void setUp() throws Exception {
+    instance = new OpenClanUrlMenuItem(i18n, platformService, clanService);
+  }
 
   @Test
   public void testOpenClanUrl() {

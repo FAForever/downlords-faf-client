@@ -60,6 +60,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -86,7 +87,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -228,7 +228,7 @@ public class MapServiceTest extends UITest {
   public void testLoadPreview() {
     for (PreviewSize previewSize : PreviewSize.values()) {
       Path cacheSubDir = Path.of("maps").resolve(previewSize.folderName);
-      when(assetService.loadAndCacheImage(any(URL.class), eq(cacheSubDir), any())).thenReturn(mock(Image.class));
+      when(assetService.loadAndCacheImage(any(URL.class), eq(cacheSubDir), any())).thenReturn(new Image(InputStream.nullInputStream()));
       instance.loadPreview("preview", previewSize);
       verify(assetService).loadAndCacheImage(any(URL.class), eq(cacheSubDir), any());
     }

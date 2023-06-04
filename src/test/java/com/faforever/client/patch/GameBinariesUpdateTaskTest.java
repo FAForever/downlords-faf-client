@@ -9,7 +9,6 @@ import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
@@ -44,11 +43,12 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
   @Spy
   private ForgedAlliancePrefs forgedAlliancePrefs;
 
-  @InjectMocks
   private GameBinariesUpdateTaskImpl instance;
 
   @BeforeEach
   public void setUp() throws Exception {
+    instance = new GameBinariesUpdateTaskImpl(null, i18n, platformService, null, dataPrefs, forgedAlliancePrefs, clientProperties);
+
     Path faPath = tempDirectory.resolve("fa");
 
     dataPrefs.setBaseDataDirectory(tempDirectory);

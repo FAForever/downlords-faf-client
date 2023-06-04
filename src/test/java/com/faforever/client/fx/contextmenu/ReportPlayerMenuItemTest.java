@@ -9,8 +9,8 @@ import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -26,8 +26,12 @@ public class ReportPlayerMenuItemTest extends UITest {
   @Mock
   private UiService uiService;
 
-  @InjectMocks
   private ReportPlayerMenuItem instance;
+
+  @BeforeEach
+  public void setUp() throws Exception {
+    instance = new ReportPlayerMenuItem(i18n, uiService);
+  }
 
   @Test
   public void testReportPlayer() {

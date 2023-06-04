@@ -35,6 +35,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.publisher.TestPublisher;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +57,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -339,7 +339,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testGetCurrentAvatarByPlayerName() {
-    when(avatarService.loadAvatar(any())).thenReturn(mock(Image.class));
+    when(avatarService.loadAvatar(any())).thenReturn(new Image(InputStream.nullInputStream()));
     assertNotNull(instance.getCurrentAvatarByPlayerName("junit2").orElse(null));
   }
 

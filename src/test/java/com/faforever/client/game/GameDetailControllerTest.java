@@ -36,6 +36,7 @@ import org.mockito.Mock;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.io.InputStream;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +49,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -106,7 +106,7 @@ public class GameDetailControllerTest extends UITest {
         .defaultValues()
         .get()));
     when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
-    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(mock(Image.class));
+    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(new Image(InputStream.nullInputStream()));
     when(timeService.shortDuration(any())).thenReturn("duration");
     when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
     when(i18n.get("game.detail.players.format", game.getNumActivePlayers(), game.getMaxPlayers())).thenReturn(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()));
@@ -364,8 +364,8 @@ public class GameDetailControllerTest extends UITest {
   public void testOnGenerateMapClickedAndDoNotSetImageIfGameIsAnother() {
     GameBean game = GameBeanBuilder.create().defaultValues().mapFolderName("neroxis").get();
     GameBean anotherGame = GameBeanBuilder.create().defaultValues().mapFolderName("non_neroxis").get();
-    Image image = mock(Image.class);
-    Image anotherImage = mock(Image.class);
+    Image image = new Image(InputStream.nullInputStream());
+    Image anotherImage = new Image(InputStream.nullInputStream());
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(image);
     when(mapService.loadPreview(anotherGame.getMapFolderName(), PreviewSize.SMALL)).thenReturn(anotherImage);
 

@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
+import java.io.InputStream;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -124,7 +125,7 @@ public class PlayerCardControllerTest extends UITest {
 
   @Test
   public void testSetPlayerAvatar() {
-    Image avatarImage = mock(Image.class);
+    Image avatarImage = new Image(InputStream.nullInputStream());
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
     when(avatarService.loadAvatar(player.getAvatar())).thenReturn(avatarImage);
 
@@ -149,7 +150,7 @@ public class PlayerCardControllerTest extends UITest {
 
   @Test
   public void testSetCountryImage() {
-    Image countryImage = mock(Image.class);
+    Image countryImage = new Image(InputStream.nullInputStream());
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
     when(countryFlagService.loadCountryFlag(player.getCountry())).thenReturn(Optional.of(countryImage));
 
