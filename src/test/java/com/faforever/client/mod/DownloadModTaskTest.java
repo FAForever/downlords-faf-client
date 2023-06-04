@@ -7,7 +7,6 @@ import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
@@ -24,7 +23,7 @@ public class DownloadModTaskTest extends UITest {
   @TempDir
   public Path tempDirectory;
   private Path modsDirectory;
-  @InjectMocks
+
   private DownloadModTask instance;
   @Mock
   private I18n i18n;
@@ -36,6 +35,7 @@ public class DownloadModTaskTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    instance = new DownloadModTask(i18n, dataPrefs, forgedAlliancePrefs);
     dataPrefs.setBaseDataDirectory(tempDirectory);
     forgedAlliancePrefs.setVaultBaseDirectory(tempDirectory);
 

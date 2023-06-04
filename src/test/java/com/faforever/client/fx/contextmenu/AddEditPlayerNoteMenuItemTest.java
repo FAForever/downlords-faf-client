@@ -12,8 +12,8 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,8 +33,12 @@ public class AddEditPlayerNoteMenuItemTest extends UITest {
   @Mock
   private I18n i18n;
 
-  @InjectMocks
   private AddEditPlayerNoteMenuItem instance;
+
+  @BeforeEach
+  public void setUp() throws Exception {
+    instance = new AddEditPlayerNoteMenuItem(uiService, playerService, i18n);
+  }
 
   @Override
   protected Pane getRoot() {

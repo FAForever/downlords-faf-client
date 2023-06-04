@@ -35,7 +35,6 @@ import javafx.scene.input.KeyEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
@@ -71,7 +70,6 @@ public class CreateGameControllerTest extends UITest {
   private static final KeyEvent keyDownPressed = new KeyEvent(KeyEvent.KEY_PRESSED, "0", "", KeyCode.DOWN, false, false, false, false);
   private static final KeyEvent keyDownReleased = new KeyEvent(KeyEvent.KEY_RELEASED, "0", "", KeyCode.DOWN, false, false, false, false);
 
-
   @Mock
   private MapService mapService;
   @Mock
@@ -98,17 +96,19 @@ public class CreateGameControllerTest extends UITest {
   private MapFilterController mapFilterController;
   @Spy
   private LastGamePrefs lastGamePrefs;
-  @InjectMocks
+
   private CreateGameController instance;
   private ObservableList<MapVersionBean> mapList;
 
   @BeforeEach
   public void setUp() throws Exception {
+    instance = new CreateGameController(mapService, modService, gameService, i18n, notificationService, userService, mapGeneratorService, uiService, contextMenuBuilder, lastGamePrefs, fxApplicationThreadExecutor);
+
     mapList = FXCollections.observableArrayList();
 
     when(mapGeneratorService.downloadGeneratorIfNecessary(any())).thenReturn(completedFuture(null));
     when(mapGeneratorService.getGeneratorStyles()).thenReturn(completedFuture(List.of()));
-    when(uiService.showInDialog(any(), any(), anyString())).thenReturn(new Dialog());
+    when(uiService.showInDialog(any(), any(), any())).thenReturn(new Dialog());
     when(uiService.loadFxml("theme/play/generate_map.fxml")).thenReturn(generateMapController);
     when(mapService.getInstalledMaps()).thenReturn(mapList);
     when(modService.getFeaturedMods()).thenReturn(completedFuture(emptyList()));

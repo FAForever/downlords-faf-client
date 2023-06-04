@@ -38,6 +38,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
+import java.io.InputStream;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -191,8 +192,8 @@ public class ChatUserItemControllerTest extends UITest {
     MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().get();
     defaultUser.setPlayer(player);
 
-    when(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING)).thenReturn(mock(Image.class));
-    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(mock(Image.class));
+    when(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING)).thenReturn(new Image(InputStream.nullInputStream()));
+    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(new Image(InputStream.nullInputStream()));
     when(mapService.getMapLocallyFromName(mapFolderName)).thenReturn(Optional.of(mapVersion));
     when(mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName)).thenReturn("map name");
     when(i18n.get(eq("game.onMapFormat"), anyString())).thenReturn(mapVersion.getMap()

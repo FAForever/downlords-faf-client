@@ -7,8 +7,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.teammatchmaking.TeamMatchmakingService;
 import com.faforever.client.test.UITest;
 import com.faforever.commons.lobby.GameStatus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
@@ -21,8 +21,13 @@ public class InvitePlayerMenuItemTest extends UITest {
   private TeamMatchmakingService teamMatchmakingService;
   @Mock
   private I18n i18n;
-  @InjectMocks
+
   private InvitePlayerMenuItem instance;
+
+  @BeforeEach
+  public void setUp() throws Exception {
+    instance = new InvitePlayerMenuItem(i18n, teamMatchmakingService);
+  }
 
   @Test
   public void testInvitePlayer() {

@@ -4,18 +4,17 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.replay.LiveReplayService;
-import com.faforever.client.replay.TrackingLiveReplayAction;
 import com.faforever.client.replay.TrackingLiveReplay;
+import com.faforever.client.replay.TrackingLiveReplayAction;
 import com.faforever.client.test.UITest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -26,8 +25,13 @@ public class CancelActionRunReplayImmediatelyMenuItemTest extends UITest {
   @Mock
   private LiveReplayService liveReplayService;
 
-  @InjectMocks
+
   private CancelActionRunReplayImmediatelyMenuItem instance;
+
+  @BeforeEach
+  public void setUp() throws Exception {
+    instance = new CancelActionRunReplayImmediatelyMenuItem(i18n, liveReplayService);
+  }
 
   @Test
   public void testOnClickedCancelActionRunReplayImmediately() {

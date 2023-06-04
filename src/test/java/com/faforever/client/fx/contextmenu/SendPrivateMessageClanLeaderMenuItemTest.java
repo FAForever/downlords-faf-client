@@ -9,8 +9,8 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.UITest;
 import com.google.common.eventbus.EventBus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Optional;
@@ -31,12 +31,18 @@ public class SendPrivateMessageClanLeaderMenuItemTest extends UITest {
   @Mock
   private EventBus eventBus;
 
-  @InjectMocks
   private SendPrivateMessageClanLeaderMenuItem instance;
+
+  @BeforeEach
+  public void setup() {
+    instance = new SendPrivateMessageClanLeaderMenuItem(i18n, clanService, eventBus);
+  }
 
   @Test
   public void testSendMessageClanLeader() {
-    when(clanService.getClanByTag(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(ClanBeanBuilder.create().defaultValues().get())));
+    when(clanService.getClanByTag(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(ClanBeanBuilder.create()
+        .defaultValues()
+        .get())));
 
     instance.setObject(PlayerBeanBuilder.create().get());
     instance.onClicked();

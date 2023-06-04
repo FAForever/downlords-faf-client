@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
+import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -103,7 +104,7 @@ public class ModCardControllerTest extends UITest {
 
   @Test
   public void testSetModNoThumbnail() {
-    Image image = mock(Image.class);
+    Image image = new Image(InputStream.nullInputStream());
     when(modService.loadThumbnail(modVersion)).thenReturn(image);
 
     runOnFxThreadAndWait(() -> instance.setEntity(modVersion));

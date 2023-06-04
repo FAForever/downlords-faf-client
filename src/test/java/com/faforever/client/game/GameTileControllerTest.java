@@ -18,12 +18,12 @@ import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -34,7 +34,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -45,8 +44,6 @@ public class GameTileControllerTest extends UITest {
   private UiService uiService;
   @Mock
   private ModService modService;
-  @InjectMocks
-  private GameTileController instance;
   @Mock
   private JoinGameHelper joinGameHelper;
   @Mock
@@ -58,6 +55,8 @@ public class GameTileControllerTest extends UITest {
   @Mock
   private PlayerService playerService;
 
+  private GameTileController instance;
+
   private GameBean game;
 
   @Mock
@@ -65,6 +64,8 @@ public class GameTileControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    instance = new GameTileController(mapService, i18n, joinGameHelper, modService, playerService, uiService, imageViewHelper, fxApplicationThreadExecutor);
+
     game = GameBeanBuilder.create().defaultValues().get();
 
     when(i18n.get(anyString())).thenReturn("test");
@@ -133,7 +134,7 @@ public class GameTileControllerTest extends UITest {
 
   @Test
   public void testShowAvatarInsteadOfDefaultHostIcon() {
-    when(playerService.getCurrentAvatarByPlayerName(game.getHost())).thenReturn(Optional.of(mock(Image.class)));
+    when(playerService.getCurrentAvatarByPlayerName(game.getHost())).thenReturn(Optional.of(new Image(InputStream.nullInputStream())));
 
     runOnFxThreadAndWait(() -> instance.setGame(game));
 

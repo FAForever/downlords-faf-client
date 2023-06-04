@@ -6,7 +6,6 @@ import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
@@ -23,7 +22,6 @@ public class DownloadMapBeanTaskTest extends UITest {
   @TempDir
   public Path tempDirectory;
 
-  @InjectMocks
   private DownloadMapTask instance;
 
 
@@ -36,6 +34,7 @@ public class DownloadMapBeanTaskTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    instance = new DownloadMapTask(i18n, forgedAlliancePrefs);
     forgedAlliancePrefs.setVaultBaseDirectory(tempDirectory);
     mapsDirectory = Files.createDirectory(tempDirectory.resolve("maps"));
   }

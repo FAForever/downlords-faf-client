@@ -9,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.io.File;
@@ -33,7 +32,6 @@ public class DownloadMapGeneratorTaskTest extends ServiceTest {
   public Path downloadDirectory;
   public Path sourceDirectory;
 
-  @InjectMocks
   private DownloadMapGeneratorTask instance;
 
   @Mock
@@ -50,6 +48,8 @@ public class DownloadMapGeneratorTaskTest extends ServiceTest {
     clientProperties = new ClientProperties();
     downloadDirectory = Files.createDirectories(tempDirectory.resolve("download"));
     sourceDirectory = Files.createDirectories(tempDirectory.resolve("source"));
+
+    instance = new DownloadMapGeneratorTask(mapGeneratorService, clientProperties, i18n, platformService);
   }
 
   @Test

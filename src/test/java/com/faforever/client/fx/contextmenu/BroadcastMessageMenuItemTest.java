@@ -4,8 +4,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.moderator.ModeratorService;
 import com.faforever.client.test.UITest;
 import com.faforever.commons.api.dto.GroupPermission;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Collections;
@@ -22,8 +22,13 @@ public class BroadcastMessageMenuItemTest extends UITest {
   private I18n i18n;
   @Mock
   private ModeratorService moderatorService;
-  @InjectMocks
+
   private BroadcastMessageMenuItem instance;
+
+  @BeforeEach
+  public void setUp() throws Exception {
+    instance = new BroadcastMessageMenuItem(i18n, moderatorService);
+  }
 
   @Test
   public void testVisibleItem() {

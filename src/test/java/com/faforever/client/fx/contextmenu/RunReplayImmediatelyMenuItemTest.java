@@ -7,8 +7,8 @@ import com.faforever.client.replay.LiveReplayService;
 import com.faforever.client.replay.TrackingLiveReplay;
 import com.faforever.client.replay.TrackingLiveReplayAction;
 import com.faforever.client.test.UITest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Optional;
@@ -25,8 +25,12 @@ public class RunReplayImmediatelyMenuItemTest extends UITest {
   @Mock
   private LiveReplayService liveReplayService;
 
-  @InjectMocks
   private RunReplayImmediatelyMenuItem instance;
+
+  @BeforeEach
+  public void setUp() throws Exception {
+    instance = new RunReplayImmediatelyMenuItem(i18n, liveReplayService);
+  }
 
   @Test
   public void testOnClickedRunReplayImmediately() {

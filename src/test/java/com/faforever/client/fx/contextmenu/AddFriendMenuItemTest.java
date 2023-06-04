@@ -6,8 +6,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.UITest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -21,8 +21,13 @@ public class AddFriendMenuItemTest extends UITest {
   private PlayerService playerService;
   @Mock
   private I18n i18n;
-  @InjectMocks
+
   private AddFriendMenuItem instance;
+
+  @BeforeEach
+  public void setUp() throws Exception {
+    instance = new AddFriendMenuItem(playerService, i18n);
+  }
 
   @Test
   public void testAddFriendIfPlayerIsFor() {
