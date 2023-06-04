@@ -21,7 +21,6 @@ import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.MessageTarget;
 import com.google.common.eventbus.EventBus;
-import org.apache.commons.codec.digest.HmacUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -32,10 +31,11 @@ import org.mockito.Spy;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.net.URI;
 import java.nio.file.Path;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -72,7 +72,6 @@ public class IceAdapterImplTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(iceServerMapper);
-    ReflectionTestUtils.setField(iceServerMapper, "playerService", playerService, null);
     ReflectionTestUtils.setField(instance, "iceAdapterProxy", iceAdapterApi, null);
   }
 
@@ -180,12 +179,10 @@ public class IceAdapterImplTest extends ServiceTest {
   @Test
   public void testSetIceAdapters() throws Exception {
     CoturnServer coturnServer = new CoturnServer();
-    coturnServer.setHost("test");
-    coturnServer.setPort(8000);
-    coturnServer.setKey("test");
-
-    PlayerBean currentPlayer = PlayerBeanBuilder.create().defaultValues().get();
-    when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
+    coturnServer.setCredential("test");
+    coturnServer.setCredentialType("token");
+    coturnServer.setUsername("0:1234");
+    coturnServer.setUrls(Set.of(URI.create("turn://test.coturn.com?transport=tcp")));
 
     instance.setIceServers(List.of(coturnServer));
 
@@ -198,21 +195,10 @@ public class IceAdapterImplTest extends ServiceTest {
 
     Map<String, Object> iceMap = value.get(0);
 
-    String tokenName = (String) iceMap.get("username");
-    String[] nameParts = tokenName.split(":");
-    String userId = nameParts[1];
-    String timeString = nameParts[0];
-    String token = Base64.getEncoder().encodeToString(new HmacUtils("HmacSHA1", coturnServer.getKey()).hmac(tokenName));
-    List<String> urls = (List<String>) iceMap.get("urls");
-
-    assertEquals("1", userId);
-    assertEquals("token", iceMap.get("credentialType"));
-    assertEquals(token, iceMap.get("credential"));
-    assertTrue(Long.parseLong(timeString) > System.currentTimeMillis() / 1000);
-    assertEquals(3, urls.size());
-    assertEquals("turn:test:8000?transport=tcp", urls.get(0));
-    assertEquals("turn:test:8000?transport=udp", urls.get(1));
-    assertEquals("turn:test:8000", urls.get(2));
+    assertEquals(coturnServer.getUsername(), iceMap.get("username"));
+    assertEquals(coturnServer.getCredentialType(), iceMap.get("credentialType"));
+    assertEquals(coturnServer.getCredential(), iceMap.get("credential"));
+    assertEquals(List.of("turn://test.coturn.com?transport=tcp"), iceMap.get("urls"));
   }
 
 }

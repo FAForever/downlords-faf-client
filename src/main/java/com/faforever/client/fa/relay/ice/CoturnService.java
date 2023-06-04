@@ -2,7 +2,6 @@ package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.mapstruct.IceServerMapper;
-import com.faforever.client.preferences.CoturnHostPort;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.commons.api.dto.CoturnServer;
 import com.faforever.commons.api.elide.ElideNavigator;
@@ -12,8 +11,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 @Lazy
@@ -36,9 +35,9 @@ public class CoturnService {
     ElideNavigatorOnCollection<CoturnServer> navigator = ElideNavigator.of(CoturnServer.class).collection();
     Flux<CoturnServer> coturnServerFlux = fafApiAccessor.getMany(navigator);
 
-    Collection<CoturnHostPort> preferredCoturnHosts = forgedAlliancePrefs.getPreferredCoturnServers();
+    Set<String> preferredCoturnRegions = forgedAlliancePrefs.getPreferredCoturnIds();
 
-    return coturnServerFlux.filter(coturnServer -> preferredCoturnHosts.contains(iceServerMapper.mapToHostPort(coturnServer)))
+    return coturnServerFlux.filter(coturnServer -> preferredCoturnRegions.contains(coturnServer.getId()))
         .switchIfEmpty(coturnServerFlux)
         .switchIfEmpty(Flux.error(new IllegalStateException("No Coturn Servers Available")))
         .collectList()
