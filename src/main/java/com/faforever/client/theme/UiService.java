@@ -316,6 +316,14 @@ public class UiService implements InitializingBean, DisposableBean {
     }
   }
 
+  /**
+   * Loads an image with caching.
+   */
+  @Cacheable(value = CacheNames.IMAGES, sync = true)
+  public Image getImage(String relativeImage) {
+    return new Image(relativeImage, true);
+  }
+
 
   public URL getThemeFileUrl(String relativeFile) throws IOException {
     String themeFile = getThemeFile(relativeFile);

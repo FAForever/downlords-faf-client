@@ -29,7 +29,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
@@ -78,7 +77,7 @@ public class PlayerCardController implements Controller<Node> {
 
     ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
-    factionImage.setImage(new Image(UiService.RANDOM_FACTION_IMAGE));
+    factionImage.setImage(uiService.getImage(UiService.RANDOM_FACTION_IMAGE));
     factionImage.visibleProperty().bind(faction.map(value -> value == Faction.RANDOM));
     factionIcon.visibleProperty().bind(faction.map(value -> value != Faction.RANDOM && value != Faction.CIVILIAN));
 
