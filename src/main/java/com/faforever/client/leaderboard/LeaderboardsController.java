@@ -56,11 +56,11 @@ public class LeaderboardsController extends AbstractViewController<Node> {
             controller.setSeason(season);
             controller.getRoot()
                 .setText(i18n.getOrDefault(league.getTechnicalName(), String.format("leaderboard.%s", league.getTechnicalName())));
-            controller.getRoot().setUserData(league.getId());
+            controller.getRoot().setUserData(league.getTechnicalName());
             fxApplicationThreadExecutor.execute(() -> leaderboardRoot.getTabs().add(controller.getRoot()));
             controllers.add(controller);
           }).thenRunAsync(() -> {
-            leaderboardRoot.getTabs().sort(Comparator.comparing(tab -> (int) tab.getUserData()));
+            leaderboardRoot.getTabs().sort(Comparator.comparing(tab -> tab.getUserData().toString()));
             leaderboardRoot.getSelectionModel().select(0);
             lastTab = leaderboardRoot.getTabs().get(0);
           }, fxApplicationThreadExecutor).exceptionally(throwable -> {
