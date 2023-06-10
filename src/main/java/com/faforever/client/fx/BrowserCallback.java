@@ -102,10 +102,10 @@ public class BrowserCallback implements InitializingBean {
   @SuppressWarnings("unused")
   public void previewUrl(String urlString) {
     urlPreviewResolver.resolvePreview(urlString).thenAccept(optionalPreview -> optionalPreview.ifPresent(preview -> {
-      linkPreviewTooltip = new Tooltip(preview.getDescription());
+      linkPreviewTooltip = new Tooltip(preview.description());
       linkPreviewTooltip.setAutoHide(true);
       linkPreviewTooltip.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_LEFT);
-      linkPreviewTooltip.setGraphic(preview.getNode());
+      linkPreviewTooltip.setGraphic(preview.node());
       linkPreviewTooltip.setContentDisplay(ContentDisplay.TOP);
       fxApplicationThreadExecutor.execute(() -> linkPreviewTooltip.show(StageHolder.getStage(), lastMouseX + 20, lastMouseY));
     }));

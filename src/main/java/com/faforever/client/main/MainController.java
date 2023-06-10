@@ -140,11 +140,9 @@ public class MainController implements Controller<Node>, InitializingBean {
   public ToggleButton chatButton;
   public ToggleButton playButton;
   public ToggleButton replayButton;
-  public ToggleButton tutorialsButton;
   public ToggleButton mapButton;
   public ToggleButton modButton;
   public ToggleButton leaderboardsButton;
-  public ToggleButton tournamentsButton;
   public ToggleButton unitsButton;
   public StackPane contentWrapperPane;
   public ToggleGroup mainNavigation;
@@ -194,9 +192,7 @@ public class MainController implements Controller<Node>, InitializingBean {
     mapButton.setUserData(NavigationItem.MAP);
     modButton.setUserData(NavigationItem.MOD);
     leaderboardsButton.setUserData(NavigationItem.LEADERBOARD);
-    tournamentsButton.setUserData(NavigationItem.TOURNAMENTS);
     unitsButton.setUserData(NavigationItem.UNITS);
-    tutorialsButton.setUserData(NavigationItem.TUTORIALS);
     eventBus.register(this);
 
     PersistentNotificationsController persistentNotificationsController = uiService.loadFxml("theme/persistent_notifications.fxml");
