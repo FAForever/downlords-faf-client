@@ -56,6 +56,7 @@ public class PlayerCardControllerTest extends UITest {
   public void setUp() throws Exception {
     instance = new PlayerCardController(uiService, countryFlagService, avatarService, contextMenuBuilder, i18n);
 
+    when(uiService.getImage(UiService.RANDOM_FACTION_IMAGE)).thenReturn(new Image(UiService.RANDOM_FACTION_IMAGE));
     when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     loadFxml("theme/player_card.fxml", clazz -> instance);
   }

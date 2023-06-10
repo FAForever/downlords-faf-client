@@ -103,7 +103,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public <T extends ServerMessage> Flux<T> getEvents(Class<T> type) {
-    return lobbyClient.getEvents().filter(message -> type.isAssignableFrom(message.getClass())).cast(type);
+    return lobbyClient.getEvents().ofType(type);
   }
 
   /**
@@ -112,8 +112,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   @Deprecated
   public <T extends ServerMessage> void addEventListener(Class<T> type, Consumer<T> listener) {
     lobbyClient.getEvents()
-        .filter(serverMessage -> type.isAssignableFrom(serverMessage.getClass()))
-        .cast(type)
+        .ofType(type)
         .flatMap(message -> Mono.fromRunnable(() -> listener.accept(message)).onErrorResume(throwable -> {
           log.error("Could not process listener for `{}`", message, throwable);
           return Mono.empty();
