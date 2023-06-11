@@ -56,7 +56,6 @@
       </java>
       <vmOptionsFile mode="content" overwriteMode="3">
         <content># Enter one VM parameter per line
-# Adjust maximum memory usage to 712MiB
 -Xmx1g
 -XX:+UseZGC
 -XX:+HeapDumpOnOutOfMemoryError
