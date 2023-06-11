@@ -19,8 +19,10 @@ import javafx.beans.binding.NumberBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -70,9 +72,8 @@ public class ReviewsController<T extends ReviewBean> implements Controller<Pane>
 
   private final BooleanProperty canWriteReview = new SimpleBooleanProperty();
   private final IntegerProperty currentPage = new SimpleIntegerProperty(0);
+  private final ObjectProperty<Supplier<T>> reviewSupplier = new SimpleObjectProperty<>();
   private final ObservableList<T> reviews = FXCollections.observableArrayList(review -> new Observable[]{review.scoreProperty()});
-
-  private Supplier<T> reviewSupplier;
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(ownReviewLabel, ownReview, pageLeftButton, reviewsPagination, pageRightButton);
@@ -136,13 +137,13 @@ public class ReviewsController<T extends ReviewBean> implements Controller<Pane>
           .filter(review -> Objects.equals(currentPlayer, review.getPlayer()))
           .max(Comparator.comparing(ReviewBean::getVersion))
           .orElseGet(() -> {
-            if (!canWriteReview.get() || reviewSupplier == null) {
+            if (!canWriteReview.get() || reviewSupplier.get() == null) {
               return null;
             }
 
-            return reviewSupplier.get();
+            return reviewSupplier.get().get();
           });
-    }, playerService.currentPlayerProperty(), reviews, canWriteReview);
+    }, playerService.currentPlayerProperty(), reviews, canWriteReview, reviewSupplier);
     ownReviewController.reviewProperty().bind(ownReviewBinding);
 
     BooleanExpression reviewCreated = BooleanExpression.booleanExpression(ownReviewBinding.flatMap(ReviewBean::idProperty)
@@ -181,7 +182,7 @@ public class ReviewsController<T extends ReviewBean> implements Controller<Pane>
   }
 
   public void setReviewSupplier(Supplier<T> reviewSupplier) {
-    this.reviewSupplier = reviewSupplier;
+    this.reviewSupplier.set(reviewSupplier);
   }
 
   public void setOnDeleteReviewListener(Consumer<T> onDeleteReviewListener) {
