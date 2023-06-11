@@ -64,6 +64,7 @@
 -DnativeDir=natives
 -Dprism.forceGPU=true
 -Djava.library.path=.
+-Dio.netty.allocator.type=unpooled
 # Needed for getting process handle via reflection
 --add-opens=java.base/java.lang=ALL-UNNAMED
         </content>

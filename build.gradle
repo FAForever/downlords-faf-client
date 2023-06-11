@@ -183,6 +183,7 @@ bootRun {
             "-XX:MaxHeapFreeRatio=33",
             "-XX:+HeapDumpOnOutOfMemoryError",
             "-XX:+UseZGC",
+            "-Dio.netty.allocator.type=unpooled"
             "-Djava.net.preferIPv4Stack=true",
             "-XX:TieredStopAtLevel=1",
             // Needed for getting process handle via reflection
