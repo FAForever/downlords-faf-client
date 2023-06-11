@@ -178,15 +178,12 @@ bootRun {
     jvmArgs = [
             "-DnativeDir=build/resources/native",
             "-Dprism.forceGPU=true",
-            "-Xms128m",
-            "-Xmx712m",
+            "-Xmx1g",
             "-XX:MinHeapFreeRatio=15",
             "-XX:MaxHeapFreeRatio=33",
             "-XX:+HeapDumpOnOutOfMemoryError",
-            "-XX:+UseStringDeduplication",
-            "-XX:ConcGCThreads=1",
-            "-XX:ParallelGCThreads=1",
-            "-XX:+UseG1GC",
+            "-XX:+UseZGC",
+            "-Dio.netty.allocator.type=unpooled",
             "-Djava.net.preferIPv4Stack=true",
             "-XX:TieredStopAtLevel=1",
             // Needed for getting process handle via reflection
