@@ -30,8 +30,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.type.TypeFactory;
@@ -49,6 +47,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -70,33 +69,19 @@ public class PreferencesConfig implements DisposableBean {
   private static final String PREFS_FILE_NAME = "client.prefs";
 
   private final Path preferencesFilePath;
-  private final ObjectWriter preferencesWriter;
-  private final ObjectReader preferencesUpdater;
+  private final ObjectMapper preferencesObjectMapper;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  private final Preferences preferences = new Preferences();
+  private final Preferences preferences;
 
   public PreferencesConfig(OperatingSystem operatingSystem, ObjectMapper objectMapper,
                            FxApplicationThreadExecutor fxApplicationThreadExecutor) throws IOException, InterruptedException {
     this.fxApplicationThreadExecutor = fxApplicationThreadExecutor;
 
-    ObjectMapper configuredObjectMapper = configureObjectMapper(objectMapper);
-    preferencesUpdater = configuredObjectMapper.readerForUpdating(preferences);
+    preferencesObjectMapper = configureObjectMapper(objectMapper);
     preferencesFilePath = operatingSystem.getPreferencesDirectory().resolve(PREFS_FILE_NAME);
 
-    preferences.getData().setBaseDataDirectory(operatingSystem.getDefaultDataDirectory());
-    ForgedAlliancePrefs forgedAlliance = preferences.getForgedAlliance();
-    forgedAlliance.setVaultBaseDirectory(operatingSystem.getDefaultVaultDirectory());
-    forgedAlliance.setInstallationPath(operatingSystem.getSteamFaDirectory());
-    forgedAlliance.setPreferencesFile(operatingSystem.getLocalFaDataPath().resolve("Game.prefs"));
-
-    if (Files.exists(preferencesFilePath)) {
-      if (!deleteFileIfEmpty(preferencesFilePath)) {
-        readExistingFile(preferencesFilePath, preferences);
-      }
-    }
-
-    preferencesWriter = configuredObjectMapper.writerFor(Preferences.class);
+    preferences = readExistingPreferences(preferencesFilePath, operatingSystem);
   }
 
   @Bean
@@ -217,11 +202,16 @@ public class PreferencesConfig implements DisposableBean {
     return false;
   }
 
-  private void readExistingFile(Path path, Preferences preferences) throws InterruptedException {
+  private Preferences readExistingPreferences(Path path, OperatingSystem operatingSystem) throws IOException {
+    if (!Files.exists(path) || deleteFileIfEmpty(path)) {
+      return constructDefaultPrefernces(operatingSystem);
+    }
+
     try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
       log.info("Reading preferences file `{}`", path.toAbsolutePath());
-      preferencesUpdater.readValue(reader);
+      Preferences preferences = preferencesObjectMapper.readValue(reader, Preferences.class);
       migratePreferences(preferences);
+      return preferences;
     } catch (Exception e) {
       log.warn("Preferences file `{}` could not be read", path, e);
       fxApplicationThreadExecutor.executeAndWait(() -> {
@@ -238,14 +228,27 @@ public class PreferencesConfig implements DisposableBean {
           }
         }
       });
+
+      return constructDefaultPrefernces(operatingSystem);
     }
+  }
+
+  @NotNull
+  private Preferences constructDefaultPrefernces(OperatingSystem operatingSystem) {
+    Preferences preferences = new Preferences();
+    preferences.getData().setBaseDataDirectory(operatingSystem.getDefaultDataDirectory());
+    ForgedAlliancePrefs forgedAlliance = preferences.getForgedAlliance();
+    forgedAlliance.setVaultBaseDirectory(operatingSystem.getDefaultVaultDirectory());
+    forgedAlliance.setInstallationPath(operatingSystem.getSteamFaDirectory());
+    forgedAlliance.setPreferencesFile(operatingSystem.getLocalFaDataPath().resolve("Game.prefs"));
+    return preferences;
   }
 
   /**
    * Sometimes, old preferences values are renamed or moved. The purpose of this method is to temporarily perform such
    * migrations.
    */
-  private void migratePreferences(Preferences preferences) throws IOException, InterruptedException {
+  private void migratePreferences(Preferences preferences) {
 
   }
 
@@ -263,7 +266,7 @@ public class PreferencesConfig implements DisposableBean {
 
     try (Writer writer = Files.newBufferedWriter(preferencesFilePath, StandardCharsets.UTF_8)) {
       log.info("Writing preferences file `{}`", preferencesFilePath.toAbsolutePath());
-      preferencesWriter.writeValue(writer, preferences);
+      preferencesObjectMapper.writeValue(writer, preferences);
     } catch (IOException e) {
       log.error("Preferences file `{}` could not be written", preferencesFilePath.toAbsolutePath(), e);
     }

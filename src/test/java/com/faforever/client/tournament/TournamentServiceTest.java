@@ -46,9 +46,9 @@ public class TournamentServiceTest extends ServiceTest {
   @Test
   public void testAllTournaments() throws Exception {
     TournamentBean tournamentBean = TournamentBeanBuilder.create().defaultValues().get();
-    Flux<Object> resultFlux = Flux.just(tournamentMapper.map(tournamentBean, new CycleAvoidingMappingContext()));
-    when(fafApiAccessor.getMany(any(), anyString(), anyInt(), any())).thenReturn(resultFlux);
-    List<TournamentBean> results =  instance.getAllTournaments().join();
+    Flux<Tournament> resultFlux = Flux.just(tournamentMapper.map(tournamentBean, new CycleAvoidingMappingContext()));
+    when(fafApiAccessor.getMany(eq(Tournament.class), anyString(), anyInt(), any())).thenReturn(resultFlux);
+    List<TournamentBean> results = instance.getAllTournaments().join();
     verify(fafApiAccessor).getMany(eq(Tournament.class), eq("/challonge/v1/tournaments.json"), eq(100), any());
     assertThat(results, contains(tournamentBean));
   }

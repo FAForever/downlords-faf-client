@@ -1,5 +1,6 @@
 package com.faforever.client.chat.emoticons;
 
+import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.exception.ProgrammingError;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -12,11 +13,13 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Base64.Decoder;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -36,23 +39,29 @@ public class EmoticonService implements InitializingBean {
   private Pattern emoticonShortcodeDetectorPattern;
 
   @Override
-  public void afterPropertiesSet() throws IOException {
-    loadAndVerifyEmoticons();
+  public void afterPropertiesSet() {
+    CompletableFuture.runAsync(this::loadAndVerifyEmoticons);
   }
 
-  private void loadAndVerifyEmoticons() throws IOException, ProgrammingError {
-    emoticonsGroups = Arrays.asList(objectMapper.readValue(EMOTICONS_JSON_FILE_RESOURCE.getInputStream(), EmoticonsGroup[].class));
-    emoticonsGroups.stream().flatMap(emoticonsGroup -> emoticonsGroup.getEmoticons().stream())
-        .forEach(emoticon -> emoticon.getShortcodes().forEach(shortcode -> {
-          if (shortcodeToBase64SvgContent.containsKey(shortcode)) {
-            throw new ProgrammingError("Shortcode `" + shortcode + "` is already taken");
-          }
-          String base64SvgContent = emoticon.getBase64SvgContent();
-          shortcodeToBase64SvgContent.put(shortcode, base64SvgContent);
-          emoticon.setImage(new Image(IOUtils.toInputStream(new String(decoder.decode(base64SvgContent)))));
-        }));
-    emoticonShortcodeDetectorPattern = Pattern.compile(shortcodeToBase64SvgContent.keySet().stream().map(Pattern::quote)
-        .collect(Collectors.joining("|")));
+  private void loadAndVerifyEmoticons() {
+    try (InputStream emoticonsInputStream = EMOTICONS_JSON_FILE_RESOURCE.getInputStream()) {
+      emoticonsGroups = Arrays.asList(objectMapper.readValue(emoticonsInputStream, EmoticonsGroup[].class));
+      emoticonsGroups.stream().flatMap(emoticonsGroup -> emoticonsGroup.getEmoticons().stream())
+          .forEach(emoticon -> emoticon.getShortcodes().forEach(shortcode -> {
+            if (shortcodeToBase64SvgContent.containsKey(shortcode)) {
+              throw new ProgrammingError("Shortcode `" + shortcode + "` is already taken");
+            }
+            String base64SvgContent = emoticon.getBase64SvgContent();
+            shortcodeToBase64SvgContent.put(shortcode, base64SvgContent);
+            emoticon.setImage(new Image(IOUtils.toInputStream(new String(decoder.decode(base64SvgContent)))));
+          }));
+      emoticonShortcodeDetectorPattern = Pattern.compile(shortcodeToBase64SvgContent.keySet()
+          .stream()
+          .map(Pattern::quote)
+          .collect(Collectors.joining("|")));
+    } catch (IOException e) {
+      throw new AssetLoadException("Unable to load emoticons", e, "");
+    }
   }
 
   public List<EmoticonsGroup> getEmoticonsGroups() {
