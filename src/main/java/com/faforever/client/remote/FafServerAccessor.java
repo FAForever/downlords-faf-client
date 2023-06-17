@@ -15,8 +15,6 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.update.Version;
-import com.faforever.client.user.event.LogOutRequestEvent;
-import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.commons.lobby.ConnectionStatus;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.FafLobbyClient;
@@ -92,14 +90,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
       case CONNECTING -> ConnectionState.CONNECTING;
       case CONNECTED -> ConnectionState.CONNECTED;
     }).subscribe(connectionState::set, throwable -> log.error("Error processing connection status", throwable));
-  }
-
-  private void onInternalLoginFailed(Throwable throwable) {
-    eventBus.post(new LogOutRequestEvent());
-    throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-
-    log.error("Could not reconnect to server", throwable);
-    notificationService.addImmediateErrorNotification(throwable, "login.failed");
   }
 
   public <T extends ServerMessage> Flux<T> getEvents(Class<T> type) {

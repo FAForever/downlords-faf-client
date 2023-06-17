@@ -100,7 +100,7 @@ public class UserService implements InitializingBean {
     return Integer.parseInt(getOwnUser().getUserId());
   }
 
-  private void logOut() {
+  public void logOut() {
     log.info("Logging out");
     resetUserState();
     eventBus.post(new LoggedOutEvent());
@@ -150,6 +150,14 @@ public class UserService implements InitializingBean {
   }
 
   public void reconnectToLobby() {
-    fafServerAccessor.reconnect();
+    fafServerAccessor.reconnect().subscribe(myPlayer -> {
+      if (myPlayer.getId() != Integer.parseInt(getOwnUser().getUserId())) {
+        throw new IllegalStateException("Logged in as unexpected user");
+      }
+    }, throwable -> {
+      log.error("Could not reconnect to server", throwable);
+      notificationService.addImmediateErrorNotification(throwable, "login.failed");
+      logOut();
+    });
   }
 }

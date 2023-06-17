@@ -6,7 +6,7 @@ import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.user.event.LogOutRequestEvent;
+import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
@@ -25,6 +25,8 @@ public class UserButtonController implements Controller<Node> {
   private final EventBus eventBus;
   private final PlayerService playerService;
   private final UiService uiService;
+  private final UserService userService;
+
   public MenuButton userMenuButtonRoot;
 
   public void initialize() {
@@ -60,6 +62,6 @@ public class UserButtonController implements Controller<Node> {
   }
 
   public void onLogOut() {
-    eventBus.post(new LogOutRequestEvent());
+    userService.logOut();
   }
 }
