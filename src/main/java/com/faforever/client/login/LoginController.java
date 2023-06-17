@@ -40,6 +40,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -279,7 +280,7 @@ public class LoginController implements Controller<Pane> {
             handleInvalidSate(actualState, state);
             return CompletableFuture.completedFuture(null);
           }
-          return loginWithCode(values.code(), values.redirectUri(), verifier);
+          return loginWithCode(values.code(), values.redirectUri(), verifier).toFuture();
         }).thenAccept(aVoid -> {
           state = null;
           verifier = null;
@@ -296,7 +297,7 @@ public class LoginController implements Controller<Pane> {
     );
   }
 
-  private CompletableFuture<Void> loginWithCode(String code, URI redirectUri, String codeVerifier) {
+  private Mono<Void> loginWithCode(String code, URI redirectUri, String codeVerifier) {
     showLoginProgress();
     return userService.login(code, codeVerifier, redirectUri);
   }
@@ -321,7 +322,7 @@ public class LoginController implements Controller<Pane> {
 
   private void loginWithToken() {
     showLoginProgress();
-    userService.loginWithRefreshToken()
+    userService.loginWithRefreshToken().toFuture()
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           showLoginForm();

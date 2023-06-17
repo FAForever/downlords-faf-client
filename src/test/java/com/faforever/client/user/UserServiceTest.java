@@ -28,8 +28,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.HashMap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -37,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -106,11 +103,11 @@ public class UserServiceTest extends ServiceTest {
   public void testLogin() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
-    when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(me));
+    when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
     when(tokenService.loginWithRefreshToken()).thenReturn(Mono.empty());
     when(tokenService.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
 
-    instance.login("abc", VERIFIER, REDIRECT_URI).join();
+    instance.login("abc", VERIFIER, REDIRECT_URI).block();
 
     assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
     assertEquals(meResult.getUserName(), instance.getUsername());
@@ -122,57 +119,60 @@ public class UserServiceTest extends ServiceTest {
 
   @Test
   public void testReLoginWhenConnected() throws Exception {
-    when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
-    when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(me));
+    when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
     when(tokenService.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
 
-    instance.login("abc", VERIFIER, REDIRECT_URI).join();
+    instance.login("abc", VERIFIER, REDIRECT_URI).block();
+
+    when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
+
+    instance.login("abc", VERIFIER, REDIRECT_URI).block();
 
     assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
     assertEquals(meResult.getUserName(), instance.getUsername());
-    verify(tokenService).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
-    verify(fafApiAccessor).getMe();
-    verify(fafServerAccessor, never()).connectAndLogIn();
-    verify(eventBus).post(any(LoginSuccessEvent.class));
+    verify(tokenService, times(2)).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
+    verify(fafApiAccessor, times(2)).getMe();
+    verify(fafServerAccessor, times(1)).connectAndLogIn();
+    verify(eventBus, times(2)).post(any(LoginSuccessEvent.class));
   }
 
   @Test
   public void testLoginHydraCodeError() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
-    when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(me));
+    when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     FakeTestException testException = new FakeTestException("failed");
     when(tokenService.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.error(testException));
 
-    CompletionException thrown = assertThrows(CompletionException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI).join());
+    FakeTestException thrown = assertThrows(FakeTestException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI)
+        .block());
 
-    assertEquals(testException, thrown.getCause());
+    assertEquals(testException, thrown);
     assertNull(instance.getOwnUser());
     verify(tokenService).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
-    verify(fafApiAccessor, never()).getMe();
-    verify(fafServerAccessor, never()).connectAndLogIn();
     verify(eventBus, never()).post(any(LoginSuccessEvent.class));
   }
 
   @Test
   public void testLoginApiAuthorizeError() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
-    when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
-    when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(me));
+    when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     when(tokenService.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
     FakeTestException testException = new FakeTestException("failed");
-    doThrow(testException).when(fafApiAccessor).getMe();
+    when(fafApiAccessor.getMe()).thenReturn(Mono.error(testException));
 
-    CompletionException thrown = assertThrows(CompletionException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI).join());
+    FakeTestException thrown = assertThrows(FakeTestException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI)
+        .block());
 
-    assertEquals(testException, thrown.getCause());
+    assertEquals(testException, thrown);
     assertNull(instance.getOwnUser());
-    verify(tokenService).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
+    assertNull(instance.getOwnPlayer());
     verify(fafApiAccessor).getMe();
-    verify(fafServerAccessor, never()).connectAndLogIn();
+    verify(fafServerAccessor).connectAndLogIn();
+    verify(tokenService).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
     verify(eventBus, never()).post(any(LoginSuccessEvent.class));
   }
 
@@ -180,19 +180,21 @@ public class UserServiceTest extends ServiceTest {
   public void testLoginApiVerifyError() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
-    when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(me));
+    when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     when(tokenService.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
     FakeTestException testException = new FakeTestException("failed");
     when(fafApiAccessor.getMe()).thenReturn(Mono.error(testException));
 
-    CompletionException thrown = assertThrows(CompletionException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI).join());
+    FakeTestException thrown = assertThrows(FakeTestException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI)
+        .block());
 
-    assertEquals(testException, thrown.getCause());
+    assertEquals(testException, thrown);
     assertNull(instance.getOwnUser());
-    verify(tokenService).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
+    assertNull(instance.getOwnPlayer());
     verify(fafApiAccessor).getMe();
-    verify(fafServerAccessor, never()).connectAndLogIn();
+    verify(fafServerAccessor).connectAndLogIn();
+    verify(tokenService).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
     verify(eventBus, never()).post(any(LoginSuccessEvent.class));
   }
 
@@ -200,17 +202,18 @@ public class UserServiceTest extends ServiceTest {
   public void testLoginLobbyError() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
-    when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(me));
+    when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     when(tokenService.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
     FakeTestException testException = new FakeTestException("failed");
-    when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.failedFuture(testException));
+    when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.error(testException));
 
-    CompletionException thrown = assertThrows(CompletionException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI).join());
+    FakeTestException thrown = assertThrows(FakeTestException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI)
+        .block());
 
-    assertEquals(testException, thrown.getCause());
-    assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
-    assertEquals(meResult.getUserName(), instance.getUsername());
+    assertEquals(testException, thrown);
+    assertNull(instance.getOwnUser());
+    assertNull(instance.getOwnPlayer());
     verify(tokenService).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
     verify(fafApiAccessor).getMe();
     verify(fafServerAccessor).connectAndLogIn();
@@ -223,17 +226,18 @@ public class UserServiceTest extends ServiceTest {
     LoginSuccessResponse invalidLoginMessage = new LoginSuccessResponse(notMe);
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
-    when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(notMe));
+    when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(notMe));
     when(tokenService.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     FakeTestException testException = new FakeTestException("failed");
-    when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.failedFuture(testException));
+    when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.error(testException));
 
-    CompletionException thrown = assertThrows(CompletionException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI).join());
+    FakeTestException thrown = assertThrows(FakeTestException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI)
+        .block());
 
-    assertEquals(testException, thrown.getCause());
-    assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
-    assertEquals(meResult.getUserName(), instance.getUsername());
+    assertEquals(testException, thrown);
+    assertNull(instance.getOwnUser());
+    assertNull(instance.getOwnPlayer());
     verify(tokenService).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
     verify(fafApiAccessor).getMe();
     verify(fafServerAccessor).connectAndLogIn();
@@ -241,40 +245,14 @@ public class UserServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testLoginAfterExpiredWithDifferentUser() {
-    when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
-    when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
-    when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(me));
-    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
-    when(tokenService.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
-
-    instance.login("abc", VERIFIER, REDIRECT_URI).join();
-
-    MeResult otherResult = new MeResult();
-    otherResult.setUserName("junit2");
-    otherResult.setUserId("2");
-    when(fafApiAccessor.getMe()).thenReturn(Mono.just(otherResult));
-    Player me = new Player(2, "junit2", null, null, "", new HashMap<>(), new HashMap<>());
-    LoginSuccessResponse loginMessage = new LoginSuccessResponse(me);
-    when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(me));
-
-    instance.login("abc", VERIFIER, REDIRECT_URI).join();
-
-    verify(fafServerAccessor, times(2)).connectAndLogIn();
-    verify(fafServerAccessor).disconnect();
-    verify(eventBus).post(any(LoggedOutEvent.class));
-    verify(eventBus, times(2)).post(any(LoginSuccessEvent.class));
-  }
-
-  @Test
   public void testLoginWithRefresh() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
-    when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(me));
+    when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     when(tokenService.loginWithRefreshToken()).thenReturn(Mono.empty());
 
-    instance.loginWithRefreshToken().join();
+    instance.loginWithRefreshToken().block();
 
     assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
     assertEquals(meResult.getUserName(), instance.getUsername());
@@ -288,18 +266,16 @@ public class UserServiceTest extends ServiceTest {
   public void testLoginHydraTokenError() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
-    when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(me));
+    when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     FakeTestException testException = new FakeTestException("failed");
     when(tokenService.loginWithRefreshToken()).thenReturn(Mono.error(testException));
 
-    CompletionException thrown = assertThrows(CompletionException.class, () -> instance.loginWithRefreshToken().join());
+    FakeTestException thrown = assertThrows(FakeTestException.class, () -> instance.loginWithRefreshToken().block());
 
-    assertEquals(testException, thrown.getCause());
+    assertEquals(testException, thrown);
     assertNull(instance.getOwnUser());
     verify(tokenService).loginWithRefreshToken();
-    verify(fafApiAccessor, never()).getMe();
-    verify(fafServerAccessor, never()).connectAndLogIn();
     verify(eventBus, never()).post(any(LoginSuccessEvent.class));
   }
 

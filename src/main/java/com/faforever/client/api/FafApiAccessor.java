@@ -155,7 +155,7 @@ public class FafApiAccessor implements InitializingBean {
   }
 
   public Mono<MeResult> getMe() {
-    return retrieveMonoWithErrorHandling(MeResult.class, apiWebClient.get().uri("/me")).cache()
+    return retrieveMonoWithErrorHandling(MeResult.class, apiWebClient.get().uri("/me"))
         .doOnNext(object -> log.trace("Retrieved {} from /me with type MeResult", object));
   }
 

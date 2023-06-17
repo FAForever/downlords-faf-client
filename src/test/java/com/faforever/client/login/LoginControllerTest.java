@@ -35,6 +35,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -42,7 +43,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -125,7 +125,7 @@ public class LoginControllerTest extends UITest {
 
   @Test
   public void testLoginSucceeds() throws Exception {
-    when(userService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(CompletableFuture.completedFuture(null));
+    when(userService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(Mono.empty());
     when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
         .thenAnswer(invocation -> CompletableFuture.completedFuture(new Values(CODE, invocation.getArgument(1), REDIRECT_URI)));
 
@@ -142,7 +142,7 @@ public class LoginControllerTest extends UITest {
   public void testLoginFailsWrongState() throws Exception {
     String wrongState = "a";
 
-    when(userService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(CompletableFuture.completedFuture(null));
+    when(userService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(Mono.empty());
     when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
         .thenReturn(CompletableFuture.completedFuture(new Values(CODE, wrongState, REDIRECT_URI)));
 
@@ -156,7 +156,7 @@ public class LoginControllerTest extends UITest {
 
   @Test
   public void testLoginFails() throws Exception {
-    when(userService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    when(userService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(Mono.error(new FakeTestException()));
     when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
         .thenAnswer(invocation -> CompletableFuture.completedFuture(new Values(CODE, invocation.getArgument(1), REDIRECT_URI)));
 
@@ -215,8 +215,8 @@ public class LoginControllerTest extends UITest {
         .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
     loginPrefs.setRememberMe(true);
     loginPrefs.setRefreshToken("abc");
-    when(userService.loginWithRefreshToken()).thenReturn(CompletableFuture.failedFuture(
-        new CompletionException(WebClientResponseException.create(HttpStatus.BAD_REQUEST.value(), "", HttpHeaders.EMPTY, new byte[]{}, null))));
+    when(userService.loginWithRefreshToken()).thenReturn(Mono.error(
+        WebClientResponseException.create(HttpStatus.BAD_REQUEST.value(), "", HttpHeaders.EMPTY, new byte[]{}, null)));
     runOnFxThreadAndWait(() -> instance.initialize());
     verify(userService).loginWithRefreshToken();
     verify(notificationService, never()).addImmediateErrorNotification(any(), anyString());
@@ -231,8 +231,8 @@ public class LoginControllerTest extends UITest {
         .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
     loginPrefs.setRememberMe(true);
     loginPrefs.setRefreshToken("abc");
-    when(userService.loginWithRefreshToken()).thenReturn(CompletableFuture.failedFuture(
-        new CompletionException(WebClientResponseException.create(HttpStatus.UNAUTHORIZED.value(), "", HttpHeaders.EMPTY, new byte[]{}, null))));
+    when(userService.loginWithRefreshToken()).thenReturn(Mono.error(
+        WebClientResponseException.create(HttpStatus.UNAUTHORIZED.value(), "", HttpHeaders.EMPTY, new byte[]{}, null)));
     runOnFxThreadAndWait(() -> instance.initialize());
     verify(userService).loginWithRefreshToken();
     verify(notificationService, never()).addImmediateErrorNotification(any(), anyString());
@@ -247,7 +247,7 @@ public class LoginControllerTest extends UITest {
         .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
     loginPrefs.setRememberMe(true);
     loginPrefs.setRefreshToken("abc");
-    when(userService.loginWithRefreshToken()).thenReturn(CompletableFuture.failedFuture(new CompletionException(new Exception())));
+    when(userService.loginWithRefreshToken()).thenReturn(Mono.error(new Exception()));
     runOnFxThreadAndWait(() -> instance.initialize());
     verify(userService).loginWithRefreshToken();
     verify(notificationService).addImmediateErrorNotification(any(), anyString());

@@ -128,7 +128,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     return connectionState.getReadOnlyProperty();
   }
 
-  public CompletableFuture<Player> connectAndLogIn() {
+  public Mono<Player> connectAndLogIn() {
     Config config = new Config(tokenService.getRefreshedTokenValue(), Version.getCurrentVersion(), clientProperties.getUserAgent(), clientProperties.getServer()
         .getHost(), clientProperties.getServer().getPort() + 1, sessionId -> {
       try {
@@ -138,7 +138,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
       }
     }, 1024 * 1024, false, clientProperties.getServer().getRetryAttempts(), clientProperties.getServer()
         .getRetryDelaySeconds());
-    return lobbyClient.connectAndLogin(config).toFuture();
+    return lobbyClient.connectAndLogin(config);
   }
 
   public CompletableFuture<GameLaunchResponse> requestHostGame(NewGameInfo newGameInfo) {
@@ -157,17 +157,13 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     lobbyClient.disconnect();
   }
 
-  public void reconnect() {
-    lobbyClient.getConnectionStatus()
+  public Mono<Player> reconnect() {
+    return lobbyClient.getConnectionStatus()
         .filter(ConnectionStatus.DISCONNECTED::equals)
         .next()
         .take(Duration.ofSeconds(5))
-        .doOnSuccess(ignored -> connectAndLogIn().exceptionally(throwable -> {
-          onInternalLoginFailed(throwable);
-          return null;
-        }))
-        .subscribe();
-    disconnect();
+        .then(connectAndLogIn())
+        .doOnSubscribe(ignored -> disconnect());
   }
 
   public void addFriend(int playerId) {

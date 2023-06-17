@@ -24,13 +24,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
+import reactor.function.TupleUtils;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Base64.Encoder;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 @Lazy
 @Service
@@ -51,8 +51,6 @@ public class UserService implements InitializingBean {
   private final NotificationService notificationService;
   private final LoginPrefs loginPrefs;
 
-  private CompletableFuture<Void> loginFuture;
-
   public String getHydraUrl(String state, String codeVerifier, URI redirectUri) {
     Oauth oauth = clientProperties.getOauth();
     String codeChallenge = BASE64_ENCODER.encodeToString(Hashing.sha256()
@@ -61,64 +59,37 @@ public class UserService implements InitializingBean {
     return String.format("%s/oauth2/auth?response_type=code&client_id=%s&state=%s&redirect_uri=%s&scope=%s&code_challenge_method=S256&code_challenge=%s", oauth.getBaseUrl(), oauth.getClientId(), state, redirectUri.toASCIIString(), oauth.getScopes(), codeChallenge);
   }
 
-  public CompletableFuture<Void> login(String code, String codeVerifier, URI redirectUri) {
-    if (loginFuture == null || loginFuture.isDone()) {
-      log.info("Logging in with authorization code");
-      loginFuture = tokenService.loginWithAuthorizationCode(code, codeVerifier, redirectUri)
-          .toFuture()
-          .thenCompose(aVoid -> loginToServices());
-    }
-    return loginFuture;
+  public Mono<Void> login(String code, String codeVerifier, URI redirectUri) {
+    log.info("Logging in with authorization code");
+    return tokenService.loginWithAuthorizationCode(code, codeVerifier, redirectUri).then(loginToServices());
   }
 
-  public CompletableFuture<Void> loginWithRefreshToken() {
-    if (loginFuture == null || loginFuture.isDone()) {
-      log.info("Logging in with refresh token");
-      loginFuture = tokenService.loginWithRefreshToken().toFuture().thenCompose(aVoid -> loginToServices());
-    }
-    return loginFuture;
+  public Mono<Void> loginWithRefreshToken() {
+    log.info("Logging in with refresh token");
+    return tokenService.loginWithRefreshToken().then(loginToServices());
   }
 
-  private CompletableFuture<Void> loginToServices() {
-    return loginToApi().thenCompose(aVoid -> loginToLobbyServer())
-        .thenRun(() -> eventBus.post(new LoginSuccessEvent()));
+  private Mono<Void> loginToServices() {
+    return Mono.zip(loginToApi(), loginToLobbyServer()).doOnNext(TupleUtils.consumer((meResult, mePlayer) -> {
+      if (Integer.parseInt(meResult.getUserId()) != mePlayer.getId()) {
+        throw new IllegalStateException("Different player logged into server and api");
+      }
+
+      ownUser.set(meResult);
+      ownPlayer.set(mePlayer);
+    })).doOnError(throwable -> resetUserState()).then(Mono.fromRunnable(() -> eventBus.post(new LoginSuccessEvent())));
   }
 
-  private CompletableFuture<Void> loginToApi() {
-    return CompletableFuture.runAsync(fafApiAccessor::authorize)
-        .thenCompose(aVoid -> fafApiAccessor.getMe().toFuture())
-        .thenAccept(me -> {
-          if (getOwnUser() == null) {
-            ownUser.set(me);
-          } else if (getOwnUser() != me) {
-            logOut();
-            ownUser.set(me);
-          }
-        })
-        .whenComplete((aVoid, throwable) -> {
-          if (throwable != null) {
-            log.error("Could not log into the api", throwable);
-          }
-        });
+  private Mono<MeResult> loginToApi() {
+    return Mono.fromRunnable(fafApiAccessor::authorize).then(Mono.defer(fafApiAccessor::getMe));
   }
 
-  private CompletableFuture<Void> loginToLobbyServer() {
+  private Mono<Player> loginToLobbyServer() {
     ConnectionState lobbyConnectionState = fafServerAccessor.getConnectionState();
-    if (lobbyConnectionState == ConnectionState.CONNECTED || lobbyConnectionState == ConnectionState.CONNECTING) {
-      return CompletableFuture.completedFuture(null);
+    if (lobbyConnectionState == ConnectionState.CONNECTED) {
+      return Mono.just(ownPlayer.get());
     }
-    return fafServerAccessor.connectAndLogIn().handle((me, throwable) -> {
-      if (throwable != null) {
-        log.error("Could not log into the server", throwable);
-        throw new CompletionException(throwable);
-      }
-      if (me.getId() != getUserId()) {
-        log.error("Player id from server `{}` does not match player id from api `{}`", me.getId(), getUserId());
-        throw new IllegalStateException("Player id returned by server does not match player id from api");
-      }
-      ownPlayer.set(me);
-      return null;
-    });
+    return fafServerAccessor.connectAndLogIn();
   }
 
   public String getUsername() {
@@ -131,12 +102,16 @@ public class UserService implements InitializingBean {
 
   private void logOut() {
     log.info("Logging out");
+    resetUserState();
+    eventBus.post(new LoggedOutEvent());
+  }
+
+  private void resetUserState() {
     loginPrefs.setRefreshToken(null);
     fafApiAccessor.reset();
     fafServerAccessor.disconnect();
     ownUser.set(null);
     ownPlayer.set(null);
-    eventBus.post(new LoggedOutEvent());
   }
 
   @Subscribe

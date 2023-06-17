@@ -83,6 +83,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -218,7 +219,7 @@ public class ServerAccessorTest extends ServiceTest {
   }
 
   private void connectAndLogIn() throws Exception {
-    CompletableFuture<Player> loginFuture = instance.connectAndLogIn();
+    Mono<Player> loginMono = instance.connectAndLogIn();
 
     assertMessageContainsComponents("ask_session",
         "downlords-faf-client",
@@ -247,7 +248,7 @@ public class ServerAccessorTest extends ServiceTest {
 
     sendFromServer(loginServerMessage);
 
-    Player player = loginFuture.get(TIMEOUT, TIMEOUT_UNIT);
+    Player player = loginMono.blockOptional(Duration.of(TIMEOUT, ChronoUnit.MILLIS)).orElseThrow();
 
     assertThat(player.getId(), is(playerUid));
     assertThat(player.getLogin(), is("Junit"));
