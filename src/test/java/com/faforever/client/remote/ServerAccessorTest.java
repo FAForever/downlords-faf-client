@@ -220,7 +220,6 @@ public class ServerAccessorTest extends ServiceTest {
   private void connectAndLogIn() throws Exception {
     long sessionId = 456;
     SessionResponse sessionMessage = new SessionResponse(sessionId);
-    sendFromServer(sessionMessage);
 
     int playerUid = 123;
     com.faforever.commons.lobby.Player me = new com.faforever.commons.lobby.Player(playerUid, "Junit", null, null, "", new HashMap<>(), new HashMap<>());
@@ -237,6 +236,9 @@ public class ServerAccessorTest extends ServiceTest {
         "user_agent",
         Version.getCurrentVersion()
     );
+
+    sendFromServer(sessionMessage);
+
 
     assertMessageContainsComponents(
         "auth",
