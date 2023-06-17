@@ -36,7 +36,7 @@ public class EmoticonServiceTest extends ServiceTest {
     when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class)))
         .thenReturn(new ObjectMapper().readValue(EmoticonService.EMOTICONS_JSON_FILE_RESOURCE.getInputStream(), EmoticonsGroup[].class));
 
-    assertDoesNotThrow(() -> instance.afterPropertiesSet());
+    assertDoesNotThrow(() -> instance.loadAndVerifyEmoticons());
     String shortcodePattern = instance.getEmoticonShortcodeDetectorPattern().pattern();
     assertFalse(shortcodePattern.isBlank());
     assertFalse(instance.getEmoticonsGroups().isEmpty());
@@ -65,7 +65,7 @@ public class EmoticonServiceTest extends ServiceTest {
         ).get()};
     when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
 
-    assertThrows(ProgrammingError.class, () -> instance.afterPropertiesSet());
+    assertThrows(ProgrammingError.class, () -> instance.loadAndVerifyEmoticons());
   }
 
   @Test
@@ -78,7 +78,7 @@ public class EmoticonServiceTest extends ServiceTest {
             .get()};
     when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
 
-    assertThrows(ProgrammingError.class, () -> instance.afterPropertiesSet());
+    assertThrows(ProgrammingError.class, () -> instance.loadAndVerifyEmoticons());
   }
 
   @Test
@@ -89,7 +89,7 @@ public class EmoticonServiceTest extends ServiceTest {
     };
     when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
 
-    assertThrows(ProgrammingError.class, () -> instance.afterPropertiesSet());
+    assertThrows(ProgrammingError.class, () -> instance.loadAndVerifyEmoticons());
   }
 
   @Test
@@ -99,8 +99,9 @@ public class EmoticonServiceTest extends ServiceTest {
     EmoticonsGroup[] emoticonsGroupsArray = new EmoticonsGroup[]{emoticonsGroup};
     when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
 
-    instance.afterPropertiesSet();
-    assertEquals(emoticon.getBase64SvgContent(), instance.getBase64SvgContentByShortcode(emoticon.getShortcodes().get(0)));
+    instance.loadAndVerifyEmoticons();
+    assertEquals(emoticon.getBase64SvgContent(), instance.getBase64SvgContentByShortcode(emoticon.getShortcodes()
+        .get(0)));
     emoticon.getShortcodes().forEach(shortcode -> assertTrue(instance.getEmoticonShortcodeDetectorPattern().pattern().contains(shortcode)));
     assertTrue(instance.getEmoticonShortcodeDetectorPattern().pattern().contains("|"));
   }

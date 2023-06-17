@@ -43,7 +43,8 @@ public class EmoticonService implements InitializingBean {
     CompletableFuture.runAsync(this::loadAndVerifyEmoticons);
   }
 
-  private void loadAndVerifyEmoticons() {
+  @VisibleForTesting
+  void loadAndVerifyEmoticons() {
     try (InputStream emoticonsInputStream = EMOTICONS_JSON_FILE_RESOURCE.getInputStream()) {
       emoticonsGroups = Arrays.asList(objectMapper.readValue(emoticonsInputStream, EmoticonsGroup[].class));
       emoticonsGroups.stream().flatMap(emoticonsGroup -> emoticonsGroup.getEmoticons().stream())
