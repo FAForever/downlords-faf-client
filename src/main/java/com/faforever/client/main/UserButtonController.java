@@ -7,7 +7,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -22,7 +21,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class UserButtonController implements Controller<Node> {
 
-  private final EventBus eventBus;
   private final PlayerService playerService;
   private final UiService uiService;
   private final UserService userService;
