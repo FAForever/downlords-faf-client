@@ -43,7 +43,6 @@ import com.faforever.commons.lobby.PartyInfo;
 import com.faforever.commons.lobby.PartyInfo.PartyMember;
 import com.faforever.commons.lobby.PartyInvite;
 import com.faforever.commons.lobby.PartyKick;
-import com.faforever.commons.lobby.Player;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.PlayerInfo;
 import com.faforever.commons.lobby.SearchInfo;
@@ -73,6 +72,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.netty.DisposableServer;
 import reactor.netty.tcp.TcpServer;
+import reactor.test.StepVerifier;
 
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -218,7 +218,17 @@ public class ServerAccessorTest extends ServiceTest {
   }
 
   private void connectAndLogIn() throws Exception {
-    CompletableFuture<Player> loginFuture = instance.connectAndLogIn();
+    long sessionId = 456;
+    SessionResponse sessionMessage = new SessionResponse(sessionId);
+
+    int playerUid = 123;
+    com.faforever.commons.lobby.Player me = new com.faforever.commons.lobby.Player(playerUid, "Junit", null, null, "", new HashMap<>(), new HashMap<>());
+    LoginSuccessResponse loginServerMessage = new LoginSuccessResponse(me);
+
+    StepVerifier stepVerifier = StepVerifier.create(instance.connectAndLogIn())
+        .expectNextMatches(player -> player.getId() == playerUid && "Junit".equals(player.getLogin()))
+        .expectComplete()
+        .verifyLater();
 
     assertMessageContainsComponents("ask_session",
         "downlords-faf-client",
@@ -227,9 +237,8 @@ public class ServerAccessorTest extends ServiceTest {
         Version.getCurrentVersion()
     );
 
-    long sessionId = 456;
-    SessionResponse sessionMessage = new SessionResponse(sessionId);
     sendFromServer(sessionMessage);
+
 
     assertMessageContainsComponents(
         "auth",
@@ -241,16 +250,9 @@ public class ServerAccessorTest extends ServiceTest {
         "unique_id"
     );
 
-    int playerUid = 123;
-    com.faforever.commons.lobby.Player me = new com.faforever.commons.lobby.Player(playerUid, "Junit", null, null, "", new HashMap<>(), new HashMap<>());
-    LoginSuccessResponse loginServerMessage = new LoginSuccessResponse(me);
-
     sendFromServer(loginServerMessage);
 
-    Player player = loginFuture.get(TIMEOUT, TIMEOUT_UNIT);
-
-    assertThat(player.getId(), is(playerUid));
-    assertThat(player.getLogin(), is("Junit"));
+    stepVerifier.verify(Duration.ofMillis(TIMEOUT));
   }
 
   /**

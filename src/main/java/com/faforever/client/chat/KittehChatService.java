@@ -183,11 +183,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Subscribe
   public void onIrcPassword(IrcPasswordInfo event) {
-    username = userService.getUsername();
     password = Hashing.md5().hashString(event.getPassword(), StandardCharsets.UTF_8).toString();
-    if (connectionState.get() == ConnectionState.DISCONNECTED) {
-      connect();
-    }
   }
 
   @Subscribe
@@ -198,6 +194,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Subscribe
   public void onLoggedInEvent(LoginSuccessEvent event) {
+    username = userService.getUsername();
+    connect();
     if (userService.getOwnPlayer()
         .getRatings()
         .values()
