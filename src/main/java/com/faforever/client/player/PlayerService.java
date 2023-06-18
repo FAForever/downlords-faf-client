@@ -12,7 +12,7 @@ import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.PlayerMapper;
 import com.faforever.client.preferences.UserPrefs;
 import com.faforever.client.remote.FafServerAccessor;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.NameRecord;
 import com.faforever.commons.api.dto.Player;
@@ -69,7 +69,7 @@ public class PlayerService implements InitializingBean {
 
   private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
-  private final UserService userService;
+  private final LoginService loginService;
   private final AvatarService avatarService;
   private final EventBus eventBus;
   private final PlayerMapper playerMapper;
@@ -121,7 +121,7 @@ public class PlayerService implements InitializingBean {
       }
     });
 
-    currentPlayer.bind(userService.ownPlayerProperty().map(this::createOrUpdateFromOwnPlayer));
+    currentPlayer.bind(loginService.ownPlayerProperty().map(this::createOrUpdateFromOwnPlayer));
   }
 
   @Subscribe
@@ -158,7 +158,7 @@ public class PlayerService implements InitializingBean {
 
   public boolean isCurrentPlayerInGame(GameBean game) {
     // TODO the following can be removed as soon as the server tells us which game a player is in.
-    return game.getAllPlayersInGame().contains(userService.getUserId());
+    return game.getAllPlayersInGame().contains(loginService.getUserId());
   }
 
   public boolean isOnline(Integer playerId) {
@@ -219,7 +219,7 @@ public class PlayerService implements InitializingBean {
 
   private void setPlayerSocialStatus(PlayerBean player) {
     Integer id = player.getId();
-    if (userService.getUserId().equals(id)) {
+    if (loginService.getUserId().equals(id)) {
       player.setSocialStatus(SELF);
     } else if (friendList.contains(id)) {
       player.setSocialStatus(FRIEND);

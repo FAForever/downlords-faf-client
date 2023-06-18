@@ -43,7 +43,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.list.NoSelectionModelListView;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.update.ClientUpdateService;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.commons.api.dto.CoturnServer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -97,7 +97,7 @@ import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
 public class SettingsController implements Controller<Node> {
 
   private final NotificationService notificationService;
-  private final UserService userService;
+  private final LoginService loginService;
   private final PreferencesService preferencesService;
   private final UiService uiService;
   private final I18n i18n;
@@ -416,7 +416,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   private void initNotifyMeOnAtMention() {
-    String username = userService.getUsername();
+    String username = loginService.getUsername();
     notifyAtMentionTitle.setText(i18n.get("settings.chat.notifyOnAtMentionOnly", "@" + username));
     notifyAtMentionDescription.setText(i18n.get("settings.chat.notifyOnAtMentionOnly.description", "@" + username));
   }

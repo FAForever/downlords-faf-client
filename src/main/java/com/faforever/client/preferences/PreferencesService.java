@@ -63,7 +63,7 @@ public class PreferencesService implements InitializingBean {
     }
   }
 
-  public boolean isGamePathValid() {
+  public boolean isValidGamePath() {
     Path installationPath = preferences.getForgedAlliance().getInstallationPath();
     try {
       return isGamePathValidWithErrorMessage(installationPath) == null;
@@ -75,7 +75,7 @@ public class PreferencesService implements InitializingBean {
   }
 
   public String isGamePathValidWithErrorMessage(Path installationPath) throws IOException, NoSuchAlgorithmException {
-    boolean valid = installationPath != null && isGamePathValid(installationPath.resolve("bin"));
+    boolean valid = installationPath != null && isValidGamePath(installationPath.resolve("bin"));
     if (!valid) {
       return "gamePath.select.noValidExe";
     }
@@ -116,7 +116,7 @@ public class PreferencesService implements InitializingBean {
     return sb.toString().toUpperCase();
   }
 
-  public boolean isGamePathValid(Path binPath) {
+  public boolean isValidGamePath(Path binPath) {
     return binPath != null && (Files.isRegularFile(binPath.resolve(FORGED_ALLIANCE_EXE)) || Files.isRegularFile(binPath.resolve(SUPREME_COMMANDER_EXE)));
   }
 

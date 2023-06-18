@@ -27,7 +27,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.commons.lobby.GameVisibility;
@@ -96,7 +96,7 @@ public class CreateGameController implements Controller<Pane> {
   private final GameService gameService;
   private final I18n i18n;
   private final NotificationService notificationService;
-  private final UserService userService;
+  private final LoginService loginService;
   private final MapGeneratorService mapGeneratorService;
   private final UiService uiService;
   private final ContextMenuBuilder contextMenuBuilder;
@@ -182,7 +182,7 @@ public class CreateGameController implements Controller<Pane> {
       validateTitle(newValue);
     });
 
-    JavaFxUtil.addAndTriggerListener(userService.connectionStateProperty(), new WeakInvalidationListener(createButtonStateListener));
+    JavaFxUtil.addAndTriggerListener(loginService.connectionStateProperty(), new WeakInvalidationListener(createButtonStateListener));
     JavaFxUtil.addListener(titleTextField.textProperty(), createButtonStateListener);
     JavaFxUtil.addListener(passwordTextField.textProperty(), createButtonStateListener);
     JavaFxUtil.addListener(featuredModListView.getSelectionModel()
@@ -198,7 +198,7 @@ public class CreateGameController implements Controller<Pane> {
     String title = titleTextField.getText();
     String password = passwordTextField.getText();
 
-    ConnectionState lobbyConnectionState = userService.getConnectionState();
+    ConnectionState lobbyConnectionState = loginService.getConnectionState();
     String createGameTextKey = switch (lobbyConnectionState) {
       case DISCONNECTED -> "game.create.disconnected";
       case CONNECTING -> "game.create.connecting";

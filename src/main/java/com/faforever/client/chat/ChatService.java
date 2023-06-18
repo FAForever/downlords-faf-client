@@ -4,6 +4,7 @@ import com.faforever.client.net.ConnectionState;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.MapChangeListener;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public interface ChatService {
@@ -54,4 +55,6 @@ public interface ChatService {
   void incrementUnreadMessagesCount(int delta);
 
   void onInitiatePrivateChat(InitiatePrivateChatEvent event);
+
+  Set<ChatChannel> getChannels();
 }

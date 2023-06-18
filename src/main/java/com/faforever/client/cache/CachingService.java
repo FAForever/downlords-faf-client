@@ -1,8 +1,7 @@
 package com.faforever.client.cache;
 
-import com.faforever.client.user.event.LoggedOutEvent;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
+import com.faforever.client.fx.SimpleInvalidationListener;
+import com.faforever.client.user.LoginService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -19,11 +18,11 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class CachingService implements InitializingBean {
   private final CacheManager cacheManager;
-  private final EventBus eventBus;
+  private final LoginService loginService;
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    eventBus.register(this);
+    loginService.loggedInProperty().addListener((SimpleInvalidationListener) this::evictAllCaches);
   }
 
   private void evictAllCaches() {
@@ -31,10 +30,5 @@ public class CachingService implements InitializingBean {
         .map(cacheManager::getCache)
         .filter(Objects::nonNull)
         .forEach(Cache::clear);
-  }
-
-  @Subscribe
-  public void onLogout(LoggedOutEvent event) {
-    evictAllCaches();
   }
 }

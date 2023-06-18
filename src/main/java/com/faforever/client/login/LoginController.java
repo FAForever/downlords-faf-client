@@ -19,7 +19,7 @@ import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.DownloadUpdateTask;
 import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.Version;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -57,7 +57,7 @@ public class LoginController implements Controller<Pane> {
 
   private final OperatingSystem operatingSystem;
   private final GameService gameService;
-  private final UserService userService;
+  private final LoginService loginService;
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
   private final ClientProperties clientProperties;
@@ -299,11 +299,11 @@ public class LoginController implements Controller<Pane> {
 
   private Mono<Void> loginWithCode(String code, URI redirectUri, String codeVerifier) {
     showLoginProgress();
-    return userService.login(code, codeVerifier, redirectUri);
+    return loginService.login(code, codeVerifier, redirectUri);
   }
 
   private Void onLoginFailed(Throwable throwable) {
-    if (userService.getOwnUser() != null && userService.getOwnPlayer() != null) {
+    if (loginService.getOwnUser() != null && loginService.getOwnPlayer() != null) {
       log.info("Previous login request failed but user is already logged in", throwable);
       return null;
     }
@@ -322,7 +322,7 @@ public class LoginController implements Controller<Pane> {
 
   private void loginWithToken() {
     showLoginProgress();
-    userService.loginWithRefreshToken().toFuture()
+    loginService.loginWithRefreshToken().toFuture()
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           showLoginForm();

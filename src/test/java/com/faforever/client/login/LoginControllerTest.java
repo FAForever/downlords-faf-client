@@ -18,7 +18,7 @@ import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.DownloadUpdateTask;
 import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.VersionTest;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.commons.api.dto.MeResult;
 import com.faforever.commons.lobby.Player;
 import javafx.scene.control.Label;
@@ -74,7 +74,7 @@ public class LoginControllerTest extends UITest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private UserService userService;
+  private LoginService loginService;
   @Mock
   private PlatformService platformService;
   @Mock
@@ -118,14 +118,14 @@ public class LoginControllerTest extends UITest {
     String refreshToken = "asd";
     loginPrefs.setRefreshToken(refreshToken);
     runOnFxThreadAndWait(() -> instance.initialize());
-    verify(userService).loginWithRefreshToken();
+    verify(loginService).loginWithRefreshToken();
     assertTrue(instance.loginProgressPane.isVisible());
     assertFalse(instance.loginFormPane.isVisible());
   }
 
   @Test
   public void testLoginSucceeds() throws Exception {
-    when(userService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(Mono.empty());
+    when(loginService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(Mono.empty());
     when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
         .thenAnswer(invocation -> CompletableFuture.completedFuture(new Values(CODE, invocation.getArgument(1), REDIRECT_URI)));
 
@@ -133,7 +133,7 @@ public class LoginControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(oAuthValuesReceiver).receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString());
-    verify(userService).login(eq(CODE), anyString(), eq(REDIRECT_URI));
+    verify(loginService).login(eq(CODE), anyString(), eq(REDIRECT_URI));
     assertTrue(instance.loginProgressPane.isVisible());
     assertFalse(instance.loginFormPane.isVisible());
   }
@@ -142,7 +142,7 @@ public class LoginControllerTest extends UITest {
   public void testLoginFailsWrongState() throws Exception {
     String wrongState = "a";
 
-    when(userService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(Mono.empty());
+    when(loginService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(Mono.empty());
     when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
         .thenReturn(CompletableFuture.completedFuture(new Values(CODE, wrongState, REDIRECT_URI)));
 
@@ -150,20 +150,20 @@ public class LoginControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(oAuthValuesReceiver).receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString());
-    verify(userService, never()).login(anyString(), anyString(), any());
+    verify(loginService, never()).login(anyString(), anyString(), any());
     verify(notificationService).addImmediateErrorNotification(any(IllegalStateException.class), eq("login.failed"));
   }
 
   @Test
   public void testLoginFails() throws Exception {
-    when(userService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(Mono.error(new FakeTestException()));
+    when(loginService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(Mono.error(new FakeTestException()));
     when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
         .thenAnswer(invocation -> CompletableFuture.completedFuture(new Values(CODE, invocation.getArgument(1), REDIRECT_URI)));
 
     instance.onLoginButtonClicked().get();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(userService).login(eq(CODE), anyString(), eq(REDIRECT_URI));
+    verify(loginService).login(eq(CODE), anyString(), eq(REDIRECT_URI));
     verify(notificationService).addImmediateErrorNotification(any(), eq("login.failed"));
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
@@ -199,8 +199,8 @@ public class LoginControllerTest extends UITest {
   public void testLoginFailsTimeoutAlreadyLoggedIn() throws Exception {
     when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
         .thenReturn(CompletableFuture.failedFuture(new SocketTimeoutException()));
-    when(userService.getOwnUser()).thenReturn(new MeResult());
-    when(userService.getOwnPlayer()).thenReturn(new Player(0, "junit", null, null, "US", Map.of(), Map.of()));
+    when(loginService.getOwnUser()).thenReturn(new MeResult());
+    when(loginService.getOwnPlayer()).thenReturn(new Player(0, "junit", null, null, "US", Map.of(), Map.of()));
 
     instance.onLoginButtonClicked().get();
     WaitForAsyncUtils.waitForFxEvents();
@@ -215,10 +215,10 @@ public class LoginControllerTest extends UITest {
         .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
     loginPrefs.setRememberMe(true);
     loginPrefs.setRefreshToken("abc");
-    when(userService.loginWithRefreshToken()).thenReturn(Mono.error(
+    when(loginService.loginWithRefreshToken()).thenReturn(Mono.error(
         WebClientResponseException.create(HttpStatus.BAD_REQUEST.value(), "", HttpHeaders.EMPTY, new byte[]{}, null)));
     runOnFxThreadAndWait(() -> instance.initialize());
-    verify(userService).loginWithRefreshToken();
+    verify(loginService).loginWithRefreshToken();
     verify(notificationService, never()).addImmediateErrorNotification(any(), anyString());
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
@@ -231,10 +231,10 @@ public class LoginControllerTest extends UITest {
         .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
     loginPrefs.setRememberMe(true);
     loginPrefs.setRefreshToken("abc");
-    when(userService.loginWithRefreshToken()).thenReturn(Mono.error(
+    when(loginService.loginWithRefreshToken()).thenReturn(Mono.error(
         WebClientResponseException.create(HttpStatus.UNAUTHORIZED.value(), "", HttpHeaders.EMPTY, new byte[]{}, null)));
     runOnFxThreadAndWait(() -> instance.initialize());
-    verify(userService).loginWithRefreshToken();
+    verify(loginService).loginWithRefreshToken();
     verify(notificationService, never()).addImmediateErrorNotification(any(), anyString());
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
@@ -247,9 +247,9 @@ public class LoginControllerTest extends UITest {
         .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
     loginPrefs.setRememberMe(true);
     loginPrefs.setRefreshToken("abc");
-    when(userService.loginWithRefreshToken()).thenReturn(Mono.error(new Exception()));
+    when(loginService.loginWithRefreshToken()).thenReturn(Mono.error(new Exception()));
     runOnFxThreadAndWait(() -> instance.initialize());
-    verify(userService).loginWithRefreshToken();
+    verify(loginService).loginWithRefreshToken();
     verify(notificationService).addImmediateErrorNotification(any(), anyString());
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
@@ -320,8 +320,8 @@ public class LoginControllerTest extends UITest {
 
     verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
     verify(i18n).get("login.clientTooOldError", "1.2.0", "2.1.2");
-    verify(userService, never()).loginWithRefreshToken();
-    verify(userService, never()).login(anyString(), anyString(), any());
+    verify(loginService, never()).loginWithRefreshToken();
+    verify(loginService, never()).login(anyString(), anyString(), any());
   }
 
   @ParameterizedTest
@@ -355,8 +355,8 @@ public class LoginControllerTest extends UITest {
 
     verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
     verify(i18n).get("login.clientTooOldError", "1.2.0", "2.1.2");
-    verify(userService, never()).loginWithRefreshToken();
-    verify(userService, never()).login(anyString(), anyString(), any());
+    verify(loginService, never()).loginWithRefreshToken();
+    verify(loginService, never()).login(anyString(), anyString(), any());
   }
 
   @Test

@@ -26,7 +26,7 @@ import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.update.ClientUpdateService;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.commons.api.dto.CoturnServer;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlySetWrapper;
@@ -76,7 +76,7 @@ public class SettingsControllerTest extends UITest {
   private SettingsController instance;
 
   @Mock
-  private UserService userService;
+  private LoginService loginService;
   @Mock
   private PreferencesService preferenceService;
   @Mock
@@ -131,7 +131,7 @@ public class SettingsControllerTest extends UITest {
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
 
-    instance = new SettingsController(notificationService, userService, preferenceService, uiService, i18n, eventBus, platformService, clientProperties, clientUpdateService, taskService, coturnService, iceServerMapper, vaultPathHandler, preferences, moveDirectoryTaskFactory, deleteDirectoryTaskFactory, downloadFAFDebuggerTaskFactory, fxApplicationThreadExecutor);
+    instance = new SettingsController(notificationService, loginService, preferenceService, uiService, i18n, eventBus, platformService, clientProperties, clientUpdateService, taskService, coturnService, iceServerMapper, vaultPathHandler, preferences, moveDirectoryTaskFactory, deleteDirectoryTaskFactory, downloadFAFDebuggerTaskFactory, fxApplicationThreadExecutor);
 
     loadFxml("theme/settings/settings.fxml", param -> instance);
   }

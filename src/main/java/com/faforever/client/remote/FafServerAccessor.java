@@ -1,6 +1,6 @@
 package com.faforever.client.remote;
 
-import com.faforever.client.api.TokenService;
+import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PlayerBean;
@@ -65,7 +65,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   private final NotificationService notificationService;
   private final I18n i18n;
   private final TaskScheduler taskScheduler;
-  private final TokenService tokenService;
+  private final TokenRetriever tokenRetriever;
   private final UidService uidService;
   private final EventBus eventBus;
   private final ClientProperties clientProperties;
@@ -119,7 +119,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public Mono<Player> connectAndLogIn() {
-    Config config = new Config(tokenService.getRefreshedTokenValue(), Version.getCurrentVersion(), clientProperties.getUserAgent(), clientProperties.getServer()
+    Config config = new Config(tokenRetriever.getRefreshedTokenValue(), Version.getCurrentVersion(), clientProperties.getUserAgent(), clientProperties.getServer()
         .getHost(), clientProperties.getServer().getPort() + 1, sessionId -> {
       try {
         return uidService.generate(String.valueOf(sessionId));

@@ -73,7 +73,7 @@ public class JoinGameHelperTest extends UITest {
 
     when(gameService.joinGame(any(), any())).thenReturn(new CompletableFuture<>());
 
-    when(preferencesService.isGamePathValid()).thenReturn(true);
+    when(preferencesService.isValidGamePath()).thenReturn(true);
   }
 
 
@@ -92,7 +92,7 @@ public class JoinGameHelperTest extends UITest {
    */
   @Test
   public void testJoinGameMissingGamePathUserSelectsValidPath() {
-    when(preferencesService.isGamePathValid()).thenReturn(false).thenReturn(true);
+    when(preferencesService.isValidGamePath()).thenReturn(false).thenReturn(true);
 
     doAnswer(invocation -> {
       ((GameDirectoryChooseEvent) invocation.getArgument(0)).getFuture().ifPresent(future -> future.complete(Path.of("")));
@@ -110,7 +110,7 @@ public class JoinGameHelperTest extends UITest {
    */
   @Test
   public void testJoinGameMissingGamePathUserSelectsInvalidPath() {
-    when(preferencesService.isGamePathValid()).thenReturn(false);
+    when(preferencesService.isValidGamePath()).thenReturn(false);
 
     // First, user selects invalid path. Seconds, he aborts so we don't stay in an endless loop
     AtomicInteger invocationCounter = new AtomicInteger();

@@ -20,7 +20,7 @@ import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import javafx.concurrent.Worker;
@@ -68,7 +68,7 @@ public class AbstractChatTabControllerTest extends UITest {
   @Mock
   private ChatService chatService;
   @Mock
-  private UserService userService;
+  private LoginService loginService;
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -110,12 +110,12 @@ public class AbstractChatTabControllerTest extends UITest {
 
     when(uiService.getThemeFileUrl(any())).thenReturn(getClass().getResource("/" + UiService.CHAT_SECTION_EXTENDED));
     when(timeService.asShortTime(any())).thenReturn("123");
-    when(userService.getUsername()).thenReturn("junit");
+    when(loginService.getUsername()).thenReturn("junit");
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(":uef:|:aeon:"));
     when(emoticonService.getBase64SvgContentByShortcode(":uef:")).thenReturn("uefBase64Content");
     when(emoticonService.getBase64SvgContentByShortcode(":aeon:")).thenReturn("aeonBase64Content");
 
-    instance = new AbstractChatTabController(userService, chatService, preferencesService, playerService,
+    instance = new AbstractChatTabController(loginService, chatService, preferencesService, playerService,
         audioService, timeService, i18n, notificationService, uiService, eventBus,
         webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor) {
       private final Tab root = new Tab();
@@ -308,7 +308,7 @@ public class AbstractChatTabControllerTest extends UITest {
 
   @Test
   public void testMentionPattern() {
-    when(userService.getUsername()).thenReturn("-Box-");
+    when(loginService.getUsername()).thenReturn("-Box-");
     runOnFxThreadAndWait(() -> instance.initialize());
     assertTrue(instance.mentionPattern.matcher("-Box-").find());
     assertTrue(instance.mentionPattern.matcher("-Box-!").find());

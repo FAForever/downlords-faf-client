@@ -13,7 +13,7 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.commons.lobby.Player;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
@@ -43,7 +43,7 @@ public class MatchmakingQueueItemControllerTest extends UITest {
   @Mock
   private UiService uiService;
   @Mock
-  private UserService userService;
+  private LoginService loginService;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -75,10 +75,10 @@ public class MatchmakingQueueItemControllerTest extends UITest {
     when(playerService.getCurrentPlayer()).thenReturn(player);
     when(playerService.currentPlayerProperty()).thenReturn(new ReadOnlyObjectWrapper<>(player));
     Player ownPlayer = new Player(0, "junit", null, null, "us", null, Map.of());
-    when(userService.getOwnPlayer()).thenReturn(ownPlayer);
-    when(userService.ownPlayerProperty()).thenReturn(new SimpleObjectProperty<>(ownPlayer));
-    when(userService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
-    when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
+    when(loginService.getOwnPlayer()).thenReturn(ownPlayer);
+    when(loginService.ownPlayerProperty()).thenReturn(new SimpleObjectProperty<>(ownPlayer));
+    when(loginService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
+    when(loginService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
     when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(partyMembersNotReadyProperty);

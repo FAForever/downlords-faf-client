@@ -14,7 +14,7 @@ import com.faforever.client.preferences.UserPrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.commons.api.elide.ElideEntity;
 import com.faforever.commons.lobby.Player;
 import com.faforever.commons.lobby.Player.Avatar;
@@ -69,7 +69,7 @@ public class PlayerServiceTest extends ServiceTest {
   @Mock
   private FafServerAccessor fafServerAccessor;
   @Mock
-  private UserService userService;
+  private LoginService loginService;
   @Mock
   private AvatarService avatarService;
   @Mock
@@ -101,13 +101,13 @@ public class PlayerServiceTest extends ServiceTest {
     playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null, new Avatar("https://test.com/test.png", "junit"), "", new HashMap<>(), new HashMap<>());
     playerInfo2 = new com.faforever.commons.lobby.Player(3, "junit3", null, null, "", new HashMap<>(), new HashMap<>());
 
-    when(userService.ownPlayerProperty()).thenReturn(new ReadOnlyObjectWrapper<>(currentPlayer));
-    when(userService.getUsername()).thenReturn("junit");
-    when(userService.getUserId()).thenReturn(1);
+    when(loginService.ownPlayerProperty()).thenReturn(new ReadOnlyObjectWrapper<>(currentPlayer));
+    when(loginService.getUsername()).thenReturn("junit");
+    when(loginService.getUserId()).thenReturn(1);
 
     userPrefs.getNotesByPlayerId().put(3, "junit3");
 
-    when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
+    when(loginService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
 
     instance.afterPropertiesSet();
     playerInfoTestPublisher.next(new PlayerInfo(List.of(playerInfo1, playerInfo2)));

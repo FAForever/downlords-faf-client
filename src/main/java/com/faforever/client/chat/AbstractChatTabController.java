@@ -24,7 +24,7 @@ import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.PopupUtil;
@@ -126,7 +126,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
 
-  protected final UserService userService;
+  protected final LoginService loginService;
   protected final ChatService chatService;
   protected final PreferencesService preferencesService;
   protected final PlayerService playerService;
@@ -171,7 +171,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   Pattern mentionPattern;
 
   public void initialize() {
-    mentionPattern = Pattern.compile("(^|[^A-Za-z0-9-])" + Pattern.quote(userService.getUsername()) + "([^A-Za-z0-9-]|$)", CASE_INSENSITIVE);
+    mentionPattern = Pattern.compile("(^|[^A-Za-z0-9-])" + Pattern.quote(loginService.getUsername()) + "([^A-Za-z0-9-]|$)", CASE_INSENSITIVE);
 
     initChatView();
 

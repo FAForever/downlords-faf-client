@@ -6,7 +6,6 @@ import com.faforever.client.login.NoRefreshTokenException;
 import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.client.user.event.LoggedOutEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.eventbus.EventBus;
 import okhttp3.mockwebserver.MockResponse;
@@ -27,11 +26,9 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TokenServiceTest extends ServiceTest {
+public class TokenRetrieverTest extends ServiceTest {
 
   private static final String VERIFIER = "def";
   private static final URI REDIRECT_URI = URI.create("http://localhost:123");
@@ -39,7 +36,7 @@ public class TokenServiceTest extends ServiceTest {
   private static final String REFRESH_TOKEN = "refresh_token";
   private static final String EXPIRES_IN = "expires_in";
   private static final String TOKEN_TYPE = "token_type";
-  private TokenService instance;
+  private TokenRetriever instance;
 
   @Mock
   private EventBus eventBus;
@@ -61,10 +58,7 @@ public class TokenServiceTest extends ServiceTest {
     loginPrefs = new LoginPrefs();
     loginPrefs.setRefreshToken("abc");
 
-    instance = new TokenService(clientProperties, eventBus, WebClient.builder().build(), loginPrefs);
-    instance.afterPropertiesSet();
-
-    verify(eventBus).register(instance);
+    instance = new TokenRetriever(clientProperties, WebClient.builder().build(), loginPrefs);
   }
 
   private void prepareTokenResponse(Map<String, String> tokenProperties) throws Exception {
@@ -95,12 +89,7 @@ public class TokenServiceTest extends ServiceTest {
     assertEquals("authorization_code", requestParams.get("grant_type"));
     assertEquals(oauth.getClientId(), requestParams.get("client_id"));
     assertEquals(REDIRECT_URI.toString(), requestParams.get("redirect_uri"));
-
-    Thread.sleep(10);
-
-    StepVerifier.create(instance.getRefreshedTokenValue())
-        .expectNext(tokenProperties.get(ACCESS_TOKEN))
-        .verifyComplete();
+    assertTrue(instance.isTokenInvalid());
   }
 
   @Test
@@ -118,16 +107,9 @@ public class TokenServiceTest extends ServiceTest {
         .map(keyValue -> Map.entry(keyValue[0], keyValue[1]))
         .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
-    instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI).block();
-
     assertEquals(REFRESH_TOKEN, requestParams.get("grant_type"));
     assertEquals(oauth.getClientId(), requestParams.get("client_id"));
-
-    Thread.sleep(10);
-
-    StepVerifier.create(instance.getRefreshedTokenValue())
-        .expectNext(tokenProperties.get(ACCESS_TOKEN))
-        .verifyComplete();
+    assertTrue(instance.isTokenInvalid());
   }
 
   @Test
@@ -157,32 +139,26 @@ public class TokenServiceTest extends ServiceTest {
     prepareErrorResponse();
 
     StepVerifier.create(instance.getRefreshedTokenValue()).verifyError(TokenRetrievalException.class);
-
-    verify(eventBus).post(any(SessionExpiredEvent.class));
   }
 
   @Test
-  public void testLogOutInvalidates() throws Exception {
+  public void testInvalidation() throws Exception {
     prepareTokenResponse(Map.of(EXPIRES_IN, "3600", REFRESH_TOKEN, "refresh", ACCESS_TOKEN, "test", TOKEN_TYPE, "bearer"));
 
     StepVerifier.create(instance.loginWithRefreshToken()).verifyComplete();
 
     Thread.sleep(100);
 
-    instance.onLogOut(new LoggedOutEvent());
+    instance.invalidateToken();
 
     prepareErrorResponse();
 
     StepVerifier.create(instance.getRefreshedTokenValue()).verifyError(TokenRetrievalException.class);
-
-    verify(eventBus).post(any(SessionExpiredEvent.class));
   }
 
   @Test
   public void testNoToken() {
     StepVerifier.create(instance.getRefreshedTokenValue()).verifyError(NoRefreshTokenException.class);
-
-    verify(eventBus).post(any(SessionExpiredEvent.class));
   }
 
   @Test
@@ -201,16 +177,5 @@ public class TokenServiceTest extends ServiceTest {
     StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).verifyComplete();
 
     assertEquals(tokenProperties.get(REFRESH_TOKEN), loginPrefs.getRefreshToken());
-  }
-
-  @Test
-  public void testGetRefreshTokenNull() throws Exception {
-    loginPrefs.setRememberMe(false);
-    prepareErrorResponse();
-
-    StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI))
-        .verifyError(TokenRetrievalException.class);
-
-    assertNull(loginPrefs.getRefreshToken());
   }
 }

@@ -5,6 +5,7 @@ import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
@@ -12,9 +13,7 @@ import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
-import com.faforever.client.user.UserService;
-import com.faforever.client.user.event.LoggedOutEvent;
-import com.faforever.client.user.event.LoginSuccessEvent;
+import com.faforever.client.user.LoginService;
 import com.faforever.commons.lobby.IrcPasswordInfo;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
 import com.faforever.commons.lobby.SocialInfo;
@@ -68,11 +67,13 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -93,7 +94,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   public static final int MAX_GAMES_FOR_NEWBIE_CHANNEL = 50;
   private static final String NEWBIE_CHANNEL_NAME = "#newbie";
   private static final Set<Character> MODERATOR_PREFIXES = Set.of('~', '&', '@', '%');
-  private final UserService userService;
+  private final LoginService loginService;
   private final FafServerAccessor fafServerAccessor;
   private final EventBus eventBus;
   private final ClientProperties clientProperties;
@@ -119,11 +120,21 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   /**
    * A list of channels the server wants us to join.
    */
-  private List<String> autoChannels;
+  private final List<String> autoChannels = new ArrayList<>();
+  private final Queue<String> bufferedChannels = new ArrayDeque<>();
 
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
+
+    loginService.loggedInProperty().addListener((SimpleChangeListener<Boolean>) loggedIn -> {
+      if (loggedIn) {
+        connect();
+      } else {
+        disconnect();
+      }
+    });
+
     fafServerAccessor.addEventListener(SocialInfo.class, this::onSocialMessage);
     connectionState.addListener((observable, oldValue, newValue) -> {
       switch (newValue) {
@@ -187,26 +198,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Subscribe
-  public void onLoggedOutEvent(LoggedOutEvent event) {
-    disconnect();
-    eventBus.post(UpdateApplicationBadgeEvent.ofNewValue(0));
-  }
-
-  @Subscribe
-  public void onLoggedInEvent(LoginSuccessEvent event) {
-    username = userService.getUsername();
-    connect();
-    if (userService.getOwnPlayer()
-        .getRatings()
-        .values()
-        .stream()
-        .mapToInt(LeaderboardStats::getNumberOfGames)
-        .sum() < MAX_GAMES_FOR_NEWBIE_CHANNEL) {
-      joinChannel(NEWBIE_CHANNEL_NAME);
-    }
-  }
-
-  @Subscribe
   public void onPlayerOnline(PlayerOnlineEvent event) {
     PlayerBean player = event.player();
 
@@ -225,6 +216,16 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     connectionState.set(ConnectionState.CONNECTED);
     channels.keySet().forEach(this::joinChannel);
     joinSavedAutoChannels();
+    joinBufferedChannels();
+
+    if (loginService.getOwnPlayer()
+        .getRatings()
+        .values()
+        .stream()
+        .mapToInt(LeaderboardStats::getNumberOfGames)
+        .sum() < MAX_GAMES_FOR_NEWBIE_CHANNEL) {
+      joinChannel(NEWBIE_CHANNEL_NAME);
+    }
   }
 
   @Handler
@@ -359,6 +360,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     savedAutoChannels.forEach(this::joinChannel);
   }
 
+  private void joinBufferedChannels() {
+    String channel;
+    while ((channel = bufferedChannels.poll()) != null) {
+      joinChannel(channel);
+    }
+  }
+
   private void onDisconnected() {
     channels.values().forEach(ChatChannel::clearUsers);
   }
@@ -391,7 +399,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private void onSocialMessage(SocialInfo socialMessage) {
-    this.autoChannels = new ArrayList<>(socialMessage.getChannels());
+    autoChannels.clear();
+    autoChannels.addAll(socialMessage.getChannels());
     autoChannels.remove(defaultChannelName);
     autoChannels.add(0, defaultChannelName);
     joinAutoChannels();
@@ -425,8 +434,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     Irc irc = clientProperties.getIrc();
     this.defaultChannelName = irc.getDefaultChannel();
 
+    username = loginService.getUsername();
+
     client = (DefaultClient) Client.builder()
-        .user(String.valueOf(userService.getUserId()))
+        .user(String.valueOf(loginService.getUserId()))
         .realName(username)
         .nick(username)
         .server()
@@ -500,7 +511,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Override
   public void joinChannel(String channelName) {
     log.debug("Joining channel: {}", channelName);
-    client.addChannel(channelName);
+    if (client == null) {
+      bufferedChannels.add(channelName);
+    } else {
+      client.addChannel(channelName);
+    }
   }
 
   @Override
@@ -559,5 +574,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Subscribe
   public void onInitiatePrivateChat(InitiatePrivateChatEvent event) {
     getOrCreateChannel(event.username());
+  }
+
+  @Override
+  public Set<ChatChannel> getChannels() {
+    return Set.copyOf(channels.values());
   }
 }

@@ -1,6 +1,6 @@
 package com.faforever.client.remote;
 
-import com.faforever.client.api.TokenService;
+import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.builders.GameInfoMessageBuilder;
 import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
@@ -116,7 +116,7 @@ public class ServerAccessorTest extends ServiceTest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private TokenService tokenService;
+  private TokenRetriever tokenRetriever;
   @Mock
   private I18n i18n;
   @Mock
@@ -145,7 +145,7 @@ public class ServerAccessorTest extends ServiceTest {
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
 
-    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just(token));
+    when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just(token));
 
     startFakeFafLobbyServer();
 
@@ -154,7 +154,7 @@ public class ServerAccessorTest extends ServiceTest {
         .setPort(disposableServer.port() - 1);
     clientProperties.setUserAgent("downlords-faf-client");
 
-    instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenService, uidService, eventBus, clientProperties, new FafLobbyClient(objectMapper));
+    instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenRetriever, uidService, eventBus, clientProperties, new FafLobbyClient(objectMapper));
 
     instance.afterPropertiesSet();
     instance.addEventListener(ServerMessage.class, serverMessage -> {

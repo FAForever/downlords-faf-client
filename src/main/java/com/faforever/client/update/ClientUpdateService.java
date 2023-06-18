@@ -1,6 +1,7 @@
 package com.faforever.client.update;
 
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
@@ -8,10 +9,8 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.user.event.LoggedInEvent;
+import com.faforever.client.user.LoginService;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -43,14 +42,13 @@ public class ClientUpdateService implements InitializingBean {
   private final NotificationService notificationService;
   private final I18n i18n;
   private final PlatformService platformService;
-  private final EventBus eventBus;
+  private final LoginService loginService;
   private final Preferences preferences;
   private final ObjectFactory<CheckForBetaUpdateTask> checkForBetaUpdateTaskFactory;
   private final ObjectFactory<CheckForUpdateTask> checkForUpdateTaskFactory;
   private final ObjectFactory<DownloadUpdateTask> downloadUpdateTaskFactory;
 
   private CompletableFuture<UpdateInfo> updateInfoFuture;
-  private CompletableFuture<UpdateInfo> updateInfoBetaFuture;
 
   public static class InstallerExecutionException extends UncheckedIOException {
     public InstallerExecutionException(String message, IOException cause) {
@@ -62,13 +60,13 @@ public class ClientUpdateService implements InitializingBean {
   public void afterPropertiesSet() {
     log.info("Current version: {}", Version.getCurrentVersion());
 
-    eventBus.register(this);
+    loginService.loggedInProperty().addListener((SimpleChangeListener<Boolean>) newValue -> {
+      if (newValue) {
+        checkForUpdateInBackground();
+      }
+    });
 
-    CheckForUpdateTask task = checkForUpdateTaskFactory.getObject();
-    this.updateInfoFuture = taskService.submitTask(task).getFuture();
-
-    CheckForBetaUpdateTask betaTask = checkForBetaUpdateTaskFactory.getObject();
-    this.updateInfoBetaFuture = taskService.submitTask(betaTask).getFuture();
+    this.updateInfoFuture = taskService.submitTask(checkForUpdateTaskFactory.getObject()).getFuture();
   }
 
   /**
@@ -86,11 +84,6 @@ public class ClientUpdateService implements InitializingBean {
     }
   }
 
-  @Subscribe
-  public void onLoggedInEvent(LoggedInEvent loggedInEvent) {
-    checkForUpdateInBackground();
-  }
-
   /**
    * Creates an update notification with actions to download and install latest release
    */
@@ -102,7 +95,7 @@ public class ClientUpdateService implements InitializingBean {
    * Creates an update notification with actions to download and install latest beta release
    */
   private void checkForBetaUpdateInBackground() {
-    notificationOnUpdate(updateInfoBetaFuture);
+    notificationOnUpdate(taskService.submitTask(checkForBetaUpdateTaskFactory.getObject()).getFuture());
   }
 
   private void notificationOnUpdate(CompletableFuture<UpdateInfo> updateInfoSupplier) {

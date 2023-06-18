@@ -4,7 +4,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.OAuthValuesReceiver.Values;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -45,7 +45,7 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
   @Mock
   private PlatformService platformService;
   @Mock
-  private UserService userService;
+  private LoginService loginService;
 
   @Test
   void receiveValues() throws Exception {
@@ -58,7 +58,7 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
 
     ArgumentCaptor<URI> captor = ArgumentCaptor.forClass(URI.class);
 
-    verify(userService, timeout(2000)).getHydraUrl(eq(STATE), eq(VERIFIER), captor.capture());
+    verify(loginService, timeout(2000)).getHydraUrl(eq(STATE), eq(VERIFIER), captor.capture());
 
     UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(captor.getValue())
         .queryParam("code", "1234")
@@ -90,7 +90,7 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
 
     ArgumentCaptor<URI> captor = ArgumentCaptor.forClass(URI.class);
 
-    verify(userService, new Timeout(2000, times(2))).getHydraUrl(eq(STATE), eq(VERIFIER), captor.capture());
+    verify(loginService, new Timeout(2000, times(2))).getHydraUrl(eq(STATE), eq(VERIFIER), captor.capture());
 
     UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(captor.getValue())
         .queryParam("code", "1234")
@@ -118,7 +118,7 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
 
     ArgumentCaptor<URI> captor = ArgumentCaptor.forClass(URI.class);
 
-    verify(userService, timeout(2000)).getHydraUrl(eq(STATE), eq(VERIFIER), captor.capture());
+    verify(loginService, timeout(2000)).getHydraUrl(eq(STATE), eq(VERIFIER), captor.capture());
 
     UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(captor.getValue())
         .queryParam("error", "failed");
@@ -168,7 +168,7 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
     CompletableFuture<Values> future = instance.receiveValues(List.of(takenPort, REDIRECT_URI), STATE, VERIFIER);
     ArgumentCaptor<URI> captor = ArgumentCaptor.forClass(URI.class);
 
-    verify(userService, timeout(2000)).getHydraUrl(eq(STATE), eq(VERIFIER), captor.capture());
+    verify(loginService, timeout(2000)).getHydraUrl(eq(STATE), eq(VERIFIER), captor.capture());
 
     UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(captor.getValue())
         .queryParam("code", "1234")
@@ -195,7 +195,7 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
     CompletableFuture<Values> future = instance.receiveValues(List.of(URI.create("http://127.0.0.1"), REDIRECT_URI), STATE, VERIFIER);
     ArgumentCaptor<URI> captor = ArgumentCaptor.forClass(URI.class);
 
-    verify(userService, timeout(2000)).getHydraUrl(eq(STATE), eq(VERIFIER), captor.capture());
+    verify(loginService, timeout(2000)).getHydraUrl(eq(STATE), eq(VERIFIER), captor.capture());
 
     URI usedRedirect = captor.getValue();
 

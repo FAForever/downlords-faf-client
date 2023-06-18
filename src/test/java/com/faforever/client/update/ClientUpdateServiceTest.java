@@ -9,8 +9,11 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.update.ClientUpdateService.InstallerExecutionException;
+import com.faforever.client.user.LoginService;
 import com.faforever.commons.io.Bytes;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -55,6 +58,8 @@ public class ClientUpdateServiceTest extends ServiceTest {
   private ObjectFactory<CheckForUpdateTask> checkForUpdateTaskFactory;
   @Mock
   private ObjectFactory<DownloadUpdateTask> downloadUpdateTaskFactory;
+  @Mock
+  private LoginService loginService;
 
   @Mock
   private CheckForUpdateTask checkForUpdateTask;
@@ -65,11 +70,14 @@ public class ClientUpdateServiceTest extends ServiceTest {
   @Spy
   private Preferences preferences;
 
+  private final BooleanProperty loggedIn = new SimpleBooleanProperty();
+
   @BeforeEach
   public void setUp() throws Exception {
     UpdateInfo normalUpdateInfo = new UpdateInfo("v0.4.9.1-alpha", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), false);
     UpdateInfo betaUpdateInfo = new UpdateInfo("v0.4.9.0-RC1", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), true);
 
+    when(loginService.loggedInProperty()).thenReturn(loggedIn);
     when(checkForUpdateTaskFactory.getObject()).thenReturn(checkForUpdateTask);
     when(checkForBetaUpdateTaskFactory.getObject()).thenReturn(checkForBetaUpdateTask);
     when(taskService.submitTask(any(CheckForUpdateTask.class))).thenReturn(checkForUpdateTask);
@@ -77,7 +85,7 @@ public class ClientUpdateServiceTest extends ServiceTest {
     when(checkForUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(normalUpdateInfo));
     when(checkForBetaUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(betaUpdateInfo));
 
-    instance = new ClientUpdateService(operatingSystem, taskService, notificationService, i18n, platformService, eventBus, preferences, checkForBetaUpdateTaskFactory, checkForUpdateTaskFactory, downloadUpdateTaskFactory);
+    instance = new ClientUpdateService(operatingSystem, taskService, notificationService, i18n, platformService, loginService, preferences, checkForBetaUpdateTaskFactory, checkForUpdateTaskFactory, downloadUpdateTaskFactory);
 
     instance.afterPropertiesSet();
   }

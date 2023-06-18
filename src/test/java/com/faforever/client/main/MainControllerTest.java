@@ -1,7 +1,6 @@
 package com.faforever.client.main;
 
 import ch.micheljung.fxwindow.FxStage;
-import com.faforever.client.api.SessionExpiredEvent;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
@@ -24,9 +23,9 @@ import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
-import com.faforever.client.user.event.LoggedOutEvent;
-import com.faforever.client.user.event.LoginSuccessEvent;
+import com.faforever.client.user.LoginService;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.css.PseudoClass;
@@ -98,6 +97,8 @@ public class MainControllerTest extends UITest {
   @Mock
   private OperatingSystem operatingSystem;
   @Mock
+  private LoginService loginService;
+  @Mock
   private FxStage fxStage;
   @Spy
   private ClientProperties clientProperties;
@@ -111,6 +112,8 @@ public class MainControllerTest extends UITest {
   private DataPrefs dataPrefs;
   @InjectMocks
   private MainController instance;
+
+  private final BooleanProperty loggedIn = new SimpleBooleanProperty();
 
   @Override
   protected boolean showStage() {
@@ -134,6 +137,7 @@ public class MainControllerTest extends UITest {
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(loginController.getRoot()).thenReturn(new Pane());
+    when(loginService.loggedInProperty()).thenReturn(loggedIn);
 
     when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
     when(uiService.loadFxml("theme/transient_notifications.fxml")).thenReturn(transientNotificationsController);
@@ -149,6 +153,9 @@ public class MainControllerTest extends UITest {
       }
       return mock(clazz);
     });
+
+    instance.afterPropertiesSet();
+
     when(fxStage.getStage()).thenReturn(getStage());
     when(fxStage.getNonCaptionNodes()).thenReturn(FXCollections.observableArrayList());
     doAnswer(invocation -> {
@@ -163,16 +170,16 @@ public class MainControllerTest extends UITest {
 
   @Test
   public void testLogOutResets() throws Exception {
-    runOnFxThreadAndWait(() -> instance.onLoginSuccessEvent(new LoginSuccessEvent()));
+    runOnFxThreadAndWait(() -> loggedIn.set(true));
     runOnFxThreadAndWait(() -> instance.onNavigateEvent(new NavigateEvent(NavigationItem.PLAY)));
-    runOnFxThreadAndWait(() -> instance.onLoggedOutEvent(new LoggedOutEvent()));
-    runOnFxThreadAndWait(() -> instance.onLoginSuccessEvent(new LoginSuccessEvent()));
+    runOnFxThreadAndWait(() -> loggedIn.set(false));
+    runOnFxThreadAndWait(() -> loggedIn.set(true));
     runOnFxThreadAndWait(() -> instance.onNavigateEvent(new NavigateEvent(NavigationItem.PLAY)));
     verify(uiService, times(2)).loadFxml(NavigationItem.PLAY.getFxmlFile());
   }
 
   @Test
-  public void testHideNotifications() throws Exception {
+  public void testHideNotifications() {
     runOnFxThreadAndWait(() -> instance.new ToastDisplayer(transientNotificationsController).invalidated(mock(SimpleBooleanProperty.class)));
     assertFalse(instance.transientNotificationsPopup.isShowing());
   }
@@ -198,8 +205,7 @@ public class MainControllerTest extends UITest {
   }
 
   private void fakeLogin() throws InterruptedException {
-    instance.onLoginSuccessEvent(new LoginSuccessEvent());
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> loggedIn.set(true));
   }
 
   @Test
@@ -306,11 +312,5 @@ public class MainControllerTest extends UITest {
   public void testOnRevealReplayFolder() throws Exception {
     instance.onRevealReplayFolder();
     verify(platformService).reveal(dataPrefs.getReplaysDirectory());
-  }
-
-  @Test
-  public void testOnSessionExpired() throws Exception {
-    runOnFxThreadAndWait(() -> instance.onSessionExpiredEvent(new SessionExpiredEvent()));
-    verify(uiService, times(2)).loadFxml("theme/login/login.fxml");
   }
 }
