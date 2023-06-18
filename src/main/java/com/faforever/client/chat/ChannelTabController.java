@@ -15,7 +15,6 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
@@ -67,6 +66,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private static final int TOPIC_CHARACTERS_LIMIT = 350;
 
   private final PlatformService platformService;
+  private final AudioService audioService;
 
   public Tab root;
   public SplitPane splitPane;
@@ -92,15 +92,16 @@ public class ChannelTabController extends AbstractChatTabController {
 
 
   public ChannelTabController(WebViewConfigurer webViewConfigurer, LoginService loginService, ChatService chatService,
-                              PreferencesService preferencesService, PlayerService playerService,
+                              PlayerService playerService,
                               AudioService audioService, TimeService timeService, I18n i18n,
                               NotificationService notificationService, UiService uiService, EventBus eventBus,
                               CountryFlagService countryFlagService, EmoticonService emoticonService,
                               PlatformService platformService, ChatPrefs chatPrefs,
                               NotificationPrefs notificationPrefs,
                               FxApplicationThreadExecutor fxApplicationThreadExecutor) {
-    super(loginService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
+    super(loginService, chatService, playerService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
     this.platformService = platformService;
+    this.audioService = audioService;
   }
 
   @Override

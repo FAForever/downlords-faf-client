@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.discord.JoinDiscordEvent;
@@ -12,7 +11,6 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
@@ -55,15 +53,15 @@ public class MatchmakingChatController extends AbstractChatTabController {
   };
 
   // TODO cut dependencies
-  public MatchmakingChatController(LoginService loginService, PreferencesService preferencesService,
+  public MatchmakingChatController(LoginService loginService,
                                    PlayerService playerService, TimeService timeService, I18n i18n,
                                    NotificationService notificationService, UiService uiService, EventBus eventBus,
-                                   AudioService audioService, ChatService chatService,
+                                   ChatService chatService,
                                    WebViewConfigurer webViewConfigurer, CountryFlagService countryFlagService,
                                    EmoticonService emoticonService, ChatPrefs chatPrefs,
                                    NotificationPrefs notificationPrefs,
                                    FxApplicationThreadExecutor fxApplicationThreadExecutor) {
-    super(loginService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
+    super(loginService, chatService, playerService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
   }
 
   @Override

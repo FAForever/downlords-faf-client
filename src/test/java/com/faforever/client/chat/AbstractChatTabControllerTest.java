@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.audio.AudioService;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
@@ -14,7 +13,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
@@ -70,13 +68,9 @@ public class AbstractChatTabControllerTest extends UITest {
   @Mock
   private LoginService loginService;
   @Mock
-  private PreferencesService preferencesService;
-  @Mock
   private PlayerService playerService;
   @Mock
   private TimeService timeService;
-  @Mock
-  private AudioService audioService;
   @Mock
   private ImageUploadService imageUploadService;
   @Mock
@@ -115,8 +109,8 @@ public class AbstractChatTabControllerTest extends UITest {
     when(emoticonService.getBase64SvgContentByShortcode(":uef:")).thenReturn("uefBase64Content");
     when(emoticonService.getBase64SvgContentByShortcode(":aeon:")).thenReturn("aeonBase64Content");
 
-    instance = new AbstractChatTabController(loginService, chatService, preferencesService, playerService,
-        audioService, timeService, i18n, notificationService, uiService, eventBus,
+    instance = new AbstractChatTabController(loginService, chatService, playerService,
+        timeService, i18n, notificationService, uiService, eventBus,
         webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor) {
       private final Tab root = new Tab();
       private final WebView webView = new WebView();

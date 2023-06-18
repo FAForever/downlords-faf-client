@@ -102,7 +102,7 @@ public class PrivateChatTabControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new PrivateChatTabController(loginService, null, playerService, timeService, i18n, notificationService, uiService, eventBus, audioService, chatService, webViewConfigurer, countryFlagService, emoticonService, avatarService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
+    instance = new PrivateChatTabController(loginService, playerService, timeService, i18n, notificationService, uiService, eventBus, audioService, chatService, webViewConfigurer, countryFlagService, emoticonService, avatarService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
 
     player = PlayerBeanBuilder.create().defaultValues().get();
     playerName = player.getUsername();

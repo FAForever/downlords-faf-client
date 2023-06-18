@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.discord.JoinDiscordEvent;
@@ -42,7 +41,6 @@ public class MatchmakingChatControllerTest extends UITest {
   private ChatService chatService;
   @Mock
   private LoginService loginService;
-
   @Mock
   private PlayerService playerService;
   @Mock
@@ -57,8 +55,6 @@ public class MatchmakingChatControllerTest extends UITest {
   private UiService uiService;
   @Mock
   private WebViewConfigurer webViewConfigurer;
-  @Mock
-  private AudioService audioService;
   @Mock
   private ReportingService reportingService;
   @Mock

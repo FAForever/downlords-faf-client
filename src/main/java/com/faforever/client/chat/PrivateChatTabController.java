@@ -15,7 +15,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PrivatePlayerInfoController;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
@@ -48,6 +47,7 @@ import static com.faforever.client.player.SocialStatus.FOE;
 public class PrivateChatTabController extends AbstractChatTabController {
 
   private final AvatarService avatarService;
+  private final AudioService audioService;
 
   public Tab privateChatTabRoot;
   public ImageView avatarImageView;
@@ -63,7 +63,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   @Autowired
   // TODO cut dependencies
-  public PrivateChatTabController(LoginService loginService, PreferencesService preferencesService,
+  public PrivateChatTabController(LoginService loginService,
                                   PlayerService playerService, TimeService timeService, I18n i18n,
                                   NotificationService notificationService, UiService uiService, EventBus eventBus,
                                   AudioService audioService, ChatService chatService,
@@ -71,8 +71,9 @@ public class PrivateChatTabController extends AbstractChatTabController {
                                   EmoticonService emoticonService, AvatarService avatarService, ChatPrefs chatPrefs,
                                   NotificationPrefs notificationPrefs,
                                   FxApplicationThreadExecutor fxApplicationThreadExecutor) {
-    super(loginService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
+    super(loginService, chatService, playerService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
     this.avatarService = avatarService;
+    this.audioService = audioService;
   }
 
   public void initialize() {
