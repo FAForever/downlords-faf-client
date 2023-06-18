@@ -4,7 +4,7 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.apache.commons.compress.compressors.CompressorException;
@@ -28,7 +28,7 @@ public class FileOpeningHandlerTest extends ServiceTest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private UserService userService;
+  private LoginService loginService;
 
   @InjectMocks
   private FileOpeningHandler instance;
@@ -36,7 +36,7 @@ public class FileOpeningHandlerTest extends ServiceTest {
   @Test
   public void testRunLocalReplay() throws IOException, CompressorException {
     ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
-    when(userService.connectionStateProperty()).thenReturn(connectionState);
+    when(loginService.connectionStateProperty()).thenReturn(connectionState);
 
     ApplicationArguments args = new DefaultApplicationArguments("foo.fafreplay");
     instance.run(args);

@@ -22,7 +22,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -55,7 +55,7 @@ import static org.mockito.Mockito.when;
 public class PrivateChatTabControllerTest extends UITest {
 
   @Mock
-  private UserService userService;
+  private LoginService loginService;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -102,13 +102,13 @@ public class PrivateChatTabControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new PrivateChatTabController(userService, null, playerService, timeService, i18n, notificationService, uiService, eventBus, audioService, chatService, webViewConfigurer, countryFlagService, emoticonService, avatarService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
+    instance = new PrivateChatTabController(loginService, null, playerService, timeService, i18n, notificationService, uiService, eventBus, audioService, chatService, webViewConfigurer, countryFlagService, emoticonService, avatarService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
 
     player = PlayerBeanBuilder.create().defaultValues().get();
     playerName = player.getUsername();
 
     when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(player));
-    when(userService.getUsername()).thenReturn(playerName);
+    when(loginService.getUsername()).thenReturn(playerName);
     when(timeService.asShortTime(any())).thenReturn("");
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
     when(uiService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));

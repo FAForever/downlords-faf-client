@@ -4,7 +4,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.commons.api.dto.MeResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
 public class ModeratorServiceTest extends ServiceTest {
 
   @Mock
-  private UserService userService;
+  private LoginService loginService;
   @Mock
   private FafServerAccessor fafServerAccessor;
   @InjectMocks
@@ -27,9 +27,9 @@ public class ModeratorServiceTest extends ServiceTest {
 
   @Test
   public void testGetPermissions() throws Exception {
-    when(userService.getOwnUser()).thenReturn(new MeResult());
+    when(loginService.getOwnUser()).thenReturn(new MeResult());
     instance.getPermissions();
-    verify(userService).getOwnUser();
+    verify(loginService).getOwnUser();
   }
 
   @Test

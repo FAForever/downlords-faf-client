@@ -2,7 +2,6 @@ package com.faforever.client.main;
 
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.FafClientApplication;
-import com.faforever.client.api.SessionExpiredEvent;
 import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.config.ClientProperties;
@@ -13,8 +12,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.GamePathHandler;
-import com.faforever.client.game.VaultPathHandler;
+import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
@@ -40,9 +38,7 @@ import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.alert.Alert;
 import com.faforever.client.ui.alert.animation.AlertAnimation;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
-import com.faforever.client.user.event.LoggedInEvent;
-import com.faforever.client.user.event.LoggedOutEvent;
-import com.faforever.client.user.event.LoginSuccessEvent;
+import com.faforever.client.user.LoginService;
 import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
@@ -115,16 +111,16 @@ public class MainController implements Controller<Node>, InitializingBean {
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
 
   private final Cache<NavigationItem, AbstractViewController<?>> viewCache = CacheBuilder.newBuilder().build();
+
   private final ClientProperties clientProperties;
   private final I18n i18n;
   private final NotificationService notificationService;
   private final UiService uiService;
   private final EventBus eventBus;
-  private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
+  private final LoginService loginService;
   private final OperatingSystem operatingSystem;
   private final Environment environment;
-  private final VaultPathHandler vaultPathHandler;
   private final NotificationPrefs notificationPrefs;
   private final WindowPrefs windowPrefs;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
@@ -164,6 +160,14 @@ public class MainController implements Controller<Node>, InitializingBean {
   @Override
   public void afterPropertiesSet() {
     alwaysReloadTabs = Arrays.asList(environment.getActiveProfiles()).contains(FafClientApplication.PROFILE_RELOAD);
+
+    loginService.loggedInProperty().addListener((SimpleChangeListener<Boolean>) loggedIn -> {
+      if (loggedIn) {
+        enterLoggedInState();
+      } else {
+        enterLoggedOutState();
+      }
+    });
   }
 
   /**
@@ -243,22 +247,6 @@ public class MainController implements Controller<Node>, InitializingBean {
           return menuItem;
         })
         .collect(Collectors.toList());
-  }
-
-  @Subscribe
-  public void onLoginSuccessEvent(LoginSuccessEvent event) {
-    fxApplicationThreadExecutor.execute(this::enterLoggedInState);
-  }
-
-  @Subscribe
-  public void onLoggedOutEvent(LoggedOutEvent event) {
-    viewCache.invalidateAll();
-    fxApplicationThreadExecutor.execute(this::enterLoggedOutState);
-  }
-
-  @Subscribe
-  public void onSessionExpiredEvent(SessionExpiredEvent event) {
-    fxApplicationThreadExecutor.execute(this::enterLoggedOutState);
   }
 
   @Subscribe
@@ -369,13 +357,17 @@ public class MainController implements Controller<Node>, InitializingBean {
   }
 
   private void enterLoggedOutState() {
-    contentPane.getChildren().clear();
-    fxStage.getStage().setTitle(i18n.get("login.title"));
-
+    viewCache.invalidateAll();
     LoginController loginController = uiService.loadFxml("theme/login/login.fxml");
-    fxStage.setContent(loginController.getRoot());
 
-    fxStage.getNonCaptionNodes().clear();
+    fxApplicationThreadExecutor.execute(() -> {
+      contentPane.getChildren().clear();
+      fxStage.getStage().setTitle(i18n.get("login.title"));
+
+      fxStage.setContent(loginController.getRoot());
+
+      fxStage.getNonCaptionNodes().clear();
+    });
   }
 
   private void registerWindowListeners() {
@@ -431,18 +423,16 @@ public class MainController implements Controller<Node>, InitializingBean {
   }
 
   private void enterLoggedInState() {
-    Stage stage = StageHolder.getStage();
-    stage.setTitle(clientProperties.getMainWindowTitle());
+    fxApplicationThreadExecutor.execute(() -> {
+      Stage stage = StageHolder.getStage();
+      stage.setTitle(clientProperties.getMainWindowTitle());
 
-    fxStage.setContent(getRoot());
-    fxStage.getNonCaptionNodes().setAll(leftMenuPane, rightMenuPane, navigationDropdown);
-    fxStage.setTitleBar(mainHeaderPane);
+      fxStage.setContent(getRoot());
+      fxStage.getNonCaptionNodes().setAll(leftMenuPane, rightMenuPane, navigationDropdown);
+      fxStage.setTitleBar(mainHeaderPane);
 
-    eventBus.post(new LoggedInEvent());
-
-    gamePathHandler.detectAndUpdateGamePath();
-    vaultPathHandler.verifyVaultPathAndShowWarning();
-    openStartTab();
+      openStartTab();
+    });
   }
 
   @VisibleForTesting

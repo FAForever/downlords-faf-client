@@ -59,6 +59,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
 
     ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
+    chatService.getChannels().forEach(this::onChannelJoined);
     chatService.addChannelsListener(channelChangeListener);
 
     JavaFxUtil.addAndTriggerListener(chatService.connectionStateProperty()

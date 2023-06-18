@@ -22,7 +22,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -90,7 +90,7 @@ public class ReplayService {
   private static final Pattern invalidCharacters = Pattern.compile("[?@*%{}<>|\"]");
 
   private final ClientProperties clientProperties;
-  private final UserService userService;
+  private final LoginService loginService;
   private final ReplayFileReader replayFileReader;
   private final NotificationService notificationService;
   private final GameService gameService;
@@ -441,7 +441,7 @@ public class ReplayService {
 
   @Cacheable(value = CacheNames.REPLAYS_MINE, sync = true)
   public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getOwnReplaysWithPageCount(int count, int page) {
-    return getReplaysForPlayerWithPageCount(userService.getUserId(), count, page);
+    return getReplaysForPlayerWithPageCount(loginService.getUserId(), count, page);
   }
 
   private CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getReplayPage(ElideNavigatorOnCollection<Game> navigator,

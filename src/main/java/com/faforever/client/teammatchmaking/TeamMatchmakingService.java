@@ -31,8 +31,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
-import com.faforever.client.user.event.LoggedOutEvent;
-import com.faforever.client.user.event.LoginSuccessEvent;
+import com.faforever.client.user.LoginService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.commons.api.dto.MatchmakerQueue;
@@ -52,7 +51,6 @@ import com.faforever.commons.lobby.PartyKick;
 import com.faforever.commons.lobby.SearchInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -101,6 +99,7 @@ public class TeamMatchmakingService implements InitializingBean {
   private final PlayerService playerService;
   private final NotificationService notificationService;
   private final PreferencesService preferencesService;
+  private final LoginService loginService;
   private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
   private final EventBus eventBus;
@@ -128,6 +127,14 @@ public class TeamMatchmakingService implements InitializingBean {
 
   @Override
   public void afterPropertiesSet() throws Exception {
+    loginService.loggedInProperty().addListener((SimpleChangeListener<Boolean>) loggedIn -> {
+      if (loggedIn) {
+        initializeParty();
+      } else {
+        nameToQueue.clear();
+      }
+    });
+
     validQueues.predicateProperty()
         .bind(Bindings.createObjectBinding(() -> queue -> party.getMembers()
             .size() <= queue.getTeamSize(), party.getMembers()));
@@ -216,8 +223,6 @@ public class TeamMatchmakingService implements InitializingBean {
         .subscribe();
 
     partyMembersNotReady.bind(playersInGame.emptyProperty().map(empty -> !empty));
-
-    eventBus.register(this);
   }
 
   private void onSearchInfo(SearchInfo message) {
@@ -496,7 +501,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private boolean gamePathInvalid() {
-    if (!preferencesService.isGamePathValid()) {
+    if (!preferencesService.isValidGamePath()) {
       eventBus.post(new MissingGamePathEvent(true));
       return true;
     }
@@ -583,15 +588,5 @@ public class TeamMatchmakingService implements InitializingBean {
 
   public void requestMatchmakerInfo() {
     fafServerAccessor.requestMatchmakerInfo();
-  }
-
-  @Subscribe
-  public void onLogOut(LoggedOutEvent event) {
-    nameToQueue.clear();
-  }
-
-  @Subscribe
-  public void onLoggedIn(LoginSuccessEvent event) {
-    initializeParty();
   }
 }

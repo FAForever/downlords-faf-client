@@ -28,7 +28,7 @@ import com.faforever.client.test.ApiTestUtil;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -146,7 +146,7 @@ public class ReplayServiceTest extends ServiceTest {
   @Mock
   private MapGeneratorService mapGeneratorService;
   @Mock
-  private UserService userService;
+  private LoginService loginService;
   @Mock
   private ReplayDataParser replayDataParser;
   @Mock
@@ -349,7 +349,7 @@ public class ReplayServiceTest extends ServiceTest {
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(replayMapper.map(replayBean, new CycleAvoidingMappingContext())), 1);
     when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
 
-    when(userService.getUserId()).thenReturn(47);
+    when(loginService.getUserId()).thenReturn(47);
     List<ReplayBean> results = instance.getOwnReplaysWithPageCount(100, 1).join().getT1();
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().intNum("playerStats.player.id").eq(47).and().instant("endTime").after(Instant.now().minus(365, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS), false))));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("endTime", false)));

@@ -7,7 +7,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -26,7 +26,7 @@ public class UserButtonControllerTest extends UITest {
   @Mock
   private UiService uiService;
   @Mock
-  private UserService userService;
+  private LoginService loginService;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -74,7 +74,7 @@ public class UserButtonControllerTest extends UITest {
   public void testLogOut() {
     instance.onLogOut();
 
-    verify(userService).logOut();
+    verify(loginService).logOut();
   }
 
 }

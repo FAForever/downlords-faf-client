@@ -187,7 +187,7 @@ public class GameServiceTest extends ServiceTest {
     when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
     when(fafServerAccessor.getEvents(GameInfo.class)).thenReturn(testPublisher.flux());
     when(coturnService.getSelectedCoturns()).thenReturn(completedFuture(List.of()));
-    when(preferencesService.isGamePathValid()).thenReturn(true);
+    when(preferencesService.isValidGamePath()).thenReturn(true);
     when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayServer.start(anyInt(), any())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     when(iceAdapter.start(anyInt())).thenReturn(completedFuture(GPG_PORT));
@@ -808,14 +808,14 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void testGameHostIfNoGameSet() {
-    when(preferencesService.isGamePathValid()).thenReturn(false);
+    when(preferencesService.isValidGamePath()).thenReturn(false);
     instance.hostGame(null);
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
   }
 
   @Test
   public void testGameHost() throws IOException {
-    when(preferencesService.isGamePathValid()).thenReturn(true);
+    when(preferencesService.isValidGamePath()).thenReturn(true);
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
     GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     when(gameUpdater.update(newGameInfo.getFeaturedMod(), newGameInfo.getSimMods(), null, null, false)).thenReturn(completedFuture(null));
@@ -830,7 +830,7 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void testOfflineGame() throws IOException {
-    when(preferencesService.isGamePathValid()).thenReturn(true);
+    when(preferencesService.isValidGamePath()).thenReturn(true);
     when(forgedAllianceService.startGameOffline(any())).thenReturn(process);
     when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
     instance.startGameOffline();
@@ -839,28 +839,28 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void testOfflineGameInvalidPath() throws IOException {
-    when(preferencesService.isGamePathValid()).thenReturn(false);
+    when(preferencesService.isValidGamePath()).thenReturn(false);
     instance.startGameOffline();
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
   }
 
   @Test
   public void runWithLiveReplayIfNoGameSet() {
-    when(preferencesService.isGamePathValid()).thenReturn(false);
+    when(preferencesService.isValidGamePath()).thenReturn(false);
     instance.runWithLiveReplay(null, null, null, null);
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
   }
 
   @Test
   public void startSearchMatchmakerIfNoGameSet() {
-    when(preferencesService.isGamePathValid()).thenReturn(false);
+    when(preferencesService.isValidGamePath()).thenReturn(false);
     instance.startSearchMatchmaker();
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
   }
 
   @Test
   public void startSearchMatchmakerWithGameOptions() throws IOException {
-    when(preferencesService.isGamePathValid()).thenReturn(true);
+    when(preferencesService.isValidGamePath()).thenReturn(true);
     when(modService.getFeaturedMod(FAF.getTechnicalName()))
         .thenReturn(Mono.just(FeaturedModBeanBuilder.create().defaultValues().get()));
     when(process.onExit()).thenReturn(completedFuture(process));
@@ -888,7 +888,7 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void startSearchMatchmakerThenCancelledWithGame() throws IOException {
-    when(preferencesService.isGamePathValid()).thenReturn(true);
+    when(preferencesService.isValidGamePath()).thenReturn(true);
     when(modService.getFeaturedMod(FAF.getTechnicalName()))
         .thenReturn(Mono.just(FeaturedModBeanBuilder.create().defaultValues().get()));
     when(process.isAlive()).thenReturn(false);
@@ -919,7 +919,7 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void startSearchMatchmakerThenCancelledNoGame() throws IOException {
-    when(preferencesService.isGamePathValid()).thenReturn(true);
+    when(preferencesService.isValidGamePath()).thenReturn(true);
     when(modService.getFeaturedMod(FAF.getTechnicalName()))
         .thenReturn(Mono.just(FeaturedModBeanBuilder.create().defaultValues().get()));
     when(process.isAlive()).thenReturn(false);
@@ -946,14 +946,14 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void joinGameIfNoGameSet() {
-    when(preferencesService.isGamePathValid()).thenReturn(false);
+    when(preferencesService.isValidGamePath()).thenReturn(false);
     instance.joinGame(null, null);
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
   }
 
   @Test
   public void runWithReplayIfNoGameSet() {
-    when(preferencesService.isGamePathValid()).thenReturn(false);
+    when(preferencesService.isValidGamePath()).thenReturn(false);
     instance.runWithReplay(null, null, null, null, null, null, null);
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
   }
@@ -1052,7 +1052,7 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void launchTutorialIfNoGameSet() {
-    when(preferencesService.isGamePathValid()).thenReturn(false);
+    when(preferencesService.isValidGamePath()).thenReturn(false);
     instance.launchTutorial(null, null);
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
   }

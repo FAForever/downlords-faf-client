@@ -4,7 +4,7 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.commons.api.dto.MeResult;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
@@ -46,7 +46,7 @@ public class ChatControllerTest extends UITest {
   @Mock
   private PrivateChatTabController privateChatTabController;
   @Mock
-  private UserService userService;
+  private LoginService loginService;
   @Mock
   private UiService uiService;
   @Mock
@@ -69,8 +69,8 @@ public class ChatControllerTest extends UITest {
     when(uiService.loadFxml("theme/chat/private_chat_tab.fxml")).thenReturn(privateChatTabController);
     when(uiService.loadFxml("theme/chat/channel_tab.fxml")).thenReturn(channelTabController);
     when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
-    when(userService.getUsername()).thenReturn(TEST_USER_NAME);
-    when(userService.getOwnUser()).thenReturn(new MeResult());
+    when(loginService.getUsername()).thenReturn(TEST_USER_NAME);
+    when(loginService.getOwnUser()).thenReturn(new MeResult());
     when(chatService.connectionStateProperty()).thenReturn(connectionState);
 
     loadFxml("theme/chat/chat.fxml", clazz -> instance);
@@ -109,7 +109,7 @@ public class ChatControllerTest extends UITest {
     tab.setId(TEST_CHANNEL_NAME);
 
     when(channelTabController.getRoot()).thenReturn(tab);
-    when(userService.getUsername()).thenReturn(TEST_USER_NAME);
+    when(loginService.getUsername()).thenReturn(TEST_USER_NAME);
     doAnswer(invocation -> {
       MapChangeListener.Change<? extends String, ? extends ChatChannel> change = mock(MapChangeListener.Change.class);
       when(change.wasAdded()).thenReturn(true);

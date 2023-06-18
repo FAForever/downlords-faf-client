@@ -47,7 +47,7 @@ public class FafClientApplication extends Application {
   }
 
   @Override
-  public void init() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
+  public void init() {
     SvgImageLoaderFactory.install();
     Font.loadFont(FafClientApplication.class.getResourceAsStream("/font/dfc-icons.ttf"), 10);
 
@@ -59,18 +59,23 @@ public class FafClientApplication extends Application {
 
   @Override
   public void start(Stage stage) {
-    StageHolder.setStage(stage);
-    FxStage fxStage = FxStage.configure(stage)
-        .withSceneFactory(parent -> applicationContext.getBean(UiService.class).createScene(parent))
-        .apply();
+    try {
+      StageHolder.setStage(stage);
+      FxStage fxStage = FxStage.configure(stage)
+          .withSceneFactory(parent -> applicationContext.getBean(UiService.class).createScene(parent))
+          .apply();
 
-    fxStage.getStage().setOnCloseRequest(this::closeMainWindow);
+      fxStage.getStage().setOnCloseRequest(this::closeMainWindow);
 
-    showMainWindow(fxStage);
+      showMainWindow(fxStage);
 
-    // TODO publish event instead
-    if (!applicationContext.getBeansOfType(WindowsTaskbarProgressUpdater.class).isEmpty()) {
-      applicationContext.getBean(WindowsTaskbarProgressUpdater.class).initTaskBar();
+      // TODO publish event instead
+      if (!applicationContext.getBeansOfType(WindowsTaskbarProgressUpdater.class).isEmpty()) {
+        applicationContext.getBean(WindowsTaskbarProgressUpdater.class).initTaskBar();
+      }
+    } catch (Exception e) {
+      log.error("Unable to start", e);
+      throw e;
     }
   }
 

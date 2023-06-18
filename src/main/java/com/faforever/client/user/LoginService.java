@@ -1,22 +1,19 @@
 package com.faforever.client.user;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.api.SessionExpiredEvent;
-import com.faforever.client.api.TokenService;
+import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Oauth;
+import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.remote.FafServerAccessor;
-import com.faforever.client.user.event.LogOutRequestEvent;
-import com.faforever.client.user.event.LoggedOutEvent;
-import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.commons.api.dto.MeResult;
 import com.faforever.commons.lobby.Player;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import com.google.common.hash.Hashing;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import lombok.RequiredArgsConstructor;
@@ -36,20 +33,30 @@ import java.util.Base64.Encoder;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserService implements InitializingBean {
+public class LoginService implements InitializingBean {
 
   private static final Encoder BASE64_ENCODER = Base64.getUrlEncoder().withoutPadding();
 
+  private final ReadOnlyBooleanWrapper loggedIn = new ReadOnlyBooleanWrapper(false);
   private final ReadOnlyObjectWrapper<MeResult> ownUser = new ReadOnlyObjectWrapper<>();
   private final ReadOnlyObjectWrapper<Player> ownPlayer = new ReadOnlyObjectWrapper<>();
 
   private final ClientProperties clientProperties;
   private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
-  private final EventBus eventBus;
-  private final TokenService tokenService;
+  private final TokenRetriever tokenRetriever;
   private final NotificationService notificationService;
   private final LoginPrefs loginPrefs;
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    tokenRetriever.tokenInvalidProperty().addListener(((SimpleChangeListener<Boolean>) tokenInvalid -> {
+      if (tokenInvalid && loggedIn.get()) {
+        notificationService.addImmediateInfoNotification("session.expired.message");
+        logOut();
+      }
+    }));
+  }
 
   public String getHydraUrl(String state, String codeVerifier, URI redirectUri) {
     Oauth oauth = clientProperties.getOauth();
@@ -61,12 +68,12 @@ public class UserService implements InitializingBean {
 
   public Mono<Void> login(String code, String codeVerifier, URI redirectUri) {
     log.info("Logging in with authorization code");
-    return tokenService.loginWithAuthorizationCode(code, codeVerifier, redirectUri).then(loginToServices());
+    return tokenRetriever.loginWithAuthorizationCode(code, codeVerifier, redirectUri).then(loginToServices());
   }
 
   public Mono<Void> loginWithRefreshToken() {
     log.info("Logging in with refresh token");
-    return tokenService.loginWithRefreshToken().then(loginToServices());
+    return tokenRetriever.loginWithRefreshToken().then(loginToServices());
   }
 
   private Mono<Void> loginToServices() {
@@ -77,7 +84,9 @@ public class UserService implements InitializingBean {
 
       ownUser.set(meResult);
       ownPlayer.set(mePlayer);
-    })).doOnError(throwable -> resetUserState()).then(Mono.fromRunnable(() -> eventBus.post(new LoginSuccessEvent())));
+    })).doOnError(throwable -> resetLoginState()).then(Mono.fromRunnable(() -> {
+      loggedIn.set(true);
+    }));
   }
 
   private Mono<MeResult> loginToApi() {
@@ -102,31 +111,17 @@ public class UserService implements InitializingBean {
 
   public void logOut() {
     log.info("Logging out");
-    resetUserState();
-    eventBus.post(new LoggedOutEvent());
+    loggedIn.set(false);
+    resetLoginState();
   }
 
-  private void resetUserState() {
+  private void resetLoginState() {
+    tokenRetriever.invalidateToken();
     loginPrefs.setRefreshToken(null);
     fafApiAccessor.reset();
     fafServerAccessor.disconnect();
     ownUser.set(null);
     ownPlayer.set(null);
-  }
-
-  @Subscribe
-  public void onSessionExpired(SessionExpiredEvent sessionExpiredEvent) {
-    notificationService.addImmediateInfoNotification("session.expired.message");
-  }
-
-  @Override
-  public void afterPropertiesSet() {
-    eventBus.register(this);
-  }
-
-  @Subscribe
-  public void onLogoutRequestEvent(LogOutRequestEvent event) {
-    logOut();
   }
 
   public MeResult getOwnUser() {
@@ -159,5 +154,13 @@ public class UserService implements InitializingBean {
       notificationService.addImmediateErrorNotification(throwable, "login.failed");
       logOut();
     });
+  }
+
+  public boolean isLoggedIn() {
+    return loggedIn.get();
+  }
+
+  public ReadOnlyBooleanProperty loggedInProperty() {
+    return loggedIn.getReadOnlyProperty();
   }
 }

@@ -3,6 +3,7 @@ package com.faforever.client.api;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Api;
 import com.faforever.client.io.CountingFileSystemResource;
+import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.commons.api.dto.ApiException;
 import com.faforever.commons.api.dto.Clan;
 import com.faforever.commons.api.dto.CoopResult;
@@ -279,11 +280,15 @@ public class FafApiAccessor implements InitializingBean {
   }
 
   private <T> Mono<T> retrieveMonoWithErrorHandling(Class<T> type, WebClient.RequestHeadersSpec<?> requestSpec) {
-    return retrieveWithErrorHandling(requestSpec).bodyToMono(type).retryWhen(apiRetrySpec);
+    return retrieveWithErrorHandling(requestSpec).bodyToMono(type)
+        .retryWhen(apiRetrySpec)
+        .doOnError(TokenRetrievalException.class, throwable -> authorizedLatch = new CountDownLatch(1));
   }
 
   private <T> Flux<T> retrieveFluxWithErrorHandling(Class<T> type, WebClient.RequestHeadersSpec<?> requestSpec) {
-    return retrieveWithErrorHandling(requestSpec).bodyToFlux(type).retryWhen(apiRetrySpec);
+    return retrieveWithErrorHandling(requestSpec).bodyToFlux(type)
+        .retryWhen(apiRetrySpec)
+        .doOnError(TokenRetrievalException.class, throwable -> authorizedLatch = new CountDownLatch(1));
   }
 
   private WebClient.ResponseSpec retrieveWithErrorHandling(WebClient.RequestHeadersSpec<?> requestSpec) {
@@ -302,8 +307,7 @@ public class FafApiAccessor implements InitializingBean {
               mapping only exists to satisfy the typing of onStatus*/
         return response.bodyToMono(JSONAPIDocument.class)
             .flatMap(jsonapiDocument -> response.createException())
-            .onErrorMap(ResourceParseException.class, exception -> new ApiException(exception.getErrors()
-                    .getErrors()));
+            .onErrorMap(ResourceParseException.class, exception -> new ApiException(exception.getErrors().getErrors()));
       } else if (httpStatus.equals(HttpStatus.SERVICE_UNAVAILABLE)) {
         return response.createException().map(error -> new UnreachableApiException("API is unreachable", error));
       } else if (httpStatus.equals(HttpStatus.TOO_MANY_REQUESTS)) {
@@ -329,10 +333,8 @@ public class FafApiAccessor implements InitializingBean {
     if (!additionalConditions.isEmpty()) {
       Optional<Condition<?>> currentFilter = navigator.getFilter();
       currentFilter.ifPresentOrElse(condition -> navigator.setFilter(new QBuilder().and(additionalConditions)
-              .and()
-              .and(List.of(condition))),
-          () -> navigator.setFilter(new QBuilder().and(additionalConditions))
-      );
+          .and()
+          .and(List.of(condition))), () -> navigator.setFilter(new QBuilder().and(additionalConditions)));
     }
   }
 

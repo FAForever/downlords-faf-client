@@ -320,7 +320,7 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     }
 
-    if (!preferencesService.isGamePathValid()) {
+    if (!preferencesService.isValidGamePath()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
       return gameDirectoryFuture.thenCompose(path -> hostGame(newGameInfo));
     }
@@ -346,7 +346,7 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     }
 
-    if (!preferencesService.isGamePathValid()) {
+    if (!preferencesService.isValidGamePath()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
       return gameDirectoryFuture.thenCompose(path -> joinGame(game, password));
     }
@@ -409,7 +409,7 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     }
 
-    if (!preferencesService.isGamePathValid()) {
+    if (!preferencesService.isValidGamePath()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
       gameDirectoryFuture.thenAccept(pathSet -> runWithReplay(path, replayId, featuredMod, baseFafVersion, featuredModFileVersions, simMods, mapFolderName));
       return completedFuture(null);
@@ -491,7 +491,7 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     }
 
-    if (!preferencesService.isGamePathValid()) {
+    if (!preferencesService.isValidGamePath()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
       return gameDirectoryFuture.thenCompose(path -> runWithLiveReplay(replayUrl, gameId, gameType, mapName));
     }
@@ -541,7 +541,7 @@ public class GameService implements InitializingBean {
       return;
     }
 
-    if (!preferencesService.isGamePathValid()) {
+    if (!preferencesService.isValidGamePath()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
       gameDirectoryFuture.thenRun(this::startSearchMatchmaker);
       return;
@@ -817,7 +817,7 @@ public class GameService implements InitializingBean {
 
   public void launchTutorial(MapVersionBean mapVersion, String technicalMapName) {
 
-    if (!preferencesService.isGamePathValid()) {
+    if (!preferencesService.isValidGamePath()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
       gameDirectoryFuture.thenAccept(path -> launchTutorial(mapVersion, technicalMapName));
       return;
@@ -849,7 +849,7 @@ public class GameService implements InitializingBean {
   }
 
   public void startGameOffline() throws IOException {
-    if (!preferencesService.isGamePathValid()) {
+    if (!preferencesService.isValidGamePath()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
       gameDirectoryFuture.thenAccept(path -> {
         try {

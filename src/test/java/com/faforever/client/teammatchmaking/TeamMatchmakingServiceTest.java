@@ -27,6 +27,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.client.user.LoginService;
 import com.faforever.commons.api.dto.Leaderboard;
 import com.faforever.commons.api.dto.MatchmakerQueue;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
@@ -43,6 +44,8 @@ import com.faforever.commons.lobby.PartyInvite;
 import com.faforever.commons.lobby.PartyKick;
 import com.faforever.commons.lobby.SearchInfo;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
@@ -106,6 +109,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Mock
   private TaskScheduler taskScheduler;
   @Mock
+  private LoginService loginService;
+  @Mock
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Mock
   private GameService gameService;
@@ -118,6 +123,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   private TeamMatchmakingService instance;
   @Spy
   private final MatchmakerMapper matchmakerMapper = Mappers.getMapper(MatchmakerMapper.class);
+
+  private final BooleanProperty loggedIn = new SimpleBooleanProperty();
 
   private final TestPublisher<MatchmakerInfo> matchmakerInfoTestPublisher = TestPublisher.create();
   private final TestPublisher<MatchmakerMatchFoundResponse> matchmakerFoundTestPublisher = TestPublisher.create();
@@ -138,6 +145,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
     when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
 
+    when(loginService.loggedInProperty()).thenReturn(loggedIn);
     when(fafServerAccessor.getEvents(MatchmakerInfo.class)).thenReturn(matchmakerInfoTestPublisher.flux());
     when(fafServerAccessor.getEvents(MatchmakerMatchFoundResponse.class)).thenReturn(matchmakerFoundTestPublisher.flux());
     when(fafServerAccessor.getEvents(MatchmakerMatchCancelledResponse.class)).thenReturn(matchmakerCancelledTestPublisher.flux());
@@ -147,7 +155,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     when(fafServerAccessor.getEvents(SearchInfo.class)).thenReturn(searchInfoTestPublisher.flux());
     when(fafServerAccessor.getEvents(GameLaunchResponse.class)).thenReturn(gameLaunchResponseTestPublisher.flux());
 
-    when(preferencesService.isGamePathValid()).thenReturn(true);
+    when(preferencesService.isValidGamePath()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(player);
     doAnswer(invocation -> {
       Runnable runnable = invocation.getArgument(0);

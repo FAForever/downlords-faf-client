@@ -15,11 +15,11 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @Slf4j
 public class OAuthTokenFilter implements ExchangeFilterFunction {
-  private final TokenService tokenService;
+  private final TokenRetriever tokenRetriever;
 
   @Override
   public @NotNull Mono<ClientResponse> filter(@NotNull ClientRequest request, @NotNull ExchangeFunction next) {
-    return tokenService.getRefreshedTokenValue().flatMap(token -> next.exchange(ClientRequest.from(request)
+    return tokenRetriever.getRefreshedTokenValue().flatMap(token -> next.exchange(ClientRequest.from(request)
         .headers(headers -> headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + token))
         .build()));
   }

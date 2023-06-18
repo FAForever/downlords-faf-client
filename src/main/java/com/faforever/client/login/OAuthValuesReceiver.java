@@ -2,7 +2,7 @@ package com.faforever.client.login;
 
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -37,7 +37,7 @@ public class OAuthValuesReceiver {
   private static final List<String> ALLOWED_HOSTS = List.of("localhost", "127.0.0.1");
 
   private final PlatformService platformService;
-  private final UserService userService;
+  private final LoginService loginService;
   private final I18n i18n;
 
   private CountDownLatch redirectUriLatch;
@@ -75,7 +75,7 @@ public class OAuthValuesReceiver {
         try {
           redirectUriLatch.await();
         } catch (InterruptedException ignored) {}
-        platformService.showDocument(userService.getHydraUrl(this.state, this.codeVerifier, this.redirectUri));
+        platformService.showDocument(loginService.getHydraUrl(this.state, this.codeVerifier, this.redirectUri));
       });
     }
 
@@ -87,7 +87,7 @@ public class OAuthValuesReceiver {
     try (ServerSocket serverSocket = new ServerSocket(Math.max(0, uri.getPort()), 1, InetAddress.getLoopbackAddress())) {
       redirectUri = UriComponentsBuilder.fromUri(uri).port(serverSocket.getLocalPort()).build().toUri();
 
-      platformService.showDocument(userService.getHydraUrl(this.state, this.codeVerifier, redirectUri));
+      platformService.showDocument(loginService.getHydraUrl(this.state, this.codeVerifier, redirectUri));
       redirectUriLatch.countDown();
 
       Socket socket = serverSocket.accept();

@@ -14,7 +14,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +41,7 @@ public class MatchmakingChatControllerTest extends UITest {
   @Mock
   private ChatService chatService;
   @Mock
-  private UserService userService;
+  private LoginService loginService;
 
   @Mock
   private PlayerService playerService;
@@ -77,7 +77,7 @@ public class MatchmakingChatControllerTest extends UITest {
   public void setUp() throws Exception {
     when(i18n.get(anyString())).thenReturn("");
     when(chatService.getOrCreateChannel("partyName")).thenReturn(new ChatChannel("partyName"));
-    when(userService.getUsername()).thenReturn("junit");
+    when(loginService.getUsername()).thenReturn("junit");
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
     when(uiService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_section.html"));
     when(uiService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_text.html"));

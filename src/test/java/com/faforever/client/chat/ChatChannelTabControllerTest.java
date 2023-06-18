@@ -17,7 +17,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleObjectProperty;
@@ -65,7 +65,7 @@ public class ChatChannelTabControllerTest extends UITest {
   @Mock
   private ChatService chatService;
   @Mock
-  private UserService userService;
+  private LoginService loginService;
 
   @Mock
   private PlayerService playerService;
@@ -107,7 +107,7 @@ public class ChatChannelTabControllerTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     defaultChatChannel = new ChatChannel(CHANNEL_NAME);
-    when(userService.getUsername()).thenReturn(USER_NAME);
+    when(loginService.getUsername()).thenReturn(USER_NAME);
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
     when(uiService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_section.html"));
     when(uiService.getThemeFileUrl(CHAT_TEXT_EXTENDED)).thenReturn(getClass().getResource("/theme/chat/extended/chat_text.html"));
@@ -116,7 +116,7 @@ public class ChatChannelTabControllerTest extends UITest {
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile("-----"));
     when(chatService.getOrCreateChatUser(any(String.class), eq(CHANNEL_NAME))).thenReturn(new ChatChannelUser("junit", "test"));
     when(chatUserListController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(userService.getUsername()).thenReturn(USER_NAME);
+    when(loginService.getUsername()).thenReturn(USER_NAME);
 
     loadFxml("theme/chat/channel_tab.fxml", clazz -> {
       if (clazz == ChatUserListController.class) {
@@ -157,7 +157,7 @@ public class ChatChannelTabControllerTest extends UITest {
   public void testNoChannelTopic() {
     ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
     defaultChatChannel.addUser(user);
-    when(userService.getUsername()).thenReturn(USER_NAME);
+    when(loginService.getUsername()).thenReturn(USER_NAME);
 
     defaultChatChannel.setTopic(new ChannelTopic("", ""));
     initializeDefaultChatChannel();
@@ -191,7 +191,7 @@ public class ChatChannelTabControllerTest extends UITest {
   public void testChangeTopicButtonForModerators() {
     ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().moderator(true).get();
     defaultChatChannel.addUser(user);
-    when(userService.getUsername()).thenReturn(USER_NAME);
+    when(loginService.getUsername()).thenReturn(USER_NAME);
     initializeDefaultChatChannel();
     assertTrue(instance.changeTopicTextButton.isVisible());
   }
@@ -203,7 +203,7 @@ public class ChatChannelTabControllerTest extends UITest {
         .moderator(false)
         .get();
     defaultChatChannel.addUser(user);
-    when(userService.getUsername()).thenReturn(USER_NAME);
+    when(loginService.getUsername()).thenReturn(USER_NAME);
     initializeDefaultChatChannel();
     assertFalse(instance.changeTopicTextButton.isVisible());
   }

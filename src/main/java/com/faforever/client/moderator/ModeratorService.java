@@ -2,7 +2,7 @@ package com.faforever.client.moderator;
 
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.remote.FafServerAccessor;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +12,10 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class ModeratorService {
   private final FafServerAccessor fafServerAccessor;
-  private final UserService userService;
+  private final LoginService loginService;
 
   public Set<String> getPermissions() {
-    return userService.getOwnUser().getPermissions();
+    return loginService.getOwnUser().getPermissions();
   }
 
   public void closePlayersGame(PlayerBean player) {

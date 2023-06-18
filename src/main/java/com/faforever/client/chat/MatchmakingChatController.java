@@ -14,7 +14,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -55,7 +55,7 @@ public class MatchmakingChatController extends AbstractChatTabController {
   };
 
   // TODO cut dependencies
-  public MatchmakingChatController(UserService userService, PreferencesService preferencesService,
+  public MatchmakingChatController(LoginService loginService, PreferencesService preferencesService,
                                    PlayerService playerService, TimeService timeService, I18n i18n,
                                    NotificationService notificationService, UiService uiService, EventBus eventBus,
                                    AudioService audioService, ChatService chatService,
@@ -63,7 +63,7 @@ public class MatchmakingChatController extends AbstractChatTabController {
                                    EmoticonService emoticonService, ChatPrefs chatPrefs,
                                    NotificationPrefs notificationPrefs,
                                    FxApplicationThreadExecutor fxApplicationThreadExecutor) {
-    super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
+    super(loginService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
   }
 
   @Override

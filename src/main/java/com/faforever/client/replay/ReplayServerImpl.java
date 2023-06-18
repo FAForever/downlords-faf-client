@@ -10,7 +10,7 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.update.Version;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.commons.replay.ReplayMetadata;
 import com.google.common.primitives.Bytes;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +59,7 @@ public class ReplayServerImpl implements ReplayServer {
   private final ClientProperties clientProperties;
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final UserService userService;
+  private final LoginService loginService;
   private final ReplayFileWriter replayFileWriter;
   private final PlayerService playerService;
 
@@ -196,7 +196,7 @@ public class ReplayServerImpl implements ReplayServer {
     replayInfo.setTeams(teamStrings);
     replayInfo.setFeaturedModVersions(Map.of());
     replayInfo.setGameEnd(pythonTime());
-    replayInfo.setRecorder(userService.getUsername());
+    replayInfo.setRecorder(loginService.getUsername());
     // TODO: Use enum when setter is fixed in java commons
     replayInfo.setState("closed");
     replayInfo.setComplete(true);

@@ -12,11 +12,13 @@ import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.commons.lobby.IrcPasswordInfo;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
@@ -111,7 +113,7 @@ public class KittehChatServiceTest extends ServiceTest {
   @Mock
   private Channel otherChannel;
   @Mock
-  private UserService userService;
+  private LoginService loginService;
 
   @Mock
   private FafServerAccessor fafServerAccessor;
@@ -133,6 +135,8 @@ public class KittehChatServiceTest extends ServiceTest {
   private DefaultClient spyClient;
   private PlayerBean player1;
   private DefaultClient realClient;
+
+  private final BooleanProperty loggedIn = new SimpleBooleanProperty();
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -166,8 +170,9 @@ public class KittehChatServiceTest extends ServiceTest {
 
     chatPrefs.setChatColorMode(DEFAULT);
 
-    when(userService.getUsername()).thenReturn(CHAT_USER_NAME);
+    when(loginService.getUsername()).thenReturn(CHAT_USER_NAME);
 
+    when(loginService.loggedInProperty()).thenReturn(loggedIn);
     when(defaultChannel.getClient()).thenReturn(realClient);
     when(defaultChannel.getName()).thenReturn(DEFAULT_CHANNEL_NAME);
     when(otherChannel.getClient()).thenReturn(realClient);

@@ -1,10 +1,12 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
+import com.faforever.client.user.LoginService;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import lombok.RequiredArgsConstructor;
@@ -36,9 +38,15 @@ public class GamePathHandler implements InitializingBean {
   private final NotificationService notificationService;
   private final EventBus eventBus;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
+  private final LoginService loginService;
 
   @Override
   public void afterPropertiesSet() {
+    loginService.loggedInProperty().addListener((SimpleChangeListener<Boolean>) loggedIn -> {
+      if (loggedIn) {
+        detectAndUpdateGamePath();
+      }
+    });
     eventBus.register(this);
   }
 
@@ -88,7 +96,7 @@ public class GamePathHandler implements InitializingBean {
 
   private void detectGamePath() {
     for (Path path : USUAL_GAME_PATHS) {
-      if (preferencesService.isGamePathValid(path.resolve("bin"))) {
+      if (preferencesService.isValidGamePath(path.resolve("bin"))) {
         onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(path, Optional.empty()));
         return;
       }

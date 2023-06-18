@@ -22,7 +22,7 @@ import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -85,7 +85,7 @@ public class CreateGameControllerTest extends UITest {
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
   @Mock
-  private UserService userService;
+  private LoginService loginService;
   @Mock
   private MapGeneratorService mapGeneratorService;
   @Mock
@@ -102,7 +102,7 @@ public class CreateGameControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new CreateGameController(mapService, modService, gameService, i18n, notificationService, userService, mapGeneratorService, uiService, contextMenuBuilder, lastGamePrefs, fxApplicationThreadExecutor);
+    instance = new CreateGameController(mapService, modService, gameService, i18n, notificationService, loginService, mapGeneratorService, uiService, contextMenuBuilder, lastGamePrefs, fxApplicationThreadExecutor);
 
     mapList = FXCollections.observableArrayList();
 
@@ -115,8 +115,8 @@ public class CreateGameControllerTest extends UITest {
     when(mapService.loadPreview(anyString(), any())).thenReturn(new Image("/theme/images/default_achievement.png"));
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
     when(i18n.number(anyInt())).then(invocation -> invocation.getArgument(0).toString());
-    when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
-    when(userService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
+    when(loginService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
+    when(loginService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
     when(modService.updateAndActivateModVersions(any()))
         .thenAnswer(invocation -> completedFuture(invocation.getArgument(0)));
     when(uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class)).thenReturn(mapFilterController);
@@ -258,8 +258,8 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testButtonBindingIfNotConnected() {
-    when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.DISCONNECTED));
-    when(userService.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
+    when(loginService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.DISCONNECTED));
+    when(loginService.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(i18n.get("game.create.disconnected")).thenReturn("disconnected");
     runOnFxThreadAndWait(() -> instance.initialize());
 
@@ -269,8 +269,8 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testButtonBindingIfNotConnecting() {
-    when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTING));
-    when(userService.getConnectionState()).thenReturn(ConnectionState.CONNECTING);
+    when(loginService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTING));
+    when(loginService.getConnectionState()).thenReturn(ConnectionState.CONNECTING);
     when(i18n.get("game.create.connecting")).thenReturn("connecting");
     runOnFxThreadAndWait(() -> instance.initialize());
 

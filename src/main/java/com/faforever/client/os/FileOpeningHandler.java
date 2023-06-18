@@ -4,7 +4,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.install4j.api.launcher.StartupNotification;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -30,7 +30,7 @@ public class FileOpeningHandler implements ApplicationRunner, InitializingBean {
 
   private final ReplayService replayService;
   private final NotificationService notificationService;
-  private final UserService userService;
+  private final LoginService loginService;
 
   @Override
   public void afterPropertiesSet() {
@@ -63,12 +63,12 @@ public class FileOpeningHandler implements ApplicationRunner, InitializingBean {
         @Override
         public void changed(ObservableValue<? extends ConnectionState> observable, ConnectionState oldValue, ConnectionState newValue) {
           if (newValue == ConnectionState.CONNECTED) {
-            JavaFxUtil.removeListener(userService.connectionStateProperty(), this);
+            JavaFxUtil.removeListener(loginService.connectionStateProperty(), this);
             runReplay(Path.of(sourceArgs[0]));
           }
         }
       };
-      JavaFxUtil.addListener(userService.connectionStateProperty(), connectionStateListener);
+      JavaFxUtil.addListener(loginService.connectionStateProperty(), connectionStateListener);
     }
   }
 }

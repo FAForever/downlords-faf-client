@@ -50,10 +50,11 @@ public class JoinGameHelper {
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
     int playerRating = RatingUtil.getRoundedLeaderboardRating(currentPlayer, game.getLeaderboard());
 
-    if (!preferencesService.isGamePathValid()) {
+    if (!preferencesService.isValidGamePath()) {
       CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
       eventBus.post(new GameDirectoryChooseEvent(gameDirectoryFuture));
-      gameDirectoryFuture.thenAccept(path -> Optional.ofNullable(path).ifPresent(path1 -> join(game, password, ignoreRating)));
+      gameDirectoryFuture.thenAccept(path -> Optional.ofNullable(path)
+          .ifPresent(path1 -> join(game, password, ignoreRating)));
       return;
     }
 

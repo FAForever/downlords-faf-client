@@ -9,7 +9,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.Version;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.google.common.base.Strings;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -34,7 +34,7 @@ public class StatusBarController implements Controller<Node> {
   private static final PseudoClass CONNECTIVITY_CONNECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("connected");
   private static final PseudoClass CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("disconnected");
 
-  private final UserService userService;
+  private final LoginService loginService;
   private final I18n i18n;
   private final ChatService chatService;
   private final TaskService taskService;
@@ -54,7 +54,7 @@ public class StatusBarController implements Controller<Node> {
     setCurrentWorkerInStatusBar(null);
     versionLabel.setText(Version.getCurrentVersion());
 
-    JavaFxUtil.addListener(userService.connectionStateProperty(), (SimpleChangeListener<ConnectionState>) newValue -> fxApplicationThreadExecutor.execute(() -> {
+    JavaFxUtil.addListener(loginService.connectionStateProperty(), (SimpleChangeListener<ConnectionState>) newValue -> fxApplicationThreadExecutor.execute(() -> {
       switch (newValue) {
         case DISCONNECTED -> {
           fafConnectionButton.setText(i18n.get("statusBar.fafDisconnected"));
@@ -134,7 +134,7 @@ public class StatusBarController implements Controller<Node> {
   }
 
   public void onFafReconnectClicked() {
-    userService.reconnectToLobby();
+    loginService.reconnectToLobby();
   }
 
   public void onChatReconnectClicked() {

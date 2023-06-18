@@ -17,7 +17,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.user.UserService;
+import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.BooleanExpression;
@@ -91,7 +91,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = this::updateChangedUsersStyles;
 
 
-  public ChannelTabController(WebViewConfigurer webViewConfigurer, UserService userService, ChatService chatService,
+  public ChannelTabController(WebViewConfigurer webViewConfigurer, LoginService loginService, ChatService chatService,
                               PreferencesService preferencesService, PlayerService playerService,
                               AudioService audioService, TimeService timeService, I18n i18n,
                               NotificationService notificationService, UiService uiService, EventBus eventBus,
@@ -99,7 +99,7 @@ public class ChannelTabController extends AbstractChatTabController {
                               PlatformService platformService, ChatPrefs chatPrefs,
                               NotificationPrefs notificationPrefs,
                               FxApplicationThreadExecutor fxApplicationThreadExecutor) {
-    super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
+    super(loginService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
     this.platformService = platformService;
   }
 
@@ -134,7 +134,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
     chatUserListController.chatChannelProperty().bind(chatChannel);
 
-    ObservableValue<Boolean> isModerator = chatChannel.map(channel -> channel.getUser(userService.getUsername())
+    ObservableValue<Boolean> isModerator = chatChannel.map(channel -> channel.getUser(loginService.getUsername())
         .orElse(null)).flatMap(ChatChannelUser::moderatorProperty).orElse(false);
     changeTopicTextButton.visibleProperty()
         .bind(BooleanExpression.booleanExpression(isModerator).and(topicTextField.visibleProperty().not()));
@@ -306,7 +306,7 @@ public class ChannelTabController extends AbstractChatTabController {
   @Override
   protected void onMention(ChatMessage chatMessage) {
     if (notificationPrefs.getNotifyOnAtMentionOnlyEnabled() && !chatMessage.message()
-        .contains("@" + userService.getUsername())) {
+        .contains("@" + loginService.getUsername())) {
       return;
     }
 
