@@ -115,7 +115,8 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
             .when(showing));
     ratingLabel.textProperty()
         .bind(entity.flatMap(ReplayBean::averageRatingProperty).map(i18n::number).orElse("-").when(showing));
-    tickDurationLabel.visibleProperty().bind(tickDurationLabel.textProperty().isNotEmpty());
+    tickDurationLabel.visibleProperty()
+        .bind(tickDurationLabel.textProperty().isNotEmpty().and(realTimeDurationLabel.visibleProperty().not()));
     tickDurationLabel.textProperty()
         .bind(entity.flatMap(ReplayBean::replayTicksProperty)
             .map(ticks -> Duration.ofMillis(ticks * 100))
