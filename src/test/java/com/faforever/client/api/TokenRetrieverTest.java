@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TokenRetrieverTest extends ServiceTest {
@@ -74,6 +75,7 @@ public class TokenRetrieverTest extends ServiceTest {
   public void testLoginWithCode() throws Exception {
     Map<String, String> tokenProperties = Map.of(ACCESS_TOKEN, "test", REFRESH_TOKEN, "refresh", EXPIRES_IN, "90", TOKEN_TYPE, "bearer");
     prepareTokenResponse(tokenProperties);
+    assertTrue(instance.isTokenInvalid());
 
     StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).verifyComplete();
     String request = URLDecoder.decode(mockApi.takeRequest()
@@ -89,13 +91,15 @@ public class TokenRetrieverTest extends ServiceTest {
     assertEquals("authorization_code", requestParams.get("grant_type"));
     assertEquals(oauth.getClientId(), requestParams.get("client_id"));
     assertEquals(REDIRECT_URI.toString(), requestParams.get("redirect_uri"));
-    assertTrue(instance.isTokenInvalid());
+    assertFalse(instance.isTokenInvalid());
   }
 
   @Test
   public void testLoginWithRefresh() throws Exception {
     Map<String, String> tokenProperties = Map.of(ACCESS_TOKEN, "test", REFRESH_TOKEN, "refresh", EXPIRES_IN, "90", TOKEN_TYPE, "bearer");
     prepareTokenResponse(tokenProperties);
+
+    assertTrue(instance.isTokenInvalid());
 
     StepVerifier.create(instance.loginWithRefreshToken()).verifyComplete();
     String request = URLDecoder.decode(mockApi.takeRequest()
@@ -109,7 +113,7 @@ public class TokenRetrieverTest extends ServiceTest {
 
     assertEquals(REFRESH_TOKEN, requestParams.get("grant_type"));
     assertEquals(oauth.getClientId(), requestParams.get("client_id"));
-    assertTrue(instance.isTokenInvalid());
+    assertFalse(instance.isTokenInvalid());
   }
 
   @Test
