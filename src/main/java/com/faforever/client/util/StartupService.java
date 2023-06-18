@@ -69,7 +69,7 @@ public class StartupService {
       return;
     }
 
-    JavaFxUtil.runLaterAndAwait(() -> {
+    fxApplicationThreadExecutor.executeAndWait(() -> {
       Alert alert = new Alert(AlertType.WARNING, "Maps and Mods path detected to be in One Drive. One Drive can cause issues during the game as it has a lock on the files  during synchronization. It is advised that you change your maps and mods path in the client settings", ButtonType.OK);
       alert.showAndWait();
     });
