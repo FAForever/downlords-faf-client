@@ -39,7 +39,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
@@ -328,9 +327,6 @@ public class LoginController implements Controller<Pane> {
           showLoginForm();
 
           log.error("Could not log in with refresh token", throwable);
-          if (!(throwable instanceof WebClientResponseException.BadRequest || throwable instanceof WebClientResponseException.Unauthorized)) {
-            notificationService.addImmediateErrorNotification(throwable, "login.failed");
-          }
           return null;
         });
   }

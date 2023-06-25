@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<HBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.faforever.client.headerbar.HeaderBarController"
+      fx:id="mainHeader" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity"
+      styleClass="main-navigation-top">
+    <children>
+        <fx:include source="main_menu_button.fxml"/>
+        <HBox fx:id="leftMenuPane" minWidth="10.0">
+            <children>
+                <fx:define>
+                    <ToggleGroup fx:id="mainNavigation"/>
+                </fx:define>
+                <ToggleButton fx:id="newsButton" minWidth="-Infinity" mnemonicParsing="false"
+                              onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                              text="%main.news" toggleGroup="$mainNavigation"/>
+                <ToggleButton fx:id="chatButton" minWidth="-Infinity" mnemonicParsing="false"
+                              onAction="#onNavigateButtonClicked"
+                              styleClass="main-navigation-button" text="%main.chat"
+                              toggleGroup="$mainNavigation"/>
+                <ToggleButton fx:id="playButton" minWidth="-Infinity" mnemonicParsing="false"
+                              onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                              text="%main.play" toggleGroup="$mainNavigation"/>
+                <ToggleButton fx:id="replayButton" minWidth="-Infinity" mnemonicParsing="false"
+                              onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                              text="%main.replay" toggleGroup="$mainNavigation"/>
+                <ToggleButton fx:id="mapButton" minWidth="-Infinity" mnemonicParsing="false"
+                              onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                              text="%main.maps" toggleGroup="$mainNavigation"/>
+                <ToggleButton fx:id="modButton" minWidth="-Infinity" mnemonicParsing="false"
+                              onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                              text="%main.mods" toggleGroup="$mainNavigation"/>
+                <ToggleButton fx:id="leaderboardsButton" minWidth="-Infinity" mnemonicParsing="false"
+                              onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                              text="%main.leaderboards" toggleGroup="$mainNavigation"/>
+                <ToggleButton fx:id="unitsButton" minWidth="-Infinity" mnemonicParsing="false"
+                              onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                              text="%main.units" toggleGroup="$mainNavigation"/>
+            </children>
+        </HBox>
+        <MenuButton fx:id="navigationDropdown" minHeight="-Infinity" minWidth="-Infinity"/>
+        <Pane maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"/>
+        <HBox alignment="TOP_RIGHT" maxHeight="-Infinity" minHeight="-Infinity"
+              minWidth="-Infinity" styleClass="right-menu">
+            <children>
+                <fx:include source="notification_button.fxml"/>
+                <fx:include source="user_button.fxml"/>
+            </children>
+            <HBox.margin>
+                <Insets right="135.0"/>
+            </HBox.margin>
+        </HBox>
+    </children>
+</HBox>

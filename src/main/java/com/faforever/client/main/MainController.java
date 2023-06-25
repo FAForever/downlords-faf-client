@@ -2,8 +2,6 @@ package com.faforever.client.main;
 
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.FafClientApplication;
-import com.faforever.client.chat.event.UnreadPartyMessageEvent;
-import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.exception.FxmlLoadException;
@@ -11,28 +9,21 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
-import com.faforever.client.news.UnreadNewsEvent;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.ImmediateNotificationController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.ServerNotificationController;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotificationsController;
-import com.faforever.client.os.OperatingSystem;
-import com.faforever.client.preferences.DataPrefs;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.WindowPrefs;
-import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.alert.Alert;
@@ -48,33 +39,23 @@ import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
-import javafx.css.PseudoClass;
-import javafx.event.ActionEvent;
-import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.Labeled;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow.AnchorLocation;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -89,12 +70,10 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import static javafx.scene.layout.Background.EMPTY;
 
@@ -102,13 +81,7 @@ import static javafx.scene.layout.Background.EMPTY;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-// TODO divide and conquer
 public class MainController implements Controller<Node>, InitializingBean {
-
-  private static final PseudoClass NOTIFICATION_INFO_PSEUDO_CLASS = PseudoClass.getPseudoClass("info");
-  private static final PseudoClass NOTIFICATION_WARN_PSEUDO_CLASS = PseudoClass.getPseudoClass("warn");
-  private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_CLASS = PseudoClass.getPseudoClass("error");
-  private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
 
   private final Cache<NavigationItem, AbstractViewController<?>> viewCache = CacheBuilder.newBuilder().build();
 
@@ -117,14 +90,10 @@ public class MainController implements Controller<Node>, InitializingBean {
   private final NotificationService notificationService;
   private final UiService uiService;
   private final EventBus eventBus;
-  private final PlatformService platformService;
   private final LoginService loginService;
-  private final OperatingSystem operatingSystem;
   private final Environment environment;
   private final NotificationPrefs notificationPrefs;
   private final WindowPrefs windowPrefs;
-  private final ForgedAlliancePrefs forgedAlliancePrefs;
-  private final DataPrefs dataPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final ChangeListener<Path> backgroundImageListener = (observable, oldValue, newValue) ->
@@ -132,28 +101,13 @@ public class MainController implements Controller<Node>, InitializingBean {
 
   public Pane mainHeaderPane;
   public Pane contentPane;
-  public ToggleButton newsButton;
-  public ToggleButton chatButton;
-  public ToggleButton playButton;
-  public ToggleButton replayButton;
-  public ToggleButton mapButton;
-  public ToggleButton modButton;
-  public ToggleButton leaderboardsButton;
-  public ToggleButton unitsButton;
   public StackPane contentWrapperPane;
-  public ToggleGroup mainNavigation;
   public StackPane mainRoot;
-  public Pane leftMenuPane;
-  public Pane rightMenuPane;
-  public Button notificationButton;
-  /** Dropdown for when there is not enough room for all navigation buttons to be displayed. */
-  public MenuButton navigationDropdown;
+  public HBox headerBar;
 
   @VisibleForTesting
   protected Popup transientNotificationsPopup;
   private NavigationItem currentItem;
-  @VisibleForTesting
-  Popup persistentNotificationsPopup;
   private FxStage fxStage;
   private boolean alwaysReloadTabs;
 
@@ -189,18 +143,7 @@ public class MainController implements Controller<Node>, InitializingBean {
   }
 
   public void initialize() {
-    newsButton.setUserData(NavigationItem.NEWS);
-    chatButton.setUserData(NavigationItem.CHAT);
-    playButton.setUserData(NavigationItem.PLAY);
-    replayButton.setUserData(NavigationItem.REPLAY);
-    mapButton.setUserData(NavigationItem.MAP);
-    modButton.setUserData(NavigationItem.MOD);
-    leaderboardsButton.setUserData(NavigationItem.LEADERBOARD);
-    unitsButton.setUserData(NavigationItem.UNITS);
     eventBus.register(this);
-
-    PersistentNotificationsController persistentNotificationsController = uiService.loadFxml("theme/persistent_notifications.fxml");
-    persistentNotificationsPopup = PopupUtil.createPopup(AnchorLocation.CONTENT_TOP_RIGHT, persistentNotificationsController.getRoot());
 
     TransientNotificationsController transientNotificationsController = uiService.loadFxml("theme/transient_notifications.fxml");
     transientNotificationsPopup = PopupUtil.createPopup(transientNotificationsController.getRoot());
@@ -210,58 +153,11 @@ public class MainController implements Controller<Node>, InitializingBean {
         .getChildren()
         .addListener(new ToastDisplayer(transientNotificationsController));
 
-    updateNotificationsButton(notificationService.getPersistentNotifications());
-    notificationService.addPersistentNotificationListener(change -> fxApplicationThreadExecutor.execute(() -> updateNotificationsButton(change.getSet())));
     notificationService.addImmediateNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> displayImmediateNotification(notification)));
     notificationService.addServerNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> displayServerNotification(notification)));
     notificationService.addTransientNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> transientNotificationsController.addNotification(notification)));
     // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
     getView(NavigationItem.CHAT);
-
-    notificationButton.managedProperty().bind(notificationButton.visibleProperty());
-
-    navigationDropdown.getItems().setAll(createMenuItemsFromNavigation());
-    navigationDropdown.managedProperty().bind(navigationDropdown.visibleProperty());
-
-    leftMenuPane.layoutBoundsProperty().addListener(observable -> {
-      navigationDropdown.setVisible(false);
-      leftMenuPane.getChildrenUnmodifiable().forEach(node -> {
-        Bounds boundsInParent = node.getBoundsInParent();
-        // First time this is called, minY is negative. This is hacky but better than wasting time investigating.
-        boolean hasSpace = boundsInParent.getMinY() < 0
-            || leftMenuPane.getLayoutBounds().contains(boundsInParent.getCenterX(), boundsInParent.getCenterY());
-        if (!hasSpace) {
-          navigationDropdown.setVisible(true);
-        }
-        node.setVisible(hasSpace);
-      });
-    });
-  }
-
-  private List<MenuItem> createMenuItemsFromNavigation() {
-    return leftMenuPane.getChildrenUnmodifiable().stream()
-        .filter(menuItem -> menuItem.getUserData() instanceof NavigationItem)
-        .map(menuButton -> {
-          MenuItem menuItem = new MenuItem(((Labeled) menuButton).getText());
-          menuItem.setOnAction(event -> eventBus.post(new NavigateEvent((NavigationItem) menuButton.getUserData())));
-          return menuItem;
-        })
-        .collect(Collectors.toList());
-  }
-
-  @Subscribe
-  public void onUnreadNews(UnreadNewsEvent event) {
-    fxApplicationThreadExecutor.execute(() -> newsButton.pseudoClassStateChanged(HIGHLIGHTED, event.hasUnreadNews()));
-  }
-
-  @Subscribe
-  public void onUnreadPartyMessage(UnreadPartyMessageEvent event) {
-    fxApplicationThreadExecutor.execute(() -> playButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.PLAY)));
-  }
-
-  @Subscribe
-  public void onUnreadPrivateMessage(UnreadPrivateMessageEvent event) {
-    fxApplicationThreadExecutor.execute(() -> chatButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.CHAT)));
   }
 
   private void displayView(AbstractViewController<?> controller, NavigateEvent navigateEvent) {
@@ -294,26 +190,6 @@ public class MainController implements Controller<Node>, InitializingBean {
       screen = Screen.getPrimary();
     }
     return screen.getVisualBounds();
-  }
-
-  /**
-   * Updates the number displayed in the notifications button and sets its CSS pseudo class based on the highest
-   * notification {@code Severity} of all current notifications.
-   */
-  private void updateNotificationsButton(Collection<? extends PersistentNotification> notifications) {
-    JavaFxUtil.assertApplicationThread();
-
-    int size = notifications.size();
-    notificationButton.setVisible(size != 0);
-
-    Severity highestSeverity = notifications.stream()
-        .map(PersistentNotification::getSeverity)
-        .max(Enum::compareTo)
-        .orElse(null);
-
-    notificationButton.pseudoClassStateChanged(NOTIFICATION_INFO_PSEUDO_CLASS, highestSeverity == Severity.INFO);
-    notificationButton.pseudoClassStateChanged(NOTIFICATION_WARN_PSEUDO_CLASS, highestSeverity == Severity.WARN);
-    notificationButton.pseudoClassStateChanged(NOTIFICATION_ERROR_PSEUDO_CLASS, highestSeverity == Severity.ERROR);
   }
 
   public void display() {
@@ -428,7 +304,7 @@ public class MainController implements Controller<Node>, InitializingBean {
       stage.setTitle(clientProperties.getMainWindowTitle());
 
       fxStage.setContent(getRoot());
-      fxStage.getNonCaptionNodes().setAll(leftMenuPane, rightMenuPane, navigationDropdown);
+      fxStage.getNonCaptionNodes().setAll(headerBar);
       fxStage.setTitleBar(mainHeaderPane);
 
       openStartTab();
@@ -468,48 +344,8 @@ public class MainController implements Controller<Node>, InitializingBean {
     notificationService.addNotification(notification);
   }
 
-  public void onNotificationsButtonClicked() {
-    Bounds screenBounds = notificationButton.localToScreen(notificationButton.getBoundsInLocal());
-    persistentNotificationsPopup.show(notificationButton.getScene()
-        .getWindow(), screenBounds.getMaxX(), screenBounds.getMaxY());
-  }
-
-  public void onSettingsSelected() {
-    SettingsController settingsController = uiService.loadFxml("theme/settings/settings.fxml");
-    FxStage fxStage = FxStage.create(settingsController.getRoot())
-        .initOwner(mainRoot.getScene().getWindow())
-        .withSceneFactory(uiService::createScene)
-        .allowMinimize(false)
-        .apply()
-        .setTitleBar(settingsController.settingsHeader);
-
-    Stage stage = fxStage.getStage();
-    stage.showingProperty().addListener(new ChangeListener<>() {
-      @Override
-      public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-        if (!newValue) {
-          stage.showingProperty().removeListener(this);
-        }
-      }
-    });
-
-    stage.setTitle(i18n.get("settings.windowTitle"));
-    stage.show();
-  }
-
-  public void onExitItemSelected() {
-    Stage stage = fxStage.getStage();
-    stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
-  }
-
   public Pane getRoot() {
     return mainRoot;
-  }
-
-  public void onNavigateButtonClicked(ActionEvent event) {
-    NavigateEvent navigateEvent = new NavigateEvent((NavigationItem) ((Node) event.getSource()).getUserData());
-    log.trace("Navigating to {}", navigateEvent.getItem().toString());
-    eventBus.post(navigateEvent);
   }
 
   @Subscribe
@@ -518,11 +354,6 @@ public class MainController implements Controller<Node>, InitializingBean {
 
     AbstractViewController<?> controller = getView(item);
     displayView(controller, navigateEvent);
-
-    mainNavigation.getToggles().stream()
-        .filter(toggle -> toggle.getUserData() == navigateEvent.getItem())
-        .findFirst()
-        .ifPresent(toggle -> toggle.setSelected(true));
 
     currentItem = item;
   }
@@ -537,42 +368,6 @@ public class MainController implements Controller<Node>, InitializingBean {
     } catch (ExecutionException e) {
       throw new FxmlLoadException("Could not load tab view", e, "view.couldNotLoad", i18n.get(item.getI18nKey()));
     }
-  }
-
-  public void onRevealMapFolder() {
-    Path mapPath = forgedAlliancePrefs.getMapsDirectory();
-    this.platformService.reveal(mapPath);
-  }
-
-  public void onRevealModFolder() {
-    Path modPath = forgedAlliancePrefs.getModsDirectory();
-    this.platformService.reveal(modPath);
-  }
-
-  public void onRevealLogFolder() {
-    this.platformService.reveal(operatingSystem.getLoggingDirectory());
-  }
-
-  public void onRevealReplayFolder() {
-    this.platformService.reveal(dataPrefs.getReplaysDirectory());
-  }
-
-  public void onRevealGamePrefsFolder() {
-    this.platformService.reveal(forgedAlliancePrefs.getPreferencesFile());
-  }
-
-  public void onRevealDataFolder() {
-    this.platformService.reveal(dataPrefs.getBaseDataDirectory());
-  }
-
-  public void onChat(ActionEvent actionEvent) {
-    chatButton.pseudoClassStateChanged(HIGHLIGHTED, false);
-    onNavigateButtonClicked(actionEvent);
-  }
-
-  public void onPlay(ActionEvent actionEvent) {
-    playButton.pseudoClassStateChanged(HIGHLIGHTED, false);
-    onNavigateButtonClicked(actionEvent);
   }
 
   private void displayImmediateNotification(ImmediateNotification notification) {
@@ -597,14 +392,6 @@ public class MainController implements Controller<Node>, InitializingBean {
     dialog.setContent(controller.getDialogLayout());
     dialog.setAnimation(AlertAnimation.TOP_ANIMATION);
     dialog.show();
-  }
-
-  public void onLinksAndHelp() {
-    LinksAndHelpController linksAndHelpController = uiService.loadFxml("theme/links_and_help.fxml");
-    Node root = linksAndHelpController.getRoot();
-    uiService.showInDialog(mainRoot, root, i18n.get("help.title"));
-
-    root.requestFocus();
   }
 
   public void setFxStage(FxStage fxWindow) {

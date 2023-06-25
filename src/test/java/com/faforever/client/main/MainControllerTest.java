@@ -3,23 +3,15 @@ package com.faforever.client.main;
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.TransientNotificationsController;
-import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.play.PlayController;
-import com.faforever.client.preferences.DataPrefs;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.WindowPrefs;
-import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -28,9 +20,6 @@ import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
-import javafx.css.PseudoClass;
-import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -49,11 +38,8 @@ import org.mockito.Spy;
 import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.nio.file.Path;
-
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -66,14 +52,7 @@ import static org.mockito.Mockito.when;
 
 public class MainControllerTest extends UITest {
 
-  private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
-  @Mock
-  private PersistentNotificationsController persistentNotificationsController;
 
-  @Mock
-  private PlatformService platformService;
-  @Mock
-  private SettingsController settingsController;
   @Mock
   private I18n i18n;
   @Mock
@@ -87,15 +66,11 @@ public class MainControllerTest extends UITest {
   @Mock
   private EventBus eventBus;
   @Mock
-  private GamePathHandler gamePathHandler;
-  @Mock
   private ChatController chatController;
   @Mock
   private PlayController playController;
   @Mock
   private Environment environment;
-  @Mock
-  private OperatingSystem operatingSystem;
   @Mock
   private LoginService loginService;
   @Mock
@@ -104,12 +79,6 @@ public class MainControllerTest extends UITest {
   private ClientProperties clientProperties;
   @Spy
   private WindowPrefs windowPrefs;
-  @Spy
-  private NotificationPrefs notificationPrefs;
-  @Spy
-  private ForgedAlliancePrefs forgedAlliancePrefs;
-  @Spy
-  private DataPrefs dataPrefs;
   @InjectMocks
   private MainController instance;
 
@@ -128,20 +97,13 @@ public class MainControllerTest extends UITest {
         .setInitialMean(1500)
         .setInitialStandardDeviation(500);
 
-    Path cwd = Path.of(".");
-    forgedAlliancePrefs.setVaultBaseDirectory(cwd);
-    dataPrefs.setBaseDataDirectory(cwd);
-
     when(environment.getActiveProfiles()).thenReturn(ArrayUtils.EMPTY_STRING_ARRAY);
 
-    when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(loginController.getRoot()).thenReturn(new Pane());
     when(loginService.loggedInProperty()).thenReturn(loggedIn);
 
-    when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
     when(uiService.loadFxml("theme/transient_notifications.fxml")).thenReturn(transientNotificationsController);
-    when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
     when(uiService.loadFxml("theme/login/login.fxml")).thenReturn(loginController);
     when(uiService.loadFxml("theme/chat/chat.fxml")).thenReturn(chatController);
     when(uiService.loadFxml("theme/play/play.fxml")).thenReturn(playController);
@@ -204,29 +166,8 @@ public class MainControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
   }
 
-  private void fakeLogin() throws InterruptedException {
+  private void fakeLogin() {
     runOnFxThreadAndWait(() -> loggedIn.set(true));
-  }
-
-  @Test
-  public void testOnNotificationsButtonClicked() throws Exception {
-    fakeLogin();
-    WaitForAsyncUtils.asyncFx(instance::onNotificationsButtonClicked);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertThat(instance.persistentNotificationsPopup.isShowing(), is(true));
-  }
-
-  @Disabled("Causes a core dump locally on windows at least")
-  @Test
-  public void testOnSettingsItemSelected() throws Exception {
-    fakeLogin();
-
-    Pane root = new Pane();
-    when(settingsController.getRoot()).thenReturn(root);
-    WaitForAsyncUtils.waitForAsyncFx(1000, instance::onSettingsSelected);
-    verify(settingsController).getRoot();
-    verify(uiService).createScene(any());
   }
 
   @Test
@@ -255,13 +196,7 @@ public class MainControllerTest extends UITest {
     verify(notificationService, times(1)).addNotification(any(PersistentNotification.class));
   }
 
-  @Test
-  public void testOnChat() throws Exception {
-    instance.chatButton.pseudoClassStateChanged(HIGHLIGHTED, true);
-    instance.onChat(new ActionEvent(instance.chatButton, Event.NULL_SOURCE_TARGET));
-    assertThat(instance.chatButton.getPseudoClassStates().contains(HIGHLIGHTED), is(false));
 
-  }
 
   @Disabled("Test fails in certain 2 Screen setups and on github actions")
   @Test
@@ -288,29 +223,5 @@ public class MainControllerTest extends UITest {
 
     Rectangle2D newBounds = new Rectangle2D(window.getX(), window.getY(), window.getWidth(), window.getHeight());
     assertTrue(Screen.getPrimary().getBounds().contains(newBounds));
-  }
-
-  @Test
-  public void testOnRevealMapFolder() throws Exception {
-    instance.onRevealMapFolder();
-    verify(platformService).reveal(forgedAlliancePrefs.getMapsDirectory());
-  }
-
-  @Test
-  public void testOnRevealModFolder() throws Exception {
-    instance.onRevealModFolder();
-    verify(platformService).reveal(forgedAlliancePrefs.getModsDirectory());
-  }
-
-  @Test
-  public void testOnRevealLogFolder() throws Exception {
-    instance.onRevealLogFolder();
-    verify(platformService).reveal(operatingSystem.getLoggingDirectory());
-  }
-
-  @Test
-  public void testOnRevealReplayFolder() throws Exception {
-    instance.onRevealReplayFolder();
-    verify(platformService).reveal(dataPrefs.getReplaysDirectory());
   }
 }

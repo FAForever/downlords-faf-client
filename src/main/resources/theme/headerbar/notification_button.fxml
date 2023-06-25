@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.stage.Popup?>
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:id="root"
+           fx:controller="com.faforever.client.headerbar.NotificationButtonController"
+           maxHeight="-Infinity">
+    <fx:define>
+        <Popup fx:id="persistentNotificationsPopup" autoHide="true" anchorLocation="CONTENT_TOP_RIGHT">
+            <content>
+                <fx:include source="../persistent_notifications.fxml"/>
+            </content>
+        </Popup>
+    </fx:define>
+    <children>
+        <Button fx:id="notificationButton" contentDisplay="CENTER"
+                onAction="#onNotificationsButtonClicked" styleClass="inbox-button">
+            <graphic>
+                <StackPane>
+                    <Region styleClass="inbox-icon"/>
+                    <Region styleClass="badge"/>
+                </StackPane>
+            </graphic>
+        </Button>
+    </children>
+    <HBox.margin>
+        <Insets right="10.0"/>
+    </HBox.margin>
+</StackPane>

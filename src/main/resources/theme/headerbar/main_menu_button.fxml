@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<MenuButton xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:id="menuButton"
+            fx:controller="com.faforever.client.headerbar.MainMenuButtonController"
+            styleClass="main-menu-button">
+    <items>
+        <MenuItem onAction="#onRevealDataFolder" text="%menu.revealDataFolder"/>
+        <MenuItem onAction="#onRevealLogFolder" text="%menu.revealLogFolder"/>
+        <MenuItem onAction="#onRevealMapFolder" text="%menu.revealMapFolder"/>
+        <MenuItem onAction="#onRevealModFolder" text="%menu.revealModFolder"/>
+        <MenuItem onAction="#onRevealReplayFolder" text="%menu.revealReplayFolder"/>
+        <MenuItem onAction="#onRevealGamePrefsFolder" text="%menu.revealGamePrefsFile"/>
+        <SeparatorMenuItem mnemonicParsing="false"/>
+        <MenuItem onAction="#onLinksAndHelp" text="%help.title"/>
+        <SeparatorMenuItem mnemonicParsing="false"/>
+        <MenuItem onAction="#onSettingsSelected" text="%menu.settings"/>
+        <SeparatorMenuItem mnemonicParsing="false"/>
+        <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
+    </items>
+</MenuButton>
