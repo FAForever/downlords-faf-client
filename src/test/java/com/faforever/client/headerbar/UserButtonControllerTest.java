@@ -1,4 +1,4 @@
-package com.faforever.client.main;
+package com.faforever.client.headerbar;
 
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
@@ -51,7 +51,7 @@ public class UserButtonControllerTest extends UITest {
     when(playerService.getCurrentPlayer()).thenReturn(player);
     when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(player));
 
-    loadFxml("theme/user_button.fxml", clazz -> instance);
+    loadFxml("theme/headerbar/user_button.fxml", clazz -> instance);
   }
 
   @Test

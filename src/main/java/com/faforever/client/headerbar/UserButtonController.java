@@ -1,4 +1,4 @@
-package com.faforever.client.main;
+package com.faforever.client.headerbar;
 
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;

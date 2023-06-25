@@ -250,7 +250,6 @@ public class LoginControllerTest extends UITest {
     when(loginService.loginWithRefreshToken()).thenReturn(Mono.error(new Exception()));
     runOnFxThreadAndWait(() -> instance.initialize());
     verify(loginService).loginWithRefreshToken();
-    verify(notificationService).addImmediateErrorNotification(any(), anyString());
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
   }

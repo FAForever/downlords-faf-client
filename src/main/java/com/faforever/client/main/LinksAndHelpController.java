@@ -6,6 +6,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.theme.UiService;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -37,7 +38,7 @@ public class LinksAndHelpController extends AbstractViewController<Node> {
   }
 
   @Override
-  public Node getRoot() {
+  public Region getRoot() {
     return root;
   }
 }

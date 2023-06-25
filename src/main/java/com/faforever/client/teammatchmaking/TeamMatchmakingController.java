@@ -263,7 +263,12 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   private void setLeagueInfo() {
-    leaderboardService.getHighestActiveLeagueEntryForPlayer(playerService.getCurrentPlayer())
+    PlayerBean currentPlayer = playerService.getCurrentPlayer();
+    if (currentPlayer == null) {
+      return;
+    }
+
+    leaderboardService.getHighestActiveLeagueEntryForPlayer(currentPlayer)
         .thenAcceptAsync(leagueEntry -> {
           if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
             leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());

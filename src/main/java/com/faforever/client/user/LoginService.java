@@ -111,13 +111,13 @@ public class LoginService implements InitializingBean {
 
   public void logOut() {
     log.info("Logging out");
+    loginPrefs.setRefreshToken(null);
     loggedIn.set(false);
     resetLoginState();
   }
 
   private void resetLoginState() {
     tokenRetriever.invalidateToken();
-    loginPrefs.setRefreshToken(null);
     fafApiAccessor.reset();
     fafServerAccessor.disconnect();
     ownUser.set(null);
