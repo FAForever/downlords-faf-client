@@ -304,7 +304,7 @@ public class MainController implements Controller<Node>, InitializingBean {
       stage.setTitle(clientProperties.getMainWindowTitle());
 
       fxStage.setContent(getRoot());
-      fxStage.getNonCaptionNodes().setAll(headerBar);
+      fxStage.getNonCaptionNodes().setAll(headerBar.getChildren());
       fxStage.setTitleBar(mainHeaderPane);
 
       openStartTab();

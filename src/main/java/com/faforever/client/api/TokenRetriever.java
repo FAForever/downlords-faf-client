@@ -114,6 +114,7 @@ public class TokenRetriever {
   public void invalidateToken() {
     tokenInvalid.set(true);
     refreshTokenValue.set(null);
+    loginPrefs.setRefreshToken(null);
   }
 
   public boolean isTokenInvalid() {
