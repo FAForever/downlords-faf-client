@@ -79,6 +79,9 @@
   <installerGui>
     <applications>
       <application id="installer" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" actionElevationType="elevated" launchInNewProcess="false">
+        <variables>
+          <variable name="garbageCollectorVMOption" value="-XX:+UseZGC" valueClass="string" />
+        </variables>
         <startup>
           <screen id="1" beanClass="com.install4j.runtime.beans.screens.StartupScreen" rollbackBarrierExitCode="0">
             <actions>
@@ -318,7 +321,7 @@ return console.askOkCancel(message, true);
                     <element index="0">-XX:+UseZGC</element>
                   </property>
                 </serializedBean>
-                <condition>VersionHelpers.IsWindows10OrGreater()</condition>
+                <condition>Double.parseDouble(System.getProperty("os.version")) &gt;= 10.0</condition>
               </action>
               <action id="824" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
                 <serializedBean>
@@ -327,7 +330,7 @@ return console.askOkCancel(message, true);
                     <element index="0">-XX:+UseG1GC</element>
                   </property>
                 </serializedBean>
-                <condition>!VersionHelpers.IsWindows10OrGreater()</condition>
+                <condition>Double.parseDouble(System.getProperty("os.version")) &lt; 10.0</condition>
               </action>
             </actions>
             <formComponents>
