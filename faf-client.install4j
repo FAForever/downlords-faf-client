@@ -57,7 +57,6 @@
       <vmOptionsFile mode="content" overwriteMode="3">
         <content># Enter one VM parameter per line
 -Xmx1g
--XX:+UseZGC
 -XX:+HeapDumpOnOutOfMemoryError
 -Djava.net.preferIPv4Stack=true
 -DnativeDir=natives
@@ -65,8 +64,7 @@
 -Djava.library.path=.
 -Dio.netty.allocator.type=unpooled
 # Needed for getting process handle via reflection
---add-opens=java.base/java.lang=ALL-UNNAMED
-        </content>
+--add-opens=java.base/java.lang=ALL-UNNAMED</content>
       </vmOptionsFile>
       <iconImageFiles>
         <file path="./src/media/appicon/16.png" />
@@ -80,6 +78,9 @@
   <installerGui>
     <applications>
       <application id="installer" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" actionElevationType="elevated" launchInNewProcess="false">
+        <variables>
+          <variable name="garbageCollectorVMOption" value="-XX:+UseZGC" valueClass="string" />
+        </variables>
         <startup>
           <screen id="1" beanClass="com.install4j.runtime.beans.screens.StartupScreen" rollbackBarrierExitCode="0">
             <actions>
@@ -311,6 +312,24 @@ return console.askOkCancel(message, true);
                   <property name="direction" type="enum" class="com.install4j.runtime.beans.actions.firewall.WindowsFirewallDirection" value="OUTGOING" />
                   <property name="launcherId" type="string">25</property>
                 </serializedBean>
+              </action>
+              <action id="823" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
+                <serializedBean>
+                  <property name="launcherId" type="string">25</property>
+                  <property name="vmOptions" type="array" elementType="string" length="1">
+                    <element index="0">-XX:+UseZGC</element>
+                  </property>
+                </serializedBean>
+                <condition>Double.parseDouble(System.getProperty("os.version")) &gt;= 10.0</condition>
+              </action>
+              <action id="824" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
+                <serializedBean>
+                  <property name="launcherId" type="string">25</property>
+                  <property name="vmOptions" type="array" elementType="string" length="1">
+                    <element index="0">-XX:+UseG1GC</element>
+                  </property>
+                </serializedBean>
+                <condition>Double.parseDouble(System.getProperty("os.version")) &lt; 10.0</condition>
               </action>
             </actions>
             <formComponents>
