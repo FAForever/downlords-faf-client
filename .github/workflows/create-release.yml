@@ -83,6 +83,10 @@ jobs:
             tag=$baseTag
           fi
           
+          if [["${{ github.event.inputs.version_override }}" != ""]]; then
+            tag=${{ github.event.inputs.version_override }}
+          fi
+          
           echo ::set-output name=tag::$tag
 
       - name: Download Install4j
