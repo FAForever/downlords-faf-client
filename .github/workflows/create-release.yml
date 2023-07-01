@@ -18,6 +18,7 @@ on:
         description: 'Version Override'
         required: false
         type: text
+        default: ""
 
 jobs:
   release:
