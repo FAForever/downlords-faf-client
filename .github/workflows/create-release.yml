@@ -65,7 +65,7 @@ jobs:
             baseTag=$baseTag-experimental
           fi
           
-          if [[ -z "${{ github.event.inputs.version_override }}"]]; then
+          if [["${{ github.event.inputs.version_override }}" == ""]]; then
             tag=$baseTag
           else
             tag=${{ github.event.inputs.version_override }}
