@@ -48,8 +48,6 @@ jobs:
       - name: Set Version
         id: set_version
         run: |
-          echo ${{ github.event.inputs.version_override }}
-          
           tagPrefix=$(date +%Y.%-m)
           count=0
           baseTag=$tagPrefix.$count
@@ -80,7 +78,7 @@ jobs:
             tag=$baseTag
           fi
           
-          if [["${{ github.event.inputs.version_override }}" != ""]]; then
+          if [[ "${{ github.event.inputs.version_override }}" != "" ]]; then
             tag=${{ github.event.inputs.version_override }}
           fi
           
