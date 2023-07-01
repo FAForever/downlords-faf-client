@@ -14,6 +14,10 @@ on:
         options:
           - "Production"
           - "Alpha"
+      version_override:
+        description: 'Version Override'
+        required: false
+        type: text
 
 jobs:
   release:
@@ -61,7 +65,11 @@ jobs:
             baseTag=$baseTag-experimental
           fi
           
-          tag=$baseTag
+          if [[ -z "${{ github.event.inputs.version_override }}"]]; then
+            tag=$baseTag
+          else
+            tag=${{ github.event.inputs.version_override }}
+          fi
           
           if [[ "${{ github.event.inputs.release_type }}" != "Production" ]]; then
             count=1
