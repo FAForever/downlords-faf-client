@@ -48,6 +48,8 @@ jobs:
       - name: Set Version
         id: set_version
         run: |
+          echo ${{ github.event.inputs.version_override }}
+          
           tagPrefix=$(date +%Y.%-m)
           count=0
           baseTag=$tagPrefix.$count
@@ -64,12 +66,6 @@ jobs:
             baseTag=$baseTag-alpha
           elif [[ "${{ github.event.inputs.release_type }}" == "Experimental" ]]; then
             baseTag=$baseTag-experimental
-          fi
-          
-          if [["${{ github.event.inputs.version_override }}" == ""]]; then
-            tag=$baseTag
-          else
-            tag=${{ github.event.inputs.version_override }}
           fi
           
           if [[ "${{ github.event.inputs.release_type }}" != "Production" ]]; then
