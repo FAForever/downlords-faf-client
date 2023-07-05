@@ -65,20 +65,19 @@ public class TokenRetriever {
 
   private void onTokenError(Throwable throwable) {
     log.warn("Could not retrieve token", throwable);
-    loginPrefs.setRefreshToken(null);
-    refreshTokenValue.set(null);
-    tokenInvalid.set(true);
+    invalidateToken();
   }
 
   private Mono<OAuth2AccessToken> refreshAccess() {
-    if (refreshTokenValue.get() == null) {
+    String refreshToken = refreshTokenValue.get();
+    if (refreshToken == null) {
       loginPrefs.setRefreshToken(null);
       return Mono.error(new NoRefreshTokenException("No refresh token to log in with"));
     }
 
     Oauth oauth = clientProperties.getOauth();
     MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-    map.add("refresh_token", refreshTokenValue.get());
+    map.add("refresh_token", refreshToken);
     map.add("client_id", oauth.getClientId());
     map.add("grant_type", "refresh_token");
 
