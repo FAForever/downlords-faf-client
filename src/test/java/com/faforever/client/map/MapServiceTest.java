@@ -27,7 +27,7 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ApiTestUtil;
 import com.faforever.client.test.ElideMatchers;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
@@ -91,7 +91,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class MapServiceTest extends UITest {
+public class MapServiceTest extends PlatformTest {
 
   @TempDir
   public Path tempDirectory;

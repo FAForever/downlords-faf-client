@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import javafx.collections.FXCollections;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class AutoCompletionHelperTest extends UITest {
+public class AutoCompletionHelperTest extends PlatformTest {
 
   private static final long TIMEOUT = 5000;
 

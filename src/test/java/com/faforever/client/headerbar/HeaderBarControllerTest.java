@@ -4,7 +4,7 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotificationsController;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import javafx.css.PseudoClass;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class HeaderBarControllerTest extends UITest {
+public class HeaderBarControllerTest extends PlatformTest {
 
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
 
@@ -50,8 +50,6 @@ public class HeaderBarControllerTest extends UITest {
       }
       return mock(clazz);
     });
-
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test

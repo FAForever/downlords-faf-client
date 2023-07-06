@@ -2,7 +2,7 @@ package com.faforever.client.chat.emoticons;
 
 import com.faforever.client.builders.EmoticonGroupBuilder;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.layout.AnchorPane;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +18,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class EmoticonsGroupControllerTest extends UITest {
+public class EmoticonsGroupControllerTest extends PlatformTest {
 
   @Mock
   private UiService uiService;

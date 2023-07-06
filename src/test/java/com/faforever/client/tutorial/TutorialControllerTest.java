@@ -4,7 +4,7 @@ import com.faforever.client.domain.TutorialBean;
 import com.faforever.client.domain.TutorialCategoryBean;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TutorialControllerTest extends UITest {
+public class TutorialControllerTest extends PlatformTest {
   @InjectMocks
   private TutorialController instance;
   @Mock

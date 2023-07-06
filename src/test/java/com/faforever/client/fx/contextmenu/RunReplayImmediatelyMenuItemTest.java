@@ -6,7 +6,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.replay.LiveReplayService;
 import com.faforever.client.replay.TrackingLiveReplay;
 import com.faforever.client.replay.TrackingLiveReplayAction;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class RunReplayImmediatelyMenuItemTest extends UITest {
+public class RunReplayImmediatelyMenuItemTest extends PlatformTest {
 
   @Mock
   private I18n i18n;

@@ -1,6 +1,6 @@
 package com.faforever.client.query;
 
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.properties.concrete.StringProperty;
@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class BinaryFilterControllerTest extends UITest {
+public class BinaryFilterControllerTest extends PlatformTest {
 
   private final String propertyName = "testProp";
   private final String firstValue = "True";

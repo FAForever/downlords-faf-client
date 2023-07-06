@@ -1,7 +1,7 @@
 package com.faforever.client.filter;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import javafx.util.StringConverter;
 import org.apache.commons.lang3.Range;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 
 @SuppressWarnings("unchecked")
-public class RangeSliderWithChoiceFilterControllerTest extends UITest {
+public class RangeSliderWithChoiceFilterControllerTest extends PlatformTest {
 
   private final StringConverter<String> converter = new StringConverter<>() {
     @Override

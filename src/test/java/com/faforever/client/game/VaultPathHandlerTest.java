@@ -8,7 +8,7 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.tasks.MoveDirectoryTask;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import javafx.scene.control.CheckBox;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-public class VaultPathHandlerTest extends UITest {
+public class VaultPathHandlerTest extends PlatformTest {
 
   @Mock
   private PlatformService platformService;

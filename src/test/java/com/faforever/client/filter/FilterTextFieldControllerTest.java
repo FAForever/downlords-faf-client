@@ -1,6 +1,6 @@
 package com.faforever.client.filter;
 
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FilterTextFieldControllerTest extends UITest {
+public class FilterTextFieldControllerTest extends PlatformTest {
 
   private FilterTextFieldController<Object> instance;
 

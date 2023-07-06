@@ -1,6 +1,6 @@
 package com.faforever.client.vault.search;
 
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.TextField;
@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 
-public class SavedQueriesControllerTest extends UITest {
+public class SavedQueriesControllerTest extends PlatformTest {
 
   private final ObservableMap<String, String> savedQueries = FXCollections.observableHashMap();
 

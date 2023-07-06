@@ -4,7 +4,7 @@ import com.faforever.client.chat.ChatService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.user.LoginService;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -22,7 +22,7 @@ import static org.hamcrest.core.IsNot.not;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class StatusBarControllerTest extends UITest {
+public class StatusBarControllerTest extends PlatformTest {
   @InjectMocks
   private StatusBarController instance;
   private ObjectProperty<ConnectionState> connectionStateProperty;

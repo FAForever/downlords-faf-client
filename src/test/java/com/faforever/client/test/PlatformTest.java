@@ -2,16 +2,16 @@ package com.faforever.client.test;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
-import com.faforever.client.ui.StageHolder;
+import com.sun.javafx.application.PlatformImpl;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
 import javafx.util.Callback;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -19,86 +19,50 @@ import org.mockito.quality.Strictness;
 import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
-import org.testfx.framework.junit5.ApplicationTest;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.Locale;
-import java.util.concurrent.CountDownLatch;
 
+@Execution(ExecutionMode.CONCURRENT)
 @ExtendWith({MockitoExtension.class})
 @MockitoSettings(strictness = Strictness.LENIENT)
 //TODO figure out best way to refactor so that tests don't have to be lenient due to unnecessary stubbings spam
 @Slf4j
-public abstract class UITest extends ApplicationTest {
+public abstract class PlatformTest {
 
   static {
     System.setProperty("testfx.robot", "glass");
     System.setProperty("testfx.headless", "true");
     System.setProperty("prism.order", "sw");
     System.setProperty("prism.text", "t2k");
+    System.setProperty("java.awt.headless", "true");
   }
 
   @Spy
   protected FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  private final Pane root;
-  private Scene scene;
-  private Stage stage;
-
-  public UITest() {
+  public PlatformTest() {
     Locale.setDefault(Locale.ROOT);
 
-    root = new Pane();
     Thread.setDefaultUncaughtExceptionHandler((thread, e) -> {
       log.error("Unresolved Throwable in non junit thread, please resolve even if test does not fail", e);
     });
   }
 
-  @Override
-  public void start(Stage stage) throws Exception {
-    this.stage = stage;
-    StageHolder.setStage(stage);
-
-    scene = createScene();
-    stage.setScene(scene);
-
-    if (showStage()) {
-      stage.show();
-    }
+  @BeforeEach
+  public void setupPlatform() {
+    PlatformImpl.startup(() -> {});
   }
 
-  public void stop() throws Exception {
-    getRoot().getChildren().clear();
-    stage.close();
-  }
-
-  protected Scene createScene() {
-    return new Scene(getRoot());
-  }
-
-  protected boolean showStage() {
-    return true;
-  }
-
-  protected Pane getRoot() {
-    return root;
-  }
-
-  protected Scene getScene() {
-    return scene;
-  }
-
-  protected Stage getStage() {
-    return stage;
-  }
-
-  protected void loadFxml(String fileName, Callback<Class<?>, Object> controllerFactory) throws IOException, InterruptedException {
+  protected void loadFxml(String fileName,
+                          Callback<Class<?>, Object> controllerFactory) throws IOException, InterruptedException {
     loadFxml(fileName, controllerFactory, null);
   }
 
-  protected void loadFxml(String fileName, Callback<Class<?>, Object> controllerFactory, Controller<?> controller) throws IOException, InterruptedException {
+  protected void loadFxml(String fileName, Callback<Class<?>, Object> controllerFactory,
+                          Controller<?> controller) throws IOException, InterruptedException {
     ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
     messageSource.setBasename("i18n.messages");
 
@@ -116,16 +80,13 @@ public abstract class UITest extends ApplicationTest {
     if (controller != null) {
       loader.setController(controller);
     }
-    CountDownLatch latch = new CountDownLatch(1);
-    fxApplicationThreadExecutor.execute(() -> {
+    fxApplicationThreadExecutor.executeAndWait(() -> {
       try {
         loader.load();
       } catch (Exception e) {
         loadExceptionWrapper.setLoadException(e);
       }
-      latch.countDown();
     });
-    latch.await();
     if (loadExceptionWrapper.getLoadException() != null) {
       throw new RuntimeException("Loading FXML failed", loadExceptionWrapper.getLoadException());
     }

@@ -4,7 +4,7 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -28,13 +28,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-public class GameTooltipControllerTest extends UITest {
+public class GameTooltipControllerTest extends PlatformTest {
 
   @Mock
   private UiService uiService;
   @Mock
   private PlayerService playerService;
-  
+
   @Mock
   private TeamCardController teamCardController;
   @InjectMocks

@@ -14,18 +14,20 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.StageHolder;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Labeled;
-import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -50,11 +52,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ChatChannelTabControllerTest extends UITest {
+public class ChatChannelTabControllerTest extends PlatformTest {
 
   private static final String USER_NAME = "junit";
   private static final String CHANNEL_NAME = "#testChannel";
@@ -118,13 +121,17 @@ public class ChatChannelTabControllerTest extends UITest {
     when(chatUserListController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
     when(loginService.getUsername()).thenReturn(USER_NAME);
 
+    Stage stage = mock(Stage.class);
+    when(stage.focusedProperty()).thenReturn(new SimpleBooleanProperty());
+
+    StageHolder.setStage(stage);
+
     loadFxml("theme/chat/channel_tab.fxml", clazz -> {
       if (clazz == ChatUserListController.class) {
         return chatUserListController;
       }
       return instance;
     });
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(new TabPane(instance.getRoot())));
   }
 
   @Test
@@ -350,7 +357,6 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testAtMentionTriggersNotification() {
-    this.getRoot().setVisible(false);
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello @" + USER_NAME + "!!"));
     verify(audioService).playChatMentionSound();
@@ -358,7 +364,6 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testAtMentionTriggersNotificationWhenFlagIsEnabled() {
-    this.getRoot().setVisible(false);
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
     instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello @" + USER_NAME + "!!"));
     verify(audioService).playChatMentionSound();
@@ -366,7 +371,6 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testNormalMentionTriggersNotification() {
-    this.getRoot().setVisible(false);
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
     verify(audioService).playChatMentionSound();
@@ -374,7 +378,6 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testNormalMentionDoesNotTriggerNotificationWhenFlagIsEnabled() {
-    this.getRoot().setVisible(false);
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
     instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
     verify(audioService, never()).playChatMentionSound();
@@ -382,7 +385,6 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testNormalMentionDoesNotTriggerNotificationFromFoe() {
-    this.getRoot().setVisible(false);
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     when(playerService.getPlayerByNameIfOnline(USER_NAME)).thenReturn(Optional.ofNullable(PlayerBeanBuilder.create()
         .defaultValues()

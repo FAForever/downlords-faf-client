@@ -1,6 +1,6 @@
 package com.faforever.client.vault.review;
 
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.scene.layout.Pane;
@@ -13,7 +13,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
-public class StarsControllerTest extends UITest {
+public class StarsControllerTest extends PlatformTest {
   @InjectMocks
   private StarsController instance;
 

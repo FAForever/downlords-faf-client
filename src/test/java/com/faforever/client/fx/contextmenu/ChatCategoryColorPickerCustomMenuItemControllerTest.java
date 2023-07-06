@@ -3,7 +3,7 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import javafx.collections.FXCollections;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ChatCategoryColorPickerCustomMenuItemControllerTest extends UITest {
+public class ChatCategoryColorPickerCustomMenuItemControllerTest extends PlatformTest {
 
 
   @Spy

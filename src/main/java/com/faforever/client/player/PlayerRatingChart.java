@@ -26,7 +26,7 @@ import java.util.Optional;
  * Player rating line chart with support for displaying more accurate values via the tooltip on mouse hover
  */
 @Slf4j
-public class PlayerRatingChart extends LineChart<Double, Double> {
+public class PlayerRatingChart extends LineChart<Number, Number> {
 
   private static final int OFFSET_TOOLTIP_FROM_CURSOR_BY_X = 20; // in px
   private static final int OFFSET_TOOLTIP_FROM_CURSOR_BY_Y = 15; // in px
@@ -40,7 +40,7 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
   private boolean valid = false;
   private final Map<Integer, Integer> ratingMap = new HashMap<>(); // key - X coordinate of chart background
 
-  public PlayerRatingChart(@NamedArg("xAxis") Axis<Double> xAxis, @NamedArg("yAxis") Axis<Double> yAxis) {
+  public PlayerRatingChart(@NamedArg("xAxis") Axis<Number> xAxis, @NamedArg("yAxis") Axis<Number> yAxis) {
     super(xAxis, yAxis);
     chartBackground = (Region) lookup(".chart-plot-background");
     if (chartBackground == null) {
@@ -101,7 +101,7 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
   private void recalculateData() {
     ratingMap.clear();
     for (int i = 0; i < getData().size(); i++) {
-      Series<Double, Double> series = getData().get(i);
+      Series<Number, Number> series = getData().get(i);
       if (series.getNode() instanceof Path path) {
         buildData(path.getElements());
         break;
@@ -147,13 +147,13 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
 
   private long getDisplayedDateValue(double displayPosition) {
     return Optional.ofNullable(getXAxis().getValueForDisplay(displayPosition))
-        .map(Double::longValue)
+        .map(Number::longValue)
         .orElse(Long.MIN_VALUE);
   }
 
   private int getDisplayedRatingValue(double displayPosition) {
     return Optional.ofNullable(getYAxis().getValueForDisplay(displayPosition))
-        .map(Double::intValue)
+        .map(Number::intValue)
         .orElse(Integer.MIN_VALUE);
   }
 
@@ -164,7 +164,7 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
   }
 
   @Override
-  protected void seriesAdded(Series<Double, Double> series, int seriesIndex) {
+  protected void seriesAdded(Series<Number, Number> series, int seriesIndex) {
     super.seriesAdded(series, seriesIndex);
     valid = false;
   }

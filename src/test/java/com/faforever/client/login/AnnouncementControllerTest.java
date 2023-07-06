@@ -1,7 +1,7 @@
 package com.faforever.client.login;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.util.TimeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,7 +13,7 @@ import java.time.OffsetDateTime;
 import static org.mockito.Mockito.when;
 import static org.testfx.assertions.api.Assertions.assertThat;
 
-class AnnouncementControllerTest extends UITest {
+class AnnouncementControllerTest extends PlatformTest {
 
   @InjectMocks
   private AnnouncementController instance;

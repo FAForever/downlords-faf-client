@@ -27,7 +27,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run Checks
-        run: ./gradlew -PjavafxPlatform=linux check --no-daemon
+        run: xvfb-run --auto-servernum ./gradlew -PjavafxPlatform=linux check --no-daemon
         env:
           JAVA_TOOL_OPTIONS: "-Dprism.verbose=true -Dprism.order=sw"
 

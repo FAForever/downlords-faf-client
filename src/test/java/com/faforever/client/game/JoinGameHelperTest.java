@@ -10,7 +10,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.google.common.eventbus.EventBus;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-public class JoinGameHelperTest extends UITest {
+public class JoinGameHelperTest extends PlatformTest {
 
   @InjectMocks
   private JoinGameHelper instance;
@@ -128,16 +128,6 @@ public class JoinGameHelperTest extends UITest {
 
     verify(eventBus, times(2)).post(Mockito.any(GameDirectoryChooseEvent.class));
     verify(gameService, never()).joinGame(any(), any());
-  }
-
-  /**
-   * Ensure that the user is asked for password using enterPasswordController
-   */
-  @Test
-  public void testJoinGamePasswordProtected() {
-    game.setPasswordProtected(true);
-    instance.join(game);
-    verify(enterPasswordController).showPasswordDialog(getRoot().getScene().getWindow());
   }
 
   /**

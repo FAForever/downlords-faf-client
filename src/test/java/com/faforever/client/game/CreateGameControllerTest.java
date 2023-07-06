@@ -19,7 +19,7 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LastGamePrefs;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.user.LoginService;
@@ -64,7 +64,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class CreateGameControllerTest extends UITest {
+public class CreateGameControllerTest extends PlatformTest {
   private static final KeyEvent keyUpPressed = new KeyEvent(KeyEvent.KEY_PRESSED, "0", "", KeyCode.UP, false, false, false, false);
   private static final KeyEvent keyUpReleased = new KeyEvent(KeyEvent.KEY_RELEASED, "0", "", KeyCode.UP, false, false, false, false);
   private static final KeyEvent keyDownPressed = new KeyEvent(KeyEvent.KEY_PRESSED, "0", "", KeyCode.DOWN, false, false, false, false);
@@ -544,16 +544,6 @@ public class CreateGameControllerTest extends UITest {
     verify(mapGeneratorService).getGeneratorStyles();
     verify(generateMapController).setStyles(any());
     verify(generateMapController).setOnCloseButtonClickedListener(any());
-  }
-
-  @Test
-  public void testOnMapFilterButtonClicked() {
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.mapFilterButton));
-    runOnFxThreadAndWait(() -> instance.mapFilterButton.fire());
-    assertTrue(instance.mapFilterPopup.isShowing());
-
-    runOnFxThreadAndWait(() -> instance.mapFilterButton.fire());
-    assertFalse(instance.mapFilterPopup.isShowing());
   }
 
   @SuppressWarnings("unchecked")

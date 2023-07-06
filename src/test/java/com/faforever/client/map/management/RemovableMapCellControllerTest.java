@@ -5,7 +5,7 @@ import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class RemovableMapCellControllerTest extends UITest {
+public class RemovableMapCellControllerTest extends PlatformTest {
 
   @Mock
   private MapService mapService;
@@ -29,8 +29,13 @@ public class RemovableMapCellControllerTest extends UITest {
 
   private final MapVersionBean officialMap = MapVersionBeanBuilder.create().defaultValues().folderName("SCMP_001").id(0)
       .version(null).map(MapBeanBuilder.create().defaultValues().get()).get();
-  private final MapVersionBean customMap = MapVersionBeanBuilder.create().defaultValues().folderName("palaneum.v0001").id(1)
-      .version(new ComparableVersion("1")).map(MapBeanBuilder.create().defaultValues().get()).get();
+  private final MapVersionBean customMap = MapVersionBeanBuilder.create()
+      .defaultValues()
+      .folderName("palaneum.v0001")
+      .id(1)
+      .version(new ComparableVersion("1"))
+      .map(MapBeanBuilder.create().defaultValues().get())
+      .get();
 
   @InjectMocks
   private RemovableMapCellController instance;

@@ -1,6 +1,6 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 
-public class PersistentNotificationControllerTest extends UITest {
+public class PersistentNotificationControllerTest extends PlatformTest {
 
   @InjectMocks
   private PersistentNotificationController instance;

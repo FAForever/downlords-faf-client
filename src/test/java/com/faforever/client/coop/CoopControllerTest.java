@@ -14,7 +14,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
@@ -43,7 +43,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class CoopControllerTest extends UITest {
+public class CoopControllerTest extends PlatformTest {
 
   @Mock
   private CoopService coopService;

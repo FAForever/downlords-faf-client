@@ -1,6 +1,6 @@
 package com.faforever.client.vault.search;
 
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,7 +9,7 @@ import org.mockito.InjectMocks;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class SaveQueryControllerTest extends UITest {
+public class SaveQueryControllerTest extends PlatformTest {
 
   private final ObservableMap<String, String> savedQueries = FXCollections.observableHashMap();
   @InjectMocks

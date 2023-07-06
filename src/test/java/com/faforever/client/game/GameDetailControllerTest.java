@@ -14,7 +14,7 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.replay.WatchButtonController;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
@@ -52,7 +52,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class GameDetailControllerTest extends UITest {
+public class GameDetailControllerTest extends PlatformTest {
 
   @Mock
   private I18n i18n;

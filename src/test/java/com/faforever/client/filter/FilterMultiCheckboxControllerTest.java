@@ -1,7 +1,7 @@
 package com.faforever.client.filter;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import javafx.beans.property.ListProperty;
 import javafx.util.StringConverter;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FilterMultiCheckboxControllerTest extends UITest {
+public class FilterMultiCheckboxControllerTest extends PlatformTest {
 
   @Mock
   private I18n i18n;

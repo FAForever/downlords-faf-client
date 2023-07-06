@@ -448,23 +448,25 @@ public class PlayerInfoWindowController implements Controller<Node> {
   public void plotPlayerRatingGraph() {
     JavaFxUtil.assertApplicationThread();
     OffsetDateTime afterDate = OffsetDateTime.of(timePeriodComboBox.getValue().getDate(), ZoneOffset.UTC);
-    List<XYChart.Data<Double, Double>> values = ratingData.stream()
+    List<XYChart.Data<Number, Number>> values = ratingData.stream()
         .filter(ratingJournal -> {
           OffsetDateTime scoreTime = ratingJournal.getGamePlayerStats().getScoreTime();
           return scoreTime != null && scoreTime.isAfter(afterDate);
         })
         .sorted(Comparator.comparing(ratingJournal -> ratingJournal.getGamePlayerStats().getScoreTime()))
-        .map(ratingJournal -> new Data<>((double) ratingJournal.getGamePlayerStats().getScoreTime().toEpochSecond(), (double) RatingUtil.getRating(ratingJournal)))
+        .map(ratingJournal -> new Data<>((Number) ratingJournal.getGamePlayerStats()
+            .getScoreTime()
+            .toEpochSecond(), (Number) RatingUtil.getRating(ratingJournal)))
         .collect(Collectors.toList());
 
     xAxis.setTickLabelFormatter(ratingLabelFormatter());
     if (values.size() > 0) {
-      xAxis.setLowerBound(values.get(0).getXValue());
-      xAxis.setUpperBound(values.get(values.size() - 1).getXValue());
+      xAxis.setLowerBound(values.get(0).getXValue().doubleValue());
+      xAxis.setUpperBound(values.get(values.size() - 1).getXValue().doubleValue());
     }
     xAxis.setTickUnit((xAxis.getUpperBound() - xAxis.getLowerBound()) / 10);
 
-    XYChart.Series<Double, Double> series = new XYChart.Series<>(observableList(values));
+    XYChart.Series<Number, Number> series = new XYChart.Series<>(observableList(values));
     series.setName(i18n.get("userInfo.ratingOverTime"));
     ratingHistoryChart.setData(FXCollections.observableList(Collections.singletonList(series)));
     loadingHistoryPane.setVisible(false);

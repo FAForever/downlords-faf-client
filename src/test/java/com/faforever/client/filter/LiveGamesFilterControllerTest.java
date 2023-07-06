@@ -7,7 +7,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameType;
 import javafx.collections.FXCollections;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
-public class LiveGamesFilterControllerTest extends UITest {
+public class LiveGamesFilterControllerTest extends PlatformTest {
 
   @Mock
   private UiService uiService;

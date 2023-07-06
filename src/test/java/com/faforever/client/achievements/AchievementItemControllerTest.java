@@ -3,7 +3,7 @@ package com.faforever.client.achievements;
 import com.faforever.client.builders.AchievementDefinitionBuilder;
 import com.faforever.client.builders.PlayerAchievementBuilder;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.commons.api.dto.AchievementDefinition;
 import com.faforever.commons.api.dto.AchievementState;
 import com.faforever.commons.api.dto.AchievementType;
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
-public class AchievementItemControllerTest extends UITest {
+public class AchievementItemControllerTest extends PlatformTest {
 
   @InjectMocks
   private AchievementItemController instance;

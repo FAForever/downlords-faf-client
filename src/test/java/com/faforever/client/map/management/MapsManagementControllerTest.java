@@ -4,7 +4,7 @@ import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.collections.FXCollections;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -19,7 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.when;
 
-public class MapsManagementControllerTest extends UITest {
+public class MapsManagementControllerTest extends PlatformTest {
 
   @Mock
   private MapService mapService;

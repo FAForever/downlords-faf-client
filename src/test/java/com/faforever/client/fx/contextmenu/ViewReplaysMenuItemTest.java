@@ -4,7 +4,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.player.SocialStatus;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 
-public class ViewReplaysMenuItemTest extends UITest {
+public class ViewReplaysMenuItemTest extends PlatformTest {
 
   @Mock
   private I18n i18n;

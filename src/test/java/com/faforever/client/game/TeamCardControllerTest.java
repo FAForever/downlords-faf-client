@@ -5,7 +5,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GamePlayerStatsBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import javafx.beans.property.SimpleObjectProperty;
@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TeamCardControllerTest extends UITest {
+public class TeamCardControllerTest extends PlatformTest {
   @InjectMocks
   private TeamCardController instance;
 

@@ -1,6 +1,6 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -14,7 +14,7 @@ import org.springframework.core.io.ClassPathResource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class ImageViewHelperTest extends UITest {
+public class ImageViewHelperTest extends PlatformTest {
 
   @Mock
   private UiService uiService;

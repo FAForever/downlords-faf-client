@@ -1,7 +1,7 @@
 package com.faforever.client.filter;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.ListProperty;
 import javafx.event.ActionEvent;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
-public class MutableListFilterControllerTest extends UITest {
+public class MutableListFilterControllerTest extends PlatformTest {
 
   @Mock
   private I18n i18n;

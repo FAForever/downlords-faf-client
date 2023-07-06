@@ -1,7 +1,7 @@
 package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import javafx.scene.control.Label;
 import javafx.scene.input.Clipboard;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,7 +11,7 @@ import org.mockito.Mock;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class CopyLabelMenuItemTest extends UITest {
+public class CopyLabelMenuItemTest extends PlatformTest {
 
   @Mock
   private I18n i18n;

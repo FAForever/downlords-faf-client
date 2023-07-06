@@ -4,7 +4,7 @@ import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.google.common.eventbus.EventBus;
 import javafx.collections.FXCollections;
 import javafx.scene.paint.Color;
@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
+public class ChatUserColorPickerCustomMenuItemControllerTest extends PlatformTest {
   private static final String CHANNEL_NAME = "testChannel";
   private static final String USERNAME = "junit";
 
