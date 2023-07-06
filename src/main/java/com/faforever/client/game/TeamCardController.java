@@ -5,7 +5,8 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.GamePlayerStatsBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
@@ -19,21 +20,21 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.util.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -42,9 +43,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class TeamCardController implements Controller<Node> {
-  private final UiService uiService;
   private final I18n i18n;
   private final PlayerService playerService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final UiService uiService;
 
   public Pane teamPaneRoot;
   public VBox teamPane;
@@ -56,13 +58,14 @@ public class TeamCardController implements Controller<Node> {
   private final ObjectProperty<Function<PlayerBean, Faction>> factionProvider = new SimpleObjectProperty<>();
   private final ObjectProperty<RatingPrecision> ratingPrecision = new SimpleObjectProperty<>();
   private final IntegerProperty teamId = new SimpleIntegerProperty();
+  private final SimpleChangeListener<List<PlayerBean>> playersListener = this::populateTeamContainer;
   private final ObservableValue<Integer> teamRating = ratingProvider.flatMap(provider -> ratingPrecision.flatMap(precision -> players.map(playerBeans -> playerBeans.stream()
       .map(provider)
       .filter(Objects::nonNull)
       .map(rating -> precision == RatingPrecision.ROUNDED ? RatingUtil.getRoundedRating(rating) : rating)
       .reduce(0, Integer::sum))));
 
-  private final List<Pair<PlayerCardController, RatingChangeLabelController>> playerInfoControllers = new ArrayList<>();
+  private final Map<PlayerBean, PlayerCardController> playerCardControllersMap = new HashMap<>();
 
   public void initialize() {
     teamNameLabel.textProperty()
@@ -78,26 +81,31 @@ public class TeamCardController implements Controller<Node> {
           }
         })));
 
-    for (int i = 0; i < 16; i++) {
-      PlayerCardController playerCardController = uiService.loadFxml("theme/player_card.fxml");
-      RatingChangeLabelController ratingChangeLabelController = uiService.loadFxml("theme/rating_change_label.fxml");
-      Pair<PlayerCardController, RatingChangeLabelController> pair = new Pair<>(playerCardController, ratingChangeLabelController);
+    players.addListener(playersListener);
+  }
 
-      int index = i;
-      ObservableValue<PlayerBean> playerBinding = players.map(playerBeans -> index < playerBeans.size() ? playerBeans.get(index) : null);
-      playerCardController.ratingProperty()
-          .bind(playerBinding.flatMap(player -> ratingProvider.map(ratingFunction -> ratingFunction.apply(player))
-              .flatMap(rating -> ratingPrecision.map(precision -> precision == RatingPrecision.ROUNDED ? RatingUtil.getRoundedRating(rating) : rating))));
-      playerCardController.factionProperty()
-          .bind(playerBinding.flatMap(player -> factionProvider.map(factionFunction -> factionFunction.apply(player))));
-      playerCardController.playerProperty().bind(playerBinding);
-      HBox playerRoot = new HBox(pair.getKey().getRoot(), pair.getValue().getRoot());
-      playerRoot.visibleProperty().bind(playerCardController.playerProperty().isNotNull());
-      JavaFxUtil.bindManagedToVisible(playerRoot);
+  private void populateTeamContainer(List<PlayerBean> newValue) {
+    CompletableFuture.supplyAsync(() -> createPlayerCardControllers(newValue))
+        .thenAcceptAsync(controllers -> teamPane.getChildren()
+            .setAll(controllers.stream().map(PlayerCardController::getRoot).toList()), fxApplicationThreadExecutor);
+  }
 
-      playerInfoControllers.add(pair);
-      teamPane.getChildren().add(playerRoot);
-    }
+  private List<PlayerCardController> createPlayerCardControllers(List<PlayerBean> players) {
+    playerCardControllersMap.clear();
+    return players.stream().map(player -> {
+      PlayerCardController controller = uiService.loadFxml("theme/player_card.fxml");
+
+      controller.ratingProperty()
+          .bind(ratingProvider.map(ratingFunction -> ratingFunction.apply(player))
+              .flatMap(rating -> ratingPrecision.map(precision -> precision == RatingPrecision.ROUNDED ? RatingUtil.getRoundedRating(rating) : rating)));
+      controller.factionProperty()
+          .bind(factionProvider.map(factionFunction -> factionFunction.apply(player)));
+      controller.setPlayer(player);
+
+      playerCardControllersMap.put(player, controller);
+
+      return controller;
+    }).toList();
   }
 
   public void bindPlayersToPlayerIds() {
@@ -148,21 +156,11 @@ public class TeamCardController implements Controller<Node> {
   }
 
   public void setStats(List<GamePlayerStatsBean> teamPlayerStats) {
-    List<PlayerBean> playerBeans = players.get();
-    if (playerBeans == null) {
-      return;
-    }
-
     for (GamePlayerStatsBean playerStats : teamPlayerStats) {
-      int index = playerBeans.indexOf(playerStats.getPlayer());
-
-      if (index < 0 || index >= playerInfoControllers.size()) {
-        continue;
+      PlayerCardController controller = playerCardControllersMap.get(playerStats.getPlayer());
+      if (controller != null) {
+        controller.setPlayerStats(playerStats);
       }
-
-      playerInfoControllers.get(index)
-          .getValue()
-          .setRatingChange(playerStats);
     }
   }
 
@@ -170,3 +168,4 @@ public class TeamCardController implements Controller<Node> {
     return teamPaneRoot;
   }
 }
+

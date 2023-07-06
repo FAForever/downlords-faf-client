@@ -2,7 +2,12 @@
 
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GamesTableController">
+<TableView fx:id="gamesTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0"
+           minWidth="0.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.faforever.client.game.GamesTableController">
+  <fx:define>
+    <fx:include fx:id="gameTooltip" source="game_tooltip.fxml"/>
+  </fx:define>
   <columns>
     <TableColumn fx:id="passwordProtectionColumn" editable="false" maxWidth="30.0" minWidth="30.0" prefWidth="20.0"
                  resizable="false"/>

@@ -1,10 +1,8 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.AbstractEntityBean;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GamePlayerStatsBean;
-import com.faforever.client.domain.LeaderboardRatingJournalBean;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.PlayerBean;
@@ -17,7 +15,6 @@ import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
-import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.game.RatingPrecision;
@@ -85,7 +82,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -116,6 +112,7 @@ public class ReplayDetailController implements Controller<Node> {
   private final ObjectProperty<ReplayBean> replay = new SimpleObjectProperty<>();
   private final ObservableList<ReplayReviewBean> reviews = FXCollections.observableArrayList();
   private final ObjectProperty<Map<String, List<GamePlayerStatsBean>>> teams = new SimpleObjectProperty<>();
+  private final SimpleChangeListener<Map<String, List<GamePlayerStatsBean>>> teamsListener = this::populateTeamsContainer;
 
   public Pane replayDetailRoot;
   public Label titleLabel;
@@ -154,6 +151,8 @@ public class ReplayDetailController implements Controller<Node> {
   public Label notRatedReasonLabel;
 
   public void initialize() {
+    BooleanExpression showing = uiService.createShowingProperty(getRoot());
+
     JavaFxUtil.bindManagedToVisible(downloadMoreInfoButton, moreInformationPane, teamsInfoBox, reviewsContainer, ratingSeparator, reviewSeparator, deleteButton, getRoot());
 
     imageViewHelper.setDefaultPlaceholderImage(mapThumbnailImageView);
@@ -174,7 +173,7 @@ public class ReplayDetailController implements Controller<Node> {
 
     copyButton.setText(i18n.get("replay.copyUrl"));
 
-    teams.addListener((SimpleInvalidationListener) this::populateTeamsContainer);
+    teams.orElse(Map.of()).when(showing).addListener(teamsListener);
     replay.addListener((SimpleChangeListener<ReplayBean>) this::onReplayChanged);
   }
 
@@ -228,13 +227,11 @@ public class ReplayDetailController implements Controller<Node> {
             .when(showing));
     durationLabel.visibleProperty()
         .bind(replay.flatMap(ReplayBean::endTimeProperty).map(Objects::nonNull).orElse(false).when(showing));
-    durationLabel.textProperty()
-        .bind(replay.flatMap(replayValue -> Bindings.createObjectBinding(() -> {
-              OffsetDateTime startTime = replayValue.getStartTime();
-              OffsetDateTime endTime = replayValue.getEndTime();
-              return startTime == null || endTime == null ? null : Duration.between(startTime, endTime);
-            }, replayValue.startTimeProperty(), replayValue.endTimeProperty())
-            .map(timeService::shortDuration)));
+    durationLabel.textProperty().bind(replay.flatMap(replayValue -> Bindings.createObjectBinding(() -> {
+      OffsetDateTime startTime = replayValue.getStartTime();
+      OffsetDateTime endTime = replayValue.getEndTime();
+      return startTime == null || endTime == null ? null : Duration.between(startTime, endTime);
+    }, replayValue.startTimeProperty(), replayValue.endTimeProperty()).map(timeService::shortDuration)));
     replayDurationLabel.visibleProperty()
         .bind(replay.flatMap(ReplayBean::replayTicksProperty).map(Objects::nonNull).orElse(false).when(showing));
     replayDurationLabel.textProperty()
@@ -424,67 +421,48 @@ public class ReplayDetailController implements Controller<Node> {
     });
   }
 
-  private void populateTeamsContainer() {
-    Map<String, List<GamePlayerStatsBean>> teamsValue = teams.get();
-    Map<Integer, GamePlayerStatsBean> statsByPlayerId = teamsValue.values()
-        .stream()
-        .flatMap(Collection::stream)
-        .collect(Collectors.toMap(stats -> stats.getPlayer().getId(), Function.identity()));
-
-    playerService.getPlayersByIds(statsByPlayerId.keySet()).thenAccept(players -> {
-      List<TeamCardController> newControllers = teamsValue.entrySet().stream().map(entry -> {
-        String team = entry.getKey();
-        List<GamePlayerStatsBean> playerStats = entry.getValue();
-
-        Set<Integer> playerIds = playerStats.stream()
-            .map(GamePlayerStatsBean::getPlayer)
-            .map(AbstractEntityBean::getId)
-            .collect(Collectors.toSet());
-
-        TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
-
-        List<PlayerBean> teamPlayers = players.stream()
-            .filter(playerBean -> playerIds.contains(playerBean.getId()))
-            .toList();
-
-        controller.setRatingPrecision(RatingPrecision.EXACT);
-        controller.setRatingProvider(player -> getPlayerRating(player, statsByPlayerId));
-        controller.setFactionProvider(player -> getPlayerFaction(player, statsByPlayerId));
-        controller.setTeamId(Integer.parseInt(team));
-        controller.setPlayers(teamPlayers);
-
-        return controller;
-      }).toList();
-
-      fxApplicationThreadExecutor.execute(() -> {
-        teamCardControllers.clear();
-        teamCardControllers.addAll(newControllers);
-        teamsContainer.getChildren().setAll(teamCardControllers.stream().map(TeamCardController::getRoot).toList());
-      });
-    });
+  private void populateTeamsContainer(Map<String, List<GamePlayerStatsBean>> newValue) {
+    CompletableFuture.supplyAsync(() -> createTeamCardControllers(newValue)).thenAcceptAsync(controllers -> {
+      teamCardControllers.clear();
+      teamCardControllers.addAll(controllers);
+      teamsContainer.getChildren().setAll(teamCardControllers.stream().map(TeamCardController::getRoot).toList());
+    }, fxApplicationThreadExecutor);
   }
 
-  @VisibleForTesting
-  Faction getPlayerFaction(PlayerBean player, Map<Integer, GamePlayerStatsBean> statsByPlayerId) {
-    return statsByPlayerId.get(player.getId()).getFaction();
+  private List<TeamCardController> createTeamCardControllers(Map<String, List<GamePlayerStatsBean>> teamsValue) {
+    return teamsValue.entrySet().stream().map(entry -> {
+      String team = entry.getKey();
+      List<GamePlayerStatsBean> playerStats = entry.getValue();
+
+      Map<PlayerBean, GamePlayerStatsBean> statsByPlayer = playerStats.stream()
+          .collect(Collectors.toMap(GamePlayerStatsBean::getPlayer, Function.identity()));
+
+      TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
+
+      controller.setRatingPrecision(RatingPrecision.EXACT);
+      controller.setRatingProvider(player -> getPlayerRating(player, statsByPlayer));
+      controller.setFactionProvider(player -> getPlayerFaction(player, statsByPlayer));
+      controller.setTeamId(Integer.parseInt(team));
+      controller.setPlayers(statsByPlayer.keySet());
+
+      return controller;
+    }).toList();
   }
 
-  @VisibleForTesting
-  Integer getPlayerRating(PlayerBean player, Map<Integer, GamePlayerStatsBean> statsByPlayerId) {
-    GamePlayerStatsBean playerStats = statsByPlayerId.get(player.getId());
-    if (playerStats == null) {
-      return null;
-    }
+  private Faction getPlayerFaction(PlayerBean player, Map<PlayerBean, GamePlayerStatsBean> statsByPlayerId) {
+    GamePlayerStatsBean playerStats = statsByPlayerId.get(player);
+    return playerStats == null ? null : playerStats.getFaction();
+  }
 
-    LeaderboardRatingJournalBean ratingJournal = playerStats.getLeaderboardRatingJournals()
+  private Integer getPlayerRating(PlayerBean player, Map<PlayerBean, GamePlayerStatsBean> statsByPlayerId) {
+    GamePlayerStatsBean playerStats = statsByPlayerId.get(player);
+    return playerStats == null ? null : playerStats.getLeaderboardRatingJournals()
         .stream()
         .findFirst()
+        .filter(ratingJournal -> ratingJournal.getMeanBefore() != null)
+        .filter(ratingJournal -> ratingJournal.getDeviationBefore() != null)
+        .map(RatingUtil::getRating)
         .orElse(null);
-    if (ratingJournal == null || ratingJournal.getMeanBefore() == null || ratingJournal.getDeviationBefore() == null) {
-      return null;
-    }
-
-    return RatingUtil.getRating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore());
   }
 
   public void onReport() {

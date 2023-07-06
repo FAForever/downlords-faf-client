@@ -46,6 +46,7 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -77,7 +78,8 @@ public class GamesTableController implements Controller<Node> {
   public TableColumn<GameBean, String> hostColumn;
   public TableColumn<GameBean, Boolean> passwordProtectionColumn;
   public TableColumn<GameBean, String> coopMissionName;
-  private GameTooltipController gameTooltipController;
+  public GameTooltipController gameTooltipController;
+
   private Tooltip tooltip;
 
   public ObjectProperty<GameBean> selectedGameProperty() {
@@ -96,7 +98,6 @@ public class GamesTableController implements Controller<Node> {
                                   boolean listenToFilterPreferences) {
     BooleanExpression showing = uiService.createShowingProperty(getRoot());
 
-    gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
 
     SortedList<GameBean> sortedList = new SortedList<>(games);
@@ -222,12 +223,13 @@ public class GamesTableController implements Controller<Node> {
         joinGameHelper.join(game);
       }
     });
-    row.setOnMouseEntered(event -> {
+    row.setOnMouseEntered(event -> gameTooltipController.setGame(row.getItem()));
+
+    row.setOnMouseExited(event -> {
       GameBean game = row.getItem();
-      if (game == null) {
-        return;
+      if (Objects.equals(game, gameTooltipController.getGame())) {
+        gameTooltipController.setGame(null);
       }
-      gameTooltipController.setGame(game);
     });
     return row;
   }

@@ -47,7 +47,12 @@ public class GamesTilesContainerControllerTest extends UITest {
     when(gameTooltipController.getRoot()).thenReturn(new Pane());
     when(gameTileController.getRoot()).thenReturn(new Pane()).thenReturn(new FlowPane()).thenReturn(new StackPane());
 
-    loadFxml("theme/play/games_tiles_container.fxml", clazz -> instance);
+    loadFxml("theme/play/games_tiles_container.fxml", clazz -> {
+      if (clazz == GameTooltipController.class) {
+        return gameTooltipController;
+      }
+      return instance;
+    });
   }
 
   @Test

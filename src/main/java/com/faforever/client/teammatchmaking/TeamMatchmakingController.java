@@ -21,7 +21,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.Faction;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -188,7 +187,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
     JavaFxUtil.addAndTriggerListener(currentPlayerProperty, new WeakInvalidationListener(currentPlayerListener));
     JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty()
-        .getMembers(), (InvalidationListener) observable -> renderPartyMembers());
+        .getMembers(), observable -> renderPartyMembers());
     JavaFxUtil.addListener(teamMatchmakingService.getQueues(), (ListChangeListener<MatchmakerQueueBean>) change -> {
       boolean shouldReRender = false;
       while (change.next()) {
@@ -200,7 +199,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       }
     });
     JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty()
-        .getMembers(), (InvalidationListener) observable -> {
+        .getMembers(), observable -> {
       refreshingLabel.setVisible(false);
       selectFactionsBasedOnParty();
     });
@@ -283,7 +282,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         }, fxApplicationThreadExecutor);
   }
 
-  private synchronized void renderPartyMembers() {
+  private void renderPartyMembers() {
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
     if (currentPlayer != null) {
       List<PartyMember> members = new ArrayList<>(teamMatchmakingService.getParty().getMembers());

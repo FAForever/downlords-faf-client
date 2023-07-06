@@ -7,8 +7,6 @@ import com.faforever.client.builders.PlayerStatsMapBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.builders.ReplayReviewBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.GamePlayerStatsBean;
-import com.faforever.client.domain.LeaderboardRatingJournalBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReplayBean;
@@ -27,7 +25,6 @@ import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewService;
@@ -58,12 +55,8 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -375,28 +368,6 @@ public class ReplayDetailControllerTest extends UITest {
     });
 
     assertTrue(instance.downloadMoreInfoButton.isVisible());
-  }
-
-  @Test
-  public void testGetPlayerFaction() {
-    Map<Integer, GamePlayerStatsBean> statsByPlayerId = onlineReplay.getTeamPlayerStats().values().stream()
-        .flatMap(Collection::stream)
-        .collect(Collectors.toMap(stats -> stats.getPlayer().getId(), Function.identity()));
-    int id = statsByPlayerId.keySet().stream().findFirst().orElseThrow();
-    GamePlayerStatsBean playerStats = statsByPlayerId.get(id);
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().id(id).get();
-    assertEquals(playerStats.getFaction(), instance.getPlayerFaction(player, statsByPlayerId));
-  }
-
-  @Test
-  public void testGetPlayerRating() {
-    Map<Integer, GamePlayerStatsBean> statsByPlayerId = onlineReplay.getTeamPlayerStats().values().stream()
-        .flatMap(Collection::stream)
-        .collect(Collectors.toMap(stats -> stats.getPlayer().getId(), Function.identity()));
-    int id = statsByPlayerId.keySet().stream().findFirst().orElseThrow();
-    LeaderboardRatingJournalBean playerStats = statsByPlayerId.get(id).getLeaderboardRatingJournals().get(0);
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().id(id).get();
-    assertEquals(Integer.valueOf(RatingUtil.getRating(playerStats.getMeanBefore(), playerStats.getDeviationBefore())), instance.getPlayerRating(player, statsByPlayerId));
   }
 
   @Test

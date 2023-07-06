@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,10 +36,9 @@ public class TeamCardControllerTest extends UITest {
   private UiService uiService;
   @Mock
   private PlayerCardController playerCardController;
-  @Mock
-  private RatingChangeLabelController ratingChangeLabelController;
 
-  private ArrayList<PlayerBean> playerList = new ArrayList<>();
+  private final ArrayList<PlayerBean> playerList = new ArrayList<>();
+
   private ObservableMap<String, List<GamePlayerStatsBean>> teams;
   private GamePlayerStatsBean playerStats;
 
@@ -49,12 +49,10 @@ public class TeamCardControllerTest extends UITest {
     teams = FXCollections.observableHashMap();
 
     when(uiService.loadFxml("theme/player_card.fxml")).thenReturn(playerCardController);
-    when(uiService.loadFxml("theme/rating_change_label.fxml")).thenReturn(ratingChangeLabelController);
     when(playerCardController.ratingProperty()).thenReturn(new SimpleObjectProperty<>());
     when(playerCardController.factionProperty()).thenReturn(new SimpleObjectProperty<>());
     when(playerCardController.playerProperty()).thenReturn(new SimpleObjectProperty<>());
     when(playerCardController.getRoot()).thenReturn(new Label());
-    when(ratingChangeLabelController.getRoot()).thenReturn(new Label());
     playerStats = GamePlayerStatsBeanBuilder.create()
         .defaultValues()
         .player(PlayerBeanBuilder.create().defaultValues().get())
@@ -82,8 +80,9 @@ public class TeamCardControllerTest extends UITest {
     instance.setPlayers(playerList);
     instance.setRatingProvider(player -> RatingUtil.getRating(1000, 0));
     instance.setRatingPrecision(RatingPrecision.EXACT);
+    WaitForAsyncUtils.waitForFxEvents();
     instance.setStats(teams.get("2"));
-    verify(ratingChangeLabelController).setRatingChange(playerStats);
+    verify(playerCardController).setPlayerStats(playerStats);
   }
 
 }
