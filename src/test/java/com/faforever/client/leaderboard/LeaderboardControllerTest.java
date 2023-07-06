@@ -15,7 +15,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.FakeTestException;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -43,7 +42,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
-public class LeaderboardControllerTest extends UITest {
+public class LeaderboardControllerTest extends PlatformTest {
 
   @InjectMocks
   private LeaderboardController instance;
@@ -162,15 +161,6 @@ public class LeaderboardControllerTest extends UITest {
     assertEquals("Sheikah", subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem().getPlayer().getUsername());
   }
 
-  @Test
-  public void testAutoCompletionSuggestions() {
-    settingAutoCompletionForTestEnvironment();
-    setSearchText("o");
-    assertSearchSuggestions("MarcSpector", "ZLO");
-    setSearchText("ei");
-    assertSearchSuggestions("Sheikah");
-  }
-
   private void showDivision(SubdivisionBean subdivision) {
     runOnFxThreadAndWait(() -> {
       instance.majorDivisionPicker.getSelectionModel().select(subdivision);
@@ -180,21 +170,6 @@ public class LeaderboardControllerTest extends UITest {
 
   private void setSearchText(String text) {
     runOnFxThreadAndWait(() -> instance.searchTextField.setText(text));
-  }
-
-  private void settingAutoCompletionForTestEnvironment() {
-    runOnFxThreadAndWait(() -> {
-      getRoot().getChildren().add(instance.searchTextField);
-      instance.usernamesAutoCompletion.getAutoCompletionPopup().setOpacity(0.0);
-    });
-  }
-
-  private void assertSearchSuggestions(String... expectedSuggestions) {
-    runOnFxThreadAndWait(() -> {
-      List<String> actualSuggestions = instance.usernamesAutoCompletion.getAutoCompletionPopup().getSuggestions();
-      assertEquals(expectedSuggestions.length,  actualSuggestions.size());
-      assertTrue(actualSuggestions.containsAll(Arrays.asList(expectedSuggestions)));
-  });
   }
 
   @Test

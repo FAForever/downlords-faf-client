@@ -7,7 +7,7 @@ import com.faforever.client.domain.ModVersionBean.ModType;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ModCardControllerTest extends UITest {
+public class ModCardControllerTest extends PlatformTest {
 
   @Mock
   private UiService uiService;

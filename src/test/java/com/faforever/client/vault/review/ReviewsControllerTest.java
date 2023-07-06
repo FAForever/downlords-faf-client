@@ -4,7 +4,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +13,7 @@ import org.mockito.Mock;
 
 import static org.mockito.Mockito.when;
 
-public class ReviewsControllerTest extends UITest {
+public class ReviewsControllerTest extends PlatformTest {
 
   @InjectMocks
   private ReviewsController<MapVersionReviewBean> instance;

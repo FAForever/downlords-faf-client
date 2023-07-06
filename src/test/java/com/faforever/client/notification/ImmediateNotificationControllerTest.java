@@ -1,6 +1,6 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.ui.dialog.DialogLayout;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -18,7 +18,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ImmediateNotificationControllerTest extends UITest {
+public class ImmediateNotificationControllerTest extends PlatformTest {
 
   @InjectMocks
   private ImmediateNotificationController instance;

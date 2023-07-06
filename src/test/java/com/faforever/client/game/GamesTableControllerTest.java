@@ -7,7 +7,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -33,7 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-public class GamesTableControllerTest extends UITest {
+public class GamesTableControllerTest extends PlatformTest {
 
   @InjectMocks
   private GamesTableController instance;

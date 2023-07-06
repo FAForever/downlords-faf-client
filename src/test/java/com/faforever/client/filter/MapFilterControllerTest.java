@@ -4,7 +4,7 @@ import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapSize;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import org.apache.commons.lang3.Range;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
-public class MapFilterControllerTest extends UITest {
+public class MapFilterControllerTest extends PlatformTest {
 
   @Mock
   private I18n i18n;

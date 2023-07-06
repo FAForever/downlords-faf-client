@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -10,7 +10,7 @@ import org.mockito.Spy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class UserListCustomizationControllerTest extends UITest {
+public class UserListCustomizationControllerTest extends PlatformTest {
 
   @Spy
   private ChatPrefs chatPrefs;

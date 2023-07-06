@@ -25,7 +25,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.rating.RatingService;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.test.FakeTestException;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
@@ -77,7 +77,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ReplayDetailControllerTest extends UITest {
+public class ReplayDetailControllerTest extends PlatformTest {
 
   @InjectMocks
   private ReplayDetailController instance;

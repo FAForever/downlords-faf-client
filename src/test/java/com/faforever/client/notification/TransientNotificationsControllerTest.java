@@ -2,7 +2,7 @@ package com.faforever.client.notification;
 
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.ToastPosition;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.geometry.Pos;
 import javafx.scene.layout.Pane;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TransientNotificationsControllerTest extends UITest {
+public class TransientNotificationsControllerTest extends PlatformTest {
 
   @InjectMocks
   private TransientNotificationsController instance;

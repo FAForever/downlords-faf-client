@@ -14,7 +14,7 @@ import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.replay.WatchButtonController;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -38,7 +38,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PrivatePlayerInfoControllerTest extends UITest {
+public class PrivatePlayerInfoControllerTest extends PlatformTest {
   private static final String CHANNEL_NAME = "testChannel";
   private static final String USERNAME = "junit";
 

@@ -17,7 +17,7 @@ import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.Faction;
 import com.google.common.eventbus.EventBus;
@@ -57,7 +57,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
-public class TeamMatchmakingControllerTest extends UITest {
+public class TeamMatchmakingControllerTest extends PlatformTest {
 
   @Mock
   private CountryFlagService countryFlagService;

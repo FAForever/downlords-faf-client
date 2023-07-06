@@ -5,7 +5,7 @@ import com.faforever.client.main.event.OpenLocalReplayVaultEvent;
 import com.faforever.client.replay.LiveReplayController;
 import com.faforever.client.replay.LocalReplayVaultController;
 import com.faforever.client.replay.OnlineReplayVaultController;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.control.Label;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-public class ReplayControllerTest extends UITest {
+public class ReplayControllerTest extends PlatformTest {
   @Mock
   private EventBus eventBus;
   @Mock

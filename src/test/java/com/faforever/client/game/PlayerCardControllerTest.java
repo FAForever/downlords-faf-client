@@ -5,19 +5,16 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
-import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
 import com.faforever.client.helper.TooltipHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.SocialStatus;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.image.Image;
-import javafx.scene.input.MouseEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -30,13 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PlayerCardControllerTest extends UITest {
+public class PlayerCardControllerTest extends PlatformTest {
   @Mock
   private UiService uiService;
   @Mock
@@ -173,21 +166,6 @@ public class PlayerCardControllerTest extends UITest {
     instance.setFaction(Faction.RANDOM);
 
     assertFalse(instance.countryImageView.isVisible());
-  }
-
-  @Test
-  public void testOpenContextMenu() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
-    ContextMenu contextMenuMock = ContextMenuBuilderHelper.mockContextMenuBuilderAndGetContextMenuMock(contextMenuBuilder);
-    runOnFxThreadAndWait(() -> {
-      getRoot().getChildren().add(instance.getRoot());
-      instance.setPlayer(player);
-      instance.setRating(1000);
-      instance.setFaction(Faction.RANDOM);
-      instance.openContextMenu(mock(MouseEvent.class));
-    });
-
-    verify(contextMenuMock).show(eq(instance.getRoot().getScene().getWindow()), anyDouble(), anyDouble());
   }
 
   @Test

@@ -13,7 +13,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.Country;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
 import org.apache.commons.lang3.Range;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
-public class ChatUserFilterControllerTest extends UITest {
+public class ChatUserFilterControllerTest extends PlatformTest {
 
   @Mock
   private UiService uiService;

@@ -2,7 +2,7 @@ package com.faforever.client.player;
 
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,7 +13,7 @@ import static com.faforever.client.player.PlayerNoteController.CHARACTER_LIMIT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 
-public class PlayerNoteControllerTest extends UITest {
+public class PlayerNoteControllerTest extends PlatformTest {
 
   @Mock
   private PlayerService playerService;

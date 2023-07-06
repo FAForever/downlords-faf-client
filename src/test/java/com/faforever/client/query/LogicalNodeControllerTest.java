@@ -2,7 +2,7 @@ package com.faforever.client.query;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.query.LogicalNodeController.LogicalOperator;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class LogicalNodeControllerTest extends UITest {
+public class LogicalNodeControllerTest extends PlatformTest {
 
   @InjectMocks
   private LogicalNodeController instance;

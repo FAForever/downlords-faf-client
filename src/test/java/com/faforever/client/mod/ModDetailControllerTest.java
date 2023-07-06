@@ -14,7 +14,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.FakeTestException;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewController;
@@ -51,7 +51,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ModDetailControllerTest extends UITest {
+public class ModDetailControllerTest extends PlatformTest {
 
   @Mock
   private UiService uiService;

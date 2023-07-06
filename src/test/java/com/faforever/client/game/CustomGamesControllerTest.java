@@ -5,7 +5,7 @@ import com.faforever.client.filter.CustomGamesFilterController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.replay.WatchButtonController;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class CustomGamesControllerTest extends UITest {
+public class CustomGamesControllerTest extends PlatformTest {
 
   @InjectMocks
   private CustomGamesController instance;

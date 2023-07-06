@@ -3,7 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
-public class GamesTilesContainerControllerTest extends UITest {
+public class GamesTilesContainerControllerTest extends PlatformTest {
 
   @Mock
   private GameTileController gameTileController;

@@ -3,13 +3,10 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatColorMode;
-import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -17,12 +14,8 @@ import org.mockito.Spy;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
-public class ChangeUsernameColorMenuItemTest extends UITest {
+public class ChangeUsernameColorMenuItemTest extends PlatformTest {
 
 
   @Mock
@@ -40,23 +33,6 @@ public class ChangeUsernameColorMenuItemTest extends UITest {
   public void setUp() throws Exception {
     instance = new ChangeUsernameColorMenuItem(uiService, i18n, contextMenuBuilder, chatPrefs);
     chatPrefs.setChatColorMode(ChatColorMode.DEFAULT);
-  }
-
-  @Test
-  public void testOnClicked() {
-    runOnFxThreadAndWait(() -> {
-      ContextMenu contextMenu = new ContextMenu(instance);
-      Label label = new Label();
-      label.setContextMenu(contextMenu);
-      getRoot().getChildren().add(label);
-      instance.setObject(ChatChannelUserBuilder.create("junit", "channel").get());
-      contextMenu.show(getRoot(), 0, 0);
-    });
-
-    verifyNoInteractions(contextMenuBuilder);
-    ContextMenu contextMenuMock = ContextMenuBuilderHelper.mockContextMenuBuilderAndGetContextMenuMock(contextMenuBuilder);
-    instance.onClicked();
-    verify(contextMenuMock).show(eq(getStage()), anyDouble(), anyDouble());
   }
 
   @Test

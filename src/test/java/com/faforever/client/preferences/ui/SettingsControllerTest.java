@@ -21,7 +21,7 @@ import com.faforever.client.preferences.tasks.MoveDirectoryTask;
 import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.FakeTestException;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
@@ -68,7 +68,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-public class SettingsControllerTest extends UITest {
+public class SettingsControllerTest extends PlatformTest {
   private static final Theme FIRST_THEME = new Theme("First", "none", 1, "1");
   private static final Theme SECOND_THEME = new Theme("Second", "none", 1, "1");
 

@@ -3,7 +3,7 @@ package com.faforever.client.mod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -18,7 +18,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class DownloadModTaskTest extends UITest {
+public class DownloadModTaskTest extends PlatformTest {
 
   @TempDir
   public Path tempDirectory;

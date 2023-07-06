@@ -8,7 +8,7 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.FakeTestException;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class SubDivisionTabControllerTest extends UITest {
+public class SubDivisionTabControllerTest extends PlatformTest {
 
   @Mock
   private I18n i18n;

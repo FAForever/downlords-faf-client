@@ -7,7 +7,7 @@ import com.faforever.client.clan.ClanService;
 import com.faforever.client.domain.ClanBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class SendPrivateMessageClanLeaderMenuItemTest extends UITest {
+public class SendPrivateMessageClanLeaderMenuItemTest extends PlatformTest {
 
   @Mock
   private I18n i18n;

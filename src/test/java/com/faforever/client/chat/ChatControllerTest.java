@@ -2,7 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
 import com.faforever.commons.api.dto.MeResult;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 // TODO those unit tests need to be improved (missing verifications)
-public class ChatControllerTest extends UITest {
+public class ChatControllerTest extends PlatformTest {
 
   public static final String TEST_USER_NAME = "junit";
   private static final String TEST_CHANNEL_NAME = "#testChannel";

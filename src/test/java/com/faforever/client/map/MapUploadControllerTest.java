@@ -5,7 +5,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public class MapUploadControllerTest extends UITest {
+public class MapUploadControllerTest extends PlatformTest {
 
   @InjectMocks
   private MapUploadController instance;

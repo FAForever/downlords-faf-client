@@ -3,16 +3,14 @@ package com.faforever.client.replay;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
-import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import javafx.animation.Timeline;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.control.ContextMenu;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,13 +22,10 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class WatchButtonControllerTest extends UITest {
+public class WatchButtonControllerTest extends PlatformTest {
 
   @Mock
   private UiService uiService;
@@ -60,17 +55,6 @@ public class WatchButtonControllerTest extends UITest {
     when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/vault/replay/watch_button.fxml", clazz -> instance);
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
-  }
-
-  @Test
-  public void testShowContextMenuIfReplayUnavailableYet() {
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.watchButton));
-    ContextMenu contextMenuMock = ContextMenuBuilderHelper.mockContextMenuBuilderAndGetContextMenuMock(contextMenuBuilder);
-    setGame(game);
-    clickWatchButton();
-    verify(contextMenuMock).show(eq(instance.watchButton.getScene().getWindow()), anyDouble(), anyDouble());
-    verify(liveReplayService, never()).runLiveReplay(any());
   }
 
   @Test

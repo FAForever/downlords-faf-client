@@ -9,7 +9,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewsController;
@@ -39,7 +39,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
-public class MapCardControllerTest extends UITest {
+public class MapCardControllerTest extends PlatformTest {
 
   @Mock
   private UiService uiService;

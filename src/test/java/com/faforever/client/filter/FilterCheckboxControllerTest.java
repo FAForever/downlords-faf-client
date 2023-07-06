@@ -1,7 +1,7 @@
 package com.faforever.client.filter;
 
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FilterCheckboxControllerTest extends UITest {
+public class FilterCheckboxControllerTest extends PlatformTest {
 
   private FilterCheckboxController<Object> instance;
 

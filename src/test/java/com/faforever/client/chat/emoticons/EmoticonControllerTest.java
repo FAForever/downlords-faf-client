@@ -2,7 +2,7 @@ package com.faforever.client.chat.emoticons;
 
 import com.faforever.client.builders.EmoticonBuilder;
 import com.faforever.client.fx.MouseEvents;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 
-public class EmoticonControllerTest extends UITest {
+public class EmoticonControllerTest extends PlatformTest {
 
   @Mock
   private Consumer<String> onAction;

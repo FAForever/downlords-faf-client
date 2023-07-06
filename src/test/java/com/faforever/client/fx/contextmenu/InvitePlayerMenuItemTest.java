@@ -5,7 +5,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.teammatchmaking.TeamMatchmakingService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.commons.lobby.GameStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ import org.mockito.Mockito;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class InvitePlayerMenuItemTest extends UITest {
+public class InvitePlayerMenuItemTest extends PlatformTest {
 
   @Mock
   private TeamMatchmakingService teamMatchmakingService;

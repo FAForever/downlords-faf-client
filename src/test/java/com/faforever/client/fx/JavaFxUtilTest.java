@@ -1,6 +1,6 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class JavaFxUtilTest extends UITest {
+public class JavaFxUtilTest extends PlatformTest {
 
   @Test
   public void testPathToStringConverter() throws Exception {

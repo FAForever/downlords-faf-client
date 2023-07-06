@@ -1,6 +1,6 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-public class ContextMenuBuilderTest extends UITest {
+public class ContextMenuBuilderTest extends PlatformTest {
 
   @Mock
   private ApplicationContext applicationContext;

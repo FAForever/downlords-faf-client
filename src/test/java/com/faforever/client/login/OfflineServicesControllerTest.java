@@ -1,6 +1,6 @@
 package com.faforever.client.login;
 
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.control.Label;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +14,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testfx.assertions.api.Assertions.assertThat;
 
-class OfflineServicesControllerTest extends UITest {
+class OfflineServicesControllerTest extends PlatformTest {
   @InjectMocks
   private OfflineServicesController instance;
 

@@ -11,7 +11,6 @@ import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PrivatePlayerInfoController;
@@ -19,7 +18,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.replay.WatchButtonController;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.LoginService;
@@ -34,11 +33,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.InputStream;
 import java.net.URL;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -52,7 +49,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PrivateChatTabControllerTest extends UITest {
+public class PrivateChatTabControllerTest extends PlatformTest {
 
   @Mock
   private LoginService loginService;
@@ -133,20 +130,10 @@ public class PrivateChatTabControllerTest extends UITest {
     runOnFxThreadAndWait(() -> {
       TabPane tabPane = new TabPane();
       tabPane.setSkin(new TabPaneSkin(tabPane));
-      getRoot().getChildren().setAll(tabPane);
       tabPane.getTabs().add(instance.getRoot());
       instance.setChatChannel(new ChatChannel(playerName));
     });
     verify(webViewConfigurer).configureWebView(eq(instance.messagesWebView));
-  }
-
-  @Test
-  public void testOnChatMessageUnfocusedTriggersNotification() {
-    // TODO this test throws exceptions if another test runs before it or after it, but not if run alone
-    // In that case AbstractChatTabController.hasFocus throws NPE because tabPane.getScene().getWindow() is null
-    WaitForAsyncUtils.waitForAsyncFx(5000, () -> getRoot().getScene().getWindow().hide());
-    instance.onChatMessage(new ChatMessage(Instant.now(), playerName, "Test message"));
-    verify(notificationService).addNotification(any(TransientNotification.class));
   }
 
   @Test

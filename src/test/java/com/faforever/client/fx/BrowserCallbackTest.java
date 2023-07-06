@@ -8,7 +8,7 @@ import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +21,7 @@ import org.testfx.util.WaitForAsyncUtils;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
-public class BrowserCallbackTest extends UITest {
+public class BrowserCallbackTest extends PlatformTest {
 
   @InjectMocks
   private BrowserCallback instance;

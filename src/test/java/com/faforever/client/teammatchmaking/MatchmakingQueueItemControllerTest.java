@@ -11,7 +11,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
 import com.faforever.commons.lobby.Player;
@@ -38,7 +38,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class MatchmakingQueueItemControllerTest extends UITest {
+public class MatchmakingQueueItemControllerTest extends PlatformTest {
 
   @Mock
   private UiService uiService;
@@ -85,7 +85,6 @@ public class MatchmakingQueueItemControllerTest extends UITest {
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(partyMembersNotReadyProperty.get());
     loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml", clazz -> instance);
     runOnFxThreadAndWait(() -> {
-      getRoot().getChildren().add(instance.getRoot());
       instance.setQueue(queue);
     });
   }

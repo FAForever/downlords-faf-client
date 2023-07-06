@@ -5,7 +5,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.clan.ClanService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -20,7 +20,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class OpenClanUrlMenuItemTest extends UITest {
+public class OpenClanUrlMenuItemTest extends PlatformTest {
 
   @Mock
   private I18n i18n;

@@ -12,7 +12,7 @@ import com.faforever.client.query.CategoryFilterController;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.VaultEntityController.SearchType;
 import com.faforever.client.vault.VaultEntityShowRoomController;
@@ -43,7 +43,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class OnlineReplayVaultControllerTest extends UITest {
+public class OnlineReplayVaultControllerTest extends PlatformTest {
 
   @InjectMocks
   private OnlineReplayVaultController instance;
@@ -88,7 +88,7 @@ public class OnlineReplayVaultControllerTest extends UITest {
   public void setUp() throws Exception {
     when(replayDetailController.getRoot()).thenReturn(new Pane());
 
-    when(uiService.loadFxml("theme/vault/replay/replay_detail.fxml")).thenAnswer(invocation -> replayDetailController);
+    when(uiService.loadFxml("theme/vault/replay/replay_detail.fxml")).thenReturn(replayDetailController);
 
     when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(List.of()));
     when(leaderboardService.getLeaderboards()).thenReturn(CompletableFuture.completedFuture(List.of()));

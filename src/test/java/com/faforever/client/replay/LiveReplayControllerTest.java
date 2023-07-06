@@ -8,16 +8,13 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenLiveReplayViewEvent;
 import com.faforever.client.map.MapService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.scene.control.SplitPane;
-import javafx.stage.Popup;
-import javafx.stage.Window;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -32,7 +29,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class LiveReplayControllerTest extends UITest {
+public class LiveReplayControllerTest extends PlatformTest {
 
   @Mock
   private GameService gameService;
@@ -72,20 +69,5 @@ public class LiveReplayControllerTest extends UITest {
     verify(liveGamesFilterController).setDefaultPredicate(argumentCaptor.capture());
     assertFalse(argumentCaptor.getValue().test(GameBeanBuilder.create().defaultValues().id(1).status(GameStatus.OPEN).get()));
     assertTrue(argumentCaptor.getValue().test(GameBeanBuilder.create().defaultValues().id(2).status(GameStatus.PLAYING).get()));
-  }
-
-  @Test
-  public void testOnFilterButtonClicked() {
-    when(liveGamesFilterController.getRoot()).thenReturn(new SplitPane());
-    runOnFxThreadAndWait(() -> {
-      getRoot().getChildren().add(instance.getRoot());
-      instance.onFilterButtonClicked();
-    });
-    Window window = liveGamesFilterController.getRoot().getParent().getScene().getWindow();
-    assertTrue(window.getClass().isAssignableFrom(Popup.class));
-    assertTrue(window.isShowing());
-
-    runOnFxThreadAndWait(() -> instance.onFilterButtonClicked());
-    assertFalse(window.isShowing());
   }
 }

@@ -18,7 +18,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.stats.StatisticsService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.api.dto.AchievementState;
@@ -50,7 +50,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
-public class PlayerInfoWindowControllerTest extends UITest {
+public class PlayerInfoWindowControllerTest extends PlatformTest {
 
   @InjectMocks
   private PlayerInfoWindowController instance;

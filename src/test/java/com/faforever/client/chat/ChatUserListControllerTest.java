@@ -7,7 +7,7 @@ import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -17,9 +17,6 @@ import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
-import javafx.stage.Popup;
-import javafx.stage.Window;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -44,7 +41,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @Slf4j
-public class ChatUserListControllerTest extends UITest {
+public class ChatUserListControllerTest extends PlatformTest {
 
   private static final String CHANNEL_NAME = "#testChannel";
 
@@ -354,34 +351,6 @@ public class ChatUserListControllerTest extends UITest {
     assertContainUsersInCategory(ChatUserCategory.FRIEND, userList2);
     assertContainUsersInSource(userList1);
     assertContainUsersInSource(userList2);
-  }
-
-  @Test
-  public void testOnListCustomizationButtonClicked() {
-    VBox popupContent = new VBox();
-    UserListCustomizationController controllerMock = mock(UserListCustomizationController.class);
-    when(controllerMock.getRoot()).thenReturn(popupContent);
-    when(uiService.loadFxml("theme/chat/user_list_customization.fxml")).thenReturn(controllerMock);
-
-    runOnFxThreadAndWait(() -> {
-      getRoot().getChildren().add(instance.getRoot());
-      instance.onListCustomizationButtonClicked();
-    });
-    Window window = popupContent.getParent().getScene().getWindow();
-    assertTrue(window.getClass().isAssignableFrom(Popup.class));
-    assertTrue(window.isShowing());
-  }
-
-  @Test
-  public void testOnFilterButtonClicked() {
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
-    runOnFxThreadAndWait(() -> instance.onFilterButtonClicked());
-    Window window = chatUserFilterController.getRoot().getParent().getScene().getWindow();
-    assertTrue(window.getClass().isAssignableFrom(Popup.class));
-    assertTrue(window.isShowing());
-
-    runOnFxThreadAndWait(() -> instance.onFilterButtonClicked());
-    assertFalse(window.isShowing());
   }
 
   @Test

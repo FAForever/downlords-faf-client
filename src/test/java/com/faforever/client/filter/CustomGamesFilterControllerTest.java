@@ -6,7 +6,7 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.FiltersPrefs;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
-public class CustomGamesFilterControllerTest extends UITest {
+public class CustomGamesFilterControllerTest extends PlatformTest {
 
   @Mock
   private UiService uiService;

@@ -1,7 +1,7 @@
 package com.faforever.client.query;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.properties.concrete.StringProperty;
@@ -27,7 +27,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class CategoryFilterControllerTest extends UITest {
+public class CategoryFilterControllerTest extends PlatformTest {
 
   private final String propertyName = "testProp";
   private final List<String> items = Arrays.asList("test1", "test2");

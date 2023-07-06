@@ -10,7 +10,7 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.LoginService;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class MatchmakingChatControllerTest extends UITest {
+public class MatchmakingChatControllerTest extends PlatformTest {
 
   @Mock
   private ChatService chatService;

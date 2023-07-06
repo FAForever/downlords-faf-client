@@ -5,7 +5,7 @@ import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.ui.SettingsController;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.layout.Region;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +20,7 @@ import java.nio.file.Path;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class MainMenuButtonControllerTest extends UITest {
+public class MainMenuButtonControllerTest extends PlatformTest {
 
   @Mock
   private PlatformService platformService;
@@ -48,7 +48,6 @@ public class MainMenuButtonControllerTest extends UITest {
     when(settingsController.getRoot()).thenReturn(new Region());
 
     loadFxml("theme/headerbar/main_menu_button.fxml", clazz -> instance);
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.menuButton));
   }
 
   @Test

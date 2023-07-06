@@ -1,7 +1,7 @@
 package com.faforever.client.chat.emoticons;
 
 import com.faforever.client.builders.EmoticonGroupBuilder;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
-public class EmoticonsWindowControllerTest extends UITest {
+public class EmoticonsWindowControllerTest extends PlatformTest {
 
   @Mock
   private EmoticonService emoticonService;
