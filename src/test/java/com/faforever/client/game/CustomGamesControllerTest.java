@@ -48,6 +48,8 @@ public class CustomGamesControllerTest extends UITest {
   private GamesTilesContainerController gamesTilesContainerController;
   @Mock
   private CustomGamesFilterController customGamesFilterController;
+  @Mock
+  private GameTooltipController gameTooltipController;
   @Spy
   private Preferences preferences;
 
@@ -88,6 +90,9 @@ public class CustomGamesControllerTest extends UITest {
       }
       if (clazz == WatchButtonController.class) {
         return watchButtonController;
+      }
+      if (clazz == GameTooltipController.class) {
+        return gameTooltipController;
       }
       return instance;
     });

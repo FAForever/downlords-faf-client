@@ -65,7 +65,12 @@ public class GamesTableControllerTest extends UITest {
     when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
     when(playerService.getAverageRatingPropertyForGame(any())).thenReturn(new SimpleObjectProperty<>(0d));
 
-    loadFxml("theme/play/games_table.fxml", param -> instance);
+    loadFxml("theme/play/games_table.fxml", clazz -> {
+      if (clazz == GameTooltipController.class) {
+        return gameTooltipController;
+      }
+      return instance;
+    });
   }
 
   @Test

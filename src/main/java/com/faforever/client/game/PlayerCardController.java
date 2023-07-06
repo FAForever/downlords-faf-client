@@ -2,6 +2,8 @@ package com.faforever.client.game;
 
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.AvatarBean;
+import com.faforever.client.domain.GamePlayerStatsBean;
+import com.faforever.client.domain.LeaderboardRatingJournalBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -22,10 +24,13 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.Faction;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -48,6 +53,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PlayerCardController implements Controller<Node> {
 
+  private static final PseudoClass POSITIVE = PseudoClass.getPseudoClass("positive");
+  private static final PseudoClass NEGATIVE = PseudoClass.getPseudoClass("negative");
+
   private final UiService uiService;
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
@@ -63,11 +71,14 @@ public class PlayerCardController implements Controller<Node> {
   public Region factionIcon;
   public ImageView factionImage;
   public Label noteIcon;
+  public Label ratingChange;
 
   private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
+  private final ObjectProperty<GamePlayerStatsBean> playerStats = new SimpleObjectProperty<>();
   private final ObjectProperty<Integer> rating = new SimpleObjectProperty<>();
   private final ObjectProperty<Faction> faction = new SimpleObjectProperty<>();
   private final Tooltip noteTooltip = new Tooltip();
+  private final Tooltip avatarTooltip = new Tooltip();
 
   @Override
   public void initialize() {
@@ -100,7 +111,15 @@ public class PlayerCardController implements Controller<Node> {
         .bind(player.flatMap(PlayerBean::socialStatusProperty)
             .map(socialStatus -> socialStatus == SocialStatus.FRIEND)
             .when(showing));
-    player.flatMap(PlayerBean::noteProperty).when(showing).addListener((SimpleChangeListener<String>) this::onNoteChanged);
+    player.flatMap(PlayerBean::noteProperty)
+        .when(showing)
+        .addListener((SimpleChangeListener<String>) this::onNoteChanged);
+
+    ratingChange.visibleProperty().bind(playerStats.isNotNull());
+    ObservableValue<Integer> ratingChangeObservable = playerStats.flatMap(stats -> Bindings.valueAt(stats.getLeaderboardRatingJournals(), 0))
+        .map(this::getRatingChange);
+    ratingChange.textProperty().bind(ratingChangeObservable.map(i18n::numberWithSign));
+    ratingChangeObservable.addListener((observable, oldValue, newValue) -> onRatingChanged(oldValue, newValue));
 
     faction.when(showing).addListener(((observable, oldValue, newValue) -> onFactionChanged(oldValue, newValue)));
 
@@ -109,7 +128,6 @@ public class PlayerCardController implements Controller<Node> {
     noteTooltip.setShowDuration(Duration.seconds(30));
     noteIcon.visibleProperty().bind(noteTooltip.textProperty().isNotEmpty());
 
-    Tooltip avatarTooltip = new Tooltip();
     avatarTooltip.textProperty()
         .bind(player.flatMap(PlayerBean::avatarProperty).flatMap(AvatarBean::descriptionProperty).when(showing));
     avatarTooltip.setShowDelay(Duration.ZERO);
@@ -172,6 +190,27 @@ public class PlayerCardController implements Controller<Node> {
     }
   }
 
+  private void onRatingChanged(Integer oldValue, Integer newValue) {
+    if (oldValue != null) {
+      ratingChange.pseudoClassStateChanged(oldValue < 0 ? NEGATIVE : POSITIVE, false);
+    }
+
+    if (newValue != null) {
+      ratingChange.pseudoClassStateChanged(newValue < 0 ? NEGATIVE : POSITIVE, true);
+    }
+  }
+
+  private Integer getRatingChange(LeaderboardRatingJournalBean ratingJournal) {
+    if (ratingJournal.getMeanAfter() != null && ratingJournal.getDeviationAfter() != null) {
+      int newRating = RatingUtil.getRating(ratingJournal.getMeanAfter(), ratingJournal.getDeviationAfter());
+      int oldRating = RatingUtil.getRating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore());
+
+      return newRating - oldRating;
+    }
+
+    return null;
+  }
+
   public PlayerBean getPlayer() {
     return player.get();
   }
@@ -206,5 +245,17 @@ public class PlayerCardController implements Controller<Node> {
 
   public void setFaction(Faction faction) {
     this.faction.set(faction);
+  }
+
+  public GamePlayerStatsBean getPlayerStats() {
+    return playerStats.get();
+  }
+
+  public ObjectProperty<GamePlayerStatsBean> playerStatsProperty() {
+    return playerStats;
+  }
+
+  public void setPlayerStats(GamePlayerStatsBean playerStats) {
+    this.playerStats.set(playerStats);
   }
 }

@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.Locale;
+import java.util.Objects;
 
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -49,8 +50,8 @@ public class GamesTilesContainerController implements Controller<Node> {
 
   public FlowPane tiledFlowPane;
   public ScrollPane tiledScrollPane;
+  public GameTooltipController gameTooltipController;
 
-  private GameTooltipController gameTooltipController;
   private Tooltip tooltip;
 
   private final ObservableMap<GameBean, Node> gameToGameCard = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
@@ -66,7 +67,6 @@ public class GamesTilesContainerController implements Controller<Node> {
 
   @Override
   public void initialize() {
-    gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
     JavaFxUtil.fixScrollSpeed(tiledScrollPane);
 
@@ -89,7 +89,7 @@ public class GamesTilesContainerController implements Controller<Node> {
       }
 
       if (change.wasAdded()) {
-        change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
+        change.getAddedSubList().forEach(this::addGameCard);
       }
     }
   }
@@ -121,6 +121,11 @@ public class GamesTilesContainerController implements Controller<Node> {
     root.setUserData(game);
 
     root.setOnMouseEntered(event -> gameTooltipController.setGame(game));
+    root.setOnMouseExited(event -> {
+      if (Objects.equals(game, gameTooltipController.getGame())) {
+        gameTooltipController.setGame(null);
+      }
+    });
     Tooltip.install(root, tooltip);
 
     fxApplicationThreadExecutor.execute(() -> gameToGameCard.put(game, root));

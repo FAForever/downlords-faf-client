@@ -2,7 +2,6 @@ package com.faforever.client.game;
 
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
@@ -53,7 +52,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @Slf4j
@@ -75,13 +74,11 @@ public class GameDetailController implements Controller<Pane> {
 
   private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
   private final BooleanProperty playtimeVisible = new SimpleBooleanProperty();
-  private final ObservableValue<Map<Integer, List<Integer>>> teams = game.flatMap(GameBean::teamsProperty).orElse(Map.of());
-  private final ObservableValue<List<Integer>> teamIds = teams.map(teamMap -> teamMap.keySet()
-      .stream()
-      .sorted()
-      .toList());
+  private final ObservableValue<Map<Integer, List<Integer>>> teams = game.flatMap(GameBean::teamsProperty)
+      .orElse(Map.of());
   private final ObservableValue<String> leaderboard = game.flatMap(GameBean::leaderboardProperty);
   private final Timeline playTimeTimeline = new Timeline(new KeyFrame(Duration.ZERO, event -> updatePlaytimeValue()), new KeyFrame(Duration.seconds(1)));
+  private final SimpleChangeListener<Map<Integer, List<Integer>>> teamsListener = this::populateTeamsContainer;
 
   public Pane root;
   public Label gameTypeLabel;
@@ -154,25 +151,34 @@ public class GameDetailController implements Controller<Pane> {
         .bind(game.flatMap(gameBean -> Bindings.createStringBinding(() -> i18n.get("game.detail.players.format", gameBean.getNumActivePlayers(), gameBean.getMaxPlayers()), gameBean.numActivePlayersProperty(), gameBean.maxPlayersProperty()))
             .when(showing));
 
-    game.flatMap(GameBean::statusProperty).when(showing)
+    game.flatMap(GameBean::statusProperty)
+        .when(showing)
         .addListener((SimpleChangeListener<GameStatus>) this::onGameStatusChanged);
 
-    for (int i = -1; i < 8; i++) {
-      TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-      teamCardController.bindPlayersToPlayerIds();
-      teamCardController.setRatingPrecision(RatingPrecision.ROUNDED);
-      teamCardController.ratingProviderProperty()
-          .bind(leaderboard.map(name -> (Function<PlayerBean, Integer>) player -> RatingUtil.getLeaderboardRating(player, name))
-              .when(showing));
-      teamCardController.playerIdsProperty()
-          .bind(Bindings.createObjectBinding(() -> teams.getValue().get(teamCardController.getTeamId()), teams.when(showing), teamCardController.teamIdProperty()).when(showing));
-      int index = i + 1;
-      teamCardController.teamIdProperty().bind(teamIds.map(ids -> index < ids.size() ? ids.get(index) : null).when(showing));
-      Node teamCardControllerRoot = teamCardController.getRoot();
-      teamCardControllerRoot.visibleProperty().bind(teamCardController.playerIdsProperty().map(players -> !players.isEmpty()));
-      JavaFxUtil.bindManagedToVisible(teamCardControllerRoot);
-      teamListPane.getChildren().add(teamCardControllerRoot);
-    }
+    teams.when(showing).addListener(teamsListener);
+  }
+
+  private void populateTeamsContainer(Map<Integer, List<Integer>> newValue) {
+    CompletableFuture.supplyAsync(() -> createTeamCardControllers(newValue))
+        .thenAcceptAsync(controllers -> teamListPane.getChildren()
+            .setAll(controllers.stream().map(TeamCardController::getRoot).toList()), fxApplicationThreadExecutor);
+  }
+
+  private List<TeamCardController> createTeamCardControllers(Map<Integer, List<Integer>> teamsValue) {
+    return teamsValue.entrySet().stream().sorted(Map.Entry.comparingByKey()).map(entry -> {
+      Integer team = entry.getKey();
+      List<Integer> playerIds = entry.getValue();
+
+      TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
+      controller.setRatingPrecision(RatingPrecision.ROUNDED);
+      controller.ratingProviderProperty()
+          .bind(leaderboard.map(name -> player -> RatingUtil.getLeaderboardRating(player, name)));
+      controller.setTeamId(team);
+      controller.setPlayerIds(playerIds);
+      controller.bindPlayersToPlayerIds();
+
+      return controller;
+    }).toList();
   }
 
   private void onFeaturedModChanged(String featuredModTechnicalName) {
