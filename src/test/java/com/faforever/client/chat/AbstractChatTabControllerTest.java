@@ -23,20 +23,15 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.web.WebView;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
 import java.time.Instant;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.regex.Pattern;
 
 import static com.faforever.client.chat.AbstractChatTabController.CSS_CLASS_CHAT_ONLY;
@@ -99,7 +94,6 @@ public class AbstractChatTabControllerTest extends PlatformTest {
     when(emoticonService.getBase64SvgContentByShortcode(":uef:")).thenReturn("uefBase64Content");
     when(emoticonService.getBase64SvgContentByShortcode(":aeon:")).thenReturn("aeonBase64Content");
 
-    CountDownLatch instanceReadyLatch = new CountDownLatch(1);
     fxApplicationThreadExecutor.executeAndWait(() -> {
       instance = new AbstractChatTabController(loginService, chatService, playerService,
           timeService, i18n, notificationService, uiService, eventBus,
@@ -193,14 +187,6 @@ public class AbstractChatTabControllerTest extends PlatformTest {
     verify(chatService).sendActionInBackground(chatChannel, "is happy");
     assertThat(instance.messageTextField().getText(), is(message));
     assertThat(instance.messageTextField().isDisable(), is(false));
-  }
-
-  @NotNull
-  private KeyEvent keyEvent(KeyCode keyCode, Collection<KeyCode> modifiers) {
-    return new KeyEvent(null, null, KeyEvent.KEY_PRESSED, "\u0000", "", keyCode,
-        modifiers.contains(KeyCode.SHIFT),
-        modifiers.contains(KeyCode.CONTROL), modifiers.contains(KeyCode.ALT),
-        modifiers.contains(KeyCode.META));
   }
 
 
