@@ -19,8 +19,8 @@ faf-client:
     wiki: https://wikijs.faforever.com/
 
   vault:
-    map_rules_url: https://wiki.faforever.com/en/Vault-Rules
-    mod_rules_url: https://wiki.faforever.com/en/Vault-Rules
+    map_rules_url: https://wiki.faforever.com/en/Development/Vault/Rules
+    mod_rules_url: https://wiki.faforever.com/en/Development/Vault/Rules
     map_validation_url: ${faf-client.api.base-url}/maps/validate
     mapDownloadUrlFormat: ${faf-client.vault.base-url}/maps/%s.zip
     mapPreviewUrlFormat: ${faf-client.vault.base-url}/maps/previews/%s/%s.png
