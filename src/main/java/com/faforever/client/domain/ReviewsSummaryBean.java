@@ -17,6 +17,7 @@ public abstract class ReviewsSummaryBean {
   FloatProperty positive = new SimpleFloatProperty();
   FloatProperty negative = new SimpleFloatProperty();
   FloatProperty score = new SimpleFloatProperty();
+  FloatProperty averageScore = new SimpleFloatProperty();
   IntegerProperty numReviews = new SimpleIntegerProperty();
   FloatProperty lowerBound = new SimpleFloatProperty();
 
@@ -62,6 +63,18 @@ public abstract class ReviewsSummaryBean {
 
   public void setScore(float score) {
     this.score.set(score);
+  }
+
+  public FloatProperty averageScoreProperty() {
+    return averageScore;
+  }
+
+  public float getAverageScore() {
+    return averageScore.get();
+  }
+
+  public void setAverageScore(float averageScore) {
+    this.averageScore.set(averageScore);
   }
 
   public FloatProperty scoreProperty() {

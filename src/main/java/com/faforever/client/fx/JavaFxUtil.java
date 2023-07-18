@@ -36,7 +36,6 @@ import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.controlsfx.control.RangeSlider;
 import org.springframework.util.Assert;
@@ -44,6 +43,8 @@ import org.springframework.util.Assert;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -444,6 +445,13 @@ public final class JavaFxUtil {
 
   public static void bindTextFieldAndRangeSlider(TextField lowValueTextField, TextField highValueTextField,
                                                  RangeSlider rangeSlider) {
+    DecimalFormat numberFormat = (DecimalFormat) DecimalFormat.getInstance();
+    numberFormat.setMaximumFractionDigits(0);
+    bindTextFieldAndRangeSlider(lowValueTextField, highValueTextField, rangeSlider, numberFormat);
+  }
+
+  public static void bindTextFieldAndRangeSlider(TextField lowValueTextField, TextField highValueTextField,
+                                                 RangeSlider rangeSlider, DecimalFormat format) {
     Map.of(
         lowValueTextField, Pair.of(rangeSlider.lowValueProperty(), rangeSlider.getMin()),
         highValueTextField, Pair.of(rangeSlider.highValueProperty(), rangeSlider.getMax())
@@ -454,7 +462,7 @@ public final class JavaFxUtil {
         @Override
         public String toString(Number number) {
           if (!number.equals(value)) {
-            return String.valueOf(number.intValue());
+            return format.format(number);
           } else {
             return "";
           }
@@ -462,10 +470,14 @@ public final class JavaFxUtil {
 
         @Override
         public Number fromString(String string) {
-          if (NumberUtils.isParsable(string)) {
-            return Double.parseDouble(string);
-          } else {
-            if (!string.equals("-") && !string.equals(".")) {
+          String decimalSeparator = Character.toString(format.getDecimalFormatSymbols().getDecimalSeparator());
+          try {
+            Number number = format.parse(string);
+            String decimalSeparatorSuffix = string.endsWith(decimalSeparator) && format.getMaximumFractionDigits() > 0 ? decimalSeparator : "";
+            textField.setText(format.format(number) + decimalSeparatorSuffix);
+            return number;
+          } catch (ParseException e) {
+            if (!string.equals("-") && !string.equals(decimalSeparator)) {
               textField.setText("");
             }
             return value;

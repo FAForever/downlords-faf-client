@@ -11,11 +11,14 @@ import javafx.scene.Node;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
 import lombok.Data;
+import lombok.SneakyThrows;
 import org.controlsfx.control.RangeSlider;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,26 +38,30 @@ public class RangeFilterController implements FilterNodeController {
 
   private String propertyName;
   private Function<Double, ? extends Number> valueTransform;
+  private int numberOfFractionDigits;
+  private DecimalFormat numberFormat;
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(menu);
     rangeSlider.setShowTickMarks(true);
     rangeSlider.setShowTickLabels(true);
     rangeSlider.setMinorTickCount(0);
-    valueTransform = (value) -> value;
+    valueTransform = Function.identity();
   }
 
   public Optional<List<Condition>> getCondition() {
     List<Condition> conditions = new ArrayList<>();
-    if (!lowValue.getText().isBlank() && rangeSlider.getLowValue() > rangeSlider.getMin()) {
+    double lowValueValue = normalizeToFormat(rangeSlider.getLowValue());
+    if (!lowValue.getText().isBlank() && lowValueValue > rangeSlider.getMin()) {
       QBuilder qBuilderLow = new QBuilder<>();
       DoubleProperty propertyLow = qBuilderLow.doubleNum(propertyName);
-      conditions.add(propertyLow.gte(valueTransform.apply(rangeSlider.getLowValue())));
+      conditions.add(propertyLow.gte(valueTransform.apply(lowValueValue)));
     }
-    if (!highValue.getText().isBlank() && rangeSlider.getHighValue() < rangeSlider.getMax()) {
+    double highValueValue = normalizeToFormat(rangeSlider.getHighValue());
+    if (!highValue.getText().isBlank() && highValueValue < rangeSlider.getMax()) {
       QBuilder qBuilderHigh = new QBuilder<>();
       DoubleProperty propertyHigh = qBuilderHigh.doubleNum(propertyName);
-      conditions.add(propertyHigh.lte(valueTransform.apply(rangeSlider.getHighValue())));
+      conditions.add(propertyHigh.lte(valueTransform.apply(highValueValue)));
     }
     if (!conditions.isEmpty()) {
       if (!menu.getStyleClass().contains("query-filter-selected")) {
@@ -92,8 +99,6 @@ public class RangeFilterController implements FilterNodeController {
     rangeSlider.setMax(max);
     rangeSlider.setHighValue(max);
     highValue.setText("");
-
-    JavaFxUtil.bindTextFieldAndRangeSlider(lowValue, highValue, rangeSlider);
   }
 
   public void setIncrement(double increment) {
@@ -112,8 +117,25 @@ public class RangeFilterController implements FilterNodeController {
     this.valueTransform = valueTransform;
   }
 
+  public void setNumberOfFractionDigits(int numberOfFractionDigits) {
+    this.numberOfFractionDigits = numberOfFractionDigits;
+  }
+
+  public void bind() {
+    numberFormat = (DecimalFormat) DecimalFormat.getInstance();
+    numberFormat.setRoundingMode(RoundingMode.HALF_UP);
+    numberFormat.setMinimumFractionDigits(0);
+    numberFormat.setMaximumFractionDigits(numberOfFractionDigits);
+    JavaFxUtil.bindTextFieldAndRangeSlider(lowValue, highValue, rangeSlider, numberFormat);
+  }
+
   @Override
   public Node getRoot() {
     return menu;
+  }
+
+  @SneakyThrows
+  private double normalizeToFormat(double value) {
+    return numberFormat.parse(numberFormat.format(value)).doubleValue();
   }
 }

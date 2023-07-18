@@ -49,6 +49,7 @@ public class RangeFilterControllerTest extends PlatformTest {
     instance.setSnapToTicks(true);
     instance.setTickUnit(increment);
     instance.setValueTransform((value) -> value);
+    instance.bind();
   }
 
   @Test
@@ -88,7 +89,7 @@ public class RangeFilterControllerTest extends PlatformTest {
     instance.rangeSlider.setHighValue(90.0);
     instance.lowValue.setText("20");
     instance.highValue.setText("80");
-    verify(queryListener, times(12)).invalidated(any());
+    verify(queryListener, times(20)).invalidated(any());
   }
 
   @Test
