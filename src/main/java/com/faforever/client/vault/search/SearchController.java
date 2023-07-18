@@ -304,19 +304,17 @@ public class SearchController implements Controller<Pane> {
   }
 
   public void addRangeFilter(String propertyName, String title, double min, double max,
-                             double tickUnit, int numberOfFractionDigits) {
-    addRangeFilter(propertyName, title, min, max, tickUnit, numberOfFractionDigits, Function.identity());
+                             int majorTickCount, int interMajorTickCount, int numberOfFractionDigits) {
+    addRangeFilter(propertyName, title, min, max, majorTickCount, interMajorTickCount, numberOfFractionDigits, Function.identity());
   }
 
   public void addRangeFilter(String propertyName, String title, double min, double max,
-                             double tickUnit, int numberOfFractionDigits,
+                             int majorTickCount, int interMajorTickCount, int numberOfFractionDigits,
                              Function<Double, ? extends Number> valueTransform) {
     RangeFilterController rangeFilterController = uiService.loadFxml("theme/vault/search/rangeFilter.fxml");
     rangeFilterController.setTitle(title);
     rangeFilterController.setPropertyName(propertyName);
-    rangeFilterController.setMinMax(min, max);
-    rangeFilterController.setIncrement(tickUnit);
-    rangeFilterController.setTickUnit(tickUnit);
+    rangeFilterController.setRange(min, max, majorTickCount, interMajorTickCount);
     rangeFilterController.setSnapToTicks(true);
     rangeFilterController.setNumberOfFractionDigits(numberOfFractionDigits);
     rangeFilterController.setValueTransform(valueTransform);

@@ -150,12 +150,12 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
 
     //TODO: Use rating rather than estimated mean with an assumed deviation of 300 when that is available
     searchController.addRangeFilter("playerStats.ratingChanges.meanBefore", i18n.get("game.rating"),
-        MIN_RATING, MAX_RATING, 100, 0, value -> value + 300);
+        MIN_RATING, MAX_RATING, 10, 4, 0, value -> value + 300);
 
-    searchController.addRangeFilter("reviewsSummary.averageScore", i18n.get("reviews.averageScore"),0, 5, 0.5, 1);
+    searchController.addRangeFilter("reviewsSummary.averageScore", i18n.get("reviews.averageScore"),0, 5, 10, 4, 1);
 
     searchController.addDateRangeFilter("endTime", i18n.get("game.date"), 1);
-    searchController.addRangeFilter("replayTicks", i18n.get("game.duration"), 0, 60, 5, 0, value -> (int) (value*60*10));
+    searchController.addRangeFilter("replayTicks", i18n.get("game.duration"), 0, 60, 12, 4, 0, value -> value*60*10);
     searchController.addToggleFilter("validity", i18n.get("game.onlyRanked"), "VALID");
 
   }

@@ -91,7 +91,7 @@ public class RangeFilterController implements FilterNodeController {
     menu.textProperty().bind(Bindings.createStringBinding(() -> i18n.get("query.rangeFilter", title, lowValue.getText(), highValue.getText()), lowValue.textProperty(), highValue.textProperty()));
   }
 
-  public void setMinMax(double min, double max) {
+  public void setRange(double min, double max, int majorTickCount, int interMajorTickCount) {
     rangeSlider.setMin(min);
     rangeSlider.setLowValue(min);
     lowValue.setText("");
@@ -99,6 +99,12 @@ public class RangeFilterController implements FilterNodeController {
     rangeSlider.setMax(max);
     rangeSlider.setHighValue(max);
     highValue.setText("");
+
+    int numberOfTicks = majorTickCount + majorTickCount * interMajorTickCount;
+    double range = max - min;
+    rangeSlider.setBlockIncrement(range / numberOfTicks);
+    rangeSlider.setMajorTickUnit(range / majorTickCount);
+    rangeSlider.setMinorTickCount(interMajorTickCount);
   }
 
   public void setIncrement(double increment) {

@@ -96,8 +96,8 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
 
     searchController.addCategoryFilter("latestVersion.width", i18n.get("map.width"), mapSizeMap);
     searchController.addCategoryFilter("latestVersion.height", i18n.get("map.height"), mapSizeMap);
-    searchController.addRangeFilter("latestVersion.maxPlayers", i18n.get("map.maxPlayers"), 0, 16, 1, 0);
-    searchController.addRangeFilter("reviewsSummary.averageScore", i18n.get("reviews.averageScore"), 0, 5, 0.5, 1);
+    searchController.addRangeFilter("latestVersion.maxPlayers", i18n.get("map.maxPlayers"), 0, 16, 16, 0, 0);
+    searchController.addRangeFilter("reviewsSummary.averageScore", i18n.get("reviews.averageScore"), 0, 5, 10, 4, 1);
     searchController.addToggleFilter("latestVersion.ranked", i18n.get("map.onlyRanked"), "true");
   }
 
