@@ -59,7 +59,6 @@ public class ChatController extends AbstractViewController<AnchorPane> {
 
     ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
-    chatService.getChannels().forEach(this::onChannelJoined);
     chatService.addChannelsListener(channelChangeListener);
 
     JavaFxUtil.addAndTriggerListener(chatService.connectionStateProperty()
@@ -90,7 +89,6 @@ public class ChatController extends AbstractViewController<AnchorPane> {
     }
 
     addAndSelectTab(chatChannel);
-    onConnected();
   }
 
   private void onDisconnected() {
@@ -102,6 +100,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
   }
 
   private void onConnected() {
+    chatService.getChannels().forEach(this::onChannelJoined);
     fxApplicationThreadExecutor.execute(() -> {
       connectingProgressPane.setVisible(false);
       tabPane.setVisible(true);
