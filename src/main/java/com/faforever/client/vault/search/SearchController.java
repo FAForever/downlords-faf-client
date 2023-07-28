@@ -303,18 +303,23 @@ public class SearchController implements Controller<Pane> {
     return categoryFilterController;
   }
 
-  public RangeFilterController addRangeFilter(String propertyName, String title, double min, double max,
-                                              double tickUnit, Function<Double, ? extends Number> valueTransform) {
+  public void addRangeFilter(String propertyName, String title, double min, double max,
+                             int majorTickCount, int interMajorTickCount, int numberOfFractionDigits) {
+    addRangeFilter(propertyName, title, min, max, majorTickCount, interMajorTickCount, numberOfFractionDigits, Function.identity());
+  }
+
+  public void addRangeFilter(String propertyName, String title, double min, double max,
+                             int majorTickCount, int interMajorTickCount, int numberOfFractionDigits,
+                             Function<Double, ? extends Number> valueTransform) {
     RangeFilterController rangeFilterController = uiService.loadFxml("theme/vault/search/rangeFilter.fxml");
     rangeFilterController.setTitle(title);
     rangeFilterController.setPropertyName(propertyName);
-    rangeFilterController.setMinMax(min, max);
-    rangeFilterController.setIncrement(tickUnit);
-    rangeFilterController.setTickUnit(tickUnit);
+    rangeFilterController.setRange(min, max, majorTickCount, interMajorTickCount);
     rangeFilterController.setSnapToTicks(true);
+    rangeFilterController.setNumberOfFractionDigits(numberOfFractionDigits);
     rangeFilterController.setValueTransform(valueTransform);
+    rangeFilterController.bind();
     addFilterNode(rangeFilterController);
-    return rangeFilterController;
   }
 
   public DateRangeFilterController addDateRangeFilter(String propertyName, String title, int initialYearsBefore) {

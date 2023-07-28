@@ -37,6 +37,7 @@ public class SearchablePropertyMappings {
       .put("mapVersion.height", new Property("map.heightPixels", false))
       .put("mapVersion.folderName", new Property("game.map.folderName", false))
       .put("mapVersion.map.author.login", new Property("game.map.author", false))
+      .put("reviewsSummary.averageScore", new Property("reviews.averageScore", true))
 
       .build();
 

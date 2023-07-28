@@ -44,11 +44,12 @@ public class RangeFilterControllerTest extends PlatformTest {
     loadFxml("theme/vault/search/rangeFilter.fxml", clazz -> instance);
 
     instance.setPropertyName(propertyName);
-    instance.setMinMax(min, max);
+    instance.setRange(min, max, 10, 0);
     instance.setIncrement(increment);
     instance.setSnapToTicks(true);
     instance.setTickUnit(increment);
     instance.setValueTransform((value) -> value);
+    instance.bind();
   }
 
   @Test
@@ -88,7 +89,7 @@ public class RangeFilterControllerTest extends PlatformTest {
     instance.rangeSlider.setHighValue(90.0);
     instance.lowValue.setText("20");
     instance.highValue.setText("80");
-    verify(queryListener, times(12)).invalidated(any());
+    verify(queryListener, times(20)).invalidated(any());
   }
 
   @Test
@@ -156,5 +157,14 @@ public class RangeFilterControllerTest extends PlatformTest {
     assertEquals(result.get().get(0).query(new RSQLVisitor()), new QBuilder<>().doubleNum(propertyName).gte(50.0).query(new RSQLVisitor()));
     assertEquals(result.get().get(1).query(new RSQLVisitor()), new QBuilder<>().doubleNum(propertyName).lte(50.0).query(new RSQLVisitor()));
     assertTrue(instance.menu.getStyleClass().contains("query-filter-selected"));
+  }
+
+  @Test
+  void testTicks() {
+    instance.setRange(-10.0, 90.0, 5, 1);
+
+    assertEquals(20.0, instance.rangeSlider.getMajorTickUnit());
+    assertEquals(1, instance.rangeSlider.getMinorTickCount());
+    assertEquals(10.0, instance.rangeSlider.getBlockIncrement());
   }
 }
