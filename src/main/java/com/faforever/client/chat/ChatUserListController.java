@@ -49,12 +49,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -91,7 +90,7 @@ public class ChatUserListController implements Controller<VBox> {
   private final ObservableList<ChatListItem> unfilteredSource = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
   private final FilteredList<ChatListItem> items = new FilteredList<>(new SortedList<>(unfilteredSource, CHAT_LIST_ITEM_COMPARATOR));
   private final ObjectProperty<ObservableSet<ChatUserCategory>> hiddenCategories = new SimpleObjectProperty<>(FXCollections.emptyObservableSet());
-  private final Map<ChatChannelUser, Set<ChatListItem>> userChatListItemMap = new HashMap<>();
+  private final Map<ChatChannelUser, Set<ChatListItem>> userChatListItemMap = new ConcurrentHashMap<>();
   private final ObservableValue<Predicate<ChatListItem>> hiddenCategoryPredicate = hiddenCategories.flatMap(categories -> Bindings.createObjectBinding(() -> categories.stream()
       .map(category -> (Predicate<ChatListItem>) item -> item.user() == null || item.category() != category)
       .reduce(item -> true, Predicate::and), categories)).orElse(item -> true);
@@ -187,7 +186,7 @@ public class ChatUserListController implements Controller<VBox> {
   private void onUserJoined(ChatChannelUser user) {
     for (ChatUserCategory category : user.getCategories()) {
       ChatListItem item = new ChatListItem(user, category, null, null);
-      userChatListItemMap.computeIfAbsent(user, newUser -> new HashSet<>()).add(item);
+      userChatListItemMap.computeIfAbsent(user, newUser -> ConcurrentHashMap.newKeySet()).add(item);
       fxApplicationThreadExecutor.execute(() -> unfilteredSource.add(item));
     }
   }
