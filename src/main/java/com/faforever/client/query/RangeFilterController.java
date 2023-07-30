@@ -11,7 +11,6 @@ import javafx.scene.Node;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
 import lombok.Data;
-import lombok.SneakyThrows;
 import org.controlsfx.control.RangeSlider;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -51,17 +50,15 @@ public class RangeFilterController implements FilterNodeController {
 
   public Optional<List<Condition>> getCondition() {
     List<Condition> conditions = new ArrayList<>();
-    double lowValueValue = normalizeToFormat(rangeSlider.getLowValue());
-    if (!lowValue.getText().isBlank() && lowValueValue > rangeSlider.getMin()) {
+    if (!lowValue.getText().isBlank() && rangeSlider.getLowValue() > rangeSlider.getMin()) {
       QBuilder qBuilderLow = new QBuilder<>();
       DoubleProperty propertyLow = qBuilderLow.doubleNum(propertyName);
-      conditions.add(propertyLow.gte(valueTransform.apply(lowValueValue)));
+      conditions.add(propertyLow.gte(valueTransform.apply(rangeSlider.getLowValue())));
     }
-    double highValueValue = normalizeToFormat(rangeSlider.getHighValue());
-    if (!highValue.getText().isBlank() && highValueValue < rangeSlider.getMax()) {
+    if (!highValue.getText().isBlank() && rangeSlider.getHighValue() < rangeSlider.getMax()) {
       QBuilder qBuilderHigh = new QBuilder<>();
       DoubleProperty propertyHigh = qBuilderHigh.doubleNum(propertyName);
-      conditions.add(propertyHigh.lte(valueTransform.apply(highValueValue)));
+      conditions.add(propertyHigh.lte(valueTransform.apply(rangeSlider.getHighValue())));
     }
     if (!conditions.isEmpty()) {
       if (!menu.getStyleClass().contains("query-filter-selected")) {
@@ -138,10 +135,5 @@ public class RangeFilterController implements FilterNodeController {
   @Override
   public Node getRoot() {
     return menu;
-  }
-
-  @SneakyThrows
-  private double normalizeToFormat(double value) {
-    return numberFormat.parse(numberFormat.format(value)).doubleValue();
   }
 }

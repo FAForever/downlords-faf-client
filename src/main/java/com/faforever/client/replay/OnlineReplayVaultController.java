@@ -155,7 +155,7 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
     searchController.addRangeFilter("reviewsSummary.averageScore", i18n.get("reviews.averageScore"),0, 5, 10, 4, 1);
 
     searchController.addDateRangeFilter("endTime", i18n.get("game.date"), 1);
-    searchController.addRangeFilter("replayTicks", i18n.get("game.duration"), 0, 60, 12, 4, 0, value -> value*60*10);
+    searchController.addRangeFilter("replayTicks", i18n.get("game.duration"), 0, 60, 12, 4, 0, value -> (int) (value * 60 * 10));
     searchController.addToggleFilter("validity", i18n.get("game.onlyRanked"), "VALID");
 
   }
