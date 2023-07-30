@@ -24,6 +24,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Labeled;
+import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
@@ -110,6 +111,7 @@ public class ChatChannelTabControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     defaultChatChannel = new ChatChannel(CHANNEL_NAME);
+    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     when(loginService.getUsername()).thenReturn(USER_NAME);
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
     when(uiService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_section.html"));
@@ -132,6 +134,8 @@ public class ChatChannelTabControllerTest extends PlatformTest {
       }
       return instance;
     });
+
+    runOnFxThreadAndWait(() -> new TabPane().getTabs().add(instance.getRoot()));
   }
 
   @Test
