@@ -155,7 +155,7 @@ public class GameDetailController implements Controller<Pane> {
         .when(showing)
         .addListener((SimpleChangeListener<GameStatus>) this::onGameStatusChanged);
 
-    teams.when(showing).addListener(teamsListener);
+    teams.addListener(teamsListener);
   }
 
   private void populateTeamsContainer(Map<Integer, List<Integer>> newValue) {

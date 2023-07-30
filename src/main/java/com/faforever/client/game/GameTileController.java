@@ -107,7 +107,7 @@ public class GameTileController implements Controller<Node> {
         .bind(game.flatMap(playerService::getAverageRatingPropertyForGame)
             .map(average -> Math.round(average / 100.0) * 100.0)
             .map(roundedAverage -> i18n.get("game.avgRating.format", roundedAverage)));
-    game.when(showing).addListener((SimpleChangeListener<GameBean>) this::onGamePropertyChanged);
+    game.addListener((SimpleChangeListener<GameBean>) this::onGamePropertyChanged);
   }
 
   public Node getRoot() {

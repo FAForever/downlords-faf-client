@@ -9,7 +9,6 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
@@ -115,8 +114,12 @@ public class MainController implements Controller<Node>, InitializingBean {
   public void afterPropertiesSet() {
     alwaysReloadTabs = Arrays.asList(environment.getActiveProfiles()).contains(FafClientApplication.PROFILE_RELOAD);
 
-    loginService.loggedInProperty().addListener((SimpleChangeListener<Boolean>) loggedIn -> {
-      if (loggedIn) {
+    loginService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
+      if (!newValue && oldValue) {
+        viewCache.invalidateAll();
+      }
+
+      if (newValue) {
         enterLoggedInState();
       } else {
         enterLoggedOutState();
@@ -233,7 +236,6 @@ public class MainController implements Controller<Node>, InitializingBean {
   }
 
   private void enterLoggedOutState() {
-    viewCache.invalidateAll();
     LoginController loginController = uiService.loadFxml("theme/login/login.fxml");
 
     fxApplicationThreadExecutor.execute(() -> {

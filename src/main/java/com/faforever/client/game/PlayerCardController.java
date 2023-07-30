@@ -121,7 +121,7 @@ public class PlayerCardController implements Controller<Node> {
     ratingChange.textProperty().bind(ratingChangeObservable.map(i18n::numberWithSign));
     ratingChangeObservable.addListener((observable, oldValue, newValue) -> onRatingChanged(oldValue, newValue));
 
-    faction.when(showing).addListener(((observable, oldValue, newValue) -> onFactionChanged(oldValue, newValue)));
+    faction.addListener(((observable, oldValue, newValue) -> onFactionChanged(oldValue, newValue)));
 
     noteTooltip.textProperty().bind(player.flatMap(PlayerBean::noteProperty).when(showing));
     noteTooltip.setShowDelay(Duration.ZERO);

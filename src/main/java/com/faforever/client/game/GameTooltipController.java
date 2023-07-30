@@ -61,7 +61,7 @@ public class GameTooltipController implements Controller<Node> {
             .when(showing));
 
     teamsPane.prefColumnsProperty().bind(teams.map(Map::size));
-    teams.when(showing).addListener(teamsListener);
+    teams.addListener(teamsListener);
   }
 
   private void populateTeamsContainer(Map<Integer, List<Integer>> newValue) {

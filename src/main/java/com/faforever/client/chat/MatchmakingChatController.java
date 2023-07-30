@@ -16,6 +16,8 @@ import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.binding.BooleanExpression;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
@@ -67,8 +69,13 @@ public class MatchmakingChatController extends AbstractChatTabController {
   @Override
   public void initialize() {
     super.initialize();
-    matchmakingChatTabRoot.idProperty().bind(channelName);
-    matchmakingChatTabRoot.textProperty().bind(channelName);
+
+    ObservableValue<Boolean> showing = getRoot().selectedProperty()
+        .and(BooleanExpression.booleanExpression(getRoot().tabPaneProperty()
+            .flatMap(uiService::createShowingProperty)));
+
+    matchmakingChatTabRoot.idProperty().bind(channelName.when(showing));
+    matchmakingChatTabRoot.textProperty().bind(channelName.when(showing));
 
     chatChannel.addListener(((observable, oldValue, newValue) -> {
       if (oldValue != null) {

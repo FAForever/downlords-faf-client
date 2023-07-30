@@ -84,14 +84,15 @@ public class PrivateChatTabController extends AbstractChatTabController {
             .flatMap(uiService::createShowingProperty)));
 
     JavaFxUtil.bindManagedToVisible(avatarImageView, defaultIconImageView);
-    avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
-    defaultIconImageView.visibleProperty().bind(avatarImageView.imageProperty().isNull());
+    avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull().when(showing));
+    defaultIconImageView.visibleProperty().bind(avatarImageView.imageProperty().isNull().when(showing));
     userOffline = false;
 
-    privateChatTabRoot.idProperty().bind(channelName);
-    privateChatTabRoot.textProperty().bind(channelName);
+    privateChatTabRoot.idProperty().bind(channelName.when(showing));
+    privateChatTabRoot.textProperty().bind(channelName.when(showing));
     privatePlayerInfoController.chatUserProperty()
-        .bind(chatChannel.map(channel -> chatService.getOrCreateChatUser(channel.getName(), channel.getName())));
+        .bind(chatChannel.map(channel -> chatService.getOrCreateChatUser(channel.getName(), channel.getName()))
+            .when(showing));
 
     avatarImageView.imageProperty()
         .bind(channelName.map(username -> playerService.getPlayerByNameIfOnline(username).orElse(null))

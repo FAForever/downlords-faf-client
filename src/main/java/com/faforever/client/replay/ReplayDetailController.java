@@ -173,7 +173,7 @@ public class ReplayDetailController implements Controller<Node> {
 
     copyButton.setText(i18n.get("replay.copyUrl"));
 
-    teams.orElse(Map.of()).when(showing).addListener(teamsListener);
+    teams.orElse(Map.of()).addListener(teamsListener);
     replay.addListener((SimpleChangeListener<ReplayBean>) this::onReplayChanged);
   }
 

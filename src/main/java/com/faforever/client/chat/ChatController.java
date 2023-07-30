@@ -8,7 +8,6 @@ import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.theme.UiService;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.scene.control.Tab;
@@ -57,12 +56,9 @@ public class ChatController extends AbstractViewController<AnchorPane> {
   public void initialize() {
     super.initialize();
 
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
     chatService.addChannelsListener(channelChangeListener);
 
-    JavaFxUtil.addAndTriggerListener(chatService.connectionStateProperty()
-        .when(showing), (SimpleChangeListener<ConnectionState>) this::onConnectionStateChange);
+    JavaFxUtil.addAndTriggerListener(chatService.connectionStateProperty(), (SimpleChangeListener<ConnectionState>) this::onConnectionStateChange);
 
     JavaFxUtil.addListener(tabPane.getTabs(), (ListChangeListener<Tab>) change -> {
       while (change.next()) {

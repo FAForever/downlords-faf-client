@@ -123,22 +123,26 @@ public class ChannelTabController extends AbstractChatTabController {
     topicCharactersLimitLabel.textProperty()
         .bind(topicTextField.textProperty()
             .length()
-            .map(length -> String.format("%d / %d", length.intValue(), TOPIC_CHARACTERS_LIMIT)));
+            .map(length -> String.format("%d / %d", length.intValue(), TOPIC_CHARACTERS_LIMIT))
+            .when(showing));
 
     topicPane.visibleProperty()
         .bind(topicText.visibleProperty()
             .or(changeTopicTextButton.visibleProperty())
-            .or(topicTextField.visibleProperty()));
+            .or(topicTextField.visibleProperty())
+            .when(showing));
 
-    root.idProperty().bind(channelName);
-    root.textProperty().bind(channelName.map(name -> name.replaceFirst("^#", "")));
+    root.idProperty().bind(channelName.when(showing));
+    root.textProperty().bind(channelName.map(name -> name.replaceFirst("^#", "")).when(showing));
 
     chatUserListController.chatChannelProperty().bind(chatChannel);
 
     ObservableValue<Boolean> isModerator = chatChannel.map(channel -> channel.getUser(loginService.getUsername())
         .orElse(null)).flatMap(ChatChannelUser::moderatorProperty).orElse(false);
     changeTopicTextButton.visibleProperty()
-        .bind(BooleanExpression.booleanExpression(isModerator).and(topicTextField.visibleProperty().not()));
+        .bind(BooleanExpression.booleanExpression(isModerator)
+            .and(topicTextField.visibleProperty().not())
+            .when(showing));
 
     chatMessageSearchTextField.textProperty().addListener((SimpleChangeListener<String>) this::highlightText);
 

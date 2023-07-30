@@ -116,7 +116,7 @@ public class ReviewsController<T extends ReviewBean> implements Controller<Pane>
         .bind(((Pane) oneStarBar.getParent()).widthProperty().multiply(oneStarPercentage));
 
     IntegerBinding maxPages = numOtherNonEmptyReviews.divide(REVIEWS_PER_PAGE);
-    maxPages.when(showing).addListener((SimpleChangeListener<Number>) newValue -> {
+    maxPages.addListener((SimpleChangeListener<Number>) newValue -> {
       int maxPage = newValue.intValue();
       if (currentPage.get() > maxPage) {
         currentPage.set(Math.max(0, maxPage - 1));

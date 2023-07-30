@@ -115,7 +115,7 @@ public class PrivatePlayerInfoController implements Controller<Node> {
     gameDetailWrapper.visibleProperty().bind(gameObservable.flatMap(GameBean::statusProperty)
         .map(status -> status == GameStatus.OPEN || status == GameStatus.PLAYING)
         .orElse(false).when(showing));
-    chatUser.flatMap(ChatChannelUser::playerProperty).when(showing).addListener(playerChangeListener);
+    chatUser.flatMap(ChatChannelUser::playerProperty).addListener(playerChangeListener);
   }
 
   public void setChatUser(ChatChannelUser chatUser) {
