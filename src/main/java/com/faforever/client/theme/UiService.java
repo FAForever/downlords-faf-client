@@ -74,6 +74,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 import static com.faforever.client.preferences.Preferences.DEFAULT_THEME_NAME;
@@ -144,6 +145,7 @@ public class UiService implements InitializingBean, DisposableBean {
   private final Map<Theme, String> folderNamesByTheme = new HashMap<>();
   private final Map<Path, WatchKey> watchKeys = new HashMap<>();
   private final ObjectProperty<Theme> currentTheme = new SimpleObjectProperty<>(DEFAULT_THEME);
+  private final ReentrantLock fxmlLoadLock = new ReentrantLock(true);
 
   private WatchService watchService;
   private Path currentTempStyleSheet;
@@ -431,17 +433,21 @@ public class UiService implements InitializingBean, DisposableBean {
    * Loads an FXML file and returns its controller instance. The controller instance is retrieved from the application
    * context, so its scope (which should always be "prototype") depends on the bean definition.
    */
-  public <T extends Controller<?>> T loadFxml(String relativePath) {
+  public synchronized <T extends Controller<?>> T loadFxml(String relativePath) {
+    fxmlLoadLock.lock();
     try {
       FXMLLoader loader = new FXMLLoader(getThemeFileUrl(relativePath), resources, null, applicationContext::getBean);
       loader.load();
       return loader.getController();
     } catch (IOException e) {
       throw new FxmlLoadException("Could not load fxml " + relativePath, e, "fxml.loadError", relativePath);
+    } finally {
+      fxmlLoadLock.unlock();
     }
   }
 
-  public <T extends Controller<?>> T loadFxml(String relativePath, Class<?> controllerClass) {
+  public synchronized <T extends Controller<?>> T loadFxml(String relativePath, Class<?> controllerClass) {
+    fxmlLoadLock.lock();
     try {
       FXMLLoader loader = new FXMLLoader(getThemeFileUrl(relativePath), resources, null, applicationContext::getBean);
       loader.setController(applicationContext.getBean(controllerClass));
@@ -450,6 +456,8 @@ public class UiService implements InitializingBean, DisposableBean {
     } catch (IOException e) {
       throw new FxmlLoadException("Could not load fxml " + relativePath + "with class " + controllerClass.getSimpleName(),
           e, "fxml.loadError", relativePath);
+    } finally {
+      fxmlLoadLock.unlock();
     }
   }
 
