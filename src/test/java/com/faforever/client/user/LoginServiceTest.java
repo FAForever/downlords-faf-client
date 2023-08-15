@@ -94,7 +94,6 @@ public class LoginServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
-    when(tokenRetriever.loginWithRefreshToken()).thenReturn(Mono.empty());
     when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
 
     instance.login("abc", VERIFIER, REDIRECT_URI).block();
@@ -130,9 +129,7 @@ public class LoginServiceTest extends ServiceTest {
   @Test
   public void testLoginHydraCodeError() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
-    when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
-    when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     FakeTestException testException = new FakeTestException("failed");
     when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.error(testException));
 
@@ -150,7 +147,6 @@ public class LoginServiceTest extends ServiceTest {
   public void testLoginApiAuthorizeError() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
-    when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
     FakeTestException testException = new FakeTestException("failed");
     when(fafApiAccessor.getMe()).thenReturn(Mono.error(testException));
@@ -172,7 +168,6 @@ public class LoginServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
-    when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
     FakeTestException testException = new FakeTestException("failed");
     when(fafApiAccessor.getMe()).thenReturn(Mono.error(testException));
@@ -194,7 +189,6 @@ public class LoginServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
-    when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
     FakeTestException testException = new FakeTestException("failed");
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.error(testException));
@@ -218,7 +212,6 @@ public class LoginServiceTest extends ServiceTest {
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(notMe));
     when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
-    when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     FakeTestException testException = new FakeTestException("failed");
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.error(testException));
 
@@ -239,7 +232,6 @@ public class LoginServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
-    when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     when(tokenRetriever.loginWithRefreshToken()).thenReturn(Mono.empty());
 
     instance.loginWithRefreshToken().block();
@@ -255,9 +247,7 @@ public class LoginServiceTest extends ServiceTest {
   @Test
   public void testLoginHydraTokenError() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
-    when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
-    when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     FakeTestException testException = new FakeTestException("failed");
     when(tokenRetriever.loginWithRefreshToken()).thenReturn(Mono.error(testException));
 

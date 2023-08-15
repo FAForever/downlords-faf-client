@@ -66,7 +66,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
@@ -147,8 +146,6 @@ public class MapServiceTest extends PlatformTest {
 
     forgedAlliancePrefs.setInstallationPath(Path.of("."));
     forgedAlliancePrefs.setVaultBaseDirectory(tempDirectory);
-
-    when(fileSizeReader.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
 
     doAnswer(invocation -> {
       CompletableTask<?> task = invocation.getArgument(0);

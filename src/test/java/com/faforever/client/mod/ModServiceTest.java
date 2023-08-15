@@ -158,10 +158,6 @@ public class ModServiceTest extends PlatformTest {
     forgedAlliancePrefs.setPreferencesFile(gamePrefsPath);
     forgedAlliancePrefs.setVaultBaseDirectory(tempDirectory);
 
-    when(fileSizeReader.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
-
-    when(fafApiAccessor.getMaxPageSize()).thenReturn(100);
-
     doAnswer(invocation -> {
       CompletableTask<?> task = invocation.getArgument(0);
       WaitForAsyncUtils.asyncFx(task);
@@ -463,6 +459,7 @@ public class ModServiceTest extends PlatformTest {
 
   @Test
   public void testGetFeaturedFiles() {
+    when(fafApiAccessor.getMaxPageSize()).thenReturn(100);
     FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
     when(fafApiAccessor.getMany(eq(FeaturedModFile.class), anyString(), anyInt(), any())).thenReturn(
         Flux.just(new FeaturedModFile()));
@@ -547,6 +544,5 @@ public class ModServiceTest extends PlatformTest {
   private void prepareUninstallModTask(ModVersionBean modToDelete) {
     UninstallModTask task = new UninstallModTask(instance);
     task.setMod(modToDelete);
-    when(uninstallModTaskFactory.getObject()).thenReturn(task);
   }
 }

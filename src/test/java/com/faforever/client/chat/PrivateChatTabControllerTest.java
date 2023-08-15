@@ -37,7 +37,6 @@ import org.mockito.Spy;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -112,10 +111,7 @@ public class PrivateChatTabControllerTest extends PlatformTest {
 
     when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(player));
     when(loginService.getUsername()).thenReturn(playerName);
-    when(timeService.asShortTime(any())).thenReturn("");
-    when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
     when(themeService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
-    when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(".*"));
     when(privatePlayerInfoController.chatUserProperty()).thenReturn(new SimpleObjectProperty<>());
     when(avatarService.loadAvatar(player.getAvatar())).thenReturn(new Image(InputStream.nullInputStream()));
 

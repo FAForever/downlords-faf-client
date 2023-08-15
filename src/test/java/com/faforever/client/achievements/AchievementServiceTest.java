@@ -47,13 +47,14 @@ public class AchievementServiceTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(fafApiAccessor.getMaxPageSize()).thenReturn(10000);
+
   }
 
   @Test
   public void testGetPlayerAchievementsForAnotherUser() throws Exception {
     List<PlayerAchievement> achievements = Arrays.asList(new PlayerAchievement(), new PlayerAchievement());
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.fromIterable(achievements));
+    when(fafApiAccessor.getMaxPageSize()).thenReturn(10000);
 
     List<PlayerAchievement> playerAchievements = instance.getPlayerAchievements(PLAYER_ID).toCompletableFuture().get(5, TimeUnit.SECONDS);
 
@@ -66,6 +67,7 @@ public class AchievementServiceTest extends ServiceTest {
   @Test
   public void testGetAchievementDefinitions() throws Exception {
     AchievementDefinition achievementDefinition = AchievementDefinitionBuilder.create().defaultValues().get();
+    when(fafApiAccessor.getMaxPageSize()).thenReturn(10000);
 
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(achievementDefinition));
     List<AchievementDefinition> result = instance.getAchievementDefinitions().join();

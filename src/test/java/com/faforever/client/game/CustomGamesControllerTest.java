@@ -60,13 +60,10 @@ public class CustomGamesControllerTest extends PlatformTest {
 
     when(gameService.getGames()).thenReturn(games);
     when(gameService.gameRunningProperty()).thenReturn(new SimpleBooleanProperty());
-    when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
-    when(uiService.loadFxml("theme/play/games_tiles_container.fxml")).thenReturn(gamesTilesContainerController);
     when(gameDetailController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
     when(gamesTilesContainerController.getRoot()).thenReturn(new Pane());
     when(gamesTableController.getRoot()).thenReturn(new Pane());
     when(gamesTableController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(gamesTilesContainerController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
     when(uiService.loadFxml("theme/filter/filter.fxml", CustomGamesFilterController.class)).thenReturn(customGamesFilterController);
     when(customGamesFilterController.filterActiveProperty()).thenReturn(new SimpleBooleanProperty());
     when(customGamesFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
@@ -108,6 +105,8 @@ public class CustomGamesControllerTest extends PlatformTest {
 
   @Test
   public void testDisplayTiles() {
+    when(gamesTilesContainerController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
+
     runOnFxThreadAndWait(() -> instance.tilesButton.fire());
     verify(gamesTilesContainerController).createTiledFlowPane(games);
   }

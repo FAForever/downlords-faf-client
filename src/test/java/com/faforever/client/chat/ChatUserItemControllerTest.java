@@ -126,6 +126,12 @@ public class ChatUserItemControllerTest extends PlatformTest {
 
   @Test
   public void testCheckShowMapNameListener() {
+    when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
+    when(i18n.get(eq("clan.messageLeader"))).thenReturn("Message clan leader");
+    when(i18n.get(eq("clan.visitPage"))).thenReturn("Visit clan website");
+    doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
+        .createPlaceholderImageOnErrorObservable(any());
+
     PlayerBean player = PlayerBeanBuilder.create()
         .defaultValues()
         .game(GameBeanBuilder.create().defaultValues().get())
@@ -153,6 +159,12 @@ public class ChatUserItemControllerTest extends PlatformTest {
 
   @Test
   public void testCheckShowMapPreviewListener() {
+    when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
+    when(i18n.get(eq("clan.messageLeader"))).thenReturn("Message clan leader");
+    when(i18n.get(eq("clan.visitPage"))).thenReturn("Visit clan website");
+    doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
+        .createPlaceholderImageOnErrorObservable(any());
+
     boolean visible = chatPrefs.isShowMapPreview();
     instance.setChatUser(defaultUser);
     defaultUser.setPlayer(PlayerBeanBuilder.create()
@@ -167,6 +179,12 @@ public class ChatUserItemControllerTest extends PlatformTest {
 
   @Test
   public void testCheckChatUserGameListener() {
+    when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
+    when(i18n.get(eq("clan.messageLeader"))).thenReturn("Message clan leader");
+    when(i18n.get(eq("clan.visitPage"))).thenReturn("Visit clan website");
+    doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
+        .createPlaceholderImageOnErrorObservable(any());
+
     GameBean game = GameBeanBuilder.create().defaultValues().host("junit").get();
     PlayerBean player = PlayerBeanBuilder.create()
         .defaultValues()

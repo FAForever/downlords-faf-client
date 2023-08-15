@@ -6,8 +6,6 @@ import com.faforever.client.replay.LocalReplayVaultController;
 import com.faforever.client.replay.OnlineReplayVaultController;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.vault.ReplayController.ReplayContentEnum;
-import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,7 +49,6 @@ public class ReplayControllerTest extends PlatformTest {
 
   @Test
   public void testOnLiveReplayTabClicked() {
-    when(liveReplayController.getRoot()).thenReturn(new Label());
     runOnFxThreadAndWait(() -> instance.localButton.getOnAction().handle(new ActionEvent(instance.liveButton, null)));
     verify(navigationHandler).setLastReplayTab(ReplayContentEnum.LIVE);
   }
@@ -63,7 +60,6 @@ public class ReplayControllerTest extends PlatformTest {
 
   @Test
   public void testOnLocalReplayTabClicked() {
-    when(localReplayVaultController.getRoot()).thenReturn(new Label());
     runOnFxThreadAndWait(() -> instance.localButton.getOnAction().handle(new ActionEvent(instance.localButton, null)));
     verify(navigationHandler).setLastReplayTab(ReplayContentEnum.LOCAL);
   }

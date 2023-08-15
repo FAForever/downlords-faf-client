@@ -17,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -47,8 +48,7 @@ public class RemovableMapCellControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(mapService.isCustomMap(officialMap)).thenReturn(false);
-    when(mapService.isCustomMap(customMap)).thenReturn(true);
+    lenient().when(mapService.isCustomMap(customMap)).thenReturn(true);
 
     loadFxml("theme/vault/map/removable_map_cell.fxml", param -> instance);
   }

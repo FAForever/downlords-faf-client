@@ -23,6 +23,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 public class AchievementItemControllerTest extends PlatformTest {
@@ -37,7 +38,8 @@ public class AchievementItemControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(i18n.number(anyInt())).thenAnswer(invocation -> String.format("%d", (int) invocation.getArgument(0)));
+    lenient().when(i18n.number(anyInt()))
+        .thenAnswer(invocation -> String.format("%d", (int) invocation.getArgument(0)));
 
     loadFxml("theme/achievement_item.fxml", clazz -> instance);
   }

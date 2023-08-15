@@ -53,6 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -110,22 +111,22 @@ public class ChatChannelTabControllerTest extends PlatformTest {
   public void setUp() throws Exception {
     defaultChatChannel = new ChatChannel(CHANNEL_NAME);
     when(loginService.getUsername()).thenReturn(USER_NAME);
-    when(themeService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(
-        getClass().getResource("/theme/chat/chat_container.html"));
-    when(themeService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(
-        getClass().getResource("/theme/chat/compact/chat_section.html"));
-    when(themeService.getThemeFileUrl(CHAT_TEXT_EXTENDED)).thenReturn(
+    when(themeService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
+    lenient().when(themeService.getThemeFileUrl(CHAT_SECTION_COMPACT))
+        .thenReturn(getClass().getResource("/theme/chat/compact/chat_section.html"));
+    lenient().when(themeService.getThemeFileUrl(CHAT_TEXT_COMPACT))
+        .thenReturn(getClass().getResource("/theme/chat/compact/chat_text.html"));
+    lenient().when(themeService.getThemeFileUrl(CHAT_TEXT_EXTENDED)).thenReturn(
         getClass().getResource("/theme/chat/extended/chat_text.html"));
-    when(themeService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(
-        getClass().getResource("/theme/chat/compact/chat_text.html"));
-    when(timeService.asShortTime(any())).thenReturn("now");
-    when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile("-----"));
-    when(chatService.getOrCreateChatUser(any(String.class), eq(CHANNEL_NAME))).thenReturn(new ChatChannelUser("junit", "test"));
+    lenient().when(timeService.asShortTime(any())).thenReturn("now");
+    lenient().when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile("-----"));
+    lenient().when(chatService.getOrCreateChatUser(any(String.class), eq(CHANNEL_NAME)))
+        .thenReturn(new ChatChannelUser("junit", "test"));
     when(chatUserListController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
     when(loginService.getUsername()).thenReturn(USER_NAME);
 
     Stage stage = mock(Stage.class);
-    when(stage.focusedProperty()).thenReturn(new SimpleBooleanProperty());
+    lenient().when(stage.focusedProperty()).thenReturn(new SimpleBooleanProperty());
 
     StageHolder.setStage(stage);
 
@@ -404,7 +405,6 @@ public class ChatChannelTabControllerTest extends PlatformTest {
   public void getInlineStyleChangeToRandom() {
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
 
-    when(chatService.getOrCreateChatUser(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> {
       chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
@@ -449,7 +449,6 @@ public class ChatChannelTabControllerTest extends PlatformTest {
         .socialStatus(FOE)
         .get()).get();
 
-    when(chatService.getOrCreateChatUser(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> {
       chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
@@ -465,14 +464,7 @@ public class ChatChannelTabControllerTest extends PlatformTest {
   @Test
   public void getInlineStyleRandomFoeShow() {
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
-    when(playerService.getPlayerByNameIfOnline(USER_NAME))
-        .thenReturn(Optional.of(PlayerBeanBuilder.create()
-            .defaultValues()
-            .username(USER_NAME)
-            .socialStatus(FOE)
-            .get()));
 
-    when(chatService.getOrCreateChatUser(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> {
       chatPrefs.setChatColorMode(ChatColorMode.RANDOM);

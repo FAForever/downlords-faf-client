@@ -15,8 +15,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class EmoticonsGroupControllerTest extends PlatformTest {
 
@@ -32,8 +32,9 @@ public class EmoticonsGroupControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(uiService.loadFxml("theme/chat/emoticons/emoticon.fxml")).thenReturn(emoticonController);
-    when(emoticonController.getRoot()).thenReturn(new AnchorPane(), new AnchorPane()); // FlowPane does not allow to put the same views
+    lenient().when(uiService.loadFxml("theme/chat/emoticons/emoticon.fxml")).thenReturn(emoticonController);
+    lenient().when(emoticonController.getRoot())
+        .thenReturn(new AnchorPane(), new AnchorPane()); // FlowPane does not allow to put the same views
 
     loadFxml("theme/chat/emoticons/emoticons_group.fxml", clazz -> instance);
   }

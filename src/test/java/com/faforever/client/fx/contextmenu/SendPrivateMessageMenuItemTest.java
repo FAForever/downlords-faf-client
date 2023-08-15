@@ -61,7 +61,6 @@ public class SendPrivateMessageMenuItemTest extends PlatformTest {
   public void testInvisibleItemIfPlayerIsOwnPlayer() {
     PlayerBean ownPlayer = PlayerBeanBuilder.create().defaultValues().username("own player").get();
     when(playerService.getCurrentPlayer()).thenReturn(ownPlayer);
-    when(chatService.userExistsInAnyChannel(anyString())).thenReturn(true);
     String username = "own player";
 
     instance.setObject(username);
@@ -72,8 +71,6 @@ public class SendPrivateMessageMenuItemTest extends PlatformTest {
   @Test
   public void testInvisibleItemIfUsernameIsBlank() {
     PlayerBean ownPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").get();
-    when(playerService.getCurrentPlayer()).thenReturn(ownPlayer);
-    when(chatService.userExistsInAnyChannel(anyString())).thenReturn(true);
     instance.setObject("");
     assertFalse(instance.isVisible());
   }
@@ -81,8 +78,6 @@ public class SendPrivateMessageMenuItemTest extends PlatformTest {
   @Test
   public void testInvisibleItemIfUsernameIsNull() {
     PlayerBean ownPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").get();
-    when(playerService.getCurrentPlayer()).thenReturn(ownPlayer);
-    when(chatService.userExistsInAnyChannel(anyString())).thenReturn(true);
     instance.setObject(null);
     assertFalse(instance.isVisible());
   }
@@ -90,8 +85,6 @@ public class SendPrivateMessageMenuItemTest extends PlatformTest {
   @Test
   public void testInvisibleItemIfPlayerNotInChat() {
     PlayerBean ownPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").get();
-    when(playerService.getCurrentPlayer()).thenReturn(ownPlayer);
-    when(chatService.userExistsInAnyChannel(anyString())).thenReturn(false);
     instance.setObject("");
     assertFalse(instance.isVisible());
   }
