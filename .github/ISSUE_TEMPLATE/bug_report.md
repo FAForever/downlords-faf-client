@@ -24,7 +24,3 @@ If applicable, add screenshots to help explain your problem.
 
 **OS**
 Linux or Windows
-
-**Wanna have the bug fixed quickly?**
-Visit Issue hunt...
-[![Issue hunt](https://github.com/BoostIO/issuehunt-materials/raw/master/v1/issuehunt-button-v1.svg?sanitize=true)](https://issuehunt.io/r/FAForever/downlords-faf-client)
