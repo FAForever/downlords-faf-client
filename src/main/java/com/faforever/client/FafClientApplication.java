@@ -109,11 +109,13 @@ public class FafClientApplication extends Application {
 
   @Override
   public void stop() throws Exception {
+    log.info("Stopping application");
     applicationContext.getBean(GlobalExceptionHandler.class).setShuttingDown(true);
     applicationContext.close();
     super.stop();
 
     Thread timeoutThread = new Thread(() -> {
+      log.info("Starting non-daemon detector thread");
       try {
         Thread.sleep(Duration.ofSeconds(10).toMillis());
       } catch (InterruptedException ignored) {
@@ -122,6 +124,7 @@ public class FafClientApplication extends Application {
       Set<Entry<Thread, StackTraceElement[]>> threads = Thread.getAllStackTraces().entrySet();
 
       if (threads.stream().allMatch(t -> t.getKey().isDaemon())) {
+        log.info("No non-daemon threads started");
         return;
       }
 
