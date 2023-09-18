@@ -433,7 +433,7 @@ public class UiService implements InitializingBean, DisposableBean {
    * Loads an FXML file and returns its controller instance. The controller instance is retrieved from the application
    * context, so its scope (which should always be "prototype") depends on the bean definition.
    */
-  public synchronized <T extends Controller<?>> T loadFxml(String relativePath) {
+  public <T extends Controller<?>> T loadFxml(String relativePath) {
     fxmlLoadLock.lock();
     try {
       FXMLLoader loader = new FXMLLoader(getThemeFileUrl(relativePath), resources, null, applicationContext::getBean);
@@ -446,7 +446,7 @@ public class UiService implements InitializingBean, DisposableBean {
     }
   }
 
-  public synchronized <T extends Controller<?>> T loadFxml(String relativePath, Class<?> controllerClass) {
+  public <T extends Controller<?>> T loadFxml(String relativePath, Class<?> controllerClass) {
     fxmlLoadLock.lock();
     try {
       FXMLLoader loader = new FXMLLoader(getThemeFileUrl(relativePath), resources, null, applicationContext::getBean);
