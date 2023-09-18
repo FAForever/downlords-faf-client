@@ -325,7 +325,7 @@ dependencies {
   implementation("org.mapstruct:mapstruct:${mapstructVersion}")
   implementation("com.code-disaster.steamworks4j:steamworks4j:1.9.0")
 
-  def javafxVersion = "20"
+  def javafxVersion = "21"
   implementation("org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}")
   implementation("org.openjfx:javafx-controls:${javafxVersion}:${javafxPlatform}")
   implementation("org.openjfx:javafx-graphics:${javafxVersion}:${javafxPlatform}")
