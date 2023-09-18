@@ -345,7 +345,7 @@ dependencies {
   testImplementation("com.squareup.okhttp3:okhttp")
   testImplementation("com.squareup.okhttp3:mockwebserver")
   testImplementation("io.projectreactor:reactor-test")
-  testImplementation("org.testfx:testfx-core:4.0.16-alpha") {
+  testImplementation("org.testfx:testfx-core:4.0.17") {
     exclude module: 'guava'
   }
   testImplementation("io.projectreactor.netty:reactor-netty")
