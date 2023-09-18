@@ -1,8 +1,7 @@
 package com.faforever.client.logging;
 
-import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.util.ContextInitializer;
+import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.os.OperatingSystem;
@@ -13,11 +12,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.logging.LogLevel;
+import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -60,11 +60,11 @@ public class LoggingService implements InitializingBean {
         .resolve("irc.log")
         .toString());
 
-    LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-    loggerContext.reset();
-
-    ContextInitializer ci = new ContextInitializer(loggerContext);
-    ci.configureByResource(LoggingService.class.getResource("/logback-spring.xml"));
+    LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+    context.reset();
+    JoranConfigurator configurator = new JoranConfigurator();
+    configurator.setContext(context);
+    configurator.doConfigure(this.getClass().getResourceAsStream("/logback-spring.xml"));
 
     JavaFxUtil.addAndTriggerListener(developerPrefs.logLevelProperty(), new WeakChangeListener<>(logLevelChangeListener));
   }
@@ -99,26 +99,24 @@ public class LoggingService implements InitializingBean {
   }
 
   public void setLoggingLevel(String level) {
-    Level targetLogLevel = Level.toLevel(level);
-    final LoggerContext loggerContext = ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(MethodHandles.lookup().lookupClass())).getLoggerContext();
-    loggerContext.getLoggerList()
-        .stream()
-        .filter(logger -> logger.getName().startsWith("com.faforever"))
-        .forEach(logger -> ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(logger.getName())).setLevel(targetLogLevel));
-
+    LogLevel targetLogLevel = switch (level) {
+      case "TRACE" -> LogLevel.TRACE;
+      case "DEBUG" -> LogLevel.DEBUG;
+      case "WARN" -> LogLevel.WARN;
+      case "ERROR" -> LogLevel.ERROR;
+      default -> LogLevel.INFO;
+    };
     log.info("Switching FA Forever logging configuration to {}", targetLogLevel);
-    if (Level.TRACE.equals(targetLogLevel)) {
-      log.trace("Confirming trace logging");
-    } else if (Level.DEBUG.equals(targetLogLevel)) {
-      log.debug("Confirming debug logging");
-    } else if (Level.INFO.equals(targetLogLevel)) {
-      log.info("Confirming info logging");
-    } else if (Level.WARN.equals(targetLogLevel)) {
-      log.warn("Confirming warn logging");
-    } else if (Level.ERROR.equals(targetLogLevel)) {
-      log.error("Confirming error logging");
-    } else {
-      log.error("Unknown log level set");
+    LoggingSystem loggingSystem = LoggingSystem.get(LoggingService.class.getClassLoader());
+    loggingSystem.getLoggerConfigurations().stream().filter(config -> config.getName().startsWith("com.faforever"))
+        .forEach(config -> loggingSystem.setLogLevel(config.getName(), targetLogLevel));
+
+    switch (targetLogLevel) {
+      case TRACE -> log.trace("Confirming trace logging");
+      case DEBUG -> log.debug("Confirming debug logging");
+      case INFO -> log.info("Confirming info logging");
+      case WARN -> log.warn("Confirming warn logging");
+      case ERROR -> log.error("Confirming error logging");
     }
   }
 }
