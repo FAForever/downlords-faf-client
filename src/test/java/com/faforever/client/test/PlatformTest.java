@@ -2,13 +2,12 @@ package com.faforever.client.test;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
-import com.sun.javafx.application.PlatformImpl;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.util.Callback;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -51,9 +50,12 @@ public abstract class PlatformTest {
     });
   }
 
-  @BeforeEach
-  public void setupPlatform() {
-    PlatformImpl.startup(() -> {});
+  @BeforeAll
+  public static void setupPlatform() {
+    try {
+      Platform.startup(() -> {});
+    } catch (IllegalStateException ignored) {
+    }
   }
 
   protected void loadFxml(String fileName,
