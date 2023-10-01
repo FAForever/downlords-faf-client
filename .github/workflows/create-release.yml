@@ -17,7 +17,7 @@ on:
       version_override:
         description: 'Version Override'
         required: false
-        type: text
+        type: string
         default: ""
 
 jobs:
@@ -30,11 +30,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up JDK 17.0.1
+      - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           distribution: "temurin"
-          java-version: 17.0.1
+          java-version: 21
           cache: 'gradle'
 
       - name: Grant execute permission for gradlew

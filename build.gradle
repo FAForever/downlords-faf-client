@@ -14,6 +14,7 @@ plugins {
   id 'jacoco'
   id 'java'
   id 'distribution'
+  id "me.champeau.jmh" version "0.7.1"
 }
 
 apply plugin: 'io.spring.dependency-management'
@@ -90,13 +91,21 @@ tasks.withType(Test).configureEach {
   }
 }
 
+
+java {
+  toolchain {
+    languageVersion.set(JavaLanguageVersion.of(21))
+  }
+}
+
+
 //Specify jacoco version to work with java17
 jacoco {
   toolVersion = "0.8.7"
 }
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
 
 // These are read from gradle.properties
 version "${version}"
@@ -359,12 +368,12 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  annotationProcessor("org.projectlombok:lombok")
+  annotationProcessor("org.projectlombok:lombok:1.18.30")
   annotationProcessor("org.mapstruct:mapstruct-processor:${mapstructVersion}")
-  testAnnotationProcessor("org.projectlombok:lombok")
+  testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
   testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
-  compileOnly("org.projectlombok:lombok")
-  testCompileOnly("org.projectlombok:lombok")
+  compileOnly("org.projectlombok:lombok:1.18.30")
+  testCompileOnly("org.projectlombok:lombok:1.18.30")
 
   codacy("com.github.codacy:codacy-coverage-reporter:-SNAPSHOT")
 }
