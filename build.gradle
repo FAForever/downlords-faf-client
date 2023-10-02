@@ -5,6 +5,9 @@ buildscript {
   repositories {
     mavenCentral()
   }
+  dependencies {
+    classpath files('../fx2j/gradle-plugin/build/libs/gradle-plugin-all.jar')
+  }
 }
 
 plugins {
@@ -18,6 +21,7 @@ plugins {
 }
 
 apply plugin: 'io.spring.dependency-management'
+apply plugin: 'com.github.sheikah45.fx2j'
 
 // source: https://github.com/mendhak/Gradle-Travis-Colored-Output/blob/master/ColoredOutput.gradle
 tasks.withType(Test).configureEach {
@@ -345,6 +349,7 @@ dependencies {
   implementation("org.javassist:javassist:3.29.2-GA")
 
   implementation("com.install4j:install4j-runtime:10.0.6")
+  implementation(files("../fx2j/api/build/libs/api.jar"))
 
   testImplementation("com.squareup.okhttp3:okhttp")
   testImplementation("com.squareup.okhttp3:mockwebserver")

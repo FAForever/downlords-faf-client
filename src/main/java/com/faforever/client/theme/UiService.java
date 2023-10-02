@@ -8,7 +8,15 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.ui.dialog.Dialog.DialogTransition;
 import com.faforever.client.ui.dialog.DialogLayout;
-import javafx.fxml.FXMLLoader;
+import com.github.sheikah45.fx2j.api.Fx2jLoader;
+import javafx.beans.binding.BooleanExpression;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -67,8 +75,10 @@ public class UiService implements InitializingBean {
   public <T extends Controller<?>> T loadFxml(String relativePath) {
     fxmlLoadLock.lock();
     try {
-      URL themeFileUrl = themeService.getThemeFileUrl(relativePath);
-      FXMLLoader loader = new FXMLLoader(themeFileUrl, resources, null, applicationContext::getBean);
+      Fx2jLoader loader = new Fx2jLoader();
+      loader.setLocation(themeService.getThemeFileUrl(relativePath));
+      loader.setResources(resources);
+      loader.setControllerFactory(applicationContext::getBean);
       loader.load();
       return loader.getController();
     } catch (IOException e) {
@@ -81,8 +91,10 @@ public class UiService implements InitializingBean {
   public <T extends Controller<?>> T loadFxml(String relativePath, Class<?> controllerClass) {
     fxmlLoadLock.lock();
     try {
-      URL themeFileUrl = themeService.getThemeFileUrl(relativePath);
-      FXMLLoader loader = new FXMLLoader(themeFileUrl, resources, null, applicationContext::getBean);
+      Fx2jLoader loader = new Fx2jLoader();
+      loader.setLocation(themeService.getThemeFileUrl(relativePath));
+      loader.setResources(resources);
+      loader.setControllerFactory(applicationContext::getBean);
       loader.setController(applicationContext.getBean(controllerClass));
       loader.load();
       return loader.getController();
