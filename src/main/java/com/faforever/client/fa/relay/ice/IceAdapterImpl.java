@@ -41,7 +41,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.net.ServerSocket;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -117,15 +116,8 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     return CompletableFuture.supplyAsync(() -> {
       Path workDirectory = Path.of(System.getProperty("nativeDir", "lib")).toAbsolutePath();
 
-      int adapterPort;
-      int gpgPort;
-      try (ServerSocket adapterTestSocket = new ServerSocket(0);
-           ServerSocket gpgTestSocket = new ServerSocket(0)) {
-        adapterPort = adapterTestSocket.getLocalPort();
-        gpgPort = gpgTestSocket.getLocalPort();
-      } catch (IOException exception) {
-        throw new CompletionException("Unable to find open port for ICE and GPG", exception);
-      }
+      int adapterPort = 15666;
+      int gpgPort = 17666;
 
       List<String> cmd = buildCommand(workDirectory, adapterPort, gpgPort, gameId);
       try {
@@ -214,7 +206,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
     List<String> standardIceOptions = List.of(
         "-cp", classpath,
-        "com.faforever.iceadapter.IceAdapter",
+        "com.faforever.ice.KiaApplication",
         "--id", String.valueOf(currentPlayer.getId()),
         "--game-id", String.valueOf(gameId),
         "--login", currentPlayer.getUsername(),
