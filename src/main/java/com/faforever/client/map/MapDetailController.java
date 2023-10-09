@@ -73,7 +73,7 @@ public class MapDetailController extends NodeController<Node> {
   private final ContextMenuBuilder contextMenuBuilder;
 
   private final ObjectProperty<MapVersionBean> mapVersion = new SimpleObjectProperty<>();
-  private final ObservableList<MapVersionReviewBean> reviews = FXCollections.observableArrayList();
+  private final ObservableList<MapVersionReviewBean> mapReviews = FXCollections.observableArrayList();
 
   public Label progressLabel;
   public Button uninstallButton;
@@ -203,13 +203,13 @@ public class MapDetailController extends NodeController<Node> {
       review.setMapVersion(mapVersion.get());
       return review;
     });
-    reviewsController.bindReviews(reviews);
+    reviewsController.bindReviews(mapReviews);
   }
 
   private void onMapVersionChanged(MapVersionBean newValue) {
     if (newValue == null) {
       reviewsController.setCanWriteReview(false);
-      reviews.clear();
+      mapReviews.clear();
       installButton.setText("");
       return;
     }
@@ -227,7 +227,7 @@ public class MapDetailController extends NodeController<Node> {
     reviewService.getMapReviews(newValue.getMap())
                  .collectList()
                  .publishOn(fxApplicationThreadExecutor.asScheduler())
-                 .subscribe(reviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
+                 .subscribe(mapReviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
 
     mapService.getFileSize(newValue).thenAcceptAsync(mapFileSize -> {
       if (mapFileSize > -1) {
@@ -259,17 +259,17 @@ public class MapDetailController extends NodeController<Node> {
                  .subscribe(null, throwable -> {
                    log.error("Review could not be deleted", throwable);
                    notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
-                 }, () -> reviews.remove(review));
+                 }, () -> mapReviews.remove(review));
   }
 
   @VisibleForTesting
   void onSendReview(MapVersionReviewBean review) {
     reviewService.saveMapVersionReview(review)
-                 .filter(savedReview -> !reviews.contains(savedReview))
+                 .filter(savedReview -> !mapReviews.contains(savedReview))
                  .publishOn(fxApplicationThreadExecutor.asScheduler())
                  .subscribe(savedReview -> {
-                   reviews.remove(review);
-                   reviews.add(savedReview);
+                   mapReviews.remove(review);
+                   mapReviews.add(savedReview);
                  }, throwable -> {
                    log.error("Review could not be saved", throwable);
                    notificationService.addImmediateErrorNotification(throwable, "review.save.error");

@@ -6,7 +6,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath files('../fx2j/gradle-plugin/build/libs/gradle-plugin-all.jar')
+    classpath files('../fx2j/gradle-plugin/build/libs/fx2j-gradle-plugin-unspecified.jar')
   }
 }
 
@@ -21,7 +21,7 @@ plugins {
 }
 
 apply plugin: 'io.spring.dependency-management'
-apply plugin: 'com.github.sheikah45.fx2j'
+apply plugin: 'io.github.sheikah45.fx2j'
 
 // source: https://github.com/mendhak/Gradle-Travis-Colored-Output/blob/master/ColoredOutput.gradle
 tasks.withType(Test).configureEach {
@@ -212,6 +212,10 @@ install4j {
   }
 }
 
+fx2j {
+  basePackage = "com.faforever.client.fx2j"
+}
+
 tasks.register('buildInstall4jMediaFiles', Install4jTask) {
   group "distribution"
   description 'Creates install4j media files'
@@ -348,8 +352,8 @@ dependencies {
 
   implementation("org.javassist:javassist:3.29.2-GA")
 
+  implementation(files("../fx2j/api/build/libs/fx2j-api-unspecified.jar"))
   implementation("com.install4j:install4j-runtime:10.0.6")
-  implementation(files("../fx2j/api/build/libs/api.jar"))
 
   testImplementation("com.squareup.okhttp3:okhttp")
   testImplementation("com.squareup.okhttp3:mockwebserver")

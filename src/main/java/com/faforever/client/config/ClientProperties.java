@@ -6,6 +6,9 @@ import com.faforever.client.update.ClientConfiguration.SocketEndpoint;
 import com.faforever.client.update.ClientConfiguration.UrlEndpoint;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.web.reactive.socket.WebSocketHandler;
+import org.springframework.web.reactive.socket.WebSocketSession;
+import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.time.Duration;
@@ -157,6 +160,14 @@ public class ClientProperties {
     UrlEndpoint user = serverEndpoints.getUser();
     if (user != null) {
       this.user.setBaseUrl(user.getUrl());
+    }
+
+    new WebSocketHandler() {
+
+      @Override
+      public Mono<Void> handle(WebSocketSession session) {
+        return session.receive().map(message -> message.);
+      }
     }
 
     SocketEndpoint liveReplay = serverEndpoints.getLiveReplay();

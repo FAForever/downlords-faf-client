@@ -27,6 +27,7 @@ public class VaultEntityShowRoomController extends NodeController<Node> {
   @Override
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(root);
+    label.prefWidthProperty().bind(root.widthProperty());
   }
 
   public void setChildren(List<Node> children) {

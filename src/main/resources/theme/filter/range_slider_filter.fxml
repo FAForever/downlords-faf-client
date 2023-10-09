@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?controllerType com.faforever.client.filter.AbstractRangeSliderFilterController?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.CustomMenuItem?>
 <?import javafx.scene.control.Label?>

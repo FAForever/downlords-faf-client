@@ -18,8 +18,7 @@
                     <children>
                         <Label styleClass="h2" text="%chat.joinAChannel">
                             <padding>
-                                <Insets top="10.0"/>
-                                <Insets bottom="10.0"/>
+                                <Insets top="10.0" bottom="10.0"/>
                             </padding>
                         </Label>
                         <TextField fx:id="channelNameTextField" onAction="#onJoinChannelButtonClicked"

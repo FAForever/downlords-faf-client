@@ -107,7 +107,7 @@ public class ReplayDetailController extends NodeController<Node> {
 
   private final ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
   private final ObjectProperty<ReplayBean> replay = new SimpleObjectProperty<>();
-  private final ObservableList<ReplayReviewBean> reviews = FXCollections.observableArrayList();
+  private final ObservableList<ReplayReviewBean> replayReviews = FXCollections.observableArrayList();
   private final ObjectProperty<Map<String, List<GamePlayerStatsBean>>> teams = new SimpleObjectProperty<>();
   private final SimpleChangeListener<Map<String, List<GamePlayerStatsBean>>> teamsListener = this::populateTeamsContainer;
 
@@ -316,7 +316,7 @@ public class ReplayDetailController extends NodeController<Node> {
   private void onReplayChanged(ReplayBean newValue) {
     if (newValue == null) {
       reviewsController.setCanWriteReview(false);
-      reviews.clear();
+      replayReviews.clear();
       return;
     }
 
@@ -329,7 +329,7 @@ public class ReplayDetailController extends NodeController<Node> {
     reviewService.getReplayReviews(newValue)
                  .collectList()
                  .publishOn(fxApplicationThreadExecutor.asScheduler())
-                 .subscribe(reviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
+                 .subscribe(replayReviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
   }
 
   public void setReplay(ReplayBean replay) {
@@ -375,7 +375,7 @@ public class ReplayDetailController extends NodeController<Node> {
       review.setReplay(replay.get());
       return review;
     });
-    reviewsController.bindReviews(reviews);
+    reviewsController.bindReviews(replayReviews);
   }
 
   @VisibleForTesting
@@ -385,17 +385,17 @@ public class ReplayDetailController extends NodeController<Node> {
                  .subscribe(null, throwable -> {
                    log.error("Review could not be saved", throwable);
                    notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
-                 }, () -> reviews.remove(review));
+                 }, () -> replayReviews.remove(review));
   }
 
   @VisibleForTesting
   void onSendReview(ReplayReviewBean review) {
     reviewService.saveReplayReview(review)
-                 .filter(savedReview -> !reviews.contains(savedReview))
+                 .filter(savedReview -> !replayReviews.contains(savedReview))
                  .publishOn(fxApplicationThreadExecutor.asScheduler())
                  .subscribe(savedReview -> {
-                   reviews.remove(review);
-                   reviews.add(savedReview);
+                   replayReviews.remove(review);
+                   replayReviews.add(savedReview);
                  }, throwable -> {
                    log.error("Review could not be saved", throwable);
                    notificationService.addImmediateErrorNotification(throwable, "review.save.error");

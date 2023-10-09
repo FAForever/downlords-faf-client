@@ -115,9 +115,9 @@ public class LeaderboardControllerTest extends PlatformTest {
     }).when(fxApplicationThreadExecutor).execute(any());
 
     subDivisionTabController = new SubDivisionTabController(contextMenuBuilder, leaderboardService, notificationService, i18n, fxApplicationThreadExecutor);
-    loadFxml("theme/leaderboard/subDivisionTab.fxml", clazz -> subDivisionTabController);
+    loadFxml("theme/leaderboard/sub_division_tab.fxml", clazz -> subDivisionTabController);
     subDivisionTabController.initialize();
-    when(uiService.loadFxml("theme/leaderboard/subDivisionTab.fxml")).thenReturn(subDivisionTabController);
+    when(uiService.loadFxml("theme/leaderboard/sub_division_tab.fxml")).thenReturn(subDivisionTabController);
 
     loadFxml("theme/leaderboard/leaderboard.fxml", clazz -> instance);
     instance.setSeason(season);

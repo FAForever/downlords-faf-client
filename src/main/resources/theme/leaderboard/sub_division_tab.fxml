@@ -10,7 +10,7 @@
     <TableView fx:id="ratingTable" VBox.vgrow="ALWAYS" styleClass="division-table">
         <columns>
             <TableColumn fx:id="rankColumn" prefWidth="70" text="RANK" />
-            <TableColumn fx:id="nameColumn" prefWidth="${ratingTable.width - 250}" text="NAME" />
+            <TableColumn fx:id="nameColumn" text="NAME"/>
             <TableColumn fx:id="scoreColumn" prefWidth="90" text="SCORE" />
             <TableColumn fx:id="gamesPlayedColumn" prefWidth="90" text="GAMES" />
         </columns>

@@ -8,7 +8,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.ui.dialog.Dialog.DialogTransition;
 import com.faforever.client.ui.dialog.DialogLayout;
-import com.github.sheikah45.fx2j.api.Fx2jLoader;
+import io.github.sheikah45.fx2j.api.Fx2jLoader;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
