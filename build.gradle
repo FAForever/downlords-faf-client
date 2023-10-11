@@ -293,7 +293,7 @@ dependencies {
 
   implementation("io.projectreactor.addons:reactor-extra")
 
-  def commonsVersion = "4a3facc824"
+  def commonsVersion = "c4eb26b606c401e27b6a61de0b903d5d536aad6f"
 
   implementation("com.github.FAForever.faf-java-commons:faf-commons-data:${commonsVersion}") {
             exclude module: 'guava'
