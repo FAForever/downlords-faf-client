@@ -1,7 +1,6 @@
 faf-client:
   server:
-    host: localhost
-    port: 8001
+    url: ws://localhost:8003
 
   irc:
     host: localhost

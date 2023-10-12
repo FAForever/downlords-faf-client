@@ -32,6 +32,7 @@ public class ClientConfiguration {
   public static class ServerEndpoints {
     private String name;
     private SocketEndpoint lobby;
+    private UrlEndpoint lobbyWebsocket;
     private SocketEndpoint irc;
     private SocketEndpoint liveReplay;
     private UrlEndpoint api;

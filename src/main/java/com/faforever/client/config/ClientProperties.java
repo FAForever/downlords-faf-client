@@ -80,8 +80,7 @@ public class ClientProperties {
 
   @Data
   public static class Server {
-    private String host;
-    private int port;
+    private String url;
     private int retryDelaySeconds = 30;
     private int retryAttempts = 10;
   }
@@ -149,10 +148,9 @@ public class ClientProperties {
   }
 
   public void updateFromEndpoint(ServerEndpoints serverEndpoints) {
-    SocketEndpoint lobby = serverEndpoints.getLobby();
+    UrlEndpoint lobby = serverEndpoints.getLobbyWebsocket();
     if (lobby != null) {
-      server.setHost(lobby.getHost());
-      server.setPort(lobby.getPort());
+      server.setUrl(lobby.getUrl());
     }
 
     SocketEndpoint liveReplay = serverEndpoints.getLiveReplay();

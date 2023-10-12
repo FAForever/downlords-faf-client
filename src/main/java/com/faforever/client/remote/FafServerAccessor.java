@@ -120,7 +120,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   public Mono<Player> connectAndLogIn() {
     Config config = new Config(tokenRetriever.getRefreshedTokenValue(), Version.getCurrentVersion(), clientProperties.getUserAgent(), clientProperties.getServer()
-        .getHost(), clientProperties.getServer().getPort() + 2, sessionId -> {
+        .getUrl(), sessionId -> {
       try {
         return uidService.generate(String.valueOf(sessionId));
       } catch (IOException e) {

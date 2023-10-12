@@ -78,7 +78,7 @@ public class LoginController implements Controller<Pane> {
   public Label loginErrorLabel;
   public Pane loginRoot;
   public GridPane serverConfigPane;
-  public TextField serverHostField;
+  public TextField serverUrlField;
   public TextField serverPortField;
   public TextField replayServerHostField;
   public TextField replayServerPortField;
@@ -202,8 +202,7 @@ public class LoginController implements Controller<Pane> {
   private void populateEndpointFields() {
     fxApplicationThreadExecutor.execute(() -> {
       Server server = clientProperties.getServer();
-      serverHostField.setText(server.getHost());
-      serverPortField.setText(String.valueOf(server.getPort()));
+      serverUrlField.setText(server.getUrl());
       Replay replay = clientProperties.getReplay();
       replayServerHostField.setText(replay.getRemoteHost());
       replayServerPortField.setText(String.valueOf(replay.getRemotePort()));
@@ -237,8 +236,7 @@ public class LoginController implements Controller<Pane> {
     initializeFuture.join();
 
     clientProperties.getServer()
-        .setHost(serverHostField.getText())
-        .setPort(Integer.parseInt(serverPortField.getText()));
+        .setUrl(serverUrlField.getText());
 
     clientProperties.getReplay()
         .setRemoteHost(replayServerHostField.getText())

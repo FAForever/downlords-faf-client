@@ -1,7 +1,6 @@
 faf-client:
   server:
-    host: lobby.faforever.com
-    port: 8001
+    url: wss://ws.faforever.com
 
   irc:
     host: irc.faforever.com
