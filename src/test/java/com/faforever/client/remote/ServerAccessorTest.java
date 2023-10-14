@@ -59,6 +59,7 @@ import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.LineEncoder;
 import io.netty.handler.codec.string.LineSeparator;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -156,13 +157,17 @@ public class ServerAccessorTest extends ServiceTest {
 
     startFakeFafLobbyServer();
 
-    clientProperties.getServer()
-        .setUrl("http://%s:%d".formatted(disposableServer.host(), disposableServer.port()));
+    clientProperties.getUser()
+        .setBaseUrl("http://localhost:%d".formatted(mockApi.getPort()));
     clientProperties.setUserAgent("downlords-faf-client");
 
     WebClient webClient = WebClient.builder()
         .baseUrl(String.format("http://localhost:%s", mockApi.getPort()))
         .build();
+
+    mockApi.enqueue(new MockResponse()
+        .setBody(objectMapper.writeValueAsString(new LobbyAccess("http://localhost:%d".formatted(disposableServer.port()))))
+        .addHeader("Content-Type", "application/json;charset=utf-8"));
 
     instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenRetriever, uidService, eventBus, clientProperties, new FafLobbyClient(objectMapper), () -> webClient);
 
