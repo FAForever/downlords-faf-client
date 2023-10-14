@@ -35,6 +35,7 @@ import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.jasminb.jsonapi.exceptions.ResourceParseException;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -74,6 +75,7 @@ import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 @Slf4j
 @Component
 @Profile("!offline")
+@RequiredArgsConstructor
 public class FafApiAccessor implements InitializingBean {
 
   @VisibleForTesting
@@ -119,18 +121,13 @@ public class FafApiAccessor implements InitializingBean {
   private static final String JSONAPI_MEDIA_TYPE = "application/vnd.api+json;charset=utf-8";
 
   private final ClientProperties clientProperties;
+  @Qualifier("apiWebClient")
   private final ObjectFactory<WebClient> apiWebClientFactory;
 
   private WebClient apiWebClient;
   private Retry apiRetrySpec;
 
   private CountDownLatch authorizedLatch = new CountDownLatch(1);
-
-  public FafApiAccessor(ClientProperties clientProperties,
-                        @Qualifier("apiWebClient") ObjectFactory<WebClient> apiWebClientFactory) {
-    this.clientProperties = clientProperties;
-    this.apiWebClientFactory = apiWebClientFactory;
-  }
 
   @Override
   public void afterPropertiesSet() {

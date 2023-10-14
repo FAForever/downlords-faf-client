@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 <VBox fx:id="loginRoot" alignment="CENTER" spacing="20.0" styleClass="login-root" xmlns="http://javafx.com/javafx/15"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.login.LoginController">
     <children>
@@ -76,9 +87,8 @@
                         <RowConstraints/>
                     </rowConstraints>
                     <children>
-                        <TextField fx:id="serverHostField" promptText="%login.serverHost"/>
-                        <TextField fx:id="serverPortField" prefColumnCount="6" promptText="%port"
-                                   GridPane.columnIndex="1"/>
+                        <TextField fx:id="userUrlField" promptText="%login.userBaseUrl"
+                                   GridPane.columnSpan="2147483647"/>
                         <TextField fx:id="replayServerHostField" layoutX="10.0" layoutY="7.0"
                                    promptText="%login.replayServerHost" GridPane.rowIndex="1"/>
                         <TextField fx:id="replayServerPortField" layoutX="310.0" layoutY="7.0" prefColumnCount="6"

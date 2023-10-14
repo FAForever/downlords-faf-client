@@ -28,6 +28,7 @@ public class ClientProperties {
   private Imgur imgur = new Imgur();
   private TrueSkill trueSkill = new TrueSkill();
   private Api api = new Api();
+  private User user = new User();
   private Oauth oauth = new Oauth();
   private UnitDatabase unitDatabase = new UnitDatabase();
   private FAFDebugger fafDebugger = new FAFDebugger();
@@ -80,8 +81,7 @@ public class ClientProperties {
 
   @Data
   public static class Server {
-    private String host;
-    private int port;
+    private String url;
     private int retryDelaySeconds = 30;
     private int retryAttempts = 10;
   }
@@ -148,11 +148,15 @@ public class ClientProperties {
     private int maxPageSize = 10000;
   }
 
+  @Data
+  public static class User {
+    private String baseUrl;
+  }
+
   public void updateFromEndpoint(ServerEndpoints serverEndpoints) {
-    SocketEndpoint lobby = serverEndpoints.getLobby();
-    if (lobby != null) {
-      server.setHost(lobby.getHost());
-      server.setPort(lobby.getPort());
+    UrlEndpoint user = serverEndpoints.getUser();
+    if (user != null) {
+      this.user.setBaseUrl(user.getUrl());
     }
 
     SocketEndpoint liveReplay = serverEndpoints.getLiveReplay();

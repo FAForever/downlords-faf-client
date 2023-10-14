@@ -37,9 +37,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -70,16 +73,16 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   private final EventBus eventBus;
   private final ClientProperties clientProperties;
   private final FafLobbyClient lobbyClient;
+  @Qualifier("userWebClient")
+  private final ObjectFactory<WebClient> userWebClientFactory;
 
   @Override
   public void afterPropertiesSet() throws Exception {
     eventBus.register(this);
-    getEvents(IrcPasswordInfo.class)
-        .doOnError(throwable -> log.error("Error processing irc password", throwable))
+    getEvents(IrcPasswordInfo.class).doOnError(throwable -> log.error("Error processing irc password", throwable))
         .retry()
         .subscribe(this::onIrcPassword);
-    getEvents(NoticeInfo.class)
-        .doOnError(throwable -> log.error("Error processing notice", throwable))
+    getEvents(NoticeInfo.class).doOnError(throwable -> log.error("Error processing notice", throwable))
         .retry()
         .subscribe(this::onNotice);
 
@@ -119,16 +122,22 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public Mono<Player> connectAndLogIn() {
-    Config config = new Config(tokenRetriever.getRefreshedTokenValue(), Version.getCurrentVersion(), clientProperties.getUserAgent(), clientProperties.getServer()
-        .getHost(), clientProperties.getServer().getPort() + 1, sessionId -> {
-      try {
-        return uidService.generate(String.valueOf(sessionId));
-      } catch (IOException e) {
-        throw new UIDException("Cannot generate UID", e, "uid.generate.error");
-      }
-    }, 1024 * 1024, false, clientProperties.getServer().getRetryAttempts(), clientProperties.getServer()
-        .getRetryDelaySeconds());
-    return lobbyClient.connectAndLogin(config);
+    return userWebClientFactory.getObject()
+        .get()
+        .uri("/lobby/access")
+        .retrieve()
+        .bodyToMono(LobbyAccess.class)
+        .map(lobbyAccess -> new Config(tokenRetriever.getRefreshedTokenValue(), Version.getCurrentVersion(), clientProperties.getUserAgent(), lobbyAccess.accessUrl(), this::tryGenerateUid, 1024 * 1024, false, clientProperties.getServer()
+            .getRetryAttempts(), clientProperties.getServer().getRetryDelaySeconds()))
+        .flatMap(lobbyClient::connectAndLogin);
+  }
+
+  private String tryGenerateUid(Long sessionId) {
+    try {
+      return uidService.generate(String.valueOf(sessionId));
+    } catch (IOException e) {
+      throw new UIDException("Cannot generate UID", e, "uid.generate.error");
+    }
   }
 
   public CompletableFuture<GameLaunchResponse> requestHostGame(NewGameInfo newGameInfo) {

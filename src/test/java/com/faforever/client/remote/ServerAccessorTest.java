@@ -59,6 +59,8 @@ import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.LineEncoder;
 import io.netty.handler.codec.string.LineSeparator;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,13 +69,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.netty.DisposableServer;
-import reactor.netty.tcp.TcpServer;
+import reactor.netty.http.server.HttpServer;
 import reactor.test.StepVerifier;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -110,7 +114,6 @@ public class ServerAccessorTest extends ServiceTest {
   @TempDir
   public Path tempDirectory;
 
-
   @Mock
   private UidService uidService;
   @Mock
@@ -138,8 +141,13 @@ public class ServerAccessorTest extends ServiceTest {
   private final Sinks.Many<String> serverSentSink = Sinks.many().unicast().onBackpressureBuffer();
   private DisposableServer disposableServer;
 
+  private MockWebServer mockApi;
+
   @BeforeEach
   public void setUp() throws Exception {
+    mockApi = new MockWebServer();
+    mockApi.start();
+
     objectMapper.registerModule(new Builder().build())
         .registerModule(new JavaTimeModule())
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
@@ -149,12 +157,19 @@ public class ServerAccessorTest extends ServiceTest {
 
     startFakeFafLobbyServer();
 
-    clientProperties.getServer()
-        .setHost(disposableServer.host())
-        .setPort(disposableServer.port() - 1);
+    clientProperties.getUser()
+        .setBaseUrl("http://localhost:%d".formatted(mockApi.getPort()));
     clientProperties.setUserAgent("downlords-faf-client");
 
-    instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenRetriever, uidService, eventBus, clientProperties, new FafLobbyClient(objectMapper));
+    WebClient webClient = WebClient.builder()
+        .baseUrl(String.format("http://localhost:%s", mockApi.getPort()))
+        .build();
+
+    mockApi.enqueue(new MockResponse()
+        .setBody(objectMapper.writeValueAsString(new LobbyAccess("http://localhost:%d".formatted(disposableServer.port()))))
+        .addHeader("Content-Type", "application/json;charset=utf-8"));
+
+    instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenRetriever, uidService, eventBus, clientProperties, new FafLobbyClient(objectMapper), () -> webClient);
 
     instance.afterPropertiesSet();
     instance.addEventListener(ServerMessage.class, serverMessage -> {
@@ -172,16 +187,16 @@ public class ServerAccessorTest extends ServiceTest {
   }
 
   private void startFakeFafLobbyServer() {
-    this.disposableServer = TcpServer.create()
+    this.disposableServer = HttpServer.create()
         .doOnConnection(connection -> {
           log.info("New Client connected to server");
-          connection.addHandler(new LineEncoder(LineSeparator.UNIX)) // TODO: This is not working. Raise a bug ticket! Workaround below
-              .addHandler(new LineBasedFrameDecoder(1024 * 1024));
+          connection.addHandlerFirst(new LineEncoder(LineSeparator.UNIX)) // TODO: This is not working. Raise a bug ticket! Workaround below
+              .addHandlerLast(new LineBasedFrameDecoder(1024 * 1024));
         })
         .doOnBound(disposableServer -> log.info("Fake server listening at {} on port {}", disposableServer.host(), disposableServer.port()))
         .noSSL()
         .host(LOOPBACK_ADDRESS.getHostAddress())
-        .handle((inbound, outbound) -> {
+        .route(routes -> routes.ws("/", (inbound, outbound) -> {
           Mono<Void> inboundMono = inbound.receive()
               .asString(StandardCharsets.UTF_8)
               .doOnNext(message -> {
@@ -195,8 +210,8 @@ public class ServerAccessorTest extends ServiceTest {
             return message + "\n";
           }), StandardCharsets.UTF_8).then();
 
-          return inboundMono.mergeWith(outboundMono);
-        })
+          return Flux.firstWithSignal(inboundMono, outboundMono);
+        }))
         .bindNow();
   }
 
@@ -212,7 +227,8 @@ public class ServerAccessorTest extends ServiceTest {
   }
 
   @AfterEach
-  public void tearDown() {
+  public void tearDown() throws IOException {
+    mockApi.shutdown();
     disposableServer.disposeNow();
     instance.disconnect();
   }
