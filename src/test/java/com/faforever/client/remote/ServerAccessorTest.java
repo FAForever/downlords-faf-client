@@ -59,6 +59,7 @@ import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.LineEncoder;
 import io.netty.handler.codec.string.LineSeparator;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,6 +68,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
@@ -74,6 +76,7 @@ import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
 import reactor.test.StepVerifier;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -137,8 +140,13 @@ public class ServerAccessorTest extends ServiceTest {
   private final Sinks.Many<String> serverSentSink = Sinks.many().unicast().onBackpressureBuffer();
   private DisposableServer disposableServer;
 
+  private MockWebServer mockApi;
+
   @BeforeEach
   public void setUp() throws Exception {
+    mockApi = new MockWebServer();
+    mockApi.start();
+
     objectMapper.registerModule(new Builder().build())
         .registerModule(new JavaTimeModule())
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
@@ -152,7 +160,11 @@ public class ServerAccessorTest extends ServiceTest {
         .setUrl("http://%s:%d".formatted(disposableServer.host(), disposableServer.port()));
     clientProperties.setUserAgent("downlords-faf-client");
 
-    instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenRetriever, uidService, eventBus, clientProperties, new FafLobbyClient(objectMapper));
+    WebClient webClient = WebClient.builder()
+        .baseUrl(String.format("http://localhost:%s", mockApi.getPort()))
+        .build();
+
+    instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenRetriever, uidService, eventBus, clientProperties, new FafLobbyClient(objectMapper), () -> webClient);
 
     instance.afterPropertiesSet();
     instance.addEventListener(ServerMessage.class, serverMessage -> {
@@ -210,7 +222,8 @@ public class ServerAccessorTest extends ServiceTest {
   }
 
   @AfterEach
-  public void tearDown() {
+  public void tearDown() throws IOException {
+    mockApi.shutdown();
     disposableServer.disposeNow();
     instance.disconnect();
   }

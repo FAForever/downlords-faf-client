@@ -33,6 +33,7 @@ public class ClientConfiguration {
     private String name;
     private SocketEndpoint lobby;
     private UrlEndpoint lobbyWebsocket;
+    private UrlEndpoint user;
     private SocketEndpoint irc;
     private SocketEndpoint liveReplay;
     private UrlEndpoint api;

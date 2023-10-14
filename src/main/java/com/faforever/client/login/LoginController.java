@@ -3,7 +3,7 @@ package com.faforever.client.login;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.config.ClientProperties.Replay;
-import com.faforever.client.config.ClientProperties.Server;
+import com.faforever.client.config.ClientProperties.User;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
@@ -78,8 +78,7 @@ public class LoginController implements Controller<Pane> {
   public Label loginErrorLabel;
   public Pane loginRoot;
   public GridPane serverConfigPane;
-  public TextField serverUrlField;
-  public TextField serverPortField;
+  public TextField userUrlField;
   public TextField replayServerHostField;
   public TextField replayServerPortField;
   public TextField ircServerHostField;
@@ -201,8 +200,8 @@ public class LoginController implements Controller<Pane> {
 
   private void populateEndpointFields() {
     fxApplicationThreadExecutor.execute(() -> {
-      Server server = clientProperties.getServer();
-      serverUrlField.setText(server.getUrl());
+      User user = clientProperties.getUser();
+      userUrlField.setText(user.getBaseUrl());
       Replay replay = clientProperties.getReplay();
       replayServerHostField.setText(replay.getRemoteHost());
       replayServerPortField.setText(String.valueOf(replay.getRemotePort()));
@@ -235,8 +234,8 @@ public class LoginController implements Controller<Pane> {
   public CompletableFuture<Void> onLoginButtonClicked() {
     initializeFuture.join();
 
-    clientProperties.getServer()
-        .setUrl(serverUrlField.getText());
+    clientProperties.getUser()
+        .setBaseUrl(userUrlField.getText());
 
     clientProperties.getReplay()
         .setRemoteHost(replayServerHostField.getText())

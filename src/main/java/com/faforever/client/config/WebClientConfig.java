@@ -22,4 +22,11 @@ public class WebClientConfig {
     return webClientBuilder.baseUrl(clientProperties.getApi().getBaseUrl()).filter(oAuthTokenFilter).build();
   }
 
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  public WebClient userWebClient(WebClient.Builder webClientBuilder, OAuthTokenFilter oAuthTokenFilter,
+                                 ClientProperties clientProperties) {
+    return webClientBuilder.baseUrl(clientProperties.getUser().getBaseUrl()).filter(oAuthTokenFilter).build();
+  }
+
 }

@@ -87,7 +87,7 @@
                         <RowConstraints/>
                     </rowConstraints>
                     <children>
-                        <TextField fx:id="serverUrlField" promptText="%login.serverHost"
+                        <TextField fx:id="userUrlField" promptText="%login.userBaseUrl"
                                    GridPane.columnSpan="2147483647"/>
                         <TextField fx:id="replayServerHostField" layoutX="10.0" layoutY="7.0"
                                    promptText="%login.replayServerHost" GridPane.rowIndex="1"/>
