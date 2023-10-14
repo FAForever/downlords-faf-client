@@ -61,7 +61,6 @@ import io.netty.handler.codec.string.LineSeparator;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
@@ -72,7 +71,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import reactor.netty.DisposableServer;
-import reactor.netty.tcp.TcpServer;
+import reactor.netty.http.server.HttpServer;
 import reactor.test.StepVerifier;
 
 import java.net.InetAddress;
@@ -102,7 +101,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @Slf4j
-@Disabled
 public class ServerAccessorTest extends ServiceTest {
 
   private static final long TIMEOUT = 5000;
@@ -111,7 +109,6 @@ public class ServerAccessorTest extends ServiceTest {
 
   @TempDir
   public Path tempDirectory;
-
 
   @Mock
   private UidService uidService;
@@ -152,7 +149,7 @@ public class ServerAccessorTest extends ServiceTest {
     startFakeFafLobbyServer();
 
     clientProperties.getServer()
-        .setUrl(disposableServer.host());
+        .setUrl("http://%s:%d".formatted(disposableServer.host(), disposableServer.port()));
     clientProperties.setUserAgent("downlords-faf-client");
 
     instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenRetriever, uidService, eventBus, clientProperties, new FafLobbyClient(objectMapper));
@@ -173,16 +170,16 @@ public class ServerAccessorTest extends ServiceTest {
   }
 
   private void startFakeFafLobbyServer() {
-    this.disposableServer = TcpServer.create()
+    this.disposableServer = HttpServer.create()
         .doOnConnection(connection -> {
           log.info("New Client connected to server");
-          connection.addHandler(new LineEncoder(LineSeparator.UNIX)) // TODO: This is not working. Raise a bug ticket! Workaround below
-              .addHandler(new LineBasedFrameDecoder(1024 * 1024));
+          connection.addHandlerFirst(new LineEncoder(LineSeparator.UNIX)) // TODO: This is not working. Raise a bug ticket! Workaround below
+              .addHandlerLast(new LineBasedFrameDecoder(1024 * 1024));
         })
         .doOnBound(disposableServer -> log.info("Fake server listening at {} on port {}", disposableServer.host(), disposableServer.port()))
         .noSSL()
         .host(LOOPBACK_ADDRESS.getHostAddress())
-        .handle((inbound, outbound) -> {
+        .route(routes -> routes.ws("/", (inbound, outbound) -> {
           Mono<Void> inboundMono = inbound.receive()
               .asString(StandardCharsets.UTF_8)
               .doOnNext(message -> {
@@ -196,8 +193,8 @@ public class ServerAccessorTest extends ServiceTest {
             return message + "\n";
           }), StandardCharsets.UTF_8).then();
 
-          return inboundMono.mergeWith(outboundMono);
-        })
+          return Flux.firstWithSignal(inboundMono, outboundMono);
+        }))
         .bindNow();
   }
 
