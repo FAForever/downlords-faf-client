@@ -13,7 +13,6 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.LoginService;
-import com.faforever.commons.lobby.IrcPasswordInfo;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.eventbus.EventBus;
@@ -673,13 +672,6 @@ public class KittehChatServiceTest extends ServiceTest {
     join(defaultChannel, user2);
 
     verify(listener, times(2)).onChanged(any());
-  }
-
-  @Test
-  public void testLeaveChannel() {
-    IrcPasswordInfo event = new IrcPasswordInfo("abc");
-    instance.onIrcPassword(event);
-    instance.leaveChannel(new ChatChannel(DEFAULT_CHANNEL_NAME));
   }
 
   @Test

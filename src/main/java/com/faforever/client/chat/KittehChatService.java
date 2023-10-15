@@ -14,13 +14,11 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.LoginService;
-import com.faforever.commons.lobby.IrcPasswordInfo;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.google.common.hash.Hashing;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ObjectProperty;
@@ -54,18 +52,18 @@ import org.kitteh.irc.client.library.event.client.ClientNegotiationCompleteEvent
 import org.kitteh.irc.client.library.event.connection.ClientConnectionEndedEvent;
 import org.kitteh.irc.client.library.event.connection.ClientConnectionFailedEvent;
 import org.kitteh.irc.client.library.event.user.PrivateMessageEvent;
-import org.kitteh.irc.client.library.event.user.PrivateNoticeEvent;
 import org.kitteh.irc.client.library.event.user.UserQuitEvent;
-import org.kitteh.irc.client.library.event.user.WhoisEvent;
-import org.kitteh.irc.client.library.feature.auth.NickServ;
+import org.kitteh.irc.client.library.feature.auth.SaslPlain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -101,7 +99,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private final PlayerService playerService;
   private final ChatPrefs chatPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
-
+  @Qualifier("userWebClient")
+  private final ObjectFactory<WebClient> userWebClientFactory;
 
   /**
    * Maps channels by name.
@@ -114,9 +113,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   String defaultChannelName;
   @VisibleForTesting
   DefaultClient client;
-  private NickServ nickServ;
   private String username;
-  private String password;
   /**
    * A list of channels the server wants us to join.
    */
@@ -190,11 +187,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     populateColor(chatChannelUser);
     chatChannel.addUser(chatChannelUser);
     return chatChannelUser;
-  }
-
-  @Subscribe
-  public void onIrcPassword(IrcPasswordInfo event) {
-    password = Hashing.md5().hashString(event.getPassword(), StandardCharsets.UTF_8).toString();
   }
 
   @Subscribe
@@ -323,31 +315,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     getOrCreateChannel(user.getNick()).addMessage(new ChatMessage(Instant.now(), user.getNick(), event.getMessage()));
   }
 
-  @Handler
-  private void onWhoIs(WhoisEvent event) {
-    if (event.getWhoisData().getRealName().map(realName -> username.equals(realName)).orElse(false)) {
-      nickServ.startAuthentication();
-    }
-  }
-
-  @Handler
-  private void onNotice(PrivateNoticeEvent event) {
-    String message = event.getMessage();
-
-    if (message.contains("isn't registered")) {
-      client.sendMessage("NickServ", String.format("register %s %s@users.faforever.com", password, client.getNick()));
-    } else if (message.contains("you are now recognized")) {
-      client.sendMessage("NickServ", String.format("recover %s", username));
-    } else if (message.contains("You have regained control")) {
-      client.setNick(username);
-    }
-  }
-
   private void joinAutoChannels() {
     log.trace("Joining auto channels: {}", autoChannels);
-    if (autoChannels == null) {
-      return;
-    }
     autoChannels.forEach(this::joinChannel);
   }
 
@@ -383,7 +352,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private void onMessage(String message) {
-    message = message.replace(password, "*****");
     ircLog.debug(message);
   }
 
@@ -437,7 +405,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     username = loginService.getUsername();
 
     client = (DefaultClient) Client.builder()
-        .user(String.valueOf(loginService.getUserId()))
         .realName(username)
         .nick(username)
         .server()
@@ -451,11 +418,18 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
         .then()
         .build();
 
-    nickServ = NickServ.builder(client).account(username).password(password).build();
-
-    client.getEventManager().registerEventListener(this);
-    client.getActorTracker().setQueryChannelInformation(false);
-    client.connect();
+    userWebClientFactory.getObject()
+        .get()
+        .uri("irc/ergochat/token")
+        .retrieve()
+        .bodyToMono(IrcChatToken.class)
+        .map(IrcChatToken::value)
+        .subscribe(token -> {
+          client.getAuthManager().addProtocol(new SaslPlain(client, username, "token:%s".formatted(token)));
+          client.getEventManager().registerEventListener(this);
+          client.getActorTracker().setQueryChannelInformation(false);
+          client.connect();
+        });
   }
 
   @Override

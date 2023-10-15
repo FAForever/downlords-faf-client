@@ -22,7 +22,6 @@ import com.faforever.commons.lobby.FafLobbyClient.Config;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameVisibility;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
-import com.faforever.commons.lobby.IrcPasswordInfo;
 import com.faforever.commons.lobby.MatchmakerState;
 import com.faforever.commons.lobby.MessageTarget;
 import com.faforever.commons.lobby.NoticeInfo;
@@ -79,9 +78,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   @Override
   public void afterPropertiesSet() throws Exception {
     eventBus.register(this);
-    getEvents(IrcPasswordInfo.class).doOnError(throwable -> log.error("Error processing irc password", throwable))
-        .retry()
-        .subscribe(this::onIrcPassword);
     getEvents(NoticeInfo.class).doOnError(throwable -> log.error("Error processing notice", throwable))
         .retry()
         .subscribe(this::onNotice);
@@ -248,10 +244,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
       };
     }
     notificationService.addServerNotification(new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), severity, Collections.singletonList(new DismissAction(i18n))));
-  }
-
-  private void onIrcPassword(IrcPasswordInfo ircPasswordInfo) {
-    eventBus.post(ircPasswordInfo);
   }
 
   public void restoreGameSession(int id) {
