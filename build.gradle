@@ -368,12 +368,12 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  annotationProcessor("org.projectlombok:lombok:1.18.30")
+  annotationProcessor("org.projectlombok:lombok")
   annotationProcessor("org.mapstruct:mapstruct-processor:${mapstructVersion}")
-  testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
+  testAnnotationProcessor("org.projectlombok:lombok")
   testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
-  compileOnly("org.projectlombok:lombok:1.18.30")
-  testCompileOnly("org.projectlombok:lombok:1.18.30")
+  compileOnly("org.projectlombok:lombok")
+  testCompileOnly("org.projectlombok:lombok")
 
   codacy("com.github.codacy:codacy-coverage-reporter:-SNAPSHOT")
 }
