@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
@@ -100,7 +99,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private final PlayerService playerService;
   private final ChatPrefs chatPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
-  private final TokenRetriever tokenRetriever;
   @Qualifier("userWebClient")
   private final ObjectFactory<WebClient> userWebClientFactory;
 
@@ -116,7 +114,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @VisibleForTesting
   DefaultClient client;
   private String username;
-  private String password;
   /**
    * A list of channels the server wants us to join.
    */
@@ -355,7 +352,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private void onMessage(String message) {
-    message = message.replace(password, "*****");
     ircLog.debug(message);
   }
 
@@ -409,6 +405,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     username = loginService.getUsername();
 
     client = (DefaultClient) Client.builder()
+        .realName(username)
         .nick(username)
         .server()
         .host(irc.getHost())
