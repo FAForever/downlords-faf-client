@@ -5,6 +5,7 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.api.GamePlayerStats;
 import com.faforever.client.domain.api.LeaderboardRatingJournal;
 import com.faforever.client.domain.server.PlayerInfo;
+import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
@@ -21,6 +22,7 @@ import com.faforever.client.fx.contextmenu.SendPrivateMessageMenuItem;
 import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
 import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.ThemeService;
@@ -60,6 +62,7 @@ public class PlayerCardController extends NodeController<Node> {
   private final UiService uiService;
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
+  private final LeaderboardService leaderboardService;
   private final ContextMenuBuilder contextMenuBuilder;
   private final I18n i18n;
 
@@ -72,21 +75,25 @@ public class PlayerCardController extends NodeController<Node> {
   public Label friendIconText;
   public Region factionIcon;
   public ImageView factionImage;
+  public ImageView divisionImageView;
   public Label noteIcon;
   public Label ratingChange;
 
   private final ObjectProperty<PlayerInfo> player = new SimpleObjectProperty<>();
   private final ObjectProperty<GamePlayerStats> playerStats = new SimpleObjectProperty<>();
   private final ObjectProperty<Integer> rating = new SimpleObjectProperty<>();
+  private final ObjectProperty<SubdivisionBean> division = new SimpleObjectProperty<>();
   private final ObjectProperty<Faction> faction = new SimpleObjectProperty<>();
   private final Tooltip noteTooltip = new Tooltip();
   private final Tooltip avatarTooltip = new Tooltip();
+  private final Tooltip divisionTooltip = new Tooltip();
 
   @Override
   protected void onInitialize() {
-    JavaFxUtil.bindManagedToVisible(avatarStackPane, factionIcon, foeIconText, factionImage, friendIconText, countryImageView, noteIcon);
+    JavaFxUtil.bindManagedToVisible(avatarStackPane, factionIcon, foeIconText, factionImage, friendIconText, countryImageView, divisionImageView, noteIcon);
     countryImageView.visibleProperty().bind(countryImageView.imageProperty().isNotNull());
     avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
+    divisionImageView.visibleProperty().bind(divisionImageView.imageProperty().isNotNull());
 
     factionImage.setImage(uiService.getImage(ThemeService.RANDOM_FACTION_IMAGE));
     factionImage.visibleProperty().bind(faction.map(value -> value == Faction.RANDOM));
@@ -97,9 +104,12 @@ public class PlayerCardController extends NodeController<Node> {
             .when(showing));
     avatarImageView.imageProperty()
                    .bind(player.flatMap(PlayerInfo::avatarProperty).map(avatarService::loadAvatar).when(showing));
+    divisionImageView.imageProperty()
+            .bind(division.flatMap(SubdivisionBean::smallImageUrlProperty).map(leaderboardService::loadDivisionImage).when(showing));
     playerInfo.textProperty().bind(player.flatMap(PlayerInfo::usernameProperty)
-            .flatMap(username -> rating.map(value -> i18n.get("userInfo.tooltipFormat.withRating", username, value))
-                .orElse(i18n.get("userInfo.tooltipFormat.noRating", username)))
+            .map(username -> (rating.get() != null && division.get() == null)
+                ? i18n.get("userInfo.tooltipFormat.withRating", username, rating.get())
+                : i18n.get("userInfo.tooltipFormat.noRating", username))
             .when(showing));
     foeIconText.visibleProperty().bind(player.flatMap(PlayerInfo::socialStatusProperty)
             .map(socialStatus -> socialStatus == SocialStatus.FOE)
@@ -131,6 +141,13 @@ public class PlayerCardController extends NodeController<Node> {
     avatarTooltip.setShowDelay(Duration.ZERO);
     avatarTooltip.setShowDuration(Duration.seconds(30));
     Tooltip.install(avatarImageView, avatarTooltip);
+
+    divisionTooltip.textProperty().bind(
+        division.map(value -> i18n.get("leaderboard.divisionName", i18n.get(value.getDivisionI18nKey()), value.getNameKey()))
+            .when(showing));
+    divisionTooltip.setShowDelay(Duration.ZERO);
+    divisionTooltip.setShowDuration(Duration.seconds(30));
+    Tooltip.install(divisionImageView, divisionTooltip);
   }
 
   private void onNoteChanged(String newValue) {
@@ -239,6 +256,18 @@ public class PlayerCardController extends NodeController<Node> {
 
   public void setRating(Integer rating) {
     this.rating.set(rating);
+  }
+
+  public SubdivisionBean getDivision() {
+    return division.get();
+  }
+
+  public ObjectProperty<SubdivisionBean> divisionProperty() {
+    return division;
+  }
+
+  public void setDivision(SubdivisionBean subdivision) {
+    this.division.set(subdivision);
   }
 
   public Faction getFaction() {

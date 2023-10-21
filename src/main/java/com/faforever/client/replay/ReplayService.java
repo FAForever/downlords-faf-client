@@ -4,6 +4,7 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.domain.LeagueScoreJournalBean;
 import com.faforever.client.domain.api.Map;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.api.Replay;
@@ -28,6 +29,7 @@ import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GameReviewsSummary;
+import com.faforever.commons.api.dto.LeagueScoreJournal;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.api.elide.ElideNavigatorOnId;
@@ -461,5 +463,14 @@ public class ReplayService {
     navigator.pageNumber(page).pageSize(count);
     return fafApiAccessor.getManyWithPageCount(navigator, customFilter)
                          .map(tuple -> tuple.mapT1(mods -> mods.stream().map(replayMapper::map).collect(toList())));
+  }
+
+  public CompletableFuture<List<LeagueScoreJournalBean>> getLeagueScoreJournalForReplay(ReplayBean replay) {
+    ElideNavigatorOnCollection<LeagueScoreJournal> navigator = ElideNavigator.of(LeagueScoreJournal.class).collection()
+        .setFilter(qBuilder().intNum("gameId").eq(replay.getId()));
+    return fafApiAccessor.getMany(navigator)
+        .map(dto -> replayMapper.map(dto, new CycleAvoidingMappingContext()))
+        .collectList()
+        .toFuture();
   }
 }

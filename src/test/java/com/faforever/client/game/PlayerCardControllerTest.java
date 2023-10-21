@@ -7,6 +7,7 @@ import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.helper.TooltipHelper;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.PlatformTest;
@@ -35,6 +36,8 @@ public class PlayerCardControllerTest extends PlatformTest {
   @Mock
   private CountryFlagService countryFlagService;
   @Mock
+  private LeaderboardService leaderboardService;
+  @Mock
   private AvatarService avatarService;
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
@@ -43,7 +46,7 @@ public class PlayerCardControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new PlayerCardController(uiService, countryFlagService, avatarService, contextMenuBuilder, i18n);
+    instance = new PlayerCardController(uiService, countryFlagService, avatarService, leaderboardService, contextMenuBuilder, i18n);
 
     when(uiService.getImage(ThemeService.RANDOM_FACTION_IMAGE)).thenReturn(
         new Image(ThemeService.RANDOM_FACTION_IMAGE));

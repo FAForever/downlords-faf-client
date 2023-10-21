@@ -52,6 +52,7 @@ public class TeamCardControllerTest extends PlatformTest {
 
     lenient().when(uiService.loadFxml("theme/player_card.fxml")).thenReturn(playerCardController);
     lenient().when(playerCardController.ratingProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(playerCardController.divisionProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(playerCardController.factionProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(playerCardController.playerProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(playerCardController.getRoot()).thenReturn(new Label());

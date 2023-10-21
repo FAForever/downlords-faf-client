@@ -54,4 +54,6 @@
     <Label fx:id="ratingChange"
            minWidth="-Infinity"
            styleClass="rating-change-label"/>
+    <ImageView fx:id="divisionImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true"
+               visible="false"/>
 </HBox>
