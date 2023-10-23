@@ -1,27 +1,18 @@
 import com.install4j.gradle.Install4jTask
 import org.gradle.internal.os.OperatingSystem
 
-buildscript {
-  repositories {
-    mavenCentral()
-  }
-  dependencies {
-    classpath files('../fx2j/gradle-plugin/build/libs/fx2j-gradle-plugin-unspecified.jar')
-  }
-}
-
 plugins {
-  id 'org.springframework.boot' version '3.2.0'
-  id "com.install4j.gradle" version "10.0.6"
-  id "de.undercouch.download" version "5.5.0"
-  id 'jacoco'
-  id 'java'
-  id 'distribution'
-  id "me.champeau.jmh" version "0.7.1"
+  id("org.springframework.boot") version "3.2.0"
+  id("com.install4j.gradle") version "10.0.6"
+  id("de.undercouch.download") version "5.5.0"
+  id("jacoco")
+  id("java")
+  id("distribution")
+  id("me.champeau.jmh") version "0.7.1"
+  id("io.github.sheikah45.fx2j") version "0.0.0"
 }
 
 apply plugin: 'io.spring.dependency-management'
-apply plugin: 'io.github.sheikah45.fx2j'
 
 // source: https://github.com/mendhak/Gradle-Travis-Colored-Output/blob/master/ColoredOutput.gradle
 tasks.withType(Test).configureEach {
@@ -213,6 +204,7 @@ install4j {
 }
 
 fx2j {
+  modularizeIfPossible = false
   basePackage = "com.faforever.client.fx2j"
 }
 
@@ -352,7 +344,7 @@ dependencies {
 
   implementation("org.javassist:javassist:3.29.2-GA")
 
-  implementation(files("../fx2j/api/build/libs/fx2j-api-unspecified.jar"))
+  implementation("io.github.sheikah45.fx2j:fx2j-api:0.0.0")
   implementation("com.install4j:install4j-runtime:10.0.6")
 
   testImplementation("com.squareup.okhttp3:okhttp")
