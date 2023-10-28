@@ -186,7 +186,7 @@ public class GameServiceTest extends ServiceTest {
 
     when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
     when(fafServerAccessor.getEvents(GameInfo.class)).thenReturn(testPublisher.flux());
-    when(coturnService.getSelectedCoturns()).thenReturn(completedFuture(List.of()));
+    when(coturnService.getSelectedCoturns(anyInt())).thenReturn(completedFuture(List.of()));
     when(preferencesService.isValidGamePath()).thenReturn(true);
     when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayServer.start(anyInt(), any())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));

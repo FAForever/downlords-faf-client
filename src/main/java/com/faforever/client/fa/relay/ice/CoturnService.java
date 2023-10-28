@@ -1,6 +1,7 @@
 package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.api.IceSession;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.commons.api.dto.CoturnServer;
@@ -31,9 +32,9 @@ public class CoturnService {
         .toFuture();
   }
 
-  public CompletableFuture<List<CoturnServer>> getSelectedCoturns() {
-    ElideNavigatorOnCollection<CoturnServer> navigator = ElideNavigator.of(CoturnServer.class).collection();
-    Flux<CoturnServer> coturnServerFlux = fafApiAccessor.getMany(navigator);
+  public CompletableFuture<List<CoturnServer>> getSelectedCoturns(int gameId) {
+    Flux<CoturnServer> coturnServerFlux = fafApiAccessor.getIceSession(gameId)
+        .flatMapIterable(IceSession::servers);
 
     Set<String> preferredCoturnIds = forgedAlliancePrefs.getPreferredCoturnIds();
 

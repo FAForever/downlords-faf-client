@@ -1,6 +1,7 @@
 package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.api.IceSession;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -14,11 +15,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,26 +56,26 @@ public class CoturnServiceTest extends ServiceTest {
 
     CoturnServer otherServer = new CoturnServer();
     otherServer.setId("0");
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(otherServer));
+    when(fafApiAccessor.getIceSession(anyInt())).thenReturn(Mono.just(new IceSession("someSessionId", List.of(otherServer))));
 
-    List<CoturnServer> servers = instance.getSelectedCoturns().join();
+    List<CoturnServer> servers = instance.getSelectedCoturns(123).join();
 
     assertEquals(1, servers.size());
     assertEquals("0", servers.get(0).getId());
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasDtoClass(CoturnServer.class)));
+    verify(fafApiAccessor).getIceSession(123);
   }
 
   @Test
   public void testGetSelectedCoturnsNoneSelected() {
     CoturnServer otherServer = new CoturnServer();
     otherServer.setId("0");
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(otherServer));
+    when(fafApiAccessor.getIceSession(anyInt())).thenReturn(Mono.just(new IceSession("someSessionId", List.of(otherServer))));
 
-    List<CoturnServer> servers = instance.getSelectedCoturns().join();
+    List<CoturnServer> servers = instance.getSelectedCoturns(123).join();
 
     assertEquals(1, servers.size());
     assertEquals("0", servers.get(0).getId());
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasDtoClass(CoturnServer.class)));
+    verify(fafApiAccessor).getIceSession(123);
   }
 
   @Test
@@ -83,12 +86,12 @@ public class CoturnServiceTest extends ServiceTest {
     otherServer.setId("0");
     CoturnServer selectedServer = new CoturnServer();
     otherServer.setId("1");
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(otherServer, selectedServer));
+    when(fafApiAccessor.getIceSession(anyInt())).thenReturn(Mono.just(new IceSession("someSessionId", List.of(otherServer, selectedServer))));
 
-    List<CoturnServer> servers = instance.getSelectedCoturns().join();
+    List<CoturnServer> servers = instance.getSelectedCoturns(123).join();
 
     assertEquals(1, servers.size());
     assertEquals("1", servers.get(0).getId());
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasDtoClass(CoturnServer.class)));
+    verify(fafApiAccessor).getIceSession(123);
   }
 }

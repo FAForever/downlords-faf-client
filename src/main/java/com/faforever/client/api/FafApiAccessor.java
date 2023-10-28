@@ -157,6 +157,11 @@ public class FafApiAccessor implements InitializingBean {
         .doOnNext(object -> log.trace("Retrieved {} from /me with type MeResult", object));
   }
 
+  public Mono<IceSession> getIceSession(int gameId) {
+    return retrieveMonoWithErrorHandling(IceSession.class, apiWebClient.get().uri("/ice/session/game/" + gameId))
+        .doOnNext(object -> log.trace("Retrieved {} from /ice/session/game/{} with type MeResult", object, gameId));
+  }
+
   public Mono<Void> uploadFile(String endpoint, Path file, ByteCountListener listener,
                                java.util.Map<String, java.util.Map<String, ?>> params) {
     MultiValueMap<String, Object> multipartContent = createFileMultipart(file, listener);
