@@ -157,9 +157,15 @@ public class FafApiAccessor implements InitializingBean {
         .doOnNext(object -> log.trace("Retrieved {} from /me with type MeResult", object));
   }
 
+  public Flux<IceServer> getIceServers() {
+    return retrieveMonoWithErrorHandling(IceServerResponse.class, apiWebClient.get().uri("/ice/server"))
+        .flatMapIterable(IceServerResponse::servers)
+        .doOnNext(object -> log.trace("Retrieved {} from /ice/server with type IceServer", object));
+  }
+
   public Mono<IceSession> getIceSession(int gameId) {
     return retrieveMonoWithErrorHandling(IceSession.class, apiWebClient.get().uri("/ice/session/game/" + gameId))
-        .doOnNext(object -> log.trace("Retrieved {} from /ice/session/game/{} with type MeResult", object, gameId));
+        .doOnNext(object -> log.trace("Retrieved {} from /ice/session/game/{} with type IceSession", object, gameId));
   }
 
   public Mono<Void> uploadFile(String endpoint, Path file, ByteCountListener listener,
