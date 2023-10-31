@@ -1,6 +1,7 @@
 package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.api.IceServerResponse;
 import com.faforever.client.api.IceSession;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.mapstruct.MapperSetup;
@@ -13,7 +14,6 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -44,9 +44,9 @@ public class CoturnServiceTest extends ServiceTest {
 
   @Test
   public void testGetActiveCoturns() {
-    when(fafApiAccessor.getApiObjects("/ice/server", IceServer.class)).thenReturn(Flux.empty());
+    when(fafApiAccessor.getApiObject("/ice/server", IceServerResponse.class)).thenReturn(Mono.empty());
     instance.getActiveCoturns();
-    verify(fafApiAccessor).getApiObjects("/ice/server", IceServer.class);
+    verify(fafApiAccessor).getApiObject("/ice/server", IceServerResponse.class);
   }
 
   @Test
