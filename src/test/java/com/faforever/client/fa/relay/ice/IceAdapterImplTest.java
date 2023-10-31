@@ -116,7 +116,6 @@ public class IceAdapterImplTest extends ServiceTest {
     when(operatingSystem.getJavaExecutablePath()).thenReturn(javaExecutablePath);
     PlayerBean currentPlayer = PlayerBeanBuilder.create().defaultValues().get();
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
-    forgedAlliancePrefs.setForceRelay(true);
     forgedAlliancePrefs.setShowIceAdapterDebugWindow(true);
 
     List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711);
@@ -148,7 +147,6 @@ public class IceAdapterImplTest extends ServiceTest {
 
     when(operatingSystem.getJavaExecutablePath()).thenReturn(javaExecutablePath);
     forgedAlliancePrefs.setAllowIpv6(true);
-    forgedAlliancePrefs.setForceRelay(true);
     forgedAlliancePrefs.setShowIceAdapterDebugWindow(true);
     PlayerBean currentPlayer = PlayerBeanBuilder.create().defaultValues().get();
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);

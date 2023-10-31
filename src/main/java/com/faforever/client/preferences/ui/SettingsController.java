@@ -310,7 +310,6 @@ public class SettingsController implements Controller<Node> {
 
   private void bindGamePreferences() {
     ForgedAlliancePrefs forgedAlliancePrefs = preferences.getForgedAlliance();
-    forceRelayToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.forceRelayProperty());
     changeProcessPriorityToggle.selectedProperty()
         .bindBidirectional(forgedAlliancePrefs.changeProcessPriorityProperty());
     gameLocationTextField.textProperty()

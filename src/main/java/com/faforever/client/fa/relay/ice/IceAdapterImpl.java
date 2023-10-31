@@ -223,11 +223,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
     cmd.addAll(standardIceOptions);
 
-    if (forgedAlliancePrefs.isForceRelay()) {
-      cmd.add("--force-relay");
-      log.info("Forcing ice adapter relay connection");
-    }
-
     if (forgedAlliancePrefs.isShowIceAdapterDebugWindow()) {
       cmd.add("--debug-window");
       cmd.add("--info-window");
