@@ -181,7 +181,8 @@ public class SettingsController implements Controller<Node> {
 
   private final SimpleChangeListener<Theme> selectedThemeChangeListener = this::onThemeChanged;
   private final SimpleChangeListener<Theme> currentThemeChangeListener = newValue -> themeComboBox.getSelectionModel().select(newValue);;
-  private SimpleInvalidationListener availableLanguagesListener = this::setAvailableLanguages;;
+  private final SimpleInvalidationListener availableLanguagesListener = this::setAvailableLanguages;
+  ;
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(vaultLocationWarningLabel);
@@ -344,7 +345,7 @@ public class SettingsController implements Controller<Node> {
           .getForgedAlliance()
           .getPreferredCoturnIds();
       Map<String, IceServer> hostPortCoturnServerMap = coturnServers.stream()
-          .collect(Collectors.toMap(IceServer::name, Function.identity()));
+          .collect(Collectors.toMap(IceServer::id, Function.identity()));
 
       preferredCoturnServers.stream()
           .filter(hostPortCoturnServerMap::containsKey)
@@ -352,10 +353,10 @@ public class SettingsController implements Controller<Node> {
           .forEach(coturnServer -> preferredCoturnListView.getSelectionModel().select(coturnServer));
 
       JavaFxUtil.addAndTriggerListener(preferredCoturnListView.getSelectionModel()
-          .getSelectedItems(), (InvalidationListener) observable -> {
+          .getSelectedItems(), observable -> {
         List<IceServer> selectedCoturns = preferredCoturnListView.getSelectionModel().getSelectedItems();
         preferredCoturnServers.clear();
-        selectedCoturns.stream().map(IceServer::name).forEach(preferredCoturnServers::add);
+        selectedCoturns.stream().map(IceServer::id).forEach(preferredCoturnServers::add);
       });
     }, fxApplicationThreadExecutor);
   }

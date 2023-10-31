@@ -2,8 +2,8 @@ package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.IceServer;
+import com.faforever.client.api.IceServerResponse;
 import com.faforever.client.api.IceSession;
-import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.commons.api.dto.CoturnServer;
 import lombok.RequiredArgsConstructor;
@@ -21,18 +21,18 @@ import java.util.concurrent.CompletableFuture;
 public class CoturnService {
 
   private final FafApiAccessor fafApiAccessor;
-  private final IceServerMapper iceServerMapper;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   public CompletableFuture<List<IceServer>> getActiveCoturns() {
-    return fafApiAccessor.getIceServers()
+    return fafApiAccessor.getApiObject("/ice/server", IceServerResponse.class)
+        .flatMapIterable(IceServerResponse::servers)
         .switchIfEmpty(Flux.error(new IllegalStateException("No Coturn Servers Available")))
         .collectList()
         .toFuture();
   }
 
   public CompletableFuture<List<CoturnServer>> getSelectedCoturns(int gameId) {
-    Flux<CoturnServer> coturnServerFlux = fafApiAccessor.getIceSession(gameId)
+    Flux<CoturnServer> coturnServerFlux = fafApiAccessor.getApiObject("/ice/session/game/" + gameId, IceSession.class)
         .flatMapIterable(IceSession::servers);
 
     Set<String> preferredCoturnIds = forgedAlliancePrefs.getPreferredCoturnIds();

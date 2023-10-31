@@ -5,7 +5,6 @@ import com.faforever.client.api.IceSession;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.CoturnServer;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,8 +20,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.endsWith;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,9 +44,9 @@ public class CoturnServiceTest extends ServiceTest {
 
   @Test
   public void testGetActiveCoturns() {
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
+    when(fafApiAccessor.getApiObjects("/ice/server", IceServer.class)).thenReturn(Flux.empty());
     instance.getActiveCoturns();
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasDtoClass(CoturnServer.class)));
+    verify(fafApiAccessor).getApiObjects("/ice/server", IceServer.class);
   }
 
   @Test
@@ -56,26 +55,26 @@ public class CoturnServiceTest extends ServiceTest {
 
     CoturnServer otherServer = new CoturnServer();
     otherServer.setId("0");
-    when(fafApiAccessor.getIceSession(anyInt())).thenReturn(Mono.just(new IceSession("someSessionId", List.of(otherServer))));
+    when(fafApiAccessor.getApiObject(any(), any())).thenReturn(Mono.just(new IceSession("someSessionId", List.of(otherServer))));
 
     List<CoturnServer> servers = instance.getSelectedCoturns(123).join();
 
     assertEquals(1, servers.size());
     assertEquals("0", servers.get(0).getId());
-    verify(fafApiAccessor).getIceSession(123);
+    verify(fafApiAccessor).getApiObject(endsWith("123"), eq(IceSession.class));
   }
 
   @Test
   public void testGetSelectedCoturnsNoneSelected() {
     CoturnServer otherServer = new CoturnServer();
     otherServer.setId("0");
-    when(fafApiAccessor.getIceSession(anyInt())).thenReturn(Mono.just(new IceSession("someSessionId", List.of(otherServer))));
+    when(fafApiAccessor.getApiObject(any(), any())).thenReturn(Mono.just(new IceSession("someSessionId", List.of(otherServer))));
 
     List<CoturnServer> servers = instance.getSelectedCoturns(123).join();
 
     assertEquals(1, servers.size());
     assertEquals("0", servers.get(0).getId());
-    verify(fafApiAccessor).getIceSession(123);
+    verify(fafApiAccessor).getApiObject(endsWith("123"), eq(IceSession.class));
   }
 
   @Test
@@ -86,12 +85,12 @@ public class CoturnServiceTest extends ServiceTest {
     otherServer.setId("0");
     CoturnServer selectedServer = new CoturnServer();
     otherServer.setId("1");
-    when(fafApiAccessor.getIceSession(anyInt())).thenReturn(Mono.just(new IceSession("someSessionId", List.of(otherServer, selectedServer))));
+    when(fafApiAccessor.getApiObject(any(), any())).thenReturn(Mono.just(new IceSession("someSessionId", List.of(otherServer, selectedServer))));
 
     List<CoturnServer> servers = instance.getSelectedCoturns(123).join();
 
     assertEquals(1, servers.size());
     assertEquals("1", servers.get(0).getId());
-    verify(fafApiAccessor).getIceSession(123);
+    verify(fafApiAccessor).getApiObject(endsWith("123"), eq(IceSession.class));
   }
 }

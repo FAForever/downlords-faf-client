@@ -310,7 +310,9 @@ dependencies {
   implementation("com.neovisionaries:nv-i18n:1.29")
   implementation("com.nativelibs4java:bridj:0.7.0")
   implementation("org.luaj:luaj-jse:3.0.1")
-  implementation("commons-validator:commons-validator:1.7")
+  implementation("commons-validator:commons-validator:1.7") {
+    exclude module: 'commons-logging'
+  }
   implementation("com.github.micheljung:JJsonRpc:01a7fba5f4")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -337,7 +339,9 @@ dependencies {
   implementation("com.github.1-alex98:discord-rpc:1.6.2-jna")
   implementation("org.controlsfx:controlsfx:11.1.2")
   implementation("org.fxmisc.flowless:flowless:0.7.1")
-  implementation("de.codecentric.centerdevice:javafxsvg:1.3.0")
+  implementation("de.codecentric.centerdevice:javafxsvg:1.3.0") {
+    exclude module: 'commons-logging'
+  }
 
   implementation("org.javassist:javassist:3.29.2-GA")
 
