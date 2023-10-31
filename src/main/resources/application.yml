@@ -81,6 +81,7 @@ spring:
   jackson:
     deserialization:
       read-unknown-enum-values-using-default-value: true
+      fail-on-unknown-properties: false
 
 logging:
   level:
