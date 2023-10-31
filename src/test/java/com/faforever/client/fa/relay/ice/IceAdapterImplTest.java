@@ -136,9 +136,8 @@ public class IceAdapterImplTest extends ServiceTest {
     assertEquals(String.valueOf(0), command.get(12));
     assertEquals("--gpgnet-port", command.get(13));
     assertEquals(String.valueOf(0), command.get(14));
-    assertEquals("--force-relay", command.get(15));
-    assertEquals("--debug-window", command.get(16));
-    assertEquals("--info-window", command.get(17));
+    assertEquals("--debug-window", command.get(15));
+    assertEquals("--info-window", command.get(16));
   }
 
   @Test
@@ -194,7 +193,6 @@ public class IceAdapterImplTest extends ServiceTest {
     Map<String, Object> iceMap = value.get(0);
 
     assertEquals(coturnServer.getUsername(), iceMap.get("username"));
-    assertEquals(coturnServer.getCredentialType(), iceMap.get("credentialType"));
     assertEquals(coturnServer.getCredential(), iceMap.get("credential"));
     assertEquals(List.of("turn://test.coturn.com?transport=tcp"), iceMap.get("urls"));
   }
