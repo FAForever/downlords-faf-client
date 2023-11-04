@@ -17,7 +17,6 @@ import com.faforever.client.fx.StringListCell;
 import com.faforever.client.game.VaultPathHandler;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigationItem;
-import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -107,7 +106,6 @@ public class SettingsController implements Controller<Node> {
   private final ClientUpdateService clientUpdateService;
   private final TaskService taskService;
   private final CoturnService coturnService;
-  private final IceServerMapper iceServerMapper;
   private final VaultPathHandler vaultPathHandler;
   private final Preferences preferences;
   private final ObjectFactory<MoveDirectoryTask> moveDirectoryTaskFactory;
@@ -121,7 +119,6 @@ public class SettingsController implements Controller<Node> {
   public Toggle randomColorsToggle;
   public Toggle defaultColorsToggle;
   public CheckBox hideFoeToggle;
-  public CheckBox forceRelayToggle;
   public CheckBox changeProcessPriorityToggle;
   public TextField dataLocationTextField;
   public TextField gameLocationTextField;
