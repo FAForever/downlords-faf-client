@@ -1,11 +1,11 @@
 package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.mapstruct.IceServerMapper;
+import com.faforever.client.api.IceServer;
+import com.faforever.client.api.IceServerResponse;
+import com.faforever.client.api.IceSession;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.commons.api.dto.CoturnServer;
-import com.faforever.commons.api.elide.ElideNavigator;
-import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -21,19 +21,19 @@ import java.util.concurrent.CompletableFuture;
 public class CoturnService {
 
   private final FafApiAccessor fafApiAccessor;
-  private final IceServerMapper iceServerMapper;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
 
-  public CompletableFuture<List<CoturnServer>> getActiveCoturns() {
-    ElideNavigatorOnCollection<CoturnServer> navigator = ElideNavigator.of(CoturnServer.class).collection();
-    return fafApiAccessor.getMany(navigator)
+  public CompletableFuture<List<IceServer>> getActiveCoturns() {
+    return fafApiAccessor.getApiObject("/ice/server", IceServerResponse.class)
+        .flatMapIterable(IceServerResponse::servers)
+        .switchIfEmpty(Flux.error(new IllegalStateException("No Coturn Servers Available")))
         .collectList()
         .toFuture();
   }
 
-  public CompletableFuture<List<CoturnServer>> getSelectedCoturns() {
-    ElideNavigatorOnCollection<CoturnServer> navigator = ElideNavigator.of(CoturnServer.class).collection();
-    Flux<CoturnServer> coturnServerFlux = fafApiAccessor.getMany(navigator);
+  public CompletableFuture<List<CoturnServer>> getSelectedCoturns(int gameId) {
+    Flux<CoturnServer> coturnServerFlux = fafApiAccessor.getApiObject("/ice/session/game/" + gameId, IceSession.class)
+        .flatMapIterable(IceSession::servers);
 
     Set<String> preferredCoturnIds = forgedAlliancePrefs.getPreferredCoturnIds();
 

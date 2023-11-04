@@ -14,7 +14,6 @@ public abstract class IceServerMapper {
     return Map.of(
         "urls", coturnServer.getUrls().stream().map(URI::toString).toList(),
         "credential", coturnServer.getCredential(),
-        "credentialType", coturnServer.getCredentialType(),
         "username", coturnServer.getUsername()
     );
   }

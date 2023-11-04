@@ -665,7 +665,7 @@ public class GameService implements InitializingBean {
           localReplayPort = port;
           return iceAdapter.start(gameParameters.getUid());
         })
-        .thenCompose(adapterPort -> coturnService.getSelectedCoturns()
+        .thenCompose(adapterPort -> coturnService.getSelectedCoturns(uid)
             .thenAccept(iceAdapter::setIceServers)
             .thenApply(aVoid -> adapterPort))
         .thenApply(adapterPort -> {

@@ -1,6 +1,7 @@
 package com.faforever.client.preferences.ui;
 
 import ch.qos.logback.classic.Level;
+import com.faforever.client.api.IceServer;
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatFormat;
 import com.faforever.client.config.ClientProperties;
@@ -16,7 +17,6 @@ import com.faforever.client.fx.StringListCell;
 import com.faforever.client.game.VaultPathHandler;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigationItem;
-import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -44,7 +44,6 @@ import com.faforever.client.ui.list.NoSelectionModelListView;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.LoginService;
-import com.faforever.commons.api.dto.CoturnServer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
@@ -107,7 +106,6 @@ public class SettingsController implements Controller<Node> {
   private final ClientUpdateService clientUpdateService;
   private final TaskService taskService;
   private final CoturnService coturnService;
-  private final IceServerMapper iceServerMapper;
   private final VaultPathHandler vaultPathHandler;
   private final Preferences preferences;
   private final ObjectFactory<MoveDirectoryTask> moveDirectoryTaskFactory;
@@ -121,7 +119,6 @@ public class SettingsController implements Controller<Node> {
   public Toggle randomColorsToggle;
   public Toggle defaultColorsToggle;
   public CheckBox hideFoeToggle;
-  public CheckBox forceRelayToggle;
   public CheckBox changeProcessPriorityToggle;
   public TextField dataLocationTextField;
   public TextField gameLocationTextField;
@@ -177,11 +174,12 @@ public class SettingsController implements Controller<Node> {
   public Spinner<Integer> gameDataCacheTimeSpinner;
   public ComboBox<Level> logLevelComboBox;
   public CheckBox mapAndModAutoUpdateCheckBox;
-  public ListView<CoturnServer> preferredCoturnListView;
+  public ListView<IceServer> preferredCoturnListView;
 
   private final SimpleChangeListener<Theme> selectedThemeChangeListener = this::onThemeChanged;
   private final SimpleChangeListener<Theme> currentThemeChangeListener = newValue -> themeComboBox.getSelectionModel().select(newValue);;
-  private SimpleInvalidationListener availableLanguagesListener = this::setAvailableLanguages;;
+  private final SimpleInvalidationListener availableLanguagesListener = this::setAvailableLanguages;
+  ;
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(vaultLocationWarningLabel);
@@ -309,7 +307,6 @@ public class SettingsController implements Controller<Node> {
 
   private void bindGamePreferences() {
     ForgedAlliancePrefs forgedAlliancePrefs = preferences.getForgedAlliance();
-    forceRelayToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.forceRelayProperty());
     changeProcessPriorityToggle.selectedProperty()
         .bindBidirectional(forgedAlliancePrefs.changeProcessPriorityProperty());
     gameLocationTextField.textProperty()
@@ -339,12 +336,12 @@ public class SettingsController implements Controller<Node> {
     coturnService.getActiveCoturns().thenAcceptAsync(coturnServers -> {
       preferredCoturnListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
       preferredCoturnListView.setItems(FXCollections.observableList(coturnServers));
-      preferredCoturnListView.setCellFactory(param -> new StringListCell<>(CoturnServer::getRegion, fxApplicationThreadExecutor));
+      preferredCoturnListView.setCellFactory(param -> new StringListCell<>(IceServer::region, fxApplicationThreadExecutor));
       ObservableSet<String> preferredCoturnServers = preferences
           .getForgedAlliance()
           .getPreferredCoturnIds();
-      Map<String, CoturnServer> hostPortCoturnServerMap = coturnServers.stream()
-          .collect(Collectors.toMap(CoturnServer::getId, Function.identity()));
+      Map<String, IceServer> hostPortCoturnServerMap = coturnServers.stream()
+          .collect(Collectors.toMap(IceServer::id, Function.identity()));
 
       preferredCoturnServers.stream()
           .filter(hostPortCoturnServerMap::containsKey)
@@ -352,10 +349,10 @@ public class SettingsController implements Controller<Node> {
           .forEach(coturnServer -> preferredCoturnListView.getSelectionModel().select(coturnServer));
 
       JavaFxUtil.addAndTriggerListener(preferredCoturnListView.getSelectionModel()
-          .getSelectedItems(), (InvalidationListener) observable -> {
-        List<CoturnServer> selectedCoturns = preferredCoturnListView.getSelectionModel().getSelectedItems();
+          .getSelectedItems(), observable -> {
+        List<IceServer> selectedCoturns = preferredCoturnListView.getSelectionModel().getSelectedItems();
         preferredCoturnServers.clear();
-        selectedCoturns.stream().map(CoturnServer::getId).forEach(preferredCoturnServers::add);
+        selectedCoturns.stream().map(IceServer::id).forEach(preferredCoturnServers::add);
       });
     }, fxApplicationThreadExecutor);
   }

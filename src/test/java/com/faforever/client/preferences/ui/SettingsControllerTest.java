@@ -1,5 +1,6 @@
 package com.faforever.client.preferences.ui;
 
+import com.faforever.client.api.IceServer;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
 import com.faforever.client.fa.relay.ice.CoturnService;
@@ -27,7 +28,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.LoginService;
-import com.faforever.commons.api.dto.CoturnServer;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlySetWrapper;
 import javafx.beans.property.SimpleObjectProperty;
@@ -122,16 +122,14 @@ public class SettingsControllerTest extends PlatformTest {
     when(uiService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
     when(uiService.getCurrentTheme()).thenReturn(FIRST_THEME);
     when(uiService.getAvailableThemes()).thenReturn(Arrays.asList(FIRST_THEME, SECOND_THEME));
-    CoturnServer coturnServer = new CoturnServer();
-    coturnServer.setId("0");
-    coturnServer.setRegion("Test");
+    IceServer coturnServer = new IceServer("0", "Test");
     when(coturnService.getActiveCoturns()).thenReturn(CompletableFuture.completedFuture(List.of(coturnServer)));
     when(gameService.isGamePrefsPatchedToAllowMultiInstances()).thenReturn(CompletableFuture.completedFuture(true));
 
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
 
-    instance = new SettingsController(notificationService, loginService, preferenceService, uiService, i18n, eventBus, platformService, clientProperties, clientUpdateService, taskService, coturnService, iceServerMapper, vaultPathHandler, preferences, moveDirectoryTaskFactory, deleteDirectoryTaskFactory, downloadFAFDebuggerTaskFactory, fxApplicationThreadExecutor);
+    instance = new SettingsController(notificationService, loginService, preferenceService, uiService, i18n, eventBus, platformService, clientProperties, clientUpdateService, taskService, coturnService, vaultPathHandler, preferences, moveDirectoryTaskFactory, deleteDirectoryTaskFactory, downloadFAFDebuggerTaskFactory, fxApplicationThreadExecutor);
 
     loadFxml("theme/settings/settings.fxml", param -> instance);
   }

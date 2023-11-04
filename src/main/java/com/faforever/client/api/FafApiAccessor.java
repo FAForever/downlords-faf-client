@@ -52,6 +52,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
@@ -153,8 +154,18 @@ public class FafApiAccessor implements InitializingBean {
   }
 
   public Mono<MeResult> getMe() {
-    return retrieveMonoWithErrorHandling(MeResult.class, apiWebClient.get().uri("/me"))
-        .doOnNext(object -> log.trace("Retrieved {} from /me with type MeResult", object));
+    return retrieveMonoWithErrorHandling(MeResult.class, apiWebClient.get()
+        .uri("/me")).doOnNext(object -> log.trace("Retrieved {} from /me with type MeResult", object));
+  }
+
+  public <T> Mono<T> getApiObject(String path, Class<T> clazz) {
+    RequestHeadersSpec<?> requestSpec = apiWebClient.get().uri(path);
+    return retrieveMonoWithErrorHandling(clazz, requestSpec).doOnNext(object -> log.trace("Retrieved {} from {} with type {}", object, path, clazz));
+  }
+
+  public <T> Flux<T> getApiObjects(String path, Class<T> clazz) {
+    RequestHeadersSpec<?> requestSpec = apiWebClient.get().uri(path);
+    return retrieveFluxWithErrorHandling(clazz, requestSpec).doOnNext(object -> log.trace("Retrieved {} from {} with type {}", object, path, clazz));
   }
 
   public Mono<Void> uploadFile(String endpoint, Path file, ByteCountListener listener,

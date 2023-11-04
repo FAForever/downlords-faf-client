@@ -180,9 +180,9 @@ public class ChatUserItemControllerTest extends PlatformTest {
     when(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING)).thenReturn(new Image(InputStream.nullInputStream()));
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(new Image(InputStream.nullInputStream()));
     when(mapService.getMapLocallyFromName(mapFolderName)).thenReturn(Optional.of(mapVersion));
-    when(mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName)).thenReturn("map name");
+    when(mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName)).thenReturn("map id");
     when(i18n.get(eq("game.onMapFormat"), anyString())).thenReturn(mapVersion.getMap()
-        .getDisplayName(), "map name", "Neroxis Generated Map");
+        .getDisplayName(), "map id", "Neroxis Generated Map");
 
     runOnFxThreadAndWait(() -> instance.setChatUser(defaultUser));
     assertNotNull(instance.gameStatusImageView.getImage());
