@@ -129,7 +129,7 @@ public class SettingsControllerTest extends PlatformTest {
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
 
-    instance = new SettingsController(notificationService, loginService, preferenceService, uiService, i18n, eventBus, platformService, clientProperties, clientUpdateService, taskService, coturnService, iceServerMapper, vaultPathHandler, preferences, moveDirectoryTaskFactory, deleteDirectoryTaskFactory, downloadFAFDebuggerTaskFactory, fxApplicationThreadExecutor);
+    instance = new SettingsController(notificationService, loginService, preferenceService, uiService, i18n, eventBus, platformService, clientProperties, clientUpdateService, taskService, coturnService, vaultPathHandler, preferences, moveDirectoryTaskFactory, deleteDirectoryTaskFactory, downloadFAFDebuggerTaskFactory, fxApplicationThreadExecutor);
 
     loadFxml("theme/settings/settings.fxml", param -> instance);
   }
