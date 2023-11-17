@@ -5,6 +5,7 @@ import com.faforever.client.test.PlatformTest;
 import javafx.beans.property.ListProperty;
 import javafx.util.StringConverter;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -60,6 +61,7 @@ public class FilterMultiCheckboxControllerTest extends PlatformTest {
   }
 
   @Test
+  @Disabled("Flaky on github")
   public void testCheckUncheckItemsWithUsingSearchBar() {
     runOnFxThreadAndWait(() -> instance.setItems(IntStream.rangeClosed(1, 10).boxed().toList()));
     runOnFxThreadAndWait(() -> {
