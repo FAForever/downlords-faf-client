@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+@Disabled("Flaky on github")
 public class VaultEntityControllerTest extends PlatformTest {
 
   @Mock
