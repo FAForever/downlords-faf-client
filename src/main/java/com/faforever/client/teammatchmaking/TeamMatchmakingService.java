@@ -12,6 +12,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.game.GameService;
+import com.faforever.client.game.MissingGamePathNotifier;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
@@ -19,6 +20,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MatchmakerMapper;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.Action.ActionCallback;
 import com.faforever.client.notification.NotificationService;
@@ -28,9 +30,7 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.remote.FafServerAccessor;
-import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.IdenticonUtil;
@@ -50,7 +50,6 @@ import com.faforever.commons.lobby.PartyInvite;
 import com.faforever.commons.lobby.PartyKick;
 import com.faforever.commons.lobby.SearchInfo;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -102,13 +101,14 @@ public class TeamMatchmakingService implements InitializingBean {
   private final LoginService loginService;
   private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
-  private final EventBus eventBus;
+  private final NavigationHandler navigationHandler;
   private final I18n i18n;
   private final TaskScheduler taskScheduler;
   private final GameService gameService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final MatchmakerMapper matchmakerMapper;
   private final MatchmakerPrefs matchmakerPrefs;
+  private final MissingGamePathNotifier missingGamePathNotifier;
 
   @Getter
   private final PartyBean party = new PartyBean();
@@ -436,7 +436,7 @@ public class TeamMatchmakingService implements InitializingBean {
     }
 
     fafServerAccessor.acceptPartyInvite(player);
-    eventBus.post(new OpenTeamMatchmakingEvent());
+    navigationHandler.navigateTo(new OpenTeamMatchmakingEvent());
   }
 
   public void invitePlayer(String player) {
@@ -484,8 +484,6 @@ public class TeamMatchmakingService implements InitializingBean {
         playersInGame.add(currentPlayer);
       }
     });
-
-    eventBus.post(new PartyOwnerChangedEvent(currentPlayer));
   }
 
   public void sendReady(String requestId) {
@@ -502,7 +500,7 @@ public class TeamMatchmakingService implements InitializingBean {
 
   private boolean gamePathInvalid() {
     if (!preferencesService.isValidGamePath()) {
-      eventBus.post(new MissingGamePathEvent(true));
+      missingGamePathNotifier.onMissingGamePathEvent(true);
       return true;
     }
     return false;
@@ -524,7 +522,6 @@ public class TeamMatchmakingService implements InitializingBean {
   private synchronized void setOwnerFromInfoMessage(PartyInfo message) {
     playerService.getPlayerByIdIfOnline(message.getOwner()).ifPresent(player -> {
       party.setOwner(player);
-      eventBus.post(new PartyOwnerChangedEvent(player));
     });
   }
 

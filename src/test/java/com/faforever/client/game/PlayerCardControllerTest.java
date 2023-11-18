@@ -12,7 +12,6 @@ import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,8 +37,6 @@ public class PlayerCardControllerTest extends PlatformTest {
   private CountryFlagService countryFlagService;
   @Mock
   private AvatarService avatarService;
-  @Mock
-  private EventBus eventBus;
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
 

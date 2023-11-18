@@ -14,6 +14,7 @@ import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.CountryFlagService;
@@ -29,7 +30,6 @@ import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import com.google.common.eventbus.EventBus;
 import com.google.common.io.CharStreams;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -131,13 +131,13 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   protected final I18n i18n;
   protected final NotificationService notificationService;
   protected final UiService uiService;
-  protected final EventBus eventBus;
   protected final WebViewConfigurer webViewConfigurer;
   protected final EmoticonService emoticonService;
   protected final CountryFlagService countryFlagService;
   protected final ChatPrefs chatPrefs;
   protected final NotificationPrefs notificationPrefs;
   protected final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  protected final NavigationHandler navigationHandler;
 
   /**
    * Messages that arrived before the web view was ready. Those are appended as soon as it is ready.
@@ -615,7 +615,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
     if (notificationPrefs.isPrivateMessageToastEnabled()) {
       notificationService.addNotification(new TransientNotification(chatMessage.username(), chatMessage.message(), IdenticonUtil.createIdenticon(identIconSource), event -> {
-        eventBus.post(new NavigateEvent(NavigationItem.CHAT));
+        navigationHandler.navigateTo(new NavigateEvent(NavigationItem.CHAT));
         stage.toFront();
         getRoot().getTabPane().getSelectionModel().select(getRoot());
       }));

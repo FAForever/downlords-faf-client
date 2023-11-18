@@ -1,14 +1,13 @@
 package com.faforever.client.headerbar;
 
-import com.faforever.client.chat.event.UnreadPartyMessageEvent;
-import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
-import com.faforever.client.news.UnreadNewsEvent;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
+import com.faforever.client.navigation.NavigationHandler;
+import com.faforever.client.theme.UiService;
+import javafx.beans.binding.BooleanExpression;
+import javafx.collections.SetChangeListener;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.geometry.Bounds;
@@ -28,7 +27,6 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -38,7 +36,8 @@ public class HeaderBarController implements Controller<HBox> {
 
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
 
-  private final EventBus eventBus;
+  private final NavigationHandler navigationHandler;
+  private final UiService uiService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public MenuButton mainMenuButton;
@@ -61,6 +60,8 @@ public class HeaderBarController implements Controller<HBox> {
   private final Map<NavigationItem, ToggleButton> toggleButtonMap = new HashMap<>();
 
   public void initialize() {
+    BooleanExpression showing = uiService.createShowingProperty(getRoot());
+
     navigationItemMap.put(newsButton, NavigationItem.NEWS);
     navigationItemMap.put(chatButton, NavigationItem.CHAT);
     navigationItemMap.put(playButton, NavigationItem.PLAY);
@@ -89,7 +90,25 @@ public class HeaderBarController implements Controller<HBox> {
       });
     });
 
-    eventBus.register(this);
+    navigationHandler.navigationEventProperty()
+                     .map(NavigateEvent::getItem)
+                     .when(showing)
+                     .subscribe(this::onNavigateEvent);
+    navigationHandler.getHighlightedItems().addListener((SetChangeListener<? super NavigationItem>) change -> {
+      if (change.wasAdded()) {
+        NavigationItem item = change.getElementAdded();
+        ToggleButton toggleButton = toggleButtonMap.get(item);
+        if (toggleButton != null) {
+          toggleButton.pseudoClassStateChanged(HIGHLIGHTED, true);
+        }
+      } else if (change.wasRemoved()) {
+        NavigationItem item = change.getElementAdded();
+        ToggleButton toggleButton = toggleButtonMap.get(item);
+        if (toggleButton != null) {
+          toggleButton.pseudoClassStateChanged(HIGHLIGHTED, false);
+        }
+      }
+    });
   }
 
   private List<MenuItem> createMenuItemsFromNavigation() {
@@ -98,32 +117,17 @@ public class HeaderBarController implements Controller<HBox> {
         .map(ToggleButton.class::cast)
         .map(menuButton -> {
           MenuItem menuItem = new MenuItem(menuButton.getText());
-          menuItem.setOnAction(event -> eventBus.post(new NavigateEvent(navigationItemMap.get(menuButton))));
+          menuItem.setOnAction(
+              event -> navigationHandler.navigateTo(new NavigateEvent(navigationItemMap.get(menuButton))));
           return menuItem;
         })
         .toList();
   }
 
-  @Subscribe
-  public void onUnreadNews(UnreadNewsEvent event) {
-    fxApplicationThreadExecutor.execute(() -> newsButton.pseudoClassStateChanged(HIGHLIGHTED, event.hasUnreadNews()));
-  }
-
-  @Subscribe
-  public void onUnreadPartyMessage(UnreadPartyMessageEvent event) {
-    fxApplicationThreadExecutor.execute(() -> playButton.pseudoClassStateChanged(HIGHLIGHTED, !Objects.equals(getSelectedNavigationItem(), NavigationItem.PLAY)));
-  }
-
-  @Subscribe
-  public void onUnreadPrivateMessage(UnreadPrivateMessageEvent event) {
-    fxApplicationThreadExecutor.execute(() -> chatButton.pseudoClassStateChanged(HIGHLIGHTED, !Objects.equals(getSelectedNavigationItem(), NavigationItem.CHAT)));
-  }
-
-  @Subscribe
-  public void onNavigateEvent(NavigateEvent navigateEvent) {
-    ToggleButton toggleButton = toggleButtonMap.get(navigateEvent.getItem());
+  public void onNavigateEvent(NavigationItem navigationItem) {
+    ToggleButton toggleButton = toggleButtonMap.get(navigationItem);
     if (toggleButton != null) {
-      toggleButton.setSelected(true);
+      fxApplicationThreadExecutor.execute(() -> toggleButton.setSelected(true));
     }
   }
 
@@ -133,14 +137,10 @@ public class HeaderBarController implements Controller<HBox> {
 
   public void onNavigateButtonClicked(ActionEvent event) {
     ToggleButton source = (ToggleButton) event.getSource();
-    source.pseudoClassStateChanged(HIGHLIGHTED, false);
-    NavigateEvent navigateEvent = new NavigateEvent(navigationItemMap.get(source));
-    log.trace("Navigating to {}", navigateEvent.getItem().toString());
-    eventBus.post(navigateEvent);
-  }
-
-  private NavigationItem getSelectedNavigationItem() {
-    return navigationItemMap.get((ToggleButton) mainNavigation.getSelectedToggle());
+    NavigationItem navigationItem = navigationItemMap.get(source);
+    navigationHandler.removeHighlight(navigationItem);
+    log.trace("Navigating to {}", navigationItem.toString());
+    navigationHandler.navigateTo(new NavigateEvent(navigationItem));
   }
 
   public List<Node> getNonCaptionNodes() {

@@ -5,6 +5,7 @@ import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
@@ -18,7 +19,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
-import com.google.common.eventbus.EventBus;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
@@ -73,7 +73,7 @@ public class AbstractChatTabControllerTest extends PlatformTest {
   @Mock
   private ReportingService reportingService;
   @Mock
-  private EventBus eventBus;
+  private NavigationHandler navigationHandler;
   @Mock
   private CountryFlagService countryFlagService;
   @Mock
@@ -95,9 +95,10 @@ public class AbstractChatTabControllerTest extends PlatformTest {
     when(emoticonService.getBase64SvgContentByShortcode(":aeon:")).thenReturn("aeonBase64Content");
 
     fxApplicationThreadExecutor.executeAndWait(() -> {
-      instance = new AbstractChatTabController(loginService, chatService, playerService,
-          timeService, i18n, notificationService, uiService, eventBus,
-          webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor) {
+      instance = new AbstractChatTabController(loginService, chatService, playerService, timeService, i18n,
+                                               notificationService, uiService, webViewConfigurer, emoticonService,
+                                               countryFlagService, chatPrefs, notificationPrefs,
+                                               fxApplicationThreadExecutor, navigationHandler) {
         private final Tab root = new Tab();
         private final WebView webView = new WebView();
         private final TextInputControl messageTextField = new TextField();
@@ -248,8 +249,10 @@ public class AbstractChatTabControllerTest extends PlatformTest {
 
   @Test
   public void testDuplicateChannelNamesTransformedToHyperlinks() {
-    String output = instance.replaceChannelNamesWithHyperlinks("Go to #moderation #moderation #moderation and report a user");
-    String expected = String.format("Go to %1$s %1$s %1$s and report a user", instance.transformToChannelLinkHtml("#moderation"));
+    String output = instance.replaceChannelNamesWithHyperlinks(
+        "Go to #moderation #moderation #moderation and report a user");
+    String expected = String.format("Go to %1$s %1$s %1$s and report a user",
+                                    instance.transformToChannelLinkHtml("#moderation"));
     assertThat(output, is(expected));
   }
 
@@ -257,15 +260,16 @@ public class AbstractChatTabControllerTest extends PlatformTest {
   public void testSeveralChannelNamesTransformedToHyperlinks() {
     String output = instance.replaceChannelNamesWithHyperlinks("#develop #development #test");
     String expected = String.format("%s %s %s", instance.transformToChannelLinkHtml("#develop"),
-        instance.transformToChannelLinkHtml("#development"), instance.transformToChannelLinkHtml("#test"));
+                                    instance.transformToChannelLinkHtml("#development"),
+                                    instance.transformToChannelLinkHtml("#test"));
     assertThat(output, is(expected));
   }
 
   @Test
   public void testTransformEmoticonShortcodesToImages() {
     String text = ":uef: Hello, world :aeon:";
-    assertEquals("<img src=\"data:image/svg+xml;base64,uefBase64Content\" width=\"24\" height=\"24\" /> " +
-        "Hello, world <img src=\"data:image/svg+xml;base64,aeonBase64Content\" width=\"24\" height=\"24\" />",
+    assertEquals(
+        "<img src=\"data:image/svg+xml;base64,uefBase64Content\" width=\"24\" height=\"24\" /> " + "Hello, world <img src=\"data:image/svg+xml;base64,aeonBase64Content\" width=\"24\" height=\"24\" />",
         instance.transformEmoticonShortcodesToImages(text));
   }
 

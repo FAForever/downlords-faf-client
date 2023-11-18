@@ -8,7 +8,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import com.google.common.eventbus.EventBus;
 import javafx.scene.control.Tab;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,8 +32,6 @@ public class LeaderboardsControllerTest extends PlatformTest {
   @InjectMocks
   private LeaderboardsController instance;
 
-  @Mock
-  private EventBus eventBus;
   @Mock
   private I18n i18n;
   @Mock

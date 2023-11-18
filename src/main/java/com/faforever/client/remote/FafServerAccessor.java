@@ -6,7 +6,8 @@ import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.exception.UIDException;
-import com.faforever.client.fa.relay.event.CloseGameEvent;
+import com.faforever.client.fa.relay.ice.IceAdapter;
+import com.faforever.client.game.GameService;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.UidService;
@@ -30,7 +31,6 @@ import com.faforever.commons.lobby.NoticeInfo;
 import com.faforever.commons.lobby.Player;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.ServerMessage;
-import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -70,13 +70,16 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
       ConnectionState.DISCONNECTED);
 
   private final NotificationService notificationService;
+  @Lazy
+  private final GameService gameService;
   private final I18n i18n;
   private final TaskScheduler taskScheduler;
   private final TokenRetriever tokenRetriever;
   private final UidService uidService;
-  private final EventBus eventBus;
   private final ClientProperties clientProperties;
   private final FafLobbyClient lobbyClient;
+  @Lazy
+  private final IceAdapter iceAdapter;
   @Qualifier("userWebClient")
   private final ObjectFactory<WebClient> userWebClientFactory;
 
@@ -84,7 +87,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    eventBus.register(this);
     getEvents(NoticeInfo.class).doOnError(throwable -> log.error("Error processing notice", throwable))
         .retry()
         .subscribe(this::onNotice);
@@ -252,7 +254,8 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
       log.info("Game close requested by server");
       notificationService.addNotification(new ImmediateNotification(i18n.get("game.kicked.title"), i18n.get("game.kicked.message", clientProperties.getLinks()
           .get("linksRules")), Severity.WARN, Collections.singletonList(new DismissAction(i18n))));
-      eventBus.post(new CloseGameEvent());
+      iceAdapter.onGameCloseRequested();
+      gameService.killGame();
     }
 
     if (Objects.equals(noticeMessage.getStyle(), "kick")) {

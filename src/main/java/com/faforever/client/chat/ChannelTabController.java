@@ -10,6 +10,7 @@ import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
@@ -18,7 +19,6 @@ import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -94,12 +94,15 @@ public class ChannelTabController extends AbstractChatTabController {
   public ChannelTabController(WebViewConfigurer webViewConfigurer, LoginService loginService, ChatService chatService,
                               PlayerService playerService,
                               AudioService audioService, TimeService timeService, I18n i18n,
-                              NotificationService notificationService, UiService uiService, EventBus eventBus,
+                              NotificationService notificationService, UiService uiService,
+                              NavigationHandler navigationHandler,
                               CountryFlagService countryFlagService, EmoticonService emoticonService,
                               PlatformService platformService, ChatPrefs chatPrefs,
                               NotificationPrefs notificationPrefs,
                               FxApplicationThreadExecutor fxApplicationThreadExecutor) {
-    super(loginService, chatService, playerService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
+    super(loginService, chatService, playerService, timeService, i18n, notificationService, uiService,
+          webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs,
+          fxApplicationThreadExecutor, navigationHandler);
     this.platformService = platformService;
     this.audioService = audioService;
   }

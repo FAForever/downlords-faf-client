@@ -1,11 +1,8 @@
 package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fa.relay.event.CloseGameEvent;
-import com.faforever.client.fa.relay.event.GameFullEvent;
-import com.faforever.client.fa.relay.event.RehostRequestEvent;
-import com.faforever.client.fa.relay.ice.event.GpgOutboundMessageEvent;
-import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
+import com.faforever.client.fa.GameFullNotifier;
+import com.faforever.client.game.GameService;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsUtils;
@@ -23,8 +20,6 @@ import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.HostGameGpgCommand;
 import com.faforever.commons.lobby.IceMsgGpgCommand;
 import com.faforever.commons.lobby.JoinGameGpgCommand;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import com.nbarraille.jjsonrpc.JJsonPeer;
 import com.nbarraille.jjsonrpc.TcpClient;
 import lombok.RequiredArgsConstructor;
@@ -66,12 +61,13 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   private final OperatingSystem operatingSystem;
   private final PlayerService playerService;
-  private final EventBus eventBus;
+  private final GameService gameService;
   private final FafServerAccessor fafServerAccessor;
   private final IceServerMapper iceServerMapper;
   private final Preferences preferences;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final ObjectFactory<IceAdapterCallbacks> iceAdapterCallbacksFactory;
+  private final GameFullNotifier gameFullNotifier;
 
   private final IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
   private GameType gameType;
@@ -79,7 +75,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   @Override
   public void afterPropertiesSet() {
-    eventBus.register(this);
     fafServerAccessor.addEventListener(JoinGameGpgCommand.class, message -> iceAdapterProxy.joinGame(message.getUsername(), message.getPeerUid()));
     fafServerAccessor.addEventListener(HostGameGpgCommand.class, message -> iceAdapterProxy.hostGame(message.getMap()));
     fafServerAccessor.addEventListener(ConnectToPeerGpgCommand.class, message -> iceAdapterProxy.connectToPeer(message.getUsername(), message.getPeerUid(), message.isOffer()));
@@ -88,28 +83,27 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     fafServerAccessor.addEventListener(IceMsgGpgCommand.class, message -> iceAdapterProxy.iceMsg(message.getSender(), message.getRecord()));
   }
 
-  @Subscribe
-  public void onIceAdapterStateChanged(IceAdapterStateChanged event) {
-    if ("Disconnected".equals(event.getNewState())) {
+  @Override
+  public void onIceAdapterStateChanged(String newState) {
+    if ("Disconnected".equals(newState)) {
       stop();
     }
   }
 
-  @Subscribe
-  public void onGpgGameMessage(GpgOutboundMessageEvent event) {
-    GpgGameOutboundMessage gpgMessage = event.gpgMessage();
-    String command = gpgMessage.getCommand();
+  @Override
+  public void onGpgGameMessage(GpgGameOutboundMessage message) {
+    String command = message.getCommand();
 
     if (command.equals("Rehost")) {
-      eventBus.post(new RehostRequestEvent());
+      gameService.onRehostRequest();
       return;
     }
     if (command.equals("GameFull")) {
-      eventBus.post(new GameFullEvent());
+      gameFullNotifier.onGameFull();
       return;
     }
 
-    fafServerAccessor.sendGpgMessage(gpgMessage);
+    fafServerAccessor.sendGpgMessage(message);
   }
 
   @Override
@@ -134,8 +128,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         throw new CompletionException(e);
       }
 
-      IceAdapterCallbacks iceAdapterCallbacks = iceAdapterCallbacksFactory.getObject();
-      initializeIceAdapterConnection(adapterPort, iceAdapterCallbacks);
+      initializeIceAdapterConnection(adapterPort);
 
       return gpgPort;
     });
@@ -176,10 +169,10 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   }
 
   @VisibleForTesting
-  void initializeIceAdapterConnection(int adapterPort, IceAdapterCallbacks iceAdapterCallbacks) {
+  void initializeIceAdapterConnection(int adapterPort) {
     for (int attempt = 0; attempt < CONNECTION_ATTEMPTS; attempt++) {
       try {
-        TcpClient tcpClient = new TcpClient("localhost", adapterPort, iceAdapterCallbacks);
+        TcpClient tcpClient = new TcpClient("localhost", adapterPort, iceAdapterCallbacksFactory.getObject());
         peer = tcpClient.getPeer();
 
         setLobbyInitMode();
@@ -292,8 +285,8 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     peer = null;
   }
 
-  @Subscribe
-  public void onGameCloseRequested(CloseGameEvent event) {
+  @Override
+  public void onGameCloseRequested() {
     stop();
   }
 }

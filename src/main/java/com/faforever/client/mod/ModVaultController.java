@@ -8,7 +8,6 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenModVaultEvent;
-import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.VaultPrefs;
@@ -19,8 +18,6 @@ import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import javafx.scene.Node;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -37,7 +34,6 @@ import java.util.Random;
 public class ModVaultController extends VaultEntityController<ModVersionBean> {
 
   private final ModService modService;
-  private final EventBus eventBus;
   private final PlatformService platformService;
   private final VaultPrefs vaultPrefs;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
@@ -45,14 +41,13 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
   private ModDetailController modDetailController;
   private Integer recommendedShowRoomPageCount;
 
-  public ModVaultController(ModService modService, I18n i18n, EventBus eventBus,
+  public ModVaultController(ModService modService, I18n i18n,
                             UiService uiService, NotificationService notificationService,
                             ReportingService reportingService,
                             PlatformService platformService, VaultPrefs vaultPrefs,
                             ForgedAlliancePrefs forgedAlliancePrefs,
                             FxApplicationThreadExecutor fxApplicationThreadExecutor) {
     super(uiService, notificationService, i18n, reportingService, vaultPrefs, fxApplicationThreadExecutor);
-    this.eventBus = eventBus;
     this.modService = modService;
     this.platformService = platformService;
     this.vaultPrefs = vaultPrefs;
@@ -63,8 +58,6 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
   public void initialize() {
     super.initialize();
     JavaFxUtil.fixScrollSpeed(scrollPane);
-
-    eventBus.register(this);
 
     manageVaultButton.setVisible(true);
     manageVaultButton.setText(i18n.get("modVault.manageMods"));
@@ -176,10 +169,6 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
     Node root = modUploadController.getRoot();
     Dialog dialog = uiService.showInDialog(vaultRoot, root, i18n.get("modVault.upload.title"));
     modUploadController.setOnCancelButtonClickedListener(dialog::close);
-  }
-
-  @Subscribe
-  public void onModUploaded(ModUploadedEvent event) {
-    onRefreshButtonClicked();
+    modUploadController.setUploadListener(this::onRefreshButtonClicked);
   }
 }

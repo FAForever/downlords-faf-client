@@ -1,7 +1,9 @@
 package com.faforever.client.game;
 
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
@@ -51,6 +53,7 @@ public class GameTileController implements Controller<Node> {
   private final JoinGameHelper joinGameHelper;
   private final ModService modService;
   private final PlayerService playerService;
+  private final AvatarService avatarService;
   private final UiService uiService;
   private final ImageViewHelper imageViewHelper;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -88,8 +91,10 @@ public class GameTileController implements Controller<Node> {
     hostLabel.textProperty().bind(game.flatMap(GameBean::hostProperty).when(showing));
     avatarImageView.imageProperty()
         .bind(game.flatMap(GameBean::hostProperty)
-            .map(playerService::getCurrentAvatarByPlayerName)
+                  .map(playerService::getPlayerByNameIfOnline)
             .map(optional -> optional.orElse(null))
+                  .flatMap(PlayerBean::avatarProperty)
+                  .map(avatarService::loadAvatar)
             .when(showing));
     gameMapLabel.textProperty().bind(game.flatMap(GameBean::mapFolderNameProperty).when(showing));
     mapImageView.imageProperty()

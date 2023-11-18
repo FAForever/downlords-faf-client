@@ -1,19 +1,18 @@
 package com.faforever.client.avatar;
 
-import com.faforever.client.avatar.event.AvatarChangedEvent;
 import com.faforever.client.builders.AvatarBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.mapstruct.AvatarMapper;
 import com.faforever.client.mapstruct.MapperSetup;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
-import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -24,8 +23,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -39,7 +36,7 @@ public class AvatarServiceTest extends ServiceTest {
   @Mock
   private AssetService assetService;
   @Mock
-  private EventBus eventBus;
+  private PlayerService playerService;
   @Spy
   private AvatarMapper avatarMapper = Mappers.getMapper(AvatarMapper.class);
 
@@ -73,16 +70,11 @@ public class AvatarServiceTest extends ServiceTest {
 
   @Test
   public void changeAvatar() throws Exception {
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().get());
+
     URL url = new URL("https://example.com");
     instance.changeAvatar(AvatarBeanBuilder.create().url(url).description("Description").get());
 
-    ArgumentCaptor<AvatarChangedEvent> eventCaptor = ArgumentCaptor.forClass(AvatarChangedEvent.class);
-    verify(eventBus).post(eventCaptor.capture());
-
-    AvatarBean avatar = eventCaptor.getValue().avatar();
-    assertNotNull(avatar);
-    assertEquals(url, avatar.getUrl());
-    assertEquals("Description", avatar.getDescription());
     verify(fafServerAccessor).selectAvatar(url);
   }
 }

@@ -10,6 +10,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
@@ -23,7 +24,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TabPane;
@@ -72,7 +72,7 @@ public class PrivateChatTabControllerTest extends PlatformTest {
   @Mock
   private ReportingService reportingService;
   @Mock
-  private EventBus eventBus;
+  private NavigationHandler navigationHandler;
   @Mock
   private CountryFlagService countryFlagService;
   @Mock
@@ -99,7 +99,11 @@ public class PrivateChatTabControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new PrivateChatTabController(loginService, playerService, timeService, i18n, notificationService, uiService, eventBus, audioService, chatService, webViewConfigurer, countryFlagService, emoticonService, avatarService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
+    instance = new PrivateChatTabController(loginService, playerService, timeService, i18n, notificationService,
+                                            uiService, navigationHandler, audioService, chatService, webViewConfigurer,
+                                            countryFlagService,
+                                            emoticonService, avatarService, chatPrefs, notificationPrefs,
+                                            fxApplicationThreadExecutor);
 
     player = PlayerBeanBuilder.create().defaultValues().get();
     playerName = player.getUsername();

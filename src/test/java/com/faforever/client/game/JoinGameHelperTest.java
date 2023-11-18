@@ -12,16 +12,13 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
-import com.google.common.eventbus.EventBus;
+import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -55,7 +52,7 @@ public class JoinGameHelperTest extends PlatformTest {
   @Mock
   private UiService uiService;
   @Mock
-  private EventBus eventBus;
+  private GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
 
   private GameBean game;
 
@@ -95,13 +92,14 @@ public class JoinGameHelperTest extends PlatformTest {
     when(preferencesService.isValidGamePath()).thenReturn(false).thenReturn(true);
 
     doAnswer(invocation -> {
-      ((GameDirectoryChooseEvent) invocation.getArgument(0)).getFuture().ifPresent(future -> future.complete(Path.of("")));
+      CompletableFuture<Path> argument = invocation.getArgument(0);
+      argument.complete(Path.of(""));
       return null;
-    }).when(eventBus).post(any(GameDirectoryChooseEvent.class));
+    }).when(gameDirectoryRequiredHandler).onChooseGameDirectory(any(CompletableFuture.class));
 
     instance.join(game);
 
-    verify(eventBus, times(1)).post(Mockito.any(GameDirectoryChooseEvent.class));
+    verify(gameDirectoryRequiredHandler).onChooseGameDirectory(any());
     verify(gameService).joinGame(any(), any());
   }
 
@@ -115,18 +113,18 @@ public class JoinGameHelperTest extends PlatformTest {
     // First, user selects invalid path. Seconds, he aborts so we don't stay in an endless loop
     AtomicInteger invocationCounter = new AtomicInteger();
     doAnswer(invocation -> {
-      Optional<CompletableFuture<Path>> optional = ((GameDirectoryChooseEvent) invocation.getArgument(0)).getFuture();
+      CompletableFuture<Path> future = invocation.getArgument(0);
       if (invocationCounter.incrementAndGet() == 1) {
-        optional.ifPresent(future -> future.complete(Path.of("")));
+        future.complete(Path.of(""));
       } else {
-        optional.ifPresent(future -> future.complete(null));
+        future.complete(null);
       }
       return null;
-    }).when(eventBus).post(any(GameDirectoryChooseEvent.class));
+    }).when(gameDirectoryRequiredHandler).onChooseGameDirectory(any(CompletableFuture.class));
 
     instance.join(game);
 
-    verify(eventBus, times(2)).post(Mockito.any(GameDirectoryChooseEvent.class));
+    verify(gameDirectoryRequiredHandler, times(2)).onChooseGameDirectory(any());
     verify(gameService, never()).joinGame(any(), any());
   }
 

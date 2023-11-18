@@ -4,9 +4,9 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import java.lang.String?>
-<?import javafx.scene.layout.Region?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="tournamentItemRoot" hgap="20.0" maxWidth="1.7976931348623157E308" minWidth="0.0" xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.tournament.TournamentListItemController">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="10.0" />

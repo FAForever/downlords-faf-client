@@ -2,13 +2,11 @@ package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.builders.ClanBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.chat.InitiatePrivateChatEvent;
+import com.faforever.client.chat.ChatService;
 import com.faforever.client.clan.ClanService;
-import com.faforever.client.domain.ClanBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.PlatformTest;
-import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -29,13 +27,13 @@ public class SendPrivateMessageClanLeaderMenuItemTest extends PlatformTest {
   @Mock
   private ClanService clanService;
   @Mock
-  private EventBus eventBus;
+  private ChatService chatService;
 
   private SendPrivateMessageClanLeaderMenuItem instance;
 
   @BeforeEach
   public void setup() {
-    instance = new SendPrivateMessageClanLeaderMenuItem(i18n, clanService, eventBus);
+    instance = new SendPrivateMessageClanLeaderMenuItem(i18n, clanService, chatService);
   }
 
   @Test
@@ -46,12 +44,11 @@ public class SendPrivateMessageClanLeaderMenuItemTest extends PlatformTest {
 
     instance.setObject(PlayerBeanBuilder.create().get());
     instance.onClicked();
-    verify(eventBus).post(any(InitiatePrivateChatEvent.class));
+    verify(chatService).onInitiatePrivateChat(any());
   }
 
   @Test
   public void testVisibleItem() {
-    ClanBean clan = ClanBeanBuilder.create().defaultValues().get();
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
     instance.setObject(player);
     assertTrue(instance.isVisible());

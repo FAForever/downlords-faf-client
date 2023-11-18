@@ -6,7 +6,6 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
-
 <GridPane fx:id="languageItemRoot" hgap="10.0" onMouseClicked="#onSelected" styleClass="pointable,card"
           xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
           fx:controller="com.faforever.client.settings.LanguageItemController">

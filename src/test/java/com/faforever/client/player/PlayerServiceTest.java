@@ -21,10 +21,8 @@ import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
 import com.faforever.commons.lobby.PlayerInfo;
 import com.faforever.commons.lobby.SocialInfo;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -35,7 +33,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.publisher.TestPublisher;
 
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +55,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -72,8 +68,6 @@ public class PlayerServiceTest extends ServiceTest {
   private LoginService loginService;
   @Mock
   private AvatarService avatarService;
-  @Mock
-  private EventBus eventBus;
 
   @Mock
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -122,7 +116,6 @@ public class PlayerServiceTest extends ServiceTest {
 
     assertTrue(instance.getPlayerByIdIfOnline(4).isPresent());
     assertNotNull(instance.getPlayerByIdIfOnline(4).map(PlayerBean::getIdleSince).orElse(null));
-    verify(eventBus).post(new PlayerOnlineEvent(instance.getPlayerByIdIfOnline(4).orElseThrow()));
   }
 
   @Test
@@ -297,11 +290,6 @@ public class PlayerServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testEventBusRegistered() {
-    verify(eventBus).register(instance);
-  }
-
-  @Test
   public void testThereIsFriendInGame() {
     Map<Integer, List<Integer>> teams = Map.of(1, List.of(1, 2));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
@@ -335,12 +323,6 @@ public class PlayerServiceTest extends ServiceTest {
     GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, List.of(0))).get();
 
     assertFalse(instance.isCurrentPlayerInGame(game));
-  }
-
-  @Test
-  public void testGetCurrentAvatarByPlayerName() {
-    when(avatarService.loadAvatar(any())).thenReturn(new Image(InputStream.nullInputStream()));
-    assertNotNull(instance.getCurrentAvatarByPlayerName("junit2").orElse(null));
   }
 
   @Test
@@ -387,6 +369,5 @@ public class PlayerServiceTest extends ServiceTest {
     assertFalse(instance.getPlayerNames().contains(playerInfo2.getLogin()));
     assertFalse(instance.isOnline(playerInfo1.getId()));
     assertFalse(instance.isOnline(playerInfo2.getId()));
-    verify(eventBus, times(2)).post(any(PlayerOfflineEvent.class));
   }
 }

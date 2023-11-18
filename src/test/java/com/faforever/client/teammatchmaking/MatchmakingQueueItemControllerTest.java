@@ -9,13 +9,13 @@ import com.faforever.client.domain.PartyBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
 import com.faforever.commons.lobby.Player;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -51,7 +51,7 @@ public class MatchmakingQueueItemControllerTest extends PlatformTest {
   @Mock
   private TeamMatchmakingService teamMatchmakingService;
   @Mock
-  private EventBus eventBus;
+  private NavigationHandler navigationHandler;
 
   private PlayerBean player;
   @InjectMocks
@@ -98,7 +98,7 @@ public class MatchmakingQueueItemControllerTest extends PlatformTest {
   public void testShowMapPool() {
     instance.showMapPool();
 
-    verify(eventBus).post(any(ShowMapPoolEvent.class));
+    verify(navigationHandler).navigateTo(any(ShowMapPoolEvent.class));
   }
 
   @Test

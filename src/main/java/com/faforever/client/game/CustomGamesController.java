@@ -12,11 +12,10 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
-import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
+import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.value.ObservableValue;
@@ -54,9 +53,9 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   private final UiService uiService;
   private final GameService gameService;
-  private final EventBus eventBus;
   private final I18n i18n;
   private final Preferences preferences;
+  private final GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
 
   public GameDetailController gameDetailController;
   public GamesTableController gamesTableController;
@@ -162,7 +161,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private void onCreateGame(@Nullable String mapFolderName) {
     if (preferences.getForgedAlliance().getInstallationPath() == null) {
       CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
-      eventBus.post(new GameDirectoryChooseEvent(gameDirectoryFuture));
+      gameDirectoryRequiredHandler.onChooseGameDirectory(gameDirectoryFuture);
       gameDirectoryFuture.thenAccept(path -> Optional.ofNullable(path).ifPresent(path1 -> onCreateGame(null)));
       return;
     }

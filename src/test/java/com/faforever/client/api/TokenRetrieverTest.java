@@ -7,12 +7,10 @@ import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.test.ServiceTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.eventbus.EventBus;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.test.StepVerifier;
@@ -38,9 +36,6 @@ public class TokenRetrieverTest extends ServiceTest {
   private static final String EXPIRES_IN = "expires_in";
   private static final String TOKEN_TYPE = "token_type";
   private TokenRetriever instance;
-
-  @Mock
-  private EventBus eventBus;
 
   private LoginPrefs loginPrefs;
   private Oauth oauth;

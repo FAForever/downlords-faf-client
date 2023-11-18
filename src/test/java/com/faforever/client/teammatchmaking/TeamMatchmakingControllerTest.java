@@ -20,7 +20,6 @@ import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.Faction;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -74,8 +73,6 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
   private UiService uiService;
   @Mock
   private TeamMatchmakingService teamMatchmakingService;
-  @Mock
-  private EventBus eventBus;
   @Mock
   private ChatService chatService;
   @Mock

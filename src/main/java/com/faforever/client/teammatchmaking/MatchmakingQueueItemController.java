@@ -7,9 +7,9 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
-import com.google.common.eventbus.EventBus;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
@@ -47,7 +47,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
   private final PlayerService playerService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final I18n i18n;
-  private final EventBus eventBus;
+  private final NavigationHandler navigationHandler;
 
   public VBox queueItemRoot;
   public Label playersInQueueLabel;
@@ -149,7 +149,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
   }
 
   public void showMapPool() {
-    eventBus.post(new ShowMapPoolEvent(getQueue()));
+    navigationHandler.navigateTo(new ShowMapPoolEvent(getQueue()));
   }
 
   public MatchmakerQueueBean getQueue() {

@@ -20,7 +20,6 @@ import com.faforever.client.ui.StageHolder;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Labeled;
@@ -89,8 +88,6 @@ public class ChatChannelTabControllerTest extends PlatformTest {
   private AudioService audioService;
   @Mock
   private ReportingService reportingService;
-  @Mock
-  private EventBus eventBus;
   @Mock
   private CountryFlagService countryFlagService;
   @Mock

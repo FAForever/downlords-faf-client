@@ -5,13 +5,11 @@ import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.test.PlatformTest;
-import com.google.common.eventbus.EventBus;
 import javafx.collections.FXCollections;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Spy;
 
 import java.util.HashMap;
@@ -26,9 +24,6 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends PlatformTes
   private static final String CHANNEL_NAME = "testChannel";
   private static final String USERNAME = "junit";
 
-
-  @Mock
-  private EventBus eventBus;
   @Spy
   private ChatPrefs chatPrefs;
   @InjectMocks

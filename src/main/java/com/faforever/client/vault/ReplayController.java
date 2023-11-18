@@ -5,23 +5,25 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenLiveReplayViewEvent;
 import com.faforever.client.main.event.OpenLocalReplayVaultEvent;
 import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.replay.LiveReplayController;
 import com.faforever.client.replay.LocalReplayVaultController;
 import com.faforever.client.replay.OnlineReplayVaultController;
 import com.faforever.client.theme.UiService;
-import com.google.common.eventbus.EventBus;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class ReplayController extends AbstractViewController<Node> {
 
-  private final EventBus eventBus;
+  private final NavigationHandler navigationHandler;
   private final UiService uiService;
 
   public TabPane root;
@@ -35,11 +37,6 @@ public class ReplayController extends AbstractViewController<Node> {
   private boolean isHandlingEvent;
   private AbstractViewController<?> lastTabController;
   private Tab lastTab;
-
-  public ReplayController(EventBus eventBus, UiService uiService) {
-    this.eventBus = eventBus;
-    this.uiService = uiService;
-  }
 
   @Override
   public TabPane getRoot() {
@@ -62,11 +59,11 @@ public class ReplayController extends AbstractViewController<Node> {
       }
 
       if (newValue == onlineReplayVaultTab) {
-        eventBus.post(new OpenOnlineReplayVaultEvent());
+        navigationHandler.navigateTo(new OpenOnlineReplayVaultEvent());
       } else if (newValue == localReplayVaultTab) {
-        eventBus.post(new OpenLocalReplayVaultEvent());
+        navigationHandler.navigateTo(new OpenLocalReplayVaultEvent());
       } else if (newValue == liveReplayVaultTab) {
-        eventBus.post(new OpenLiveReplayViewEvent());
+        navigationHandler.navigateTo(new OpenLiveReplayViewEvent());
       }
     });
   }

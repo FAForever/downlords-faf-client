@@ -3,12 +3,12 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.chat.emoticons.EmoticonService;
-import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
@@ -19,7 +19,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
@@ -65,13 +64,16 @@ public class PrivateChatTabController extends AbstractChatTabController {
   // TODO cut dependencies
   public PrivateChatTabController(LoginService loginService,
                                   PlayerService playerService, TimeService timeService, I18n i18n,
-                                  NotificationService notificationService, UiService uiService, EventBus eventBus,
+                                  NotificationService notificationService, UiService uiService,
+                                  NavigationHandler navigationHandler,
                                   AudioService audioService, ChatService chatService,
                                   WebViewConfigurer webViewConfigurer, CountryFlagService countryFlagService,
                                   EmoticonService emoticonService, AvatarService avatarService, ChatPrefs chatPrefs,
                                   NotificationPrefs notificationPrefs,
                                   FxApplicationThreadExecutor fxApplicationThreadExecutor) {
-    super(loginService, chatService, playerService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
+    super(loginService, chatService, playerService, timeService, i18n, notificationService, uiService,
+          webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs,
+          fxApplicationThreadExecutor, navigationHandler);
     this.avatarService = avatarService;
     this.audioService = audioService;
   }
@@ -154,7 +156,6 @@ public class PrivateChatTabController extends AbstractChatTabController {
       showNotificationIfNecessary(chatMessage);
       setUnread(true);
       incrementUnreadMessagesCount();
-      eventBus.post(new UnreadPrivateMessageEvent(chatMessage));
     }
   }
 

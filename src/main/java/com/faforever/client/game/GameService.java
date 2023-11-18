@@ -8,8 +8,6 @@ import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.GameParameters;
-import com.faforever.client.fa.relay.event.CloseGameEvent;
-import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
@@ -24,6 +22,7 @@ import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mapstruct.GameMapper;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
@@ -33,25 +32,22 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.patch.GameUpdater;
+import com.faforever.client.player.FriendJoinedGameNotifier;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
-import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.replay.ReplayServer;
-import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
-import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
+import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameVisibility;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
@@ -132,19 +128,25 @@ public class GameService implements InitializingBean {
   private final NotificationService notificationService;
   private final I18n i18n;
   private final PlayerService playerService;
-  private final EventBus eventBus;
+  private final NavigationHandler navigationHandler;
+  @Lazy
   private final IceAdapter iceAdapter;
   private final ModService modService;
   private final PlatformService platformService;
+  @Lazy
   private final DiscordRichPresenceService discordRichPresenceService;
   private final ReplayServer replayServer;
   private final OperatingSystem operatingSystem;
+  @Lazy
+  private final FriendJoinedGameNotifier friendJoinedGameNotifier;
   private final ClientProperties clientProperties;
   private final GameMapper gameMapper;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final LastGamePrefs lastGamePrefs;
   private final NotificationPrefs notificationPrefs;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
+  @Lazy
+  private final GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
 
   @VisibleForTesting
   final BooleanProperty gameRunning = new SimpleBooleanProperty();
@@ -165,7 +167,6 @@ public class GameService implements InitializingBean {
   private boolean replayKilled;
   private boolean rehostRequested;
   private int localReplayPort;
-  private boolean inOthersParty;
 
   @Override
   public void afterPropertiesSet() {
@@ -188,8 +189,6 @@ public class GameService implements InitializingBean {
         platformService.focusWindow(faWindowTitle);
       }
     });
-
-    eventBus.register(this);
 
     Flux<GameBean> gameUpdateFlux = fafServerAccessor.getEvents(GameInfo.class)
         .flatMap(gameInfo -> gameInfo.getGames() == null ? Flux.just(gameInfo) : Flux.fromIterable(gameInfo.getGames()))
@@ -266,7 +265,7 @@ public class GameService implements InitializingBean {
           .forEach(player -> {
             player.setGame(newGame);
             if (player.getSocialStatus() == SocialStatus.FRIEND) {
-              eventBus.post(new FriendJoinedGameEvent(player, newGame));
+              friendJoinedGameNotifier.onFriendJoinedGame(player, newGame);
             }
           });
     };
@@ -452,7 +451,7 @@ public class GameService implements InitializingBean {
 
   public CompletableFuture<Path> postGameDirectoryChooseEvent() {
     CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
-    eventBus.post(new GameDirectoryChooseEvent(gameDirectoryFuture));
+    gameDirectoryRequiredHandler.onChooseGameDirectory(gameDirectoryFuture);
     return gameDirectoryFuture;
   }
 
@@ -702,7 +701,10 @@ public class GameService implements InitializingBean {
       return;
     }
 
-    notificationService.addNotification(new PersistentNotification(i18n.get("game.ended", game.getTitle()), Severity.INFO, singletonList(new Action(i18n.get("game.rate"), actionEvent -> eventBus.post(new ShowReplayEvent(game.getId()))))));
+    notificationService.addNotification(
+        new PersistentNotification(i18n.get("game.ended", game.getTitle()), Severity.INFO, singletonList(
+            new Action(i18n.get("game.rate"),
+                       actionEvent -> navigationHandler.navigateTo(new ShowReplayEvent(game.getId()))))));
   }
 
   @VisibleForTesting
@@ -772,8 +774,7 @@ public class GameService implements InitializingBean {
     }
   }
 
-  @Subscribe
-  public void onRehostRequest(RehostRequestEvent event) {
+  public void onRehostRequest() {
     this.rehostRequested = true;
     synchronized (gameRunning) {
       if (!gameRunning.get()) {
@@ -803,16 +804,6 @@ public class GameService implements InitializingBean {
       log.info("ForgedAlliance still running, destroying process");
       process.destroy();
     }
-  }
-
-  @Subscribe
-  public void onGameCloseRequested(CloseGameEvent event) {
-    killGame();
-  }
-
-  @Subscribe
-  public void onPartyOwnerChangedEvent(PartyOwnerChangedEvent event) {
-    inOthersParty = !Objects.equals(playerService.getCurrentPlayer(), event.newOwner());
   }
 
   public void launchTutorial(MapVersionBean mapVersion, String technicalMapName) {

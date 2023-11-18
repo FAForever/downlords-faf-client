@@ -1,7 +1,10 @@
 package com.faforever.client.game;
 
+import com.faforever.client.avatar.AvatarService;
+import com.faforever.client.builders.AvatarBeanBuilder;
 import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.MouseEvents;
@@ -53,6 +56,8 @@ public class GameTileControllerTest extends PlatformTest {
   @Mock
   private MapService mapService;
   @Mock
+  private AvatarService avatarService;
+  @Mock
   private PlayerService playerService;
 
   private GameTileController instance;
@@ -64,17 +69,18 @@ public class GameTileControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new GameTileController(mapService, i18n, joinGameHelper, modService, playerService, uiService, imageViewHelper, fxApplicationThreadExecutor);
+    instance = new GameTileController(mapService, i18n, joinGameHelper, modService, playerService, avatarService,
+                                      uiService, imageViewHelper, fxApplicationThreadExecutor);
 
     game = GameBeanBuilder.create().defaultValues().get();
 
     when(i18n.get(anyString())).thenReturn("test");
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(
-        FeaturedModBeanBuilder.create().defaultValues().get()
-    ));
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(
+        Mono.just(FeaturedModBeanBuilder.create().defaultValues().get()));
     when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
     when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
-    when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
+    when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(
+        invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
     when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/play/game_card.fxml", clazz -> instance);
@@ -134,7 +140,9 @@ public class GameTileControllerTest extends PlatformTest {
 
   @Test
   public void testShowAvatarInsteadOfDefaultHostIcon() {
-    when(playerService.getCurrentAvatarByPlayerName(game.getHost())).thenReturn(Optional.of(new Image(InputStream.nullInputStream())));
+    when(playerService.getPlayerByNameIfOnline(anyString())).thenReturn(
+        Optional.of(PlayerBeanBuilder.create().avatar(AvatarBeanBuilder.create().get()).get()));
+    when(avatarService.loadAvatar(any())).thenReturn(new Image(InputStream.nullInputStream()));
 
     runOnFxThreadAndWait(() -> instance.setGame(game));
 
@@ -144,7 +152,7 @@ public class GameTileControllerTest extends PlatformTest {
 
   @Test
   public void testShowDefaultHostIconIfNoAvatar() {
-    when(playerService.getCurrentAvatarByPlayerName(game.getHost())).thenReturn(Optional.empty());
+    when(playerService.getPlayerByNameIfOnline(anyString())).thenReturn(Optional.of(PlayerBeanBuilder.create().get()));
 
     runOnFxThreadAndWait(() -> instance.setGame(game));
 

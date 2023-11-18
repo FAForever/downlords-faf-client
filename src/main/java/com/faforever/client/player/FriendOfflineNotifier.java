@@ -7,8 +7,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.util.IdenticonUtil;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
@@ -21,20 +19,12 @@ import org.springframework.stereotype.Component;
 public class FriendOfflineNotifier implements InitializingBean {
 
   private final NotificationService notificationService;
+  private final PlayerService playerService;
   private final I18n i18n;
-  private final EventBus eventBus;
   private final AudioService audioService;
   private final NotificationPrefs notificationPrefs;
 
-  @Override
-  public void afterPropertiesSet() {
-    eventBus.register(this);
-  }
-
-  @Subscribe
-  public void onPlayerOffline(PlayerOfflineEvent event) {
-    PlayerBean player = event.player();
-
+  private void onPlayerOffline(PlayerBean player) {
     if (player.getSocialStatus() != SocialStatus.FRIEND) {
       return;
     }
@@ -50,5 +40,10 @@ public class FriendOfflineNotifier implements InitializingBean {
               IdenticonUtil.createIdenticon(player.getId())
           ));
     }
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    playerService.addPlayerOfflineListener(this::onPlayerOffline);
   }
 }

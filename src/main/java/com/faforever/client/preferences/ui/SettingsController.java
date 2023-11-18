@@ -41,11 +41,10 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.list.NoSelectionModelListView;
-import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
+import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.LoginService;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -100,7 +99,6 @@ public class SettingsController implements Controller<Node> {
   private final PreferencesService preferencesService;
   private final UiService uiService;
   private final I18n i18n;
-  private final EventBus eventBus;
   private final PlatformService platformService;
   private final ClientProperties clientProperties;
   private final ClientUpdateService clientUpdateService;
@@ -112,6 +110,7 @@ public class SettingsController implements Controller<Node> {
   private final ObjectFactory<DeleteDirectoryTask> deleteDirectoryTaskFactory;
   private final ObjectFactory<DownloadFAFDebuggerTask> downloadFAFDebuggerTaskFactory;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
 
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
@@ -183,7 +182,6 @@ public class SettingsController implements Controller<Node> {
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(vaultLocationWarningLabel);
-    eventBus.register(this);
     themeComboBox.setButtonCell(new StringListCell<>(Theme::getDisplayName, fxApplicationThreadExecutor));
     themeComboBox.setCellFactory(param -> new StringListCell<>(Theme::getDisplayName, fxApplicationThreadExecutor));
 
@@ -575,7 +573,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onSelectGameLocation() {
-    eventBus.post(new GameDirectoryChooseEvent());
+    gameDirectoryRequiredHandler.onChooseGameDirectory(null);
   }
 
   public void onSelectVaultLocation() {
