@@ -6,8 +6,6 @@ import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent.Delta;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent.NewValue;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.VPos;
 import javafx.scene.SnapshotParameters;
@@ -19,7 +17,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.TextAlignment;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 import java.awt.Font;
@@ -34,24 +31,17 @@ import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
 
 @Component
 @RequiredArgsConstructor
-public class TrayIconManager implements InitializingBean {
+public class TrayIconManager {
 
   private final I18n i18n;
-  private final EventBus eventBus;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private int badgeCount;
-
-  @Override
-  public void afterPropertiesSet() {
-    eventBus.register(this);
-  }
 
   /**
    * Generates and returns a tray icon. If {@code badgeCount} is greater than 0, a badge (circle) with the badge count
    * generated on top of the icon.
    */
-  @Subscribe
   public void onSetApplicationBadgeEvent(UpdateApplicationBadgeEvent event) {
     if (event instanceof Delta delta) {
       badgeCount += delta.value();

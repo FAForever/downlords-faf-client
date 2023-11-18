@@ -16,7 +16,6 @@ import com.faforever.client.vault.VaultEntityController.SearchType;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
-import com.google.common.eventbus.EventBus;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,8 +46,6 @@ public class ModVaultControllerTest extends PlatformTest {
   private ModService modService;
   @Mock
   private UiService uiService;
-  @Mock
-  private EventBus eventBus;
   @Mock
   private I18n i18n;
 

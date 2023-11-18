@@ -7,18 +7,16 @@ import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.remote.FafServerAccessor;
+import com.faforever.client.ui.tray.TrayIconManager;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.LoginService;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ObjectProperty;
@@ -94,11 +92,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private static final Set<Character> MODERATOR_PREFIXES = Set.of('~', '&', '@', '%');
   private final LoginService loginService;
   private final FafServerAccessor fafServerAccessor;
-  private final EventBus eventBus;
   private final ClientProperties clientProperties;
   private final PlayerService playerService;
   private final ChatPrefs chatPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final TrayIconManager trayIconManager;
   @Qualifier("userWebClient")
   private final ObjectFactory<WebClient> userWebClientFactory;
 
@@ -124,8 +122,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void afterPropertiesSet() {
-    eventBus.register(this);
-
     loginService.loggedInProperty().addListener((SimpleChangeListener<Boolean>) loggedIn -> {
       if (loggedIn) {
         connect();
@@ -141,6 +137,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       }
     });
 
+    playerService.addPlayerOnlineListener(this::onPlayerOnline);
     JavaFxUtil.addListener(chatPrefs.groupToColorProperty(), new WeakInvalidationListener(userColorsListener));
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), new WeakInvalidationListener(userColorsListener));
   }
@@ -191,10 +188,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     return chatChannelUser;
   }
 
-  @Subscribe
-  public void onPlayerOnline(PlayerOnlineEvent event) {
-    PlayerBean player = event.player();
-
+  @VisibleForTesting
+  void onPlayerOnline(PlayerBean player) {
     channels.values()
         .stream()
         .map(channel -> channel.getUser(player.getUsername()))
@@ -546,13 +541,12 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void incrementUnreadMessagesCount(int delta) {
-    eventBus.post(UpdateApplicationBadgeEvent.ofDelta(delta));
+    trayIconManager.onSetApplicationBadgeEvent(UpdateApplicationBadgeEvent.ofDelta(delta));
   }
 
   @Override
-  @Subscribe
-  public void onInitiatePrivateChat(InitiatePrivateChatEvent event) {
-    getOrCreateChannel(event.username());
+  public void onInitiatePrivateChat(String username) {
+    getOrCreateChannel(username);
   }
 
   @Override

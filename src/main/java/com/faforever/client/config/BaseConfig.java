@@ -1,8 +1,5 @@
 package com.faforever.client.config;
 
-import com.google.common.eventbus.DeadEvent;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -27,21 +24,5 @@ public class BaseConfig {
     messageSource.setBasename("classpath:i18n/messages");
     messageSource.setFallbackToSystemLocale(false);
     return messageSource;
-  }
-
-  @Bean
-  EventBus eventBus() {
-    EventBus bus = new EventBus((exception, context) -> log.warn("Exception in '{}#{}' while handling event: {}",
-        context.getSubscriber().getClass(), context.getSubscriberMethod().getName(), context.getEvent(), exception));
-    bus.register(new DeadEventHandler());
-    return bus;
-  }
-
-  private static class DeadEventHandler {
-    @Subscribe
-    public void onDeadEvent(DeadEvent deadEvent) {
-      Object unhandledEvent = deadEvent.getEvent();
-      log.warn("No event handler registered for event of type '{}'", unhandledEvent.getClass().getSimpleName());
-    }
   }
 }

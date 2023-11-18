@@ -7,7 +7,6 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.replay.WatchButtonController;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -36,8 +35,6 @@ public class CustomGamesControllerTest extends PlatformTest {
   private UiService uiService;
   @Mock
   private GamesTableController gamesTableController;
-  @Mock
-  private EventBus eventBus;
   @Mock
   private GameDetailController gameDetailController;
   @Mock

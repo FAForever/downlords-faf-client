@@ -14,6 +14,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.ImmediateNotificationController;
@@ -28,14 +29,13 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.alert.Alert;
 import com.faforever.client.ui.alert.animation.AlertAnimation;
+import com.faforever.client.ui.tray.TrayIconManager;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
@@ -89,12 +89,13 @@ public class MainController implements Controller<Node>, InitializingBean {
   private final I18n i18n;
   private final NotificationService notificationService;
   private final UiService uiService;
-  private final EventBus eventBus;
   private final LoginService loginService;
   private final Environment environment;
   private final NotificationPrefs notificationPrefs;
   private final WindowPrefs windowPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final TrayIconManager trayIconManager;
+  private final NavigationHandler navigationHandler;
 
   private final ChangeListener<Path> backgroundImageListener = (observable, oldValue, newValue) ->
       setBackgroundImage(newValue);
@@ -147,8 +148,6 @@ public class MainController implements Controller<Node>, InitializingBean {
   }
 
   public void initialize() {
-    eventBus.register(this);
-
     TransientNotificationsController transientNotificationsController = uiService.loadFxml("theme/transient_notifications.fxml");
     transientNotificationsPopup = PopupUtil.createPopup(transientNotificationsController.getRoot());
     transientNotificationsPopup.getScene().getRoot().getStyleClass().add("transient-notification");
@@ -162,6 +161,8 @@ public class MainController implements Controller<Node>, InitializingBean {
     notificationService.addTransientNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> transientNotificationsController.addNotification(notification)));
     // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
     getView(NavigationItem.CHAT);
+
+    navigationHandler.navigationEventProperty().subscribe(this::onNavigateEvent);
   }
 
   private void displayView(AbstractViewController<?> controller, NavigateEvent navigateEvent) {
@@ -197,7 +198,7 @@ public class MainController implements Controller<Node>, InitializingBean {
   }
 
   public void display() {
-    eventBus.post(UpdateApplicationBadgeEvent.ofNewValue(0));
+    trayIconManager.onSetApplicationBadgeEvent(UpdateApplicationBadgeEvent.ofNewValue(0));
 
     Stage stage = StageHolder.getStage();
     setBackgroundImage(windowPrefs.getBackgroundImagePath());
@@ -324,7 +325,7 @@ public class MainController implements Controller<Node>, InitializingBean {
         askUserForPreferenceOverStartTab();
       }
     }
-    eventBus.post(new NavigateEvent(navigationItem));
+    navigationHandler.navigateTo(new NavigateEvent(navigationItem));
   }
 
   private void askUserForPreferenceOverStartTab() {
@@ -339,7 +340,7 @@ public class MainController implements Controller<Node>, InitializingBean {
     Action saveAction = new Action(i18n.get("startTab.save"), event -> {
       NavigationItem newSelection = startTabChooseController.getSelected();
       windowPrefs.setNavigationItem(newSelection);
-      eventBus.post(new NavigateEvent(newSelection));
+      navigationHandler.navigateTo(new NavigateEvent(newSelection));
     });
     ImmediateNotification notification =
         new ImmediateNotification(i18n.get("startTab.title"), i18n.get("startTab.message"),
@@ -351,8 +352,11 @@ public class MainController implements Controller<Node>, InitializingBean {
     return mainRoot;
   }
 
-  @Subscribe
   public void onNavigateEvent(NavigateEvent navigateEvent) {
+    if (navigateEvent == null) {
+      return;
+    }
+
     NavigationItem item = navigateEvent.getItem();
 
     AbstractViewController<?> controller = getView(item);

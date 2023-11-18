@@ -25,10 +25,9 @@ import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
+import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.LoginService;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlySetWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleSetProperty;
@@ -82,8 +81,6 @@ public class SettingsControllerTest extends PlatformTest {
   @Mock
   private UiService uiService;
   @Mock
-  private EventBus eventBus;
-  @Mock
   private I18n i18n;
   @Mock
   private NotificationService notificationService;
@@ -107,6 +104,8 @@ public class SettingsControllerTest extends PlatformTest {
   private ObjectFactory<DeleteDirectoryTask> deleteDirectoryTaskFactory;
   @Mock
   private ObjectFactory<DownloadFAFDebuggerTask> downloadFAFDebuggerTaskFactory;
+  @Mock
+  private GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
   @Spy
   private IceServerMapper iceServerMapper = Mappers.getMapper(IceServerMapper.class);
   @Spy
@@ -128,8 +127,6 @@ public class SettingsControllerTest extends PlatformTest {
 
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
-
-    instance = new SettingsController(notificationService, loginService, preferenceService, uiService, i18n, eventBus, platformService, clientProperties, clientUpdateService, taskService, coturnService, vaultPathHandler, preferences, moveDirectoryTaskFactory, deleteDirectoryTaskFactory, downloadFAFDebuggerTaskFactory, fxApplicationThreadExecutor);
 
     loadFxml("theme/settings/settings.fxml", param -> instance);
   }
@@ -272,7 +269,7 @@ public class SettingsControllerTest extends PlatformTest {
   public void testSetGameLocation() throws Exception {
     instance.onSelectGameLocation();
 
-    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+    verify(gameDirectoryRequiredHandler).onChooseGameDirectory(any());
   }
 
   @Test

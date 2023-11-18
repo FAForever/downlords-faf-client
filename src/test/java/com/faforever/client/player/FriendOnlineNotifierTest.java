@@ -6,7 +6,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.test.ServiceTest;
-import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -18,8 +17,6 @@ public class FriendOnlineNotifierTest extends ServiceTest {
   private NotificationService notificationService;
   @Mock
   private I18n i18n;
-  @Mock
-  private EventBus eventBus;
   @Mock
   private AudioService audioService;
   @Mock
@@ -36,7 +33,7 @@ public class FriendOnlineNotifierTest extends ServiceTest {
     notificationPrefs.setFriendOnlineSoundEnabled(false);
     notificationPrefs.setFriendOnlineToastEnabled(false);
 
-    instance.onPlayerOnline(new PlayerOnlineEvent(PlayerBeanBuilder.create().defaultValues().username("axel12").get()));
+    instance.onPlayerOnline(PlayerBeanBuilder.create().defaultValues().username("axel12").get());
 
     Mockito.verifyNoInteractions(notificationService, audioService);
   }

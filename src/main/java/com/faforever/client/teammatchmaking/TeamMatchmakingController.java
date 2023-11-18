@@ -202,6 +202,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         .getMembers(), observable -> {
       refreshingLabel.setVisible(false);
       selectFactionsBasedOnParty();
+      renderPartyMembers();
     });
 
 

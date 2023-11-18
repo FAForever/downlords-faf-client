@@ -54,7 +54,7 @@ public interface ChatService {
    */
   void incrementUnreadMessagesCount(int delta);
 
-  void onInitiatePrivateChat(InitiatePrivateChatEvent event);
+  void onInitiatePrivateChat(String username);
 
   Set<ChatChannel> getChannels();
 }

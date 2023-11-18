@@ -11,7 +11,6 @@ import com.faforever.client.test.ServiceTest;
 import com.faforever.client.update.ClientUpdateService.InstallerExecutionException;
 import com.faforever.client.user.LoginService;
 import com.faforever.commons.io.Bytes;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,8 +64,6 @@ public class ClientUpdateServiceTest extends ServiceTest {
   private CheckForUpdateTask checkForUpdateTask;
   @Mock
   private CheckForBetaUpdateTask checkForBetaUpdateTask;
-  @Mock
-  private EventBus eventBus;
   @Spy
   private Preferences preferences;
 

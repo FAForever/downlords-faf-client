@@ -11,7 +11,6 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
-import com.google.common.eventbus.EventBus;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,8 +34,6 @@ public class LocalReplayVaultControllerTest extends PlatformTest {
   private LocalReplayVaultController instance;
   @Mock
   private I18n i18n;
-  @Mock
-  private EventBus eventBus;
   @Mock
   private NotificationService notificationService;
   @Mock

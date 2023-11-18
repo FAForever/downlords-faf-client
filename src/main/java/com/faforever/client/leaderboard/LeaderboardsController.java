@@ -5,10 +5,10 @@ import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenLeaderboardEvent;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.theme.UiService;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -28,7 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class LeaderboardsController extends AbstractViewController<Node> {
-  private final EventBus eventBus;
+  private final NavigationHandler navigationHandler;
   private final I18n i18n;
   private final LeaderboardService leaderboardService;
   private final NotificationService notificationService;
@@ -83,7 +83,7 @@ public class LeaderboardsController extends AbstractViewController<Node> {
       if (isHandlingEvent) {
         return;
       }
-      eventBus.post(new OpenLeaderboardEvent(newValue));
+      navigationHandler.navigateTo(new OpenLeaderboardEvent(newValue));
     });
   }
 

@@ -21,12 +21,10 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -62,7 +60,7 @@ public class ChatUserItemControllerTest extends PlatformTest {
   @Mock
   private UiService uiService;
   @Mock
-  private EventBus eventBus;
+  private ChatService chatService;
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
   @Mock
@@ -111,7 +109,7 @@ public class ChatUserItemControllerTest extends PlatformTest {
   @Test
   public void testSingleClickDoesNotInitiatePrivateChat() {
     runOnFxThreadAndWait(() -> instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 1)));
-    verify(eventBus, never()).post(CoreMatchers.any(InitiatePrivateChatEvent.class));
+    verify(chatService, never()).onInitiatePrivateChat(any());
   }
 
   @Test
@@ -119,9 +117,9 @@ public class ChatUserItemControllerTest extends PlatformTest {
     instance.setChatUser(defaultUser);
     runOnFxThreadAndWait(() -> instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 2)));
 
-    ArgumentCaptor<InitiatePrivateChatEvent> captor = ArgumentCaptor.forClass(InitiatePrivateChatEvent.class);
-    verify(eventBus, times(1)).post(captor.capture());
-    assertEquals(USER_NAME, captor.getValue().username());
+    ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+    verify(chatService, times(1)).onInitiatePrivateChat(captor.capture());
+    assertEquals(USER_NAME, captor.getValue());
   }
 
   @Test

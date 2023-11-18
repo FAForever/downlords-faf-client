@@ -6,7 +6,6 @@ import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
@@ -15,7 +14,6 @@ import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.LoginService;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ListChangeListener;
@@ -118,8 +116,6 @@ public class KittehChatServiceTest extends ServiceTest {
   private FafServerAccessor fafServerAccessor;
   @Mock
   private PlayerService playerService;
-  @Mock
-  private EventBus eventBus;
   @Mock
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Spy
@@ -383,12 +379,11 @@ public class KittehChatServiceTest extends ServiceTest {
 
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(user2.getNick()).get();
 
-    instance.onPlayerOnline(new PlayerOnlineEvent(player));
+    instance.onPlayerOnline(player);
 
     assertEquals(player, instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
         .getUser(user2.getNick())
-        .get()
-        .getPlayer()
+                                 .flatMap(ChatChannelUser::getPlayer)
         .orElse(null));
   }
 

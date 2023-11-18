@@ -14,6 +14,7 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
@@ -23,7 +24,6 @@ import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
 import io.micrometer.common.util.StringUtils;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
@@ -69,7 +69,7 @@ public class MapDetailController implements Controller<Node> {
   private final ReviewService reviewService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final ImageViewHelper imageViewHelper;
-  private final EventBus eventBus;
+  private final NavigationHandler navigationHandler;
   private final ContextMenuBuilder contextMenuBuilder;
 
   private final ObjectProperty<MapVersionBean> mapVersion = new SimpleObjectProperty<>();
@@ -301,9 +301,9 @@ public class MapDetailController implements Controller<Node> {
   public void onCreateGameButtonClicked() {
     MapVersionBean mapVersion = this.mapVersion.get();
     if (!mapService.isInstalled(mapVersion.getFolderName())) {
-      installMap().thenRun(() -> eventBus.post(new HostGameEvent(mapVersion.getFolderName())));
+      installMap().thenRun(() -> navigationHandler.navigateTo(new HostGameEvent(mapVersion.getFolderName())));
     } else {
-      eventBus.post(new HostGameEvent(mapVersion.getFolderName()));
+      navigationHandler.navigateTo(new HostGameEvent(mapVersion.getFolderName()));
     }
   }
 

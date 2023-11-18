@@ -8,7 +8,6 @@ import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,8 +28,6 @@ public class UserButtonControllerTest extends PlatformTest {
   private LoginService loginService;
   @Mock
   private PlayerService playerService;
-  @Mock
-  private EventBus eventBus;
   @Mock
   private ReportDialogController reportDialogController;
   @Mock

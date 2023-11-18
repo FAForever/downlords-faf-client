@@ -7,7 +7,6 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.CopyErrorAction;
 import com.faforever.client.notification.DismissAction;
@@ -18,7 +17,6 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.commons.api.dto.ApiException;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
@@ -54,7 +52,6 @@ public class ModUploadController implements Controller<Node> {
   private final I18n i18n;
   private final PlatformService platformService;
   private final ClientProperties clientProperties;
-  private final EventBus eventBus;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public Label uploadTaskMessageLabel;
@@ -76,6 +73,7 @@ public class ModUploadController implements Controller<Node> {
   private CompletableTask<Void> modUploadTask;
   private ModVersionBean modVersionInfo;
   private Runnable cancelButtonClickedListener;
+  private Runnable uploadListener;
 
   public void initialize() {
     modInfoPane.managedProperty().bind(modInfoPane.visibleProperty());
@@ -172,7 +170,11 @@ public class ModUploadController implements Controller<Node> {
     uploadProgressBar.progressProperty().bind(modUploadTask.progressProperty());
 
     modUploadTask.getFuture()
-        .thenAccept(v -> eventBus.post(new ModUploadedEvent(modVersionInfo)))
+                 .thenRun(() -> {
+                   if (uploadListener != null) {
+                     uploadListener.run();
+                   }
+                 })
         .thenRun(this::enterUploadCompleteState)
         .exceptionally(throwable -> {
           if (!(throwable instanceof CancellationException)) {
@@ -210,5 +212,9 @@ public class ModUploadController implements Controller<Node> {
 
   public void setOnCancelButtonClickedListener(Runnable cancelButtonClickedListener) {
     this.cancelButtonClickedListener = cancelButtonClickedListener;
+  }
+
+  public void setUploadListener(Runnable uploadListener) {
+    this.uploadListener = uploadListener;
   }
 }

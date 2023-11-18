@@ -7,8 +7,6 @@ import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.main.event.NavigateEvent;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import javafx.concurrent.Worker;
 import javafx.scene.Node;
 import javafx.scene.control.Control;
@@ -23,7 +21,6 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 public class NewsController extends AbstractViewController<Node> {
-  private final EventBus eventBus;
   private final WebViewConfigurer webViewConfigurer;
   private final ClientProperties clientProperties;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -39,7 +36,6 @@ public class NewsController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
-    eventBus.register(this);
     newsWebView.setContextMenuEnabled(false);
     webViewConfigurer.configureWebView(newsWebView);
 
@@ -66,19 +62,9 @@ public class NewsController extends AbstractViewController<Node> {
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
-    eventBus.post(new UnreadNewsEvent(false));
     onLoadingStart();
     loadNews();
   }
-
-  @Subscribe
-  public void onUnreadNewsEvent(UnreadNewsEvent unreadNewsEvent) {
-    if (unreadNewsEvent.hasUnreadNews()) {
-      onLoadingStart();
-      loadNews();
-    }
-  }
-
 
   private void loadNews() {
     fxApplicationThreadExecutor.execute(() -> {

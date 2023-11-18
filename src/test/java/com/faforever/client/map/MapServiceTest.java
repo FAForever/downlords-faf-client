@@ -39,7 +39,6 @@ import com.faforever.commons.api.dto.MapVersion;
 import com.faforever.commons.api.dto.NeroxisGeneratorParams;
 import com.faforever.commons.api.elide.ElideEntity;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.eventbus.EventBus;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -112,8 +111,6 @@ public class MapServiceTest extends PlatformTest {
   private MapGeneratorService mapGeneratorService;
   @Mock
   private PlayerService playerService;
-  @Mock
-  private EventBus eventBus;
   @Mock
   private NotificationService notificationService;
   @Mock

@@ -4,14 +4,12 @@ import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
 import com.faforever.client.user.LoginService;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Files;
@@ -36,9 +34,10 @@ public class GamePathHandler implements InitializingBean {
 
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
-  private final EventBus eventBus;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final LoginService loginService;
+  @Lazy
+  private final MissingGamePathNotifier missingGamePathNotifier;
 
   @Override
   public void afterPropertiesSet() {
@@ -47,17 +46,15 @@ public class GamePathHandler implements InitializingBean {
         detectAndUpdateGamePath();
       }
     });
-    eventBus.register(this);
   }
 
   /**
    * Checks whether the chosen game path contains a ForgedAlliance.exe (either directly if the user selected the "bin"
    * directory, or in the "bin" sub folder). If the path is valid, it is stored in the preferences.
    */
-  @Subscribe
   public void onGameDirectoryChosenEvent(GameDirectoryChosenEvent event) {
     Path path = event.path();
-    Optional<CompletableFuture<Path>> future = event.future();
+    Optional<CompletableFuture<Path>> future = Optional.ofNullable(event.future());
 
     if (path == null) {
       notificationService.addImmediateWarnNotification("gamePath.select.noneChosen");
@@ -97,13 +94,13 @@ public class GamePathHandler implements InitializingBean {
   private void detectGamePath() {
     for (Path path : USUAL_GAME_PATHS) {
       if (preferencesService.isValidGamePath(path.resolve("bin"))) {
-        onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(path, Optional.empty()));
+        onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(path, null));
         return;
       }
     }
 
     log.warn("Game path could not be detected");
-    eventBus.post(new MissingGamePathEvent(false));
+    missingGamePathNotifier.onMissingGamePathEvent(false);
   }
 
   public void detectAndUpdateGamePath() {

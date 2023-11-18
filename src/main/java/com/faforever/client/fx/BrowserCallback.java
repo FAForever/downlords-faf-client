@@ -1,17 +1,16 @@
 package com.faforever.client.fx;
 
 import com.faforever.client.chat.ChatService;
-import com.faforever.client.chat.InitiatePrivateChatEvent;
 import com.faforever.client.chat.UrlPreviewResolver;
 import com.faforever.client.clan.ClanService;
 import com.faforever.client.clan.ClanTooltipController;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.main.event.ShowReplayEvent;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Tooltip;
 import javafx.stage.Popup;
@@ -33,12 +32,12 @@ public class BrowserCallback implements InitializingBean {
 
   private final PlatformService platformService;
   private final UrlPreviewResolver urlPreviewResolver;
-  private final EventBus eventBus;
   private final ClanService clanService;
   private final UiService uiService;
   private final ClientProperties clientProperties;
   private final ChatService chatService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final NavigationHandler navigationHandler;
 
   @VisibleForTesting
   Popup clanInfoPopup;
@@ -66,7 +65,7 @@ public class BrowserCallback implements InitializingBean {
     }
 
     String replayId = replayUrlMatcher.group(1);
-    eventBus.post(new ShowReplayEvent(Integer.parseInt(replayId)));
+    navigationHandler.navigateTo(new ShowReplayEvent(Integer.parseInt(replayId)));
   }
 
   /**
@@ -82,7 +81,7 @@ public class BrowserCallback implements InitializingBean {
    */
   @SuppressWarnings("unused")
   public void openPrivateMessageTab(String username) {
-    eventBus.post(new InitiatePrivateChatEvent(username));
+    chatService.onInitiatePrivateChat(username);
   }
 
   /**

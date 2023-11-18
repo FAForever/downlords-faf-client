@@ -6,12 +6,8 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.preferences.event.MissingGamePathEvent;
-import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
+import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -19,25 +15,20 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class MissingGamePathNotifier implements InitializingBean {
+public class MissingGamePathNotifier {
 
-  private final EventBus eventBus;
   private final I18n i18n;
   private final NotificationService notificationService;
+  private final GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
 
-  @Override
-  public void afterPropertiesSet() {
-    eventBus.register(this);
-  }
-
-  @Subscribe
-  public void onMissingGamePathEvent(MissingGamePathEvent event) {
+  public void onMissingGamePathEvent(boolean immediateUserActionRequired) {
     List<Action> actions = Collections.singletonList(
-        new Action(i18n.get("missingGamePath.locate"), chooseEvent -> eventBus.post(new GameDirectoryChooseEvent()))
+        new Action(i18n.get("missingGamePath.locate"),
+                   chooseEvent -> gameDirectoryRequiredHandler.onChooseGameDirectory(null))
     );
     String notificationText = i18n.get("missingGamePath.notification");
 
-    if (event.immediateUserActionRequired()) {
+    if (immediateUserActionRequired) {
       notificationService.addNotification(new ImmediateNotification(notificationText, notificationText, Severity.WARN, actions));
     } else {
       notificationService.addNotification(new PersistentNotification(notificationText, Severity.WARN, actions));

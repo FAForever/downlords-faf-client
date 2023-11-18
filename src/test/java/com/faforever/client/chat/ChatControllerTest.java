@@ -6,7 +6,6 @@ import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
 import com.faforever.commons.api.dto.MeResult;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -53,8 +52,6 @@ public class ChatControllerTest extends PlatformTest {
   private ChatService chatService;
   @Mock
   private NotificationService notificationService;
-  @Mock
-  private EventBus eventBus;
   @Captor
   private ArgumentCaptor<MapChangeListener<String, ChatChannel>> channelsListener;
 

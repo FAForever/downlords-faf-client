@@ -20,7 +20,6 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.game.RatingPrecision;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.main.event.DeleteLocalReplayEvent;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
@@ -41,7 +40,6 @@ import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.api.dto.Faction;
 import com.faforever.commons.api.dto.Validity;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringExpression;
@@ -94,7 +92,6 @@ public class ReplayDetailController implements Controller<Node> {
 
   private final TimeService timeService;
   private final I18n i18n;
-  private final EventBus eventBus;
   private final UiService uiService;
   private final ReplayService replayService;
   private final RatingService ratingService;
@@ -149,6 +146,8 @@ public class ReplayDetailController implements Controller<Node> {
   public Button reportButton;
   public Button deleteButton;
   public Label notRatedReasonLabel;
+
+  private Runnable onDeleteListener;
 
   public void initialize() {
     BooleanExpression showing = uiService.createShowingProperty(getRoot());
@@ -480,8 +479,14 @@ public class ReplayDetailController implements Controller<Node> {
         .getTitle()), i18n.get("replay.deleteNotification.info"), Severity.INFO, Arrays.asList(new Action(i18n.get("cancel")), new Action(i18n.get("delete"), event -> deleteReplay()))));
   }
 
+  public void setOnDeleteListener(Runnable onDeleteListener) {
+    this.onDeleteListener = onDeleteListener;
+  }
+
   private void deleteReplay() {
-    eventBus.post(new DeleteLocalReplayEvent(replay.get().getReplayFile()));
+    if (replayService.deleteReplayFile(replay.get().getReplayFile()) && onDeleteListener != null) {
+      onDeleteListener.run();
+    }
     onCloseButtonClicked();
   }
 

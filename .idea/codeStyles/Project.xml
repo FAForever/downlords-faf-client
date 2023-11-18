@@ -9,6 +9,9 @@
       <option name="PACKAGES_TO_USE_IMPORT_ON_DEMAND">
         <value />
       </option>
+      <option name="RECORD_COMPONENTS_WRAP" value="5" />
+      <option name="NEW_LINE_AFTER_LPAREN_IN_RECORD_HEADER" value="true" />
+      <option name="RPAREN_ON_NEW_LINE_IN_RECORD_HEADER" value="true" />
       <option name="JD_ALIGN_PARAM_COMMENTS" value="false" />
       <option name="JD_ALIGN_EXCEPTION_COMMENTS" value="false" />
       <option name="JD_DO_NOT_WRAP_ONE_LINE_COMMENTS" value="true" />
@@ -24,6 +27,9 @@
       </indentOptions>
     </codeStyleSettings>
     <codeStyleSettings language="JAVA">
+      <option name="ALIGN_MULTILINE_CHAINED_METHODS" value="true" />
+      <option name="ALIGN_MULTILINE_PARAMETERS_IN_CALLS" value="true" />
+      <option name="CALL_PARAMETERS_WRAP" value="1" />
       <option name="METHOD_PARAMETERS_WRAP" value="1" />
       <option name="METHOD_CALL_CHAIN_WRAP" value="5" />
       <option name="KEEP_SIMPLE_METHODS_IN_ONE_LINE" value="true" />

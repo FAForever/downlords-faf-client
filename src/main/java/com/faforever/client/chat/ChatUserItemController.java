@@ -38,7 +38,6 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.ObjectProperty;
@@ -71,10 +70,10 @@ public class ChatUserItemController implements Controller<Node> {
   private final I18n i18n;
   private final UiService uiService;
   private final MapService mapService;
+  private final ChatService chatService;
   private final MapGeneratorService mapGeneratorService;
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
-  private final EventBus eventBus;
   private final ContextMenuBuilder contextMenuBuilder;
   private final ChatPrefs chatPrefs;
   private final ImageViewHelper imageViewHelper;
@@ -186,7 +185,7 @@ public class ChatUserItemController implements Controller<Node> {
   public void onItemClicked(MouseEvent mouseEvent) {
     ChatChannelUser chatChannelUser = chatUser.get();
     if (chatChannelUser != null && mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
-      eventBus.post(new InitiatePrivateChatEvent(chatChannelUser.getUsername()));
+      chatService.onInitiatePrivateChat(chatChannelUser.getUsername());
     }
   }
 

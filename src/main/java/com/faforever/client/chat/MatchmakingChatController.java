@@ -1,11 +1,11 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.emoticons.EmoticonService;
-import com.faforever.client.chat.event.UnreadPartyMessageEvent;
-import com.faforever.client.discord.JoinDiscordEvent;
+import com.faforever.client.discord.JoinDiscordEventHandler;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
@@ -15,7 +15,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
@@ -30,6 +29,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +37,8 @@ import java.util.List;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MatchmakingChatController extends AbstractChatTabController {
+
+  private final JoinDiscordEventHandler joinDiscordEventHandler;
 
   public Tab matchmakingChatTabRoot;
   public WebView messagesWebView;
@@ -57,13 +59,18 @@ public class MatchmakingChatController extends AbstractChatTabController {
   // TODO cut dependencies
   public MatchmakingChatController(LoginService loginService,
                                    PlayerService playerService, TimeService timeService, I18n i18n,
-                                   NotificationService notificationService, UiService uiService, EventBus eventBus,
+                                   NotificationService notificationService, UiService uiService,
+                                   NavigationHandler navigationHandler,
                                    ChatService chatService,
                                    WebViewConfigurer webViewConfigurer, CountryFlagService countryFlagService,
                                    EmoticonService emoticonService, ChatPrefs chatPrefs,
                                    NotificationPrefs notificationPrefs,
-                                   FxApplicationThreadExecutor fxApplicationThreadExecutor) {
-    super(loginService, chatService, playerService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
+                                   FxApplicationThreadExecutor fxApplicationThreadExecutor,
+                                   JoinDiscordEventHandler joinDiscordEventHandler) {
+    super(loginService, chatService, playerService, timeService, i18n, notificationService, uiService,
+          webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs,
+          fxApplicationThreadExecutor, navigationHandler);
+    this.joinDiscordEventHandler = joinDiscordEventHandler;
   }
 
   @Override
@@ -117,17 +124,8 @@ public class MatchmakingChatController extends AbstractChatTabController {
     return messagesWebView;
   }
 
-  @Override
-  protected void onChatMessage(ChatMessage chatMessage) {
-    super.onChatMessage(chatMessage);
-
-    if (!hasFocus()) {
-      eventBus.post(new UnreadPartyMessageEvent(chatMessage));
-    }
-  }
-
-  public void onDiscordButtonClicked() {
-    eventBus.post(new JoinDiscordEvent(discordLink.getText()));
+  public void onDiscordButtonClicked() throws URISyntaxException {
+    joinDiscordEventHandler.onJoin(discordLink.getText());
   }
 
   @VisibleForTesting

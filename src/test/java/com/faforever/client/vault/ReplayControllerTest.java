@@ -2,12 +2,12 @@ package com.faforever.client.vault;
 
 import com.faforever.client.main.event.OpenLiveReplayViewEvent;
 import com.faforever.client.main.event.OpenLocalReplayVaultEvent;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.replay.LiveReplayController;
 import com.faforever.client.replay.LocalReplayVaultController;
 import com.faforever.client.replay.OnlineReplayVaultController;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import com.google.common.eventbus.EventBus;
 import javafx.scene.control.Label;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,9 +22,9 @@ import static org.mockito.Mockito.when;
 
 public class ReplayControllerTest extends PlatformTest {
   @Mock
-  private EventBus eventBus;
-  @Mock
   private UiService uiService;
+  @Mock
+  private NavigationHandler navigationHandler;
 
   @Mock
   public OnlineReplayVaultController onlineReplayVaultController;
@@ -49,7 +49,7 @@ public class ReplayControllerTest extends PlatformTest {
   public void testOnLiveReplayTabClicked() {
     when(liveReplayController.getRoot()).thenReturn(new Label());
     runOnFxThreadAndWait(() -> instance.getRoot().getSelectionModel().select(instance.liveReplayVaultTab));
-    verify(eventBus).post(any(OpenLiveReplayViewEvent.class));
+    verify(navigationHandler).navigateTo(any(OpenLiveReplayViewEvent.class));
   }
 
   @Test
@@ -62,7 +62,7 @@ public class ReplayControllerTest extends PlatformTest {
   public void testOnLocalReplayTabClicked() {
     when(localReplayVaultController.getRoot()).thenReturn(new Label());
     runOnFxThreadAndWait(() -> instance.getRoot().getSelectionModel().select(instance.localReplayVaultTab));
-    verify(eventBus).post(any(OpenLocalReplayVaultEvent.class));
+    verify(navigationHandler).navigateTo(any(OpenLocalReplayVaultEvent.class));
   }
 
   @Test

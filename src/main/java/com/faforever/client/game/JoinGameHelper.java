@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.discord.DiscordJoinEvent;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
@@ -14,10 +13,8 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
-import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
+import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import com.faforever.client.util.RatingUtil;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -38,9 +35,9 @@ public class JoinGameHelper {
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
   private final UiService uiService;
-  private final EventBus eventBus;
   private final Preferences preferences;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
 
   public void join(GameBean game) {
     this.join(game, null, false);
@@ -52,7 +49,7 @@ public class JoinGameHelper {
 
     if (!preferencesService.isValidGamePath()) {
       CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
-      eventBus.post(new GameDirectoryChooseEvent(gameDirectoryFuture));
+      gameDirectoryRequiredHandler.onChooseGameDirectory(gameDirectoryFuture);
       gameDirectoryFuture.thenAccept(path -> Optional.ofNullable(path)
           .ifPresent(path1 -> join(game, password, ignoreRating)));
       return;
@@ -98,9 +95,7 @@ public class JoinGameHelper {
     join(gameService.getByUid(gameId));
   }
 
-  @Subscribe
-  public void onDiscordGameJoinEvent(DiscordJoinEvent discordJoinEvent) {
-    Integer gameId = discordJoinEvent.gameId();
+  public void onDiscordGameJoinEvent(Integer gameId) {
     boolean disallowJoinsViaDiscord = preferences.isDisallowJoinsViaDiscord();
     if (disallowJoinsViaDiscord) {
       log.info("Join was requested via Discord but was rejected due to it being disabled in settings");

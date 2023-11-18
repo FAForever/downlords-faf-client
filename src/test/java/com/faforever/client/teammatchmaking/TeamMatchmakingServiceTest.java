@@ -18,6 +18,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.MatchmakerMapper;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.TransientNotification;
@@ -43,7 +44,6 @@ import com.faforever.commons.lobby.PartyInfo;
 import com.faforever.commons.lobby.PartyInvite;
 import com.faforever.commons.lobby.PartyKick;
 import com.faforever.commons.lobby.SearchInfo;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -103,8 +103,6 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Mock
   private FafApiAccessor fafApiAccessor;
   @Mock
-  private EventBus eventBus;
-  @Mock
   private I18n i18n;
   @Mock
   private TaskScheduler taskScheduler;
@@ -114,6 +112,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Mock
   private GameService gameService;
+  @Mock
+  private NavigationHandler navigationHandler;
   @Spy
   private MatchmakerPrefs matchmakerPrefs = new MatchmakerPrefs();
 
@@ -395,7 +395,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     instance.acceptPartyInvite(player);
 
     verify(fafServerAccessor).acceptPartyInvite(player);
-    verify(eventBus).post(new OpenTeamMatchmakingEvent());
+    verify(navigationHandler).navigateTo(new OpenTeamMatchmakingEvent());
   }
 
   @Test
