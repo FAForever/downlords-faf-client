@@ -101,12 +101,8 @@ public class ModManagerController implements Controller<Parent> {
     JavaFxUtil.bindManagedToVisible(closeButton);
     modListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     modListView.setCellFactory(modListCellFactory());
-    modSearchTextField.textProperty().addListener(new ChangeListener<String>() {
-      @Override
-      public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-        onTextChange(newValue);
-      }
-    });
+
+    modSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> onTextChange(newValue));
 
     viewToggleGroup.selectToggle(uiModsButton);
 
@@ -117,11 +113,7 @@ public class ModManagerController implements Controller<Parent> {
   }
 
   private void onTextChange(String newValue){
-    if(newValue.isEmpty()){
-      modVersionFilteredList.setPredicate(viewToggleGroup.getSelectedToggle() == uiModsButton ? UI_FILTER : SIM_FILTER);
-    } else {
-      modVersionFilteredList.setPredicate(getCombinedFilter(newValue));
-    }
+    modVersionFilteredList.setPredicate(getCombinedFilter());
     modVersionFilteredList.forEach(modVersion -> {
       if (selectedMods.contains(modVersion)) {
         modListView.getSelectionModel().select(modVersion);
@@ -131,9 +123,13 @@ public class ModManagerController implements Controller<Parent> {
     });
   }
 
-  private Predicate<ModVersionBean> getCombinedFilter(String newValue){
-    return modVersion -> (viewToggleGroup.getSelectedToggle() == uiModsButton ? modVersion.getModType() == ModType.UI : modVersion.getModType() == ModType.SIM)
-        && modVersion.getMod().getDisplayName().toLowerCase().contains(newValue.toLowerCase());
+  private Predicate<ModVersionBean> getCombinedFilter(){
+    if(modSearchTextField.getText().isEmpty()){
+      return modVersion -> (viewToggleGroup.getSelectedToggle() == uiModsButton ? modVersion.getModType() == ModType.UI : modVersion.getModType() == ModType.SIM);
+    } else {
+      return modVersion -> (viewToggleGroup.getSelectedToggle() == uiModsButton ? modVersion.getModType() == ModType.UI : modVersion.getModType() == ModType.SIM)
+          && modVersion.getMod().getDisplayName().toLowerCase().contains(modSearchTextField.getText().toLowerCase());
+    }
   }
 
   private void loadActivatedMods() {
@@ -149,7 +145,14 @@ public class ModManagerController implements Controller<Parent> {
   }
 
   private void filterModList() {
-    onTextChange(modSearchTextField.getText());
+    modVersionFilteredList.setPredicate(getCombinedFilter());
+    modVersionFilteredList.forEach(modVersion -> {
+      if (selectedMods.contains(modVersion)) {
+        modListView.getSelectionModel().select(modVersion);
+      } else {
+        modListView.getSelectionModel().clearSelection(modListView.getItems().indexOf(modVersion));
+      }
+    });
   }
 
   @NotNull
