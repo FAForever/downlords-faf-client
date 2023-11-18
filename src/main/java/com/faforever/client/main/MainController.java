@@ -1,10 +1,8 @@
 package com.faforever.client.main;
 
 import ch.micheljung.fxwindow.FxStage;
-import com.faforever.client.FafClientApplication;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.exception.AssetLoadException;
-import com.faforever.client.exception.FxmlLoadException;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
@@ -34,8 +32,6 @@ import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
@@ -69,11 +65,8 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 import static javafx.scene.layout.Background.EMPTY;
 
@@ -82,8 +75,6 @@ import static javafx.scene.layout.Background.EMPTY;
 @Slf4j
 @RequiredArgsConstructor
 public class MainController implements Controller<Node>, InitializingBean {
-
-  private final Cache<NavigationItem, AbstractViewController<?>> viewCache = CacheBuilder.newBuilder().build();
 
   private final ClientProperties clientProperties;
   private final I18n i18n;
@@ -110,17 +101,10 @@ public class MainController implements Controller<Node>, InitializingBean {
   protected Popup transientNotificationsPopup;
   private NavigationItem currentItem;
   private FxStage fxStage;
-  private boolean alwaysReloadTabs;
 
   @Override
   public void afterPropertiesSet() {
-    alwaysReloadTabs = Arrays.asList(environment.getActiveProfiles()).contains(FafClientApplication.PROFILE_RELOAD);
-
     loginService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
-      if (!newValue && oldValue) {
-        viewCache.invalidateAll();
-      }
-
       if (newValue) {
         enterLoggedInState();
       } else {
@@ -165,20 +149,8 @@ public class MainController implements Controller<Node>, InitializingBean {
 
   private void displayView(AbstractViewController<?> controller, NavigateEvent navigateEvent) {
     Node node = controller.getRoot();
-    ObservableList<Node> children = contentPane.getChildren();
-
-    if (alwaysReloadTabs) {
-      children.clear();
-    }
-
-    if (!children.contains(node)) {
-      children.add(node);
-      JavaFxUtil.setAnchors(node, 0d);
-    }
-
-    if (!alwaysReloadTabs) {
-      Optional.ofNullable(currentItem).ifPresent(item -> getView(item).hide());
-    }
+    contentPane.getChildren().setAll(node);
+    JavaFxUtil.setAnchors(node, 0d);
     controller.display(navigateEvent);
   }
 
@@ -364,15 +336,7 @@ public class MainController implements Controller<Node>, InitializingBean {
   }
 
   private AbstractViewController<?> getView(NavigationItem item) {
-    if (alwaysReloadTabs) {
       return uiService.loadFxml(item.getFxmlFile());
-    }
-
-    try {
-      return viewCache.get(item, () -> uiService.loadFxml(item.getFxmlFile()));
-    } catch (ExecutionException e) {
-      throw new FxmlLoadException("Could not load tab view", e, "view.couldNotLoad", i18n.get(item.getI18nKey()));
-    }
   }
 
   private void displayImmediateNotification(ImmediateNotification notification) {

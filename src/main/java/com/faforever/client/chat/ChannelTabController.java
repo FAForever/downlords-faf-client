@@ -25,6 +25,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.collections.WeakListChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
@@ -90,6 +91,8 @@ public class ChannelTabController extends AbstractChatTabController {
                                                                                     .orElse(
                                                                                         FXCollections.emptyObservableList());
   private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = this::updateChangedUsersStyles;
+  private final WeakListChangeListener<ChatChannelUser> weakChannelUserListChangeListener = new WeakListChangeListener<>(
+      channelUserListChangeListener);
 
 
   public ChannelTabController(WebViewConfigurer webViewConfigurer, LoginService loginService, ChatService chatService,
@@ -141,7 +144,7 @@ public class ChannelTabController extends AbstractChatTabController {
                             .or(topicTextField.visibleProperty())
                             .when(showing));
 
-    root.idProperty().bind(channelName.when(showing));
+    root.idProperty().bind(channelName.when(tabPaneShowing));
     root.textProperty().bind(channelName.map(name -> name.replaceFirst("^#", "")).when(tabPaneShowing));
 
     chatUserListController.chatChannelProperty().bind(chatChannel);
@@ -149,7 +152,8 @@ public class ChannelTabController extends AbstractChatTabController {
     ObservableValue<Boolean> isModerator = chatChannel.map(channel -> channel.getUser(loginService.getUsername())
                                                                              .orElse(null))
                                                       .flatMap(ChatChannelUser::moderatorProperty)
-                                                      .orElse(false);
+                                                      .orElse(false)
+                                                      .when(showing);
     changeTopicTextButton.visibleProperty()
                          .bind(BooleanExpression.booleanExpression(isModerator)
                                                 .and(topicTextField.visibleProperty().not())
@@ -163,17 +167,17 @@ public class ChannelTabController extends AbstractChatTabController {
     chatPrefs.chatColorModeProperty()
              .when(showing)
              .addListener((SimpleInvalidationListener) () -> users.getValue().forEach(this::updateUserMessageColor));
-    channelTopic.addListener(((observable, oldValue, newValue) -> updateChannelTopic(oldValue, newValue)));
-    users.addListener((observable, oldValue, newValue) -> {
+    channelTopic.when(showing).subscribe(this::updateChannelTopic);
+    users.when(showing).addListener((observable, oldValue, newValue) -> {
       if (oldValue != null) {
-        oldValue.removeListener(channelUserListChangeListener);
+        oldValue.removeListener(weakChannelUserListChangeListener);
       }
       if (newValue != null) {
-        newValue.addListener(channelUserListChangeListener);
+        newValue.addListener(weakChannelUserListChangeListener);
       }
     });
 
-    userListVisibilityToggleButton.selectedProperty().addListener(observable -> updateDividerPosition());
+    userListVisibilityToggleButton.selectedProperty().when(showing).subscribe(this::updateDividerPosition);
 
     AutoCompletionHelper autoCompletionHelper = getAutoCompletionHelper();
     autoCompletionHelper.bindTo(messageTextField());

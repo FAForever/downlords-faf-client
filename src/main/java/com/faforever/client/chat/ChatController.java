@@ -4,12 +4,14 @@ import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.theme.UiService;
+import javafx.beans.binding.BooleanExpression;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
+import javafx.collections.WeakListChangeListener;
+import javafx.collections.WeakMapChangeListener;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
@@ -37,6 +39,11 @@ public class ChatController extends AbstractViewController<AnchorPane> {
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final Map<ChatChannel, AbstractChatTabController> channelToChatTabController = new HashMap<>();
+  private final ListChangeListener<Tab> tabListChangeListener = change -> {
+    while (change.next()) {
+      change.getRemoved().forEach(tab -> channelToChatTabController.remove((ChatChannel) tab.getUserData()));
+    }
+  };
   private final MapChangeListener<String, ChatChannel> channelChangeListener = change -> {
     if (change.wasRemoved()) {
       onChannelLeft(change.getValueRemoved());
@@ -56,20 +63,14 @@ public class ChatController extends AbstractViewController<AnchorPane> {
   public void initialize() {
     super.initialize();
 
-    chatService.addChannelsListener(channelChangeListener);
+    BooleanExpression showing = uiService.createShowingProperty(getRoot());
+
+    chatService.addChannelsListener(new WeakMapChangeListener<>(channelChangeListener));
     chatService.getChannels().forEach(this::onChannelJoined);
 
-    JavaFxUtil.addAndTriggerListener(chatService.connectionStateProperty(), (SimpleChangeListener<ConnectionState>) this::onConnectionStateChange);
+    chatService.connectionStateProperty().when(showing).subscribe(this::onConnectionStateChange);
 
-    JavaFxUtil.addListener(tabPane.getTabs(), (ListChangeListener<Tab>) change -> {
-      while (change.next()) {
-        change.getRemoved().forEach(tab -> channelToChatTabController.remove((ChatChannel) tab.getUserData()));
-      }
-    });
-  }
-
-  public void dispose() {
-    chatService.removeChannelsListener(channelChangeListener);
+    JavaFxUtil.addListener(tabPane.getTabs(), new WeakListChangeListener<>(tabListChangeListener));
   }
 
   private void onChannelLeft(ChatChannel chatChannel) {

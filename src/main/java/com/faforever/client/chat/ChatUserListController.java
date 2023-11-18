@@ -111,7 +111,7 @@ public class ChatUserListController implements Controller<VBox> {
     searchUsernameTextField.promptTextProperty()
         .bind(users.flatMap(Bindings::size).map(size -> i18n.get("chat.userCount", size)).when(showing));
 
-    users.addListener((observable, oldValue, newValue) -> {
+    users.when(showing).subscribe((oldValue, newValue) -> {
       unfilteredSource.removeIf(item -> item.user() != null);
 
       if (oldValue != null) {
