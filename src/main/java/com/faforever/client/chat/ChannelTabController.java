@@ -87,7 +87,8 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private final ObservableValue<ChannelTopic> channelTopic = chatChannel.flatMap(ChatChannel::topicProperty);
   private final ObservableValue<ObservableList<ChatChannelUser>> users = chatChannel.map(ChatChannel::getUsers)
-      .orElse(FXCollections.emptyObservableList());
+                                                                                    .orElse(
+                                                                                        FXCollections.emptyObservableList());
   private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = this::updateChangedUsersStyles;
 
 
@@ -110,51 +111,58 @@ public class ChannelTabController extends AbstractChatTabController {
   @Override
   public void initialize() {
     super.initialize();
-    JavaFxUtil.bindManagedToVisible(topicPane, chatUserList, changeTopicTextButton, topicTextField, cancelChangesTopicTextButton, topicText, topicCharactersLimitLabel, chatMessageSearchContainer);
+    JavaFxUtil.bindManagedToVisible(topicPane, chatUserList, changeTopicTextButton, topicTextField,
+                                    cancelChangesTopicTextButton, topicText, topicCharactersLimitLabel,
+                                    chatMessageSearchContainer);
     JavaFxUtil.bind(topicCharactersLimitLabel.visibleProperty(), topicTextField.visibleProperty());
     JavaFxUtil.bind(cancelChangesTopicTextButton.visibleProperty(), topicTextField.visibleProperty());
     JavaFxUtil.bind(chatUserList.visibleProperty(), userListVisibilityToggleButton.selectedProperty());
 
+    BooleanExpression tabPaneShowing = BooleanExpression.booleanExpression(getRoot().tabPaneProperty()
+                                                                                    .flatMap(
+                                                                                        uiService::createShowingProperty));
     ObservableValue<Boolean> showing = getRoot().selectedProperty()
-        .and(BooleanExpression.booleanExpression(getRoot().tabPaneProperty()
-            .flatMap(uiService::createShowingProperty)));
+                                                .and(tabPaneShowing);
 
     userListVisibilityToggleButton.selectedProperty().bindBidirectional(chatPrefs.playerListShownProperty());
     topicTextField.setTextFormatter(new TextFormatter<>(change -> change.getControlNewText()
-        .length() <= TOPIC_CHARACTERS_LIMIT ? change : null));
+                                                                        .length() <= TOPIC_CHARACTERS_LIMIT ? change : null));
 
     topicCharactersLimitLabel.textProperty()
-        .bind(topicTextField.textProperty()
-            .length()
-            .map(length -> String.format("%d / %d", length.intValue(), TOPIC_CHARACTERS_LIMIT))
-            .when(showing));
+                             .bind(topicTextField.textProperty()
+                                                 .length()
+                                                 .map(length -> String.format("%d / %d", length.intValue(),
+                                                                              TOPIC_CHARACTERS_LIMIT))
+                                                 .when(showing));
 
     topicPane.visibleProperty()
-        .bind(topicText.visibleProperty()
-            .or(changeTopicTextButton.visibleProperty())
-            .or(topicTextField.visibleProperty())
-            .when(showing));
+             .bind(topicText.visibleProperty()
+                            .or(changeTopicTextButton.visibleProperty())
+                            .or(topicTextField.visibleProperty())
+                            .when(showing));
 
     root.idProperty().bind(channelName.when(showing));
-    root.textProperty().bind(channelName.map(name -> name.replaceFirst("^#", "")).when(showing));
+    root.textProperty().bind(channelName.map(name -> name.replaceFirst("^#", "")).when(tabPaneShowing));
 
     chatUserListController.chatChannelProperty().bind(chatChannel);
 
     ObservableValue<Boolean> isModerator = chatChannel.map(channel -> channel.getUser(loginService.getUsername())
-        .orElse(null)).flatMap(ChatChannelUser::moderatorProperty).orElse(false);
+                                                                             .orElse(null))
+                                                      .flatMap(ChatChannelUser::moderatorProperty)
+                                                      .orElse(false);
     changeTopicTextButton.visibleProperty()
-        .bind(BooleanExpression.booleanExpression(isModerator)
-            .and(topicTextField.visibleProperty().not())
-            .when(showing));
+                         .bind(BooleanExpression.booleanExpression(isModerator)
+                                                .and(topicTextField.visibleProperty().not())
+                                                .when(showing));
 
     chatMessageSearchTextField.textProperty().addListener((SimpleChangeListener<String>) this::highlightText);
 
     chatPrefs.hideFoeMessagesProperty()
-        .when(showing)
-        .addListener((SimpleChangeListener<Boolean>) this::hideFoeMessages);
+             .when(showing)
+             .addListener((SimpleChangeListener<Boolean>) this::hideFoeMessages);
     chatPrefs.chatColorModeProperty()
-        .when(showing)
-        .addListener((SimpleInvalidationListener) () -> users.getValue().forEach(this::updateUserMessageColor));
+             .when(showing)
+             .addListener((SimpleInvalidationListener) () -> users.getValue().forEach(this::updateUserMessageColor));
     channelTopic.addListener(((observable, oldValue, newValue) -> updateChannelTopic(oldValue, newValue)));
     users.addListener((observable, oldValue, newValue) -> {
       if (oldValue != null) {
@@ -173,11 +181,13 @@ public class ChannelTabController extends AbstractChatTabController {
 
   public AutoCompletionHelper getAutoCompletionHelper() {
     return new AutoCompletionHelper(currentWord -> users.getValue()
-        .stream()
-        .map(ChatChannelUser::getUsername)
-        .filter(username -> username.toLowerCase(US).startsWith(currentWord.toLowerCase()))
-        .sorted()
-        .collect(Collectors.toList()));
+                                                        .stream()
+                                                        .map(ChatChannelUser::getUsername)
+                                                        .filter(username -> username.toLowerCase(US)
+                                                                                    .startsWith(
+                                                                                        currentWord.toLowerCase()))
+                                                        .sorted()
+                                                        .collect(Collectors.toList()));
   }
 
   private void highlightText(String newValue) {
@@ -190,9 +200,9 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private void hideFoeMessages(boolean shouldHide) {
     users.getValue()
-        .stream()
-        .filter(user -> user.getCategories().stream().anyMatch(status -> status == ChatUserCategory.FOE))
-        .forEach(user -> updateUserMessageVisibility(user, shouldHide));
+         .stream()
+         .filter(user -> user.getCategories().stream().anyMatch(status -> status == ChatUserCategory.FOE))
+         .forEach(user -> updateUserMessageVisibility(user, shouldHide));
   }
 
   private void updateChangedUsersStyles(Change<? extends ChatChannelUser> change) {
@@ -247,7 +257,8 @@ public class ChannelTabController extends AbstractChatTabController {
 
     if (oldTopic != null) {
       String oldTopicContent = oldTopic.content();
-      onChatMessage(new ChatMessage(Instant.now(), newTopic.author(), i18n.get("chat.topicUpdated", oldTopicContent, newTopicContent)));
+      onChatMessage(new ChatMessage(Instant.now(), newTopic.author(),
+                                    i18n.get("chat.topicUpdated", oldTopicContent, newTopicContent)));
     }
   }
 
@@ -282,12 +293,14 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private void updateUserMessageVisibility(ChatChannelUser user, boolean shouldHide) {
     String displayPropertyValue = shouldHide ? "none" : "";
-    fxApplicationThreadExecutor.execute(() -> callJsMethod("updateUserMessageDisplay", user.getUsername(), displayPropertyValue));
+    fxApplicationThreadExecutor.execute(
+        () -> callJsMethod("updateUserMessageDisplay", user.getUsername(), displayPropertyValue));
   }
 
   private void updateStyleClass(ChatChannelUser user) {
     user.getPlayer()
-        .ifPresentOrElse(player -> removeUserMessageStyleClass(user, CSS_CLASS_CHAT_ONLY), () -> addUserMessageStyleClass(user, CSS_CLASS_CHAT_ONLY));
+        .ifPresentOrElse(player -> removeUserMessageStyleClass(user, CSS_CLASS_CHAT_ONLY),
+                         () -> addUserMessageStyleClass(user, CSS_CLASS_CHAT_ONLY));
     if (user.isModerator()) {
       addUserMessageStyleClass(user, MODERATOR_STYLE_CLASS);
     } else {
@@ -296,32 +309,36 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void addUserMessageStyleClass(ChatChannelUser user, String styleClass) {
-    fxApplicationThreadExecutor.execute(() -> callJsMethod("addUserMessageClass", String.format(USER_STYLE_CLASS, user.getUsername()), styleClass));
+    fxApplicationThreadExecutor.execute(
+        () -> callJsMethod("addUserMessageClass", String.format(USER_STYLE_CLASS, user.getUsername()), styleClass));
   }
 
   private void removeUserMessageStyleClass(ChatChannelUser user, String styleClass) {
     if (StringUtils.isNotBlank(styleClass)) {
-      fxApplicationThreadExecutor.execute(() -> callJsMethod("removeUserMessageClass", String.format(USER_STYLE_CLASS, user.getUsername()), styleClass));
+      fxApplicationThreadExecutor.execute(
+          () -> callJsMethod("removeUserMessageClass", String.format(USER_STYLE_CLASS, user.getUsername()),
+                             styleClass));
     }
   }
 
   @Override
   protected String getMessageCssClass(String login) {
     return chatService.getOrCreateChatUser(login, channelName.getValue())
-        .isModerator() ? MODERATOR_STYLE_CLASS : super.getMessageCssClass(login);
+                      .isModerator() ? MODERATOR_STYLE_CLASS : super.getMessageCssClass(login);
   }
 
   @Override
   protected void onMention(ChatMessage chatMessage) {
     if (notificationPrefs.getNotifyOnAtMentionOnlyEnabled() && !chatMessage.message()
-        .contains("@" + loginService.getUsername())) {
+                                                                           .contains(
+                                                                               "@" + loginService.getUsername())) {
       return;
     }
 
     if (playerService.getPlayerByNameIfOnline(chatMessage.username())
-        .map(PlayerBean::getSocialStatus)
-        .map(FOE::equals)
-        .orElse(false)) {
+                     .map(PlayerBean::getSocialStatus)
+                     .map(FOE::equals)
+                     .orElse(false)) {
       log.debug("Ignored ping from {}", chatMessage.username());
     } else if (!hasFocus()) {
       audioService.playChatMentionSound();
@@ -339,8 +356,8 @@ public class ChannelTabController extends AbstractChatTabController {
     }
 
     if (chatPrefs.isHideFoeMessages() && user.getCategories()
-        .stream()
-        .anyMatch(category -> category == ChatUserCategory.FOE)) {
+                                             .stream()
+                                             .anyMatch(category -> category == ChatUserCategory.FOE)) {
       return "display: none;";
     } else {
       return user.getColor().map(color -> String.format("color: %s;", JavaFxUtil.toRgbCode(color))).orElse("");

@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -25,11 +24,24 @@ public class ChatChannel {
   @Getter
   private final String name;
 
-  private final ObservableMap<String, ChatChannelUser> usernameToChatUser = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
-  private final ObservableList<ChatChannelUser> users = JavaFxUtil.attachListToMap(FXCollections.synchronizedObservableList(FXCollections.observableArrayList(item -> new Observable[]{item.categoriesProperty(), item.colorProperty(), item.moderatorProperty()})), usernameToChatUser);
+  private final ObservableMap<String, ChatChannelUser> usernameToChatUser = FXCollections.synchronizedObservableMap(
+      FXCollections.observableHashMap());
+  private final ObservableList<ChatChannelUser> users = JavaFxUtil.attachListToMap(
+      FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
+          item -> new Observable[]{item.categoriesProperty(), item.colorProperty(), item.moderatorProperty()})),
+      usernameToChatUser);
   private final ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic("", ""));
   private final Set<Consumer<ChatMessage>> messageListeners = new HashSet<>();
-  private final List<ChatMessage> unprocessedMessages = new ArrayList<>();
+  private final List<ChatMessage> messages = new ArrayList<>();
+
+  private int maxNumMessages = Integer.MAX_VALUE;
+
+  public void setMaxNumMessages(int maxNumMessages) {
+    this.maxNumMessages = maxNumMessages;
+    if (messages.size() > maxNumMessages) {
+      messages.subList(0, messages.size() - maxNumMessages).clear();
+    }
+  }
 
   public ChannelTopic getTopic() {
     return topic.get();
@@ -76,24 +88,16 @@ public class ChatChannel {
   }
 
   public void addMessage(ChatMessage message) {
-    if (messageListeners.isEmpty()) {
-      unprocessedMessages.add(message);
-    }
+    messages.add(message);
     messageListeners.forEach(chatMessageConsumer -> chatMessageConsumer.accept(message));
+    if (messages.size() > maxNumMessages) {
+      messages.remove(0);
+    }
   }
 
   public void addMessageListener(Consumer<ChatMessage> messageListener) {
     messageListeners.add(messageListener);
-    drainUnprocessed();
-  }
-
-  private void drainUnprocessed() {
-    Iterator<ChatMessage> unprocessedIterator = unprocessedMessages.iterator();
-    while (unprocessedIterator.hasNext()) {
-      ChatMessage message = unprocessedIterator.next();
-      messageListeners.forEach(chatMessageConsumer -> chatMessageConsumer.accept(message));
-      unprocessedIterator.remove();
-    }
+    messages.forEach(messageListener);
   }
 
   public void removeMessageListener(Consumer<ChatMessage> messageListener) {

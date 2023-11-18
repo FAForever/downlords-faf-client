@@ -17,8 +17,6 @@ import com.faforever.client.user.LoginService;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.beans.InvalidationListener;
-import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -104,7 +102,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
    * Maps channels by name.
    */
   private final ObservableMap<String, ChatChannel> channels = synchronizedObservableMap(observableHashMap());
-  private final InvalidationListener userColorsListener = observable -> updateUserColors();
   @VisibleForTesting
   ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
   @VisibleForTesting
@@ -138,8 +135,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     });
 
     playerService.addPlayerOnlineListener(this::onPlayerOnline);
-    JavaFxUtil.addListener(chatPrefs.groupToColorProperty(), new WeakInvalidationListener(userColorsListener));
-    JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), new WeakInvalidationListener(userColorsListener));
+    chatPrefs.groupToColorProperty().subscribe(this::updateUserColors);
+    chatPrefs.chatColorModeProperty().subscribe(this::updateUserColors);
+    chatPrefs.maxMessagesProperty()
+             .subscribe(maxMessages -> channels.values()
+                                               .forEach(channel -> channel.setMaxNumMessages(maxMessages.intValue())));
   }
 
   private void updateUserColors() {
@@ -156,10 +156,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     Optional<Channel> channel = client.getChannel(channelName);
 
     return channel.flatMap(chan -> chan.getUser(username).map(user -> getOrCreateChatUser(user, chan)))
-        .orElseGet(() -> {
-          ChatChannel chatChannel = getOrCreateChannel(channelName);
-          return chatChannel.getUser(username).orElseGet(() -> initializeUserForChannel(username, chatChannel));
-        });
+                  .orElseGet(() -> {
+                    ChatChannel chatChannel = getOrCreateChannel(channelName);
+                    return chatChannel.getUser(username)
+                                      .orElseGet(() -> initializeUserForChannel(username, chatChannel));
+                  });
   }
 
   private ChatChannelUser getOrCreateChatUser(User user, Channel channel) {
@@ -171,10 +172,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       ChatChannelUser chatChannelUser = initializeUserForChannel(username, chatChannel);
 
       boolean isModerator = channel.getUserModes(user)
-          .stream()
-          .flatMap(Collection::stream)
-          .map(ChannelUserMode::getNickPrefix)
-          .anyMatch(MODERATOR_PREFIXES::contains);
+                                   .stream()
+                                   .flatMap(Collection::stream)
+                                   .map(ChannelUserMode::getNickPrefix)
+                                   .anyMatch(MODERATOR_PREFIXES::contains);
       chatChannelUser.setModerator(isModerator);
       return chatChannelUser;
     });
@@ -191,13 +192,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @VisibleForTesting
   void onPlayerOnline(PlayerBean player) {
     channels.values()
-        .stream()
-        .map(channel -> channel.getUser(player.getUsername()))
-        .flatMap(Optional::stream)
-        .forEach(chatChannelUser -> fxApplicationThreadExecutor.execute(() -> {
-          chatChannelUser.setPlayer(player);
-          populateColor(chatChannelUser);
-        }));
+            .stream()
+            .map(channel -> channel.getUser(player.getUsername()))
+            .flatMap(Optional::stream)
+            .forEach(chatChannelUser -> fxApplicationThreadExecutor.execute(() -> {
+              chatChannelUser.setPlayer(player);
+              populateColor(chatChannelUser);
+            }));
   }
 
   @Handler
@@ -208,11 +209,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     joinBufferedChannels();
 
     if (loginService.getOwnPlayer()
-        .getRatings()
-        .values()
-        .stream()
-        .mapToInt(LeaderboardStats::getNumberOfGames)
-        .sum() < MAX_GAMES_FOR_NEWBIE_CHANNEL) {
+                    .getRatings()
+                    .values()
+                    .stream()
+                    .mapToInt(LeaderboardStats::getNumberOfGames)
+                    .sum() < MAX_GAMES_FOR_NEWBIE_CHANNEL) {
       joinChannel(NEWBIE_CHANNEL_NAME);
     }
   }
@@ -228,9 +229,9 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   public void onChatUserList(ChannelNamesUpdatedEvent event) {
     Channel channel = event.getChannel();
     List<ChatChannelUser> users = channel.getUsers()
-        .stream()
-        .map(user -> getOrCreateChatUser(user, channel))
-        .collect(Collectors.toList());
+                                         .stream()
+                                         .map(user -> getOrCreateChatUser(user, channel))
+                                         .collect(Collectors.toList());
     getOrCreateChannel(channel.getName()).addUsers(users);
   }
 
@@ -251,10 +252,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Handler
   private void onTopicChange(ChannelTopicEvent event) {
     String author = event.getNewTopic()
-        .getSetter()
-        .map(Actor::getName)
-        .map(name -> name.replaceFirst("!.*", ""))
-        .orElse("");
+                         .getSetter()
+                         .map(Actor::getName)
+                         .map(name -> name.replaceFirst("!.*", ""))
+                         .orElse("");
     String content = event.getNewTopic().getValue().orElse("");
     getOrCreateChannel(event.getChannel().getName()).setTopic(new ChannelTopic(author, content));
   }
@@ -265,7 +266,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String channelName = event.getChannel().getName();
 
-    getOrCreateChannel(channelName).addMessage(new ChatMessage(Instant.now(), user.getNick(), event.getMessage(), false));
+    getOrCreateChannel(channelName).addMessage(
+        new ChatMessage(Instant.now(), user.getNick(), event.getMessage(), false));
   }
 
   @Handler
@@ -284,7 +286,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     event.getStatusList().getAll().forEach(channelModeStatus -> channelModeStatus.getParameter().ifPresent(username -> {
       Mode changedMode = channelModeStatus.getMode();
       Action modeAction = channelModeStatus.getAction();
-      if (changedMode instanceof ChannelUserMode channelUserMode && MODERATOR_PREFIXES.contains(channelUserMode.getNickPrefix())) {
+      if (changedMode instanceof ChannelUserMode channelUserMode && MODERATOR_PREFIXES.contains(
+          channelUserMode.getNickPrefix())) {
         ChatChannelUser chatChannelUser = getOrCreateChatUser(username, channel.getName());
         if (modeAction == Action.ADD) {
           chatChannelUser.setModerator(true);
@@ -302,9 +305,9 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     ChatChannelUser sender = getOrCreateChatUser(user.getNick(), user.getNick());
     if (sender.getPlayer()
-        .map(PlayerBean::getSocialStatus)
-        .map(status -> status == SocialStatus.FOE)
-        .orElse(false) && chatPrefs.isHideFoeMessages()) {
+              .map(PlayerBean::getSocialStatus)
+              .map(status -> status == SocialStatus.FOE)
+              .orElse(false) && chatPrefs.isHideFoeMessages()) {
       ircLog.debug("Suppressing chat message from foe '{}'", user.getNick());
       return;
     }
@@ -387,12 +390,12 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       color = userToColor.get(lowercaseUsername);
     } else {
       color = chatChannelUser.getCategories()
-          .stream()
-          .sorted()
-          .map(groupToColor::get)
-          .filter(Objects::nonNull)
-          .findFirst()
-          .orElse(null);
+                             .stream()
+                             .sorted()
+                             .map(groupToColor::get)
+                             .filter(Objects::nonNull)
+                             .findFirst()
+                             .orElse(null);
     }
     chatChannelUser.setColor(color);
   }
@@ -407,31 +410,32 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     username = loginService.getUsername();
 
     client = (DefaultClient) Client.builder()
-        .realName(username)
-        .nick(username)
-        .server()
-        .host(irc.getHost())
-        .port(irc.getPort(), SecurityType.SECURE)
-        .secureTrustManagerFactory(new TrustEveryoneFactory())
-        .then()
-        .listeners()
-        .input(this::onMessage)
-        .output(this::onMessage)
-        .then()
-        .build();
+                                   .realName(username)
+                                   .nick(username)
+                                   .server()
+                                   .host(irc.getHost())
+                                   .port(irc.getPort(), SecurityType.SECURE)
+                                   .secureTrustManagerFactory(new TrustEveryoneFactory())
+                                   .then()
+                                   .listeners()
+                                   .input(this::onMessage)
+                                   .output(this::onMessage)
+                                   .then()
+                                   .build();
 
     userWebClientFactory.getObject()
-        .get()
-        .uri("irc/ergochat/token")
-        .retrieve()
-        .bodyToMono(IrcChatToken.class)
-        .map(IrcChatToken::value)
-        .subscribe(token -> {
-          client.getAuthManager().addProtocol(new SaslPlain(client, username, "token:%s".formatted(token)));
-          client.getEventManager().registerEventListener(this);
-          client.getActorTracker().setQueryChannelInformation(false);
-          client.connect();
-        });
+                        .get()
+                        .uri("irc/ergochat/token")
+                        .retrieve()
+                        .bodyToMono(IrcChatToken.class)
+                        .map(IrcChatToken::value)
+                        .subscribe(token -> {
+                          client.getAuthManager()
+                                .addProtocol(new SaslPlain(client, username, "token:%s".formatted(token)));
+                          client.getEventManager().registerEventListener(this);
+                          client.getActorTracker().setQueryChannelInformation(false);
+                          client.connect();
+                        });
   }
 
   @Override
@@ -451,7 +455,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public ChatChannel getOrCreateChannel(String channelName) {
-    return channels.computeIfAbsent(channelName, ChatChannel::new);
+    return channels.computeIfAbsent(channelName, name -> {
+      ChatChannel chatChannel = new ChatChannel(name);
+      chatChannel.setMaxNumMessages(chatPrefs.getMaxMessages());
+      return chatChannel;
+    });
   }
 
   public void addUsersListener(String channelName, ListChangeListener<ChatChannelUser> listener) {
@@ -498,8 +506,9 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Override
   public void setChannelTopic(ChatChannel chatChannel, String text) {
     client.getChannel(chatChannel.getName())
-        .orElseThrow(() -> new IllegalArgumentException(String.format("No channel with `%s` name", chatChannel.getName())))
-        .setTopic(text);
+          .orElseThrow(
+              () -> new IllegalArgumentException(String.format("No channel with `%s` name", chatChannel.getName())))
+          .setTopic(text);
   }
 
   @Override
@@ -509,6 +518,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void destroy() {
+    autoReconnect = false;
     close();
   }
 
