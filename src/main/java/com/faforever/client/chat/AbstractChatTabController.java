@@ -34,6 +34,7 @@ import com.google.common.io.CharStreams;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.WeakInvalidationListener;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -167,13 +168,19 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   Pattern mentionPattern;
 
   public void initialize() {
+    BooleanExpression tabPaneShowing = BooleanExpression.booleanExpression(getRoot().tabPaneProperty()
+                                                                                    .flatMap(
+                                                                                        uiService::createShowingProperty));
+    ObservableValue<Boolean> showing = getRoot().selectedProperty()
+                                                .and(tabPaneShowing);
+
     mentionPattern = Pattern.compile("(^|[^A-Za-z0-9-])" + Pattern.quote(loginService.getUsername()) + "([^A-Za-z0-9-]|$)", CASE_INSENSITIVE);
 
     initChatView();
 
     addFocusListeners();
 
-    chatChannel.addListener(((observable, oldValue, newValue) -> {
+    chatChannel.when(showing).subscribe(((oldValue, newValue) -> {
       if (oldValue != null) {
         oldValue.removeMessageListener(messageListener);
       }
@@ -181,6 +188,13 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
         newValue.addMessageListener(messageListener);
       }
     }));
+
+    showing.subscribe(shown -> {
+      ChatChannel channel = chatChannel.get();
+      if (!shown && channel != null) {
+        channel.removeMessageListener(messageListener);
+      }
+    });
 
     unreadMessagesCount.addListener((observable, oldValue, newValue) -> incrementUnreadMessageCount(newValue.intValue() - oldValue.intValue()));
     StageHolder.getStage().focusedProperty().addListener(new WeakInvalidationListener(resetUnreadMessagesListener));

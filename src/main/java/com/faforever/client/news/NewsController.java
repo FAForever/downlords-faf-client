@@ -7,6 +7,7 @@ import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.theme.UiService;
 import javafx.concurrent.Worker;
 import javafx.scene.Node;
 import javafx.scene.control.Control;
@@ -24,6 +25,7 @@ public class NewsController extends AbstractViewController<Node> {
   private final WebViewConfigurer webViewConfigurer;
   private final ClientProperties clientProperties;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final UiService uiService;
 
   public Pane newsRoot;
   public WebView newsWebView;
