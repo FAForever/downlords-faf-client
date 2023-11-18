@@ -57,6 +57,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
     super.initialize();
 
     chatService.addChannelsListener(channelChangeListener);
+    chatService.getChannels().forEach(this::onChannelJoined);
 
     JavaFxUtil.addAndTriggerListener(chatService.connectionStateProperty(), (SimpleChangeListener<ConnectionState>) this::onConnectionStateChange);
 

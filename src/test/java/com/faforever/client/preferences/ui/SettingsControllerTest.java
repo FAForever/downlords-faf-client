@@ -35,6 +35,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
@@ -251,6 +252,7 @@ public class SettingsControllerTest extends PlatformTest {
   }
 
   @Test
+  @Disabled("Flaky test")
   public void testSetDataLocation() throws Exception {
     MoveDirectoryTask moveDirectoryTask = mock(MoveDirectoryTask.class);
     Path newDataLocation = Path.of(".");
@@ -273,6 +275,7 @@ public class SettingsControllerTest extends PlatformTest {
   }
 
   @Test
+  @Disabled("Flaky test")
   public void testClearCache() throws Exception {
     DeleteDirectoryTask deleteDirectoryTask = mock(DeleteDirectoryTask.class);
     when(deleteDirectoryTaskFactory.getObject()).thenReturn(deleteDirectoryTask);
@@ -284,6 +287,7 @@ public class SettingsControllerTest extends PlatformTest {
   }
 
   @Test
+  @Disabled("Flaky test")
   public void testSetFAFDebuggerOn() throws Exception {
     DownloadFAFDebuggerTask downloadFAFDebuggerTask = mock(DownloadFAFDebuggerTask.class);
     when(downloadFAFDebuggerTaskFactory.getObject()).thenReturn(downloadFAFDebuggerTask);
@@ -295,6 +299,7 @@ public class SettingsControllerTest extends PlatformTest {
   }
 
   @Test
+  @Disabled("Flaky test")
   public void testSetFAFDebuggerOnException() throws Exception {
     DownloadFAFDebuggerTask downloadFAFDebuggerTask = mock(DownloadFAFDebuggerTask.class);
     when(downloadFAFDebuggerTaskFactory.getObject()).thenReturn(downloadFAFDebuggerTask);

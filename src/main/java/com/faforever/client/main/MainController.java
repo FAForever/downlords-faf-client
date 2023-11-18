@@ -159,8 +159,6 @@ public class MainController implements Controller<Node>, InitializingBean {
     notificationService.addImmediateNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> displayImmediateNotification(notification)));
     notificationService.addServerNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> displayServerNotification(notification)));
     notificationService.addTransientNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> transientNotificationsController.addNotification(notification)));
-    // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
-    getView(NavigationItem.CHAT);
 
     navigationHandler.navigationEventProperty().subscribe(this::onNavigateEvent);
   }
