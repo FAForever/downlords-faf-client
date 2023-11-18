@@ -102,7 +102,7 @@ public class ModManagerController implements Controller<Parent> {
     modListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     modListView.setCellFactory(modListCellFactory());
 
-    modSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> onTextChange(newValue));
+    modSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> onTextChange());
 
     viewToggleGroup.selectToggle(uiModsButton);
 
@@ -112,7 +112,7 @@ public class ModManagerController implements Controller<Parent> {
     setCloseable(true);
   }
 
-  private void onTextChange(String newValue){
+  private void onTextChange(){
     modVersionFilteredList.setPredicate(getCombinedFilter());
     modVersionFilteredList.forEach(modVersion -> {
       if (selectedMods.contains(modVersion)) {
