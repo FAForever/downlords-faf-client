@@ -97,7 +97,7 @@ public class ModManagerController implements Controller<Parent> {
     modListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     modListView.setCellFactory(modListCellFactory());
 
-    modSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> onTextChange());
+    modSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> filterModList());
 
     viewToggleGroup.selectToggle(uiModsButton);
 
@@ -105,17 +105,6 @@ public class ModManagerController implements Controller<Parent> {
 
     modListView.scrollTo(modListView.getSelectionModel().getSelectedItem());
     setCloseable(true);
-  }
-
-  private void onTextChange(){
-    modVersionFilteredList.setPredicate(getCombinedFilter());
-    modVersionFilteredList.forEach(modVersion -> {
-      if (selectedMods.contains(modVersion)) {
-        modListView.getSelectionModel().select(modVersion);
-      } else {
-        modListView.getSelectionModel().clearSelection(modListView.getItems().indexOf(modVersion));
-      }
-    });
   }
 
   private Predicate<ModVersionBean> getCombinedFilter(){
