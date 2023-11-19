@@ -34,9 +34,9 @@
     </HBox>
     <HBox>
         <TextField fx:id="modSearchTextField" prefWidth="306.0" promptText="%game.create.searchMap">
-            <VBox.margin>
-                <Insets top="10.0" bottom="10.0"/>
-            </VBox.margin>
+            <HBox.margin>
+                <Insets top="10.0"/>
+            </HBox.margin>
         </TextField>
     </HBox>
     <ListView fx:id="modListView" maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS">
