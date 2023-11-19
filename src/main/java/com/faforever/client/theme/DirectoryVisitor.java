@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 
 public class DirectoryVisitor extends SimpleFileVisitor<Path> {
 
-  private Consumer<Path> onDirectoryFoundListener;
+  private final Consumer<Path> onDirectoryFoundListener;
 
   public DirectoryVisitor(Consumer<Path> onDirectoryFoundListener) {
     this.onDirectoryFoundListener = onDirectoryFoundListener;

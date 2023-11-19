@@ -1,6 +1,6 @@
 package com.faforever.client.vault;
 
-import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenLiveReplayViewEvent;
 import com.faforever.client.main.event.OpenLocalReplayVaultEvent;
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ReplayController extends AbstractViewController<Node> {
+public class ReplayController extends NodeController<Node> {
 
   private final NavigationHandler navigationHandler;
   private final UiService uiService;
@@ -35,7 +35,7 @@ public class ReplayController extends AbstractViewController<Node> {
   public Tab localReplayVaultTab;
   public Tab liveReplayVaultTab;
   private boolean isHandlingEvent;
-  private AbstractViewController<?> lastTabController;
+  private NodeController<?> lastTabController;
   private Tab lastTab;
 
   @Override
@@ -44,7 +44,7 @@ public class ReplayController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     onlineReplayVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", OnlineReplayVaultController.class);
     onlineReplayVaultTab.setContent(onlineReplayVaultController.getRoot());
     localReplayVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", LocalReplayVaultController.class);
@@ -69,7 +69,7 @@ public class ReplayController extends AbstractViewController<Node> {
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  protected void onNavigate(NavigateEvent navigateEvent) {
     isHandlingEvent = true;
 
     try {

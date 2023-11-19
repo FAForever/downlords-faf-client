@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.GenerationType;
 import com.faforever.client.map.generator.GeneratorOptions;
@@ -49,7 +49,7 @@ import java.util.stream.IntStream;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-public class GenerateMapController implements Controller<Pane> {
+public class GenerateMapController extends NodeController<Pane> {
 
   public static final double MIN_MAP_SIZE_STEP = 1.25;
   public static final double KM_TO_PIXEL_FACTOR = 51.2;
@@ -106,7 +106,8 @@ public class GenerateMapController implements Controller<Pane> {
   private final FilteredList<Integer> selectableSpawnCounts = new FilteredList<>(validSpawnCount);
   public Spinner<Integer> numTeamsSpinner;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(commandLineLabel, commandLineArgsText, mapStyleComboBox, mapStyleLabel);
     initCommandlineArgs();
     initGenerationTypeComboBox();
@@ -363,6 +364,7 @@ public class GenerateMapController implements Controller<Pane> {
     }
   }
 
+  @Override
   public Pane getRoot() {
     return generateMapRoot;
   }

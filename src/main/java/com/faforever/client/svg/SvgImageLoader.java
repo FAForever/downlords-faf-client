@@ -53,8 +53,8 @@ public class SvgImageLoader extends ImageLoaderImpl {
     Document document = createDocument();
     Dimension fallbackDimension = (width <= 0 || height <= 0) ? dimensionProvider.getDimension(document) : null;
 
-    float imageWidth = width > 0 ? width : (float) fallbackDimension.getWidth();
-    float imageHeight = height > 0 ? height : (float) fallbackDimension.getHeight();
+    float imageWidth = width > 0 ? width : fallbackDimension.getWidth();
+    float imageHeight = height > 0 ? height : fallbackDimension.getHeight();
 
     try {
       return createImageFrame(document, imageWidth, imageHeight, getPixelScale());

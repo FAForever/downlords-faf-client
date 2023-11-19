@@ -2,10 +2,10 @@ package com.faforever.client.game;
 
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
@@ -58,7 +58,7 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class GameDetailController implements Controller<Pane> {
+public class GameDetailController extends NodeController<Pane> {
 
   private final I18n i18n;
   private final MapService mapService;
@@ -95,7 +95,8 @@ public class GameDetailController implements Controller<Pane> {
   public Node watchButton;
   public Button generateMapButton;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(root, joinButton, watchButton, gameTitleLabel, hostLabel, mapLabel, numberOfPlayersLabel, mapPreviewContainer, gameTypeLabel, playtimeLabel, generateMapButton);
     JavaFxUtil.bind(mapPreviewContainer.visibleProperty(), mapImageView.imageProperty().isNotNull());
 

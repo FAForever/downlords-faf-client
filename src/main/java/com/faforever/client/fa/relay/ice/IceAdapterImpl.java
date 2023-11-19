@@ -234,6 +234,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     return workDirectory.resolve("faf-ice-adapter.jar").toString();
   }
 
+  @Override
   public void setIceServers(Collection<CoturnServer> coturnServers) {
     iceAdapterProxy.setIceServers(iceServerMapper.map(coturnServers));
   }
@@ -280,6 +281,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     stop();
   }
 
+  @Override
   public void stop() {
     iceAdapterProxy.quit();
     peer = null;

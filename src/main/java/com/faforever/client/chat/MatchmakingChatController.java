@@ -74,8 +74,8 @@ public class MatchmakingChatController extends AbstractChatTabController {
   }
 
   @Override
-  public void initialize() {
-    super.initialize();
+  protected void onInitialize() {
+    super.onInitialize();
 
     ObservableValue<Boolean> showing = getRoot().selectedProperty()
         .and(BooleanExpression.booleanExpression(getRoot().tabPaneProperty()

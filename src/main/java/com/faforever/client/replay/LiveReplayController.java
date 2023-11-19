@@ -2,12 +2,12 @@ package com.faforever.client.replay;
 
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.LiveGamesFilterController;
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.ControllerTableCell;
 import com.faforever.client.fx.DecimalCell;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.GameService;
@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class LiveReplayController extends AbstractViewController<Node> {
+public class LiveReplayController extends NodeController<Node> {
 
   private final GameService gameService;
   private final UiService uiService;
@@ -92,12 +92,12 @@ public class LiveReplayController extends AbstractViewController<Node> {
   private Popup gameFilterPopup;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     tableView.setSelectionModel(new NoSelectionModelTableView<>(tableView));
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  protected void onNavigate(NavigateEvent navigateEvent) {
     if (!initialized && navigateEvent instanceof OpenLiveReplayViewEvent) {
       initializeFilterController();
       initializeGameTable();

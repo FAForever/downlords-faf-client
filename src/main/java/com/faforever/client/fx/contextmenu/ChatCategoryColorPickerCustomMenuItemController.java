@@ -26,7 +26,8 @@ public class ChatCategoryColorPickerCustomMenuItemController extends AbstractCus
   public ColorPicker colorPicker;
   public Button removeCustomColorButton;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     removeCustomColorButton.setOnAction(event -> colorPicker.setValue(null));
     removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().flatMap(chatColorMode -> colorPicker.valueProperty().isNotNull().map(isNotNull -> isNotNull && RANDOM != chatColorMode)));
     JavaFxUtil.bindManagedToVisible(removeCustomColorButton);

@@ -32,7 +32,7 @@ public abstract class AbstractRangeSliderFilterController<U, T> extends Abstract
   }
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     rangeSlider.setShowTickLabels(true);
     rangeSlider.setShowTickMarks(true);
   }

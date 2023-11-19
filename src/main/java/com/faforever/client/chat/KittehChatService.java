@@ -522,6 +522,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     close();
   }
 
+  @Override
   public void close() {
     if (client != null) {
       client.shutdown();

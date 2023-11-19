@@ -74,6 +74,7 @@ public class ClientConfigurationBuilder {
       return new OAuthEndpointBuilder();
     }
 
+    @Override
     public OAuthEndpointBuilder defaultValues() {
       return this;
     }
@@ -88,6 +89,7 @@ public class ClientConfigurationBuilder {
       return this;
     }
 
+    @Override
     public OAuthEndpoint get() {
       return oAuthEndpoint;
     }

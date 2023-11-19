@@ -1,8 +1,8 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.contextmenu.CancelActionNotifyMeMenuItem;
 import com.faforever.client.fx.contextmenu.CancelActionRunReplayImmediatelyMenuItem;
@@ -38,7 +38,7 @@ import java.time.OffsetDateTime;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class WatchButtonController implements Controller<Node> {
+public class WatchButtonController extends NodeController<Node> {
 
   public static final PseudoClass TRACKABLE_PSEUDO_CLASS = PseudoClass.getPseudoClass("trackable");
 
@@ -56,7 +56,8 @@ public class WatchButtonController implements Controller<Node> {
 
   private ContextMenu contextMenu;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     watchTimeTimeline.setCycleCount(Timeline.INDEFINITE);

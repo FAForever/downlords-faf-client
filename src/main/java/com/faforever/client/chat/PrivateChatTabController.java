@@ -78,8 +78,9 @@ public class PrivateChatTabController extends AbstractChatTabController {
     this.audioService = audioService;
   }
 
-  public void initialize() {
-    super.initialize();
+  @Override
+  protected void onInitialize() {
+    super.onInitialize();
 
     ObservableValue<Boolean> showing = getRoot().selectedProperty()
         .and(BooleanExpression.booleanExpression(getRoot().tabPaneProperty()

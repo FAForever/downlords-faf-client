@@ -4,9 +4,9 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.config.ClientProperties.Replay;
 import com.faforever.client.config.ClientProperties.User;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -52,7 +52,7 @@ import java.util.concurrent.CompletableFuture;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class LoginController implements Controller<Pane> {
+public class LoginController extends NodeController<Pane> {
 
   private final OperatingSystem operatingSystem;
   private final GameService gameService;
@@ -93,7 +93,8 @@ public class LoginController implements Controller<Pane> {
   private String state;
   private String verifier;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(downloadUpdateButton, loginErrorLabel, loginFormPane,
         serverConfigPane, errorPane, loginProgressPane, messagesContainer, loginButton);
     updateInfoFuture = clientUpdateService.getNewestUpdate();
@@ -353,6 +354,7 @@ public class LoginController implements Controller<Pane> {
 
   }
 
+  @Override
   public Pane getRoot() {
     return loginRoot;
   }

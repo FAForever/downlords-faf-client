@@ -3,11 +3,10 @@ package com.faforever.client.main;
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.exception.AssetLoadException;
-import com.faforever.client.fx.AbstractViewController;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.headerbar.HeaderBarController;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
@@ -57,7 +56,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
@@ -74,14 +72,13 @@ import static javafx.scene.layout.Background.EMPTY;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class MainController implements Controller<Node>, InitializingBean {
+public class MainController extends NodeController<Node> implements InitializingBean {
 
   private final ClientProperties clientProperties;
   private final I18n i18n;
   private final NotificationService notificationService;
   private final UiService uiService;
   private final LoginService loginService;
-  private final Environment environment;
   private final NotificationPrefs notificationPrefs;
   private final WindowPrefs windowPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -99,7 +96,6 @@ public class MainController implements Controller<Node>, InitializingBean {
 
   @VisibleForTesting
   protected Popup transientNotificationsPopup;
-  private NavigationItem currentItem;
   private FxStage fxStage;
 
   @Override
@@ -131,7 +127,8 @@ public class MainController implements Controller<Node>, InitializingBean {
     }
   }
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     TransientNotificationsController transientNotificationsController = uiService.loadFxml("theme/transient_notifications.fxml");
     transientNotificationsPopup = PopupUtil.createPopup(transientNotificationsController.getRoot());
     transientNotificationsPopup.getScene().getRoot().getStyleClass().add("transient-notification");
@@ -147,7 +144,7 @@ public class MainController implements Controller<Node>, InitializingBean {
     navigationHandler.navigationEventProperty().subscribe(this::onNavigateEvent);
   }
 
-  private void displayView(AbstractViewController<?> controller, NavigateEvent navigateEvent) {
+  private void displayView(NodeController<?> controller, NavigateEvent navigateEvent) {
     Node node = controller.getRoot();
     contentPane.getChildren().setAll(node);
     JavaFxUtil.setAnchors(node, 0d);
@@ -318,6 +315,7 @@ public class MainController implements Controller<Node>, InitializingBean {
     notificationService.addNotification(notification);
   }
 
+  @Override
   public Pane getRoot() {
     return mainRoot;
   }
@@ -329,13 +327,11 @@ public class MainController implements Controller<Node>, InitializingBean {
 
     NavigationItem item = navigateEvent.getItem();
 
-    AbstractViewController<?> controller = getView(item);
+    NodeController<?> controller = getView(item);
     displayView(controller, navigateEvent);
-
-    currentItem = item;
   }
 
-  private AbstractViewController<?> getView(NavigationItem item) {
+  private NodeController<?> getView(NavigationItem item) {
       return uiService.loadFxml(item.getFxmlFile());
   }
 

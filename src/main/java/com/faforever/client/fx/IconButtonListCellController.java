@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class IconButtonListCellController implements Controller<Node> {
+public class IconButtonListCellController extends NodeController<Node> {
   public HBox root;
   public Label label;
   public Button iconButton;
@@ -31,6 +31,7 @@ public class IconButtonListCellController implements Controller<Node> {
     return iconRegion;
   }
 
+  @Override
   public Node getRoot() {
     return root;
   }

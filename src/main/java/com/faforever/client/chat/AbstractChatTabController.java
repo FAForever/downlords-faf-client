@@ -5,11 +5,11 @@ import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.exception.AssetLoadException;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.SimpleInvalidationListener;
+import com.faforever.client.fx.TabController;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
@@ -96,7 +96,7 @@ import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
  */
 @Slf4j
 @RequiredArgsConstructor
-public abstract class AbstractChatTabController implements Controller<Tab> {
+public abstract class AbstractChatTabController extends TabController {
 
   static final String CSS_CLASS_CHAT_ONLY = "chat_only";
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
@@ -167,7 +167,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   @VisibleForTesting
   Pattern mentionPattern;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     BooleanExpression tabPaneShowing = BooleanExpression.booleanExpression(getRoot().tabPaneProperty()
                                                                                     .flatMap(
                                                                                         uiService::createShowingProperty));
@@ -263,6 +264,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     }
   }
 
+  @Override
   public abstract Tab getRoot();
 
   protected void incrementUnreadMessagesCount() {

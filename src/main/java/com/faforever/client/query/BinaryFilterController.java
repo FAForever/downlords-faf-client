@@ -8,7 +8,8 @@ import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -20,8 +21,9 @@ import java.util.Optional;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@Data
-public class BinaryFilterController implements FilterNodeController {
+@Getter
+@Setter
+public class BinaryFilterController extends FilterNodeController {
 
   public GridPane binaryFilter;
   public Label title;
@@ -38,6 +40,7 @@ public class BinaryFilterController implements FilterNodeController {
     secondCheckBox.setText(secondLabel);
   }
 
+  @Override
   public Optional<List<Condition>> getCondition() {
     QBuilder qBuilder = new QBuilder<>();
     StringProperty property = qBuilder.string(propertyName);
@@ -55,16 +58,19 @@ public class BinaryFilterController implements FilterNodeController {
     }
   }
 
+  @Override
   public void addQueryListener(InvalidationListener queryListener) {
     firstCheckBox.selectedProperty().addListener(queryListener);
     secondCheckBox.selectedProperty().addListener(queryListener);
   }
 
+  @Override
   public void clear() {
     firstCheckBox.setSelected(true);
     secondCheckBox.setSelected(true);
   }
 
+  @Override
   public void setTitle(String title) {
     this.title.setText(title + ":");
   }

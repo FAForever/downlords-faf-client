@@ -2,9 +2,9 @@ package com.faforever.client.game;
 
 
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
@@ -32,7 +32,7 @@ import java.util.concurrent.CompletableFuture;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @RequiredArgsConstructor
-public class GameTooltipController implements Controller<Node> {
+public class GameTooltipController extends NodeController<Node> {
 
   private final UiService uiService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -49,7 +49,8 @@ public class GameTooltipController implements Controller<Node> {
   public Label modsLabel;
   public VBox gameTooltipRoot;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     BooleanExpression showing = uiService.createShowingProperty(getRoot());
 
     JavaFxUtil.bindManagedToVisible(modsPane);
@@ -103,6 +104,7 @@ public class GameTooltipController implements Controller<Node> {
     this.showMods.set(showMods);
   }
 
+  @Override
   public Node getRoot() {
     return gameTooltipRoot;
   }

@@ -5,10 +5,10 @@ import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.FaStrings;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
@@ -58,7 +58,7 @@ import java.util.concurrent.CompletableFuture;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class MapDetailController implements Controller<Node> {
+public class MapDetailController extends NodeController<Node> {
 
   private final UiService uiService;
   private final MapService mapService;
@@ -100,7 +100,8 @@ public class MapDetailController implements Controller<Node> {
   public HBox hideBox;
   public Label mapIdLabel;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, hideButton, loadingContainer, hideBox, getRoot());
     JavaFxUtil.fixScrollSpeed(scrollPane);
 
@@ -234,6 +235,7 @@ public class MapDetailController implements Controller<Node> {
     getRoot().setVisible(false);
   }
 
+  @Override
   public Node getRoot() {
     return mapDetailRoot;
   }

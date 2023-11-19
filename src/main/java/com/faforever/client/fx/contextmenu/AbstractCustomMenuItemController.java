@@ -1,6 +1,6 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.MenuItemController;
 import javafx.scene.control.CustomMenuItem;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public abstract class AbstractCustomMenuItemController<T> implements Controller<CustomMenuItem> {
+public abstract class AbstractCustomMenuItemController<T> extends MenuItemController<CustomMenuItem> {
 
   public CustomMenuItem root;
 

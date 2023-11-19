@@ -14,13 +14,12 @@ import org.mockito.Mock;
 
 import java.util.concurrent.CompletableFuture;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class RemovableMapCellControllerTest extends PlatformTest {
+public class RemovableMapCellTest extends PlatformTest {
 
   @Mock
   private MapService mapService;
@@ -38,7 +37,7 @@ public class RemovableMapCellControllerTest extends PlatformTest {
       .get();
 
   @InjectMocks
-  private RemovableMapCellController instance;
+  private RemovableMapCell instance;
 
   @BeforeEach
   public void setUp() throws Exception {

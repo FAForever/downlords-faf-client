@@ -124,6 +124,7 @@ public class Alert<R> extends Dialog<R> {
         performingLayout = false;
       }
 
+      @Override
       public String getUserAgentStylesheet() {
         return getClass().getResource("/css/controls/alert.css").toExternalForm();
       }

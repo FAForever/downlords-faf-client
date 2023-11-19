@@ -103,7 +103,7 @@ public class LeaderboardsControllerTest extends PlatformTest {
 
   @Test
   public void testOnDisplay() {
-    instance.onDisplay(new OpenLeaderboardEvent(controller.getRoot()));
+    instance.onNavigate(new OpenLeaderboardEvent(controller.getRoot()));
 
     assertEquals(instance.leaderboardRoot.getSelectionModel().getSelectedItem(), controller.getRoot());
   }

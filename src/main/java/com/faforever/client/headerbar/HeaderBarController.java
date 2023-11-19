@@ -1,7 +1,7 @@
 package com.faforever.client.headerbar;
 
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.navigation.NavigationHandler;
@@ -32,7 +32,7 @@ import java.util.Map;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class HeaderBarController implements Controller<HBox> {
+public class HeaderBarController extends NodeController<HBox> {
 
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
 
@@ -59,7 +59,8 @@ public class HeaderBarController implements Controller<HBox> {
   private final Map<ToggleButton, NavigationItem> navigationItemMap = new HashMap<>();
   private final Map<NavigationItem, ToggleButton> toggleButtonMap = new HashMap<>();
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     BooleanExpression showing = uiService.createShowingProperty(getRoot());
 
     navigationItemMap.put(newsButton, NavigationItem.NEWS);
@@ -131,6 +132,7 @@ public class HeaderBarController implements Controller<HBox> {
     }
   }
 
+  @Override
   public HBox getRoot() {
     return mainHeader;
   }

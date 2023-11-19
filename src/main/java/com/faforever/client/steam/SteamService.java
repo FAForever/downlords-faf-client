@@ -19,6 +19,7 @@ public class SteamService implements InitializingBean, DisposableBean {
     this.generalPrefs = preferences.getGeneral();
   }
 
+  @Override
   public void afterPropertiesSet() {
     if (generalPrefs.getDisableSteamStart()) {
       return;
@@ -37,6 +38,7 @@ public class SteamService implements InitializingBean, DisposableBean {
     }
   }
 
+  @Override
   public void destroy() {
     log.info("Stopping the Steam API");
     if (SteamAPI.isSteamRunning()) {

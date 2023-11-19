@@ -5,8 +5,8 @@ import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.GamePlayerStatsBean;
 import com.faforever.client.domain.LeaderboardRatingJournalBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.contextmenu.AddEditPlayerNoteMenuItem;
 import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
@@ -51,7 +51,7 @@ import java.util.List;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class PlayerCardController implements Controller<Node> {
+public class PlayerCardController extends NodeController<Node> {
 
   private static final PseudoClass POSITIVE = PseudoClass.getPseudoClass("positive");
   private static final PseudoClass NEGATIVE = PseudoClass.getPseudoClass("negative");
@@ -81,7 +81,7 @@ public class PlayerCardController implements Controller<Node> {
   private final Tooltip avatarTooltip = new Tooltip();
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(factionIcon, foeIconText, factionImage, friendIconText, countryImageView, noteIcon);
     countryImageView.visibleProperty().bind(countryImageView.imageProperty().isNotNull());
     avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
@@ -143,6 +143,7 @@ public class PlayerCardController implements Controller<Node> {
     }
   }
 
+  @Override
   public Node getRoot() {
     return root;
   }

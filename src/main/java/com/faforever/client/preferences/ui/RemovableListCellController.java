@@ -1,9 +1,7 @@
 package com.faforever.client.preferences.ui;
 
-import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Pane;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -17,28 +15,25 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class RemovableListCellController<T> extends ListCell<T> implements Controller<Pane> {
+public class RemovableListCellController<T> extends NodeController<Pane> {
 
   public Pane removableCellRoot;
   public Label label;
 
-  @Override
-  protected void updateItem(T item, boolean empty) {
-    super.updateItem(item, empty);
+  private Runnable onRemove = null;
 
-    JavaFxUtil.assertApplicationThread();
-
-    setText(null);
-    if (empty || item == null) {
-      setGraphic(null);
-    } else {
-      setGraphic(removableCellRoot);
-      label.setText(item.toString());
+  public void onRemoveButtonClicked() {
+    if (onRemove != null) {
+      onRemove.run();
     }
   }
 
-  public void onRemoveButtonClicked() {
-    getListView().getItems().remove(getItem());
+  public void setText(String text) {
+    label.setText(text);
+  }
+
+  public void setOnRemove(Runnable onRemove) {
+    this.onRemove = onRemove;
   }
 
   @Override

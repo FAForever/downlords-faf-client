@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.contextmenu.ChatCategoryColorPickerCustomMenuItemController;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ChatCategoryItemController implements Controller<Node> {
+public class ChatCategoryItemController extends NodeController<Node> {
 
   private final I18n i18n;
   private final UiService uiService;
@@ -49,7 +49,7 @@ public class ChatCategoryItemController implements Controller<Node> {
   public Label userCounterLabel;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     bindProperties();
   }
 

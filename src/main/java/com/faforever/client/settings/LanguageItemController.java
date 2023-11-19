@@ -1,6 +1,6 @@
 package com.faforever.client.settings;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
 import com.google.common.base.Strings;
@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class LanguageItemController implements Controller<Node> {
+public class LanguageItemController extends NodeController<Node> {
 
   private static final PseudoClass PSEUDO_CLASS_SELECTED = PseudoClass.getPseudoClass("selected");
 
@@ -38,7 +38,7 @@ public class LanguageItemController implements Controller<Node> {
   }
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     localeImageView.managedProperty().bind(localeImageView.visibleProperty());
     localeImageView.setVisible(false);
   }

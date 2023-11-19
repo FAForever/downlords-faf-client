@@ -4,9 +4,9 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.contextmenu.AddEditPlayerNoteMenuItem;
 import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
 import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
@@ -65,7 +65,7 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class ChatUserItemController implements Controller<Node> {
+public class ChatUserItemController extends NodeController<Node> {
 
   private final I18n i18n;
   private final UiService uiService;
@@ -95,7 +95,8 @@ public class ChatUserItemController implements Controller<Node> {
   private Tooltip countryTooltip;
   private Tooltip noteTooltip;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     initializeTooltips();
     bindProperties();
   }
@@ -189,6 +190,7 @@ public class ChatUserItemController implements Controller<Node> {
     }
   }
 
+  @Override
   public Pane getRoot() {
     return root;
   }

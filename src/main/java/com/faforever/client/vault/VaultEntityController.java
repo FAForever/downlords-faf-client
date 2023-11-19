@@ -1,8 +1,8 @@
 package com.faforever.client.vault;
 
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.notification.NotificationService;
@@ -49,7 +49,7 @@ import java.util.stream.IntStream;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public abstract class VaultEntityController<T> extends AbstractViewController<Node> {
+public abstract class VaultEntityController<T> extends NodeController<Node> {
 
   public static final int TOP_ELEMENT_COUNT = 7;
 
@@ -113,8 +113,8 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   protected abstract void handleSpecialNavigateEvent(NavigateEvent navigateEvent);
 
   @Override
-  public void initialize() {
-    super.initialize();
+  protected void onInitialize() {
+    super.onInitialize();
     JavaFxUtil.fixScrollSpeed(scrollPane);
     JavaFxUtil.bindManagedToVisible(loadingPane, searchResultGroup, backButton, refreshButton, pagination, firstPageButton, lastPageButton, showRoomGroup, searchBox, searchSeparator);
 
@@ -321,7 +321,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  protected void onNavigate(NavigateEvent navigateEvent) {
     Class<? extends NavigateEvent> defaultNavigateEvent = getDefaultNavigateEvent();
     if (!(navigateEvent.getClass().equals(defaultNavigateEvent)) && !navigateEvent.getClass()
         .equals(NavigateEvent.class)) {

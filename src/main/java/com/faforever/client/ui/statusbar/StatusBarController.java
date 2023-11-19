@@ -1,9 +1,9 @@
 package com.faforever.client.ui.statusbar;
 
 import com.faforever.client.chat.ChatService;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
@@ -19,6 +19,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -30,7 +31,7 @@ import java.util.Collection;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class StatusBarController implements Controller<Node> {
+public class StatusBarController extends NodeController<Node> {
   private static final PseudoClass CONNECTIVITY_CONNECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("connected");
   private static final PseudoClass CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("disconnected");
 
@@ -48,9 +49,10 @@ public class StatusBarController implements Controller<Node> {
   public Pane taskPane;
   public Label taskProgressLabel;
   public Label versionLabel;
+  public HBox root;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     setCurrentWorkerInStatusBar(null);
     versionLabel.setText(Version.getCurrentVersion());
 
@@ -102,7 +104,7 @@ public class StatusBarController implements Controller<Node> {
 
   @Override
   public Node getRoot() {
-    return null;
+    return root;
   }
 
   /**

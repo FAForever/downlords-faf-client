@@ -1,7 +1,7 @@
 package com.faforever.client.vault;
 
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -17,7 +17,7 @@ import java.util.List;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Getter
-public class VaultEntityShowRoomController implements Controller<Node> {
+public class VaultEntityShowRoomController extends NodeController<Node> {
 
   public Label label;
   public VBox root;
@@ -25,7 +25,7 @@ public class VaultEntityShowRoomController implements Controller<Node> {
   public FlowPane pane;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(root);
   }
 

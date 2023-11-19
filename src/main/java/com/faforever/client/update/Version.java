@@ -10,7 +10,7 @@ import static java.text.MessageFormat.format;
 
 @Slf4j
 public final class Version {
-  private static String currentVersion;
+  private static final String currentVersion;
 
   private static final String SNAPSHOT_VERSION = "snapshot";
   private static final Pattern SEMVER_PATTERN = Pattern.compile("v?\\d+(\\.\\d+)*[^.]*");

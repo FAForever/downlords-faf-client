@@ -4,8 +4,8 @@ import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.domain.ModerationReportBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReplayBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.WrappingStringCell;
 import com.faforever.client.i18n.I18n;
@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-public class ReportDialogController implements Controller<Node> {
+public class ReportDialogController extends NodeController<Node> {
 
   private final ModerationService moderationService;
   private final NotificationService notificationService;
@@ -77,7 +77,8 @@ public class ReportDialogController implements Controller<Node> {
   public TableColumn<ModerationReportBean, ModerationReportStatus> statusColumn;
   private Window ownerWindow;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     reportTable.setPlaceholder(new Label(i18n.get("report.noReports")));
 
     idColumn.setCellValueFactory(param -> param.getValue().idProperty());
@@ -258,6 +259,7 @@ public class ReportDialogController implements Controller<Node> {
         fxApplicationThreadExecutor.execute(() -> reportTable.setItems(FXCollections.observableList(reports))));
   }
 
+  @Override
   public Pane getRoot() {
     return reportDialogRoot;
   }

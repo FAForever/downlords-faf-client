@@ -4,8 +4,8 @@ package com.faforever.client.game;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.GamePlayerStatsBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class TeamCardController implements Controller<Node> {
+public class TeamCardController extends NodeController<Node> {
   private final I18n i18n;
   private final PlayerService playerService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -67,7 +67,8 @@ public class TeamCardController implements Controller<Node> {
 
   private final Map<PlayerBean, PlayerCardController> playerCardControllersMap = new HashMap<>();
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     teamNameLabel.textProperty()
         .bind(teamRating.flatMap(teamRating -> teamId.map(id -> switch (id.intValue()) {
           case 0, GameBean.NO_TEAM -> i18n.get("game.tooltip.teamTitleNoTeam");
@@ -164,6 +165,7 @@ public class TeamCardController implements Controller<Node> {
     }
   }
 
+  @Override
   public Node getRoot() {
     return teamPaneRoot;
   }

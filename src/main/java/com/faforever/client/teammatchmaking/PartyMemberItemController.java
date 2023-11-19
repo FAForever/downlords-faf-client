@@ -4,9 +4,9 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.CopyUsernameMenuItem;
@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class PartyMemberItemController implements Controller<Node> {
+public class PartyMemberItemController extends NodeController<Node> {
 
   public static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
   public static final PseudoClass PLAYING_PSEUDO_CLASS = PseudoClass.getPseudoClass("playing");
@@ -81,7 +81,7 @@ public class PartyMemberItemController implements Controller<Node> {
   private final SimpleInvalidationListener partyOwnerInvalidationListener = this::setPartyOwnerProperties;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView, playerStatusImageView, leagueImageView, kickPlayerButton);
   }
 

@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.preferences.ChatPrefs;
 import javafx.scene.control.CheckBox;
 import javafx.scene.layout.VBox;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class UserListCustomizationController implements Controller<VBox> {
+public class UserListCustomizationController extends NodeController<VBox> {
 
   private final ChatPrefs chatPrefs;
 
@@ -21,7 +21,7 @@ public class UserListCustomizationController implements Controller<VBox> {
   public CheckBox showMapPreviewCheckBox;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     showMapNameCheckBox.selectedProperty().bindBidirectional(chatPrefs.showMapNameProperty());
     showMapPreviewCheckBox.selectedProperty().bindBidirectional(chatPrefs.showMapPreviewProperty());
   }

@@ -17,27 +17,28 @@ public class DualStringListCell<T> extends ListCell<T> {
   private final String styleClasses;
   private final UiService uiService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
-  public DualStringListCellController dualStringListCellController;
+
+  private DualStringListCellController dualStringListCellController;
 
   @Override
   protected void updateItem(T item, boolean empty) {
     super.updateItem(item, empty);
-    fxApplicationThreadExecutor.execute(() -> {
-      if (empty || item == null) {
+    if (empty || item == null) {
+      fxApplicationThreadExecutor.execute(() -> {
         setText(null);
         setGraphic(null);
-      } else {
-        if (dualStringListCellController == null) {
-          dualStringListCellController = uiService.loadFxml("theme/dual_string_list_cell.fxml");
-          // copy font styles
-          dualStringListCellController.applyFont(getFont());
-          dualStringListCellController.applyStyleClass(styleClasses);
-        }
-        dualStringListCellController.setLeftText(functionLeft.apply(item));
-        dualStringListCellController.setWebViewToolTip(functionWebViewToolTip.apply(item));
-        dualStringListCellController.setRightText(functionRight.apply(item));
-        setGraphic(dualStringListCellController.getRoot());
+      });
+    } else {
+      if (dualStringListCellController == null) {
+        dualStringListCellController = uiService.loadFxml("theme/dual_string_list_cell.fxml");
+        // copy font styles
+        dualStringListCellController.applyFont(getFont());
+        dualStringListCellController.applyStyleClass(styleClasses);
       }
-    });
+      dualStringListCellController.setLeftText(functionLeft.apply(item));
+      dualStringListCellController.setWebViewToolTip(functionWebViewToolTip.apply(item));
+      dualStringListCellController.setRightText(functionRight.apply(item));
+      fxApplicationThreadExecutor.execute(() -> setGraphic(dualStringListCellController.getRoot()));
+    }
   }
 }

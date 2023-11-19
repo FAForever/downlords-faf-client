@@ -7,10 +7,10 @@ import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fa.FaStrings;
 import com.faforever.client.filter.MapFilterController;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.DualStringListCell;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -85,7 +85,7 @@ import static javafx.scene.layout.BackgroundRepeat.NO_REPEAT;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-public class CreateGameController implements Controller<Pane> {
+public class CreateGameController extends NodeController<Pane> {
 
   public static final String STYLE_CLASS_DUAL_LIST_CELL = "create-game-dual-list-cell";
   public static final PseudoClass PSEUDO_CLASS_INVALID = PseudoClass.getPseudoClass("invalid");
@@ -132,7 +132,8 @@ public class CreateGameController implements Controller<Pane> {
   private Runnable onCloseButtonClickedListener;
   private MapFilterController mapFilterController;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     contextMenuBuilder.addCopyLabelContextMenu(mapDescriptionLabel);
     JavaFxUtil.bindManagedToVisible(versionLabel);
     JavaFxUtil.bind(mapPreviewPane.prefHeightProperty(), mapPreviewPane.widthProperty());
@@ -481,6 +482,7 @@ public class CreateGameController implements Controller<Pane> {
     });
   }
 
+  @Override
   public Pane getRoot() {
     return createGameRoot;
   }

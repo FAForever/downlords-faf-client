@@ -151,7 +151,6 @@ public class GameService implements InitializingBean {
   @VisibleForTesting
   final BooleanProperty gameRunning = new SimpleBooleanProperty();
   final BooleanProperty replayRunning = new SimpleBooleanProperty();
-  ;
   /** TODO: Explain why access needs to be synchronized. */
   @VisibleForTesting
   final SimpleObjectProperty<GameBean> currentGame = new SimpleObjectProperty<>();

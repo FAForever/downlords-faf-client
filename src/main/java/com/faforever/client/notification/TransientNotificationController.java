@@ -1,6 +1,6 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.notification.Action.ActionCallback;
 import com.faforever.client.preferences.NotificationPrefs;
 import javafx.animation.Interpolator;
@@ -29,7 +29,7 @@ import static javafx.util.Duration.millis;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class TransientNotificationController implements Controller<Node> {
+public class TransientNotificationController extends NodeController<Node> {
 
   private final NotificationPrefs notificationPrefs;
 
@@ -42,7 +42,8 @@ public class TransientNotificationController implements Controller<Node> {
   private Timeline timeline;
   private int toastDisplayTime;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     Rectangle rectangle = new Rectangle();
     rectangle.widthProperty().bind(transientNotificationRoot.widthProperty());
     rectangle.heightProperty().bind(transientNotificationRoot.heightProperty());
@@ -101,6 +102,7 @@ public class TransientNotificationController implements Controller<Node> {
     dismiss();
   }
 
+  @Override
   public Region getRoot() {
     return transientNotificationRoot;
   }

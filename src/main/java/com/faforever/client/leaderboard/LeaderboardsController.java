@@ -1,7 +1,7 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenLeaderboardEvent;
@@ -27,7 +27,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class LeaderboardsController extends AbstractViewController<Node> {
+public class LeaderboardsController extends NodeController<Node> {
   private final NavigationHandler navigationHandler;
   private final I18n i18n;
   private final LeaderboardService leaderboardService;
@@ -48,7 +48,7 @@ public class LeaderboardsController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     leaderboardService.getLeagues().thenAccept(leagues -> {
       leagues.forEach(league ->
           leaderboardService.getLatestSeason(league).thenAccept(season -> {
@@ -88,7 +88,7 @@ public class LeaderboardsController extends AbstractViewController<Node> {
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  protected void onNavigate(NavigateEvent navigateEvent) {
     isHandlingEvent = true;
 
     try {

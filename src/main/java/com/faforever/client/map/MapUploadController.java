@@ -3,8 +3,8 @@ package com.faforever.client.map;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.exception.AssetLoadException;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
@@ -49,7 +49,7 @@ import static java.util.Arrays.asList;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class MapUploadController implements Controller<Node> {
+public class MapUploadController extends NodeController<Node> {
 
   private final MapService mapService;
   private final ExecutorService executorService;
@@ -82,7 +82,8 @@ public class MapUploadController implements Controller<Node> {
   private Runnable cancelButtonClickedListener;
   private Runnable uploadListener;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(mapInfoPane, uploadCompletePane, parseProgressPane, uploadProgressPane);
 
     mapInfoPane.setVisible(false);
@@ -221,6 +222,7 @@ public class MapUploadController implements Controller<Node> {
     cancelButtonClickedListener.run();
   }
 
+  @Override
   public Region getRoot() {
     return mapUploadRoot;
   }

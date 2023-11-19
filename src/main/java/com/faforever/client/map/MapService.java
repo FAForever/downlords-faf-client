@@ -227,6 +227,7 @@ public class MapService implements InitializingBean, DisposableBean {
   private void loadInstalledMaps() {
     taskService.submitTask(new CompletableTask<Void>(Priority.LOW) {
 
+      @Override
       protected Void call() {
         updateTitle(i18n.get("mapVault.loadingMaps"));
         Path officialMapsPath = forgedAlliancePrefs.getInstallationPath().resolve("maps");

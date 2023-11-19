@@ -1,6 +1,6 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -21,7 +21,7 @@ import java.util.List;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class PersistentNotificationController implements Controller<Node> {
+public class PersistentNotificationController extends NodeController<Node> {
 
   private static final String CSS_STYLE_INFO = "info";
   private static final String CSS_STYLE_WARN = "warn";
@@ -90,6 +90,7 @@ public class PersistentNotificationController implements Controller<Node> {
     notificationService.removeNotification(notification);
   }
 
+  @Override
   public Node getRoot() {
     return notificationRoot;
   }
