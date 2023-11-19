@@ -2,12 +2,12 @@ package com.faforever.client.game;
 
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.DecimalCell;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.IconCell;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @RequiredArgsConstructor
-public class GamesTableController implements Controller<Node> {
+public class GamesTableController extends NodeController<Node> {
 
   private static final PseudoClass FRIEND_IN_GAME_PSEUDO_CLASS = PseudoClass.getPseudoClass("friendInGame");
 
@@ -88,6 +88,7 @@ public class GamesTableController implements Controller<Node> {
     return selectedGame;
   }
 
+  @Override
   public Node getRoot() {
     return gamesTable;
   }

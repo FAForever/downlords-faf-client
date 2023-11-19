@@ -5,10 +5,10 @@ import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionReviewBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.FaStrings;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class ModDetailController implements Controller<Node> {
+public class ModDetailController extends NodeController<Node> {
 
   private final ModService modService;
   private final NotificationService notificationService;
@@ -82,7 +82,8 @@ public class ModDetailController implements Controller<Node> {
   public ReviewsController<ModVersionReviewBean> reviewsController;
   public Label authorLabel;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     imageViewHelper.setDefaultPlaceholderImage(thumbnailImageView);
     JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, getRoot());
     JavaFxUtil.fixScrollSpeed(scrollPane);
@@ -146,6 +147,7 @@ public class ModDetailController implements Controller<Node> {
     getRoot().setVisible(false);
   }
 
+  @Override
   public Node getRoot() {
     return modDetailRoot;
   }

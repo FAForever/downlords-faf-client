@@ -1,6 +1,6 @@
 package com.faforever.client.vault.search;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.scene.Parent;
@@ -8,8 +8,9 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -19,8 +20,9 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@Data
-public class SavedQueriesController implements Controller<Parent> {
+@Getter
+@Setter
+public class SavedQueriesController extends NodeController<Parent> {
 
   public ListView<String> queryListView;
   public VBox root;
@@ -57,7 +59,7 @@ public class SavedQueriesController implements Controller<Parent> {
   }
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     queryListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
   }
 }

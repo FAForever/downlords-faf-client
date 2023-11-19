@@ -7,9 +7,9 @@ import com.faforever.client.chat.ChatFormat;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
 import com.faforever.client.fa.relay.ice.CoturnService;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.SimpleInvalidationListener;
@@ -92,7 +92,7 @@ import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class SettingsController implements Controller<Node> {
+public class SettingsController extends NodeController<Node> {
 
   private final NotificationService notificationService;
   private final LoginService loginService;
@@ -176,11 +176,12 @@ public class SettingsController implements Controller<Node> {
   public ListView<IceServer> preferredCoturnListView;
 
   private final SimpleChangeListener<Theme> selectedThemeChangeListener = this::onThemeChanged;
-  private final SimpleChangeListener<Theme> currentThemeChangeListener = newValue -> themeComboBox.getSelectionModel().select(newValue);;
+  private final SimpleChangeListener<Theme> currentThemeChangeListener = newValue -> themeComboBox.getSelectionModel()
+                                                                                                  .select(newValue);
   private final SimpleInvalidationListener availableLanguagesListener = this::setAvailableLanguages;
-  ;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(vaultLocationWarningLabel);
     themeComboBox.setButtonCell(new StringListCell<>(Theme::getDisplayName, fxApplicationThreadExecutor));
     themeComboBox.setCellFactory(param -> new StringListCell<>(Theme::getDisplayName, fxApplicationThreadExecutor));
@@ -359,7 +360,7 @@ public class SettingsController implements Controller<Node> {
     autoChannelListView.setSelectionModel(new NoSelectionModelListView<>());
     autoChannelListView.setFocusTraversable(false);
     autoChannelListView.setItems(preferences.getChat().getAutoJoinChannels());
-    autoChannelListView.setCellFactory(param -> uiService.<RemovableListCellController<String>>loadFxml("theme/settings/removable_cell.fxml"));
+    autoChannelListView.setCellFactory(param -> new RemovableListCell<>(uiService, fxApplicationThreadExecutor));
     JavaFxUtil.addListener(autoChannelListView.getItems(), (InvalidationListener) observable -> autoChannelListView.setVisible(!autoChannelListView.getItems().isEmpty()));
   }
 
@@ -568,6 +569,7 @@ public class SettingsController implements Controller<Node> {
         .bind(toastScreenComboBox.valueProperty().map(value -> Screen.getScreens().indexOf(value)));
   }
 
+  @Override
   public Region getRoot() {
     return settingsRoot;
   }

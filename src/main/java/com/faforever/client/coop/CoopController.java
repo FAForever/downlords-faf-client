@@ -5,11 +5,11 @@ import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.exception.NotifiableException;
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.ControllerTableCell;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -73,7 +73,7 @@ import static javafx.collections.FXCollections.observableList;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class CoopController extends AbstractViewController<Node> {
+public class CoopController extends NodeController<Node> {
 
   private static final Predicate<GameBean> OPEN_COOP_GAMES_PREDICATE = gameInfoBean -> gameInfoBean.getStatus() == GameStatus.OPEN && gameInfoBean.getGameType() == GameType.COOP;
 
@@ -109,8 +109,9 @@ public class CoopController extends AbstractViewController<Node> {
   public TableColumn<CoopResultBean, Duration> timeColumn;
   public TableColumn<CoopResultBean, String> replayColumn;
 
-  public void initialize() {
-    super.initialize();
+  @Override
+  protected void onInitialize() {
+    super.onInitialize();
     imageViewHelper.setDefaultPlaceholderImage(mapPreviewImageView, true);
 
     missionComboBox.setCellFactory(param -> missionListCell());
@@ -306,6 +307,7 @@ public class CoopController extends AbstractViewController<Node> {
     Optional.ofNullable(mapPreviewImageView.getImage()).ifPresent(PopupUtil::showImagePopup);
   }
 
+  @Override
   public Node getRoot() {
     return coopRoot;
   }

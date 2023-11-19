@@ -1,7 +1,7 @@
 package com.faforever.client.query;
 
 import com.faforever.client.exception.ProgrammingError;
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.ReflectionUtil;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
@@ -66,7 +66,7 @@ import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.RE
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class SpecificationController implements Controller<Node> {
+public class SpecificationController extends NodeController<Node> {
 
   private static final Map<ComparisonOperator, String> operatorToI18nKey = ImmutableMap.<ComparisonOperator, String>builder()
       .put(RE, "query.contains")
@@ -105,7 +105,8 @@ public class SpecificationController implements Controller<Node> {
     comparisonOperators = new FilteredList<>(FXCollections.observableArrayList(operatorToI18nKey.keySet()));
   }
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     datePicker.setValue(LocalDate.now());
     datePicker.managedProperty().bind(datePicker.visibleProperty());
     datePicker.setVisible(false);
@@ -324,10 +325,10 @@ public class SpecificationController implements Controller<Node> {
       return prop.ne(value);
     }
     if (comparisonOperator == IN) {
-      return prop.in((Object[]) value.split(","));
+      return prop.in(value.split(","));
     }
     if (comparisonOperator == NIN) {
-      return prop.nin((Object[]) value.split(","));
+      return prop.nin(value.split(","));
     }
     throw new ProgrammingError("Operator '" + comparisonOperator + "' should not have been allowed for type: " + fieldType);
   }
@@ -343,10 +344,10 @@ public class SpecificationController implements Controller<Node> {
       return prop.ne(value);
     }
     if (comparisonOperator == IN) {
-      return prop.in((Object[]) value.split(","));
+      return prop.in(value.split(","));
     }
     if (comparisonOperator == NIN) {
-      return prop.nin((Object[]) value.split(","));
+      return prop.nin(value.split(","));
     }
     if (comparisonOperator == RE) {
       return prop.eq("*" + value + "*");

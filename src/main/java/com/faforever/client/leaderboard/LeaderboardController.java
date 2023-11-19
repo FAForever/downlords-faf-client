@@ -3,10 +3,10 @@ package com.faforever.client.leaderboard;
 import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.LeagueSeasonBean;
 import com.faforever.client.domain.SubdivisionBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleInvalidationListener;
+import com.faforever.client.fx.TabController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class LeaderboardController implements Controller<Tab> {
+public class LeaderboardController extends TabController {
 
   private static final PseudoClass NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("highlighted-bar");
 
@@ -90,13 +90,13 @@ public class LeaderboardController implements Controller<Tab> {
   public Label seasonDateLabel;
   private LeagueSeasonBean season;
   private LeagueEntryBean entryToSelect;
-  private final SimpleInvalidationListener playerRatingListener = this::updateDisplayedPlayerStats;;
+  private final SimpleInvalidationListener playerRatingListener = this::updateDisplayedPlayerStats;
 
   @VisibleForTesting
   protected AutoCompletionBinding<String> usernamesAutoCompletion;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     scoreLabel.setText(i18n.get("leaderboard.score").toUpperCase());
     searchTextField.setPromptText(i18n.get("leaderboard.searchPrompt").toUpperCase());
 

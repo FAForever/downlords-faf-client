@@ -28,7 +28,7 @@ public class ReflectionUtilTest extends ServiceTest {
 
 
   public class TestClass {
-    private String privateString = "private";
+    private final String privateString = "private";
     public String publicString = "public";
 
   }

@@ -26,8 +26,8 @@ public class RangeSliderWithChoiceFilterController<I, T> extends AbstractRangeSl
   }
 
   @Override
-  public void initialize() {
-    super.initialize();
+  protected void onInitialize() {
+    super.onInitialize();
     choiceView = new ComboBox<>();
     JavaFxUtil.bind(choiceView.prefWidthProperty(), rangeSlider.widthProperty());
   }

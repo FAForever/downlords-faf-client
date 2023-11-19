@@ -4,10 +4,10 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class GameTileController implements Controller<Node> {
+public class GameTileController extends NodeController<Node> {
 
   public static final PseudoClass FRIEND_IN_GAME_PSEUDO_CLASS = PseudoClass.getPseudoClass("friendInGame");
 
@@ -78,7 +78,8 @@ public class GameTileController implements Controller<Node> {
     this.onSelectedListener = onSelectedListener;
   }
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(modsLabel, gameTypeLabel, lockIconLabel, defaultHostIcon, avatarImageView);
     JavaFxUtil.bind(modsLabel.visibleProperty(), modsLabel.textProperty().isNotEmpty());
     JavaFxUtil.bind(defaultHostIcon.visibleProperty(), avatarImageView.imageProperty().isNull());
@@ -115,6 +116,7 @@ public class GameTileController implements Controller<Node> {
     game.addListener((SimpleChangeListener<GameBean>) this::onGamePropertyChanged);
   }
 
+  @Override
   public Node getRoot() {
     return gameCardRoot;
   }

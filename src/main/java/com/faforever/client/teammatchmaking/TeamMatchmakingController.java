@@ -8,9 +8,9 @@ import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.game.PlayerStatus;
@@ -66,7 +66,7 @@ import static com.faforever.client.chat.ChatService.PARTY_CHANNEL_SUFFIX;
 @RequiredArgsConstructor
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class TeamMatchmakingController extends AbstractViewController<Node> {
+public class TeamMatchmakingController extends NodeController<Node> {
 
   public static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
   public static final PseudoClass CHAT_AT_BOTTOM_PSEUDO_CLASS = PseudoClass.getPseudoClass("bottom");
@@ -123,7 +123,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private final SimpleInvalidationListener currentPlayerListener = this::setLeagueInfo;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView, leagueImageView);
     JavaFxUtil.fixScrollSpeed(scrollPane);
 

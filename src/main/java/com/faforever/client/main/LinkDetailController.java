@@ -1,6 +1,6 @@
 package com.faforever.client.main;
 
-import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class LinkDetailController extends AbstractViewController<Node> {
+public class LinkDetailController extends NodeController<Node> {
   private final PlatformService platformService;
   public Label name;
   public HBox root;

@@ -1,7 +1,8 @@
 package com.faforever.client.map.management;
 
 import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.theme.UiService;
@@ -15,6 +16,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import javafx.util.StringConverter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -25,7 +27,8 @@ import java.util.function.Predicate;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class MapsManagementController implements Controller<Node> {
+@RequiredArgsConstructor
+public class MapsManagementController extends NodeController<Node> {
 
   public GridPane root;
   public ChoiceBox<MapFilter> filterMapsChoiceBox;
@@ -35,25 +38,20 @@ public class MapsManagementController implements Controller<Node> {
   private final MapService mapService;
   private final UiService uiService;
   private final I18n i18n;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private FilteredList<MapVersionBean> filteredMaps;
   private Runnable closeButtonAction;
 
-  public MapsManagementController(UiService uiService, MapService mapService, I18n i18n) {
-    this.uiService = uiService;
-    this.mapService = mapService;
-    this.i18n = i18n;
-  }
-
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     filteredMaps = new FilteredList<>(mapService.getInstalledMaps());
     initializeChoiceBox();
     initializeListView();
   }
 
   private void initializeListView() {
-    listView.setCellFactory(param -> uiService.<RemovableMapCellController>loadFxml("theme/vault/map/removable_map_cell.fxml"));
+    listView.setCellFactory(param -> new RemovableMapCell(uiService, fxApplicationThreadExecutor));
     listView.setSelectionModel(new NoSelectionModelListView<>());
     listView.setItems(filteredMaps);
   }

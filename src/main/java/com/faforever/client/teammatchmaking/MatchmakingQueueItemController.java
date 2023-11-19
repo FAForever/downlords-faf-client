@@ -2,8 +2,8 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.domain.MatchingStatus;
 import com.faforever.client.domain.MatchmakerQueueBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
@@ -39,7 +39,7 @@ import java.time.OffsetDateTime;
 @Component
 @RequiredArgsConstructor
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class MatchmakingQueueItemController implements Controller<VBox> {
+public class MatchmakingQueueItemController extends NodeController<VBox> {
 
   private final static String QUEUE_I18N_PATTERN = "teammatchmaking.queue.%s";
 
@@ -64,7 +64,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
   private final ObjectProperty<MatchmakerQueueBean> queue = new SimpleObjectProperty<>();
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(matchFoundLabel, matchStartingLabel, matchCancelledLabel);
 
     ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());

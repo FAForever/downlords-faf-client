@@ -61,7 +61,7 @@ public class TutorialControllerTest extends PlatformTest {
 
   @Test
   public void everythingLoadedSuccessfully() {
-    instance.onDisplay(new NavigateEvent(NavigationItem.TUTORIALS));
+    instance.onNavigate(new NavigateEvent(NavigationItem.TUTORIALS));
     WaitForAsyncUtils.waitForFxEvents();
     assertThat(instance.tutorialPane.isVisible(), is(true));
     verify(tutorialService).getTutorialCategories();

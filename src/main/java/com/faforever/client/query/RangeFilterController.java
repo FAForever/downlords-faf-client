@@ -10,7 +10,9 @@ import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
-import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.controlsfx.control.RangeSlider;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -25,8 +27,10 @@ import java.util.function.Function;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@Data
-public class RangeFilterController implements FilterNodeController {
+@RequiredArgsConstructor
+@Getter
+@Setter
+public class RangeFilterController extends FilterNodeController {
 
   private final I18n i18n;
 
@@ -40,7 +44,8 @@ public class RangeFilterController implements FilterNodeController {
   private int numberOfFractionDigits;
   private DecimalFormat numberFormat;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(menu);
     rangeSlider.setShowTickMarks(true);
     rangeSlider.setShowTickLabels(true);
@@ -48,6 +53,7 @@ public class RangeFilterController implements FilterNodeController {
     valueTransform = Function.identity();
   }
 
+  @Override
   public Optional<List<Condition>> getCondition() {
     List<Condition> conditions = new ArrayList<>();
     if (!lowValue.getText().isBlank() && rangeSlider.getLowValue() > rangeSlider.getMin()) {
@@ -71,6 +77,7 @@ public class RangeFilterController implements FilterNodeController {
     }
   }
 
+  @Override
   public void addQueryListener(InvalidationListener queryListener) {
     rangeSlider.lowValueProperty().addListener(queryListener);
     rangeSlider.highValueProperty().addListener(queryListener);
@@ -78,11 +85,13 @@ public class RangeFilterController implements FilterNodeController {
     highValue.textProperty().addListener(queryListener);
   }
 
+  @Override
   public void clear() {
     rangeSlider.setLowValue(rangeSlider.getMin());
     rangeSlider.setHighValue(rangeSlider.getMax());
   }
 
+  @Override
   public void setTitle(String title) {
     menu.textProperty().unbind();
     menu.textProperty().bind(Bindings.createStringBinding(() -> i18n.get("query.rangeFilter", title, lowValue.getText(), highValue.getText()), lowValue.textProperty(), highValue.textProperty()));

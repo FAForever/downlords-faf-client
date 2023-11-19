@@ -59,13 +59,14 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
   }
 
   @Override
-  public void initialize() {
-    super.initialize();
+  protected void onInitialize() {
+    super.onInitialize();
     manageVaultButton.setVisible(true);
     manageVaultButton.setText(i18n.get("management.maps.openButton.label"));
     mapService.getRecommendedMapPageCount(TOP_ELEMENT_COUNT).thenAccept(numPages -> recommendedShowRoomPageCount = numPages);
   }
 
+  @Override
   protected void initSearchController() {
     searchController.setRootType(com.faforever.commons.api.dto.Map.class);
     searchController.setSearchableProperties(SearchablePropertyMappings.MAP_PROPERTY_MAPPING);
@@ -102,6 +103,7 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
     mapDetailController.getRoot().requestFocus();
   }
 
+  @Override
   protected void setSupplier(SearchConfig searchConfig) {
     switch (searchType) {
       case SEARCH -> currentSupplier = mapService.findByQueryWithPageCount(searchConfig, pageSize, pagination.getCurrentPageIndex() + 1);
@@ -139,6 +141,7 @@ return List.of(
         new ShowRoomCategory(() -> mapService.getOwnedMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.OWN, "mapVault.owned"));
   }
 
+  @Override
   public void onUploadButtonClicked() {
     platformService.askForPath(i18n.get("mapVault.upload.chooseDirectory"), forgedAlliancePrefs.getMapsDirectory())
         .ifPresent(this::openUploadWindow);

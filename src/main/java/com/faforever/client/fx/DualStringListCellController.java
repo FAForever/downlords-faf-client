@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class DualStringListCellController implements Controller<Node> {
+public class DualStringListCellController extends NodeController<Node> {
   private final UiService uiService;
   public HBox root;
   public Label left;

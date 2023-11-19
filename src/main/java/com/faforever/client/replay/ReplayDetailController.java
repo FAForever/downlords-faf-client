@@ -10,10 +10,10 @@ import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayBean.ChatMessage;
 import com.faforever.client.domain.ReplayBean.GameOption;
 import com.faforever.client.domain.ReplayReviewBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -88,7 +88,7 @@ import java.util.stream.Collectors;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class ReplayDetailController implements Controller<Node> {
+public class ReplayDetailController extends NodeController<Node> {
 
   private final TimeService timeService;
   private final I18n i18n;
@@ -149,7 +149,8 @@ public class ReplayDetailController implements Controller<Node> {
 
   private Runnable onDeleteListener;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     BooleanExpression showing = uiService.createShowingProperty(getRoot());
 
     JavaFxUtil.bindManagedToVisible(downloadMoreInfoButton, moreInformationPane, teamsInfoBox, reviewsContainer, ratingSeparator, reviewSeparator, deleteButton, getRoot());

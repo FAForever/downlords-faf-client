@@ -1,9 +1,9 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.filter.ChatUserFilterController;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ChatUserListController implements Controller<VBox> {
+public class ChatUserListController extends NodeController<VBox> {
 
   private static final Comparator<ChatListItem> CHAT_LIST_ITEM_COMPARATOR = Comparator.comparing(ChatListItem::category)
       .thenComparing(ChatListItem::user, Comparator.nullsFirst(Comparator.comparing(ChatChannelUser::getUsername)));
@@ -101,7 +101,7 @@ public class ChatUserListController implements Controller<VBox> {
   private ChatUserFilterController chatUserFilterController;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     hiddenCategories.bind(Bindings.valueAt(chatPrefs.getChannelNameToHiddenCategories(), chatChannel.map(ChatChannel::getName))

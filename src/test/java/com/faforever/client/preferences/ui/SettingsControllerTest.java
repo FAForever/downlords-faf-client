@@ -52,7 +52,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.hasItem;
@@ -197,7 +196,7 @@ public class SettingsControllerTest extends PlatformTest {
     when(uiService.loadFxml("theme/settings/language_item.fxml")).thenReturn(languageItemController);
 
     availableLanguages.clear();
-    availableLanguages.addAll(Set.of(Locale.FRENCH));
+    availableLanguages.add(Locale.FRENCH);
 
     verify(languageItemController).setLocale(Locale.FRENCH);
     verify(languageItemController).setOnSelectedListener(any());

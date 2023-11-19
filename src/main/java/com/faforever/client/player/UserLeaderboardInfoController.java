@@ -3,9 +3,9 @@ package com.faforever.client.player;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.util.RatingUtil;
@@ -27,7 +27,7 @@ import java.io.IOException;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class UserLeaderboardInfoController implements Controller<Node> {
+public class UserLeaderboardInfoController extends NodeController<Node> {
 
   private final I18n i18n;
   private final LeaderboardService leaderboardService;
@@ -41,7 +41,7 @@ public class UserLeaderboardInfoController implements Controller<Node> {
   public VBox root;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(divisionImage, divisionLabel);
   }
 

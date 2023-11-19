@@ -1,10 +1,10 @@
 package com.faforever.client.teammatchmaking;
 
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.IconButtonListCell;
 import com.faforever.client.fx.IconButtonListCell.IconButtonListCellControllerAndItem;
 import com.faforever.client.fx.IconButtonListCellController;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
@@ -28,7 +28,7 @@ import java.util.Comparator;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class InvitePlayerController implements Controller<Pane> {
+public class InvitePlayerController extends NodeController<Pane> {
 
   private final PlayerService playerService;
   private final UiService uiService;
@@ -45,7 +45,7 @@ public class InvitePlayerController implements Controller<Pane> {
   public ListView<String> invitedPlayersListView;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     playerTextField.textProperty().addListener((observable, oldValue, newValue) ->
         playersListView.getSelectionModel().selectFirst()
     );
@@ -76,8 +76,8 @@ public class InvitePlayerController implements Controller<Pane> {
   }
 
   private void invitedPlayerListCellConfiguration(IconButtonListCellControllerAndItem<String> iconButtonListCellControllerAndItem) {
-    IconButtonListCellController iconButtonListCellController = iconButtonListCellControllerAndItem.getIconButtonListCellController();
-    String playerName = iconButtonListCellControllerAndItem.getItem();
+    IconButtonListCellController iconButtonListCellController = iconButtonListCellControllerAndItem.iconButtonListCellController();
+    String playerName = iconButtonListCellControllerAndItem.item();
     Button iconButton = iconButtonListCellController.getIconButton();
     iconButton.setDisable(true);
     iconButtonListCellController.getIconRegion().getStyleClass().add("added-person");
@@ -85,8 +85,8 @@ public class InvitePlayerController implements Controller<Pane> {
   }
 
   private void playerListCellConfiguration(IconButtonListCellControllerAndItem<String> iconButtonListCellControllerAndItem) {
-    IconButtonListCellController iconButtonListCellController = iconButtonListCellControllerAndItem.getIconButtonListCellController();
-    String playerName = iconButtonListCellControllerAndItem.getItem();
+    IconButtonListCellController iconButtonListCellController = iconButtonListCellControllerAndItem.iconButtonListCellController();
+    String playerName = iconButtonListCellControllerAndItem.item();
     Button iconButton = iconButtonListCellController.getIconButton();
     iconButton.setOnMouseClicked(event -> invite(playerName));
     iconButtonListCellController.getIconRegion().getStyleClass().add("add-person");

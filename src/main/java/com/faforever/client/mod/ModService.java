@@ -196,6 +196,7 @@ public class ModService implements InitializingBean, DisposableBean {
   private void loadInstalledMods() {
     taskService.submitTask(new CompletableTask<Void>(Priority.LOW) {
 
+      @Override
       protected Void call() {
         updateTitle(i18n.get("modVault.loadingMods"));
         try (Stream<Path> customModsDirectory = list(forgedAlliancePrefs.getModsDirectory())) {

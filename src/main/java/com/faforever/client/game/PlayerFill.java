@@ -6,8 +6,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class PlayerFill implements Comparable<PlayerFill> {
 
-  private IntegerProperty players;
-  private IntegerProperty maxPlayers;
+  private final IntegerProperty players;
+  private final IntegerProperty maxPlayers;
 
   public PlayerFill(Integer players, Integer maxPlayers) {
     this.players = new SimpleIntegerProperty(players);

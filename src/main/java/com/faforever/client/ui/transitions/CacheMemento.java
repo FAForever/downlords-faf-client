@@ -31,8 +31,8 @@ public class CacheMemento {
     private boolean cacheShape;
     private boolean snapToPixel;
     private CacheHint cacheHint = CacheHint.DEFAULT;
-    private Node node;
-    private AtomicBoolean isCached = new AtomicBoolean(false);
+  private final Node node;
+  private final AtomicBoolean isCached = new AtomicBoolean(false);
 
     public CacheMemento(Node node) {
         this.node = node;

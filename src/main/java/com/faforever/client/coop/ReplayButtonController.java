@@ -1,6 +1,6 @@
 package com.faforever.client.coop;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import javafx.scene.control.Button;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ReplayButtonController implements Controller<Button> {
+public class ReplayButtonController extends NodeController<Button> {
   public Button replayButtonRoot;
   private String replayId;
   private Consumer<ReplayButtonController> onReplayButtonClicked;

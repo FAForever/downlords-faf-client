@@ -1,6 +1,6 @@
 package com.faforever.client.login;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.TimeService;
 import javafx.scene.control.Label;
@@ -15,7 +15,7 @@ import java.time.temporal.TemporalAccessor;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class AnnouncementController implements Controller<Pane> {
+public class AnnouncementController extends NodeController<Pane> {
 
   public Pane loginAnnouncementRoot;
   public Label titleLabel;

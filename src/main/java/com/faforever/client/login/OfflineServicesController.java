@@ -1,6 +1,6 @@
 package com.faforever.client.login;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.theme.UiService;
 import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,7 @@ import java.time.OffsetDateTime;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class OfflineServicesController implements Controller<Pane> {
+public class OfflineServicesController extends NodeController<Pane> {
 
   public Pane offlineServicesRoot;
   public Pane offlineServicesContainer;

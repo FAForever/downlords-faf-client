@@ -3,8 +3,8 @@ package com.faforever.client.vault.review;
 
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReviewBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
@@ -46,7 +46,7 @@ import java.util.function.Supplier;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ReviewsController<T extends ReviewBean> implements Controller<Pane> {
+public class ReviewsController<T extends ReviewBean> extends NodeController<Pane> {
   private static final int REVIEWS_PER_PAGE = 4;
   private final I18n i18n;
   private final UiService uiService;
@@ -75,7 +75,8 @@ public class ReviewsController<T extends ReviewBean> implements Controller<Pane>
   private final ObjectProperty<Supplier<T>> reviewSupplier = new SimpleObjectProperty<>();
   private final ObservableList<T> reviews = FXCollections.observableArrayList(review -> new Observable[]{review.scoreProperty()});
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(ownReviewLabel, ownReview, pageLeftButton, reviewsPagination, pageRightButton);
     JavaFxUtil.setAnchors(ownReview, 0d);
     ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());

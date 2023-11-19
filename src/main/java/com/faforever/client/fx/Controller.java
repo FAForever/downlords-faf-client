@@ -1,6 +1,6 @@
 package com.faforever.client.fx;
 
-public interface Controller<ROOT> {
+public sealed interface Controller<ROOT> permits MenuItemController, NodeController, TabController {
 
   ROOT getRoot();
 

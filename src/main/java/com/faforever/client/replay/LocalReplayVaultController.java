@@ -44,8 +44,8 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
   }
 
   @Override
-  public void initialize() {
-    super.initialize();
+  protected void onInitialize() {
+    super.onInitialize();
     uploadButton.setVisible(false);
 
     backButton.visibleProperty().unbind();
@@ -70,6 +70,7 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
     state.set(State.RESULT);
   }
 
+  @Override
   protected void setSupplier(SearchConfig searchConfig) {
     try {
       currentSupplier = replayService.loadLocalReplayPage(pageSize, pagination.getCurrentPageIndex() + 1);
@@ -90,6 +91,7 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
     return List.of();
   }
 
+  @Override
   public void onUploadButtonClicked() {
     // do nothing
   }
@@ -106,6 +108,7 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
     return replayDetailController.getRoot();
   }
 
+  @Override
   protected void initSearchController() {
     searchController.setRootType(Game.class);
     searchController.setSearchableProperties(SearchablePropertyMappings.GAME_PROPERTY_MAPPING);

@@ -5,9 +5,9 @@ import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -37,7 +37,7 @@ import java.util.Objects;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class PrivatePlayerInfoController implements Controller<Node> {
+public class PrivatePlayerInfoController extends NodeController<Node> {
 
   private final I18n i18n;
   private final UiService uiService;
@@ -74,7 +74,8 @@ public class PrivatePlayerInfoController implements Controller<Node> {
     return privateUserInfoRoot;
   }
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(gameDetailWrapper, country, gamesPlayed, unlockedAchievements,
         ratingsLabels, ratingsValues, gamesPlayedLabel, unlockedAchievementsLabel, separator);
     JavaFxUtil.bind(separator.visibleProperty(), gameDetailWrapper.visibleProperty());

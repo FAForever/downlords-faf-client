@@ -1,8 +1,8 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.theme.UiService;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -22,7 +22,7 @@ import java.util.Map;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class PersistentNotificationsController implements Controller<Node> {
+public class PersistentNotificationsController extends NodeController<Node> {
 
   private final Map<PersistentNotification, Node> notificationsToNode = new HashMap<>();
   private final NotificationService notificationService;
@@ -33,7 +33,8 @@ public class PersistentNotificationsController implements Controller<Node> {
   public Label noNotificationsLabel;
   public Pane persistentNotificationsRoot;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     notificationService.addPersistentNotificationListener(change -> {
       if (change.wasAdded()) {
         PersistentNotification addedNotifications = change.getElementAdded();
@@ -77,6 +78,7 @@ public class PersistentNotificationsController implements Controller<Node> {
     }
   }
 
+  @Override
   public Node getRoot() {
     return persistentNotificationsRoot;
   }

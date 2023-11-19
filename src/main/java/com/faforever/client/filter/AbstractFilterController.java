@@ -3,6 +3,7 @@ package com.faforever.client.filter;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.theme.UiService;
 import javafx.beans.InvalidationListener;
@@ -25,7 +26,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @RequiredArgsConstructor
-public abstract class AbstractFilterController<T> implements Controller<SplitPane> {
+public abstract class AbstractFilterController<T> extends NodeController<SplitPane> {
 
 
   /**
@@ -48,7 +49,7 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
   private final ObjectProperty<Predicate<T>> predicate = new SimpleObjectProperty<>(defaultPredicate);
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     build(new FilterBuilder<>(uiService, fxApplicationThreadExecutor, filters::add));
     afterBuilt();
   }
@@ -57,7 +58,7 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
 
   protected void afterBuilt() {
     // To be overridden by subclass
-  };
+  }
 
   public ObjectProperty<Predicate<T>> predicateProperty() {
     return predicate;

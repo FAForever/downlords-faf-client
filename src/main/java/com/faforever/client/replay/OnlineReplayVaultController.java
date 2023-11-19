@@ -62,8 +62,8 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
   }
 
   @Override
-  public void initialize() {
-    super.initialize();
+  protected void onInitialize() {
+    super.onInitialize();
     uploadButton.setVisible(false);
   }
 
@@ -75,6 +75,7 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
     replayDetailController.getRoot().requestFocus();
   }
 
+  @Override
   protected void setSupplier(SearchConfig searchConfig) {
     switch (searchType) {
       case SEARCH -> currentSupplier = replayService.findByQueryWithPageCount(searchConfig, pageSize, pagination.getCurrentPageIndex() + 1);
@@ -101,6 +102,7 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
     );
   }
 
+  @Override
   public void onUploadButtonClicked() {
     // do nothing
   }
@@ -116,6 +118,7 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
     return replayDetailController.getRoot();
   }
 
+  @Override
   protected void initSearchController() {
     searchController.setRootType(Game.class);
     searchController.setSearchableProperties(SearchablePropertyMappings.GAME_PROPERTY_MAPPING);

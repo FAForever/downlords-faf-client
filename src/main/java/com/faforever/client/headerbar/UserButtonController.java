@@ -1,7 +1,7 @@
 package com.faforever.client.headerbar;
 
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportDialogController;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class UserButtonController implements Controller<Node> {
+public class UserButtonController extends NodeController<Node> {
 
   private final PlayerService playerService;
   private final UiService uiService;
@@ -27,7 +27,8 @@ public class UserButtonController implements Controller<Node> {
 
   public MenuButton userMenuButtonRoot;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     userMenuButtonRoot.textProperty()

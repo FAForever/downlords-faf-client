@@ -1,7 +1,7 @@
 package com.faforever.client.tournament;
 
 import com.faforever.client.domain.TournamentBean;
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.TimeService;
 import javafx.scene.Node;
@@ -15,7 +15,7 @@ import java.text.MessageFormat;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class TournamentListItemController implements Controller<Node> {
+public class TournamentListItemController extends NodeController<Node> {
 
   private final I18n i18n;
   private final TimeService timeService;

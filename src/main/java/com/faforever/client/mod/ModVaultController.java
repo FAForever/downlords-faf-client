@@ -55,8 +55,8 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
   }
 
   @Override
-  public void initialize() {
-    super.initialize();
+  protected void onInitialize() {
+    super.onInitialize();
     JavaFxUtil.fixScrollSpeed(scrollPane);
 
     manageVaultButton.setVisible(true);
@@ -74,6 +74,7 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
     });
   }
 
+  @Override
   protected void setSupplier(SearchConfig searchConfig) {
     switch (searchType) {
       case SEARCH ->
@@ -114,6 +115,7 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
     );
   }
 
+  @Override
   public void onUploadButtonClicked() {
     platformService.askForPath(i18n.get("modVault.upload.chooseDirectory"), forgedAlliancePrefs.getModsDirectory())
         .ifPresent(this::openUploadWindow);
@@ -133,6 +135,7 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
     return modDetailController.getRoot();
   }
 
+  @Override
   protected void initSearchController() {
     searchController.setRootType(com.faforever.commons.api.dto.Mod.class);
     searchController.setSearchableProperties(SearchablePropertyMappings.MOD_PROPERTY_MAPPING);

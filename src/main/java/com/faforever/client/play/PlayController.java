@@ -1,7 +1,7 @@
 package com.faforever.client.play;
 
 import com.faforever.client.coop.CoopController;
-import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.game.CustomGamesController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenCoopEvent;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class PlayController extends AbstractViewController<Node> {
+public class PlayController extends NodeController<Node> {
 
   private final NavigationHandler navigationHandler;
   public Node playRoot;
@@ -32,11 +32,11 @@ public class PlayController extends AbstractViewController<Node> {
   public CustomGamesController customGamesController;
   public CoopController coopController;
   private boolean isHandlingEvent;
-  private AbstractViewController<?> lastTabController;
+  private NodeController<?> lastTabController;
   private Tab lastTab;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     lastTab = teamMatchmakingTab;
     lastTabController = teamMatchmakingController;
     playRootTabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -55,7 +55,7 @@ public class PlayController extends AbstractViewController<Node> {
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  protected void onNavigate(NavigateEvent navigateEvent) {
     isHandlingEvent = true;
 
     try {
@@ -78,9 +78,9 @@ public class PlayController extends AbstractViewController<Node> {
 
   @Override
   public void onHide() {
-    teamMatchmakingController.onHide();
-    customGamesController.onHide();
-    coopController.onHide();
+    teamMatchmakingController.hide();
+    customGamesController.hide();
+    coopController.hide();
   }
 
   @Override

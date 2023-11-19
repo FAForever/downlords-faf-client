@@ -3,8 +3,8 @@ package com.faforever.client.tournament;
 
 import com.faforever.client.domain.TournamentBean;
 import com.faforever.client.exception.AssetLoadException;
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
@@ -32,7 +32,7 @@ import java.util.Comparator;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class TournamentsController extends AbstractViewController<Node> {
+public class TournamentsController extends NodeController<Node> {
   private static final ClassPathResource TOURNAMENT_DETAIL_HTML_RESOURCE = new ClassPathResource("/theme/tournaments/tournament_detail.html");
 
   private final TimeService timeService;
@@ -54,7 +54,7 @@ public class TournamentsController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     contentPane.managedProperty().bind(contentPane.visibleProperty());
     contentPane.setVisible(false);
 
@@ -75,7 +75,7 @@ public class TournamentsController extends AbstractViewController<Node> {
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  protected void onNavigate(NavigateEvent navigateEvent) {
     if (contentPane.isVisible()) {
       return;
     }

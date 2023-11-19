@@ -2,8 +2,8 @@ package com.faforever.client.units;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.UnitDatabase;
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.Preferences.UnitDataBaseType;
@@ -18,14 +18,14 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class UnitsController extends AbstractViewController<Node> {
+public class UnitsController extends NodeController<Node> {
   private final ClientProperties clientProperties;
   private final Preferences preferences;
 
   public WebView unitsRoot;
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  protected void onNavigate(NavigateEvent navigateEvent) {
     if (Strings.isNullOrEmpty(unitsRoot.getEngine().getLocation())) {
       loadUnitDataBase(preferences.getUnitDataBaseType());
       JavaFxUtil.addListener(preferences.unitDataBaseTypeProperty(), (observable, oldValue, newValue) -> loadUnitDataBase(newValue));
@@ -37,6 +37,7 @@ public class UnitsController extends AbstractViewController<Node> {
     unitsRoot.getEngine().load(newValue == UnitDataBaseType.SPOOKY ? unitDatabase.getSpookiesUrl() : unitDatabase.getRackOversUrl());
   }
 
+  @Override
   public Node getRoot() {
     return unitsRoot;
   }

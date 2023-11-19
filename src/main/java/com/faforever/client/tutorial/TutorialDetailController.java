@@ -3,7 +3,7 @@ package com.faforever.client.tutorial;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.TutorialBean;
-import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class TutorialDetailController extends AbstractViewController<Node> {
+public class TutorialDetailController extends NodeController<Node> {
   private final I18n i18n;
   private final MapService mapService;
   private final WebViewConfigurer webViewConfigurer;
@@ -43,7 +43,7 @@ public class TutorialDetailController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     mapContainer.managedProperty().bind(mapContainer.visibleProperty());
     descriptionWebView.setContextMenuEnabled(false);
     webViewConfigurer.configureWebView(descriptionWebView);

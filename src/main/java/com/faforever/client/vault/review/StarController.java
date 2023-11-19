@@ -1,6 +1,6 @@
 package com.faforever.client.vault.review;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import javafx.beans.binding.DoubleExpression;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.SimpleFloatProperty;
@@ -17,7 +17,7 @@ import java.util.function.Consumer;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class StarController implements Controller<Pane> {
+public class StarController extends NodeController<Pane> {
 
   public StackPane starRoot;
   public Node starBackground;
@@ -33,7 +33,8 @@ public class StarController implements Controller<Pane> {
     return starRoot;
   }
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     fillClip.widthProperty()
         .bind(fill.multiply(DoubleExpression.doubleExpression(starRoot.layoutBoundsProperty().map(Bounds::getWidth))));
     fillClip.heightProperty().bind(starRoot.heightProperty());

@@ -1,12 +1,12 @@
 package com.faforever.client.filter;
 
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.ui.RemovableListCellController;
+import com.faforever.client.preferences.ui.RemovableListCell;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.list.NoFocusModelListView;
 import com.faforever.client.ui.list.NoSelectionModelListView;
-import javafx.beans.InvalidationListener;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
@@ -29,6 +29,7 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
 
   private final UiService uiService;
   private final I18n i18n;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public MenuButton root;
   public ListView<String> listView;
@@ -37,16 +38,16 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
   private final ListProperty<String> itemListProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(listView);
     listView.setSelectionModel(new NoSelectionModelListView<>());
     listView.setFocusModel(new NoFocusModelListView<>());
 
-    JavaFxUtil.addAndTriggerListener(itemListProperty, (InvalidationListener) observable -> {
+    JavaFxUtil.addAndTriggerListener(itemListProperty, observable -> {
       listView.setItems(itemListProperty.getValue());
       JavaFxUtil.bind(listView.visibleProperty(), itemListProperty.emptyProperty().not());
     });
-    listView.setCellFactory(param -> uiService.<RemovableListCellController<String>>loadFxml("theme/settings/removable_cell.fxml"));
+    listView.setCellFactory(param -> new RemovableListCell<>(uiService, fxApplicationThreadExecutor));
   }
 
   public void onAddItem() {

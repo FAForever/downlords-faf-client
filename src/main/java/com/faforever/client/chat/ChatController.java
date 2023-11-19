@@ -1,9 +1,9 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.exception.ProgrammingError;
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.theme.UiService;
@@ -32,7 +32,7 @@ import java.util.Optional;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ChatController extends AbstractViewController<AnchorPane> {
+public class ChatController extends NodeController<AnchorPane> {
 
   private final ChatService chatService;
   private final UiService uiService;
@@ -60,8 +60,8 @@ public class ChatController extends AbstractViewController<AnchorPane> {
   public TextField channelNameTextField;
 
   @Override
-  public void initialize() {
-    super.initialize();
+  protected void onInitialize() {
+    super.onInitialize();
 
     BooleanExpression showing = uiService.createShowingProperty(getRoot());
 
@@ -159,6 +159,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
     }
   }
 
+  @Override
   public AnchorPane getRoot() {
     return chatRoot;
   }
@@ -174,7 +175,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  protected void onNavigate(NavigateEvent navigateEvent) {
     if (tabPane.getTabs().size() > 1) {
       Tab tab = tabPane.getSelectionModel().getSelectedItem();
       Optional.ofNullable(channelToChatTabController.get((ChatChannel) tab.getUserData()))

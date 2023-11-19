@@ -112,8 +112,8 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @Override
-  public void initialize() {
-    super.initialize();
+  protected void onInitialize() {
+    super.onInitialize();
     JavaFxUtil.bindManagedToVisible(topicPane, chatUserList, changeTopicTextButton, topicTextField,
                                     cancelChangesTopicTextButton, topicText, topicCharactersLimitLabel,
                                     chatMessageSearchContainer);

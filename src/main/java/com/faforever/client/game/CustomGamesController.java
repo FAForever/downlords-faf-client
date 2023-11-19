@@ -2,8 +2,8 @@ package com.faforever.client.game;
 
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.CustomGamesFilterController;
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.ToStringOnlyConverter;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.faforever.client.i18n.I18n;
@@ -49,7 +49,7 @@ import java.util.function.Predicate;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class CustomGamesController extends AbstractViewController<Node> {
+public class CustomGamesController extends NodeController<Node> {
 
   private final UiService uiService;
   private final GameService gameService;
@@ -78,7 +78,8 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   private final Predicate<GameBean> openGamesPredicate = game -> game.getStatus() == GameStatus.OPEN && game.getGameType() == GameType.CUSTOM;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(chooseSortingTypeChoiceBox, gameDetailPane);
     ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
@@ -148,7 +149,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  protected void onNavigate(NavigateEvent navigateEvent) {
     if (navigateEvent instanceof HostGameEvent hostGameEvent) {
       onCreateGame(hostGameEvent.getMapFolderName());
     }
@@ -180,6 +181,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
     root.requestFocus();
   }
 
+  @Override
   public Node getRoot() {
     return gamesRoot;
   }

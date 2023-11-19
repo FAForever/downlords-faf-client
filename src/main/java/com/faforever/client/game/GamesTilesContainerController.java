@@ -1,9 +1,9 @@
 package com.faforever.client.game;
 
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
@@ -37,7 +37,7 @@ import java.util.Objects;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @RequiredArgsConstructor
-public class GamesTilesContainerController implements Controller<Node> {
+public class GamesTilesContainerController extends NodeController<Node> {
 
   private final UiService uiService;
   private final PlayerService playerService;
@@ -66,7 +66,7 @@ public class GamesTilesContainerController implements Controller<Node> {
   }
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
     JavaFxUtil.fixScrollSpeed(tiledScrollPane);
 
@@ -149,6 +149,7 @@ public class GamesTilesContainerController implements Controller<Node> {
     }
   }
 
+  @Override
   public Node getRoot() {
     return tiledScrollPane;
   }

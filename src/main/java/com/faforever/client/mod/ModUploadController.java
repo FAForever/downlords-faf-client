@@ -3,8 +3,8 @@ package com.faforever.client.mod;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
@@ -43,7 +43,7 @@ import static java.util.Arrays.asList;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-public class ModUploadController implements Controller<Node> {
+public class ModUploadController extends NodeController<Node> {
 
   private final ModService modService;
   private final ExecutorService executorService;
@@ -75,7 +75,8 @@ public class ModUploadController implements Controller<Node> {
   private Runnable cancelButtonClickedListener;
   private Runnable uploadListener;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     modInfoPane.managedProperty().bind(modInfoPane.visibleProperty());
     uploadProgressPane.managedProperty().bind(uploadProgressPane.visibleProperty());
     parseProgressPane.managedProperty().bind(parseProgressPane.visibleProperty());
@@ -206,6 +207,7 @@ public class ModUploadController implements Controller<Node> {
     cancelButtonClickedListener.run();
   }
 
+  @Override
   public Region getRoot() {
     return modUploadRoot;
   }

@@ -2,8 +2,8 @@ package com.faforever.client.news;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Website;
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.main.event.NavigateEvent;
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class NewsController extends AbstractViewController<Node> {
+public class NewsController extends NodeController<Node> {
   private final WebViewConfigurer webViewConfigurer;
   private final ClientProperties clientProperties;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -34,10 +34,9 @@ public class NewsController extends AbstractViewController<Node> {
       -> loadingIndicator.getParent().getChildrenUnmodifiable().stream()
       .filter(node -> node != loadingIndicator)
       .forEach(node -> node.setVisible(!newValue));
-  ;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     newsWebView.setContextMenuEnabled(false);
     webViewConfigurer.configureWebView(newsWebView);
 
@@ -63,7 +62,7 @@ public class NewsController extends AbstractViewController<Node> {
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  protected void onNavigate(NavigateEvent navigateEvent) {
     onLoadingStart();
     loadNews();
   }
@@ -75,6 +74,7 @@ public class NewsController extends AbstractViewController<Node> {
     });
   }
 
+  @Override
   public Node getRoot() {
     return newsRoot;
   }

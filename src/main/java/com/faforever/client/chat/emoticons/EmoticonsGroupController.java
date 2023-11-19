@@ -1,7 +1,7 @@
 package com.faforever.client.chat.emoticons;
 
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.theme.UiService;
 import javafx.scene.control.Hyperlink;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class EmoticonsGroupController implements Controller<VBox> {
+public class EmoticonsGroupController extends NodeController<VBox> {
 
   private final UiService uiService;
   private final PlatformService platformService;
@@ -37,7 +37,7 @@ public class EmoticonsGroupController implements Controller<VBox> {
   public FlowPane emoticonsPane;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(attributionPane);
   }
 

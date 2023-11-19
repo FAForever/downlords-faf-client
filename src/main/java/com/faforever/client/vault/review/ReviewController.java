@@ -2,8 +2,8 @@ package com.faforever.client.vault.review;
 
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReviewBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
@@ -32,7 +32,7 @@ import java.util.function.Consumer;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ReviewController<T extends ReviewBean> implements Controller<Pane> {
+public class ReviewController<T extends ReviewBean> extends NodeController<Pane> {
   private static final String[] STARS_TIP_KEYS = {"review.starsTip.one", "review.starsTip.two", "review.starsTip.three", "review.starsTip.four", "review.starsTip.five"};
 
   private final I18n i18n;
@@ -61,7 +61,8 @@ public class ReviewController<T extends ReviewBean> implements Controller<Pane> 
   private Consumer<T> onSendReviewListener;
   private Consumer<T> onDeleteReviewListener;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     JavaFxUtil.bindManagedToVisible(displayReviewPane, editReviewPane, editButton, deleteButton);

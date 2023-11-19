@@ -76,7 +76,8 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
   private Consumer<ReplayBean> onOpenDetailListener;
   private Runnable onDeleteListener;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
     JavaFxUtil.bindManagedToVisible(deleteButton, tickDurationLabel, realTimeDurationLabel);
 
@@ -158,6 +159,7 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
     });
   }
 
+  @Override
   public Node getRoot() {
     return replayTileRoot;
   }

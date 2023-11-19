@@ -3,9 +3,9 @@ package com.faforever.client.leaderboard;
 import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.StringCell;
+import com.faforever.client.fx.TabController;
 import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
 import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -34,7 +34,7 @@ import static javafx.collections.FXCollections.observableList;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class SubDivisionTabController implements Controller<Tab> {
+public class SubDivisionTabController extends TabController {
 
   private final ContextMenuBuilder contextMenuBuilder;
   private final LeaderboardService leaderboardService;
@@ -55,7 +55,7 @@ public class SubDivisionTabController implements Controller<Tab> {
   }
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     ratingTable.setRowFactory(param -> entriesRowFactory());
 
     rankColumn.setCellValueFactory(param -> param.getValue().rankProperty());
