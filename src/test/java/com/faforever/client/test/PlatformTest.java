@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Locale;
 
-@Execution(ExecutionMode.CONCURRENT)
+@Execution(ExecutionMode.SAME_THREAD)
 @ExtendWith({MockitoExtension.class})
 @MockitoSettings(strictness = Strictness.LENIENT)
 //TODO figure out best way to refactor so that tests don't have to be lenient due to unnecessary stubbings spam
