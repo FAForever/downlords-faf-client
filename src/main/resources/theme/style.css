@@ -403,7 +403,7 @@
 /***************** Main window header *****************/
 
 .main-navigation-top {
-  -fx-padding: 9 0 0 0;
+  -fx-padding: 20 0 0 0;
   -fx-background-color: #FFFFFF12;
 }
 
@@ -418,7 +418,7 @@
 }
 
 .root:maximized .main-navigation-top {
-  -fx-padding: 0 0 0 0;
+  -fx-padding: 20 0 0 0;
 }
 
 .toggle-button {
