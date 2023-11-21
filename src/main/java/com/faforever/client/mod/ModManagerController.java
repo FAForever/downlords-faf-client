@@ -108,12 +108,8 @@ public class ModManagerController implements Controller<Parent> {
   }
 
   private Predicate<ModVersionBean> getCombinedFilter(){
-    if(modSearchTextField.getText().isEmpty()){
-      return modVersion -> (viewToggleGroup.getSelectedToggle() == uiModsButton ? modVersion.getModType() == ModType.UI : modVersion.getModType() == ModType.SIM);
-    } else {
       return modVersion -> (viewToggleGroup.getSelectedToggle() == uiModsButton ? modVersion.getModType() == ModType.UI : modVersion.getModType() == ModType.SIM)
-          && modVersion.getMod().getDisplayName().toLowerCase().contains(modSearchTextField.getText().toLowerCase());
-    }
+          && (modSearchTextField.getText().isEmpty() || modVersion.getMod().getDisplayName().toLowerCase().contains(modSearchTextField.getText().toLowerCase()));
   }
 
   private void loadActivatedMods() {
