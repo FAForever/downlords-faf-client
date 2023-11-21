@@ -91,6 +91,11 @@
                                 <Region fx:id="leaderboardInfoIcon" styleClass="icon, icon16x16, info-icon"/>
                             </graphic>
                         </Label>
+                        <TextField fx:id="leaderboardSearchTextField" promptText="%leaderboard.searchPrompt">
+                            <HBox.margin>
+                                <Insets right="10.0"/>
+                            </HBox.margin>
+                        </TextField>
                         <ComboBox fx:id="numberOfPlayersComboBox" HBox.hgrow="NEVER">
                             <items>
                                 <FXCollections fx:factory="observableArrayList">

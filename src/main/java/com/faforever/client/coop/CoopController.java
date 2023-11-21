@@ -58,9 +58,11 @@ import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -96,10 +98,12 @@ public class CoopController extends AbstractViewController<Node> {
   public Pane gameViewContainer;
   public TextField titleTextField;
   public Button playButton;
+  public TextField leaderboardSearchTextField;
   public PasswordField passwordTextField;
   public ImageView mapPreviewImageView;
   public Region leaderboardInfoIcon;
   public TableView<CoopResultBean> leaderboardTable;
+  public FilteredList<CoopResultBean> leaderboardFilteredTable;
   public ComboBox<Integer> numberOfPlayersComboBox;
   public TableColumn<CoopResultBean, Integer> rankColumn;
   public TableColumn<CoopResultBean, Integer> playerCountColumn;
@@ -124,6 +128,8 @@ public class CoopController extends AbstractViewController<Node> {
     numberOfPlayersComboBox.setCellFactory(param -> numberOfPlayersCell());
     numberOfPlayersComboBox.getSelectionModel().select(0);
     numberOfPlayersComboBox.getSelectionModel().selectedItemProperty().addListener(observable -> loadLeaderboard());
+
+    leaderboardSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> onSearchFieldChange(newValue));
 
     rankColumn.setCellValueFactory(param -> param.getValue().rankingProperty().asObject());
     rankColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
@@ -194,6 +200,20 @@ public class CoopController extends AbstractViewController<Node> {
     });
   }
 
+  private void onSearchFieldChange(String newvalue){
+    leaderboardFilteredTable.setPredicate(coopResultBean -> {
+      String teamstring = "";
+      for(Map.Entry<String, List<String>> entry : coopResultBean.getReplay().getTeams().entrySet()){
+        teamstring = entry.getValue().stream().collect(Collectors.joining(i18n.get("textSeparator")));
+      }
+      if(newvalue.isEmpty() || teamstring.equalsIgnoreCase("")){
+        return true;
+      }
+      return teamstring.toLowerCase().contains(newvalue.toLowerCase());
+    });
+    leaderboardTable.setItems(observableList(leaderboardFilteredTable));
+  }
+
   private String coopMissionFromFolderNamer(List<CoopMissionBean> coopMaps, String mapFolderName) {
     return coopMaps.stream()
         .filter(coopMission -> coopMission.getMapFolderName().equalsIgnoreCase(mapFolderName))
@@ -243,7 +263,10 @@ public class CoopController extends AbstractViewController<Node> {
         .thenAccept(coopLeaderboardEntries -> {
           AtomicInteger ranking = new AtomicInteger();
           coopLeaderboardEntries.forEach(coopResult -> coopResult.setRanking(ranking.incrementAndGet()));
-          fxApplicationThreadExecutor.execute(() -> leaderboardTable.setItems(observableList(coopLeaderboardEntries)));
+          fxApplicationThreadExecutor.execute(() -> {
+            leaderboardTable.setItems(observableList(coopLeaderboardEntries));
+            leaderboardFilteredTable = new FilteredList<>(observableList(coopLeaderboardEntries));
+          });
         })
         .exceptionally(throwable -> {
           log.warn("Could not load coop leaderboard", throwable);
