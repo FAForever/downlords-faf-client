@@ -8,6 +8,7 @@
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.TextField?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="root" xmlns="http://javafx.com/javafx/11.0.1"
       fx:controller="com.faforever.client.mod.ModManagerController">
     <!-- Mods -->
@@ -29,6 +30,14 @@
                 <Tooltip text="%mod.manager.simModsTooltip"/>
             </tooltip>
         </ToggleButton>
+
+    </HBox>
+    <HBox>
+        <TextField fx:id="modSearchTextField" prefWidth="306.0" promptText="%game.create.searchMap">
+            <HBox.margin>
+                <Insets top="10.0"/>
+            </HBox.margin>
+        </TextField>
     </HBox>
     <ListView fx:id="modListView" maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS">
         <VBox.margin>

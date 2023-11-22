@@ -14,6 +14,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.MouseEvent;
@@ -52,6 +53,7 @@ public class ModManagerController implements Controller<Parent> {
   public ToggleButton simModsButton;
   public ListView<ModVersionBean> modListView;
   public VBox root;
+  public TextField modSearchTextField;
 
   private FilteredList<ModVersionBean> modVersionFilteredList;
 
@@ -65,7 +67,7 @@ public class ModManagerController implements Controller<Parent> {
 
   public void onDeselectModsButtonClicked() {
     modListView.getSelectionModel().clearSelection();
-    modVersionFilteredList.forEach(selectedMods::remove);
+    selectedMods.clear();
   }
 
   public void onReloadModsButtonClicked() {
@@ -95,12 +97,19 @@ public class ModManagerController implements Controller<Parent> {
     modListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     modListView.setCellFactory(modListCellFactory());
 
+    modSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> filterModList());
+
     viewToggleGroup.selectToggle(uiModsButton);
 
     loadActivatedMods();
 
     modListView.scrollTo(modListView.getSelectionModel().getSelectedItem());
     setCloseable(true);
+  }
+
+  private Predicate<ModVersionBean> getCombinedFilter(){
+      return modVersion -> (viewToggleGroup.getSelectedToggle() == uiModsButton ? modVersion.getModType() == ModType.UI : modVersion.getModType() == ModType.SIM)
+          && (modSearchTextField.getText().isEmpty() || modVersion.getMod().getDisplayName().toLowerCase().contains(modSearchTextField.getText().toLowerCase()));
   }
 
   private void loadActivatedMods() {
@@ -116,7 +125,7 @@ public class ModManagerController implements Controller<Parent> {
   }
 
   private void filterModList() {
-    modVersionFilteredList.setPredicate(viewToggleGroup.getSelectedToggle() == uiModsButton ? UI_FILTER : SIM_FILTER);
+    modVersionFilteredList.setPredicate(getCombinedFilter());
     modVersionFilteredList.forEach(modVersion -> {
       if (selectedMods.contains(modVersion)) {
         modListView.getSelectionModel().select(modVersion);
