@@ -20,6 +20,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.springframework.beans.factory.ObjectFactory;
 
@@ -32,6 +33,8 @@ import static com.faforever.client.notification.Severity.INFO;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -92,10 +95,15 @@ public class ClientUpdateServiceTest extends ServiceTest {
    */
   @Test
   public void testCheckForUpdateInBackgroundUpdateAvailable() throws Exception {
-    VersionTest.setCurrentVersion("v0.4.8.0-alpha");
-
     preferences.setPreReleaseCheckEnabled(false);
-    instance.checkForUpdateInBackground();
+
+    try (MockedStatic<Version> mockedVersion = mockStatic(Version.class)) {
+      mockedVersion.when(Version::getCurrentVersion).thenReturn("v0.4.8.0-alpha");
+      mockedVersion.when(() -> Version.shouldUpdate(anyString(), anyString())).thenCallRealMethod();
+      mockedVersion.when(() -> Version.removePrefix(anyString())).thenCallRealMethod();
+      mockedVersion.when(() -> Version.followsSemverPattern(anyString())).thenCallRealMethod();
+      instance.checkForUpdateInBackground();
+    }
 
     verify(taskService).submitTask(checkForUpdateTask);
 
@@ -115,10 +123,16 @@ public class ClientUpdateServiceTest extends ServiceTest {
   @ValueSource(booleans = {true, false})
   public void testCheckForBetaUpdateInBackgroundUpdateAvailable(boolean supportsUpdateInstall) throws Exception {
     when(operatingSystem.supportsUpdateInstall()).thenReturn(supportsUpdateInstall);
-    VersionTest.setCurrentVersion("v0.4.8.0-alpha");
 
     preferences.setPreReleaseCheckEnabled(true);
-    instance.checkForUpdateInBackground();
+
+    try (MockedStatic<Version> mockedVersion = mockStatic(Version.class)) {
+      mockedVersion.when(Version::getCurrentVersion).thenReturn("v0.4.8.0-alpha");
+      mockedVersion.when(() -> Version.shouldUpdate(anyString(), anyString())).thenCallRealMethod();
+      mockedVersion.when(() -> Version.removePrefix(anyString())).thenCallRealMethod();
+      mockedVersion.when(() -> Version.followsSemverPattern(anyString())).thenCallRealMethod();
+      instance.checkForUpdateInBackground();
+    }
 
     verify(taskService).submitTask(checkForUpdateTask);
 

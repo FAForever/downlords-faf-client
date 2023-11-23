@@ -1,9 +1,15 @@
 package com.faforever.client.test;
 
+import com.faforever.client.fx.AttachedUtil;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.Tab;
 import javafx.util.Callback;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +17,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -23,6 +30,9 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Locale;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 
 @Execution(ExecutionMode.SAME_THREAD)
 @ExtendWith({MockitoExtension.class})
@@ -41,6 +51,8 @@ public abstract class PlatformTest {
 
   @Spy
   protected FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
+  protected BooleanProperty attached = new SimpleBooleanProperty(true);
 
   public PlatformTest() {
     Locale.setDefault(Locale.ROOT);
@@ -83,7 +95,10 @@ public abstract class PlatformTest {
       loader.setController(controller);
     }
     fxApplicationThreadExecutor.executeAndWait(() -> {
-      try {
+      try (MockedStatic<AttachedUtil> mockedStatic = mockStatic(AttachedUtil.class)) {
+        mockedStatic.when(() -> AttachedUtil.attachedProperty(any(MenuItem.class))).thenReturn(attached);
+        mockedStatic.when(() -> AttachedUtil.attachedProperty(any(Node.class))).thenReturn(attached);
+        mockedStatic.when(() -> AttachedUtil.attachedProperty(any(Tab.class))).thenReturn(attached);
         loader.load();
       } catch (Exception e) {
         loadExceptionWrapper.setLoadException(e);
@@ -105,5 +120,14 @@ public abstract class PlatformTest {
   protected void runOnFxThreadAndWait(Runnable runnable) {
     Platform.runLater(runnable);
     WaitForAsyncUtils.waitForFxEvents();
+  }
+
+  protected void reinitialize(Controller<?> controller) {
+    try (MockedStatic<AttachedUtil> mockedStatic = mockStatic(AttachedUtil.class)) {
+      mockedStatic.when(() -> AttachedUtil.attachedProperty(any(MenuItem.class))).thenReturn(attached);
+      mockedStatic.when(() -> AttachedUtil.attachedProperty(any(Node.class))).thenReturn(attached);
+      mockedStatic.when(() -> AttachedUtil.attachedProperty(any(Tab.class))).thenReturn(attached);
+      controller.initialize();
+    }
   }
 }

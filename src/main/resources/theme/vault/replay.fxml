@@ -1,13 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.60"
+<VBox fx:id="root" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.60"
       fx:controller="com.faforever.client.vault.ReplayController">
-    <TabPane fx:id="root" tabClosingPolicy="UNAVAILABLE">
-        <Tab fx:id="onlineReplayVaultTab" text="%vault.onlineReplays"/>
-        <Tab fx:id="liveReplayVaultTab" text="%vault.liveReplays" />
-        <Tab fx:id="localReplayVaultTab" text="%vault.localReplays"/>
-    </TabPane>
+    <HBox styleClass="main-navigation-top">
+        <fx:define>
+            <ToggleGroup fx:id="navigation"/>
+        </fx:define>
+        <ToggleButton fx:id="onlineButton" mnemonicParsing="false"
+                      onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                      text="%vault.onlineReplays" toggleGroup="$navigation"/>
+        <ToggleButton fx:id="liveButton" mnemonicParsing="false"
+                      onAction="#onNavigateButtonClicked"
+                      styleClass="main-navigation-button" text="%vault.liveReplays"
+                      toggleGroup="$navigation"/>
+        <ToggleButton fx:id="localButton" mnemonicParsing="false"
+                      onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                      text="%vault.localReplays" toggleGroup="$navigation"/>
+    </HBox>
+    <StackPane fx:id="contentPane" VBox.vgrow="ALWAYS"/>
 </VBox>

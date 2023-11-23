@@ -24,7 +24,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -155,10 +154,7 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
     detailView.requestFocus();
 
     vaultRoot.getChildren().add(detailView);
-    AnchorPane.setTopAnchor(detailView, 0d);
-    AnchorPane.setRightAnchor(detailView, 0d);
-    AnchorPane.setBottomAnchor(detailView, 0d);
-    AnchorPane.setLeftAnchor(detailView, 0d);
+    JavaFxUtil.setAnchors(detailView, 0d);
 
     showRoomGroup.visibleProperty().bind(state.isEqualTo(State.SHOWROOM));
     searchResultGroup.visibleProperty().bind(state.isEqualTo(State.RESULT));
@@ -167,6 +163,13 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
     loadingPane.visibleProperty().bind(state.isEqualTo(State.SEARCHING));
 
     Bindings.bindContent(searchResultPane.getChildren(), resultCardRoots);
+  }
+
+  @Override
+  public void onShow() {
+    if (state.get() == State.UNINITIALIZED) {
+      loadShowRooms();
+    }
   }
 
   private void initializeShowRoomCards() {

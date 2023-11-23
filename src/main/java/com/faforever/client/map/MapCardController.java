@@ -56,8 +56,6 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
 
   @Override
   protected void onInitialize() {
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
     imageViewHelper.setDefaultPlaceholderImage(thumbnailImageView);
     JavaFxUtil.bindManagedToVisible(installButton, uninstallButton);
 

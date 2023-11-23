@@ -33,7 +33,6 @@ public class AddEditPlayerNoteMenuItemTest extends PlatformTest {
     instance = new AddEditPlayerNoteMenuItem(uiService, playerService, i18n);
   }
 
-  //  @Override
   protected Pane getRoot() {
     return new StackPane();
   }

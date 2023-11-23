@@ -68,7 +68,6 @@ public class ModCardControllerTest extends PlatformTest {
     when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
     when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
     when(i18n.get(ModType.UI.getI18nKey())).thenReturn(ModType.UI.name());
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     modVersion = ModVersionBeanBuilder.create()
         .defaultValues()

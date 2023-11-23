@@ -228,7 +228,7 @@ public class SettingsControllerTest extends PlatformTest {
   public void testCoturnSelected() throws Exception {
     ObservableSet<String> preferredCoturnServers = preferences.getForgedAlliance().getPreferredCoturnIds();
     preferredCoturnServers.clear();
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> reinitialize(instance));
 
     assertEquals(0, preferredCoturnServers.size());
 
@@ -237,7 +237,7 @@ public class SettingsControllerTest extends PlatformTest {
     assertEquals(1, preferredCoturnServers.size());
     assertTrue(preferredCoturnServers.contains("0"));
 
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> reinitialize(instance));
 
     assertEquals(1, instance.preferredCoturnListView.getSelectionModel().getSelectedItems().size());
   }

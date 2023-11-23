@@ -30,8 +30,7 @@ public class VaultEntityShowRoomController extends NodeController<Node> {
   }
 
   public void setChildren(List<Node> children) {
-    pane.getChildren().clear();
-    pane.getChildren().addAll(children);
+    pane.getChildren().setAll(children);
     pane.getChildren().add(moreButton);
   }
 }

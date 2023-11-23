@@ -18,7 +18,6 @@ import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -58,8 +57,6 @@ public class CustomGamesController extends NodeController<Node> {
   private final GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
 
   public GameDetailController gameDetailController;
-  public GamesTableController gamesTableController;
-  public GamesTilesContainerController gamesTilesContainerController;
 
   public ToggleButton tableButton;
   public ToggleButton tilesButton;
@@ -76,12 +73,12 @@ public class CustomGamesController extends NodeController<Node> {
   private CustomGamesFilterController customGamesFilterController;
   private Popup gameFilterPopup;
 
+  private FilteredList<GameBean> filteredGames;
   private final Predicate<GameBean> openGamesPredicate = game -> game.getStatus() == GameStatus.OPEN && game.getGameType() == GameType.CUSTOM;
 
   @Override
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(chooseSortingTypeChoiceBox, gameDetailPane);
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     initializeFilterController();
 
@@ -91,8 +88,8 @@ public class CustomGamesController extends NodeController<Node> {
     chooseSortingTypeChoiceBox.setConverter(new ToStringOnlyConverter<>(tilesSortingOrder -> tilesSortingOrder == null ? "null" : i18n.get(tilesSortingOrder.getDisplayNameKey())));
     chooseSortingTypeChoiceBox.valueProperty().bindBidirectional(preferences.gameTileSortingOrderProperty());
 
-    FilteredList<GameBean> filteredGames = new FilteredList<>(gameService.getGames());
-    filteredGames.predicateProperty().bind(customGamesFilterController.predicateProperty());
+    filteredGames = new FilteredList<>(gameService.getGames());
+    filteredGames.predicateProperty().bind(customGamesFilterController.predicateProperty().when(showing));
 
     IntegerBinding filteredGameCount = Bindings.size(filteredGames);
     IntegerBinding gameCount = Bindings.size(gameService.getGames().filtered(openGamesPredicate));
@@ -117,7 +114,7 @@ public class CustomGamesController extends NodeController<Node> {
             .map(ToggleButton::getId)
             .when(showing));
 
-    viewToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+    viewToggleGroup.selectedToggleProperty().when(showing).subscribe((oldValue, newValue) -> {
       if (newValue == null) {
         if (oldValue != null) {
           viewToggleGroup.selectToggle(oldValue);
@@ -127,16 +124,9 @@ public class CustomGamesController extends NodeController<Node> {
       }
     });
 
-    gameDetailPane.visibleProperty().bind(toggleGameDetailPaneButton.selectedProperty());
+    gameDetailPane.visibleProperty().bind(toggleGameDetailPaneButton.selectedProperty().when(showing));
 
     toggleGameDetailPaneButton.selectedProperty().bindBidirectional(preferences.showGameDetailsSidePaneProperty());
-
-    gamesTilesContainerController.createTiledFlowPane(filteredGames);
-    gamesTableController.initializeGameTable(filteredGames);
-
-    gamesTilesContainerController.sortingOrderProperty().bind(chooseSortingTypeChoiceBox.valueProperty());
-    chooseSortingTypeChoiceBox.visibleProperty()
-        .bind(gamesTilesContainerController.getRoot().parentProperty().isNotNull());
   }
 
   private void initializeFilterController() {
@@ -144,8 +134,10 @@ public class CustomGamesController extends NodeController<Node> {
     customGamesFilterController.setDefaultPredicate(openGamesPredicate);
     customGamesFilterController.completeSetting();
 
-    JavaFxUtil.addAndTriggerListener(customGamesFilterController.filterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));
-    JavaFxUtil.addAndTriggerListener(filterButton.selectedProperty(), observable -> filterButton.setSelected(customGamesFilterController.getFilterState()));
+    customGamesFilterController.filterActiveProperty().when(showing).subscribe(filterButton::setSelected);
+    filterButton.selectedProperty()
+                .when(showing)
+                .subscribe(() -> filterButton.setSelected(customGamesFilterController.getFilterActive()));
   }
 
   @Override
@@ -187,8 +179,11 @@ public class CustomGamesController extends NodeController<Node> {
   }
 
   public void onTableButtonClicked() {
-    gameDetailController.gameProperty().bind(gamesTableController.selectedGameProperty());
+    GamesTableController gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
+    gamesTableController.initializeGameTable(filteredGames);
     populateContainer(gamesTableController.getRoot());
+    gameDetailController.gameProperty().bind(gamesTableController.selectedGameProperty());
+    chooseSortingTypeChoiceBox.setVisible(false);
   }
 
   private void populateContainer(Node root) {
@@ -200,8 +195,13 @@ public class CustomGamesController extends NodeController<Node> {
   }
 
   public void onTilesButtonClicked() {
-    gameDetailController.gameProperty().bind(gamesTilesContainerController.selectedGameProperty());
+    GamesTilesContainerController gamesTilesContainerController = uiService.loadFxml(
+        "theme/play/games_tiles_container.fxml");
+    gamesTilesContainerController.createTiledFlowPane(filteredGames);
+    gamesTilesContainerController.sortingOrderProperty().bind(chooseSortingTypeChoiceBox.valueProperty());
     populateContainer(gamesTilesContainerController.getRoot());
+    gameDetailController.gameProperty().bind(gamesTilesContainerController.selectedGameProperty());
+    chooseSortingTypeChoiceBox.setVisible(true);
   }
 
   public void onFilterButtonClicked() {

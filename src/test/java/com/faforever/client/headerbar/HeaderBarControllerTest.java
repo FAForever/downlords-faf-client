@@ -6,7 +6,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.css.PseudoClass;
@@ -18,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -46,7 +44,6 @@ public class HeaderBarControllerTest extends PlatformTest {
     when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
     when(navigationHandler.navigationEventProperty()).thenReturn(new SimpleObjectProperty<>());
     when(navigationHandler.getHighlightedItems()).thenReturn(FXCollections.observableSet());
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/headerbar/header_bar.fxml", clazz -> {
       if (clazz == instance.getClass()) {

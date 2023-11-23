@@ -1,11 +1,12 @@
 package com.faforever.client.filter;
 
+import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.filter.converter.FeaturedModConverter;
 import com.faforever.client.filter.function.FeaturedModFilterFunction;
 import com.faforever.client.filter.function.SimModsFilterFunction;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.ToStringOnlyConverter;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
@@ -53,7 +54,8 @@ public class LiveGamesFilterController extends AbstractFilterController<GameBean
         (selectedGameTypes, game) -> selectedGameTypes.isEmpty() || selectedGameTypes.contains(game.getGameType()));
 
     filterBuilder.multiCheckbox(i18n.get("featuredMod.displayName"), modService.getFeaturedMods(),
-        new FeaturedModConverter(), new FeaturedModFilterFunction());
+                                new ToStringOnlyConverter<>(FeaturedModBean::getDisplayName),
+                                new FeaturedModFilterFunction());
 
     filterBuilder.textField(i18n.get("game.player.username"), (text, game) -> text.isEmpty() || game.getTeams()
         .values()

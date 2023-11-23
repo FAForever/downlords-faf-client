@@ -14,11 +14,9 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Joiner;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
@@ -62,7 +60,6 @@ public class GamesTableController extends NodeController<Node> {
   private final MapService mapService;
   private final JoinGameHelper joinGameHelper;
   private final I18n i18n;
-  private final UiService uiService;
   private final ImageViewHelper imageViewHelper;
   private final PlayerService playerService;
   private final AvatarService avatarService;
@@ -99,7 +96,6 @@ public class GamesTableController extends NodeController<Node> {
 
   public void initializeGameTable(ObservableList<GameBean> games, Function<String, String> coopMissionNameProvider,
                                   boolean listenToFilterPreferences) {
-    BooleanExpression showing = uiService.createShowingProperty(getRoot());
 
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
 
@@ -112,7 +108,7 @@ public class GamesTableController extends NodeController<Node> {
     applyLastSorting(gamesTable);
     gamesTable.setOnSort(this::onColumnSorted);
 
-    passwordProtectionColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty());
+    passwordProtectionColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty().when(showing));
     passwordProtectionColumn.setCellFactory(param -> passwordIndicatorColumn());
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(imageViewHelper));
@@ -161,12 +157,9 @@ public class GamesTableController extends NodeController<Node> {
         .flatMap(TableViewSelectionModel::selectedItemProperty)
         .when(showing));
 
-    //bindings do not work as that interferes with some bidirectional bindings in the TableView itself
     if (listenToFilterPreferences && coopMissionNameProvider == null) {
-      JavaFxUtil.addAndTriggerListener(preferences.hideModdedGamesProperty()
-          .when(showing), observable -> modsColumn.setVisible(!preferences.isHideModdedGames()));
-      JavaFxUtil.addAndTriggerListener(preferences.hidePrivateGamesProperty()
-          .when(showing), observable -> passwordProtectionColumn.setVisible(!preferences.isHidePrivateGames()));
+      modsColumn.visibleProperty().bind(preferences.hideModdedGamesProperty().not().when(showing));
+      passwordProtectionColumn.visibleProperty().bind(preferences.hidePrivateGamesProperty().not().when(showing));
     }
 
     selectFirstGame();

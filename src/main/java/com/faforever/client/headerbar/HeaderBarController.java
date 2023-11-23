@@ -5,8 +5,6 @@ import com.faforever.client.fx.NodeController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.navigation.NavigationHandler;
-import com.faforever.client.theme.UiService;
-import javafx.beans.binding.BooleanExpression;
 import javafx.collections.SetChangeListener;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
@@ -37,7 +35,6 @@ public class HeaderBarController extends NodeController<HBox> {
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
 
   private final NavigationHandler navigationHandler;
-  private final UiService uiService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public MenuButton mainMenuButton;
@@ -61,8 +58,6 @@ public class HeaderBarController extends NodeController<HBox> {
 
   @Override
   protected void onInitialize() {
-    BooleanExpression showing = uiService.createShowingProperty(getRoot());
-
     navigationItemMap.put(newsButton, NavigationItem.NEWS);
     navigationItemMap.put(chatButton, NavigationItem.CHAT);
     navigationItemMap.put(playButton, NavigationItem.PLAY);

@@ -35,7 +35,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.css.PseudoClass;
 import javafx.geometry.Bounds;
@@ -227,15 +226,22 @@ public class CreateGameController extends NodeController<Pane> {
 
   private void initMapFilterPopup() {
     mapFilterController = uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class);
-    mapFilterController.bindExternalFilter(mapSearchTextField.textProperty(), (text, mapVersion) -> text.isEmpty() || mapVersion.getMap()
-        .getDisplayName()
-        .toLowerCase()
-        .contains(text.toLowerCase()) || mapVersion.getFolderName().toLowerCase().contains(text.toLowerCase()));
+    mapFilterController.addExternalFilter(mapSearchTextField.textProperty().when(showing),
+                                          (text, mapVersion) -> text.isEmpty() || mapVersion.getMap()
+                                                                                            .getDisplayName()
+                                                                                            .toLowerCase()
+                                                                                            .contains(
+                                                                                                text.toLowerCase()) || mapVersion.getFolderName()
+                                                                                                                                 .toLowerCase()
+                                                                                                                                 .contains(
+                                                                                                                                     text.toLowerCase()));
     mapFilterController.completeSetting();
 
-    JavaFxUtil.addAndTriggerListener(mapFilterController.filterStateProperty(), (observable, oldValue, newValue) -> mapFilterButton.setSelected(newValue));
-    JavaFxUtil.addAndTriggerListener(mapFilterButton.selectedProperty(), observable -> mapFilterButton.setSelected(mapFilterController.getFilterState()));
-    JavaFxUtil.addListener(mapFilterController.predicateProperty(), (observable, oldValue, newValue) -> filteredMaps.setPredicate(newValue));
+    mapFilterController.filterActiveProperty().when(showing).subscribe(mapFilterButton::setSelected);
+    mapFilterButton.selectedProperty()
+                   .when(showing)
+                   .subscribe(() -> mapFilterButton.setSelected(mapFilterController.getFilterActive()));
+    filteredMaps.predicateProperty().bind(mapFilterController.predicateProperty().when(showing));
   }
 
   private void validateTitle(String gameTitle) {
@@ -255,36 +261,26 @@ public class CreateGameController extends NodeController<Pane> {
   }
 
   protected void initMapSelection() {
+    mapListView.setCellFactory(param -> new StringListCell<>(mapVersion -> mapVersion.getMap()
+                                                                                     .getDisplayName(),
+                                                             fxApplicationThreadExecutor));
+    mapListView.getSelectionModel()
+               .selectedItemProperty()
+               .when(showing)
+               .subscribe(this::setSelectedMap);
+
     FilteredList<MapVersionBean> skirmishMaps = mapService.getInstalledMaps()
         .filtered(mapVersion -> mapVersion.getMap().getMapType() == MapType.SKIRMISH);
     filteredMaps = new FilteredList<>(skirmishMaps
         .sorted(Comparator.comparing(mapVersion -> mapVersion.getMap().getDisplayName().toLowerCase())));
-    JavaFxUtil.addListener(filteredMaps.predicateProperty(), (observable, oldValue, newValue) -> {
-      if (!filteredMaps.isEmpty()) {
-        mapListView.getSelectionModel().select(0);
-      }
-    });
-
-    skirmishMaps.addListener((ListChangeListener<MapVersionBean>) change -> {
-      MapVersionBean added = null;
-      while (change.next()) {
-        if (change.wasAdded()) {
-          added = change.getList().get(change.getTo() - 1);
-        }
-      }
-
-      if (added != null) {
-        mapListView.getSelectionModel().select(added);
-        mapListView.scrollTo(added);
+    filteredMaps.predicateProperty().when(showing).subscribe(() -> {
+      MultipleSelectionModel<MapVersionBean> selectionModel = mapListView.getSelectionModel();
+      if (!filteredMaps.isEmpty() && !filteredMaps.contains(selectionModel.getSelectedItem())) {
+        selectionModel.select(0);
       }
     });
 
     mapListView.setItems(filteredMaps);
-    mapListView.setCellFactory(param -> new StringListCell<>(mapVersion -> mapVersion.getMap()
-        .getDisplayName(), fxApplicationThreadExecutor));
-    mapListView.getSelectionModel()
-        .selectedItemProperty()
-        .addListener((observable, oldValue, newValue) -> setSelectedMap(newValue));
   }
 
   private void setSelectedMap(MapVersionBean mapVersion) {
@@ -319,7 +315,9 @@ public class CreateGameController extends NodeController<Pane> {
   private void initFeaturedModList() {
     featuredModListView.getSelectionModel()
         .selectedItemProperty()
-        .addListener((observable, oldValue, newValue) -> lastGamePrefs.setLastGameType(newValue.getTechnicalName()));
+                       .map(FeaturedModBean::getTechnicalName)
+                       .when(showing)
+                       .subscribe(lastGamePrefs::setLastGameType);
   }
 
   private void initRatingBoundaries() {

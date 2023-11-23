@@ -7,7 +7,6 @@ import com.faforever.client.fx.NodeController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.theme.UiService;
-import javafx.beans.binding.BooleanExpression;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.WeakListChangeListener;
@@ -62,8 +61,6 @@ public class ChatController extends NodeController<AnchorPane> {
   @Override
   protected void onInitialize() {
     super.onInitialize();
-
-    BooleanExpression showing = uiService.createShowingProperty(getRoot());
 
     chatService.addChannelsListener(new WeakMapChangeListener<>(channelChangeListener));
     chatService.getChannels().forEach(this::onChannelJoined);
@@ -130,9 +127,10 @@ public class ChatController extends NodeController<AnchorPane> {
         }
         tabController.setChatChannel(chatChannel);
         channelToChatTabController.put(chatChannel, tabController);
-
         Tab tab = tabController.getRoot();
         tab.setUserData(chatChannel);
+
+
         if (chatService.isDefaultChannel(chatChannel)) {
           tabPane.getTabs().add(0, tab);
           tabPane.getSelectionModel().select(tab);
@@ -141,7 +139,7 @@ public class ChatController extends NodeController<AnchorPane> {
           tabPane.getTabs().add(tabPane.getTabs().size() - 1, tab);
 
           if (chatChannel.isPrivateChannel() || tabPane.getSelectionModel().getSelectedIndex() == tabPane.getTabs()
-              .size() - 1) {
+                                                                                                         .size() - 1) {
             tabPane.getSelectionModel().select(tab);
             tabController.onDisplay();
           }
@@ -179,7 +177,7 @@ public class ChatController extends NodeController<AnchorPane> {
     if (tabPane.getTabs().size() > 1) {
       Tab tab = tabPane.getSelectionModel().getSelectedItem();
       Optional.ofNullable(channelToChatTabController.get((ChatChannel) tab.getUserData()))
-          .ifPresent(AbstractChatTabController::onDisplay);
+              .ifPresent(AbstractChatTabController::onDisplay);
     }
   }
 }

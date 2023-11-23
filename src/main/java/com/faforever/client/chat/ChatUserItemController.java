@@ -112,7 +112,7 @@ public class ChatUserItemController extends NodeController<Node> {
     noteTooltip = new Tooltip();
     noteTooltip.setShowDelay(Duration.ZERO);
     noteTooltip.setShowDuration(Duration.seconds(30));
-    noteTooltip.textProperty().isEmpty().addListener((observable, oldValue, newValue) -> {
+    noteTooltip.textProperty().isEmpty().when(showing).subscribe((oldValue, newValue) -> {
       if (newValue) {
         Tooltip.uninstall(userContainer, noteTooltip);
       } else {
@@ -140,8 +140,6 @@ public class ChatUserItemController extends NodeController<Node> {
   }
 
   public void installGameTooltip(GameTooltipController gameInfoController, Tooltip tooltip) {
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
     mapImageView.setOnMouseEntered(event -> gameInfoController.gameProperty()
         .bind(chatUser.flatMap(ChatChannelUser::playerProperty).flatMap(PlayerBean::gameProperty).when(showing)));
     Tooltip.install(mapImageView, tooltip);
@@ -208,8 +206,6 @@ public class ChatUserItemController extends NodeController<Node> {
   }
 
   private void bindProperties() {
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
     ObservableValue<PlayerBean> playerProperty = chatUser.flatMap(ChatChannelUser::playerProperty);
     ObservableValue<GameBean> gameProperty = playerProperty.flatMap(PlayerBean::gameProperty);
     BooleanExpression gameNotClosedObservable = BooleanExpression.booleanExpression(gameProperty.flatMap(GameBean::statusProperty)

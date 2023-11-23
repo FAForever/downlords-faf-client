@@ -33,8 +33,6 @@ import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
@@ -84,9 +82,6 @@ public class MainController extends NodeController<Node> implements Initializing
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final TrayIconManager trayIconManager;
   private final NavigationHandler navigationHandler;
-
-  private final ChangeListener<Path> backgroundImageListener = (observable, oldValue, newValue) ->
-      setBackgroundImage(newValue);
 
   public Pane contentPane;
   public StackPane contentWrapperPane;
@@ -168,7 +163,6 @@ public class MainController extends NodeController<Node> implements Initializing
     trayIconManager.onSetApplicationBadgeEvent(UpdateApplicationBadgeEvent.ofNewValue(0));
 
     Stage stage = StageHolder.getStage();
-    setBackgroundImage(windowPrefs.getBackgroundImagePath());
 
     int width = windowPrefs.getWidth();
     int height = windowPrefs.getHeight();
@@ -245,7 +239,7 @@ public class MainController extends NodeController<Node> implements Initializing
         setWindowPosition(stage, windowPrefs);
       }
     });
-    JavaFxUtil.addListener(windowPrefs.backgroundImagePathProperty(), new WeakChangeListener<>(backgroundImageListener));
+    windowPrefs.backgroundImagePathProperty().when(showing).subscribe(this::setBackgroundImage);
   }
 
   private void setBackgroundImage(Path filepath) {
@@ -327,12 +321,8 @@ public class MainController extends NodeController<Node> implements Initializing
 
     NavigationItem item = navigateEvent.getItem();
 
-    NodeController<?> controller = getView(item);
+    NodeController<?> controller = uiService.loadFxml(item.getFxmlFile());
     displayView(controller, navigateEvent);
-  }
-
-  private NodeController<?> getView(NavigationItem item) {
-      return uiService.loadFxml(item.getFxmlFile());
   }
 
   private void displayImmediateNotification(ImmediateNotification notification) {

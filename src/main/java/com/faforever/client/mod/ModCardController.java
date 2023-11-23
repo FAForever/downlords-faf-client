@@ -52,8 +52,6 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
   @Override
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(installButton, uninstallButton);
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
     ObservableValue<ModBean> modObservable = entity.flatMap(ModVersionBean::modProperty);
     numberOfReviewsLabel.textProperty()
         .bind(modObservable.flatMap(ModBean::modReviewsSummaryProperty)

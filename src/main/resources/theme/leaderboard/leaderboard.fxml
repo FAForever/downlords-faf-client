@@ -7,7 +7,6 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressIndicator?>
-<?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.Group?>
@@ -20,7 +19,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Arc?>
 <?import javafx.scene.shape.Circle?>
-<Tab fx:id="leaderboardRoot" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.leaderboard.LeaderboardController">
+<StackPane fx:id="leaderboardRoot" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.faforever.client.leaderboard.LeaderboardController">
     <VBox>
        <children>
           <HBox fx:id="contentPane" spacing="20.0">
@@ -120,4 +120,4 @@
         </VBox>
        </children>
     </VBox>
-</Tab>
+</StackPane>

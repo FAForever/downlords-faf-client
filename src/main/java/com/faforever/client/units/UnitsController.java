@@ -2,12 +2,9 @@ package com.faforever.client.units;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.UnitDatabase;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
-import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.Preferences.UnitDataBaseType;
-import com.google.common.base.Strings;
 import javafx.scene.Node;
 import javafx.scene.web.WebView;
 import lombok.RequiredArgsConstructor;
@@ -25,11 +22,8 @@ public class UnitsController extends NodeController<Node> {
   public WebView unitsRoot;
 
   @Override
-  protected void onNavigate(NavigateEvent navigateEvent) {
-    if (Strings.isNullOrEmpty(unitsRoot.getEngine().getLocation())) {
-      loadUnitDataBase(preferences.getUnitDataBaseType());
-      JavaFxUtil.addListener(preferences.unitDataBaseTypeProperty(), (observable, oldValue, newValue) -> loadUnitDataBase(newValue));
-    }
+  protected void onInitialize() {
+    preferences.unitDataBaseTypeProperty().when(showing).subscribe(this::loadUnitDataBase);
   }
 
   private void loadUnitDataBase(UnitDataBaseType newValue) {

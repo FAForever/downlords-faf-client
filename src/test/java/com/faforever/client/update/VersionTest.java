@@ -2,7 +2,6 @@ package com.faforever.client.update;
 
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -59,9 +58,5 @@ public class VersionTest extends ServiceTest {
   @Test
   public void shouldNotUpdateIfRemoteIsOlder() {
     assertFalse(Version.shouldUpdate("1.1.9", "v1.1.5"));
-  }
-
-  public static void setCurrentVersion(String version) throws NoSuchFieldException, IllegalAccessException {
-    ReflectionTestUtils.setField(Version.class, "currentVersion", version);
   }
 }

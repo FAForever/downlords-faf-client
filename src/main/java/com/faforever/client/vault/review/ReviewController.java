@@ -63,8 +63,6 @@ public class ReviewController<T extends ReviewBean> extends NodeController<Pane>
 
   @Override
   protected void onInitialize() {
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
     JavaFxUtil.bindManagedToVisible(displayReviewPane, editReviewPane, editButton, deleteButton);
 
     starsTipLabel.textProperty()
@@ -82,7 +80,11 @@ public class ReviewController<T extends ReviewBean> extends NodeController<Pane>
         .map(Objects::nonNull));
     ObservableValue<PlayerBean> reviewerObservable = review.flatMap(ReviewBean::playerProperty);
     BooleanExpression ownedByPlayer = BooleanExpression.booleanExpression(playerService.currentPlayerProperty()
-        .flatMap(player -> reviewerObservable.map(reviewer -> Objects.equals(reviewer, player))));
+                                                                                       .flatMap(
+                                                                                           player -> reviewerObservable.map(
+                                                                                               reviewer -> Objects.equals(
+                                                                                                   reviewer, player)))
+                                                                                       .when(showing));
     displayStars.visibleProperty().bind(reviewCreated.when(showing));
     usernameLabel.visibleProperty().bind(reviewCreated.when(showing));
     versionLabel.visibleProperty().bind(reviewCreated.when(showing));

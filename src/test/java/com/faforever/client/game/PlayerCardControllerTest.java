@@ -12,7 +12,6 @@ import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class PlayerCardControllerTest extends PlatformTest {
@@ -47,7 +45,6 @@ public class PlayerCardControllerTest extends PlatformTest {
     instance = new PlayerCardController(uiService, countryFlagService, avatarService, contextMenuBuilder, i18n);
 
     when(uiService.getImage(UiService.RANDOM_FACTION_IMAGE)).thenReturn(new Image(UiService.RANDOM_FACTION_IMAGE));
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     loadFxml("theme/player_card.fxml", clazz -> instance);
   }
 

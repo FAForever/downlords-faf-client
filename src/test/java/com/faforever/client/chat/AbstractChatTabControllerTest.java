@@ -121,7 +121,7 @@ public class AbstractChatTabControllerTest extends PlatformTest {
     });
 
     instance.emoticonsButton = new Button();
-    fxApplicationThreadExecutor.executeAndWait(() -> instance.initialize());
+    fxApplicationThreadExecutor.executeAndWait(() -> reinitialize(instance));
   }
 
   @Test
@@ -276,7 +276,7 @@ public class AbstractChatTabControllerTest extends PlatformTest {
   @Test
   public void testMentionPattern() {
     when(loginService.getUsername()).thenReturn("-Box-");
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> reinitialize(instance));
     assertTrue(instance.mentionPattern.matcher("-Box-").find());
     assertTrue(instance.mentionPattern.matcher("-Box-!").find());
     assertTrue(instance.mentionPattern.matcher("!-Box-").find());

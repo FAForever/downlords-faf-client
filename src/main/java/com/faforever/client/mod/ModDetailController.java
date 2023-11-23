@@ -105,7 +105,6 @@ public class ModDetailController extends NodeController<Node> {
   }
 
   private void bindProperties() {
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
     ObservableValue<ModBean> modObservable = modVersion.flatMap(ModVersionBean::modProperty);
     thumbnailImageView.imageProperty()
         .bind(modVersion.map(modService::loadThumbnail)
@@ -139,8 +138,8 @@ public class ModDetailController extends NodeController<Node> {
     installButton.visibleProperty().bind(installed.not().when(showing));
     uninstallButton.visibleProperty().bind(installed.when(showing));
     progressBar.visibleProperty()
-        .bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
-    progressLabel.visibleProperty().bind(progressBar.visibleProperty());
+               .bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()).when(showing));
+    progressLabel.visibleProperty().bind(progressBar.visibleProperty().when(showing));
   }
 
   public void onCloseButtonClicked() {

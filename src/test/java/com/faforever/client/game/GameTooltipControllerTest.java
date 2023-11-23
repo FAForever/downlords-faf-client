@@ -6,7 +6,6 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.layout.Pane;
@@ -25,7 +24,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class GameTooltipControllerTest extends PlatformTest {
@@ -42,7 +40,6 @@ public class GameTooltipControllerTest extends PlatformTest {
   
   @BeforeEach
   public void setUp() throws Exception {
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
     when(teamCardController.getRoot()).then(invocation -> new Pane());
     when(teamCardController.playerIdsProperty()).thenReturn(new SimpleObjectProperty<>());

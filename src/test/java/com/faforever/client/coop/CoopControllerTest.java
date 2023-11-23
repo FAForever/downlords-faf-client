@@ -8,6 +8,7 @@ import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameService;
+import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.game.GamesTableController;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -56,6 +57,8 @@ public class CoopControllerTest extends PlatformTest {
   @Mock
   private GamesTableController gamesTableController;
   @Mock
+  private GameTooltipController gameTooltipController;
+  @Mock
   private I18n i18n;
   @Mock
   private WebViewConfigurer webViewConfigurer;
@@ -80,7 +83,17 @@ public class CoopControllerTest extends PlatformTest {
     when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
     when(gamesTableController.getRoot()).thenReturn(new Pane());
 
-    loadFxml("theme/play/coop/coop.fxml", clazz -> instance);
+    loadFxml("theme/play/coop/coop.fxml", clazz -> {
+      if (GamesTableController.class == clazz) {
+        return gamesTableController;
+      }
+
+      if (GameTooltipController.class == clazz) {
+        return gameTooltipController;
+      }
+
+      return instance;
+    });
 
     verify(webViewConfigurer).configureWebView(instance.descriptionWebView);
   }
@@ -88,7 +101,9 @@ public class CoopControllerTest extends PlatformTest {
   @Test
   public void onPlayButtonClicked() {
     when(coopService.getMissions()).thenReturn(completedFuture(singletonList(new CoopMissionBean())));
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> reinitialize(instance));
+
+    instance.missionComboBox.getSelectionModel().select(new CoopMissionBean());
 
     WaitForAsyncUtils.waitForFxEvents();
     instance.onPlayButtonClicked();
@@ -129,8 +144,10 @@ public class CoopControllerTest extends PlatformTest {
 
     when(coopService.getLeaderboard(any(), eq(1))).thenReturn(completedFuture(result));
 
+    instance.missionComboBox.getSelectionModel().select(new CoopMissionBean());
+
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.numberOfPlayersComboBox.getSelectionModel().select(1);
     });
     assertEquals(2, instance.leaderboardTable.getItems().size());
@@ -159,8 +176,10 @@ public class CoopControllerTest extends PlatformTest {
 
     when(coopService.getLeaderboard(any(), eq(2))).thenReturn(completedFuture(result));
 
+    instance.missionComboBox.getSelectionModel().select(new CoopMissionBean());
+
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.numberOfPlayersComboBox.getSelectionModel().select(2);
     });
     assertEquals(2, instance.leaderboardTable.getItems().size());
@@ -202,8 +221,10 @@ public class CoopControllerTest extends PlatformTest {
 
     when(coopService.getLeaderboard(any(), eq(0))).thenReturn(completedFuture(result));
 
+    instance.missionComboBox.getSelectionModel().select(new CoopMissionBean());
+
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.numberOfPlayersComboBox.getSelectionModel().select(1);
       instance.numberOfPlayersComboBox.getSelectionModel().select(0);
     });

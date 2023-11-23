@@ -36,7 +36,6 @@ import static com.faforever.client.player.SocialStatus.FRIEND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -76,11 +75,10 @@ public class ChatUserListControllerTest extends PlatformTest {
       when(mockCell.getNode()).thenReturn(new Pane());
       return mockCell;
     });
-    when(chatUserFilterController.filterStateProperty()).thenReturn(new SimpleBooleanProperty());
+    when(chatUserFilterController.filterActiveProperty()).thenReturn(new SimpleBooleanProperty());
     when(chatUserFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
     when(chatUserFilterController.getPredicate()).thenReturn(item -> true);
     when(chatUserFilterController.getRoot()).thenReturn(new SplitPane());
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     loadFxml("theme/chat/user_list.fxml", clazz -> instance);
   }
 

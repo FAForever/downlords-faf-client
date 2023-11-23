@@ -167,7 +167,6 @@ public class ReplayDetailControllerTest extends PlatformTest {
     when(teamCardController.getRoot()).thenReturn(new HBox());
     when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
     when(reportDialogController.getRoot()).thenReturn(new Pane());
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/vault/replay/replay_detail.fxml", param -> {
       if (param == ReviewsController.class) {

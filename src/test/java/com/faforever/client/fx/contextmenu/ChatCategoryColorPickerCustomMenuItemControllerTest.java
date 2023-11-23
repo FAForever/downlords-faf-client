@@ -39,7 +39,7 @@ public class ChatCategoryColorPickerCustomMenuItemControllerTest extends Platfor
   public void testSetCurrentValue() {
     chatPrefs.setGroupToColor(FXCollections.observableMap(Map.of(ChatUserCategory.FRIEND, Color.BLACK)));
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.setObject(ChatUserCategory.FRIEND);
     });
     assertEquals(Color.BLACK, instance.colorPicker.getValue());
@@ -52,7 +52,7 @@ public class ChatCategoryColorPickerCustomMenuItemControllerTest extends Platfor
     colorMap.put(ChatUserCategory.FRIEND, Color.BLACK);
     chatPrefs.setGroupToColor(FXCollections.observableMap(colorMap));
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.setObject(ChatUserCategory.FRIEND);
       instance.colorPicker.setValue(Color.WHITE);
     });
@@ -66,7 +66,7 @@ public class ChatCategoryColorPickerCustomMenuItemControllerTest extends Platfor
     colorMap.put(ChatUserCategory.FRIEND, Color.BLACK);
     chatPrefs.setGroupToColor(FXCollections.observableMap(colorMap));
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.setObject(ChatUserCategory.FRIEND);
       instance.colorPicker.setValue(null);
     });
@@ -77,7 +77,7 @@ public class ChatCategoryColorPickerCustomMenuItemControllerTest extends Platfor
   @Test
   public void testVisibleItem() {
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.setObject(ChatUserCategory.FRIEND);
     });
     assertTrue(instance.getRoot().isVisible());
@@ -87,7 +87,7 @@ public class ChatCategoryColorPickerCustomMenuItemControllerTest extends Platfor
   public void testInvisibleItem() {
     chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.setObject(ChatUserCategory.FRIEND);
     });
     assertFalse(instance.getRoot().isVisible());

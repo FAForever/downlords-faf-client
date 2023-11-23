@@ -5,8 +5,9 @@ import com.faforever.client.domain.LeagueSeasonBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleInvalidationListener;
-import com.faforever.client.fx.TabController;
+import com.faforever.client.fx.ToStringOnlyConverter;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
@@ -25,22 +26,20 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Arc;
 import javafx.scene.text.Text;
-import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -59,7 +58,7 @@ import java.util.stream.Collectors;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class LeaderboardController extends TabController {
+public class LeaderboardController extends NodeController<StackPane> {
 
   private static final PseudoClass NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("highlighted-bar");
 
@@ -71,7 +70,7 @@ public class LeaderboardController extends TabController {
   private final UiService uiService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  public Tab leaderboardRoot;
+  public StackPane leaderboardRoot;
   public TextField searchTextField;
   public Pane connectionProgressPane;
   public Pane contentPane;
@@ -102,11 +101,14 @@ public class LeaderboardController extends TabController {
 
     JavaFxUtil.bindManagedToVisible(contentPane, connectionProgressPane);
     connectionProgressPane.visibleProperty().bind(contentPane.visibleProperty().not());
+    contentPane.setVisible(false);
 
-    majorDivisionPicker.setConverter(divisionStringConverter());
-    yAxis.setTickLabelFormatter(integerStringConverter());
+    majorDivisionPicker.setConverter(
+        new ToStringOnlyConverter<>(subdivision -> i18n.get(subdivision.getDivisionI18nKey()).toUpperCase()));
+    yAxis.setTickLabelFormatter(new ToStringOnlyConverter<>(number -> String.valueOf(number.intValue())));
+    yAxis.setTickUnit(10d);
 
-    subDivisionTabPane.widthProperty().addListener((observable, oldValue, newValue) ->
+    subDivisionTabPane.widthProperty().when(showing).subscribe(newValue ->
         setTabWidth((double) newValue, subDivisionTabPane.getTabs().size()));
   }
 
@@ -189,7 +191,7 @@ public class LeaderboardController extends TabController {
   }
 
   @Override
-  public Tab getRoot() {
+  public StackPane getRoot() {
     return leaderboardRoot;
   }
 
@@ -351,38 +353,5 @@ public class LeaderboardController extends TabController {
       nodeToAdd.setLayoutX(Math.round(bounds.getMinX() + bounds.getWidth() / 2 - nodeToAdd.prefWidth(-1) / 2));
       nodeToAdd.setLayoutY(Math.round(bounds.getMaxY() - nodeToAdd.prefHeight(-1) * 0.5));
     });
-  }
-
-  @NotNull
-  private StringConverter<SubdivisionBean> divisionStringConverter() {
-    return new StringConverter<>() {
-      @Override
-      public String toString(SubdivisionBean subdivision) {
-        return i18n.get(subdivision.getDivisionI18nKey()).toUpperCase();
-      }
-
-      @Override
-      public SubdivisionBean fromString(String string) {
-        return null;
-      }
-    };
-  }
-
-  @NotNull
-  private StringConverter<Number> integerStringConverter() {
-    return new StringConverter<>() {
-      @Override
-      public String toString(Number object) {
-        if(object.intValue()!=object.doubleValue())
-          return "";
-        return String.valueOf(object.intValue());
-      }
-
-      @Override
-      public Number fromString(String string) {
-        Number val = Double.parseDouble(string);
-        return val.intValue();
-      }
-    };
   }
 }
