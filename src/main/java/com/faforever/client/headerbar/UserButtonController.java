@@ -7,7 +7,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuButton;
@@ -29,8 +28,6 @@ public class UserButtonController extends NodeController<Node> {
 
   @Override
   protected void onInitialize() {
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
     userMenuButtonRoot.textProperty()
         .bind(playerService.currentPlayerProperty().flatMap(PlayerBean::usernameProperty).when(showing));
   }

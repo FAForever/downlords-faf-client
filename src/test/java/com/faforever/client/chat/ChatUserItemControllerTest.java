@@ -85,7 +85,6 @@ public class ChatUserItemControllerTest extends PlatformTest {
   public void setUp() throws Exception {
     defaultUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
 
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
     when(i18n.get(eq("clan.messageLeader"))).thenReturn("Message clan leader");
     when(i18n.get(eq("clan.visitPage"))).thenReturn("Visit clan website");

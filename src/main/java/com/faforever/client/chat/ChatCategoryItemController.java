@@ -14,7 +14,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.scene.Node;
@@ -54,8 +53,6 @@ public class ChatCategoryItemController extends NodeController<Node> {
   }
 
   private void bindProperties() {
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
     categoryLabel.styleProperty()
         .bind(chatPrefs.groupToColorProperty()
             .flatMap(groupToColor -> chatUserCategory.map(groupToColor::get))
@@ -64,7 +61,7 @@ public class ChatCategoryItemController extends NodeController<Node> {
             .orElse("")
             .when(showing));
 
-    categoryLabel.textProperty().bind(chatUserCategory.map(ChatUserCategory::getI18nKey).map(i18n::get));
+    categoryLabel.textProperty().bind(chatUserCategory.map(ChatUserCategory::getI18nKey).map(i18n::get).when(showing));
 
     channelHiddenCategories.bind(Bindings.valueAt(chatPrefs.getChannelNameToHiddenCategories(), channelName)
         .orElse(FXCollections.observableSet())
@@ -72,9 +69,9 @@ public class ChatCategoryItemController extends NodeController<Node> {
 
     arrowLabel.textProperty()
         .bind(channelHiddenCategories.flatMap(hiddenCategories -> Bindings.createBooleanBinding(() -> hiddenCategories.contains(chatUserCategory.get()), hiddenCategories, chatUserCategory))
-            .map(hidden -> hidden ? "˃" : "˅"));
+                                     .map(hidden -> hidden ? "˃" : "˅").when(showing));
 
-    userCounterLabel.textProperty().bind(numCategoryItems.map(String::valueOf));
+    userCounterLabel.textProperty().bind(numCategoryItems.map(String::valueOf).when(showing));
   }
 
   public void onCategoryClicked(MouseEvent mouseEvent) {

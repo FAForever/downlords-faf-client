@@ -24,7 +24,7 @@ public class PlayerNoteControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     loadFxml("theme/player_note.fxml", clazz -> instance);
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> reinitialize(instance));
   }
 
   @Test

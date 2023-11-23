@@ -4,7 +4,6 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.theme.UiService;
 import com.google.common.net.MediaType;
-import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import lombok.RequiredArgsConstructor;
@@ -70,8 +69,9 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
       long contentLength = connection.getContentLengthLong();
       String contentType = connection.getContentType();
 
-      Node root = uiService.loadFxml("theme/image_preview.fxml");
-      ImageView imageView = (ImageView) root.lookup("#imageView");
+      ImageView imageView = new ImageView();
+      imageView.setFitWidth(300);
+      imageView.setFitHeight(200);
 
       if (MediaType.JPEG.toString().equals(contentType)
           || MediaType.PNG.toString().equals(contentType)) {

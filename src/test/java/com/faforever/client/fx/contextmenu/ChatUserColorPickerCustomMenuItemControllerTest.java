@@ -41,7 +41,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends PlatformTes
     chatPrefs.setUserToColor(FXCollections.observableMap(Map.of(USERNAME, Color.BLACK)));
     ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).get();
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.setObject(chatChannelUser);
     });
     assertEquals(Color.BLACK, instance.colorPicker.getValue());
@@ -55,7 +55,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends PlatformTes
     chatPrefs.setUserToColor(FXCollections.observableMap(colorMap));
     ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).color(Color.BLACK).get();
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.setObject(chatChannelUser);
       instance.colorPicker.setValue(Color.WHITE);
     });
@@ -71,7 +71,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends PlatformTes
     chatPrefs.setUserToColor(FXCollections.observableMap(colorMap));
     ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).color(Color.BLACK).get();
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.setObject(chatChannelUser);
       instance.colorPicker.setValue(null);
     });
@@ -84,7 +84,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends PlatformTes
   public void testVisibleItem() {
     ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).color(Color.BLACK).get();
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.setObject(chatChannelUser);
     });
     assertTrue(instance.getRoot().isVisible());
@@ -95,7 +95,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends PlatformTes
     ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).color(Color.BLACK).get();
     chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.setObject(chatChannelUser);
     });
     assertFalse(instance.getRoot().isVisible());

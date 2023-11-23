@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.audio.AudioService;
 import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
@@ -51,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -85,8 +85,6 @@ public class ChatChannelTabControllerTest extends PlatformTest {
   @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
-  private AudioService audioService;
-  @Mock
   private ReportingService reportingService;
   @Mock
   private CountryFlagService countryFlagService;
@@ -108,7 +106,6 @@ public class ChatChannelTabControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     defaultChatChannel = new ChatChannel(CHANNEL_NAME);
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     when(loginService.getUsername()).thenReturn(USER_NAME);
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
     when(uiService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_section.html"));
@@ -360,28 +357,28 @@ public class ChatChannelTabControllerTest extends PlatformTest {
   public void testAtMentionTriggersNotification() {
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello @" + USER_NAME + "!!"));
-    verify(audioService).playChatMentionSound();
+    verify(chatService).incrementUnreadMessagesCount(1);
   }
 
   @Test
   public void testAtMentionTriggersNotificationWhenFlagIsEnabled() {
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
     instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello @" + USER_NAME + "!!"));
-    verify(audioService).playChatMentionSound();
+    verify(chatService).incrementUnreadMessagesCount(1);
   }
 
   @Test
   public void testNormalMentionTriggersNotification() {
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
-    verify(audioService).playChatMentionSound();
+    verify(chatService).incrementUnreadMessagesCount(1);
   }
 
   @Test
   public void testNormalMentionDoesNotTriggerNotificationWhenFlagIsEnabled() {
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
     instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
-    verify(audioService, never()).playChatMentionSound();
+    verify(chatService, never()).incrementUnreadMessagesCount(anyInt());
   }
 
   @Test
@@ -393,7 +390,7 @@ public class ChatChannelTabControllerTest extends PlatformTest {
         .socialStatus(FOE)
         .get()));
     instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
-    verify(audioService, never()).playChatMentionSound();
+    verify(chatService, never()).incrementUnreadMessagesCount(anyInt());
   }
 
   @Test

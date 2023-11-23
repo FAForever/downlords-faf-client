@@ -1,19 +1,27 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.audio.AudioService;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
+import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.main.event.NavigationItem;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.ui.tray.TrayIconManager;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.LoginService;
+import com.faforever.client.util.IdenticonUtil;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.annotations.VisibleForTesting;
@@ -70,10 +78,14 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
+import static com.faforever.client.player.SocialStatus.FOE;
 import static java.util.Locale.US;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.synchronizedObservableMap;
 
@@ -95,6 +107,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private final ChatPrefs chatPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final TrayIconManager trayIconManager;
+  private final NotificationPrefs notificationPrefs;
+  private final AudioService audioService;
+  private final NotificationService notificationService;
+  private final NavigationHandler navigationHandler;
   @Qualifier("userWebClient")
   private final ObjectFactory<WebClient> userWebClientFactory;
 
@@ -102,6 +118,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
    * Maps channels by name.
    */
   private final ObservableMap<String, ChatChannel> channels = synchronizedObservableMap(observableHashMap());
+  /**
+   * A list of channels the server wants us to join.
+   */
+  private final List<String> autoChannels = new ArrayList<>();
+  private final Queue<String> bufferedChannels = new ArrayDeque<>();
   @VisibleForTesting
   ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
   @VisibleForTesting
@@ -109,11 +130,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @VisibleForTesting
   DefaultClient client;
   private String username;
-  /**
-   * A list of channels the server wants us to join.
-   */
-  private final List<String> autoChannels = new ArrayList<>();
-  private final Queue<String> bufferedChannels = new ArrayDeque<>();
 
   private boolean autoReconnect;
 
@@ -266,8 +282,61 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String channelName = event.getChannel().getName();
 
-    getOrCreateChannel(channelName).addMessage(
-        new ChatMessage(Instant.now(), user.getNick(), event.getMessage(), false));
+    String text = event.getMessage();
+    String sender = user.getNick();
+    ChatChannel chatChannel = getOrCreateChannel(channelName);
+    notifyIfMentioned(text, chatChannel, sender);
+
+    chatChannel.addMessage(new ChatMessage(Instant.now(), sender, text, false));
+  }
+
+  private void notifyIfMentioned(String text, ChatChannel chatChannel, String sender) {
+    Matcher matcher = Pattern.compile(
+        "(^|[^A-Za-z0-9-])" + Pattern.quote(loginService.getUsername()) + "([^A-Za-z0-9-]|$)",
+        CASE_INSENSITIVE).matcher(text);
+    boolean mentioned = matcher.find();
+    if (mentioned) {
+      boolean fromFoe = playerService.getPlayerByNameIfOnline(sender)
+                                     .map(PlayerBean::getSocialStatus)
+                                     .map(FOE::equals)
+                                     .orElse(false);
+      if (fromFoe || (notificationPrefs.getNotifyOnAtMentionOnlyEnabled() && !text.contains(
+          "@" + loginService.getUsername()))) {
+        log.debug("Ignored ping {} from {}", text, sender);
+        return;
+      }
+
+      audioService.playChatMentionSound();
+
+      String identIconSource = playerService.getPlayerByNameIfOnline(sender)
+                                            .map(PlayerBean::getId)
+                                            .map(String::valueOf)
+                                            .orElse(sender);
+
+      if (!chatChannel.isOpen() && notificationPrefs.isPrivateMessageToastEnabled()) {
+        notificationService.addNotification(
+            new TransientNotification(sender, text, IdenticonUtil.createIdenticon(identIconSource), evt -> {
+              navigationHandler.navigateTo(new NavigateEvent(NavigationItem.CHAT));
+            }));
+      }
+    }
+  }
+
+  private void notifyOnPrivateMessage(String text, ChatChannel chatChannel, String sender) {
+    if (chatChannel.isPrivateChannel() && !chatChannel.isOpen()) {
+      audioService.playPrivateMessageSound();
+
+      if (!chatChannel.isOpen() && notificationPrefs.isPrivateMessageToastEnabled()) {
+        String identIconSource = playerService.getPlayerByNameIfOnline(sender)
+                                              .map(PlayerBean::getId)
+                                              .map(String::valueOf)
+                                              .orElse(sender);
+        notificationService.addNotification(
+            new TransientNotification(sender, text, IdenticonUtil.createIdenticon(identIconSource), evt -> {
+              navigationHandler.navigateTo(new NavigateEvent(NavigationItem.CHAT));
+            }));
+      }
+    }
   }
 
   @Handler
@@ -303,16 +372,21 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     User user = event.getActor();
     ircLog.debug("Received private message: {}", event);
 
-    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), user.getNick());
-    if (sender.getPlayer()
+    String senderNick = user.getNick();
+
+    if (playerService.getPlayerByNameIfOnline(senderNick)
               .map(PlayerBean::getSocialStatus)
               .map(status -> status == SocialStatus.FOE)
               .orElse(false) && chatPrefs.isHideFoeMessages()) {
-      ircLog.debug("Suppressing chat message from foe '{}'", user.getNick());
+      ircLog.debug("Suppressing chat message from foe '{}'", senderNick);
       return;
     }
 
-    getOrCreateChannel(user.getNick()).addMessage(new ChatMessage(Instant.now(), user.getNick(), event.getMessage()));
+    String text = event.getMessage();
+    ChatChannel chatChannel = getOrCreateChannel(senderNick);
+    notifyOnPrivateMessage(text, chatChannel, senderNick);
+
+    chatChannel.addMessage(new ChatMessage(Instant.now(), senderNick, text));
   }
 
   private void joinAutoChannels() {

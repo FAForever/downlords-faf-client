@@ -19,6 +19,7 @@ import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.MatchmakerMapper;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.navigation.NavigationHandler;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.TransientNotification;
@@ -46,6 +47,7 @@ import com.faforever.commons.lobby.PartyKick;
 import com.faforever.commons.lobby.SearchInfo;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
@@ -77,6 +79,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -134,6 +137,9 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   private final TestPublisher<PartyInfo> partyInfoTestPublisher = TestPublisher.create();
   private final TestPublisher<SearchInfo> searchInfoTestPublisher = TestPublisher.create();
   private final TestPublisher<GameLaunchResponse> gameLaunchResponseTestPublisher = TestPublisher.create();
+  private final SimpleObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(
+      ConnectionState.DISCONNECTED);
+  ;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -154,6 +160,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     when(fafServerAccessor.getEvents(PartyInfo.class)).thenReturn(partyInfoTestPublisher.flux());
     when(fafServerAccessor.getEvents(SearchInfo.class)).thenReturn(searchInfoTestPublisher.flux());
     when(fafServerAccessor.getEvents(GameLaunchResponse.class)).thenReturn(gameLaunchResponseTestPublisher.flux());
+    when(fafServerAccessor.connectionStateProperty()).thenReturn(connectionState);
 
     when(preferencesService.isValidGamePath()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(player);
@@ -395,7 +402,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     instance.acceptPartyInvite(player);
 
     verify(fafServerAccessor).acceptPartyInvite(player);
-    verify(navigationHandler).navigateTo(new OpenTeamMatchmakingEvent());
+    verify(navigationHandler).navigateTo(any(OpenTeamMatchmakingEvent.class));
   }
 
   @Test
@@ -603,5 +610,12 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     Assertions.assertTrue(matchmakerPrefs.getUnselectedQueueIds().isEmpty());
     verify(fafServerAccessor, times(2)).gameMatchmaking(any(), eq(MatchmakerState.START));
+  }
+
+  @Test
+  public void testSendFactionsOnConnected() {
+    connectionState.set(ConnectionState.CONNECTED);
+
+    verify(fafServerAccessor).setPartyFactions(anyList());
   }
 }

@@ -78,7 +78,6 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
 
   @Override
   protected void onInitialize() {
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
     JavaFxUtil.bindManagedToVisible(deleteButton, tickDurationLabel, realTimeDurationLabel);
 
     ObservableValue<MapVersionBean> mapVersionObservable = entity.flatMap(ReplayBean::mapVersionProperty);

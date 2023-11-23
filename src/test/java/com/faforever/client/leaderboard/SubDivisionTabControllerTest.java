@@ -41,7 +41,7 @@ public class SubDivisionTabControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     loadFxml("theme/leaderboard/subDivisionTab.fxml", clazz -> instance);
-    instance.initialize();
+    reinitialize(instance);
   }
 
   @Test

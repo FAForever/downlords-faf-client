@@ -1,8 +1,10 @@
 package com.faforever.client.main.event;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-@Data
+@Getter
+@RequiredArgsConstructor
 public class NavigateEvent {
   private final NavigationItem item;
 }

@@ -1,11 +1,10 @@
 package com.faforever.client.fx;
 
-import javafx.scene.Node;
 import javafx.scene.control.TableCell;
 
 import java.util.function.BiConsumer;
 
-public class ControllerTableCell<S, T, C extends Controller<? extends Node>> extends TableCell<S, T> {
+public class ControllerTableCell<S, T, C extends NodeController<?>> extends TableCell<S, T> {
 
   private final BiConsumer<C, T> updateConsumer;
   private final C controller;

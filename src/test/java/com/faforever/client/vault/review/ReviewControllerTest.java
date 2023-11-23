@@ -11,7 +11,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +21,6 @@ import org.mockito.Mock;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class ReviewControllerTest extends PlatformTest {
@@ -47,7 +45,6 @@ public class ReviewControllerTest extends PlatformTest {
         .defaultValues()
         .get()));
     when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/vault/review/review.fxml", param -> {
       if (param == StarsController.class) {

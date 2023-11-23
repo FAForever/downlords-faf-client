@@ -86,8 +86,6 @@ public class PlayerCardController extends NodeController<Node> {
     countryImageView.visibleProperty().bind(countryImageView.imageProperty().isNotNull());
     avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
 
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
     factionImage.setImage(uiService.getImage(UiService.RANDOM_FACTION_IMAGE));
     factionImage.visibleProperty().bind(faction.map(value -> value == Faction.RANDOM));
     factionIcon.visibleProperty().bind(faction.map(value -> value != Faction.RANDOM && value != Faction.CIVILIAN));

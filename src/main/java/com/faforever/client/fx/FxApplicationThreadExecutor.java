@@ -26,8 +26,12 @@ public class FxApplicationThreadExecutor implements Executor {
         log.error("Uncaught Application Thread Error", e);
       }
     } else {
-      Platform.runLater(runnable);
+      runLater(runnable);
     }
+  }
+
+  public void runLater(Runnable runnable) {
+    Platform.runLater(runnable);
   }
 
   public void executeAndWait(Runnable runnable) {

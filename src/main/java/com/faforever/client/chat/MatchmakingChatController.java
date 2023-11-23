@@ -15,8 +15,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.beans.binding.BooleanExpression;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
@@ -77,14 +75,9 @@ public class MatchmakingChatController extends AbstractChatTabController {
   protected void onInitialize() {
     super.onInitialize();
 
-    ObservableValue<Boolean> showing = getRoot().selectedProperty()
-        .and(BooleanExpression.booleanExpression(getRoot().tabPaneProperty()
-            .flatMap(uiService::createShowingProperty)));
-
-    matchmakingChatTabRoot.idProperty().bind(channelName.when(showing));
     matchmakingChatTabRoot.textProperty().bind(channelName.when(showing));
 
-    chatChannel.addListener(((observable, oldValue, newValue) -> {
+    chatChannel.when(attached).addListener(((observable, oldValue, newValue) -> {
       if (oldValue != null) {
         oldValue.removeUserListener(usersChangeListener);
       }
@@ -95,13 +88,22 @@ public class MatchmakingChatController extends AbstractChatTabController {
     }));
 
     String topic = i18n.get("teammatchmaking.chat.topic");
-    topicText.getChildren().clear();
-    Arrays.stream(topic.split("\\s")).forEach(word -> {
+    List<Label> labels = Arrays.stream(topic.split("\\s")).map(word -> {
       Label label = new Label(word + " ");
       label.setStyle("-fx-font-weight: bold; -fx-font-size: 1.1em;");
-      topicText.getChildren().add(label);
-    });
+      return label;
+    }).toList();
+    topicText.getChildren().setAll(labels);
     topicText.getChildren().add(discordLink);
+  }
+
+  @Override
+  public void onDetached() {
+    super.onDetached();
+    ChatChannel channel = chatChannel.get();
+    if (channel != null) {
+      channel.removeUserListener(usersChangeListener);
+    }
   }
 
   @Override

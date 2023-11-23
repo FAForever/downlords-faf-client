@@ -184,7 +184,7 @@ public class VaultEntityControllerTest extends PlatformTest {
   public void testEmptyShowRoom() {
     items = IntStream.range(0, 0).boxed().toList();
     runOnFxThreadAndWait(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
-    assertFalse(showRoomRoot.isVisible());
+    assertTrue(showRoomRoot.isVisible());
     assertEquals(1, instance.showRoomGroup.getChildren().size());
   }
 

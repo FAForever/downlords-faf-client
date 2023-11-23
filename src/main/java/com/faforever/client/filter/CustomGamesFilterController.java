@@ -1,11 +1,11 @@
 package com.faforever.client.filter;
 
+import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.filter.converter.FeaturedModConverter;
 import com.faforever.client.filter.function.FeaturedModFilterFunction;
 import com.faforever.client.filter.function.SimModsFilterFunction;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.ToStringOnlyConverter;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.FiltersPrefs;
@@ -44,7 +44,8 @@ public class CustomGamesFilterController extends AbstractFilterController<GameBe
     simModsFilter = filterBuilder.checkbox(i18n.get("moddedGames"), new SimModsFilterFunction());
 
     filterBuilder.multiCheckbox(i18n.get("featuredMod.displayName"), modService.getFeaturedMods(),
-        new FeaturedModConverter(), new FeaturedModFilterFunction());
+                                new ToStringOnlyConverter<>(FeaturedModBean::getDisplayName),
+                                new FeaturedModFilterFunction());
 
     mapFolderNameBlackListFilter = filterBuilder.mutableList(i18n.get("blacklist.mapFolderName"), i18n.get("blacklist.mapFolderName.promptText"),
         (folderNames, game) -> folderNames.isEmpty() || folderNames.stream()
@@ -53,8 +54,8 @@ public class CustomGamesFilterController extends AbstractFilterController<GameBe
 
   @Override
   protected void afterBuilt() {
-    JavaFxUtil.bindBidirectional(privateGameFilter.valueProperty(), preferences.hidePrivateGamesProperty());
-    JavaFxUtil.bindBidirectional(simModsFilter.valueProperty(), preferences.hideModdedGamesProperty());
-    JavaFxUtil.bindBidirectional(mapFolderNameBlackListFilter.valueProperty(), filtersPrefs.mapNameBlacklistProperty());
+    privateGameFilter.valueProperty().bindBidirectional(preferences.hidePrivateGamesProperty());
+    simModsFilter.valueProperty().bindBidirectional(preferences.hideModdedGamesProperty());
+    mapFolderNameBlackListFilter.valueProperty().bindBidirectional(filtersPrefs.mapNameBlacklistProperty());
   }
 }

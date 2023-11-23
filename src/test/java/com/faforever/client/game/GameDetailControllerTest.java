@@ -108,7 +108,6 @@ public class GameDetailControllerTest extends PlatformTest {
     when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
     when(i18n.get("game.detail.players.format", game.getNumActivePlayers(), game.getMaxPlayers())).thenReturn(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()));
     when(i18n.get("unknown")).thenReturn("unknown");
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/play/game_detail.fxml", clazz -> {
       if (clazz == WatchButtonController.class) {

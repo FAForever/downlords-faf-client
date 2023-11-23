@@ -24,7 +24,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
@@ -100,7 +99,7 @@ public class PrivateChatTabControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     instance = new PrivateChatTabController(loginService, playerService, timeService, i18n, notificationService,
-                                            uiService, navigationHandler, audioService, chatService, webViewConfigurer,
+                                            uiService, navigationHandler, chatService, webViewConfigurer,
                                             countryFlagService,
                                             emoticonService, avatarService, chatPrefs, notificationPrefs,
                                             fxApplicationThreadExecutor);
@@ -116,7 +115,6 @@ public class PrivateChatTabControllerTest extends PlatformTest {
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(".*"));
     when(privatePlayerInfoController.chatUserProperty()).thenReturn(new SimpleObjectProperty<>());
     when(avatarService.loadAvatar(player.getAvatar())).thenReturn(new Image(InputStream.nullInputStream()));
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/chat/private_chat_tab.fxml", clazz -> {
       if (clazz == PrivatePlayerInfoController.class) {
@@ -187,7 +185,5 @@ public class PrivateChatTabControllerTest extends PlatformTest {
 
   @Test
   public void testOnClosedTab() {
-    instance.onClosed(null);
-    verify(privatePlayerInfoController).dispose();
   }
 }

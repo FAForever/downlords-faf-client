@@ -1,17 +1,21 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.audio.AudioService;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.LoginService;
+import com.faforever.commons.lobby.Player;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.collect.ImmutableSortedSet;
 import javafx.beans.property.BooleanProperty;
@@ -57,6 +61,7 @@ import org.mockito.Spy;
 import java.net.InetAddress;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -111,6 +116,10 @@ public class KittehChatServiceTest extends ServiceTest {
   private Channel otherChannel;
   @Mock
   private LoginService loginService;
+  @Mock
+  private AudioService audioService;
+  @Mock
+  private NotificationService notificationService;
 
   @Mock
   private FafServerAccessor fafServerAccessor;
@@ -122,6 +131,8 @@ public class KittehChatServiceTest extends ServiceTest {
   private ClientProperties clientProperties;
   @Spy
   private ChatPrefs chatPrefs;
+  @Spy
+  private NotificationPrefs notificationPrefs;
 
   @Captor
   private ArgumentCaptor<Consumer<SocialInfo>> socialMessageListenerCaptor;
@@ -166,7 +177,7 @@ public class KittehChatServiceTest extends ServiceTest {
     chatPrefs.setChatColorMode(DEFAULT);
 
     when(loginService.getUsername()).thenReturn(CHAT_USER_NAME);
-
+    when(loginService.getOwnPlayer()).thenReturn(new Player(0, CHAT_USER_NAME, null, null, "", Map.of(), Map.of()));
     when(loginService.loggedInProperty()).thenReturn(loggedIn);
     when(defaultChannel.getClient()).thenReturn(realClient);
     when(defaultChannel.getName()).thenReturn(DEFAULT_CHANNEL_NAME);

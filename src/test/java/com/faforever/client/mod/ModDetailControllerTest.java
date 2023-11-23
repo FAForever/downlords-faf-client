@@ -109,7 +109,6 @@ public class ModDetailControllerTest extends PlatformTest {
         .getUploader()
         .getUsername())).thenReturn(modVersion.getMod().getUploader().getUsername());
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/vault/mod/mod_detail.fxml", clazz -> {
       if (clazz == ReviewsController.class) {

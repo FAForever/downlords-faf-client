@@ -73,10 +73,6 @@
                           <padding>
                               <Insets left="10.0" right="10.0"/>
                           </padding>
-                          <children>
-                              <fx:include fx:id="gamesTilesContainer" source="games_tiles_container.fxml"/>
-                              <fx:include fx:id="gamesTable" source="games_table.fxml"/>
-                          </children>
                       </AnchorPane>
                </children>
             </VBox>

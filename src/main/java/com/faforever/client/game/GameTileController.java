@@ -8,7 +8,6 @@ import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
-import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -19,7 +18,6 @@ import com.google.common.base.Joiner;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -81,39 +79,43 @@ public class GameTileController extends NodeController<Node> {
   @Override
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(modsLabel, gameTypeLabel, lockIconLabel, defaultHostIcon, avatarImageView);
-    JavaFxUtil.bind(modsLabel.visibleProperty(), modsLabel.textProperty().isNotEmpty());
-    JavaFxUtil.bind(defaultHostIcon.visibleProperty(), avatarImageView.imageProperty().isNull());
-    JavaFxUtil.bind(avatarImageView.visibleProperty(), avatarImageView.imageProperty().isNotNull());
-
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
+    modsLabel.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
+    defaultHostIcon.visibleProperty().bind(avatarImageView.imageProperty().isNull());
+    avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
 
     gameTitleLabel.textProperty()
-        .bind(game.flatMap(GameBean::titleProperty).map(StringUtils::normalizeSpace).when(showing));
+                  .bind(game.flatMap(GameBean::titleProperty).map(StringUtils::normalizeSpace).when(showing));
     hostLabel.textProperty().bind(game.flatMap(GameBean::hostProperty).when(showing));
     avatarImageView.imageProperty()
-        .bind(game.flatMap(GameBean::hostProperty)
-                  .map(playerService::getPlayerByNameIfOnline)
-            .map(optional -> optional.orElse(null))
-                  .flatMap(PlayerBean::avatarProperty)
-                  .map(avatarService::loadAvatar)
-            .when(showing));
+                   .bind(game.flatMap(GameBean::hostProperty)
+                             .map(playerService::getPlayerByNameIfOnline)
+                             .map(optional -> optional.orElse(null))
+                             .flatMap(PlayerBean::avatarProperty)
+                             .map(avatarService::loadAvatar)
+                             .when(showing));
     gameMapLabel.textProperty().bind(game.flatMap(GameBean::mapFolderNameProperty).when(showing));
     mapImageView.imageProperty()
-        .bind(game.flatMap(GameBean::mapFolderNameProperty)
-            .flatMap(mapFolderName -> Bindings.createObjectBinding(() -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL), mapService.isInstalledBinding(mapFolderName)))
-            .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
-            .when(showing));
+                .bind(game.flatMap(GameBean::mapFolderNameProperty)
+                          .flatMap(mapFolderName -> Bindings.createObjectBinding(
+                              () -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL),
+                              mapService.isInstalledBinding(mapFolderName)))
+                          .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
+                          .when(showing));
     modsLabel.textProperty()
-        .bind(game.flatMap(GameBean::simModsProperty).map(this::getSimModsLabelContent).when(showing));
+             .bind(game.flatMap(GameBean::simModsProperty).map(this::getSimModsLabelContent).when(showing));
     lockIconLabel.visibleProperty().bind(game.flatMap(GameBean::passwordProtectedProperty).when(showing));
     numberOfPlayersLabel.textProperty()
-        .bind(game.flatMap(gameValue -> Bindings.createStringBinding(() -> i18n.get("game.detail.players.format", gameValue.getNumActivePlayers(), gameValue.getMaxPlayers()), gameValue.numActivePlayersProperty(), gameValue.maxPlayersProperty())
-            .when(showing)));
+                        .bind(game.flatMap(gameValue -> Bindings.createStringBinding(
+                            () -> i18n.get("game.detail.players.format", gameValue.getNumActivePlayers(),
+                                           gameValue.getMaxPlayers()), gameValue.numActivePlayersProperty(),
+                            gameValue.maxPlayersProperty()).when(showing)));
     avgRatingLabel.textProperty()
-        .bind(game.flatMap(playerService::getAverageRatingPropertyForGame)
-            .map(average -> Math.round(average / 100.0) * 100.0)
-            .map(roundedAverage -> i18n.get("game.avgRating.format", roundedAverage)));
-    game.addListener((SimpleChangeListener<GameBean>) this::onGamePropertyChanged);
+                  .bind(game.flatMap(playerService::getAverageRatingPropertyForGame)
+                            .map(average -> Math.round(average / 100.0) * 100.0)
+                            .map(roundedAverage -> i18n.get("game.avgRating.format", roundedAverage))
+                            .when(showing));
+    game.when(showing).subscribe(this::onGamePropertyChanged);
+    game.flatMap(GameBean::featuredModProperty).when(showing).subscribe(this::onFeaturedModChanged);
   }
 
   @Override
@@ -123,12 +125,18 @@ public class GameTileController extends NodeController<Node> {
 
   private void onGamePropertyChanged(GameBean newValue) {
     getRoot().pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, playerService.areFriendsInGame(newValue));
+  }
 
-    modService.getFeaturedMod(newValue.getFeaturedMod())
-        .map(FeaturedModBean::getDisplayName)
-        .map(StringUtils::defaultString)
-        .publishOn(fxApplicationThreadExecutor.asScheduler())
-        .subscribe(gameTypeLabel::setText, throwable -> log.error("Unable to set game type label", throwable));
+  private void onFeaturedModChanged(String featuredMod) {
+    if (featuredMod == null) {
+      return;
+    }
+
+    modService.getFeaturedMod(featuredMod)
+              .map(FeaturedModBean::getDisplayName)
+              .map(StringUtils::defaultString)
+              .publishOn(fxApplicationThreadExecutor.asScheduler())
+              .subscribe(gameTypeLabel::setText, throwable -> log.error("Unable to set game type label", throwable));
   }
 
   public void setGame(GameBean game) {

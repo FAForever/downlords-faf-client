@@ -82,8 +82,6 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
     gameDetailController.setPlaytimeVisible(true);
     gameDetailWrapper.setVisible(false);
 
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
     ObservableValue<Boolean> playerExistsProperty = chatUser.flatMap(user -> user.playerProperty().isNotNull()).when(showing);
     userImageView.visibleProperty().bind(playerExistsProperty);
     country.visibleProperty().bind(playerExistsProperty);
@@ -169,10 +167,6 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
         ratingsValues.setText(ratingNumbers.toString());
       });
     });
-  }
-
-  public void dispose() {
-    gameDetailController.dispose();
   }
 }
 

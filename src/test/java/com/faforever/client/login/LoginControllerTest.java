@@ -17,7 +17,7 @@ import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.DownloadUpdateTask;
 import com.faforever.client.update.UpdateInfo;
-import com.faforever.client.update.VersionTest;
+import com.faforever.client.update.Version;
 import com.faforever.client.user.LoginService;
 import com.faforever.commons.api.dto.MeResult;
 import com.faforever.commons.lobby.Player;
@@ -30,6 +30,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -54,6 +55,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -118,7 +120,7 @@ public class LoginControllerTest extends PlatformTest {
         .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
     String refreshToken = "asd";
     loginPrefs.setRefreshToken(refreshToken);
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> reinitialize(instance));
     verify(loginService).loginWithRefreshToken();
     assertTrue(instance.loginProgressPane.isVisible());
     assertFalse(instance.loginFormPane.isVisible());
@@ -219,7 +221,7 @@ public class LoginControllerTest extends PlatformTest {
     loginPrefs.setRefreshToken("abc");
     when(loginService.loginWithRefreshToken()).thenReturn(Mono.error(
         WebClientResponseException.create(HttpStatus.BAD_REQUEST.value(), "", HttpHeaders.EMPTY, new byte[]{}, null)));
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> reinitialize(instance));
     verify(loginService).loginWithRefreshToken();
     verify(notificationService, never()).addImmediateErrorNotification(any(), anyString());
     assertFalse(instance.loginProgressPane.isVisible());
@@ -235,7 +237,7 @@ public class LoginControllerTest extends PlatformTest {
     loginPrefs.setRefreshToken("abc");
     when(loginService.loginWithRefreshToken()).thenReturn(Mono.error(
         WebClientResponseException.create(HttpStatus.UNAUTHORIZED.value(), "", HttpHeaders.EMPTY, new byte[]{}, null)));
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> reinitialize(instance));
     verify(loginService).loginWithRefreshToken();
     verify(notificationService, never()).addImmediateErrorNotification(any(), anyString());
     assertFalse(instance.loginProgressPane.isVisible());
@@ -250,7 +252,7 @@ public class LoginControllerTest extends PlatformTest {
     loginPrefs.setRememberMe(true);
     loginPrefs.setRefreshToken("abc");
     when(loginService.loginWithRefreshToken()).thenReturn(Mono.error(new Exception()));
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> reinitialize(instance));
     verify(loginService).loginWithRefreshToken();
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
@@ -266,8 +268,6 @@ public class LoginControllerTest extends PlatformTest {
         .then()
         .get();
 
-    VersionTest.setCurrentVersion("2.2.0");
-
     when(clientUpdateService.getNewestUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
 
@@ -277,7 +277,15 @@ public class LoginControllerTest extends PlatformTest {
     assertThat(instance.downloadUpdateButton.isVisible(), is(false));
     assertThat(instance.loginFormPane.isDisable(), is(false));
 
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> {
+      try (MockedStatic<Version> mockedVersion = mockStatic(Version.class)) {
+        mockedVersion.when(Version::getCurrentVersion).thenReturn("2.2.0");
+        mockedVersion.when(() -> Version.shouldUpdate(anyString(), anyString())).thenCallRealMethod();
+        mockedVersion.when(() -> Version.removePrefix(anyString())).thenCallRealMethod();
+        mockedVersion.when(() -> Version.followsSemverPattern(anyString())).thenCallRealMethod();
+        reinitialize(instance);
+      }
+    });
 
     assertThat(instance.loginErrorLabel.isVisible(), is(false));
     assertThat(instance.downloadUpdateButton.isVisible(), is(false));
@@ -301,8 +309,6 @@ public class LoginControllerTest extends PlatformTest {
     loginPrefs.setRememberMe(true);
     loginPrefs.setRefreshToken("abc");
 
-    VersionTest.setCurrentVersion("1.2.0");
-
     when(operatingSystem.supportsUpdateInstall()).thenReturn(supportsUpdateInstall);
     when(clientUpdateService.getNewestUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
@@ -313,7 +319,15 @@ public class LoginControllerTest extends PlatformTest {
     assertThat(instance.downloadUpdateButton.isVisible(), is(false));
     assertThat(instance.loginFormPane.isDisable(), is(false));
 
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> {
+      try (MockedStatic<Version> mockedVersion = mockStatic(Version.class)) {
+        mockedVersion.when(Version::getCurrentVersion).thenReturn("1.2.0");
+        mockedVersion.when(() -> Version.shouldUpdate(anyString(), anyString())).thenCallRealMethod();
+        mockedVersion.when(() -> Version.removePrefix(anyString())).thenCallRealMethod();
+        mockedVersion.when(() -> Version.followsSemverPattern(anyString())).thenCallRealMethod();
+        reinitialize(instance);
+      }
+    });
 
     assertThat(instance.loginErrorLabel.isVisible(), is(true));
     assertThat(instance.downloadUpdateButton.isVisible(), is(supportsUpdateInstall));
@@ -336,8 +350,6 @@ public class LoginControllerTest extends PlatformTest {
         .then()
         .get();
 
-    VersionTest.setCurrentVersion("1.2.0");
-
     when(operatingSystem.supportsUpdateInstall()).thenReturn(supportsUpdateInstall);
     when(clientUpdateService.getNewestUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
@@ -348,7 +360,15 @@ public class LoginControllerTest extends PlatformTest {
     assertThat(instance.downloadUpdateButton.isVisible(), is(false));
     assertThat(instance.loginFormPane.isDisable(), is(false));
 
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> {
+      try (MockedStatic<Version> mockedVersion = mockStatic(Version.class)) {
+        mockedVersion.when(Version::getCurrentVersion).thenReturn("1.2.0");
+        mockedVersion.when(() -> Version.shouldUpdate(anyString(), anyString())).thenCallRealMethod();
+        mockedVersion.when(() -> Version.removePrefix(anyString())).thenCallRealMethod();
+        mockedVersion.when(() -> Version.followsSemverPattern(anyString())).thenCallRealMethod();
+        reinitialize(instance);
+      }
+    });
 
     assertThat(instance.loginErrorLabel.isVisible(), is(true));
     assertThat(instance.downloadUpdateButton.isVisible(), is(supportsUpdateInstall));

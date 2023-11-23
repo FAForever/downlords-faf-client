@@ -2,7 +2,9 @@ package com.faforever.client.chat;
 
 import com.faforever.client.fx.JavaFxUtil;
 import javafx.beans.Observable;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -33,6 +35,7 @@ public class ChatChannel {
   private final ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic("", ""));
   private final Set<Consumer<ChatMessage>> messageListeners = new HashSet<>();
   private final List<ChatMessage> messages = new ArrayList<>();
+  private final BooleanProperty open = new SimpleBooleanProperty();
 
   private int maxNumMessages = Integer.MAX_VALUE;
 
@@ -110,5 +113,17 @@ public class ChatChannel {
 
   public boolean isPartyChannel() {
     return name.endsWith(ChatService.PARTY_CHANNEL_SUFFIX);
+  }
+
+  public boolean isOpen() {
+    return open.get();
+  }
+
+  public BooleanProperty openProperty() {
+    return open;
+  }
+
+  public void setOpen(boolean open) {
+    this.open.set(open);
   }
 }

@@ -81,7 +81,6 @@ public class GameTileControllerTest extends PlatformTest {
     when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
     when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(
         invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/play/game_card.fxml", clazz -> instance);
     instance.setOnSelectedListener(onSelectedConsumer);
