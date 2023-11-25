@@ -16,6 +16,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.stats.StatisticsService;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.RatingUtil;
@@ -95,6 +96,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
   private final EventService eventService;
   private final I18n i18n;
   private final UiService uiService;
+  private final ThemeService themeService;
   private final TimeService timeService;
   private final PlayerService playerService;
   private final NotificationService notificationService;
@@ -527,7 +529,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
     FxStage fxStage = FxStage.create(userInfoRoot)
         .initOwner(ownerWindow)
         .initModality(Modality.WINDOW_MODAL)
-        .withSceneFactory(uiService::createScene)
+                             .withSceneFactory(themeService::createScene)
         .allowMinimize(false)
         .apply();
 

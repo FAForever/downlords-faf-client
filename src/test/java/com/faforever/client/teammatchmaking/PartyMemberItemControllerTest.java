@@ -17,7 +17,7 @@ import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
-import com.faforever.client.theme.UiService;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.commons.lobby.GameStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,7 +54,7 @@ public class PartyMemberItemControllerTest extends PlatformTest {
   @Mock
   private TeamMatchmakingService teamMatchmakingService;
   @Mock
-  private UiService uiService;
+  private ThemeService themeService;
   @Mock
   private I18n i18n;
   @Mock

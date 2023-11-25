@@ -16,6 +16,7 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.user.LoginService;
@@ -68,11 +69,11 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
-import static com.faforever.client.theme.UiService.CHAT_SECTION_COMPACT;
-import static com.faforever.client.theme.UiService.CHAT_SECTION_EXTENDED;
-import static com.faforever.client.theme.UiService.CHAT_TEXT_COMPACT;
-import static com.faforever.client.theme.UiService.CHAT_TEXT_EXTENDED;
+import static com.faforever.client.theme.ThemeService.CHAT_CONTAINER;
+import static com.faforever.client.theme.ThemeService.CHAT_SECTION_COMPACT;
+import static com.faforever.client.theme.ThemeService.CHAT_SECTION_EXTENDED;
+import static com.faforever.client.theme.ThemeService.CHAT_TEXT_COMPACT;
+import static com.faforever.client.theme.ThemeService.CHAT_TEXT_EXTENDED;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
@@ -125,6 +126,7 @@ public abstract class AbstractChatTabController extends TabController {
   protected final I18n i18n;
   protected final NotificationService notificationService;
   protected final UiService uiService;
+  protected final ThemeService themeService;
   protected final WebViewConfigurer webViewConfigurer;
   protected final EmoticonService emoticonService;
   protected final CountryFlagService countryFlagService;
@@ -303,7 +305,7 @@ public abstract class AbstractChatTabController extends TabController {
   }
 
   private void loadChatContainer() {
-    try (Reader reader = new InputStreamReader(uiService.getThemeFileUrl(CHAT_CONTAINER).openStream())) {
+    try (Reader reader = new InputStreamReader(themeService.getThemeFileUrl(CHAT_CONTAINER).openStream())) {
       String chatContainerHtml = CharStreams.toString(reader)
                                             .replace("{chat-container-js}", CHAT_JS_RESOURCE.getURL().toExternalForm())
                                             .replace("{auto-linker-js}",
@@ -492,9 +494,9 @@ public abstract class AbstractChatTabController extends TabController {
   private void appendMessage(ChatMessage chatMessage) throws IOException {
     URL themeFileUrl;
     if (chatPrefs.getChatFormat() == ChatFormat.COMPACT) {
-      themeFileUrl = uiService.getThemeFileUrl(CHAT_TEXT_COMPACT);
+      themeFileUrl = themeService.getThemeFileUrl(CHAT_TEXT_COMPACT);
     } else {
-      themeFileUrl = uiService.getThemeFileUrl(CHAT_TEXT_EXTENDED);
+      themeFileUrl = themeService.getThemeFileUrl(CHAT_TEXT_EXTENDED);
     }
 
     String html = renderHtml(chatMessage, themeFileUrl, null);
@@ -505,9 +507,9 @@ public abstract class AbstractChatTabController extends TabController {
   private void appendChatMessageSection(ChatMessage chatMessage) throws IOException {
     URL themeFileURL;
     if (chatPrefs.getChatFormat() == ChatFormat.COMPACT) {
-      themeFileURL = uiService.getThemeFileUrl(CHAT_SECTION_COMPACT);
+      themeFileURL = themeService.getThemeFileUrl(CHAT_SECTION_COMPACT);
     } else {
-      themeFileURL = uiService.getThemeFileUrl(CHAT_SECTION_EXTENDED);
+      themeFileURL = themeService.getThemeFileUrl(CHAT_SECTION_EXTENDED);
     }
 
     String html = renderHtml(chatMessage, themeFileURL, ++lastEntryId);

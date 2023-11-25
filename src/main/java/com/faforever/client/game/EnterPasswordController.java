@@ -2,7 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.NodeController;
-import com.faforever.client.theme.UiService;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.util.Assert;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -25,7 +25,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class EnterPasswordController extends NodeController<Node> {
 
-  private final UiService uiService;
+  private final ThemeService themeServiceService;
+
   public Label loginErrorLabel;
   public Label titleLabel;
   public TextField passwordField;
@@ -77,7 +78,7 @@ public class EnterPasswordController extends NodeController<Node> {
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(owner);
 
-    Scene scene = uiService.createScene(getRoot());
+    Scene scene = themeServiceService.createScene(getRoot());
     userInfoWindow.setScene(scene);
     userInfoWindow.show();
   }

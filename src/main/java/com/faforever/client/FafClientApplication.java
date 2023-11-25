@@ -10,6 +10,7 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.svg.SvgImageLoaderFactory;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.taskbar.WindowsTaskbarProgressUpdater;
@@ -62,7 +63,8 @@ public class FafClientApplication extends Application {
     try {
       StageHolder.setStage(stage);
       FxStage fxStage = FxStage.configure(stage)
-          .withSceneFactory(parent -> applicationContext.getBean(UiService.class).createScene(parent))
+                               .withSceneFactory(
+                                   parent -> applicationContext.getBean(ThemeService.class).createScene(parent))
           .apply();
 
       fxStage.getStage().setOnCloseRequest(this::closeMainWindow);

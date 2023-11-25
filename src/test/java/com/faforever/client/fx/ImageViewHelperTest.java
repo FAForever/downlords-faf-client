@@ -1,7 +1,7 @@
 package com.faforever.client.fx;
 
 import com.faforever.client.test.PlatformTest;
-import com.faforever.client.theme.UiService;
+import com.faforever.client.theme.ThemeService;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 public class ImageViewHelperTest extends PlatformTest {
 
   @Mock
-  private UiService uiService;
+  private ThemeService themeService;
 
   @InjectMocks
   private ImageViewHelper instance;
@@ -33,7 +33,7 @@ public class ImageViewHelperTest extends PlatformTest {
 
   @Test
   public void testSetPlaceholderImage() {
-    Mockito.when(uiService.getThemeImage(Mockito.anyString())).thenReturn(placeholderImage);
+    Mockito.when(themeService.getThemeImage(Mockito.anyString())).thenReturn(placeholderImage);
 
     instance.setDefaultPlaceholderImage(imageView);
     assertEquals(placeholderImage, imageView.getImage());
@@ -56,7 +56,7 @@ public class ImageViewHelperTest extends PlatformTest {
 
   @Test
   public void testSetPlaceholderImageWhenOnlyOnError() {
-    Mockito.when(uiService.getThemeImage(Mockito.anyString())).thenReturn(placeholderImage);
+    Mockito.when(themeService.getThemeImage(Mockito.anyString())).thenReturn(placeholderImage);
 
     instance.setDefaultPlaceholderImage(imageView, true);
     assertNull(imageView.getImage());

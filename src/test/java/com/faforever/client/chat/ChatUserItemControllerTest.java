@@ -19,6 +19,7 @@ import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.test.PlatformTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -61,6 +62,8 @@ public class ChatUserItemControllerTest extends PlatformTest {
   private UiService uiService;
   @Mock
   private ChatService chatService;
+  @Mock
+  private ThemeService themeService;
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
   @Mock
@@ -174,7 +177,8 @@ public class ChatUserItemControllerTest extends PlatformTest {
     MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().get();
     defaultUser.setPlayer(player);
 
-    when(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING)).thenReturn(new Image(InputStream.nullInputStream()));
+    when(themeService.getThemeImage(ThemeService.CHAT_LIST_STATUS_HOSTING)).thenReturn(
+        new Image(InputStream.nullInputStream()));
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(new Image(InputStream.nullInputStream()));
     when(mapService.getMapLocallyFromName(mapFolderName)).thenReturn(Optional.of(mapVersion));
     when(mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName)).thenReturn("map id");

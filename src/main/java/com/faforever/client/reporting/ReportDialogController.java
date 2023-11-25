@@ -12,6 +12,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.TimeService;
@@ -55,6 +56,7 @@ public class ReportDialogController extends NodeController<Node> {
   private final PlayerService playerService;
   private final I18n i18n;
   private final UiService uiService;
+  private final ThemeService themeService;
   private final TimeService timeService;
   private final ReplayService replayService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -270,7 +272,7 @@ public class ReportDialogController extends NodeController<Node> {
     FxStage fxStage = FxStage.create(reportDialogRoot)
         .initOwner(ownerWindow)
         .initModality(Modality.WINDOW_MODAL)
-        .withSceneFactory(uiService::createScene)
+                             .withSceneFactory(themeService::createScene)
         .allowMinimize(false)
         .apply();
 

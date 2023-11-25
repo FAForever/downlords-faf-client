@@ -39,6 +39,7 @@ import com.faforever.client.preferences.tasks.MoveDirectoryTask;
 import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.Theme;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.list.NoSelectionModelListView;
 import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
@@ -98,6 +99,7 @@ public class SettingsController extends NodeController<Node> {
   private final LoginService loginService;
   private final PreferencesService preferencesService;
   private final UiService uiService;
+  private final ThemeService themeService;
   private final I18n i18n;
   private final PlatformService platformService;
   private final ClientProperties clientProperties;
@@ -242,8 +244,8 @@ public class SettingsController extends NodeController<Node> {
   }
 
   private void onThemeChanged(Theme newValue) {
-    uiService.setTheme(newValue);
-    if (uiService.doesThemeNeedRestart(newValue)) {
+    themeService.setTheme(newValue);
+    if (themeService.doesThemeNeedRestart(newValue)) {
       notificationService.addNotification(new PersistentNotification(i18n.get("theme.needsRestart.message", newValue.getDisplayName()), Severity.WARN,
           Collections.singletonList(new Action(i18n.get("theme.needsRestart.quit"), event -> Platform.exit()))));
       // FIXME reload application (stage & application context) https://github.com/FAForever/downlords-faf-client/issues/1794
@@ -511,12 +513,12 @@ public class SettingsController extends NodeController<Node> {
   }
 
   private void configureThemeSelection() {
-    themeComboBox.setItems(FXCollections.observableArrayList(uiService.getAvailableThemes()));
+    themeComboBox.setItems(FXCollections.observableList(themeService.getAvailableThemes()));
 
-    themeComboBox.getSelectionModel().select(uiService.getCurrentTheme());
+    themeComboBox.getSelectionModel().select(themeService.getCurrentTheme());
 
     themeComboBox.getSelectionModel().selectedItemProperty().addListener(selectedThemeChangeListener);
-    JavaFxUtil.addListener(uiService.currentThemeProperty(), new WeakChangeListener<>(currentThemeChangeListener));
+    JavaFxUtil.addListener(themeService.currentThemeProperty(), new WeakChangeListener<>(currentThemeChangeListener));
   }
 
   private void configureLanguageSelection() {

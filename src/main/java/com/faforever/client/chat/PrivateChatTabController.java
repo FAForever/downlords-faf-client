@@ -14,6 +14,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PrivatePlayerInfoController;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
@@ -61,13 +62,14 @@ public class PrivateChatTabController extends AbstractChatTabController {
   public PrivateChatTabController(LoginService loginService,
                                   PlayerService playerService, TimeService timeService, I18n i18n,
                                   NotificationService notificationService, UiService uiService,
+                                  ThemeService themeService,
                                   NavigationHandler navigationHandler,
                                   ChatService chatService,
                                   WebViewConfigurer webViewConfigurer, CountryFlagService countryFlagService,
                                   EmoticonService emoticonService, AvatarService avatarService, ChatPrefs chatPrefs,
                                   NotificationPrefs notificationPrefs,
                                   FxApplicationThreadExecutor fxApplicationThreadExecutor) {
-    super(loginService, chatService, playerService, timeService, i18n, notificationService, uiService,
+    super(loginService, chatService, playerService, timeService, i18n, notificationService, uiService, themeService,
           webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs,
           fxApplicationThreadExecutor, navigationHandler);
     this.avatarService = avatarService;
