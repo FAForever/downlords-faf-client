@@ -11,7 +11,7 @@
       fx:id="mainHeader" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity"
       styleClass="main-navigation-top">
     <children>
-        <fx:include source="main_menu_button.fxml"/>
+        <fx:include fx:id="mainMenuButton" source="main_menu_button.fxml"/>
         <HBox fx:id="leftMenuPane" minWidth="10.0">
             <children>
                 <fx:define>
@@ -46,7 +46,7 @@
         </HBox>
         <MenuButton fx:id="navigationDropdown" minHeight="-Infinity" minWidth="-Infinity"/>
         <Pane maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"/>
-        <HBox alignment="TOP_RIGHT" maxHeight="-Infinity" minHeight="-Infinity"
+        <HBox fx:id="rightMenuPane" alignment="TOP_RIGHT" maxHeight="-Infinity" minHeight="-Infinity"
               minWidth="-Infinity" styleClass="right-menu">
             <children>
                 <fx:include source="notification_button.fxml"/>
