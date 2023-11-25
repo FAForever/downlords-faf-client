@@ -34,13 +34,14 @@ import java.util.Objects;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class HeaderBarController implements Controller<Node> {
+public class HeaderBarController implements Controller<HBox> {
 
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
 
   private final EventBus eventBus;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
+  public MenuButton mainMenuButton;
   public HBox mainHeader;
   public ToggleButton newsButton;
   public ToggleButton chatButton;
@@ -52,6 +53,7 @@ public class HeaderBarController implements Controller<Node> {
   public ToggleButton unitsButton;
   public ToggleGroup mainNavigation;
   public Pane leftMenuPane;
+  public Pane rightMenuPane;
   /** Dropdown for when there is not enough room for all navigation buttons to be displayed. */
   public MenuButton navigationDropdown;
 
@@ -139,5 +141,9 @@ public class HeaderBarController implements Controller<Node> {
 
   private NavigationItem getSelectedNavigationItem() {
     return navigationItemMap.get((ToggleButton) mainNavigation.getSelectedToggle());
+  }
+
+  public List<Node> getNonCaptionNodes() {
+    return List.of(leftMenuPane, navigationDropdown, rightMenuPane, mainMenuButton);
   }
 }

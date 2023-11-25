@@ -9,6 +9,7 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.headerbar.HeaderBarController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
@@ -98,11 +99,11 @@ public class MainController implements Controller<Node>, InitializingBean {
   private final ChangeListener<Path> backgroundImageListener = (observable, oldValue, newValue) ->
       setBackgroundImage(newValue);
 
-  public Pane mainHeaderPane;
   public Pane contentPane;
   public StackPane contentWrapperPane;
   public StackPane mainRoot;
   public HBox headerBar;
+  public HeaderBarController headerBarController;
 
   @VisibleForTesting
   protected Popup transientNotificationsPopup;
@@ -306,8 +307,8 @@ public class MainController implements Controller<Node>, InitializingBean {
       stage.setTitle(clientProperties.getMainWindowTitle());
 
       fxStage.setContent(getRoot());
-      fxStage.getNonCaptionNodes().setAll(headerBar.getChildren());
-      fxStage.setTitleBar(mainHeaderPane);
+      fxStage.getNonCaptionNodes().setAll(headerBarController.getNonCaptionNodes());
+      fxStage.setTitleBar(headerBar);
 
       openStartTab();
     });
