@@ -20,6 +20,7 @@ import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.replay.WatchButtonController;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.PlatformTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.LoginService;
@@ -67,6 +68,8 @@ public class PrivateChatTabControllerTest extends PlatformTest {
   @Mock
   private UiService uiService;
   @Mock
+  private ThemeService themeService;
+  @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
   private ReportingService reportingService;
@@ -99,7 +102,7 @@ public class PrivateChatTabControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     instance = new PrivateChatTabController(loginService, playerService, timeService, i18n, notificationService,
-                                            uiService, navigationHandler, chatService, webViewConfigurer,
+                                            uiService, themeService, navigationHandler, chatService, webViewConfigurer,
                                             countryFlagService,
                                             emoticonService, avatarService, chatPrefs, notificationPrefs,
                                             fxApplicationThreadExecutor);
@@ -111,7 +114,7 @@ public class PrivateChatTabControllerTest extends PlatformTest {
     when(loginService.getUsername()).thenReturn(playerName);
     when(timeService.asShortTime(any())).thenReturn("");
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
-    when(uiService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
+    when(themeService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(".*"));
     when(privatePlayerInfoController.chatUserProperty()).thenReturn(new SimpleObjectProperty<>());
     when(avatarService.loadAvatar(player.getAvatar())).thenReturn(new Image(InputStream.nullInputStream()));

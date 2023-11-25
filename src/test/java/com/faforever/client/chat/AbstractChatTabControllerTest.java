@@ -15,6 +15,7 @@ import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.PlatformTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.LoginService;
@@ -69,6 +70,8 @@ public class AbstractChatTabControllerTest extends PlatformTest {
   @Mock
   private UiService uiService;
   @Mock
+  private ThemeService themeService;
+  @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
   private ReportingService reportingService;
@@ -87,7 +90,8 @@ public class AbstractChatTabControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setup() throws Exception {
-    when(uiService.getThemeFileUrl(any())).thenReturn(getClass().getResource("/" + UiService.CHAT_SECTION_EXTENDED));
+    when(themeService.getThemeFileUrl(any())).thenReturn(
+        getClass().getResource("/" + ThemeService.CHAT_SECTION_EXTENDED));
     when(timeService.asShortTime(any())).thenReturn("123");
     when(loginService.getUsername()).thenReturn("junit");
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(":uef:|:aeon:"));
@@ -96,7 +100,8 @@ public class AbstractChatTabControllerTest extends PlatformTest {
 
     fxApplicationThreadExecutor.executeAndWait(() -> {
       instance = new AbstractChatTabController(loginService, chatService, playerService, timeService, i18n,
-                                               notificationService, uiService, webViewConfigurer, emoticonService,
+                                               notificationService, uiService, themeService, webViewConfigurer,
+                                               emoticonService,
                                                countryFlagService, chatPrefs, notificationPrefs,
                                                fxApplicationThreadExecutor, navigationHandler) {
         private final Tab root = new Tab();

@@ -28,6 +28,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ApiTestUtil;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.PlatformTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
@@ -104,6 +105,8 @@ public class MapServiceTest extends PlatformTest {
   @Mock
   private UiService uiService;
   @Mock
+  private ThemeService themeService;
+  @Mock
   private AssetService assetService;
   @Mock
   private FafApiAccessor fafApiAccessor;
@@ -154,7 +157,10 @@ public class MapServiceTest extends PlatformTest {
       return task;
     }).when(taskService).submitTask(any());
 
-    instance = new MapService(notificationService, taskService, fafApiAccessor, assetService, i18n, uiService, mapGeneratorService, playerService, mapMapper, fileSizeReader, clientProperties, forgedAlliancePrefs, preferences, mapUploadTaskFactory, downloadMapTaskFactory, uninstallMapTaskFactory, fxApplicationThreadExecutor);
+    instance = new MapService(notificationService, taskService, fafApiAccessor, assetService, i18n, uiService,
+                              themeService, mapGeneratorService, playerService, mapMapper, fileSizeReader,
+                              clientProperties, forgedAlliancePrefs, preferences, mapUploadTaskFactory,
+                              downloadMapTaskFactory, uninstallMapTaskFactory, fxApplicationThreadExecutor);
     instance.officialMaps = ImmutableSet.of();
     instance.afterPropertiesSet();
   }

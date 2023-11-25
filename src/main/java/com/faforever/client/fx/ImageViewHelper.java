@@ -1,6 +1,6 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.theme.UiService;
+import com.faforever.client.theme.ThemeService;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.value.ObservableValue;
@@ -10,17 +10,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import static com.faforever.client.theme.UiService.NO_IMAGE_AVAILABLE;
+import static com.faforever.client.theme.ThemeService.NO_IMAGE_AVAILABLE;
 
 @Component
 @Lazy
 @RequiredArgsConstructor
 public class ImageViewHelper {
 
-  private final UiService uiService;
+  private final ThemeService themeService;
 
   public ObservableValue<Image> createPlaceholderImageOnErrorObservable(Image image) {
-    return image.errorProperty().map(error -> error ? uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE) : image);
+    return image.errorProperty()
+                .map(error -> error ? themeService.getThemeImage(ThemeService.NO_IMAGE_AVAILABLE) : image);
   }
 
   public void setDefaultPlaceholderImage(ImageView imageView) {
@@ -36,7 +37,7 @@ public class ImageViewHelper {
   }
 
   public Image getDefaultPlaceholderImage() {
-    return uiService.getThemeImage(NO_IMAGE_AVAILABLE);
+    return themeService.getThemeImage(NO_IMAGE_AVAILABLE);
   }
 
   private static class ImageListenerImpl {

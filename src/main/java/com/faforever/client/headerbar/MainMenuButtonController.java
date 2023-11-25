@@ -8,6 +8,7 @@ import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.ui.SettingsController;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import javafx.scene.control.MenuButton;
@@ -29,6 +30,7 @@ public class MainMenuButtonController {
 
   private final I18n i18n;
   private final UiService uiService;
+  private final ThemeService themeService;
   private final PlatformService platformService;
   private final OperatingSystem operatingSystem;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
@@ -71,7 +73,7 @@ public class MainMenuButtonController {
     SettingsController settingsController = uiService.loadFxml("theme/settings/settings.fxml");
     FxStage fxStage = FxStage.create(settingsController.getRoot())
         .initOwner(menuButton.getScene().getWindow())
-        .withSceneFactory(uiService::createScene)
+                             .withSceneFactory(themeService::createScene)
         .allowMinimize(false)
         .apply()
         .setTitleBar(settingsController.settingsHeader);
@@ -87,7 +89,7 @@ public class MainMenuButtonController {
 
     FxStage fxStage = FxStage.create(linksAndHelpController.getRoot())
         .initOwner(menuButton.getScene().getWindow())
-        .withSceneFactory(uiService::createScene)
+                             .withSceneFactory(themeService::createScene)
         .allowMinimize(false)
         .apply();
 

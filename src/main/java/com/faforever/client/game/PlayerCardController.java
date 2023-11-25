@@ -23,6 +23,7 @@ import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.SocialStatus;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.Faction;
@@ -86,7 +87,7 @@ public class PlayerCardController extends NodeController<Node> {
     countryImageView.visibleProperty().bind(countryImageView.imageProperty().isNotNull());
     avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
 
-    factionImage.setImage(uiService.getImage(UiService.RANDOM_FACTION_IMAGE));
+    factionImage.setImage(uiService.getImage(ThemeService.RANDOM_FACTION_IMAGE));
     factionImage.visibleProperty().bind(faction.map(value -> value == Faction.RANDOM));
     factionIcon.visibleProperty().bind(faction.map(value -> value != Faction.RANDOM && value != Faction.CIVILIAN));
 
@@ -174,18 +175,20 @@ public class PlayerCardController extends NodeController<Node> {
     List<String> classes = factionIcon.getStyleClass();
     if (oldFaction != null) {
       switch (oldFaction) {
-        case AEON -> classes.remove(UiService.AEON_STYLE_CLASS);
-        case CYBRAN -> classes.remove(UiService.CYBRAN_STYLE_CLASS);
-        case SERAPHIM -> classes.remove(UiService.SERAPHIM_STYLE_CLASS);
-        case UEF -> classes.remove(UiService.UEF_STYLE_CLASS);
+        case AEON -> classes.remove(ThemeService.AEON_STYLE_CLASS);
+        case CYBRAN -> classes.remove(ThemeService.CYBRAN_STYLE_CLASS);
+        case SERAPHIM -> classes.remove(ThemeService.SERAPHIM_STYLE_CLASS);
+        case UEF -> classes.remove(ThemeService.UEF_STYLE_CLASS);
       }
     }
 
-    switch (newFaction) {
-      case AEON -> classes.add(UiService.AEON_STYLE_CLASS);
-      case CYBRAN -> classes.add(UiService.CYBRAN_STYLE_CLASS);
-      case SERAPHIM -> classes.add(UiService.SERAPHIM_STYLE_CLASS);
-      case UEF -> classes.add(UiService.UEF_STYLE_CLASS);
+    if (newFaction != null) {
+      switch (newFaction) {
+        case AEON -> classes.add(ThemeService.AEON_STYLE_CLASS);
+        case CYBRAN -> classes.add(ThemeService.CYBRAN_STYLE_CLASS);
+        case SERAPHIM -> classes.add(ThemeService.SERAPHIM_STYLE_CLASS);
+        case UEF -> classes.add(ThemeService.UEF_STYLE_CLASS);
+      }
     }
   }
 

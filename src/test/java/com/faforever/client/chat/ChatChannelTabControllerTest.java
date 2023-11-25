@@ -14,6 +14,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.PlatformTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.uploader.ImageUploadService;
@@ -41,10 +42,10 @@ import java.util.regex.Pattern;
 
 import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.player.SocialStatus.OTHER;
-import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
-import static com.faforever.client.theme.UiService.CHAT_SECTION_COMPACT;
-import static com.faforever.client.theme.UiService.CHAT_TEXT_COMPACT;
-import static com.faforever.client.theme.UiService.CHAT_TEXT_EXTENDED;
+import static com.faforever.client.theme.ThemeService.CHAT_CONTAINER;
+import static com.faforever.client.theme.ThemeService.CHAT_SECTION_COMPACT;
+import static com.faforever.client.theme.ThemeService.CHAT_TEXT_COMPACT;
+import static com.faforever.client.theme.ThemeService.CHAT_TEXT_EXTENDED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -83,6 +84,8 @@ public class ChatChannelTabControllerTest extends PlatformTest {
   @Mock
   private UiService uiService;
   @Mock
+  private ThemeService themeService;
+  @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
   private ReportingService reportingService;
@@ -107,10 +110,14 @@ public class ChatChannelTabControllerTest extends PlatformTest {
   public void setUp() throws Exception {
     defaultChatChannel = new ChatChannel(CHANNEL_NAME);
     when(loginService.getUsername()).thenReturn(USER_NAME);
-    when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
-    when(uiService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_section.html"));
-    when(uiService.getThemeFileUrl(CHAT_TEXT_EXTENDED)).thenReturn(getClass().getResource("/theme/chat/extended/chat_text.html"));
-    when(uiService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_text.html"));
+    when(themeService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(
+        getClass().getResource("/theme/chat/chat_container.html"));
+    when(themeService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(
+        getClass().getResource("/theme/chat/compact/chat_section.html"));
+    when(themeService.getThemeFileUrl(CHAT_TEXT_EXTENDED)).thenReturn(
+        getClass().getResource("/theme/chat/extended/chat_text.html"));
+    when(themeService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(
+        getClass().getResource("/theme/chat/compact/chat_text.html"));
     when(timeService.asShortTime(any())).thenReturn("now");
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile("-----"));
     when(chatService.getOrCreateChatUser(any(String.class), eq(CHANNEL_NAME))).thenReturn(new ChatChannelUser("junit", "test"));

@@ -36,6 +36,7 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
 import javafx.beans.binding.Bindings;
@@ -69,6 +70,7 @@ public class ChatUserItemController extends NodeController<Node> {
 
   private final I18n i18n;
   private final UiService uiService;
+  private final ThemeService themeService;
   private final MapService mapService;
   private final ChatService chatService;
   private final MapGeneratorService mapGeneratorService;
@@ -240,9 +242,9 @@ public class ChatUserItemController extends NodeController<Node> {
 
     ObservableValue<PlayerStatus> statusProperty = playerProperty.flatMap(PlayerBean::statusProperty);
     gameStatusImageView.imageProperty().bind(statusProperty.map(status -> switch (status) {
-      case HOSTING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING);
-      case LOBBYING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_LOBBYING);
-      case PLAYING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING);
+      case HOSTING -> themeService.getThemeImage(ThemeService.CHAT_LIST_STATUS_HOSTING);
+      case LOBBYING -> themeService.getThemeImage(ThemeService.CHAT_LIST_STATUS_LOBBYING);
+      case PLAYING -> themeService.getThemeImage(ThemeService.CHAT_LIST_STATUS_PLAYING);
       default -> null;
     }).when(showing));
 

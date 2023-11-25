@@ -21,6 +21,7 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.PopupUtil;
@@ -229,11 +230,11 @@ public class CoopController extends NodeController<Node> {
       Label label = new Label();
       Region iconRegion = new Region();
       label.setGraphic(iconRegion);
-      iconRegion.getStyleClass().add(UiService.CSS_CLASS_ICON);
+      iconRegion.getStyleClass().add(ThemeService.CSS_CLASS_ICON);
       switch (mission.getCategory()) {
-        case AEON -> iconRegion.getStyleClass().add(UiService.AEON_STYLE_CLASS);
-        case CYBRAN -> iconRegion.getStyleClass().add(UiService.CYBRAN_STYLE_CLASS);
-        case UEF -> iconRegion.getStyleClass().add(UiService.UEF_STYLE_CLASS);
+        case AEON -> iconRegion.getStyleClass().add(ThemeService.AEON_STYLE_CLASS);
+        case CYBRAN -> iconRegion.getStyleClass().add(ThemeService.CYBRAN_STYLE_CLASS);
+        case UEF -> iconRegion.getStyleClass().add(ThemeService.UEF_STYLE_CLASS);
         default -> {
           return null;
         }

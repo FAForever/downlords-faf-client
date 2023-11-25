@@ -1,6 +1,6 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.theme.UiService;
+import com.faforever.client.theme.ThemeService;
 import com.google.common.base.Strings;
 import javafx.scene.control.TableCell;
 import javafx.scene.layout.Region;
@@ -28,7 +28,7 @@ public class IconCell<S, T> extends TableCell<S, T> {
       }
 
       Region region = new Region();
-      region.getStyleClass().addAll(UiService.CSS_CLASS_ICON, cssClass);
+      region.getStyleClass().addAll(ThemeService.CSS_CLASS_ICON, cssClass);
       setGraphic(region);
     }
   }

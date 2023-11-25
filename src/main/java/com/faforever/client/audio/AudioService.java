@@ -1,7 +1,7 @@
 package com.faforever.client.audio;
 
 import com.faforever.client.preferences.NotificationPrefs;
-import com.faforever.client.theme.UiService;
+import com.faforever.client.theme.ThemeService;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.media.AudioClip;
@@ -30,7 +30,7 @@ public class AudioService implements InitializingBean {
   private static final long MILLISECONDS_SILENT_AFTER_SOUND = 30000;
 
   private final AudioClipPlayer audioClipPlayer;
-  private final UiService uiService;
+  private final ThemeService themeService;
   private final NotificationPrefs notificationPrefs;
 
   private final BooleanProperty playSounds = new SimpleBooleanProperty();
@@ -69,7 +69,7 @@ public class AudioService implements InitializingBean {
   }
 
   private AudioClip loadSound(String sound) throws IOException {
-    return new AudioClip(uiService.getThemeFileUrl(sound).toString());
+    return new AudioClip(themeService.getThemeFileUrl(sound).toString());
   }
 
 

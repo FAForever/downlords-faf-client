@@ -24,6 +24,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.Theme;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import com.faforever.client.update.ClientUpdateService;
@@ -81,6 +82,8 @@ public class SettingsControllerTest extends PlatformTest {
   @Mock
   private UiService uiService;
   @Mock
+  private ThemeService themeService;
+  @Mock
   private I18n i18n;
   @Mock
   private NotificationService notificationService;
@@ -118,9 +121,9 @@ public class SettingsControllerTest extends PlatformTest {
 
     preferences.getData().setBaseDataDirectory(Path.of("."));
 
-    when(uiService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(uiService.getCurrentTheme()).thenReturn(FIRST_THEME);
-    when(uiService.getAvailableThemes()).thenReturn(Arrays.asList(FIRST_THEME, SECOND_THEME));
+    when(themeService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
+    when(themeService.getCurrentTheme()).thenReturn(FIRST_THEME);
+    when(themeService.getAvailableThemes()).thenReturn(Arrays.asList(FIRST_THEME, SECOND_THEME));
     IceServer coturnServer = new IceServer("0", "Test");
     when(coturnService.getActiveCoturns()).thenReturn(CompletableFuture.completedFuture(List.of(coturnServer)));
     when(gameService.isGamePrefsPatchedToAllowMultiInstances()).thenReturn(CompletableFuture.completedFuture(true));
@@ -140,20 +143,20 @@ public class SettingsControllerTest extends PlatformTest {
 
   @Test
   public void testSelectingSecondThemeCausesReloadAndRestartPrompt() throws Exception {
-    when(uiService.doesThemeNeedRestart(SECOND_THEME)).thenReturn(true);
+    when(themeService.doesThemeNeedRestart(SECOND_THEME)).thenReturn(true);
     instance.themeComboBox.getSelectionModel().select(SECOND_THEME);
     WaitForAsyncUtils.waitForFxEvents();
-    verify(uiService).setTheme(SECOND_THEME);
+    verify(themeService).setTheme(SECOND_THEME);
     verify(notificationService).addNotification(any(PersistentNotification.class));
   }
 
   @Test
   public void testSelectingDefaultThemeDoesNotCausesRestartPrompt() throws Exception {
-    when(uiService.doesThemeNeedRestart(SECOND_THEME)).thenReturn(false);
+    when(themeService.doesThemeNeedRestart(SECOND_THEME)).thenReturn(false);
     instance.themeComboBox.getSelectionModel().select(SECOND_THEME);
     WaitForAsyncUtils.waitForFxEvents();
     verify(notificationService, never()).addNotification(any(PersistentNotification.class));
-    verify(uiService).setTheme(SECOND_THEME);
+    verify(themeService).setTheme(SECOND_THEME);
   }
 
   @Test
