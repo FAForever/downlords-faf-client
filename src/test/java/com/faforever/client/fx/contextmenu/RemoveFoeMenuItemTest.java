@@ -3,8 +3,8 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
+import com.faforever.client.social.SocialService;
 import com.faforever.client.test.PlatformTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,13 +19,13 @@ public class RemoveFoeMenuItemTest extends PlatformTest {
   @Mock
   private I18n i18n;
   @Mock
-  private PlayerService playerService;
+  private SocialService socialService;
 
   private RemoveFoeMenuItem instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new RemoveFoeMenuItem(i18n, playerService);
+    instance = new RemoveFoeMenuItem(i18n, socialService);
   }
 
   @Test
@@ -35,7 +35,7 @@ public class RemoveFoeMenuItemTest extends PlatformTest {
     instance.setObject(player);
     instance.onClicked();
 
-    verify(playerService).removeFoe(player);
+    verify(socialService).removeFoe(player);
   }
 
   @Test

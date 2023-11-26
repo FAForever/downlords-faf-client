@@ -81,9 +81,6 @@ public class IceAdapterImplTest extends ServiceTest {
 
   @Test
   public void onGpgGameMessage() throws Exception {
-    instance.onGpgGameMessage(new GpgGameOutboundMessage("Rehost", List.of(), MessageTarget.GAME));
-    verify(gameService).onRehostRequest();
-
     instance.onGpgGameMessage(new GpgGameOutboundMessage("GameFull", List.of(), MessageTarget.GAME));
     verify(gameFullNotifier).onGameFull();
 

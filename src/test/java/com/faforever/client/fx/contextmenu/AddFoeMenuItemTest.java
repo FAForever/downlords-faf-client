@@ -3,8 +3,8 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
+import com.faforever.client.social.SocialService;
 import com.faforever.client.test.PlatformTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.verify;
 public class AddFoeMenuItemTest extends PlatformTest {
 
   @Mock
-  private PlayerService playerService;
+  private SocialService socialService;
   @Mock
   private I18n i18n;
 
@@ -26,7 +26,7 @@ public class AddFoeMenuItemTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new AddFoeMenuItem(playerService, i18n);
+    instance = new AddFoeMenuItem(socialService, i18n);
   }
 
   @Test
@@ -36,8 +36,8 @@ public class AddFoeMenuItemTest extends PlatformTest {
     instance.setObject(player);
     instance.onClicked();
 
-    verify(playerService).removeFriend(player);
-    verify(playerService).addFoe(player);
+    verify(socialService).removeFriend(player);
+    verify(socialService).addFoe(player);
   }
 
   @Test
@@ -47,8 +47,8 @@ public class AddFoeMenuItemTest extends PlatformTest {
     instance.setObject(player);
     instance.onClicked();
 
-    verify(playerService, never()).removeFriend(player);
-    verify(playerService).addFoe(player);
+    verify(socialService, never()).removeFriend(player);
+    verify(socialService).addFoe(player);
   }
 
   @Test

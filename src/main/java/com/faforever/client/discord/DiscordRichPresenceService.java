@@ -2,6 +2,7 @@ package com.faforever.client.discord;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.game.GameService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.commons.lobby.GameStatus;
@@ -38,10 +39,8 @@ public class DiscordRichPresenceService implements DisposableBean {
 
   private final Timer timer = new Timer("Discord RPC", true);
 
-
-
   public DiscordRichPresenceService(PlayerService playerService, DiscordEventHandler discordEventHandler,
-                                    ClientProperties clientProperties, Preferences preferences,
+                                    ClientProperties clientProperties, GameService gameService, Preferences preferences,
                                     ObjectMapper objectMapper) {
     this.playerService = playerService;
     this.clientProperties = clientProperties;
@@ -62,6 +61,10 @@ public class DiscordRichPresenceService implements DisposableBean {
     } catch (Throwable t) {
       log.error("Error in discord init", t);
     }
+
+    Runnable updateGamePresence = () -> updatePlayedGameTo(gameService.getCurrentGame());
+    gameService.currentGameProperty().flatMap(GameBean::statusProperty).subscribe(updateGamePresence);
+    gameService.currentGameProperty().flatMap(GameBean::allPlayersInGameProperty).subscribe(updateGamePresence);
   }
 
   public void updatePlayedGameTo(GameBean game) {
@@ -72,8 +75,7 @@ public class DiscordRichPresenceService implements DisposableBean {
     try {
 
       if (game == null || game.getStatus() == GameStatus.CLOSED || game.getTeams() == null || !playerService.isCurrentPlayerInGame(game)) {
-        DiscordRPC.discordClearPresence();
-        log.debug("Cleared discord rich presence");
+        clearGameInfo();
         return;
       }
 
@@ -108,7 +110,6 @@ public class DiscordRichPresenceService implements DisposableBean {
   }
 
   private String getDiscordState(GameBean game) {
-    //I want no internationalisation in here as it should always be English
     return switch (game.getStatus()) {
       case OPEN -> game.getHost().equals(playerService.getCurrentPlayer().getUsername()) ? HOSTING : WAITING;
       default -> PLAYING;
@@ -124,6 +125,7 @@ public class DiscordRichPresenceService implements DisposableBean {
   public void clearGameInfo() {
     try {
       DiscordRPC.discordClearPresence();
+      log.debug("Cleared discord rich presence");
     } catch (Throwable t) {
       log.error("Error cleaning game info for discord", t);
     }

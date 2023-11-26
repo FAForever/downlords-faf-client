@@ -14,6 +14,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.social.SocialService;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Joiner;
 import javafx.beans.binding.Bindings;
@@ -62,6 +63,7 @@ public class GamesTableController extends NodeController<Node> {
   private final I18n i18n;
   private final ImageViewHelper imageViewHelper;
   private final PlayerService playerService;
+  private final SocialService socialService;
   private final AvatarService avatarService;
   private final Preferences preferences;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -209,7 +211,8 @@ public class GamesTableController extends NodeController<Node> {
           pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, false);
         } else {
           setTooltip(tooltip);
-          pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, playerService.areFriendsInGame(game) && game.getGameType() != GameType.COOP); // do not highlight coop games
+          pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, socialService.areFriendsInGame(
+              game) && game.getGameType() != GameType.COOP); // do not highlight coop games
         }
       }
     };

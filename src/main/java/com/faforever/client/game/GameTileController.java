@@ -13,7 +13,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.theme.UiService;
+import com.faforever.client.social.SocialService;
 import com.google.common.base.Joiner;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
@@ -52,7 +52,7 @@ public class GameTileController extends NodeController<Node> {
   private final ModService modService;
   private final PlayerService playerService;
   private final AvatarService avatarService;
-  private final UiService uiService;
+  private final SocialService socialService;
   private final ImageViewHelper imageViewHelper;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
@@ -124,7 +124,7 @@ public class GameTileController extends NodeController<Node> {
   }
 
   private void onGamePropertyChanged(GameBean newValue) {
-    getRoot().pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, playerService.areFriendsInGame(newValue));
+    getRoot().pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, socialService.areFriendsInGame(newValue));
   }
 
   private void onFeaturedModChanged(String featuredMod) {

@@ -12,8 +12,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.social.SocialService;
 import com.faforever.client.test.PlatformTest;
-import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -44,8 +44,6 @@ import static org.mockito.Mockito.when;
 public class GameTileControllerTest extends PlatformTest {
 
   @Mock
-  private UiService uiService;
-  @Mock
   private ModService modService;
   @Mock
   private JoinGameHelper joinGameHelper;
@@ -59,6 +57,8 @@ public class GameTileControllerTest extends PlatformTest {
   private AvatarService avatarService;
   @Mock
   private PlayerService playerService;
+  @Mock
+  private SocialService socialService;
 
   private GameTileController instance;
 
@@ -70,7 +70,7 @@ public class GameTileControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     instance = new GameTileController(mapService, i18n, joinGameHelper, modService, playerService, avatarService,
-                                      uiService, imageViewHelper, fxApplicationThreadExecutor);
+                                      socialService, imageViewHelper, fxApplicationThreadExecutor);
 
     game = GameBeanBuilder.create().defaultValues().get();
 
@@ -130,7 +130,7 @@ public class GameTileControllerTest extends PlatformTest {
 
   @Test
   public void testFriendInGameHighlighting() {
-    when(playerService.areFriendsInGame(game)).thenReturn(true);
+    when(socialService.areFriendsInGame(game)).thenReturn(true);
 
     runOnFxThreadAndWait(() -> instance.setGame(game));
 

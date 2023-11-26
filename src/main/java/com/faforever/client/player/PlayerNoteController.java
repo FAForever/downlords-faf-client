@@ -3,6 +3,7 @@ package com.faforever.client.player;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
+import com.faforever.client.social.SocialService;
 import com.faforever.client.ui.dialog.Dialog;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -25,7 +26,7 @@ public class PlayerNoteController extends NodeController<VBox> {
 
   public static final int CHARACTER_LIMIT = 150;
 
-  private final PlayerService playerService;
+  private final SocialService socialService;
 
   public VBox root;
   public TextArea textArea;
@@ -54,7 +55,7 @@ public class PlayerNoteController extends NodeController<VBox> {
   }
 
   public void okButtonClicked() {
-    playerService.updateNote(player, textArea.getText());
+    socialService.updateNote(player, textArea.getText());
     cancelButton.fire();
   }
 

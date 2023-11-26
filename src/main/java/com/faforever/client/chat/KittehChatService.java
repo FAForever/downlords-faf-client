@@ -200,6 +200,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private ChatChannelUser initializeUserForChannel(String username, ChatChannel chatChannel) {
     ChatChannelUser chatChannelUser = new ChatChannelUser(username, chatChannel.getName());
     playerService.getPlayerByNameIfOnline(username).ifPresent(chatChannelUser::setPlayer);
+    chatChannelUser.categoriesProperty().subscribe(() -> populateColor(chatChannelUser));
     populateColor(chatChannelUser);
     chatChannel.addUser(chatChannelUser);
     return chatChannelUser;
@@ -211,10 +212,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
             .stream()
             .map(channel -> channel.getUser(player.getUsername()))
             .flatMap(Optional::stream)
-            .forEach(chatChannelUser -> fxApplicationThreadExecutor.execute(() -> {
-              chatChannelUser.setPlayer(player);
-              populateColor(chatChannelUser);
-            }));
+            .forEach(chatChannelUser -> fxApplicationThreadExecutor.execute(() -> chatChannelUser.setPlayer(player)));
   }
 
   @Handler
@@ -454,10 +452,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private void populateColor(ChatChannelUser chatChannelUser) {
     String lowercaseUsername = chatChannelUser.getUsername().toLowerCase(US);
 
-    Color color;
     ObservableMap<ChatUserCategory, Color> groupToColor = chatPrefs.getGroupToColor();
     ObservableMap<String, Color> userToColor = chatPrefs.getUserToColor();
 
+    Color color;
     if (chatPrefs.getChatColorMode() == RANDOM) {
       color = ColorGeneratorUtil.generateRandomColor(lowercaseUsername.hashCode());
     } else if (userToColor.containsKey(lowercaseUsername)) {

@@ -172,8 +172,8 @@ public class ServerAccessorTest extends ServiceTest {
                             new LobbyAccess("http://localhost:%d".formatted(disposableServer.port()))))
                         .addHeader("Content-Type", "application/json;charset=utf-8"));
 
-    instance = new FafServerAccessor(notificationService, gameService, i18n, taskScheduler, tokenRetriever, uidService,
-                                     clientProperties, new FafLobbyClient(objectMapper), iceAdapter, () -> webClient);
+    instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenRetriever, uidService,
+                                     clientProperties, new FafLobbyClient(objectMapper), () -> webClient);
 
     instance.afterPropertiesSet();
     instance.addEventListener(ServerMessage.class, serverMessage -> {
@@ -327,15 +327,6 @@ public class ServerAccessorTest extends ServiceTest {
     assertThat(notification.getText(), is("foo bar"));
     assertThat(notification.getTitle(), is("Message from Server"));
     verify(i18n).get("messageFromServer");
-  }
-
-  @Test
-  public void onKillNoticeStopsGame() throws Exception {
-    NoticeInfo noticeMessage = new NoticeInfo("kill", null);
-
-    sendFromServer(noticeMessage);
-
-    verify(gameService, timeout(10000)).killGame();
   }
 
   @Test
