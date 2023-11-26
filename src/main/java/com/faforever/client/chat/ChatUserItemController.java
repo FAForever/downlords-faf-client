@@ -273,7 +273,7 @@ public class ChatUserItemController extends NodeController<Node> {
     ObservableValue<String> clanTagProperty = chatUser.flatMap(ChatChannelUser::playerProperty)
         .flatMap(PlayerBean::clanProperty)
         .map(clanTag -> clanTag.isBlank() ? null : String.format("[%s]", clanTag));
-    ObservableValue<String> usernameProperty = chatUser.flatMap(ChatChannelUser::usernameProperty);
+    ObservableValue<String> usernameProperty = chatUser.map(ChatChannelUser::getUsername);
     usernameLabel.textProperty().bind(Bindings.createStringBinding(() -> {
       String clanTag = clanTagProperty.getValue();
       String username = usernameProperty.getValue();

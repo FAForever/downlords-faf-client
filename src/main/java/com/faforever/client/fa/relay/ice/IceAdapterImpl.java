@@ -2,7 +2,6 @@ package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.GameFullNotifier;
-import com.faforever.client.game.GameService;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsUtils;
@@ -61,12 +60,12 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   private final OperatingSystem operatingSystem;
   private final PlayerService playerService;
-  private final GameService gameService;
   private final FafServerAccessor fafServerAccessor;
   private final IceServerMapper iceServerMapper;
   private final Preferences preferences;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final ObjectFactory<IceAdapterCallbacks> iceAdapterCallbacksFactory;
+  @Lazy
   private final GameFullNotifier gameFullNotifier;
 
   private final IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
@@ -94,10 +93,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   public void onGpgGameMessage(GpgGameOutboundMessage message) {
     String command = message.getCommand();
 
-    if (command.equals("Rehost")) {
-      gameService.onRehostRequest();
-      return;
-    }
     if (command.equals("GameFull")) {
       gameFullNotifier.onGameFull();
       return;

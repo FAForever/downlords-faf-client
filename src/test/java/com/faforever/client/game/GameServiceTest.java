@@ -43,6 +43,7 @@ import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameInfo.TeamIds;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameType;
+import com.faforever.commons.lobby.NoticeInfo;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
@@ -171,7 +172,8 @@ public class GameServiceTest extends ServiceTest {
 
   private PlayerBean junitPlayer;
 
-  private final TestPublisher<GameInfo> testPublisher = TestPublisher.create();
+  private final TestPublisher<GameInfo> testGamePublisher = TestPublisher.create();
+  private final TestPublisher<NoticeInfo> testNoticePublisher = TestPublisher.create();
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -179,7 +181,8 @@ public class GameServiceTest extends ServiceTest {
     junitPlayer = PlayerBeanBuilder.create().defaultValues().get();
 
     when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
-    when(fafServerAccessor.getEvents(GameInfo.class)).thenReturn(testPublisher.flux());
+    when(fafServerAccessor.getEvents(GameInfo.class)).thenReturn(testGamePublisher.flux());
+    when(fafServerAccessor.getEvents(NoticeInfo.class)).thenReturn(testNoticePublisher.flux());
     when(coturnService.getSelectedCoturns(anyInt())).thenReturn(completedFuture(List.of()));
     when(preferencesService.isValidGamePath()).thenReturn(true);
     when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
@@ -198,7 +201,8 @@ public class GameServiceTest extends ServiceTest {
 
     instance.afterPropertiesSet();
 
-    testPublisher.assertSubscribers(1);
+    testGamePublisher.assertSubscribers(1);
+    testNoticePublisher.assertSubscribers(1);
   }
 
   private void mockStartGameProcess(GameParameters gameParameters) throws IOException {
@@ -229,9 +233,9 @@ public class GameServiceTest extends ServiceTest {
   public void testRetryFlux() {
     doThrow(new RuntimeException()).when(gameMapper).update(any(), any());
 
-    testPublisher.next(GameInfoMessageBuilder.create(1).defaultValues().get());
+    testGamePublisher.next(GameInfoMessageBuilder.create(1).defaultValues().get());
 
-    testPublisher.assertSubscribers(1);
+    testGamePublisher.assertSubscribers(1);
   }
 
   @Test
@@ -415,7 +419,7 @@ public class GameServiceTest extends ServiceTest {
 
     List<TeamIds> teamIds = List.of(new TeamIds(1, List.of(1)), new TeamIds(2, List.of(2)));
 
-    testPublisher.next(GameInfoMessageBuilder.create(0).defaultValues().teamIds(teamIds).get());
+    testGamePublisher.next(GameInfoMessageBuilder.create(0).defaultValues().teamIds(teamIds).get());
     GameBean game = instance.getByUid(0);
 
     assertThat(player1.getGame(), is(game));
@@ -435,7 +439,7 @@ public class GameServiceTest extends ServiceTest {
         .games(List.of(GameInfoMessageBuilder.create(1).defaultValues().get(),
                        GameInfoMessageBuilder.create(2).defaultValues().get())
         ).get();
-    testPublisher.next(multiGameInfo);
+    testGamePublisher.next(multiGameInfo);
 
 
     assertThat(instance.getGames(), hasSize(2));
@@ -446,10 +450,10 @@ public class GameServiceTest extends ServiceTest {
     assertThat(instance.getGames(), empty());
 
     GameInfo gameInfo1 = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
-    testPublisher.next(gameInfo1);
+    testGamePublisher.next(gameInfo1);
 
     GameInfo gameInfo2 = GameInfoMessageBuilder.create(2).defaultValues().title("Game 2").get();
-    testPublisher.next(gameInfo2);
+    testGamePublisher.next(gameInfo2);
 
 
     assertThat(instance.getGames(), containsInAnyOrder(
@@ -478,7 +482,7 @@ public class GameServiceTest extends ServiceTest {
         .passwordProtected(true)
         .title("Game 1")
         .get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
 
     assertThat(instance.currentGame.get().getPassword(), is("banana"));
   }
@@ -492,7 +496,7 @@ public class GameServiceTest extends ServiceTest {
     GameInfo gameInfo = GameInfoMessageBuilder.create(1234).defaultValues()
         .state(OPEN)
         .addTeamMember("1", "PlayerName").get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
 
 
     assertThat(instance.getCurrentGame(), notNullValue());
@@ -508,7 +512,7 @@ public class GameServiceTest extends ServiceTest {
     GameInfo gameInfo = GameInfoMessageBuilder.create(1234).defaultValues()
         .state(PLAYING)
         .addTeamMember("1", "PlayerName").get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
 
     assertThat(instance.getCurrentGame(), nullValue());
   }
@@ -520,7 +524,7 @@ public class GameServiceTest extends ServiceTest {
     when(playerService.isCurrentPlayerInGame(any())).thenReturn(false);
 
     GameInfo gameInfo = GameInfoMessageBuilder.create(1234).defaultValues().addTeamMember("1", "Other").get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
 
     assertThat(instance.getCurrentGame(), nullValue());
   }
@@ -530,12 +534,12 @@ public class GameServiceTest extends ServiceTest {
     assertThat(instance.getGames(), empty());
 
     GameInfo gameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").state(PLAYING).get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
 
     GameBean game = instance.getByUid(1);
 
     gameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1 modified").state(PLAYING).get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
 
     assertEquals(gameInfo.getTitle(), game.getTitle());
   }
@@ -545,11 +549,11 @@ public class GameServiceTest extends ServiceTest {
     assertThat(instance.getGames(), empty());
 
     GameInfo gameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
     assertThat(instance.getGames(), hasSize(1));
 
     gameInfo = GameInfoMessageBuilder.create(1).title("Game 1").defaultValues().state(CLOSED).get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
 
     assertThat(instance.getGames(), empty());
   }
@@ -1080,5 +1084,20 @@ public class GameServiceTest extends ServiceTest {
 
     verify(loggingService).getMostRecentGameLogFile();
     verify(notificationService).addNotification(any(ImmediateNotification.class));
+  }
+
+  @Test
+  public void onKillNoticeStopsGame() throws Exception {
+    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+    mockStartGameProcess(gameMapper.map(gameLaunchMessage));
+
+    when(process.isAlive()).thenReturn(true);
+
+    NoticeInfo noticeMessage = new NoticeInfo("kill", null);
+
+    testNoticePublisher.next(noticeMessage);
+
+    verify(iceAdapter).onGameCloseRequested();
+    verify(process).destroy();
   }
 }

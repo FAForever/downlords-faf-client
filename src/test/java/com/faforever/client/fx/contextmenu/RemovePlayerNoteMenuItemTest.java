@@ -4,6 +4,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.social.SocialService;
 import com.faforever.client.test.PlatformTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,13 +20,15 @@ public class RemovePlayerNoteMenuItemTest extends PlatformTest {
   @Mock
   private PlayerService playerService;
   @Mock
+  private SocialService socialService;
+  @Mock
   private I18n i18n;
 
   private RemovePlayerNoteMenuItem instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new RemovePlayerNoteMenuItem(playerService, i18n);
+    instance = new RemovePlayerNoteMenuItem(playerService, socialService, i18n);
   }
 
   @Test
@@ -33,7 +36,7 @@ public class RemovePlayerNoteMenuItemTest extends PlatformTest {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().note("junit").get();
     instance.setObject(player);
     instance.onClicked();
-    verify(playerService).removeNote(player);
+    verify(socialService).removeNote(player);
   }
 
   @Test

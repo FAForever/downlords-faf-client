@@ -7,6 +7,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.social.SocialService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameType;
@@ -43,6 +44,8 @@ public class LiveGamesFilterControllerTest extends PlatformTest {
   private ModService modService;
   @Mock
   private PlayerService playerService;
+  @Mock
+  private SocialService socialService;
   @Mock
   private MapGeneratorService mapGeneratorService;
 
@@ -142,7 +145,7 @@ public class LiveGamesFilterControllerTest extends PlatformTest {
 
     assertTrue(filter.apply(false, game));
 
-    when(playerService.areFriendsInGame(game)).thenReturn(false, true);
+    when(socialService.areFriendsInGame(game)).thenReturn(false, true);
     assertFalse(filter.apply(true, game));
     assertTrue(filter.apply(true, game));
   }

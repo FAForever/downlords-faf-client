@@ -100,7 +100,7 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
             .map(i18n::number)
             .when(showing));
 
-    username.textProperty().bind(chatUser.flatMap(ChatChannelUser::usernameProperty).when(showing));
+    username.textProperty().bind(chatUser.map(ChatChannelUser::getUsername).when(showing));
     country.textProperty().bind(playerObservable
         .flatMap(PlayerBean::countryProperty)
         .map(i18n::getCountryNameLocalized).when(showing));

@@ -2,8 +2,8 @@ package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
+import com.faforever.client.social.SocialService;
 import com.faforever.client.util.Assert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -19,16 +19,16 @@ import static com.faforever.client.player.SocialStatus.SELF;
 @RequiredArgsConstructor
 public class AddFriendMenuItem extends AbstractMenuItem<PlayerBean> {
 
-  private final PlayerService playerService;
+  private final SocialService socialService;
   private final I18n i18n;
 
   @Override
   protected void onClicked() {
     Assert.checkNullIllegalState(object, "No player has been set");
     if (object.getSocialStatus() == FOE) {
-      playerService.removeFoe(object);
+      socialService.removeFoe(object);
     }
-    playerService.addFriend(object);
+    socialService.addFriend(object);
   }
 
   @Override
