@@ -2,6 +2,7 @@ package com.faforever.client.remote;
 
 import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.exception.UIDException;
@@ -22,6 +23,7 @@ import com.faforever.commons.lobby.FafLobbyClient.Config;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameVisibility;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
+import com.faforever.commons.lobby.LoginException;
 import com.faforever.commons.lobby.MatchmakerState;
 import com.faforever.commons.lobby.MessageTarget;
 import com.faforever.commons.lobby.NoticeInfo;
@@ -44,6 +46,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.function.TupleUtils;
+import reactor.util.retry.Retry;
 
 import java.io.IOException;
 import java.net.URL;
@@ -62,7 +66,8 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class FafServerAccessor implements InitializingBean, DisposableBean {
 
-  private final ReadOnlyObjectWrapper<ConnectionState> connectionState = new ReadOnlyObjectWrapper<>(ConnectionState.DISCONNECTED);
+  private final ReadOnlyObjectWrapper<ConnectionState> connectionState = new ReadOnlyObjectWrapper<>(
+      ConnectionState.DISCONNECTED);
 
   private final NotificationService notificationService;
   private final I18n i18n;
@@ -74,6 +79,8 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   private final FafLobbyClient lobbyClient;
   @Qualifier("userWebClient")
   private final ObjectFactory<WebClient> userWebClientFactory;
+
+  private boolean autoReconnect = false;
 
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -89,6 +96,12 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
       case CONNECTING -> ConnectionState.CONNECTING;
       case CONNECTED -> ConnectionState.CONNECTED;
     }).subscribe(connectionState::set, throwable -> log.error("Error processing connection status", throwable));
+
+    connectionState.subscribe((oldValue, newValue) -> {
+      if (autoReconnect && oldValue == ConnectionState.CONNECTED && newValue == ConnectionState.DISCONNECTED) {
+        connectAndLogIn().subscribe();
+      }
+    });
   }
 
   public <T extends ServerMessage> Flux<T> getEvents(Class<T> type) {
@@ -101,12 +114,12 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   @Deprecated
   public <T extends ServerMessage> void addEventListener(Class<T> type, Consumer<T> listener) {
     lobbyClient.getEvents()
-        .ofType(type)
-        .flatMap(message -> Mono.fromRunnable(() -> listener.accept(message)).onErrorResume(throwable -> {
-          log.error("Could not process listener for `{}`", message, throwable);
-          return Mono.empty();
-        }))
-        .subscribe();
+               .ofType(type)
+               .flatMap(message -> Mono.fromRunnable(() -> listener.accept(message)).onErrorResume(throwable -> {
+                 log.error("Could not process listener for `{}`", message, throwable);
+                 return Mono.empty();
+               }))
+               .subscribe();
   }
 
   public ConnectionState getConnectionState() {
@@ -118,15 +131,33 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public Mono<Player> connectAndLogIn() {
+    autoReconnect = true;
     return userWebClientFactory.getObject()
-        .get()
-        .uri("/lobby/access")
-        .retrieve()
-        .bodyToMono(LobbyAccess.class)
-        .map(lobbyAccess -> new Config(tokenRetriever.getRefreshedTokenValue(), Version.getCurrentVersion(), clientProperties.getUserAgent(), lobbyAccess.accessUrl(), this::tryGenerateUid, 1024 * 1024, false, clientProperties.getServer()
-            .getRetryAttempts(), clientProperties.getServer().getRetryDelaySeconds()))
-        .flatMap(lobbyClient::connectAndLogin);
+                               .get()
+                               .uri("/lobby/access")
+                               .retrieve()
+                               .bodyToMono(LobbyAccess.class)
+                               .map(LobbyAccess::accessUrl)
+                               .zipWith(tokenRetriever.getRefreshedTokenValue())
+                               .map(TupleUtils.function(
+                                   (lobbyUrl, token) -> new Config(token, Version.getCurrentVersion(),
+                                                                   clientProperties.getUserAgent(), lobbyUrl,
+                                                                   this::tryGenerateUid, 1024 * 1024, false)))
+                               .flatMap(lobbyClient::connectAndLogin)
+                               .timeout(Duration.ofSeconds(30))
+                               .retryWhen(createRetrySpec(clientProperties.getServer()));
   }
+
+  private Retry createRetrySpec(Server server) {
+    return Retry.fixedDelay(server.getRetryAttempts(), Duration.ofSeconds(server.getRetryDelaySeconds()))
+                .filter(exception -> !(exception instanceof LoginException))
+                .doBeforeRetry(
+                    retry -> log.warn("Could not reach server retrying: Attempt #{} of {}", retry.totalRetries(),
+                                      server.getRetryAttempts(), retry.failure()))
+                .onRetryExhaustedThrow((spec, retrySignal) -> new LoginException(
+                    "Could not reach server after %d attempts".formatted(spec.maxAttempts), retrySignal.failure()));
+  }
+
 
   private String tryGenerateUid(Long sessionId) {
     try {
@@ -137,10 +168,11 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<GameLaunchResponse> requestHostGame(NewGameInfo newGameInfo) {
-    return lobbyClient.requestHostGame(newGameInfo.getTitle(), newGameInfo.getMap(), newGameInfo.getFeaturedMod()
-            .getTechnicalName(), GameVisibility.valueOf(newGameInfo.getGameVisibility()
-            .name()), newGameInfo.getPassword(), newGameInfo.getRatingMin(), newGameInfo.getRatingMax(), newGameInfo.getEnforceRatingRange())
-        .toFuture();
+    return lobbyClient.requestHostGame(newGameInfo.getTitle(), newGameInfo.getMap(),
+                                       newGameInfo.getFeaturedMod().getTechnicalName(),
+                                       GameVisibility.valueOf(newGameInfo.getGameVisibility().name()),
+                                       newGameInfo.getPassword(), newGameInfo.getRatingMin(),
+                                       newGameInfo.getRatingMax(), newGameInfo.getEnforceRatingRange()).toFuture();
   }
 
   public CompletableFuture<GameLaunchResponse> requestJoinGame(int gameId, String password) {
@@ -148,17 +180,18 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public void disconnect() {
+    autoReconnect = false;
     log.info("Closing lobby server connection");
     lobbyClient.disconnect();
   }
 
   public Mono<Player> reconnect() {
     return lobbyClient.getConnectionStatus()
-        .filter(ConnectionStatus.DISCONNECTED::equals)
-        .next()
-        .take(Duration.ofSeconds(5))
-        .then(connectAndLogIn())
-        .doOnSubscribe(ignored -> disconnect());
+                      .filter(ConnectionStatus.DISCONNECTED::equals)
+                      .next()
+                      .take(Duration.ofSeconds(5))
+                      .then(connectAndLogIn())
+                      .doOnSubscribe(ignored -> disconnect());
   }
 
   public void addFriend(int playerId) {
@@ -175,14 +208,15 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   public CompletableFuture<GameLaunchResponse> startSearchMatchmaker() {
     return lobbyClient.getEvents()
-        .filter(event -> event instanceof GameLaunchResponse)
-        .next()
-        .cast(GameLaunchResponse.class)
-        .toFuture();
+                      .filter(event -> event instanceof GameLaunchResponse)
+                      .next()
+                      .cast(GameLaunchResponse.class)
+                      .toFuture();
   }
 
   public void sendGpgMessage(GpgGameOutboundMessage message) {
-    lobbyClient.sendGpgGameMessage(new GpgGameOutboundMessage(message.getCommand(), message.getArgs(), MessageTarget.GAME));
+    lobbyClient.sendGpgGameMessage(
+        new GpgGameOutboundMessage(message.getCommand(), message.getArgs(), MessageTarget.GAME));
   }
 
   public void removeFriend(int playerId) {
@@ -223,8 +257,12 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
     if (Objects.equals(noticeMessage.getStyle(), "kick")) {
       log.info("Kicked from lobby, client closing after delay");
-      notificationService.addNotification(new ImmediateNotification(i18n.get("server.kicked.title"), i18n.get("server.kicked.message", clientProperties.getLinks()
-          .get("linksRules")), Severity.WARN, Collections.singletonList(new DismissAction(i18n))));
+      notificationService.addNotification(new ImmediateNotification(i18n.get("server.kicked.title"),
+                                                                    i18n.get("server.kicked.message",
+                                                                             clientProperties.getLinks()
+                                                                                             .get("linksRules")),
+                                                                    Severity.WARN, Collections.singletonList(
+          new DismissAction(i18n))));
       taskScheduler.scheduleWithFixedDelay(Platform::exit, Duration.ofSeconds(10));
     }
 
@@ -243,7 +281,9 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
         default -> Severity.INFO;
       };
     }
-    notificationService.addServerNotification(new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), severity, Collections.singletonList(new DismissAction(i18n))));
+    notificationService.addServerNotification(
+        new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), severity,
+                                  Collections.singletonList(new DismissAction(i18n))));
   }
 
   public void restoreGameSession(int id) {
