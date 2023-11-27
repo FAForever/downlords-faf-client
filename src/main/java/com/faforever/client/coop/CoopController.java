@@ -21,7 +21,6 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.SocialStatus;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ConcurrentUtil;
@@ -32,7 +31,6 @@ import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Strings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -59,11 +57,9 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -95,7 +91,8 @@ public class CoopController extends AbstractViewController<Node> {
   private final WebViewConfigurer webViewConfigurer;
   private final ModService modService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
-  private FilteredList<CoopResultBean> leaderboardFilteredList = new FilteredList<>(FXCollections.observableArrayList());
+  private final ObservableList<CoopResultBean> leaderboardUnFilteredList = FXCollections.observableArrayList();
+  private final FilteredList<CoopResultBean> leaderboardFilteredList = new FilteredList<>(leaderboardUnFilteredList);
 
   public GridPane coopRoot;
   public ComboBox<CoopMissionBean> missionComboBox;
@@ -133,10 +130,7 @@ public class CoopController extends AbstractViewController<Node> {
     numberOfPlayersComboBox.getSelectionModel().select(0);
     numberOfPlayersComboBox.getSelectionModel().selectedItemProperty().addListener(observable -> loadLeaderboard());
 
-    leaderboardSearchTextField.textProperty().subscribe(this::onSearchFieldChange);
     leaderboardFilteredList.predicateProperty().bind(leaderboardSearchTextField.textProperty().map(this::onSearchCreatePredict));
-
-    leaderboardTable.setItems(observableList(leaderboardFilteredList));
 
     rankColumn.setCellValueFactory(param -> param.getValue().rankingProperty().asObject());
     rankColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
@@ -225,10 +219,6 @@ public class CoopController extends AbstractViewController<Node> {
     };
   }
 
-  private void onSearchFieldChange(String newValue){
-    leaderboardTable.setItems(observableList(leaderboardFilteredList));
-  }
-
   private String coopMissionFromFolderNamer(List<CoopMissionBean> coopMaps, String mapFolderName) {
     return coopMaps.stream()
         .filter(coopMission -> coopMission.getMapFolderName().equalsIgnoreCase(mapFolderName))
@@ -279,8 +269,7 @@ public class CoopController extends AbstractViewController<Node> {
           AtomicInteger ranking = new AtomicInteger();
           coopLeaderboardEntries.forEach(coopResult -> coopResult.setRanking(ranking.incrementAndGet()));
           fxApplicationThreadExecutor.execute(() -> {
-//            leaderboardFilteredList = new FilteredList<>(observableList(coopLeaderboardEntries));
-            leaderboardFilteredList.setAll(observableList(coopLeaderboardEntries));                //Gives null error
+            leaderboardUnFilteredList.setAll(coopLeaderboardEntries);
             leaderboardTable.setItems(observableList(leaderboardFilteredList));
           });
         })
