@@ -18,8 +18,8 @@ public abstract non-sealed class NodeController<ROOT extends Node> extends Contr
   }
 
   public final void display(NavigateEvent navigateEvent) {
-    getRoot().setVisible(true);
     onNavigate(navigateEvent);
+    getRoot().setVisible(true);
   }
 
   /**

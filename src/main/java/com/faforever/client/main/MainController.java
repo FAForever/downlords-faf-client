@@ -5,8 +5,8 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.headerbar.HeaderBarController;
 import com.faforever.client.fx.NodeController;
+import com.faforever.client.headerbar.HeaderBarController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
@@ -140,10 +140,10 @@ public class MainController extends NodeController<Node> implements Initializing
   }
 
   private void displayView(NodeController<?> controller, NavigateEvent navigateEvent) {
+    controller.display(navigateEvent);
     Node node = controller.getRoot();
     contentPane.getChildren().setAll(node);
     JavaFxUtil.setAnchors(node, 0d);
-    controller.display(navigateEvent);
   }
 
   private Rectangle2D getTransientNotificationAreaBounds() {
