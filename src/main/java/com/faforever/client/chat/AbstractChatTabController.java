@@ -119,6 +119,7 @@ public abstract class AbstractChatTabController extends TabController {
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
 
+  protected final List<String> messageHistory = new ArrayList<>();;
   protected final LoginService loginService;
   protected final ChatService chatService;
   protected final PlayerService playerService;
@@ -378,6 +379,8 @@ public abstract class AbstractChatTabController extends TabController {
     } else {
       sendMessage();
     }
+
+    messageHistory.add(text);
 
     hideEmoticonsWindow();
   }

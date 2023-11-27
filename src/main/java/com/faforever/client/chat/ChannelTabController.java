@@ -23,6 +23,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
@@ -64,6 +65,8 @@ public class ChannelTabController extends AbstractChatTabController {
   private static final int TOPIC_CHARACTERS_LIMIT = 350;
 
   private final PlatformService platformService;
+  private final AudioService audioService;
+  private int curMessageHistoryIndex = 0;
 
   public Tab root;
   public SplitPane splitPane;
@@ -132,7 +135,10 @@ public class ChannelTabController extends AbstractChatTabController {
                             .or(topicTextField.visibleProperty())
                             .when(showing));
 
-    root.textProperty().bind(channelName.map(name -> name.replaceFirst("^#", "")).when(attached));
+    messageTextField.setOnKeyPressed(this::onUpOrDownArrowKeyClick);
+
+    root.idProperty().bind(channelName.when(showing));
+    root.textProperty().bind(channelName.map(name -> name.replaceFirst("^#", "")).when(showing));
 
     chatUserListController.chatChannelProperty().bind(chatChannel.when(showing));
 
@@ -187,6 +193,22 @@ public class ChannelTabController extends AbstractChatTabController {
                                                                                         currentWord.toLowerCase()))
                                                         .sorted()
                                                         .collect(Collectors.toList()));
+  }
+
+  private void onUpOrDownArrowKeyClick(KeyEvent event){
+    if(event.getCode() == KeyCode.UP){
+      if(curMessageHistoryIndex+1 <= messageHistory.size()){
+        messageTextField.setText(messageHistory.get(messageHistory.size() - curMessageHistoryIndex - 1));
+        curMessageHistoryIndex++;
+      }
+    } else if(event.getCode() == KeyCode.DOWN){
+      if(curMessageHistoryIndex-1 >= 0){
+        curMessageHistoryIndex--;
+        messageTextField.setText(messageHistory.get(messageHistory.size() - curMessageHistoryIndex - 1));
+      }
+    } else {
+      curMessageHistoryIndex = 0;
+    }
   }
 
   private void highlightText(String newValue) {
