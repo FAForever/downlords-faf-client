@@ -21,6 +21,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.SocialStatus;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ConcurrentUtil;
@@ -133,6 +134,8 @@ public class CoopController extends AbstractViewController<Node> {
     numberOfPlayersComboBox.getSelectionModel().selectedItemProperty().addListener(observable -> loadLeaderboard());
 
     leaderboardSearchTextField.textProperty().subscribe(this::onSearchFieldChange);
+    leaderboardFilteredList.predicateProperty().bind(leaderboardSearchTextField.textProperty().map(this::onSearchCreatePredict));
+
     leaderboardTable.setItems(observableList(leaderboardFilteredList));
 
     rankColumn.setCellValueFactory(param -> param.getValue().rankingProperty().asObject());
@@ -204,19 +207,25 @@ public class CoopController extends AbstractViewController<Node> {
     });
   }
 
+  private Predicate<CoopResultBean> onSearchCreatePredict(String newValue){
+    leaderboardTable.setItems(observableList(leaderboardFilteredList));
+    return new Predicate<>() {
+      @Override
+      public boolean test(CoopResultBean coopResultBean) {
+        if (newValue.isEmpty()) {
+          return true;
+        }
+        return coopResultBean.getReplay()
+            .getTeams()
+            .values()
+            .stream()
+            .flatMap(Collection::stream)
+            .anyMatch(name -> name.toLowerCase().contains(newValue.toLowerCase()));
+      }
+    };
+  }
+
   private void onSearchFieldChange(String newValue){
-    leaderboardFilteredList.setPredicate(coopResultBean -> {
-      boolean foundmatch = false;
-      for(Map.Entry<String, List<String>> entry : coopResultBean.getReplay().getTeams().entrySet()){
-        foundmatch =  entry.getValue().stream().anyMatch((s) -> s.toLowerCase().contains(newValue.toLowerCase()));
-        if(foundmatch)
-          break;
-      }
-      if(newValue.isEmpty()){
-        return true;
-      }
-      return foundmatch;
-    });
     leaderboardTable.setItems(observableList(leaderboardFilteredList));
   }
 
@@ -270,7 +279,8 @@ public class CoopController extends AbstractViewController<Node> {
           AtomicInteger ranking = new AtomicInteger();
           coopLeaderboardEntries.forEach(coopResult -> coopResult.setRanking(ranking.incrementAndGet()));
           fxApplicationThreadExecutor.execute(() -> {
-            leaderboardFilteredList = new FilteredList<>(observableList(coopLeaderboardEntries));
+//            leaderboardFilteredList = new FilteredList<>(observableList(coopLeaderboardEntries));
+            leaderboardFilteredList.setAll(observableList(coopLeaderboardEntries));                //Gives null error
             leaderboardTable.setItems(observableList(leaderboardFilteredList));
           });
         })
