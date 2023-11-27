@@ -70,6 +70,7 @@ public class GameUpdaterImplTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     Path cwd = Path.of(".");
+    instance.setFeaturedModUpdater(simpleHttpFeaturedModUpdater);
     forgedAlliancePrefs.setInstallationPath(cwd);
     forgedAlliancePrefs.setVaultBaseDirectory(cwd);
     dataPrefs.setBaseDataDirectory(tempDir.resolve("faf_temp_data"));

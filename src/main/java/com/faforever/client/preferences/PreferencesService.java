@@ -1,6 +1,5 @@
 package com.faforever.client.preferences;
 
-import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.game.error.GameLaunchException;
 import com.faforever.client.update.ClientConfiguration;
@@ -8,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedInputStream;
@@ -141,7 +139,6 @@ public class PreferencesService implements InitializingBean {
   }
 
 
-  @Cacheable(value = CacheNames.REMOTE_CONFIG, sync = true)
   public CompletableFuture<ClientConfiguration> getRemotePreferencesAsync() {
     return CompletableFuture.supplyAsync(() -> {
       try {

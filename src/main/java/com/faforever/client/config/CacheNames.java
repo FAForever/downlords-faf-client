@@ -24,7 +24,6 @@ public final class CacheNames {
   public static final String REPLAYS_RECENT = "replaysRecent";
   public static final String REPLAYS_MINE = "replaysMine";
   public static final String REPLAYS_LIKED = "replaysLiked";
-  public static final String REMOTE_CONFIG = "remoteConfig";
   public static final String MAP_GENERATOR = "mapGenerator";
   public static final String MAP_GENERATOR_STYLES = "mapGeneratorStyles";
   public static final String THEME_IMAGES = "themeImages";
