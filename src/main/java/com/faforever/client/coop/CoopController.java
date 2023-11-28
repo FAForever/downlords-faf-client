@@ -28,6 +28,7 @@ import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
+import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.google.common.base.Strings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -130,7 +131,20 @@ public class CoopController extends AbstractViewController<Node> {
     numberOfPlayersComboBox.getSelectionModel().select(0);
     numberOfPlayersComboBox.getSelectionModel().selectedItemProperty().addListener(observable -> loadLeaderboard());
 
-    leaderboardFilteredList.predicateProperty().bind(leaderboardSearchTextField.textProperty().map(this::onSearchCreatePredict));
+    leaderboardSearchTextField.textProperty().subscribe(s -> {
+      leaderboardTable.setItems(leaderboardFilteredList);
+    });
+    leaderboardFilteredList.predicateProperty().bind(leaderboardSearchTextField.textProperty().map(newValue -> coopResultBean -> {
+      if (newValue.isEmpty()) {
+        return true;
+      }
+      return coopResultBean.getReplay()
+          .getTeams()
+          .values()
+          .stream()
+          .flatMap(Collection::stream)
+          .anyMatch(name -> name.toLowerCase().contains(newValue.toLowerCase()));
+    }));
 
     rankColumn.setCellValueFactory(param -> param.getValue().rankingProperty().asObject());
     rankColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
@@ -199,24 +213,6 @@ public class CoopController extends AbstractViewController<Node> {
       notificationService.addPersistentErrorNotification(throwable, "coop.couldNotLoad", throwable.getLocalizedMessage());
       return null;
     });
-  }
-
-  private Predicate<CoopResultBean> onSearchCreatePredict(String newValue){
-    leaderboardTable.setItems(observableList(leaderboardFilteredList));
-    return new Predicate<>() {
-      @Override
-      public boolean test(CoopResultBean coopResultBean) {
-        if (newValue.isEmpty()) {
-          return true;
-        }
-        return coopResultBean.getReplay()
-            .getTeams()
-            .values()
-            .stream()
-            .flatMap(Collection::stream)
-            .anyMatch(name -> name.toLowerCase().contains(newValue.toLowerCase()));
-      }
-    };
   }
 
   private String coopMissionFromFolderNamer(List<CoopMissionBean> coopMaps, String mapFolderName) {
