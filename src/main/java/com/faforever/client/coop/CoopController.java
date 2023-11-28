@@ -131,9 +131,6 @@ public class CoopController extends AbstractViewController<Node> {
     numberOfPlayersComboBox.getSelectionModel().select(0);
     numberOfPlayersComboBox.getSelectionModel().selectedItemProperty().addListener(observable -> loadLeaderboard());
 
-    leaderboardSearchTextField.textProperty().subscribe(s -> {
-      leaderboardTable.setItems(leaderboardFilteredList);
-    });
     leaderboardFilteredList.predicateProperty().bind(leaderboardSearchTextField.textProperty().map(newValue -> coopResultBean -> {
       if (newValue.isEmpty()) {
         return true;
@@ -145,6 +142,7 @@ public class CoopController extends AbstractViewController<Node> {
           .flatMap(Collection::stream)
           .anyMatch(name -> name.toLowerCase().contains(newValue.toLowerCase()));
     }));
+    leaderboardTable.setItems(leaderboardFilteredList);
 
     rankColumn.setCellValueFactory(param -> param.getValue().rankingProperty().asObject());
     rankColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
@@ -264,10 +262,7 @@ public class CoopController extends AbstractViewController<Node> {
         .thenAccept(coopLeaderboardEntries -> {
           AtomicInteger ranking = new AtomicInteger();
           coopLeaderboardEntries.forEach(coopResult -> coopResult.setRanking(ranking.incrementAndGet()));
-          fxApplicationThreadExecutor.execute(() -> {
-            leaderboardUnFilteredList.setAll(coopLeaderboardEntries);
-            leaderboardTable.setItems(observableList(leaderboardFilteredList));
-          });
+          fxApplicationThreadExecutor.execute(() -> leaderboardUnFilteredList.setAll(coopLeaderboardEntries));
         })
         .exceptionally(throwable -> {
           log.warn("Could not load coop leaderboard", throwable);
