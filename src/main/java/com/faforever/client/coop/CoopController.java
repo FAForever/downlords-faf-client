@@ -28,7 +28,10 @@ import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
+import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.google.common.base.Strings;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -89,6 +92,8 @@ public class CoopController extends AbstractViewController<Node> {
   private final WebViewConfigurer webViewConfigurer;
   private final ModService modService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final ObservableList<CoopResultBean> leaderboardUnFilteredList = FXCollections.observableArrayList();
+  private final FilteredList<CoopResultBean> leaderboardFilteredList = new FilteredList<>(leaderboardUnFilteredList);
 
   public GridPane coopRoot;
   public ComboBox<CoopMissionBean> missionComboBox;
@@ -96,6 +101,7 @@ public class CoopController extends AbstractViewController<Node> {
   public Pane gameViewContainer;
   public TextField titleTextField;
   public Button playButton;
+  public TextField leaderboardSearchTextField;
   public PasswordField passwordTextField;
   public ImageView mapPreviewImageView;
   public Region leaderboardInfoIcon;
@@ -124,6 +130,19 @@ public class CoopController extends AbstractViewController<Node> {
     numberOfPlayersComboBox.setCellFactory(param -> numberOfPlayersCell());
     numberOfPlayersComboBox.getSelectionModel().select(0);
     numberOfPlayersComboBox.getSelectionModel().selectedItemProperty().addListener(observable -> loadLeaderboard());
+
+    leaderboardFilteredList.predicateProperty().bind(leaderboardSearchTextField.textProperty().map(newValue -> coopResultBean -> {
+      if (newValue.isEmpty()) {
+        return true;
+      }
+      return coopResultBean.getReplay()
+          .getTeams()
+          .values()
+          .stream()
+          .flatMap(Collection::stream)
+          .anyMatch(name -> name.toLowerCase().contains(newValue.toLowerCase()));
+    }));
+    leaderboardTable.setItems(leaderboardFilteredList);
 
     rankColumn.setCellValueFactory(param -> param.getValue().rankingProperty().asObject());
     rankColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
@@ -243,7 +262,7 @@ public class CoopController extends AbstractViewController<Node> {
         .thenAccept(coopLeaderboardEntries -> {
           AtomicInteger ranking = new AtomicInteger();
           coopLeaderboardEntries.forEach(coopResult -> coopResult.setRanking(ranking.incrementAndGet()));
-          fxApplicationThreadExecutor.execute(() -> leaderboardTable.setItems(observableList(coopLeaderboardEntries)));
+          fxApplicationThreadExecutor.execute(() -> leaderboardUnFilteredList.setAll(coopLeaderboardEntries));
         })
         .exceptionally(throwable -> {
           log.warn("Could not load coop leaderboard", throwable);
