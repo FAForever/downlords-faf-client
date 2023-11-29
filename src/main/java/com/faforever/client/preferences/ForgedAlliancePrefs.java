@@ -186,8 +186,4 @@ public class ForgedAlliancePrefs {
   public void setChangeProcessPriority(boolean changeProcessPriority) {
     this.changeProcessPriority.set(changeProcessPriority);
   }
-
-  public BooleanProperty changeProcessPriorityProperty() {
-    return changeProcessPriority;
-  }
 }

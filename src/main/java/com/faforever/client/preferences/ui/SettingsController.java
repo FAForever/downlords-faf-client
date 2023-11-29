@@ -120,7 +120,6 @@ public class SettingsController extends NodeController<Node> {
   public Toggle randomColorsToggle;
   public Toggle defaultColorsToggle;
   public CheckBox hideFoeToggle;
-  public CheckBox changeProcessPriorityToggle;
   public TextField dataLocationTextField;
   public TextField gameLocationTextField;
   public TextField vaultLocationTextField;
@@ -308,8 +307,6 @@ public class SettingsController extends NodeController<Node> {
 
   private void bindGamePreferences() {
     ForgedAlliancePrefs forgedAlliancePrefs = preferences.getForgedAlliance();
-    changeProcessPriorityToggle.selectedProperty()
-        .bindBidirectional(forgedAlliancePrefs.changeProcessPriorityProperty());
     gameLocationTextField.textProperty()
         .bindBidirectional(forgedAlliancePrefs.installationPathProperty(), PATH_STRING_CONVERTER);
     autoDownloadMapsToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.autoDownloadMapsProperty());
