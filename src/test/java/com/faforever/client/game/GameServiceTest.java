@@ -1088,12 +1088,23 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void onKillNoticeStopsGame() throws Exception {
+    GameBean game = GameBeanBuilder.create().defaultValues().get();
     GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     mockStartGameProcess(gameMapper.map(gameLaunchMessage));
+    when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
+    when(fafServerAccessor.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
+    when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
+        .defaultValues()
+        .get()));
 
     when(process.isAlive()).thenReturn(true);
 
     NoticeInfo noticeMessage = new NoticeInfo("kill", null);
+
+
+    CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
+    future.join();
 
     testNoticePublisher.next(noticeMessage);
 
