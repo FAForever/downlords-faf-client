@@ -76,8 +76,6 @@ public class WebViewConfigurer {
         Element link = (Element) nodeList.item(i);
         String href = link.getAttribute("href");
 
-        link.setAttribute("onMouseOver", "java.previewUrl('" + href + "')");
-        link.setAttribute("onMouseOut", "java.hideUrlPreview()");
         link.setAttribute("href", "javascript:java.openUrl('" + href + "');");
       }
     });
