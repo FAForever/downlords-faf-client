@@ -3,13 +3,12 @@ package com.faforever.client.leaderboard;
 import com.faforever.client.builders.LeagueBeanBuilder;
 import com.faforever.client.builders.LeagueSeasonBeanBuilder;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.main.event.OpenLeaderboardEvent;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import com.google.common.eventbus.EventBus;
-import javafx.scene.control.Tab;
+import javafx.scene.layout.StackPane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -34,8 +33,6 @@ public class LeaderboardsControllerTest extends PlatformTest {
   private LeaderboardsController instance;
 
   @Mock
-  private EventBus eventBus;
-  @Mock
   private I18n i18n;
   @Mock
   private LeaderboardService leaderboardService;
@@ -43,6 +40,8 @@ public class LeaderboardsControllerTest extends PlatformTest {
   private NotificationService notificationService;
   @Mock
   private UiService uiService;
+  @Mock
+  private NavigationHandler navigationHandler;
 
   @Mock
   private LeaderboardController controller;
@@ -55,8 +54,7 @@ public class LeaderboardsControllerTest extends PlatformTest {
         CompletableFuture.completedFuture(LeagueSeasonBeanBuilder.create().defaultValues().get()));
     when(i18n.getOrDefault(anyString(), anyString())).thenReturn("league");
     when(uiService.loadFxml("theme/leaderboard/leaderboard.fxml")).thenReturn(controller);
-    Tab tab = new Tab();
-    when(controller.getRoot()).thenReturn(tab);
+    when(controller.getRoot()).thenReturn(new StackPane());
 
     loadFxml("theme/leaderboard/leaderboards.fxml", clazz -> instance);
   }
@@ -65,17 +63,14 @@ public class LeaderboardsControllerTest extends PlatformTest {
   public void testInitialize() {
     waitForFxEvents();
 
-    assertEquals("league", controller.getRoot().getText());
-    assertEquals(1, instance.leaderboardRoot.getTabs().size());
-    assertEquals(1, instance.controllers.size());
-    assertEquals(controller, instance.controllers.get(0));
+    assertEquals(1, instance.navigationBox.getChildren().size());
   }
 
   @Test
   public void testNoLeagues() {
     when(leaderboardService.getLeagues()).thenReturn(CompletableFuture.completedFuture(List.of()));
 
-    instance.initialize();
+    reinitialize(instance);
 
     verify(notificationService).addImmediateWarnNotification(eq("leaderboard.noLeaderboards"));
   }
@@ -84,7 +79,7 @@ public class LeaderboardsControllerTest extends PlatformTest {
   public void testInitializeWithLeagueError() {
     when(leaderboardService.getLeagues()).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
 
-    instance.initialize();
+    reinitialize(instance);
 
     verify(notificationService).addImmediateErrorNotification(any(CompletionException.class), eq("leaderboard.failedToLoadLeaderboards"));
   }
@@ -93,7 +88,7 @@ public class LeaderboardsControllerTest extends PlatformTest {
   public void testInitializeWithSeasonError() {
     when(leaderboardService.getLatestSeason(any())).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
 
-    instance.initialize();
+    reinitialize(instance);
 
     verify(notificationService).addImmediateErrorNotification(any(CompletionException.class), eq("leaderboard.failedToLoadLeaderboards"));
   }
@@ -102,12 +97,5 @@ public class LeaderboardsControllerTest extends PlatformTest {
   public void testGetRoot() throws Exception {
     assertEquals(instance.getRoot(), instance.leaderboardRoot);
     assertNull(instance.getRoot().getParent());
-  }
-
-  @Test
-  public void testOnDisplay() {
-    instance.onDisplay(new OpenLeaderboardEvent(controller.getRoot()));
-
-    assertEquals(instance.leaderboardRoot.getSelectionModel().getSelectedItem(), controller.getRoot());
   }
 }

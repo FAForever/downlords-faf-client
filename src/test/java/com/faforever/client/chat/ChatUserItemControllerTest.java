@@ -19,14 +19,13 @@ import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.test.PlatformTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -62,7 +61,9 @@ public class ChatUserItemControllerTest extends PlatformTest {
   @Mock
   private UiService uiService;
   @Mock
-  private EventBus eventBus;
+  private ChatService chatService;
+  @Mock
+  private ThemeService themeService;
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
   @Mock
@@ -87,7 +88,6 @@ public class ChatUserItemControllerTest extends PlatformTest {
   public void setUp() throws Exception {
     defaultUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
 
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
     when(i18n.get(eq("clan.messageLeader"))).thenReturn("Message clan leader");
     when(i18n.get(eq("clan.visitPage"))).thenReturn("Visit clan website");
@@ -111,7 +111,7 @@ public class ChatUserItemControllerTest extends PlatformTest {
   @Test
   public void testSingleClickDoesNotInitiatePrivateChat() {
     runOnFxThreadAndWait(() -> instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 1)));
-    verify(eventBus, never()).post(CoreMatchers.any(InitiatePrivateChatEvent.class));
+    verify(chatService, never()).onInitiatePrivateChat(any());
   }
 
   @Test
@@ -119,9 +119,9 @@ public class ChatUserItemControllerTest extends PlatformTest {
     instance.setChatUser(defaultUser);
     runOnFxThreadAndWait(() -> instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 2)));
 
-    ArgumentCaptor<InitiatePrivateChatEvent> captor = ArgumentCaptor.forClass(InitiatePrivateChatEvent.class);
-    verify(eventBus, times(1)).post(captor.capture());
-    assertEquals(USER_NAME, captor.getValue().username());
+    ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+    verify(chatService, times(1)).onInitiatePrivateChat(captor.capture());
+    assertEquals(USER_NAME, captor.getValue());
   }
 
   @Test
@@ -177,7 +177,8 @@ public class ChatUserItemControllerTest extends PlatformTest {
     MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().get();
     defaultUser.setPlayer(player);
 
-    when(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING)).thenReturn(new Image(InputStream.nullInputStream()));
+    when(themeService.getThemeImage(ThemeService.CHAT_LIST_STATUS_HOSTING)).thenReturn(
+        new Image(InputStream.nullInputStream()));
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(new Image(InputStream.nullInputStream()));
     when(mapService.getMapLocallyFromName(mapFolderName)).thenReturn(Optional.of(mapVersion));
     when(mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName)).thenReturn("map id");

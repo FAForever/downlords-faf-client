@@ -1,19 +1,17 @@
 package com.faforever.client.main;
 
 import ch.micheljung.fxwindow.FxStage;
-import com.faforever.client.FafClientApplication;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.exception.AssetLoadException;
-import com.faforever.client.exception.FxmlLoadException;
-import com.faforever.client.fx.AbstractViewController;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.headerbar.HeaderBarController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.ImmediateNotificationController;
@@ -28,18 +26,13 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.alert.Alert;
 import com.faforever.client.ui.alert.animation.AlertAnimation;
+import com.faforever.client.ui.tray.TrayIconManager;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
@@ -61,7 +54,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
@@ -69,11 +61,8 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 import static javafx.scene.layout.Background.EMPTY;
 
@@ -81,23 +70,18 @@ import static javafx.scene.layout.Background.EMPTY;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class MainController implements Controller<Node>, InitializingBean {
-
-  private final Cache<NavigationItem, AbstractViewController<?>> viewCache = CacheBuilder.newBuilder().build();
+public class MainController extends NodeController<Node> implements InitializingBean {
 
   private final ClientProperties clientProperties;
   private final I18n i18n;
   private final NotificationService notificationService;
   private final UiService uiService;
-  private final EventBus eventBus;
   private final LoginService loginService;
-  private final Environment environment;
   private final NotificationPrefs notificationPrefs;
   private final WindowPrefs windowPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
-
-  private final ChangeListener<Path> backgroundImageListener = (observable, oldValue, newValue) ->
-      setBackgroundImage(newValue);
+  private final TrayIconManager trayIconManager;
+  private final NavigationHandler navigationHandler;
 
   public Pane contentPane;
   public StackPane contentWrapperPane;
@@ -107,19 +91,11 @@ public class MainController implements Controller<Node>, InitializingBean {
 
   @VisibleForTesting
   protected Popup transientNotificationsPopup;
-  private NavigationItem currentItem;
   private FxStage fxStage;
-  private boolean alwaysReloadTabs;
 
   @Override
   public void afterPropertiesSet() {
-    alwaysReloadTabs = Arrays.asList(environment.getActiveProfiles()).contains(FafClientApplication.PROFILE_RELOAD);
-
     loginService.loggedInProperty().addListener((observable, oldValue, newValue) -> {
-      if (!newValue && oldValue) {
-        viewCache.invalidateAll();
-      }
-
       if (newValue) {
         enterLoggedInState();
       } else {
@@ -146,9 +122,8 @@ public class MainController implements Controller<Node>, InitializingBean {
     }
   }
 
-  public void initialize() {
-    eventBus.register(this);
-
+  @Override
+  protected void onInitialize() {
     TransientNotificationsController transientNotificationsController = uiService.loadFxml("theme/transient_notifications.fxml");
     transientNotificationsPopup = PopupUtil.createPopup(transientNotificationsController.getRoot());
     transientNotificationsPopup.getScene().getRoot().getStyleClass().add("transient-notification");
@@ -160,27 +135,15 @@ public class MainController implements Controller<Node>, InitializingBean {
     notificationService.addImmediateNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> displayImmediateNotification(notification)));
     notificationService.addServerNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> displayServerNotification(notification)));
     notificationService.addTransientNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> transientNotificationsController.addNotification(notification)));
-    // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
-    getView(NavigationItem.CHAT);
+
+    navigationHandler.navigationEventProperty().subscribe(this::onNavigateEvent);
   }
 
-  private void displayView(AbstractViewController<?> controller, NavigateEvent navigateEvent) {
-    Node node = controller.getRoot();
-    ObservableList<Node> children = contentPane.getChildren();
-
-    if (alwaysReloadTabs) {
-      children.clear();
-    }
-
-    if (!children.contains(node)) {
-      children.add(node);
-      JavaFxUtil.setAnchors(node, 0d);
-    }
-
-    if (!alwaysReloadTabs) {
-      Optional.ofNullable(currentItem).ifPresent(item -> getView(item).hide());
-    }
+  private void displayView(NodeController<?> controller, NavigateEvent navigateEvent) {
     controller.display(navigateEvent);
+    Node node = controller.getRoot();
+    contentPane.getChildren().setAll(node);
+    JavaFxUtil.setAnchors(node, 0d);
   }
 
   private Rectangle2D getTransientNotificationAreaBounds() {
@@ -197,10 +160,9 @@ public class MainController implements Controller<Node>, InitializingBean {
   }
 
   public void display() {
-    eventBus.post(UpdateApplicationBadgeEvent.ofNewValue(0));
+    trayIconManager.onSetApplicationBadgeEvent(UpdateApplicationBadgeEvent.ofNewValue(0));
 
     Stage stage = StageHolder.getStage();
-    setBackgroundImage(windowPrefs.getBackgroundImagePath());
 
     int width = windowPrefs.getWidth();
     int height = windowPrefs.getHeight();
@@ -277,7 +239,7 @@ public class MainController implements Controller<Node>, InitializingBean {
         setWindowPosition(stage, windowPrefs);
       }
     });
-    JavaFxUtil.addListener(windowPrefs.backgroundImagePathProperty(), new WeakChangeListener<>(backgroundImageListener));
+    windowPrefs.backgroundImagePathProperty().when(showing).subscribe(this::setBackgroundImage);
   }
 
   private void setBackgroundImage(Path filepath) {
@@ -324,7 +286,7 @@ public class MainController implements Controller<Node>, InitializingBean {
         askUserForPreferenceOverStartTab();
       }
     }
-    eventBus.post(new NavigateEvent(navigationItem));
+    navigationHandler.navigateTo(new NavigateEvent(navigationItem));
   }
 
   private void askUserForPreferenceOverStartTab() {
@@ -339,7 +301,7 @@ public class MainController implements Controller<Node>, InitializingBean {
     Action saveAction = new Action(i18n.get("startTab.save"), event -> {
       NavigationItem newSelection = startTabChooseController.getSelected();
       windowPrefs.setNavigationItem(newSelection);
-      eventBus.post(new NavigateEvent(newSelection));
+      navigationHandler.navigateTo(new NavigateEvent(newSelection));
     });
     ImmediateNotification notification =
         new ImmediateNotification(i18n.get("startTab.title"), i18n.get("startTab.message"),
@@ -347,30 +309,20 @@ public class MainController implements Controller<Node>, InitializingBean {
     notificationService.addNotification(notification);
   }
 
+  @Override
   public Pane getRoot() {
     return mainRoot;
   }
 
-  @Subscribe
   public void onNavigateEvent(NavigateEvent navigateEvent) {
+    if (navigateEvent == null) {
+      return;
+    }
+
     NavigationItem item = navigateEvent.getItem();
 
-    AbstractViewController<?> controller = getView(item);
+    NodeController<?> controller = uiService.loadFxml(item.getFxmlFile());
     displayView(controller, navigateEvent);
-
-    currentItem = item;
-  }
-
-  private AbstractViewController<?> getView(NavigationItem item) {
-    if (alwaysReloadTabs) {
-      return uiService.loadFxml(item.getFxmlFile());
-    }
-
-    try {
-      return viewCache.get(item, () -> uiService.loadFxml(item.getFxmlFile()));
-    } catch (ExecutionException e) {
-      throw new FxmlLoadException("Could not load tab view", e, "view.couldNotLoad", i18n.get(item.getI18nKey()));
-    }
   }
 
   private void displayImmediateNotification(ImmediateNotification notification) {

@@ -15,7 +15,6 @@ import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.GameParameters;
-import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
@@ -38,15 +37,13 @@ import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.replay.ReplayServer;
-import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
+import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameInfo.TeamIds;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameType;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
+import com.faforever.commons.lobby.NoticeInfo;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
@@ -59,7 +56,6 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.springframework.util.ReflectionUtils;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.publisher.TestPublisher;
@@ -82,7 +78,6 @@ import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.commons.lobby.GameStatus.CLOSED;
 import static com.faforever.commons.lobby.GameStatus.OPEN;
 import static com.faforever.commons.lobby.GameStatus.PLAYING;
-import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -138,8 +133,6 @@ public class GameServiceTest extends ServiceTest {
   @Mock
   private ReplayServer replayServer;
   @Mock
-  private EventBus eventBus;
-  @Mock
   private IceAdapter iceAdapter;
   @Mock
   private ModService modService;
@@ -161,6 +154,8 @@ public class GameServiceTest extends ServiceTest {
   private CoturnService coturnService;
   @Mock
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  @Mock
+  private GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
   @Spy
   private GameMapper gameMapper = Mappers.getMapper(GameMapper.class);
   @Spy
@@ -177,7 +172,8 @@ public class GameServiceTest extends ServiceTest {
 
   private PlayerBean junitPlayer;
 
-  private final TestPublisher<GameInfo> testPublisher = TestPublisher.create();
+  private final TestPublisher<GameInfo> testGamePublisher = TestPublisher.create();
+  private final TestPublisher<NoticeInfo> testNoticePublisher = TestPublisher.create();
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -185,7 +181,8 @@ public class GameServiceTest extends ServiceTest {
     junitPlayer = PlayerBeanBuilder.create().defaultValues().get();
 
     when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
-    when(fafServerAccessor.getEvents(GameInfo.class)).thenReturn(testPublisher.flux());
+    when(fafServerAccessor.getEvents(GameInfo.class)).thenReturn(testGamePublisher.flux());
+    when(fafServerAccessor.getEvents(NoticeInfo.class)).thenReturn(testNoticePublisher.flux());
     when(coturnService.getSelectedCoturns(anyInt())).thenReturn(completedFuture(List.of()));
     when(preferencesService.isValidGamePath()).thenReturn(true);
     when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
@@ -204,7 +201,8 @@ public class GameServiceTest extends ServiceTest {
 
     instance.afterPropertiesSet();
 
-    testPublisher.assertSubscribers(1);
+    testGamePublisher.assertSubscribers(1);
+    testNoticePublisher.assertSubscribers(1);
   }
 
   private void mockStartGameProcess(GameParameters gameParameters) throws IOException {
@@ -235,9 +233,9 @@ public class GameServiceTest extends ServiceTest {
   public void testRetryFlux() {
     doThrow(new RuntimeException()).when(gameMapper).update(any(), any());
 
-    testPublisher.next(GameInfoMessageBuilder.create(1).defaultValues().get());
+    testGamePublisher.next(GameInfoMessageBuilder.create(1).defaultValues().get());
 
-    testPublisher.assertSubscribers(1);
+    testGamePublisher.assertSubscribers(1);
   }
 
   @Test
@@ -421,7 +419,7 @@ public class GameServiceTest extends ServiceTest {
 
     List<TeamIds> teamIds = List.of(new TeamIds(1, List.of(1)), new TeamIds(2, List.of(2)));
 
-    testPublisher.next(GameInfoMessageBuilder.create(0).defaultValues().teamIds(teamIds).get());
+    testGamePublisher.next(GameInfoMessageBuilder.create(0).defaultValues().teamIds(teamIds).get());
     GameBean game = instance.getByUid(0);
 
     assertThat(player1.getGame(), is(game));
@@ -441,7 +439,7 @@ public class GameServiceTest extends ServiceTest {
         .games(List.of(GameInfoMessageBuilder.create(1).defaultValues().get(),
                        GameInfoMessageBuilder.create(2).defaultValues().get())
         ).get();
-    testPublisher.next(multiGameInfo);
+    testGamePublisher.next(multiGameInfo);
 
 
     assertThat(instance.getGames(), hasSize(2));
@@ -452,10 +450,10 @@ public class GameServiceTest extends ServiceTest {
     assertThat(instance.getGames(), empty());
 
     GameInfo gameInfo1 = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
-    testPublisher.next(gameInfo1);
+    testGamePublisher.next(gameInfo1);
 
     GameInfo gameInfo2 = GameInfoMessageBuilder.create(2).defaultValues().title("Game 2").get();
-    testPublisher.next(gameInfo2);
+    testGamePublisher.next(gameInfo2);
 
 
     assertThat(instance.getGames(), containsInAnyOrder(
@@ -484,7 +482,7 @@ public class GameServiceTest extends ServiceTest {
         .passwordProtected(true)
         .title("Game 1")
         .get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
 
     assertThat(instance.currentGame.get().getPassword(), is("banana"));
   }
@@ -498,7 +496,7 @@ public class GameServiceTest extends ServiceTest {
     GameInfo gameInfo = GameInfoMessageBuilder.create(1234).defaultValues()
         .state(OPEN)
         .addTeamMember("1", "PlayerName").get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
 
 
     assertThat(instance.getCurrentGame(), notNullValue());
@@ -514,7 +512,7 @@ public class GameServiceTest extends ServiceTest {
     GameInfo gameInfo = GameInfoMessageBuilder.create(1234).defaultValues()
         .state(PLAYING)
         .addTeamMember("1", "PlayerName").get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
 
     assertThat(instance.getCurrentGame(), nullValue());
   }
@@ -526,7 +524,7 @@ public class GameServiceTest extends ServiceTest {
     when(playerService.isCurrentPlayerInGame(any())).thenReturn(false);
 
     GameInfo gameInfo = GameInfoMessageBuilder.create(1234).defaultValues().addTeamMember("1", "Other").get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
 
     assertThat(instance.getCurrentGame(), nullValue());
   }
@@ -536,12 +534,12 @@ public class GameServiceTest extends ServiceTest {
     assertThat(instance.getGames(), empty());
 
     GameInfo gameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").state(PLAYING).get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
 
     GameBean game = instance.getByUid(1);
 
     gameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1 modified").state(PLAYING).get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
 
     assertEquals(gameInfo.getTitle(), game.getTitle());
   }
@@ -551,11 +549,11 @@ public class GameServiceTest extends ServiceTest {
     assertThat(instance.getGames(), empty());
 
     GameInfo gameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
     assertThat(instance.getGames(), hasSize(1));
 
     gameInfo = GameInfoMessageBuilder.create(1).title("Game 1").defaultValues().state(CLOSED).get();
-    testPublisher.next(gameInfo);
+    testGamePublisher.next(gameInfo);
 
     assertThat(instance.getGames(), empty());
   }
@@ -736,15 +734,6 @@ public class GameServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testSubscribeEventBus() {
-    verify(eventBus).register(instance);
-
-    assertThat(ReflectionUtils.findMethod(
-            instance.getClass(), "onRehostRequest", RehostRequestEvent.class),
-        hasAnnotation(Subscribe.class));
-  }
-
-  @Test
   public void testRehostIfGameIsNotRunning() throws Exception {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     instance.currentGame.set(game);
@@ -765,7 +754,7 @@ public class GameServiceTest extends ServiceTest {
         .get()));
     when(mapService.download(game.getMapFolderName())).thenReturn(completedFuture(null));
 
-    instance.onRehostRequest(new RehostRequestEvent());
+    instance.onRehostRequest();
 
     verify(forgedAllianceService).startGameOnline(eq(gameParameters));
   }
@@ -777,7 +766,7 @@ public class GameServiceTest extends ServiceTest {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     instance.currentGame.set(game);
 
-    instance.onRehostRequest(new RehostRequestEvent());
+    instance.onRehostRequest();
 
     verify(forgedAllianceService, never()).startGameOnline(any());
   }
@@ -810,7 +799,7 @@ public class GameServiceTest extends ServiceTest {
   public void testGameHostIfNoGameSet() {
     when(preferencesService.isValidGamePath()).thenReturn(false);
     instance.hostGame(null);
-    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+    verify(gameDirectoryRequiredHandler).onChooseGameDirectory(any());
   }
 
   @Test
@@ -841,21 +830,21 @@ public class GameServiceTest extends ServiceTest {
   public void testOfflineGameInvalidPath() throws IOException {
     when(preferencesService.isValidGamePath()).thenReturn(false);
     instance.startGameOffline();
-    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+    verify(gameDirectoryRequiredHandler).onChooseGameDirectory(any());
   }
 
   @Test
   public void runWithLiveReplayIfNoGameSet() {
     when(preferencesService.isValidGamePath()).thenReturn(false);
     instance.runWithLiveReplay(null, null, null, null);
-    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+    verify(gameDirectoryRequiredHandler).onChooseGameDirectory(any());
   }
 
   @Test
   public void startSearchMatchmakerIfNoGameSet() {
     when(preferencesService.isValidGamePath()).thenReturn(false);
     instance.startSearchMatchmaker();
-    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+    verify(gameDirectoryRequiredHandler).onChooseGameDirectory(any());
   }
 
   @Test
@@ -948,14 +937,14 @@ public class GameServiceTest extends ServiceTest {
   public void joinGameIfNoGameSet() {
     when(preferencesService.isValidGamePath()).thenReturn(false);
     instance.joinGame(null, null);
-    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+    verify(gameDirectoryRequiredHandler).onChooseGameDirectory(any());
   }
 
   @Test
   public void runWithReplayIfNoGameSet() {
     when(preferencesService.isValidGamePath()).thenReturn(false);
     instance.runWithReplay(null, null, null, null, null, null, null);
-    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+    verify(gameDirectoryRequiredHandler).onChooseGameDirectory(any());
   }
 
   @Test
@@ -1004,11 +993,6 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void runWithReplayInParty() throws Exception {
-    instance.onPartyOwnerChangedEvent(new PartyOwnerChangedEvent(PlayerBeanBuilder.create()
-        .defaultValues()
-        .id(100)
-        .get()));
-
     Path replayPath = Path.of("temp.scfareplay");
     int replayId = 1234;
 
@@ -1028,11 +1012,6 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void runWithLiveReplayInParty() throws Exception {
-    instance.onPartyOwnerChangedEvent(new PartyOwnerChangedEvent(PlayerBeanBuilder.create()
-        .defaultValues()
-        .id(100)
-        .get()));
-
     URI replayUrl = new URI("gpgnet://example.com/123/456.scfareplay");
     int gameId = 1234;
 
@@ -1054,7 +1033,7 @@ public class GameServiceTest extends ServiceTest {
   public void launchTutorialIfNoGameSet() {
     when(preferencesService.isValidGamePath()).thenReturn(false);
     instance.launchTutorial(null, null);
-    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+    verify(gameDirectoryRequiredHandler).onChooseGameDirectory(any());
   }
 
   @Test
@@ -1105,5 +1084,31 @@ public class GameServiceTest extends ServiceTest {
 
     verify(loggingService).getMostRecentGameLogFile();
     verify(notificationService).addNotification(any(ImmediateNotification.class));
+  }
+
+  @Test
+  public void onKillNoticeStopsGame() throws Exception {
+    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+    mockStartGameProcess(gameMapper.map(gameLaunchMessage));
+    when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
+    when(fafServerAccessor.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
+    when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
+        .defaultValues()
+        .get()));
+
+    when(process.isAlive()).thenReturn(true);
+
+    NoticeInfo noticeMessage = new NoticeInfo("kill", null);
+
+
+    CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
+    future.join();
+
+    testNoticePublisher.next(noticeMessage);
+
+    verify(iceAdapter).onGameCloseRequested();
+    verify(process).destroy();
   }
 }

@@ -1,7 +1,7 @@
 package com.faforever.client.player;
 
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.TimeService;
 import javafx.scene.Node;
@@ -17,7 +17,7 @@ import java.time.Instant;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @RequiredArgsConstructor
-public class PlayerRatingChartTooltipController implements Controller<Node> {
+public class PlayerRatingChartTooltipController extends NodeController<Node> {
 
   private final TimeService timeService;
   private final I18n i18n;

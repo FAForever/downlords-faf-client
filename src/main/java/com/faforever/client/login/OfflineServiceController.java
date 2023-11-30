@@ -1,6 +1,6 @@
 package com.faforever.client.login;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.TimeService;
 import javafx.scene.control.Label;
@@ -15,7 +15,7 @@ import java.time.OffsetDateTime;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class OfflineServiceController implements Controller<Label> {
+public class OfflineServiceController extends NodeController<Label> {
 
   public Label offlineServiceRoot;
 

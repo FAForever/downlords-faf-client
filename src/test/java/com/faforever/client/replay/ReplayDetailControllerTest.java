@@ -32,7 +32,6 @@ import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
 import com.faforever.commons.api.dto.Validity;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -79,8 +78,6 @@ public class ReplayDetailControllerTest extends PlatformTest {
   private TimeService timeService;
   @Mock
   private I18n i18n;
-  @Mock
-  private EventBus eventBus;
   @Mock
   private UiService uiService;
   @Mock
@@ -170,7 +167,6 @@ public class ReplayDetailControllerTest extends PlatformTest {
     when(teamCardController.getRoot()).thenReturn(new HBox());
     when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
     when(reportDialogController.getRoot()).thenReturn(new Pane());
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/vault/replay/replay_detail.fxml", param -> {
       if (param == ReviewsController.class) {

@@ -1,7 +1,7 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.notification.Action.Type;
 import com.faforever.client.ui.dialog.DialogLayout;
 import com.faforever.client.update.Version;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ImmediateNotificationController implements Controller<Node> {
+public class ImmediateNotificationController extends NodeController<Node> {
 
   private final DialogLayout dialogLayout = new DialogLayout();
   public Label notificationText;
@@ -38,7 +38,8 @@ public class ImmediateNotificationController implements Controller<Node> {
   public VBox immediateNotificationRoot;
   private Runnable closeListener;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(exceptionArea, notificationText, helpText, versionText);
 
     dialogLayout.setMaxWidth(650);
@@ -94,6 +95,7 @@ public class ImmediateNotificationController implements Controller<Node> {
     closeListener.run();
   }
 
+  @Override
   public Region getRoot() {
     return immediateNotificationRoot;
   }

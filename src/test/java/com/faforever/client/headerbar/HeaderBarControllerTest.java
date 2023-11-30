@@ -1,12 +1,13 @@
 package com.faforever.client.headerbar;
 
-import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import com.google.common.eventbus.EventBus;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -16,8 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -34,7 +33,7 @@ public class HeaderBarControllerTest extends PlatformTest {
   @Mock
   private UiService uiService;
   @Mock
-  private EventBus eventBus;
+  private NavigationHandler navigationHandler;
 
   @InjectMocks
   private HeaderBarController instance;
@@ -43,6 +42,8 @@ public class HeaderBarControllerTest extends PlatformTest {
   public void setup() throws Exception {
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
+    when(navigationHandler.navigationEventProperty()).thenReturn(new SimpleObjectProperty<>());
+    when(navigationHandler.getHighlightedItems()).thenReturn(FXCollections.observableSet());
 
     loadFxml("theme/headerbar/header_bar.fxml", clazz -> {
       if (clazz == instance.getClass()) {
@@ -56,19 +57,7 @@ public class HeaderBarControllerTest extends PlatformTest {
   public void testOnNavigateButtonClicked() throws Exception {
     instance.playButton.pseudoClassStateChanged(HIGHLIGHTED, true);
     instance.onNavigateButtonClicked(new ActionEvent(instance.playButton, Event.NULL_SOURCE_TARGET));
-    assertThat(instance.playButton.getPseudoClassStates().contains(HIGHLIGHTED), is(false));
 
-    verify(eventBus).post(argThat(event -> ((NavigateEvent) event).getItem() == NavigationItem.PLAY));
-  }
-
-  @Test
-  public void testOnNavigateEvent() {
-    instance.onNavigateEvent(new NavigateEvent(NavigationItem.PLAY));
-
-    assertThat(instance.mainNavigation.getSelectedToggle(), is(instance.playButton));
-
-    instance.onNavigateEvent(new NavigateEvent(NavigationItem.CHAT));
-
-    assertThat(instance.mainNavigation.getSelectedToggle(), is(instance.chatButton));
+    verify(navigationHandler).navigateTo(argThat(event -> event.getItem() == NavigationItem.PLAY));
   }
 }

@@ -1,27 +1,24 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.audio.AudioService;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.chat.emoticons.EmoticonService;
-import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PrivatePlayerInfoController;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
-import javafx.beans.binding.BooleanExpression;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.event.Event;
@@ -47,7 +44,6 @@ import static com.faforever.client.player.SocialStatus.FOE;
 public class PrivateChatTabController extends AbstractChatTabController {
 
   private final AvatarService avatarService;
-  private final AudioService audioService;
 
   public Tab privateChatTabRoot;
   public ImageView avatarImageView;
@@ -65,42 +61,41 @@ public class PrivateChatTabController extends AbstractChatTabController {
   // TODO cut dependencies
   public PrivateChatTabController(LoginService loginService,
                                   PlayerService playerService, TimeService timeService, I18n i18n,
-                                  NotificationService notificationService, UiService uiService, EventBus eventBus,
-                                  AudioService audioService, ChatService chatService,
+                                  NotificationService notificationService, UiService uiService,
+                                  ThemeService themeService,
+                                  NavigationHandler navigationHandler,
+                                  ChatService chatService,
                                   WebViewConfigurer webViewConfigurer, CountryFlagService countryFlagService,
                                   EmoticonService emoticonService, AvatarService avatarService, ChatPrefs chatPrefs,
                                   NotificationPrefs notificationPrefs,
                                   FxApplicationThreadExecutor fxApplicationThreadExecutor) {
-    super(loginService, chatService, playerService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
+    super(loginService, chatService, playerService, timeService, i18n, notificationService, uiService, themeService,
+          webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs,
+          fxApplicationThreadExecutor, navigationHandler);
     this.avatarService = avatarService;
-    this.audioService = audioService;
   }
 
-  public void initialize() {
-    super.initialize();
-
-    ObservableValue<Boolean> showing = getRoot().selectedProperty()
-        .and(BooleanExpression.booleanExpression(getRoot().tabPaneProperty()
-            .flatMap(uiService::createShowingProperty)));
+  @Override
+  protected void onInitialize() {
+    super.onInitialize();
 
     JavaFxUtil.bindManagedToVisible(avatarImageView, defaultIconImageView);
     avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull().when(showing));
     defaultIconImageView.visibleProperty().bind(avatarImageView.imageProperty().isNull().when(showing));
     userOffline = false;
 
-    privateChatTabRoot.idProperty().bind(channelName.when(showing));
-    privateChatTabRoot.textProperty().bind(channelName.when(showing));
+    privateChatTabRoot.textProperty().bind(channelName.when(attached));
     privatePlayerInfoController.chatUserProperty()
         .bind(chatChannel.map(channel -> chatService.getOrCreateChatUser(channel.getName(), channel.getName()))
-            .when(showing));
+                         .when(showing));
 
     avatarImageView.imageProperty()
         .bind(channelName.map(username -> playerService.getPlayerByNameIfOnline(username).orElse(null))
             .flatMap(PlayerBean::avatarProperty)
             .map(avatarService::loadAvatar)
-            .when(showing));
+                         .when(showing));
 
-    chatChannel.addListener(((observable, oldValue, newValue) -> {
+    chatChannel.when(attached).addListener(((observable, oldValue, newValue) -> {
       if (oldValue != null) {
         oldValue.removeUserListener(usersChangeListener);
       }
@@ -109,6 +104,15 @@ public class PrivateChatTabController extends AbstractChatTabController {
         newValue.addUsersListeners(usersChangeListener);
       }
     }));
+  }
+
+  @Override
+  public void onDetached() {
+    super.onDetached();
+    ChatChannel channel = chatChannel.get();
+    if (channel != null) {
+      channel.removeUserListener(usersChangeListener);
+    }
   }
 
   boolean isUserOffline() {
@@ -124,7 +128,6 @@ public class PrivateChatTabController extends AbstractChatTabController {
   protected void onClosed(Event event) {
     super.onClosed(event);
     chatChannel.getValue().removeUserListener(usersChangeListener);
-    privatePlayerInfoController.dispose();
   }
 
   @Override
@@ -139,7 +142,6 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   @Override
   public void onChatMessage(ChatMessage chatMessage) {
-
     if (playerService.getPlayerByNameIfOnline(chatMessage.username())
         .map(PlayerBean::getSocialStatus)
         .map(FOE::equals)
@@ -150,11 +152,8 @@ public class PrivateChatTabController extends AbstractChatTabController {
     super.onChatMessage(chatMessage);
 
     if (!hasFocus()) {
-      audioService.playPrivateMessageSound();
-      showNotificationIfNecessary(chatMessage);
       setUnread(true);
       incrementUnreadMessagesCount();
-      eventBus.post(new UnreadPrivateMessageEvent(chatMessage));
     }
   }
 

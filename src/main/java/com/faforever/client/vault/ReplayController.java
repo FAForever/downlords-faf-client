@@ -1,95 +1,92 @@
 package com.faforever.client.vault;
 
-import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenLiveReplayViewEvent;
 import com.faforever.client.main.event.OpenLocalReplayVaultEvent;
 import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
-import com.faforever.client.replay.LiveReplayController;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.replay.LocalReplayVaultController;
 import com.faforever.client.replay.OnlineReplayVaultController;
 import com.faforever.client.theme.UiService;
-import com.google.common.eventbus.EventBus;
-import javafx.scene.Node;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
+import javafx.event.ActionEvent;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ReplayController extends AbstractViewController<Node> {
+@RequiredArgsConstructor
+public class ReplayController extends NodeController<VBox> {
 
-  private final EventBus eventBus;
+  private final NavigationHandler navigationHandler;
   private final UiService uiService;
 
-  public TabPane root;
+  public VBox root;
+  public Pane contentPane;
+  public ToggleButton onlineButton;
+  public ToggleButton liveButton;
+  public ToggleButton localButton;
 
-  public OnlineReplayVaultController onlineReplayVaultController;
-  public LocalReplayVaultController localReplayVaultController;
-  public LiveReplayController liveReplayController;
-  public Tab onlineReplayVaultTab;
-  public Tab localReplayVaultTab;
-  public Tab liveReplayVaultTab;
-  private boolean isHandlingEvent;
-  private AbstractViewController<?> lastTabController;
-  private Tab lastTab;
-
-  public ReplayController(EventBus eventBus, UiService uiService) {
-    this.eventBus = eventBus;
-    this.uiService = uiService;
-  }
+  private final Map<ToggleButton, ReplayContentEnum> contentMap = new HashMap<>();
 
   @Override
-  public TabPane getRoot() {
+  public VBox getRoot() {
     return root;
   }
 
   @Override
-  public void initialize() {
-    onlineReplayVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", OnlineReplayVaultController.class);
-    onlineReplayVaultTab.setContent(onlineReplayVaultController.getRoot());
-    localReplayVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", LocalReplayVaultController.class);
-    localReplayVaultTab.setContent(localReplayVaultController.getRoot());
-    liveReplayController = uiService.loadFxml("theme/vault/replay/live_replays.fxml");
-    liveReplayVaultTab.setContent(liveReplayController.getRoot());
-    lastTab = onlineReplayVaultTab;
-    lastTabController = onlineReplayVaultController;
-    root.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      if (isHandlingEvent) {
-        return;
-      }
+  protected void onInitialize() {
+    contentMap.putAll(Map.of(onlineButton, ReplayContentEnum.ONLINE, liveButton, ReplayContentEnum.LIVE,
+                             localButton, ReplayContentEnum.LOCAL));
+    ReplayContentEnum lastTab = navigationHandler.getLastReplayTab();
+    showContent(lastTab == null ? ReplayContentEnum.ONLINE : lastTab);
+  }
 
-      if (newValue == onlineReplayVaultTab) {
-        eventBus.post(new OpenOnlineReplayVaultEvent());
-      } else if (newValue == localReplayVaultTab) {
-        eventBus.post(new OpenLocalReplayVaultEvent());
-      } else if (newValue == liveReplayVaultTab) {
-        eventBus.post(new OpenLiveReplayViewEvent());
-      }
-    });
+  public void onNavigateButtonClicked(ActionEvent event) {
+    if (event.getSource() instanceof ToggleButton toggleButton) {
+      ReplayContentEnum contentEnum = contentMap.getOrDefault(toggleButton, ReplayContentEnum.ONLINE);
+      showContent(contentEnum);
+    }
+  }
+
+  private NodeController<?> showContent(ReplayContentEnum contentEnum) {
+    contentMap.entrySet()
+              .stream()
+              .filter(entry -> contentEnum.equals(entry.getValue()))
+              .map(Entry::getKey)
+              .findFirst()
+              .ifPresent(button -> button.setSelected(true));
+    NodeController<?> controller = switch (contentEnum) {
+      case ONLINE -> uiService.loadFxml("theme/vault/vault_entity.fxml", OnlineReplayVaultController.class);
+      case LIVE -> uiService.loadFxml("theme/vault/replay/live_replays.fxml");
+      case LOCAL -> uiService.loadFxml("theme/vault/vault_entity.fxml", LocalReplayVaultController.class);
+    };
+    contentPane.getChildren().setAll(controller.getRoot());
+    navigationHandler.setLastReplayTab(contentEnum);
+    return controller;
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
-    isHandlingEvent = true;
-
-    try {
-      if (navigateEvent instanceof OpenOnlineReplayVaultEvent) {
-        lastTab = onlineReplayVaultTab;
-        lastTabController = onlineReplayVaultController;
-      } else if (navigateEvent instanceof OpenLocalReplayVaultEvent) {
-        lastTab = localReplayVaultTab;
-        lastTabController = localReplayVaultController;
-      } else if (navigateEvent instanceof OpenLiveReplayViewEvent) {
-        lastTab = liveReplayVaultTab;
-        lastTabController = liveReplayController;
-      }
-      root.getSelectionModel().select(lastTab);
-      lastTabController.display(navigateEvent);
-    } finally {
-      isHandlingEvent = false;
+  protected void onNavigate(NavigateEvent navigateEvent) {
+    if (navigateEvent instanceof OpenOnlineReplayVaultEvent) {
+      showContent(ReplayContentEnum.ONLINE).display(navigateEvent);
+    } else if (navigateEvent instanceof OpenLiveReplayViewEvent) {
+      showContent(ReplayContentEnum.LIVE).display(navigateEvent);
+    } else if (navigateEvent instanceof OpenLocalReplayVaultEvent) {
+      showContent(ReplayContentEnum.LOCAL).display(navigateEvent);
     }
+  }
+
+  public enum ReplayContentEnum {
+    ONLINE, LIVE, LOCAL;
   }
 }

@@ -2,12 +2,10 @@ package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.ChatService;
-import com.faforever.client.chat.InitiatePrivateChatEvent;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
-import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -24,8 +22,6 @@ public class SendPrivateMessageMenuItemTest extends PlatformTest {
   @Mock
   private I18n i18n;
   @Mock
-  private EventBus eventBus;
-  @Mock
   private PlayerService playerService;
   @Mock
   private ChatService chatService;
@@ -34,7 +30,7 @@ public class SendPrivateMessageMenuItemTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new SendPrivateMessageMenuItem(i18n, eventBus, playerService, chatService);
+    instance = new SendPrivateMessageMenuItem(i18n, playerService, chatService);
   }
 
   @Test
@@ -46,7 +42,7 @@ public class SendPrivateMessageMenuItemTest extends PlatformTest {
     instance.setObject(username);
     instance.onClicked();
 
-    verify(eventBus).post(any(InitiatePrivateChatEvent.class));
+    verify(chatService).onInitiatePrivateChat(any());
   }
 
   @Test

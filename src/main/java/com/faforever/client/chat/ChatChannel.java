@@ -2,7 +2,9 @@ package com.faforever.client.chat;
 
 import com.faforever.client.fx.JavaFxUtil;
 import javafx.beans.Observable;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -13,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -25,11 +26,25 @@ public class ChatChannel {
   @Getter
   private final String name;
 
-  private final ObservableMap<String, ChatChannelUser> usernameToChatUser = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
-  private final ObservableList<ChatChannelUser> users = JavaFxUtil.attachListToMap(FXCollections.synchronizedObservableList(FXCollections.observableArrayList(item -> new Observable[]{item.categoriesProperty(), item.colorProperty(), item.moderatorProperty()})), usernameToChatUser);
+  private final ObservableMap<String, ChatChannelUser> usernameToChatUser = FXCollections.synchronizedObservableMap(
+      FXCollections.observableHashMap());
+  private final ObservableList<ChatChannelUser> users = JavaFxUtil.attachListToMap(
+      FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
+          item -> new Observable[]{item.categoriesProperty(), item.colorProperty(), item.moderatorProperty()})),
+      usernameToChatUser);
   private final ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic("", ""));
   private final Set<Consumer<ChatMessage>> messageListeners = new HashSet<>();
-  private final List<ChatMessage> unprocessedMessages = new ArrayList<>();
+  private final List<ChatMessage> messages = new ArrayList<>();
+  private final BooleanProperty open = new SimpleBooleanProperty();
+
+  private int maxNumMessages = Integer.MAX_VALUE;
+
+  public void setMaxNumMessages(int maxNumMessages) {
+    this.maxNumMessages = maxNumMessages;
+    if (messages.size() > maxNumMessages) {
+      messages.subList(0, messages.size() - maxNumMessages).clear();
+    }
+  }
 
   public ChannelTopic getTopic() {
     return topic.get();
@@ -76,24 +91,16 @@ public class ChatChannel {
   }
 
   public void addMessage(ChatMessage message) {
-    if (messageListeners.isEmpty()) {
-      unprocessedMessages.add(message);
-    }
+    messages.add(message);
     messageListeners.forEach(chatMessageConsumer -> chatMessageConsumer.accept(message));
+    if (messages.size() > maxNumMessages) {
+      messages.remove(0);
+    }
   }
 
   public void addMessageListener(Consumer<ChatMessage> messageListener) {
     messageListeners.add(messageListener);
-    drainUnprocessed();
-  }
-
-  private void drainUnprocessed() {
-    Iterator<ChatMessage> unprocessedIterator = unprocessedMessages.iterator();
-    while (unprocessedIterator.hasNext()) {
-      ChatMessage message = unprocessedIterator.next();
-      messageListeners.forEach(chatMessageConsumer -> chatMessageConsumer.accept(message));
-      unprocessedIterator.remove();
-    }
+    messages.forEach(messageListener);
   }
 
   public void removeMessageListener(Consumer<ChatMessage> messageListener) {
@@ -106,5 +113,17 @@ public class ChatChannel {
 
   public boolean isPartyChannel() {
     return name.endsWith(ChatService.PARTY_CHANNEL_SUFFIX);
+  }
+
+  public boolean isOpen() {
+    return open.get();
+  }
+
+  public BooleanProperty openProperty() {
+    return open;
+  }
+
+  public void setOpen(boolean open) {
+    this.open.set(open);
   }
 }

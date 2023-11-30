@@ -1,6 +1,6 @@
 package com.faforever.client.vault.review;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.SimpleFloatProperty;
@@ -17,7 +17,7 @@ import java.util.stream.IntStream;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class StarsController implements Controller<Pane> {
+public class StarsController extends NodeController<Pane> {
   private static final PseudoClass SELECTABLE_PSEUDO_CLASS = PseudoClass.getPseudoClass("selectable");
 
   private final UiService uiService;
@@ -27,7 +27,8 @@ public class StarsController implements Controller<Pane> {
   public Pane starsRoot;
   private List<StarController> starControllers;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     starControllers = IntStream.range(0, 5).mapToObj(index -> {
       StarController starController = uiService.loadFxml("theme/vault/review/star.fxml");
       starController.fillProperty()

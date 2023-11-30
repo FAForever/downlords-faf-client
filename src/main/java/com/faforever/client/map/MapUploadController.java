@@ -3,11 +3,10 @@ package com.faforever.client.map;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.exception.AssetLoadException;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.event.MapUploadedEvent;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.CopyErrorAction;
 import com.faforever.client.notification.DismissAction;
@@ -19,7 +18,6 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.commons.api.dto.ApiException;
 import com.faforever.commons.map.PreviewGenerator;
-import com.google.common.eventbus.EventBus;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
@@ -51,7 +49,7 @@ import static java.util.Arrays.asList;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class MapUploadController implements Controller<Node> {
+public class MapUploadController extends NodeController<Node> {
 
   private final MapService mapService;
   private final ExecutorService executorService;
@@ -59,8 +57,8 @@ public class MapUploadController implements Controller<Node> {
   private final ReportingService reportingService;
   private final PlatformService platformService;
   private final I18n i18n;
-  private final EventBus eventBus;
   private final ClientProperties clientProperties;
+
   public Label rankedLabel;
   public Label uploadTaskMessageLabel;
   public Label uploadTaskTitleLabel;
@@ -80,11 +78,12 @@ public class MapUploadController implements Controller<Node> {
   public CheckBox rulesCheckBox;
   public Label rulesLabel;
   private Path mapPath;
-  private MapVersionBean mapInfo;
   private CompletableTask<Void> uploadMapTask;
   private Runnable cancelButtonClickedListener;
+  private Runnable uploadListener;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(mapInfoPane, uploadCompletePane, parseProgressPane, uploadProgressPane);
 
     mapInfoPane.setVisible(false);
@@ -130,7 +129,6 @@ public class MapUploadController implements Controller<Node> {
   }
 
   private void setMapInfo(MapVersionBean mapInfo) {
-    this.mapInfo = mapInfo;
     enterMapInfoState();
 
     mapNameLabel.setText(mapInfo.getMap().getDisplayName());
@@ -192,7 +190,11 @@ public class MapUploadController implements Controller<Node> {
     uploadProgressBar.progressProperty().bind(uploadMapTask.progressProperty());
 
     uploadMapTask.getFuture()
-        .thenAccept(v -> eventBus.post(new MapUploadedEvent(mapInfo)))
+                 .thenRun(() -> {
+                   if (uploadListener != null) {
+                     uploadListener.run();
+                   }
+                 })
         .thenRun(this::enterUploadCompleteState)
         .exceptionally(throwable -> {
           if (!(throwable instanceof CancellationException)) {
@@ -220,12 +222,17 @@ public class MapUploadController implements Controller<Node> {
     cancelButtonClickedListener.run();
   }
 
+  @Override
   public Region getRoot() {
     return mapUploadRoot;
   }
 
   public void setOnCancelButtonClickedListener(Runnable cancelButtonClickedListener) {
     this.cancelButtonClickedListener = cancelButtonClickedListener;
+  }
+
+  public void setUploadListener(Runnable uploadListener) {
+    this.uploadListener = uploadListener;
   }
 
   public void onShowRulesClicked() {

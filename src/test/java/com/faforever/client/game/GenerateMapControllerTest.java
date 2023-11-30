@@ -79,7 +79,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testBadMapNameFails() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
     instance.previousMapName.setText("Bad");
     instance.onGenerateMap();
@@ -89,7 +89,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testSetLastSpawnCount() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(10, instance.spawnCountSpinner.getValue().intValue());
@@ -99,7 +99,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testSetLastNumTeams() {
     generatorPrefs.setNumTeams(5);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(instance.numTeamsSpinner.getValue().intValue(), 5);
@@ -108,7 +108,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   @Test
   public void testSetLastMapSize() {
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(instance.mapSizeSpinner.getValue(), 10.0);
@@ -119,7 +119,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testSetLastMapStyle() {
     generatorPrefs.setMapStyle("TEST");
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.setStyles(new ArrayList<>(List.of("TEST")));
@@ -131,7 +131,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testSetLastWaterRandom() {
     generatorPrefs.setWaterRandom(false);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.waterRandom.isSelected());
@@ -141,7 +141,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testSetLastPlateauRandom() {
     generatorPrefs.setPlateauRandom(false);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.plateauRandom.isSelected());
@@ -151,7 +151,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testSetLastMountainRandom() {
     generatorPrefs.setMountainRandom(false);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.mountainRandom.isSelected());
@@ -161,7 +161,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testSetLastRampRandom() {
     generatorPrefs.setRampRandom(false);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.rampRandom.isSelected());
@@ -171,7 +171,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testSetLastMexRandom() {
     generatorPrefs.setMexRandom(false);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.mexRandom.isSelected());
@@ -181,7 +181,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testSetLastReclaimRandom() {
     generatorPrefs.setReclaimRandom(false);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.reclaimRandom.isSelected());
@@ -191,7 +191,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testSetLastWaterSlider() {
     generatorPrefs.setWaterDensity(71);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(instance.waterSlider.getValue(), 71, 0);
@@ -201,7 +201,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testSetLastMountainSlider() {
     generatorPrefs.setMountainDensity(71);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(instance.mountainSlider.getValue(), 71, 0);
@@ -211,7 +211,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testSetLastPlateauSlider() {
     generatorPrefs.setPlateauDensity(71);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(instance.plateauSlider.getValue(), 71, 0);
@@ -221,7 +221,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testSetLastRampSlider() {
     generatorPrefs.setRampDensity(71);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(instance.rampSlider.getValue(), 71, 0);
@@ -231,7 +231,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testSetLastMexSlider() {
     generatorPrefs.setMexDensity(71);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(instance.mexSlider.getValue(), 71, 0);
@@ -241,7 +241,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testSetLastReclaimSlider() {
     generatorPrefs.setReclaimDensity(71);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(instance.reclaimSlider.getValue(), 71, 0);
@@ -251,7 +251,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testSetLastCommandLineArgs() {
     generatorPrefs.setCommandLineArgs("--help");
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals("--help", instance.commandLineArgsText.getText());
@@ -261,7 +261,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testCommandLineArgsNotVisibleWhenNotSetInitially() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.commandLineArgsText.isVisible());
@@ -270,7 +270,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testToggleCommandLineArgs() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.commandLineArgsText.isVisible());
@@ -285,7 +285,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testStylesVisibleWhenPopulated() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.setStyles(new ArrayList<>(List.of("TEST")));
@@ -296,7 +296,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testStylesNotVisibleWhenNotPopulated() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.mapStyleLabel.isVisible());
@@ -307,7 +307,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testWaterSliderVisibilityWhenRandom() {
     generatorPrefs.setWaterRandom(true);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.waterSliderBox.isVisible());
@@ -317,7 +317,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testPlateauSliderVisibilityWhenRandom() {
     generatorPrefs.setPlateauRandom(true);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.plateauSliderBox.isVisible());
@@ -327,7 +327,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testMountainSliderVisibilityWhenRandom() {
     generatorPrefs.setMountainRandom(true);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.mountainSliderBox.isVisible());
@@ -337,7 +337,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testRampSliderVisibilityWhenRandom() {
     generatorPrefs.setRampRandom(true);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.rampSliderBox.isVisible());
@@ -347,7 +347,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testMexSliderVisibilityWhenRandom() {
     generatorPrefs.setMexRandom(true);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.mexSliderBox.isVisible());
@@ -357,7 +357,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testReclaimSliderVisibilityWhenRandom() {
     generatorPrefs.setReclaimRandom(true);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.reclaimSliderBox.isVisible());
@@ -367,7 +367,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testWaterSliderVisibilityWhenNotRandom() {
     generatorPrefs.setWaterRandom(false);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.waterSliderBox.isVisible());
@@ -377,7 +377,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testPlateauSliderVisibilityWhenNotRandom() {
     generatorPrefs.setPlateauRandom(false);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.plateauSliderBox.isVisible());
@@ -387,7 +387,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testMountainSliderVisibilityWhenNotRandom() {
     generatorPrefs.setMountainRandom(false);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.mountainSliderBox.isVisible());
@@ -397,7 +397,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testRampSliderVisibilityWhenNotRandom() {
     generatorPrefs.setRampRandom(false);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.rampSliderBox.isVisible());
@@ -407,7 +407,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testMexSliderVisibilityWhenNotRandom() {
     generatorPrefs.setMexRandom(false);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.mexSliderBox.isVisible());
@@ -417,7 +417,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testReclaimSliderVisibilityWhenNotRandom() {
     generatorPrefs.setReclaimRandom(false);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.reclaimSliderBox.isVisible());
@@ -425,7 +425,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testOptionsNotDisabledWithoutMapName() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
     instance.previousMapName.setText("neroxis_map_generator");
     instance.previousMapName.setText("");
@@ -448,7 +448,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testOptionsDisabledWithMapName() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
     instance.previousMapName.setText("neroxis_map_generator");
 
@@ -471,7 +471,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testOptionsDisabledWithCommandLine() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
     instance.commandLineArgsText.setText("--help");
 
@@ -493,7 +493,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testOptionsDisabledWithStyle() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
     instance.mapStyleComboBox.setItems(FXCollections.observableList(List.of("TEST")));
     instance.mapStyleComboBox.getSelectionModel().selectFirst();
@@ -514,7 +514,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testOptionsNotDisabledWithNoStyle() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
     instance.mapStyleComboBox.getSelectionModel().clearSelection();
 
@@ -534,7 +534,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testOptionsNotDisabledWithRandomStyle() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
     instance.mapStyleComboBox.setItems(FXCollections.observableList(List.of(MapGeneratorService.GENERATOR_RANDOM_STYLE)));
     instance.mapStyleComboBox.getSelectionModel().selectFirst();
@@ -555,7 +555,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testOptionsNotDisabledWithCasual() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
     instance.generationTypeComboBox.setValue(GenerationType.TOURNAMENT);
     instance.generationTypeComboBox.setValue(GenerationType.CASUAL);
@@ -577,7 +577,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testOptionsDisabledWithTournament() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
     instance.generationTypeComboBox.setValue(GenerationType.TOURNAMENT);
 
@@ -599,7 +599,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testOptionsDisabledWithBlind() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
     instance.generationTypeComboBox.setValue(GenerationType.BLIND);
 
@@ -621,7 +621,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testOptionsDisabledWithUnexplored() {
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
     instance.generationTypeComboBox.setValue(GenerationType.UNEXPLORED);
 
@@ -643,7 +643,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testGetGenerateMapWithName() {
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> reinitialize(instance));
     instance.previousMapName.setText("neroxis_map_generator_0.0.0_12345");
     instance.setOnCloseButtonClickedListener(() -> {});
     when(mapGeneratorService.isGeneratedMap("neroxis_map_generator_0.0.0_12345")).thenReturn(true);
@@ -677,7 +677,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     instance.mapStyleComboBox.setItems(FXCollections.observableList(List.of("TEST")));
     instance.mapStyleComboBox.getSelectionModel().selectFirst();
 
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> reinitialize(instance));
 
     ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
 
@@ -705,7 +705,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   public void testGetGenerateMapWithCommandLineArgs() {
     generatorPrefs.setCommandLineArgs("--test");
 
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> reinitialize(instance));
 
     ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
 
@@ -727,7 +727,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     generatorPrefs.setMexRandom(true);
     generatorPrefs.setReclaimRandom(true);
 
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> reinitialize(instance));
 
     ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
 

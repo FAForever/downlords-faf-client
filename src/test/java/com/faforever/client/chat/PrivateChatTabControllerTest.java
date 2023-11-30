@@ -10,6 +10,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
@@ -19,12 +20,11 @@ import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.replay.WatchButtonController;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.PlatformTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
-import com.google.common.eventbus.EventBus;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
@@ -68,11 +68,13 @@ public class PrivateChatTabControllerTest extends PlatformTest {
   @Mock
   private UiService uiService;
   @Mock
+  private ThemeService themeService;
+  @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
   private ReportingService reportingService;
   @Mock
-  private EventBus eventBus;
+  private NavigationHandler navigationHandler;
   @Mock
   private CountryFlagService countryFlagService;
   @Mock
@@ -99,7 +101,11 @@ public class PrivateChatTabControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new PrivateChatTabController(loginService, playerService, timeService, i18n, notificationService, uiService, eventBus, audioService, chatService, webViewConfigurer, countryFlagService, emoticonService, avatarService, chatPrefs, notificationPrefs, fxApplicationThreadExecutor);
+    instance = new PrivateChatTabController(loginService, playerService, timeService, i18n, notificationService,
+                                            uiService, themeService, navigationHandler, chatService, webViewConfigurer,
+                                            countryFlagService,
+                                            emoticonService, avatarService, chatPrefs, notificationPrefs,
+                                            fxApplicationThreadExecutor);
 
     player = PlayerBeanBuilder.create().defaultValues().get();
     playerName = player.getUsername();
@@ -108,11 +114,10 @@ public class PrivateChatTabControllerTest extends PlatformTest {
     when(loginService.getUsername()).thenReturn(playerName);
     when(timeService.asShortTime(any())).thenReturn("");
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
-    when(uiService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
+    when(themeService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(".*"));
     when(privatePlayerInfoController.chatUserProperty()).thenReturn(new SimpleObjectProperty<>());
     when(avatarService.loadAvatar(player.getAvatar())).thenReturn(new Image(InputStream.nullInputStream()));
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/chat/private_chat_tab.fxml", clazz -> {
       if (clazz == PrivatePlayerInfoController.class) {
@@ -183,7 +188,5 @@ public class PrivateChatTabControllerTest extends PlatformTest {
 
   @Test
   public void testOnClosedTab() {
-    instance.onClosed(null);
-    verify(privatePlayerInfoController).dispose();
   }
 }

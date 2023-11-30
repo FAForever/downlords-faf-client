@@ -1,18 +1,16 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.chat.ChatChannel;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.MatchmakingChatController;
+import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.SimpleChangeListener;
-import com.faforever.client.fx.SimpleInvalidationListener;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -21,15 +19,13 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.Faction;
-import javafx.beans.WeakInvalidationListener;
+import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -48,7 +44,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -66,7 +61,7 @@ import static com.faforever.client.chat.ChatService.PARTY_CHANNEL_SUFFIX;
 @RequiredArgsConstructor
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class TeamMatchmakingController extends AbstractViewController<Node> {
+public class TeamMatchmakingController extends NodeController<Node> {
 
   public static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
   public static final PseudoClass CHAT_AT_BOTTOM_PSEUDO_CLASS = PseudoClass.getPseudoClass("bottom");
@@ -110,106 +105,110 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public GridPane contentPane;
   public ColumnConstraints column2;
   public RowConstraints row2;
+  public MatchmakingChatController matchmakingChatController;
+
   private Map<Faction, ToggleButton> factionsToButtons;
-  @VisibleForTesting
-  protected MatchmakingChatController matchmakingChatController;
-  private final SimpleInvalidationListener searchButtonInvalidationListener = this::setSearchButtonText;
-  private final SimpleChangeListener<PlayerBean> ownerChangeListener = newValue -> {
-    if (matchmakingChatController != null) {
-      matchmakingChatController.closeChannel();
-    }
-    createChannelTab("#" + newValue.getUsername() + PARTY_CHANNEL_SUFFIX);
+
+  private final InvalidationListener partyMembersListener = observable -> {
+    refreshingLabel.setVisible(false);
+    renderPartyMembers();
   };
-  private final SimpleInvalidationListener currentPlayerListener = this::setLeagueInfo;
+  private final ListChangeListener<MatchmakerQueueBean> queueChangeListener = change -> {
+    boolean shouldReRender = false;
+    while (change.next()) {
+      shouldReRender |= change.wasAdded() || change.wasRemoved();
+    }
+
+    if (shouldReRender) {
+      renderQueues();
+    }
+  };
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView, leagueImageView);
     JavaFxUtil.fixScrollSpeed(scrollPane);
 
-    factionsToButtons = Map.of(Faction.UEF, uefButton, Faction.AEON, aeonButton, Faction.CYBRAN, cybranButton, Faction.SERAPHIM, seraphimButton);
-
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
+    factionsToButtons = Map.of(Faction.UEF, uefButton, Faction.AEON, aeonButton, Faction.CYBRAN, cybranButton,
+                               Faction.SERAPHIM, seraphimButton);
 
     searchButton.selectedProperty().bindBidirectional(teamMatchmakingService.searchingProperty());
 
     ReadOnlyObjectProperty<PlayerBean> currentPlayerProperty = playerService.currentPlayerProperty();
     searchButton.disableProperty()
-        .bind(teamMatchmakingService.getParty().ownerProperty().isNotEqualTo(currentPlayerProperty)
-            .or(teamMatchmakingService.partyMembersNotReadyProperty())
-            .or(teamMatchmakingService.anyQueueSelectedProperty().not().and(searchButton.selectedProperty().not()))
-            .when(showing));
+                .bind(teamMatchmakingService.getParty()
+                                            .ownerProperty()
+                                            .isNotEqualTo(currentPlayerProperty)
+                                            .or(teamMatchmakingService.partyMembersNotReadyProperty())
+                                            .or(teamMatchmakingService.anyQueueSelectedProperty()
+                                                                      .not()
+                                                                      .and(searchButton.selectedProperty().not()))
+                                            .when(showing));
 
     initializeDynamicChatPosition();
     initializeUppercaseText();
 
-    BooleanExpression notPartyOwner = BooleanBinding.booleanExpression(teamMatchmakingService.getParty()
-        .ownerProperty()
-        .isNotEqualTo(playerService.currentPlayerProperty()));
+    BooleanExpression notPartyOwner = BooleanBinding.booleanExpression(
+        teamMatchmakingService.getParty().ownerProperty().isNotEqualTo(playerService.currentPlayerProperty()));
 
     leavePartyButton.disableProperty().bind(notPartyOwner.not().when(showing));
     invitePlayerButton.disableProperty().bind(notPartyOwner.when(showing));
 
     countryImageView.imageProperty()
-        .bind(currentPlayerProperty.flatMap(PlayerBean::countryProperty)
-            .map(country -> countryFlagService.loadCountryFlag(country).orElse(null))
-            .when(showing));
+                    .bind(currentPlayerProperty.flatMap(PlayerBean::countryProperty)
+                                               .map(country -> countryFlagService.loadCountryFlag(country).orElse(null))
+                                               .when(showing));
 
     avatarImageView.imageProperty()
-        .bind(currentPlayerProperty.flatMap(PlayerBean::avatarProperty).map(avatarService::loadAvatar));
+                   .bind(currentPlayerProperty.flatMap(PlayerBean::avatarProperty)
+                                              .map(avatarService::loadAvatar)
+                                              .when(showing));
 
     ObservableValue<String> clanTagProperty = currentPlayerProperty.flatMap(PlayerBean::clanProperty);
     clanLabel.visibleProperty().bind(clanTagProperty.map(clanTag -> !clanTag.isBlank()).orElse(false).when(showing));
     clanLabel.textProperty().bind(clanTagProperty.map("[%s]"::formatted).orElse("").when(showing));
     gameCountLabel.textProperty()
-        .bind(currentPlayerProperty.flatMap(PlayerBean::numberOfGamesProperty)
-            .map(numGames -> i18n.get("teammatchmaking.gameCount", numGames))
-            .map(String::toUpperCase)
-            .when(showing));
+                  .bind(currentPlayerProperty.flatMap(PlayerBean::numberOfGamesProperty)
+                                             .map(numGames -> i18n.get("teammatchmaking.gameCount", numGames))
+                                             .map(String::toUpperCase)
+                                             .when(showing));
     usernameLabel.textProperty().bind(currentPlayerProperty.flatMap(PlayerBean::usernameProperty).when(showing));
-    crownLabel.visibleProperty().bind(Bindings.size(teamMatchmakingService.getParty().getMembers()).greaterThan(1)
-        .and(notPartyOwner.not())
-        .when(showing));
+    crownLabel.visibleProperty()
+              .bind(Bindings.size(teamMatchmakingService.getParty().getMembers())
+                            .greaterThan(1)
+                            .and(notPartyOwner.not())
+                            .when(showing));
 
-    teamMatchmakingService.inQueueProperty()
-        .addListener(new WeakInvalidationListener(searchButtonInvalidationListener));
+    teamMatchmakingService.inQueueProperty().when(showing).subscribe(this::setSearchButtonText);
+    teamMatchmakingService.getParty().ownerProperty().when(showing).subscribe(this::setSearchButtonText);
+    teamMatchmakingService.partyMembersNotReadyProperty().when(showing).subscribe(this::setSearchButtonText);
+    teamMatchmakingService.anyQueueSelectedProperty().when(showing).subscribe(this::setSearchButtonText);
+    currentPlayerProperty.when(showing).subscribe(this::setSearchButtonText);
     teamMatchmakingService.getParty()
-        .ownerProperty()
-        .addListener(new WeakInvalidationListener(searchButtonInvalidationListener));
-    teamMatchmakingService.partyMembersNotReadyProperty()
-        .addListener(new WeakInvalidationListener(searchButtonInvalidationListener));
-    teamMatchmakingService.anyQueueSelectedProperty()
-        .addListener(new WeakInvalidationListener(searchButtonInvalidationListener));
-    JavaFxUtil.addAndTriggerListener(currentPlayerProperty, new WeakInvalidationListener(searchButtonInvalidationListener));
+                          .ownerProperty()
+                          .flatMap(PlayerBean::usernameProperty)
+                          .when(showing)
+                          .subscribe(newValue -> {
+                            setChannel("#" + newValue + PARTY_CHANNEL_SUFFIX);
+                          });
 
-    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty()
-        .ownerProperty(), new WeakChangeListener<>(ownerChangeListener));
+    currentPlayerProperty.when(showing).subscribe(this::setLeagueInfo);
 
-    JavaFxUtil.addAndTriggerListener(currentPlayerProperty, new WeakInvalidationListener(currentPlayerListener));
-    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty()
-        .getMembers(), observable -> renderPartyMembers());
-    JavaFxUtil.addListener(teamMatchmakingService.getQueues(), (ListChangeListener<MatchmakerQueueBean>) change -> {
-      boolean shouldReRender = false;
-      while (change.next()) {
-        shouldReRender |= change.wasAdded() || change.wasRemoved();
-      }
-
-      if (shouldReRender) {
-        renderQueues();
-      }
-    });
-    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty()
-        .getMembers(), observable -> {
-      refreshingLabel.setVisible(false);
-      selectFactionsBasedOnParty();
-    });
-
-
-    ObservableList<Faction> factions = matchmakerPrefs.getFactions();
-    selectFactions(factions);
-    teamMatchmakingService.sendFactionSelection(factions);
+    selectFactions(matchmakerPrefs.getFactions());
     teamMatchmakingService.requestMatchmakerInfo();
+  }
+
+  @Override
+  public void onShow() {
+    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().getMembers(), partyMembersListener);
+    JavaFxUtil.addListener(teamMatchmakingService.getQueues(), queueChangeListener);
     renderQueues();
+  }
+
+  @Override
+  public void onHide() {
+    JavaFxUtil.removeListener(teamMatchmakingService.getQueues(), queueChangeListener);
+    JavaFxUtil.removeListener(teamMatchmakingService.getParty().getMembers(), partyMembersListener);
   }
 
   private void initializeDynamicChatPosition() {
@@ -261,25 +260,25 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     fxApplicationThreadExecutor.execute(() -> searchButton.setText(buttonText));
   }
 
-  private void setLeagueInfo() {
-    PlayerBean currentPlayer = playerService.getCurrentPlayer();
+  private void setLeagueInfo(PlayerBean currentPlayer) {
     if (currentPlayer == null) {
       return;
     }
 
-    leaderboardService.getHighestActiveLeagueEntryForPlayer(currentPlayer)
-        .thenAcceptAsync(leagueEntry -> {
-          if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
-            leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
-            leagueImageView.setVisible(false);
-          } else {
-            SubdivisionBean subdivision = leagueEntry.get().getSubdivision();
-            leagueLabel.setText(i18n.get("leaderboard.divisionName", i18n.getOrDefault(subdivision.getDivision()
-                .getNameKey(), subdivision.getDivisionI18nKey()), subdivision.getNameKey()).toUpperCase());
-            leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
-            leagueImageView.setVisible(true);
-          }
-        }, fxApplicationThreadExecutor);
+    leaderboardService.getHighestActiveLeagueEntryForPlayer(currentPlayer).thenAcceptAsync(leagueEntry -> {
+      SubdivisionBean subdivision = leagueEntry.map(LeagueEntryBean::getSubdivision).orElse(null);
+      if (subdivision == null) {
+        leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
+        leagueImageView.setVisible(false);
+      } else {
+        leagueLabel.setText(i18n.get("leaderboard.divisionName",
+                                     i18n.getOrDefault(subdivision.getDivision().getNameKey(),
+                                                       subdivision.getDivisionI18nKey()), subdivision.getNameKey())
+                                .toUpperCase());
+        leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
+        leagueImageView.setVisible(true);
+      }
+    }, fxApplicationThreadExecutor);
   }
 
   private void renderPartyMembers() {
@@ -288,14 +287,18 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       List<PartyMember> members = new ArrayList<>(teamMatchmakingService.getParty().getMembers());
       members.removeIf(partyMember -> currentPlayer.equals(partyMember.getPlayer()));
       List<Node> memberCards = members.stream().map(member -> {
-        PartyMemberItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml");
+        PartyMemberItemController controller = uiService.loadFxml(
+            "theme/play/teammatchmaking/matchmaking_member_card.fxml");
         controller.setMember(member);
         return controller.getRoot();
       }).toList();
       fxApplicationThreadExecutor.execute(() -> {
         playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS, (teamMatchmakingService.getParty()
-            .getOwner()
-            .equals(currentPlayer) && teamMatchmakingService.getParty().getMembers().size() > 1));
+                                                                                       .getOwner()
+                                                                                       .equals(
+                                                                                           currentPlayer) && teamMatchmakingService.getParty()
+                                                                                                                                   .getMembers()
+                                                                                                                                   .size() > 1));
         partyMemberPane.getChildren().clear();
         int numMemberCards = memberCards.size();
         for (int i = 0; i < numMemberCards; i++) {
@@ -315,7 +318,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   public void onInvitePlayerButtonClicked() {
-    InvitePlayerController invitePlayerController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_invite_player.fxml");
+    InvitePlayerController invitePlayerController = uiService.loadFxml(
+        "theme/play/teammatchmaking/matchmaking_invite_player.fxml");
     Pane root = invitePlayerController.getRoot();
     uiService.showInDialog(teamMatchmakingRoot, root, i18n.get("teammatchmaking.invitePlayer"));
   }
@@ -326,58 +330,42 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   public void onFactionButtonClicked() {
     List<Faction> factions = factionsToButtons.entrySet()
-        .stream()
-        .filter(entry -> entry.getValue().isSelected())
-        .map(Map.Entry::getKey)
-        .sorted(Comparator.naturalOrder())
-        .collect(Collectors.toList());
+                                              .stream()
+                                              .filter(entry -> entry.getValue().isSelected())
+                                              .map(Map.Entry::getKey)
+                                              .sorted(Comparator.naturalOrder())
+                                              .collect(Collectors.toList());
 
     if (factions.isEmpty()) {
-      selectFactionsBasedOnParty();
+      selectFactions(matchmakerPrefs.getFactions());
       return;
     }
     matchmakerPrefs.getFactions().setAll(factions);
 
-    teamMatchmakingService.sendFactionSelection(factions);
     refreshingLabel.setVisible(true);
-  }
-
-  private void selectFactionsBasedOnParty() {
-    List<Faction> factions = teamMatchmakingService.getParty()
-        .getMembers()
-        .stream()
-        .filter(member -> Objects.equals(member.getPlayer().getId(), playerService.getCurrentPlayer().getId()))
-        .findFirst()
-        .map(PartyMember::getFactions)
-        .orElse(List.of());
-    selectFactions(factions);
   }
 
   private void selectFactions(List<Faction> factions) {
     factionsToButtons.forEach((faction, toggleButton) -> toggleButton.setSelected(factions.contains(faction)));
   }
 
-  private void createChannelTab(String channelName) {
-    chatService.joinChannel(channelName);
-    ChatChannel chatChannel = chatService.getOrCreateChannel(channelName);
-    matchmakingChatController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml");
-    matchmakingChatController.setChatChannel(chatChannel);
-    fxApplicationThreadExecutor.execute(() -> {
-      chatTabPane.getTabs().clear();
-      chatTabPane.getTabs().add(matchmakingChatController.getRoot());
-    });
+  private void setChannel(String channelName) {
+    matchmakingChatController.setChatChannel(chatService.getOrCreateChannel(channelName));
   }
 
-  private synchronized void renderQueues() {
+  private void renderQueues() {
     List<MatchmakerQueueBean> queues = new ArrayList<>(teamMatchmakingService.getQueues());
     queues.sort(Comparator.comparing(MatchmakerQueueBean::getTeamSize).thenComparing(MatchmakerQueueBean::getId));
     int queuesPerRow = Math.min(queues.size(), 4);
+    ObservableValue<Number> prefWidth = queuePane.widthProperty()
+                                                 .divide(queuesPerRow)
+                                                 .subtract(queuePane.getHgap())
+                                                 .when(showing);
     List<VBox> queueCards = queues.stream().map(queue -> {
-      MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
+      MatchmakingQueueItemController controller = uiService.loadFxml(
+          "theme/play/teammatchmaking/matchmaking_queue_card.fxml");
       controller.setQueue(queue);
-      controller.getRoot()
-          .prefWidthProperty()
-          .bind(queuePane.widthProperty().divide(queuesPerRow).subtract(queuePane.getHgap()));
+      controller.getRoot().prefWidthProperty().bind(prefWidth);
       return controller.getRoot();
     }).collect(Collectors.toList());
     fxApplicationThreadExecutor.execute(() -> queuePane.getChildren().setAll(queueCards));
@@ -385,8 +373,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   public void onSearchButtonClicked() {
     if (searchButton.isSelected()) {
-      teamMatchmakingService.joinQueues()
-          .thenAcceptAsync(searchButton::setSelected, fxApplicationThreadExecutor);
+      teamMatchmakingService.joinQueues().thenAcceptAsync(searchButton::setSelected, fxApplicationThreadExecutor);
     } else {
       teamMatchmakingService.leaveQueues();
     }

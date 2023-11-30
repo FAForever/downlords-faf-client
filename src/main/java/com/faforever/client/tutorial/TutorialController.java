@@ -2,8 +2,8 @@ package com.faforever.client.tutorial;
 
 import com.faforever.client.domain.TutorialBean;
 import com.faforever.client.domain.TutorialCategoryBean;
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.theme.UiService;
 import javafx.scene.Node;
@@ -23,7 +23,7 @@ import java.util.List;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class TutorialController extends AbstractViewController<Node> {
+public class TutorialController extends NodeController<Node> {
   private final TutorialService tutorialService;
   private final UiService uiService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -37,8 +37,8 @@ public class TutorialController extends AbstractViewController<Node> {
   private final List<TutorialListItemController> tutorialListItemControllers = new ArrayList<>();
 
   @Override
-  public void onDisplay(NavigateEvent navigateEvent) {
-    super.onDisplay(navigateEvent);
+  public void onNavigate(NavigateEvent navigateEvent) {
+    super.onNavigate(navigateEvent);
     setLoading(true);
     setNothingToShow(false);
     tutorialListItemControllers.clear();

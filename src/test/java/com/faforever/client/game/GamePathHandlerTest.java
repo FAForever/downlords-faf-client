@@ -4,13 +4,11 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
-import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -21,8 +19,6 @@ public class GamePathHandlerTest extends ServiceTest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private EventBus eventBus;
-  @Mock
   private I18n i18n;
 
   @InjectMocks
@@ -31,7 +27,7 @@ public class GamePathHandlerTest extends ServiceTest {
   @Test
   public void testNotificationOnEmptyString() throws Exception {
     CompletableFuture<Path> completableFuture = new CompletableFuture<>();
-    instance.onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(null, Optional.of(completableFuture)));
+    instance.onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(null, completableFuture));
     verify(notificationService).addImmediateWarnNotification("gamePath.select.noneChosen");
     assertThat(completableFuture.isCompletedExceptionally(), is(true));
   }
@@ -39,7 +35,7 @@ public class GamePathHandlerTest extends ServiceTest {
   @Test
   public void testNotificationOnNull() throws Exception {
     CompletableFuture<Path> completableFuture = new CompletableFuture<>();
-    instance.onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(null, Optional.of(completableFuture)));
+    instance.onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(null, completableFuture));
     verify(notificationService).addImmediateWarnNotification("gamePath.select.noneChosen");
     assertThat(completableFuture.isCompletedExceptionally(), is(true));
   }

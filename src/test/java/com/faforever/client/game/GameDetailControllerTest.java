@@ -18,7 +18,6 @@ import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
-import com.google.common.eventbus.EventBus;
 import javafx.animation.Animation.Status;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -75,8 +74,6 @@ public class GameDetailControllerTest extends PlatformTest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private EventBus eventBus;
-  @Mock
   private ImageViewHelper imageViewHelper;
 
   @Mock
@@ -111,7 +108,6 @@ public class GameDetailControllerTest extends PlatformTest {
     when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
     when(i18n.get("game.detail.players.format", game.getNumActivePlayers(), game.getMaxPlayers())).thenReturn(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()));
     when(i18n.get("unknown")).thenReturn("unknown");
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/play/game_detail.fxml", clazz -> {
       if (clazz == WatchButtonController.class) {

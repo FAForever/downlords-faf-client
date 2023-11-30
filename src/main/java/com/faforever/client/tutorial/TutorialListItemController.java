@@ -1,7 +1,7 @@
 package com.faforever.client.tutorial;
 
 import com.faforever.client.domain.TutorialBean;
-import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.google.common.base.Strings;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class TutorialListItemController extends AbstractViewController<Node> {
+public class TutorialListItemController extends NodeController<Node> {
 
   public static final PseudoClass SELECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("selected");
   public GridPane root;

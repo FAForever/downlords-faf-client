@@ -9,7 +9,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenMapVaultEvent;
 import com.faforever.client.main.event.ShowMapPoolEvent;
-import com.faforever.client.map.event.MapUploadedEvent;
 import com.faforever.client.map.management.MapsManagementController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -21,8 +20,6 @@ import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import javafx.scene.Node;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -41,7 +38,6 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
 
   private final MapService mapService;
   private final PlatformService platformService;
-  private final EventBus eventBus;
   private final VaultPrefs vaultPrefs;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
 
@@ -49,7 +45,7 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
   private Integer recommendedShowRoomPageCount;
   private MatchmakerQueueBean matchmakerQueue;
 
-  public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus,
+  public MapVaultController(MapService mapService, I18n i18n,
                             UiService uiService, NotificationService notificationService,
                             ReportingService reportingService,
                             PlatformService platformService, VaultPrefs vaultPrefs,
@@ -57,22 +53,20 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
                             FxApplicationThreadExecutor fxApplicationThreadExecutor) {
     super(uiService, notificationService, i18n, reportingService, vaultPrefs, fxApplicationThreadExecutor);
     this.mapService = mapService;
-    this.eventBus = eventBus;
     this.platformService = platformService;
     this.vaultPrefs = vaultPrefs;
     this.forgedAlliancePrefs = forgedAlliancePrefs;
   }
 
   @Override
-  public void initialize() {
-    super.initialize();
+  protected void onInitialize() {
+    super.onInitialize();
     manageVaultButton.setVisible(true);
     manageVaultButton.setText(i18n.get("management.maps.openButton.label"));
     mapService.getRecommendedMapPageCount(TOP_ELEMENT_COUNT).thenAccept(numPages -> recommendedShowRoomPageCount = numPages);
-
-    eventBus.register(this);
   }
 
+  @Override
   protected void initSearchController() {
     searchController.setRootType(com.faforever.commons.api.dto.Map.class);
     searchController.setSearchableProperties(SearchablePropertyMappings.MAP_PROPERTY_MAPPING);
@@ -109,6 +103,7 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
     mapDetailController.getRoot().requestFocus();
   }
 
+  @Override
   protected void setSupplier(SearchConfig searchConfig) {
     switch (searchType) {
       case SEARCH -> currentSupplier = mapService.findByQueryWithPageCount(searchConfig, pageSize, pagination.getCurrentPageIndex() + 1);
@@ -146,6 +141,7 @@ return List.of(
         new ShowRoomCategory(() -> mapService.getOwnedMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.OWN, "mapVault.owned"));
   }
 
+  @Override
   public void onUploadButtonClicked() {
     platformService.askForPath(i18n.get("mapVault.upload.chooseDirectory"), forgedAlliancePrefs.getMapsDirectory())
         .ifPresent(this::openUploadWindow);
@@ -188,10 +184,6 @@ return List.of(
     Dialog dialog = uiService.showInDialog(vaultRoot, root, i18n.get("mapVault.upload.title"));
     uiService.makeScrollableDialog(dialog);
     mapUploadController.setOnCancelButtonClickedListener(dialog::close);
-  }
-
-  @Subscribe
-  public void onMapUploaded(MapUploadedEvent event) {
-    onRefreshButtonClicked();
+    mapUploadController.setUploadListener(this::onRefreshButtonClicked);
   }
 }

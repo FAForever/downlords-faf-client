@@ -2,9 +2,9 @@ package com.faforever.client.mod;
 
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.StringListCell;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -37,7 +37,7 @@ import java.util.function.Predicate;
 @Component
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ModManagerController implements Controller<Parent> {
+public class ModManagerController extends NodeController<Parent> {
 
   private static final Predicate<ModVersionBean> UI_FILTER = modVersion -> modVersion.getModType() == ModType.UI;
   private static final Predicate<ModVersionBean> SIM_FILTER = modVersion -> modVersion.getModType() == ModType.SIM;
@@ -92,7 +92,7 @@ public class ModManagerController implements Controller<Parent> {
   }
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(closeButton);
     modListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     modListView.setCellFactory(modListCellFactory());

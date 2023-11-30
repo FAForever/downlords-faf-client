@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.audio.AudioService;
 import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
@@ -15,12 +14,12 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.PlatformTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Labeled;
@@ -43,15 +42,16 @@ import java.util.regex.Pattern;
 
 import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.player.SocialStatus.OTHER;
-import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
-import static com.faforever.client.theme.UiService.CHAT_SECTION_COMPACT;
-import static com.faforever.client.theme.UiService.CHAT_TEXT_COMPACT;
-import static com.faforever.client.theme.UiService.CHAT_TEXT_EXTENDED;
+import static com.faforever.client.theme.ThemeService.CHAT_CONTAINER;
+import static com.faforever.client.theme.ThemeService.CHAT_SECTION_COMPACT;
+import static com.faforever.client.theme.ThemeService.CHAT_TEXT_COMPACT;
+import static com.faforever.client.theme.ThemeService.CHAT_TEXT_EXTENDED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -84,13 +84,11 @@ public class ChatChannelTabControllerTest extends PlatformTest {
   @Mock
   private UiService uiService;
   @Mock
+  private ThemeService themeService;
+  @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
-  private AudioService audioService;
-  @Mock
   private ReportingService reportingService;
-  @Mock
-  private EventBus eventBus;
   @Mock
   private CountryFlagService countryFlagService;
   @Mock
@@ -111,12 +109,15 @@ public class ChatChannelTabControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     defaultChatChannel = new ChatChannel(CHANNEL_NAME);
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     when(loginService.getUsername()).thenReturn(USER_NAME);
-    when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
-    when(uiService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_section.html"));
-    when(uiService.getThemeFileUrl(CHAT_TEXT_EXTENDED)).thenReturn(getClass().getResource("/theme/chat/extended/chat_text.html"));
-    when(uiService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_text.html"));
+    when(themeService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(
+        getClass().getResource("/theme/chat/chat_container.html"));
+    when(themeService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(
+        getClass().getResource("/theme/chat/compact/chat_section.html"));
+    when(themeService.getThemeFileUrl(CHAT_TEXT_EXTENDED)).thenReturn(
+        getClass().getResource("/theme/chat/extended/chat_text.html"));
+    when(themeService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(
+        getClass().getResource("/theme/chat/compact/chat_text.html"));
     when(timeService.asShortTime(any())).thenReturn("now");
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile("-----"));
     when(chatService.getOrCreateChatUser(any(String.class), eq(CHANNEL_NAME))).thenReturn(new ChatChannelUser("junit", "test"));
@@ -363,28 +364,28 @@ public class ChatChannelTabControllerTest extends PlatformTest {
   public void testAtMentionTriggersNotification() {
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello @" + USER_NAME + "!!"));
-    verify(audioService).playChatMentionSound();
+    verify(chatService).incrementUnreadMessagesCount(1);
   }
 
   @Test
   public void testAtMentionTriggersNotificationWhenFlagIsEnabled() {
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
     instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello @" + USER_NAME + "!!"));
-    verify(audioService).playChatMentionSound();
+    verify(chatService).incrementUnreadMessagesCount(1);
   }
 
   @Test
   public void testNormalMentionTriggersNotification() {
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
-    verify(audioService).playChatMentionSound();
+    verify(chatService).incrementUnreadMessagesCount(1);
   }
 
   @Test
   public void testNormalMentionDoesNotTriggerNotificationWhenFlagIsEnabled() {
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
     instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
-    verify(audioService, never()).playChatMentionSound();
+    verify(chatService, never()).incrementUnreadMessagesCount(anyInt());
   }
 
   @Test
@@ -396,7 +397,7 @@ public class ChatChannelTabControllerTest extends PlatformTest {
         .socialStatus(FOE)
         .get()));
     instance.onMention(new ChatMessage(Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
-    verify(audioService, never()).playChatMentionSound();
+    verify(chatService, never()).incrementUnreadMessagesCount(anyInt());
   }
 
   @Test

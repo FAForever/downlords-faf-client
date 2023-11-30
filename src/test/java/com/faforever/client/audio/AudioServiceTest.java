@@ -2,7 +2,7 @@ package com.faforever.client.audio;
 
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.client.theme.UiService;
+import com.faforever.client.theme.ThemeService;
 import javafx.scene.media.AudioClip;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,13 +29,14 @@ public class AudioServiceTest extends ServiceTest {
   @Mock
   private AudioClipPlayer audioClipPlayer;
   @Mock
-  private UiService uiService;
+  private ThemeService themeService;
   @Spy
   private NotificationPrefs notificationPrefs;
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(uiService.getThemeFileUrl(any())).thenReturn(new ClassPathResource(String.format("/%s", UiService.MENTION_SOUND)).getURL());
+    when(themeService.getThemeFileUrl(any())).thenReturn(
+        new ClassPathResource(String.format("/%s", ThemeService.MENTION_SOUND)).getURL());
 
     notificationPrefs.setErrorSoundEnabled(true);
     notificationPrefs.setPrivateMessageSoundEnabled(true);

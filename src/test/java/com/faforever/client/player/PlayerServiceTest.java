@@ -1,7 +1,6 @@
 package com.faforever.client.player;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
@@ -20,11 +19,8 @@ import com.faforever.commons.lobby.Player;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
 import com.faforever.commons.lobby.PlayerInfo;
-import com.faforever.commons.lobby.SocialInfo;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -35,15 +31,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.publisher.TestPublisher;
 
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.faforever.client.player.SocialStatus.FOE;
-import static com.faforever.client.player.SocialStatus.FRIEND;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -52,13 +45,10 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -70,10 +60,6 @@ public class PlayerServiceTest extends ServiceTest {
   private FafServerAccessor fafServerAccessor;
   @Mock
   private LoginService loginService;
-  @Mock
-  private AvatarService avatarService;
-  @Mock
-  private EventBus eventBus;
 
   @Mock
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -89,14 +75,12 @@ public class PlayerServiceTest extends ServiceTest {
   private com.faforever.commons.lobby.Player playerInfo2;
 
   private final TestPublisher<PlayerInfo> playerInfoTestPublisher = TestPublisher.create();
-  private final TestPublisher<SocialInfo> socialInfoTestPublisher = TestPublisher.create();
 
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(playerMapper);
     when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
     when(fafServerAccessor.getEvents(PlayerInfo.class)).thenReturn(playerInfoTestPublisher.flux());
-    when(fafServerAccessor.getEvents(SocialInfo.class)).thenReturn(socialInfoTestPublisher.flux());
     currentPlayer = new Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>());
     playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null, new Avatar("https://test.com/test.png", "junit"), "", new HashMap<>(), new HashMap<>());
     playerInfo2 = new com.faforever.commons.lobby.Player(3, "junit3", null, null, "", new HashMap<>(), new HashMap<>());
@@ -112,7 +96,6 @@ public class PlayerServiceTest extends ServiceTest {
     instance.afterPropertiesSet();
     playerInfoTestPublisher.next(new PlayerInfo(List.of(playerInfo1, playerInfo2)));
 
-    socialInfoTestPublisher.assertSubscribers(1);
     playerInfoTestPublisher.assertSubscribers(1);
   }
 
@@ -122,15 +105,6 @@ public class PlayerServiceTest extends ServiceTest {
 
     assertTrue(instance.getPlayerByIdIfOnline(4).isPresent());
     assertNotNull(instance.getPlayerByIdIfOnline(4).map(PlayerBean::getIdleSince).orElse(null));
-    verify(eventBus).post(new PlayerOnlineEvent(instance.getPlayerByIdIfOnline(4).orElseThrow()));
-  }
-
-  @Test
-  public void testSocialInfo() {
-    socialInfoTestPublisher.next(new SocialInfo(List.of(), List.of(), List.of(2), List.of(3), 0));
-
-    assertEquals(FRIEND, instance.getPlayerByIdIfOnline(2).map(PlayerBean::getSocialStatus).orElse(null));
-    assertEquals(FOE, instance.getPlayerByIdIfOnline(3).map(PlayerBean::getSocialStatus).orElse(null));
   }
 
   @Test
@@ -173,84 +147,6 @@ public class PlayerServiceTest extends ServiceTest {
 
     assertThat(playerNames, hasSize(3));
     assertThat(playerNames, containsInAnyOrder(currentPlayer.getLogin(), playerInfo1.getLogin(), playerInfo2.getLogin()));
-  }
-
-  @Test
-  public void testAddFriend() {
-    PlayerBean lisa = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
-    PlayerBean ashley = instance.getPlayerByNameIfOnline(playerInfo2.getLogin()).orElseThrow();
-
-    instance.addFriend(lisa);
-    instance.addFriend(ashley);
-
-    verify(fafServerAccessor).addFriend(lisa.getId());
-    verify(fafServerAccessor).addFriend(ashley.getId());
-
-    assertSame(lisa.getSocialStatus(), FRIEND);
-    assertSame(ashley.getSocialStatus(), FRIEND);
-  }
-
-  @Test
-  public void testAddFriendIsFoe() {
-    PlayerBean player = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
-
-    player.setSocialStatus(FOE);
-
-    instance.addFriend(player);
-
-    assertNotSame(player.getSocialStatus(), FOE);
-  }
-
-  @Test
-  public void testRemoveFriend() {
-    PlayerBean player1 = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
-    PlayerBean player2 = instance.getPlayerByNameIfOnline(playerInfo2.getLogin()).orElseThrow();
-
-    instance.addFriend(player1);
-    verify(fafServerAccessor).addFriend(player1.getId());
-
-    instance.addFriend(player2);
-    verify(fafServerAccessor).addFriend(player2.getId());
-
-    instance.removeFriend(player1);
-    verify(fafServerAccessor).removeFriend(player1.getId());
-
-    assertNotSame(player1.getSocialStatus(), FRIEND);
-    assertSame(player2.getSocialStatus(), FRIEND);
-  }
-
-  @Test
-  public void testAddFoe() {
-    PlayerBean player1 = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
-    PlayerBean player2 = instance.getPlayerByNameIfOnline(playerInfo2.getLogin()).orElseThrow();
-
-    instance.addFoe(player1);
-    instance.addFoe(player2);
-
-    verify(fafServerAccessor).addFoe(player1.getId());
-    verify(fafServerAccessor).addFoe(player2.getId());
-    assertSame(player1.getSocialStatus(), FOE);
-    assertSame(player2.getSocialStatus(), FOE);
-  }
-
-  @Test
-  public void testAddFoeIsFriend() {
-    PlayerBean player = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
-    player.setSocialStatus(FRIEND);
-
-    instance.addFoe(player);
-
-    assertNotSame(player.getSocialStatus(), FRIEND);
-  }
-
-  @Test
-  public void testRemoveFoe() {
-    PlayerBean player = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
-
-    instance.addFriend(player);
-    instance.removeFriend(player);
-
-    assertNotSame(player.getSocialStatus(), FRIEND);
   }
 
   @Test
@@ -297,33 +193,6 @@ public class PlayerServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testEventBusRegistered() {
-    verify(eventBus).register(instance);
-  }
-
-  @Test
-  public void testThereIsFriendInGame() {
-    Map<Integer, List<Integer>> teams = Map.of(1, List.of(1, 2));
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
-    PlayerBean player1 = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
-    instance.addFriend(player1);
-
-    assertTrue(instance.areFriendsInGame(game));
-  }
-
-  @Test
-  public void testNoFriendInGame() {
-    Map<Integer, List<Integer>> teams = Map.of(1, List.of(1));
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
-    PlayerBean player2 = instance.getPlayerByNameIfOnline(playerInfo2.getLogin()).orElseThrow();
-    player2.setId(100);
-    instance.addFriend(player2);
-
-    assertFalse(instance.areFriendsInGame(game));
-    assertFalse(instance.areFriendsInGame(null));
-  }
-
-  @Test
   public void testCurrentPlayerInGame() {
     GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, List.of(1))).get();
 
@@ -335,43 +204,6 @@ public class PlayerServiceTest extends ServiceTest {
     GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, List.of(0))).get();
 
     assertFalse(instance.isCurrentPlayerInGame(game));
-  }
-
-  @Test
-  public void testGetCurrentAvatarByPlayerName() {
-    when(avatarService.loadAvatar(any())).thenReturn(new Image(InputStream.nullInputStream()));
-    assertNotNull(instance.getCurrentAvatarByPlayerName("junit2").orElse(null));
-  }
-
-  @Test
-  public void testAddPlayerNote() {
-    PlayerBean player = PlayerBeanBuilder.create().id(2).get();
-    assertFalse(instance.getNotesByPlayerId().containsKey(2));
-    instance.updateNote(player, "junit");
-    assertTrue(instance.getNotesByPlayerId().containsKey(2));
-  }
-
-  @Test
-  public void testEditPlayerNote() {
-    PlayerBean player = PlayerBeanBuilder.create().id(3).get();
-    assertTrue(instance.getNotesByPlayerId().containsKey(3));
-    instance.updateNote(player, "updated");
-    assertEquals("updated", instance.getNotesByPlayerId().get(3));
-  }
-
-  @Test
-  public void testRemovePlayerNote() {
-    PlayerBean player = PlayerBeanBuilder.create().id(3).get();
-    assertTrue(instance.getNotesByPlayerId().containsKey(3));
-    instance.removeNote(player);
-    assertFalse(instance.getNotesByPlayerId().containsKey(3));
-  }
-
-  @Test
-  public void testNormalizeTextBeforeUpdatingPlayerNote() {
-    PlayerBean player = PlayerBeanBuilder.create().id(2).get();
-    instance.updateNote(player, "junit\n1\n\n2\n\n\n3\n4");
-    assertEquals("junit\n1\n2\n3\n4", instance.getNotesByPlayerId().get(2));
   }
 
   @Test
@@ -387,6 +219,5 @@ public class PlayerServiceTest extends ServiceTest {
     assertFalse(instance.getPlayerNames().contains(playerInfo2.getLogin()));
     assertFalse(instance.isOnline(playerInfo1.getId()));
     assertFalse(instance.isOnline(playerInfo2.getId()));
-    verify(eventBus, times(2)).post(any(PlayerOfflineEvent.class));
   }
 }

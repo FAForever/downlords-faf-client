@@ -38,28 +38,28 @@ public class TransientNotificationsControllerTest extends PlatformTest {
   @Test
   public void testToastPositionTopLeft() throws Exception {
     notificationPrefs.setToastPosition(ToastPosition.TOP_LEFT);
-    instance.initialize();
+    reinitialize(instance);
     assertThat(instance.transientNotificationsRoot.getAlignment(), is(Pos.TOP_LEFT));
   }
 
   @Test
   public void testToastPositionTopRight() throws Exception {
     notificationPrefs.setToastPosition(ToastPosition.TOP_RIGHT);
-    instance.initialize();
+    reinitialize(instance);
     assertThat(instance.transientNotificationsRoot.getAlignment(), is(Pos.TOP_RIGHT));
   }
 
   @Test
   public void testToastPositionBottomRight() throws Exception {
     notificationPrefs.setToastPosition(ToastPosition.BOTTOM_RIGHT);
-    instance.initialize();
+    reinitialize(instance);
     assertThat(instance.transientNotificationsRoot.getAlignment(), is(Pos.BOTTOM_RIGHT));
   }
 
   @Test
   public void testToastPositionBottomLeft() throws Exception {
     notificationPrefs.setToastPosition(ToastPosition.BOTTOM_LEFT);
-    instance.initialize();
+    reinitialize(instance);
     assertThat(instance.transientNotificationsRoot.getAlignment(), is(Pos.BOTTOM_LEFT));
   }
 

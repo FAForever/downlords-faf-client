@@ -25,6 +25,7 @@ import com.faforever.client.remote.AssetService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
@@ -119,6 +120,7 @@ public class MapService implements InitializingBean, DisposableBean {
   private final AssetService assetService;
   private final I18n i18n;
   private final UiService uiService;
+  private final ThemeService themeService;
   private final MapGeneratorService mapGeneratorService;
   private final PlayerService playerService;
   private final MapMapper mapMapper;
@@ -227,6 +229,7 @@ public class MapService implements InitializingBean, DisposableBean {
   private void loadInstalledMaps() {
     taskService.submitTask(new CompletableTask<Void>(Priority.LOW) {
 
+      @Override
       protected Void call() {
         updateTitle(i18n.get("mapVault.loadingMaps"));
         Path officialMapsPath = forgedAlliancePrefs.getInstallationPath().resolve("maps");
@@ -325,7 +328,7 @@ public class MapService implements InitializingBean, DisposableBean {
       return loadPreview(getPreviewUrl(mapName, mapPreviewUrlFormat, previewSize), previewSize);
     } catch (MalformedURLException e) {
       log.warn("Could not create url from {}", mapName, e);
-      return uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE);
+      return themeService.getThemeImage(ThemeService.NO_IMAGE_AVAILABLE);
     }
   }
 
@@ -343,7 +346,7 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   public Image getGeneratedMapPreviewImage() {
-    return uiService.getThemeImage(UiService.GENERATED_MAP_IMAGE);
+    return themeService.getThemeImage(ThemeService.GENERATED_MAP_IMAGE);
   }
 
   public Optional<MapVersionBean> getMapLocallyFromName(String mapFolderName) {
@@ -429,7 +432,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
   private Image loadPreview(URL url, PreviewSize previewSize) {
     return assetService.loadAndCacheImage(url, Path.of("maps").resolve(previewSize.folderName),
-        () -> uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE));
+                                          () -> themeService.getThemeImage(ThemeService.NO_IMAGE_AVAILABLE));
   }
 
 

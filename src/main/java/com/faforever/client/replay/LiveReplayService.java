@@ -1,7 +1,6 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.discord.DiscordSpectateEvent;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GameService;
@@ -18,8 +17,6 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
 import com.google.common.base.Splitter;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import com.google.common.net.UrlEscapers;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -33,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.time.Duration;
@@ -63,14 +59,12 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
   private final GameService gameService;
   private final PlayerService playerService;
   private final ReportingService reportingService;
-  private final EventBus eventBus;
 
   private Future<?> futureTask;
   private final ObjectProperty<TrackingLiveReplay> trackingLiveReplayProperty = new SimpleObjectProperty<>(null);
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    eventBus.register(this);
     JavaFxUtil.addListener(gameService.gameRunningProperty(), observable -> {
       if (gameService.isGameRunning()) {
         stopTrackingLiveReplay();
@@ -178,41 +172,31 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
 
     Map<String, String> queryParams = Splitter.on('&').trimResults().withKeyValueSeparator("=").split(uri.getQuery());
 
-    try {
-      String gameType = queryParams.get("mod");
-      String mapName = URLDecoder.decode(queryParams.get("map"), UTF_8.name());
-      Integer gameId = Integer.parseInt(uri.getPath().split("/")[1]);
-      URI replayUri = UriComponentsBuilder.newInstance()
-          .scheme(GPGNET_SCHEME)
-          .host(uri.getHost())
-          .port(uri.getPort())
-          .path(uri.getPath())
-          .build()
-          .toUri();
-      gameService.runWithLiveReplay(replayUri, gameId, gameType, mapName)
-          .exceptionally(throwable -> {
-            notificationService.addNotification(new ImmediateNotification(
-                i18n.get("errorTitle"),
-                i18n.get("liveReplayCouldNotBeStarted"),
-                Severity.ERROR, throwable,
-                List.of(new CopyErrorAction(i18n, reportingService, throwable), new GetHelpAction(i18n, reportingService), new DismissAction(i18n))
-            ));
-            return null;
-          });
-    } catch (UnsupportedEncodingException e) {
-      throw new IllegalArgumentException("Query params not properly encoded", e);
-    }
-  }
-
-  @Subscribe
-  public void onDiscordGameJoinEvent(DiscordSpectateEvent discordSpectateEvent) {
-    Integer replayId = discordSpectateEvent.replayId();
-    runLiveReplay(replayId);
+    String gameType = queryParams.get("mod");
+    String mapName = URLDecoder.decode(queryParams.get("map"), UTF_8);
+    Integer gameId = Integer.parseInt(uri.getPath().split("/")[1]);
+    URI replayUri = UriComponentsBuilder.newInstance()
+                                        .scheme(GPGNET_SCHEME)
+                                        .host(uri.getHost())
+                                        .port(uri.getPort())
+                                        .path(uri.getPath())
+                                        .build()
+                                        .toUri();
+    gameService.runWithLiveReplay(replayUri, gameId, gameType, mapName)
+               .exceptionally(throwable -> {
+                 notificationService.addNotification(new ImmediateNotification(
+                     i18n.get("errorTitle"),
+                     i18n.get("liveReplayCouldNotBeStarted"),
+                     Severity.ERROR, throwable,
+                     List.of(new CopyErrorAction(i18n, reportingService, throwable),
+                             new GetHelpAction(i18n, reportingService), new DismissAction(i18n))
+                 ));
+                 return null;
+               });
   }
 
   @Override
   public void destroy() throws Exception {
     stopTrackingLiveReplay();
   }
-
 }

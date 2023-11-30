@@ -1,8 +1,9 @@
 package com.faforever.client.player;
 
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
+import com.faforever.client.social.SocialService;
 import com.faforever.client.ui.dialog.Dialog;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -21,11 +22,11 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-public class PlayerNoteController implements Controller<VBox> {
+public class PlayerNoteController extends NodeController<VBox> {
 
   public static final int CHARACTER_LIMIT = 150;
 
-  private final PlayerService playerService;
+  private final SocialService socialService;
 
   public VBox root;
   public TextArea textArea;
@@ -38,7 +39,7 @@ public class PlayerNoteController implements Controller<VBox> {
   private PlayerBean player;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     textArea.setTextFormatter(formatter);
     JavaFxUtil.addListener(textArea.lengthProperty(), observable ->
         charactersCountLabel.setText(String.format("%d / %d", textArea.getLength(), CHARACTER_LIMIT)));
@@ -54,7 +55,7 @@ public class PlayerNoteController implements Controller<VBox> {
   }
 
   public void okButtonClicked() {
-    playerService.updateNote(player, textArea.getText());
+    socialService.updateNote(player, textArea.getText());
     cancelButton.fire();
   }
 

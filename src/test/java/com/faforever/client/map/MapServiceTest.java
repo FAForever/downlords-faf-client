@@ -28,6 +28,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ApiTestUtil;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.PlatformTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
@@ -39,7 +40,6 @@ import com.faforever.commons.api.dto.MapVersion;
 import com.faforever.commons.api.dto.NeroxisGeneratorParams;
 import com.faforever.commons.api.elide.ElideEntity;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.eventbus.EventBus;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -105,6 +105,8 @@ public class MapServiceTest extends PlatformTest {
   @Mock
   private UiService uiService;
   @Mock
+  private ThemeService themeService;
+  @Mock
   private AssetService assetService;
   @Mock
   private FafApiAccessor fafApiAccessor;
@@ -112,8 +114,6 @@ public class MapServiceTest extends PlatformTest {
   private MapGeneratorService mapGeneratorService;
   @Mock
   private PlayerService playerService;
-  @Mock
-  private EventBus eventBus;
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -157,7 +157,10 @@ public class MapServiceTest extends PlatformTest {
       return task;
     }).when(taskService).submitTask(any());
 
-    instance = new MapService(notificationService, taskService, fafApiAccessor, assetService, i18n, uiService, mapGeneratorService, playerService, mapMapper, fileSizeReader, clientProperties, forgedAlliancePrefs, preferences, mapUploadTaskFactory, downloadMapTaskFactory, uninstallMapTaskFactory, fxApplicationThreadExecutor);
+    instance = new MapService(notificationService, taskService, fafApiAccessor, assetService, i18n, uiService,
+                              themeService, mapGeneratorService, playerService, mapMapper, fileSizeReader,
+                              clientProperties, forgedAlliancePrefs, preferences, mapUploadTaskFactory,
+                              downloadMapTaskFactory, uninstallMapTaskFactory, fxApplicationThreadExecutor);
     instance.officialMaps = ImmutableSet.of();
     instance.afterPropertiesSet();
   }

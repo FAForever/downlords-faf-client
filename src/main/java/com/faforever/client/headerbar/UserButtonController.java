@@ -1,13 +1,12 @@
 package com.faforever.client.headerbar;
 
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuButton;
@@ -19,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class UserButtonController implements Controller<Node> {
+public class UserButtonController extends NodeController<Node> {
 
   private final PlayerService playerService;
   private final UiService uiService;
@@ -27,9 +26,8 @@ public class UserButtonController implements Controller<Node> {
 
   public MenuButton userMenuButtonRoot;
 
-  public void initialize() {
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
+  @Override
+  protected void onInitialize() {
     userMenuButtonRoot.textProperty()
         .bind(playerService.currentPlayerProperty().flatMap(PlayerBean::usernameProperty).when(showing));
   }

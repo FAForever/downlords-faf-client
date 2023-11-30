@@ -30,7 +30,7 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomM
   private final ChatPrefs chatPrefs;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     removeCustomColorButton.setOnAction(event -> colorPicker.setValue(null));
     removeCustomColorButton.visibleProperty()
         .bind(chatPrefs.chatColorModeProperty()

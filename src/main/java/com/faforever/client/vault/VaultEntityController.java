@@ -1,8 +1,8 @@
 package com.faforever.client.vault;
 
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.notification.NotificationService;
@@ -24,7 +24,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -49,7 +48,7 @@ import java.util.stream.IntStream;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public abstract class VaultEntityController<T> extends AbstractViewController<Node> {
+public abstract class VaultEntityController<T> extends NodeController<Node> {
 
   public static final int TOP_ELEMENT_COUNT = 7;
 
@@ -113,8 +112,8 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   protected abstract void handleSpecialNavigateEvent(NavigateEvent navigateEvent);
 
   @Override
-  public void initialize() {
-    super.initialize();
+  protected void onInitialize() {
+    super.onInitialize();
     JavaFxUtil.fixScrollSpeed(scrollPane);
     JavaFxUtil.bindManagedToVisible(loadingPane, searchResultGroup, backButton, refreshButton, pagination, firstPageButton, lastPageButton, showRoomGroup, searchBox, searchSeparator);
 
@@ -155,10 +154,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     detailView.requestFocus();
 
     vaultRoot.getChildren().add(detailView);
-    AnchorPane.setTopAnchor(detailView, 0d);
-    AnchorPane.setRightAnchor(detailView, 0d);
-    AnchorPane.setBottomAnchor(detailView, 0d);
-    AnchorPane.setLeftAnchor(detailView, 0d);
+    JavaFxUtil.setAnchors(detailView, 0d);
 
     showRoomGroup.visibleProperty().bind(state.isEqualTo(State.SHOWROOM));
     searchResultGroup.visibleProperty().bind(state.isEqualTo(State.RESULT));
@@ -167,6 +163,13 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     loadingPane.visibleProperty().bind(state.isEqualTo(State.SEARCHING));
 
     Bindings.bindContent(searchResultPane.getChildren(), resultCardRoots);
+  }
+
+  @Override
+  public void onShow() {
+    if (state.get() == State.UNINITIALIZED) {
+      loadShowRooms();
+    }
   }
 
   private void initializeShowRoomCards() {
@@ -321,7 +324,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  protected void onNavigate(NavigateEvent navigateEvent) {
     Class<? extends NavigateEvent> defaultNavigateEvent = getDefaultNavigateEvent();
     if (!(navigateEvent.getClass().equals(defaultNavigateEvent)) && !navigateEvent.getClass()
         .equals(NavigateEvent.class)) {

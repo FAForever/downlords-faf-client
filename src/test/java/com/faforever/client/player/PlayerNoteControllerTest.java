@@ -2,6 +2,7 @@ package com.faforever.client.player;
 
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.social.SocialService;
 import com.faforever.client.test.PlatformTest;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +18,8 @@ public class PlayerNoteControllerTest extends PlatformTest {
 
   @Mock
   private PlayerService playerService;
+  @Mock
+  private SocialService socialService;
 
   @InjectMocks
   private PlayerNoteController instance;
@@ -24,7 +27,7 @@ public class PlayerNoteControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     loadFxml("theme/player_note.fxml", clazz -> instance);
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> reinitialize(instance));
   }
 
   @Test
@@ -54,7 +57,7 @@ public class PlayerNoteControllerTest extends PlatformTest {
       instance.okButtonClicked();
     });
 
-    verify(playerService).updateNote(player, "updated");
+    verify(socialService).updateNote(player, "updated");
   }
 
   @Test

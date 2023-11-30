@@ -8,14 +8,15 @@ import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.LeaderboardRatingJournalBean;
 import com.faforever.client.domain.NameRecordBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.OffsetDateTimeCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.stats.StatisticsService;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.RatingUtil;
@@ -87,7 +88,7 @@ import static javafx.collections.FXCollections.observableList;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class PlayerInfoWindowController implements Controller<Node> {
+public class PlayerInfoWindowController extends NodeController<Node> {
 
   private final StatisticsService statisticsService;
   private final CountryFlagService countryFlagService;
@@ -95,6 +96,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
   private final EventService eventService;
   private final I18n i18n;
   private final UiService uiService;
+  private final ThemeService themeService;
   private final TimeService timeService;
   private final PlayerService playerService;
   private final NotificationService notificationService;
@@ -142,7 +144,8 @@ public class PlayerInfoWindowController implements Controller<Node> {
     return AchievementState.UNLOCKED == AchievementState.valueOf(playerAchievement.getState().name());
   }
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(loadingHistoryPane, loadingProgressLabel, achievementsPane, mostRecentAchievementPane,
         unlockedAchievementsHeader, unlockedAchievementsContainer, lockedAchievementsHeader, lockedAchievementsContainer,
         ratingHistoryChart);
@@ -182,6 +185,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
     ratingHistoryChart.initializeTooltip(uiService);
   }
 
+  @Override
   public Region getRoot() {
     return userInfoRoot;
   }
@@ -395,7 +399,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
       if (isUnlocked(playerAchievement)) {
         fxApplicationThreadExecutor.execute(() -> children.add(achievementItemController.getRoot()));
         if (mostRecentPlayerAchievement == null
-            || playerAchievement.getUpdateTime().compareTo(mostRecentPlayerAchievement.getUpdateTime()) > 0) {
+            || playerAchievement.getUpdateTime().isAfter(mostRecentPlayerAchievement.getUpdateTime())) {
           mostRecentPlayerAchievement = playerAchievement;
         }
       }
@@ -525,7 +529,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
     FxStage fxStage = FxStage.create(userInfoRoot)
         .initOwner(ownerWindow)
         .initModality(Modality.WINDOW_MODAL)
-        .withSceneFactory(uiService::createScene)
+                             .withSceneFactory(themeService::createScene)
         .allowMinimize(false)
         .apply();
 

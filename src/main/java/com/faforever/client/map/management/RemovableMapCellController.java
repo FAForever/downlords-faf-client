@@ -1,15 +1,15 @@
 package com.faforever.client.map.management;
 
+import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.notification.NotificationService;
-import javafx.scene.Node;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-public class RemovableMapCellController extends ListCell<MapVersionBean> implements Controller<Node> {
+public class RemovableMapCellController extends NodeController<HBox> {
 
   public HBox root;
   public Button removeButton;
@@ -31,35 +31,32 @@ public class RemovableMapCellController extends ListCell<MapVersionBean> impleme
 
   private final MapService mapService;
   private final NotificationService notificationService;
-  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
+  private final ObjectProperty<MapVersionBean> mapVersion = new SimpleObjectProperty<>();
 
   @Override
-  protected void updateItem(MapVersionBean mapVersion, boolean empty) {
-    super.updateItem(mapVersion, empty);
-    fxApplicationThreadExecutor.execute(() -> {
-      setText(null);
+  protected void onInitialize() {
+    previewMapView.imageProperty()
+                  .bind(mapVersion.flatMap(MapVersionBean::folderNameProperty)
+                                  .map(folderName -> mapService.loadPreview(folderName, PreviewSize.SMALL)));
+    mapNameLabel.textProperty()
+                .bind(mapVersion.flatMap(MapVersionBean::mapProperty).flatMap(MapBean::displayNameProperty));
+    removeButton.disableProperty().bind(mapVersion.map(mapService::isCustomMap).map(isCustom -> !isCustom));
+    removeButton.onMouseClickedProperty()
+                .bind(mapVersion.map(
+                    mapVersion -> event -> mapService.uninstallMap(mapVersion).exceptionally(throwable -> {
+                      log.error("Cannot uninstall map `{}`", mapVersion, throwable);
+                      notificationService.addImmediateErrorNotification(throwable, "management.maps.uninstall.error");
+                      return null;
+                    })));
+  }
 
-      if (mapVersion == null || empty) {
-        setGraphic(null);
-      } else {
-        previewMapView.setImage(mapService.loadPreview(mapVersion.getFolderName(), PreviewSize.SMALL));
-        mapNameLabel.setText(mapVersion.getMap().getDisplayName());
-        if (mapService.isCustomMap(mapVersion)) {
-          removeButton.setOnMouseClicked(event -> mapService.uninstallMap(mapVersion).exceptionally(throwable -> {
-            log.error("Cannot uninstall map `{}`", mapVersion, throwable);
-            notificationService.addImmediateErrorNotification(throwable, "management.maps.uninstall.error");
-            return null;
-          }));
-        } else {
-          removeButton.setDisable(true);
-        }
-        setGraphic(getRoot());
-      }
-    });
+  public void setMapVersion(MapVersionBean mapVersion) {
+    this.mapVersion.set(mapVersion);
   }
 
   @Override
-  public Node getRoot() {
+  public HBox getRoot() {
     return root;
   }
 }

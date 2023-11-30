@@ -1,32 +1,32 @@
 faf-client:
   server:
-    url: wss://lobby.test.faforever.com
+    url: wss://lobby.faforever.xyz
 
   irc:
-    host: irc.test.faforever.com
+    host: irc.faforever.xyz
     port: 6697
 
   vault:
-    base-url: https://content.test.faforever.com
-    replay-download-url-format: https://replay.test.faforever.com/%s
+    base-url: https://content.faforever.xyz
+    replay-download-url-format: https://replay.faforever.xyz/%s
 
   news:
-    feed-url: https://direct.test.faforever.com/news/feed
+    feed-url: https://direct.faforever.xyz/news/feed
 
   replay:
-    remote-host: test.faforever.com
+    remote-host: faforever.xyz
     remote-port: 15000
 
   website:
-    base-url: https://www.test.faforever.com
+    base-url: https://www.faforever.xyz
 
   api:
-    base-url: https://api.test.faforever.com
+    base-url: https://api.faforever.xyz
 
   oauth:
-    base-url: https://hydra.test.faforever.com
+    base-url: https://hydra.faforever.xyz
     scopes: openid offline public_profile upload_map upload_mod lobby
     client-id: faf-java-client
 
   forged-alliance:
-    exe-url: https://content.test.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
+    exe-url: https://content.faforever.xyz/faf/updaterNew/updates_faf_files/ForgedAlliance.exe

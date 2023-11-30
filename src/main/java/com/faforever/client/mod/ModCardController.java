@@ -49,10 +49,9 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
 
   private Consumer<ModVersionBean> onOpenDetailListener;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(installButton, uninstallButton);
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
     ObservableValue<ModBean> modObservable = entity.flatMap(ModVersionBean::modProperty);
     numberOfReviewsLabel.textProperty()
         .bind(modObservable.flatMap(ModBean::modReviewsSummaryProperty)
@@ -101,6 +100,7 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
     });
   }
 
+  @Override
   public Node getRoot() {
     return modTileRoot;
   }

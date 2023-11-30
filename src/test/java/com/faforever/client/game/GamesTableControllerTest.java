@@ -58,7 +58,6 @@ public class GamesTableControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     when(gameTooltipController.getRoot()).thenReturn(new Pane());
     when(i18n.get(any())).then(invocation -> invocation.getArguments()[0]);
     when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));

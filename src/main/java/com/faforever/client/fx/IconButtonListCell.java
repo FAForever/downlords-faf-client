@@ -3,7 +3,6 @@ package com.faforever.client.fx;
 import com.faforever.client.theme.UiService;
 import javafx.scene.control.ListCell;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 
 import java.util.function.Consumer;
 
@@ -29,15 +28,14 @@ public class IconButtonListCell<T> extends ListCell<T> {
         if (iconButtonListCellController == null) {
           iconButtonListCellController = uiService.loadFxml("theme/iconButtonListCell.fxml");
         }
-        configureControllerCallback.accept(new IconButtonListCellControllerAndItem<>(iconButtonListCellController, item));
+        configureControllerCallback.accept(
+            new IconButtonListCellControllerAndItem<>(iconButtonListCellController, item));
         setGraphic(iconButtonListCellController.getRoot());
       }
     });
   }
 
-  @Value
-  public static class IconButtonListCellControllerAndItem<E> {
-    IconButtonListCellController iconButtonListCellController;
-    E item;
-  }
+  public record IconButtonListCellControllerAndItem<E>(
+      IconButtonListCellController iconButtonListCellController, E item
+  ) {}
 }

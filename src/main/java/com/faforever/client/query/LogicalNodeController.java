@@ -1,7 +1,7 @@
 package com.faforever.client.query;
 
 import com.faforever.client.exception.ProgrammingError;
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import javafx.collections.FXCollections;
@@ -22,7 +22,7 @@ import java.util.Optional;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class LogicalNodeController implements Controller<Node> {
+public class LogicalNodeController extends NodeController<Node> {
 
   private final I18n i18n;
   public ComboBox<LogicalOperator> logicalOperatorField;
@@ -37,7 +37,8 @@ public class LogicalNodeController implements Controller<Node> {
     this.i18n = i18n;
   }
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     logicalOperatorField.setItems(FXCollections.observableArrayList(LogicalOperator.AND, LogicalOperator.OR));
     logicalOperatorField.getSelectionModel().select(0);
     logicalOperatorField.setConverter(new StringConverter<>() {

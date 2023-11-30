@@ -1,6 +1,6 @@
 package com.faforever.client.chat.emoticons;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class EmoticonController implements Controller<AnchorPane> {
+public class EmoticonController extends NodeController<AnchorPane> {
 
   private final Font shortcodesFont = new Font(14d);
 

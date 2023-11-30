@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.TabPane?>
-<TabPane xmlns:fx="http://javafx.com/fxml/1" fx:id="leaderboardRoot"
-         tabClosingPolicy="UNAVAILABLE"
-         xmlns="http://javafx.com/javafx/8.0.60"
-         fx:controller="com.faforever.client.leaderboard.LeaderboardsController">
-</TabPane>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="leaderboardRoot"
+      xmlns="http://javafx.com/javafx/8.0.60"
+      fx:controller="com.faforever.client.leaderboard.LeaderboardsController">
+    <HBox fx:id="navigationBox" styleClass="main-navigation-top"/>
+    <StackPane fx:id="contentPane" VBox.vgrow="ALWAYS"/>
+</VBox>

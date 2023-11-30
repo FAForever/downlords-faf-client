@@ -5,11 +5,10 @@ import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.exception.NotifiableException;
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.ControllerTableCell;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -22,6 +21,7 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.PopupUtil;
@@ -76,7 +76,7 @@ import static javafx.collections.FXCollections.observableList;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class CoopController extends AbstractViewController<Node> {
+public class CoopController extends NodeController<Node> {
 
   private static final Predicate<GameBean> OPEN_COOP_GAMES_PREDICATE = gameInfoBean -> gameInfoBean.getStatus() == GameStatus.OPEN && gameInfoBean.getGameType() == GameType.COOP;
 
@@ -114,22 +114,27 @@ public class CoopController extends AbstractViewController<Node> {
   public TableColumn<CoopResultBean, OffsetDateTime> dateColumn;
   public TableColumn<CoopResultBean, Duration> timeColumn;
   public TableColumn<CoopResultBean, String> replayColumn;
+  public GamesTableController gamesTableController;
 
-  public void initialize() {
-    super.initialize();
-    imageViewHelper.setDefaultPlaceholderImage(mapPreviewImageView, true);
-
+  @Override
+  protected void onInitialize() {
     missionComboBox.setCellFactory(param -> missionListCell());
     missionComboBox.setButtonCell(missionListCell());
-    missionComboBox.getSelectionModel()
-        .selectedItemProperty()
-        .addListener((observable, oldValue, newValue) -> setSelectedMission(newValue));
-    playButton.disableProperty().bind(titleTextField.textProperty().isEmpty());
+    missionComboBox.getSelectionModel().selectedItemProperty().when(showing).subscribe(this::setSelectedMission);
+
+    mapPreviewImageView.imageProperty()
+                       .bind(missionComboBox.getSelectionModel()
+                                            .selectedItemProperty()
+                                            .flatMap(CoopMissionBean::mapFolderNameProperty)
+                                            .map(folderName -> mapService.loadPreview(folderName, PreviewSize.LARGE))
+                                            .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
+                                            .when(showing));
+    playButton.disableProperty().bind(titleTextField.textProperty().isEmpty().when(showing));
 
     numberOfPlayersComboBox.setButtonCell(numberOfPlayersCell());
     numberOfPlayersComboBox.setCellFactory(param -> numberOfPlayersCell());
     numberOfPlayersComboBox.getSelectionModel().select(0);
-    numberOfPlayersComboBox.getSelectionModel().selectedItemProperty().addListener(observable -> loadLeaderboard());
+    numberOfPlayersComboBox.getSelectionModel().selectedItemProperty().subscribe(this::loadLeaderboard);
 
     leaderboardFilteredList.predicateProperty().bind(leaderboardSearchTextField.textProperty().map(newValue -> coopResultBean -> {
       if (newValue.isEmpty()) {
@@ -144,32 +149,36 @@ public class CoopController extends AbstractViewController<Node> {
     }));
     leaderboardTable.setItems(leaderboardFilteredList);
 
-    rankColumn.setCellValueFactory(param -> param.getValue().rankingProperty().asObject());
+    rankColumn.setCellValueFactory(param -> param.getValue().rankingProperty().asObject().when(showing));
     rankColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
 
-    playerCountColumn.setCellValueFactory(param -> param.getValue().playerCountProperty().asObject());
+    playerCountColumn.setCellValueFactory(param -> param.getValue().playerCountProperty().asObject().when(showing));
     playerCountColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
 
     playerNamesColumn.setCellValueFactory(param -> param.getValue()
-        .replayProperty()
-        .flatMap(ReplayBean::teamsProperty)
-        .map(teams -> teams.values()
-            .stream()
-            .flatMap(Collection::stream)
-            .collect(Collectors.joining(i18n.get("textSeparator")))));
+                                                        .replayProperty()
+                                                        .flatMap(ReplayBean::teamsProperty)
+                                                        .map(teams -> teams.values()
+                                                                           .stream()
+                                                                           .flatMap(Collection::stream)
+                                                                           .collect(Collectors.joining(
+                                                                               i18n.get("textSeparator"))))
+                                                        .when(showing));
 
     playerNamesColumn.setCellFactory(param -> new StringCell<>(Function.identity()));
 
-    secondaryObjectivesColumn.setCellValueFactory(param -> param.getValue().secondaryObjectivesProperty());
-    secondaryObjectivesColumn.setCellFactory(param -> new StringCell<>(aBoolean -> aBoolean ? i18n.get("yes") : i18n.get("no")));
+    secondaryObjectivesColumn.setCellValueFactory(
+        param -> param.getValue().secondaryObjectivesProperty().when(showing));
+    secondaryObjectivesColumn.setCellFactory(
+        param -> new StringCell<>(aBoolean -> aBoolean ? i18n.get("yes") : i18n.get("no")));
 
-    dateColumn.setCellValueFactory(param -> param.getValue().getReplay().endTimeProperty());
+    dateColumn.setCellValueFactory(param -> param.getValue().getReplay().endTimeProperty().when(showing));
     dateColumn.setCellFactory(param -> new StringCell<>(timeService::asDate));
 
-    timeColumn.setCellValueFactory(param -> param.getValue().durationProperty());
+    timeColumn.setCellValueFactory(param -> param.getValue().durationProperty().when(showing));
     timeColumn.setCellFactory(param -> new StringCell<>(timeService::shortDuration));
 
-    replayColumn.setCellValueFactory(param -> param.getValue().getReplay().idProperty().asString());
+    replayColumn.setCellValueFactory(param -> param.getValue().getReplay().idProperty().asString().when(showing));
     replayColumn.setCellFactory(param -> {
       ReplayButtonController controller = uiService.loadFxml("theme/play/coop/replay_button.fxml");
       controller.setOnClickedAction(this::onReplayButtonClicked);
@@ -188,37 +197,33 @@ public class CoopController extends AbstractViewController<Node> {
     FilteredList<GameBean> filteredItems = new FilteredList<>(gameService.getGames());
     filteredItems.setPredicate(OPEN_COOP_GAMES_PREDICATE);
 
-    coopService.getMissions().thenAccept(coopMaps -> {
-      fxApplicationThreadExecutor.execute(() -> {
-        missionComboBox.setItems(observableList(coopMaps));
-        GamesTableController gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
-        gamesTableController.getMapPreviewColumn().setVisible(false);
-        gamesTableController.getRatingRangeColumn().setVisible(false);
+    coopService.getMissions().thenAcceptAsync(coopMaps -> {
 
-        Function<String, String> coopMissionNameProvider = (mapFolderName -> coopMissionFromFolderNamer(coopMaps, mapFolderName));
+      missionComboBox.setItems(observableList(coopMaps));
+      gamesTableController.getMapPreviewColumn().setVisible(false);
+      gamesTableController.getRatingRangeColumn().setVisible(false);
 
-        gamesTableController.initializeGameTable(filteredItems, coopMissionNameProvider, false);
-
-        Node root = gamesTableController.getRoot();
-        populateContainer(root);
-      });
+      gamesTableController.initializeGameTable(filteredItems,
+                                               mapFolderName -> coopMissionFromFolderName(coopMaps, mapFolderName),
+                                               false);
 
       SingleSelectionModel<CoopMissionBean> selectionModel = missionComboBox.getSelectionModel();
       if (selectionModel.isEmpty()) {
-        fxApplicationThreadExecutor.execute(selectionModel::selectFirst);
+        selectionModel.selectFirst();
       }
-    }).exceptionally(throwable -> {
-      notificationService.addPersistentErrorNotification(throwable, "coop.couldNotLoad", throwable.getLocalizedMessage());
+    }, fxApplicationThreadExecutor).exceptionally(throwable -> {
+      notificationService.addPersistentErrorNotification(throwable, "coop.couldNotLoad",
+                                                         throwable.getLocalizedMessage());
       return null;
     });
   }
 
-  private String coopMissionFromFolderNamer(List<CoopMissionBean> coopMaps, String mapFolderName) {
+  private String coopMissionFromFolderName(List<CoopMissionBean> coopMaps, String mapFolderName) {
     return coopMaps.stream()
-        .filter(coopMission -> coopMission.getMapFolderName().equalsIgnoreCase(mapFolderName))
-        .findFirst()
-        .map(CoopMissionBean::getName)
-        .orElse(i18n.get("coop.unknownMission"));
+                   .filter(coopMission -> coopMission.getMapFolderName().equalsIgnoreCase(mapFolderName))
+                   .findFirst()
+                   .map(CoopMissionBean::getName)
+                   .orElse(i18n.get("coop.unknownMission"));
   }
 
   private void onReplayButtonClicked(ReplayButtonController button) {
@@ -243,11 +248,11 @@ public class CoopController extends AbstractViewController<Node> {
       Label label = new Label();
       Region iconRegion = new Region();
       label.setGraphic(iconRegion);
-      iconRegion.getStyleClass().add(UiService.CSS_CLASS_ICON);
+      iconRegion.getStyleClass().add(ThemeService.CSS_CLASS_ICON);
       switch (mission.getCategory()) {
-        case AEON -> iconRegion.getStyleClass().add(UiService.AEON_STYLE_CLASS);
-        case CYBRAN -> iconRegion.getStyleClass().add(UiService.CYBRAN_STYLE_CLASS);
-        case UEF -> iconRegion.getStyleClass().add(UiService.UEF_STYLE_CLASS);
+        case AEON -> iconRegion.getStyleClass().add(ThemeService.AEON_STYLE_CLASS);
+        case CYBRAN -> iconRegion.getStyleClass().add(ThemeService.CYBRAN_STYLE_CLASS);
+        case UEF -> iconRegion.getStyleClass().add(ThemeService.UEF_STYLE_CLASS);
         default -> {
           return null;
         }
@@ -257,18 +262,25 @@ public class CoopController extends AbstractViewController<Node> {
   }
 
   private void loadLeaderboard() {
-    coopService.getLeaderboard(getSelectedMission(), numberOfPlayersComboBox.getSelectionModel().getSelectedItem())
-        .thenApply(this::filterOnlyUniquePlayers)
-        .thenAccept(coopLeaderboardEntries -> {
-          AtomicInteger ranking = new AtomicInteger();
-          coopLeaderboardEntries.forEach(coopResult -> coopResult.setRanking(ranking.incrementAndGet()));
-          fxApplicationThreadExecutor.execute(() -> leaderboardUnFilteredList.setAll(coopLeaderboardEntries));
-        })
-        .exceptionally(throwable -> {
-          log.warn("Could not load coop leaderboard", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "coop.leaderboard.couldNotLoad");
-          return null;
-        });
+    CoopMissionBean selectedMission = getSelectedMission();
+    Integer numberOfPlayers = numberOfPlayersComboBox.getSelectionModel().getSelectedItem();
+    if (selectedMission == null || numberOfPlayers == null) {
+      return;
+    }
+
+    coopService.getLeaderboard(selectedMission, numberOfPlayers)
+               .thenApply(this::filterOnlyUniquePlayers)
+               .thenApply(coopLeaderboardEntries -> {
+                 AtomicInteger ranking = new AtomicInteger();
+                 coopLeaderboardEntries.forEach(coopResult -> coopResult.setRanking(ranking.incrementAndGet()));
+                 return coopLeaderboardEntries;
+               })
+               .thenAcceptAsync(leaderboardUnFilteredList::setAll, fxApplicationThreadExecutor)
+               .exceptionally(throwable -> {
+                 log.warn("Could not load coop leaderboard", throwable);
+                 notificationService.addImmediateErrorNotification(throwable, "coop.leaderboard.couldNotLoad");
+                 return null;
+               });
   }
 
   private List<CoopResultBean> filterOnlyUniquePlayers(List<CoopResultBean> result) {
@@ -279,11 +291,11 @@ public class CoopController extends AbstractViewController<Node> {
 
   private Set<String> getAllPlayerNamesFromTeams(CoopResultBean coopResult) {
     return coopResult.getReplay()
-        .getTeams()
-        .values()
-        .stream()
-        .flatMap(List::stream)
-        .collect(Collectors.toUnmodifiableSet());
+                     .getTeams()
+                     .values()
+                     .stream()
+                     .flatMap(List::stream)
+                     .collect(Collectors.toUnmodifiableSet());
   }
 
 
@@ -292,39 +304,41 @@ public class CoopController extends AbstractViewController<Node> {
   }
 
   private void setSelectedMission(CoopMissionBean mission) {
+    if (mission == null) {
+      return;
+    }
     fxApplicationThreadExecutor.execute(() -> {
-      descriptionWebView.getEngine().loadContent(mission.getDescription());
-      mapPreviewImageView.setImage(mapService.loadPreview(mission.getMapFolderName(), PreviewSize.LARGE));
+      String description = mission.getDescription();
+      if (description != null) {
+        descriptionWebView.getEngine().loadContent(description);
+      }
     });
     loadLeaderboard();
   }
 
-  private void populateContainer(Node root) {
-    JavaFxUtil.assertApplicationThread();
-    gameViewContainer.getChildren().setAll(root);
-    JavaFxUtil.setAnchors(root, 0d);
-  }
-
   public void onPlayButtonClicked() {
     modService.getFeaturedMod(COOP.getTechnicalName())
-        .toFuture()
-        .thenAccept(featuredModBean -> gameService.hostGame(new NewGameInfo(titleTextField.getText(), Strings.emptyToNull(passwordTextField.getText()), featuredModBean, getSelectedMission().getMapFolderName(), emptySet())))
-        .exceptionally(throwable -> {
-          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-          log.error("Could not host coop game", throwable);
-          if (throwable instanceof NotifiableException notifiableException) {
-            notificationService.addErrorNotification(notifiableException);
-          } else {
-            notificationService.addImmediateErrorNotification(throwable, "coop.host.error");
-          }
-          return null;
-        });
+              .toFuture()
+              .thenAccept(featuredModBean -> gameService.hostGame(
+                  new NewGameInfo(titleTextField.getText(), Strings.emptyToNull(passwordTextField.getText()),
+                                  featuredModBean, getSelectedMission().getMapFolderName(), emptySet())))
+              .exceptionally(throwable -> {
+                throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+                log.error("Could not host coop game", throwable);
+                if (throwable instanceof NotifiableException notifiableException) {
+                  notificationService.addErrorNotification(notifiableException);
+                } else {
+                  notificationService.addImmediateErrorNotification(throwable, "coop.host.error");
+                }
+                return null;
+              });
   }
 
   public void onMapPreviewImageClicked() {
     Optional.ofNullable(mapPreviewImageView.getImage()).ifPresent(PopupUtil::showImagePopup);
   }
 
+  @Override
   public Node getRoot() {
     return coopRoot;
   }

@@ -2,13 +2,10 @@ package com.faforever.client.replay;
 
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.LiveGamesFilterController;
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.ControllerTableCell;
 import com.faforever.client.fx.DecimalCell;
-import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
-import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.SimpleInvalidationListener;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.MapPreviewTableCell;
@@ -29,6 +26,7 @@ import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Bounds;
@@ -61,7 +59,7 @@ import java.util.stream.Collectors;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class LiveReplayController extends AbstractViewController<Node> {
+public class LiveReplayController extends NodeController<Node> {
 
   private final GameService gameService;
   private final UiService uiService;
@@ -70,7 +68,6 @@ public class LiveReplayController extends AbstractViewController<Node> {
   private final MapService mapService;
   private final TimeService timeService;
   private final PlayerService playerService;
-  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public VBox root;
   public ToggleButton filterButton;
@@ -90,17 +87,20 @@ public class LiveReplayController extends AbstractViewController<Node> {
   private boolean initialized = false;
   private LiveGamesFilterController liveGamesFilterController;
   private Popup gameFilterPopup;
+  private IntegerBinding filteredGamesSizeBinding;
+  private IntegerBinding gameListSizeBinding;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
+    initializeFilterController();
+    initializeGameTable();
+
     tableView.setSelectionModel(new NoSelectionModelTableView<>(tableView));
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  protected void onNavigate(NavigateEvent navigateEvent) {
     if (!initialized && navigateEvent instanceof OpenLiveReplayViewEvent) {
-      initializeFilterController();
-      initializeGameTable();
       initialized = true;
     }
   }
@@ -110,46 +110,51 @@ public class LiveReplayController extends AbstractViewController<Node> {
     liveGamesFilterController.setDefaultPredicate(onlineGamesPredicate);
     liveGamesFilterController.completeSetting();
 
-    JavaFxUtil.addAndTriggerListener(liveGamesFilterController.filterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));
-    JavaFxUtil.addAndTriggerListener(filterButton.selectedProperty(), observable -> filterButton.setSelected(liveGamesFilterController.getFilterState()));
+    liveGamesFilterController.filterActiveProperty().when(showing).subscribe(filterButton::setSelected);
+    filterButton.selectedProperty()
+                .when(showing)
+                .subscribe(() -> filterButton.setSelected(liveGamesFilterController.getFilterActive()));
   }
 
   private void initializeGameTable() {
-    FilteredList<GameBean> filteredGameList = new FilteredList<>(gameService.getGames());
-    JavaFxUtil.addAndTriggerListener(liveGamesFilterController.predicateProperty(),
-        (observable, oldValue, newValue) -> filteredGameList.setPredicate(newValue));
+    ObservableList<GameBean> games = gameService.getGames();
+    FilteredList<GameBean> filteredGameList = new FilteredList<>(games);
+    liveGamesFilterController.predicateProperty().when(showing).subscribe(filteredGameList::setPredicate);
 
-    IntegerBinding filteredGamesSizeBinding = Bindings.size(filteredGameList);
-    IntegerBinding gameListSizeBinding = Bindings.size(new FilteredList<>(gameService.getGames(), onlineGamesPredicate));
-    JavaFxUtil.bind(filteredGamesCountLabel.visibleProperty(), filteredGamesSizeBinding.isNotEqualTo(gameListSizeBinding));
-    SimpleInvalidationListener gameListSizeListener = () -> fxApplicationThreadExecutor.execute(() -> {
+    filteredGamesSizeBinding = Bindings.size(filteredGameList);
+    gameListSizeBinding = Bindings.size(new FilteredList<>(games, onlineGamesPredicate));
+    filteredGamesCountLabel.visibleProperty().bind(
+        filteredGamesSizeBinding.isNotEqualTo(gameListSizeBinding).when(showing));
+
+    filteredGamesCountLabel.textProperty().bind(Bindings.createStringBinding(() -> {
       int gameListSize = gameListSizeBinding.get();
-      filteredGamesCountLabel.setText(i18n.get("filteredOutItemsCount", gameListSize - filteredGamesSizeBinding.get(), gameListSize));
-    });
-    JavaFxUtil.addListener(filteredGamesSizeBinding, gameListSizeListener);
-    JavaFxUtil.addAndTriggerListener(gameListSizeBinding, gameListSizeListener);
+      return i18n.get("filteredOutItemsCount", gameListSize - filteredGamesSizeBinding.get(), gameListSize);
+    }, filteredGamesSizeBinding, gameListSizeBinding).when(showing));
 
     SortedList<GameBean> sortedList = new SortedList<>(filteredGameList);
     sortedList.comparatorProperty().bind(tableView.comparatorProperty());
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(imageViewHelper));
     mapPreviewColumn.setCellValueFactory(param -> param.getValue().mapFolderNameProperty()
-            .map(mapFolderName -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL)));
+                                                       .map(mapFolderName -> mapService.loadPreview(mapFolderName,
+                                                                                                    PreviewSize.SMALL))
+                                                       .when(showing));
 
-    startTimeColumn.setCellValueFactory(param -> param.getValue().startTimeProperty());
+    startTimeColumn.setCellValueFactory(param -> param.getValue().startTimeProperty().when(showing));
     startTimeColumn.setCellFactory(param -> new StringCell<>(this.timeService::asShortTime));
-    gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
+    gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty().when(showing));
     gameTitleColumn.setCellFactory(param -> new StringCell<>(StringUtils::normalizeSpace));
-    playersColumn.setCellValueFactory(param -> param.getValue().numActivePlayersProperty());
+    playersColumn.setCellValueFactory(param -> param.getValue().numActivePlayersProperty().when(showing));
     playersColumn.setCellFactory(param -> new StringCell<>(i18n::number));
-    averageRatingColumn.setCellValueFactory(param -> playerService.getAverageRatingPropertyForGame(param.getValue()));
+    averageRatingColumn.setCellValueFactory(
+        param -> playerService.getAverageRatingPropertyForGame(param.getValue()).when(showing));
     averageRatingColumn.setCellFactory(param -> new DecimalCell<>(new DecimalFormat("0"),
         number -> Math.round(number / 100.0) * 100.0));
-    hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
+    hostColumn.setCellValueFactory(param -> param.getValue().hostProperty().when(showing));
     hostColumn.setCellFactory(param -> new StringCell<>(String::toString));
-    modsColumn.setCellValueFactory(this::modCell);
+    modsColumn.setCellValueFactory(param -> modCell(param).when(showing));
     modsColumn.setCellFactory(param -> new StringCell<>(String::toString));
-    watchColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue()));
+    watchColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue()).when(showing));
     watchColumn.setCellFactory(param -> new ControllerTableCell<>(uiService.loadFxml("theme/vault/replay/watch_button.fxml"), WatchButtonController::setGame));
 
     tableView.setItems(sortedList);

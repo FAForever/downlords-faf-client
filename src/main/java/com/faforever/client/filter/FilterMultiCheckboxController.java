@@ -47,7 +47,7 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
   private String text;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     listView.setSelectionModel(new NoSelectionModelListView<>());
     listView.setFocusModel(new NoFocusModelListView<>());
     addSearchBar();

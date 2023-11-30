@@ -4,9 +4,9 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.CopyUsernameMenuItem;
@@ -19,6 +19,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.commons.lobby.Faction;
@@ -43,7 +44,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class PartyMemberItemController implements Controller<Node> {
+public class PartyMemberItemController extends NodeController<Node> {
 
   public static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
   public static final PseudoClass PLAYING_PSEUDO_CLASS = PseudoClass.getPseudoClass("playing");
@@ -54,6 +55,7 @@ public class PartyMemberItemController implements Controller<Node> {
   private final PlayerService playerService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final UiService uiService;
+  private final ThemeService themeService;
   private final I18n i18n;
   private final ContextMenuBuilder contextMenuBuilder;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -81,7 +83,7 @@ public class PartyMemberItemController implements Controller<Node> {
   private final SimpleInvalidationListener partyOwnerInvalidationListener = this::setPartyOwnerProperties;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView, playerStatusImageView, leagueImageView, kickPlayerButton);
   }
 
@@ -98,7 +100,7 @@ public class PartyMemberItemController implements Controller<Node> {
       return;
     }
 
-    playerStatusImageView.setImage(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING));
+    playerStatusImageView.setImage(themeService.getThemeImage(ThemeService.CHAT_LIST_STATUS_PLAYING));
 
     addListeners();
     selectFactionsBasedOnParty();

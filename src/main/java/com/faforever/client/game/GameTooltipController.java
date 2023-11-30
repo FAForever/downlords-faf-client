@@ -2,14 +2,14 @@ package com.faforever.client.game;
 
 
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.fx.Controller;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Joiner;
-import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -28,11 +28,12 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @RequiredArgsConstructor
-public class GameTooltipController implements Controller<Node> {
+public class GameTooltipController extends NodeController<Node> {
 
   private final UiService uiService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -40,7 +41,7 @@ public class GameTooltipController implements Controller<Node> {
   private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
   private final BooleanProperty showMods = new SimpleBooleanProperty(true);
   private final ObservableValue<Map<Integer, List<Integer>>> teams = game.flatMap(GameBean::teamsProperty)
-      .orElse(Map.of());
+                                                                         .orElse(Map.of());
   private final ObservableValue<String> leaderboard = game.flatMap(GameBean::leaderboardProperty);
   private final SimpleChangeListener<Map<Integer, List<Integer>>> teamsListener = this::populateTeamsContainer;
 
@@ -49,16 +50,15 @@ public class GameTooltipController implements Controller<Node> {
   public Label modsLabel;
   public VBox gameTooltipRoot;
 
-  public void initialize() {
-    BooleanExpression showing = uiService.createShowingProperty(getRoot());
-
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(modsPane);
     modsPane.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
     modsLabel.textProperty()
-        .bind(game.flatMap(GameBean::simModsProperty)
-            .map(mods -> Joiner.on(System.getProperty("line.separator")).join(mods.values()))
-            .flatMap(mods -> showMods.map(show -> show ? mods : ""))
-            .when(showing));
+             .bind(game.flatMap(GameBean::simModsProperty)
+                       .map(mods -> Joiner.on(System.getProperty("line.separator")).join(mods.values()))
+                       .flatMap(mods -> showMods.map(show -> show ? mods : ""))
+                       .when(showing));
 
     teamsPane.prefColumnsProperty().bind(teams.map(Map::size));
     teams.addListener(teamsListener);
@@ -66,8 +66,11 @@ public class GameTooltipController implements Controller<Node> {
 
   private void populateTeamsContainer(Map<Integer, List<Integer>> newValue) {
     CompletableFuture.supplyAsync(() -> createTeamCardControllers(newValue))
-        .thenAcceptAsync(controllers -> teamsPane.getChildren()
-            .setAll(controllers.stream().map(TeamCardController::getRoot).toList()), fxApplicationThreadExecutor);
+                     .thenAcceptAsync(controllers -> teamsPane.getChildren()
+                                                              .setAll(controllers.stream()
+                                                                                 .map(TeamCardController::getRoot)
+                                                                                 .toList()),
+                                      fxApplicationThreadExecutor);
   }
 
   private List<TeamCardController> createTeamCardControllers(Map<Integer, List<Integer>> teamsValue) {
@@ -78,7 +81,9 @@ public class GameTooltipController implements Controller<Node> {
       TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
       controller.setRatingPrecision(RatingPrecision.ROUNDED);
       controller.ratingProviderProperty()
-          .bind(leaderboard.map(name -> player -> RatingUtil.getLeaderboardRating(player, name)));
+                .bind(leaderboard.map(
+                                     name -> (Function<PlayerBean, Integer>) player -> RatingUtil.getLeaderboardRating(player, name))
+                                 .when(showing));
       controller.setTeamId(team);
       controller.setPlayerIds(playerIds);
       controller.bindPlayersToPlayerIds();
@@ -103,6 +108,7 @@ public class GameTooltipController implements Controller<Node> {
     this.showMods.set(showMods);
   }
 
+  @Override
   public Node getRoot() {
     return gameTooltipRoot;
   }

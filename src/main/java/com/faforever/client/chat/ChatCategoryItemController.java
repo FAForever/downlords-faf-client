@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.contextmenu.ChatCategoryColorPickerCustomMenuItemController;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
@@ -14,7 +14,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.scene.Node;
@@ -31,7 +30,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ChatCategoryItemController implements Controller<Node> {
+public class ChatCategoryItemController extends NodeController<Node> {
 
   private final I18n i18n;
   private final UiService uiService;
@@ -49,13 +48,11 @@ public class ChatCategoryItemController implements Controller<Node> {
   public Label userCounterLabel;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     bindProperties();
   }
 
   private void bindProperties() {
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
     categoryLabel.styleProperty()
         .bind(chatPrefs.groupToColorProperty()
             .flatMap(groupToColor -> chatUserCategory.map(groupToColor::get))
@@ -64,7 +61,7 @@ public class ChatCategoryItemController implements Controller<Node> {
             .orElse("")
             .when(showing));
 
-    categoryLabel.textProperty().bind(chatUserCategory.map(ChatUserCategory::getI18nKey).map(i18n::get));
+    categoryLabel.textProperty().bind(chatUserCategory.map(ChatUserCategory::getI18nKey).map(i18n::get).when(showing));
 
     channelHiddenCategories.bind(Bindings.valueAt(chatPrefs.getChannelNameToHiddenCategories(), channelName)
         .orElse(FXCollections.observableSet())
@@ -72,9 +69,9 @@ public class ChatCategoryItemController implements Controller<Node> {
 
     arrowLabel.textProperty()
         .bind(channelHiddenCategories.flatMap(hiddenCategories -> Bindings.createBooleanBinding(() -> hiddenCategories.contains(chatUserCategory.get()), hiddenCategories, chatUserCategory))
-            .map(hidden -> hidden ? "˃" : "˅"));
+                                     .map(hidden -> hidden ? "˃" : "˅").when(showing));
 
-    userCounterLabel.textProperty().bind(numCategoryItems.map(String::valueOf));
+    userCounterLabel.textProperty().bind(numCategoryItems.map(String::valueOf).when(showing));
   }
 
   public void onCategoryClicked(MouseEvent mouseEvent) {

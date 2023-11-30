@@ -9,7 +9,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import javafx.animation.Timeline;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +20,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,7 +50,6 @@ public class WatchButtonControllerTest extends PlatformTest {
     when(liveReplayService.trackingLiveReplayProperty()).thenReturn(trackingLiveReplayProperty);
     when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.ofNullable(trackingLiveReplayProperty.get()));
     when(i18n.get("game.watch")).thenReturn("watch");
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/vault/replay/watch_button.fxml", clazz -> instance);
   }

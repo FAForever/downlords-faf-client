@@ -3,7 +3,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
-
 <VBox fx:id="offlineServicesRoot" styleClass="announcement" spacing="5.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.login.OfflineServicesController">
    <children>
       <Label styleClass="h3" text="%login.offlineServices.title" />

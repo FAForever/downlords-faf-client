@@ -25,6 +25,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ApiTestUtil;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.PlatformTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
@@ -94,8 +95,10 @@ import static org.mockito.Mockito.when;
 public class ModServiceTest extends PlatformTest {
 
   public static final String BLACK_OPS_UNLEASHED_DIRECTORY_NAME = "BlackOpsUnleashed";
-  private static final ClassPathResource BLACKOPS_SUPPORT_MOD_INFO = new ClassPathResource("/mods/blackops_support_mod_info.lua");
-  private static final ClassPathResource BLACKOPS_UNLEASHED_MOD_INFO = new ClassPathResource("/mods/blackops_unleashed_mod_info.lua");
+  private static final ClassPathResource BLACKOPS_SUPPORT_MOD_INFO = new ClassPathResource(
+      "/mods/blackops_support_mod_info.lua");
+  private static final ClassPathResource BLACKOPS_UNLEASHED_MOD_INFO = new ClassPathResource(
+      "/mods/blackops_unleashed_mod_info.lua");
   private static final ClassPathResource ECO_MANAGER_MOD_INFO = new ClassPathResource("/mods/eco_manager_mod_info.lua");
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
@@ -127,6 +130,8 @@ public class ModServiceTest extends PlatformTest {
   private ObjectFactory<UninstallModTask> uninstallModTaskFactory;
   @Mock
   private UiService uiService;
+  @Mock
+  private ThemeService themeService;
   @Spy
   private ModMapper modMapper = Mappers.getMapper(ModMapper.class);
   @Spy
@@ -166,7 +171,10 @@ public class ModServiceTest extends PlatformTest {
 
     copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
 
-    instance = new ModService(fafApiAccessor, taskService, notificationService, i18n, platformService, assetService, uiService, fileSizeReader, modMapper, forgedAlliancePrefs, preferences, modUploadTaskFactory, downloadModTaskFactory, uninstallModTaskFactory, fxApplicationThreadExecutor);
+    instance = new ModService(fafApiAccessor, taskService, notificationService, i18n, platformService, assetService,
+                              uiService, themeService, fileSizeReader, modMapper, forgedAlliancePrefs, preferences,
+                              modUploadTaskFactory, downloadModTaskFactory, uninstallModTaskFactory,
+                              fxApplicationThreadExecutor);
 
     instance.afterPropertiesSet();
   }
@@ -174,7 +182,8 @@ public class ModServiceTest extends PlatformTest {
   private void copyMod(String directoryName, ClassPathResource classPathResource) throws IOException {
     Path targetDir = Files.createDirectories(modsDirectory.resolve(directoryName));
 
-    try (InputStream inputStream = classPathResource.getInputStream(); OutputStream outputStream = Files.newOutputStream(targetDir.resolve("mod_info.lua"))) {
+    try (InputStream inputStream = classPathResource.getInputStream(); OutputStream outputStream = Files.newOutputStream(
+        targetDir.resolve("mod_info.lua"))) {
       ByteCopier.from(inputStream).to(outputStream).copy();
     }
   }
@@ -223,8 +232,8 @@ public class ModServiceTest extends PlatformTest {
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
     instance.downloadAndInstallMod(modUrl, doubleProperty, stringProperty)
-        .toCompletableFuture()
-        .get(TIMEOUT, TIMEOUT_UNIT);
+            .toCompletableFuture()
+            .get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
@@ -248,8 +257,8 @@ public class ModServiceTest extends PlatformTest {
 
     ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().downloadUrl(modUrl).get();
     instance.downloadAndInstallMod(modVersion, doubleProperty, stringProperty)
-        .toCompletableFuture()
-        .get(TIMEOUT, TIMEOUT_UNIT);
+            .toCompletableFuture()
+            .get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
@@ -266,12 +275,15 @@ public class ModServiceTest extends PlatformTest {
 
     List<String> lines = Files.readAllLines(gamePrefsPath);
 
-    assertThat(lines, contains("active_mods = {", "    ['9e8ea941-c306-4751-b367-f00000000005'] = true,", "    ['9e8ea941-c306-4751-b367-a11000000502'] = true", "}"));
+    assertThat(lines, contains("active_mods = {", "    ['9e8ea941-c306-4751-b367-f00000000005'] = true,",
+                               "    ['9e8ea941-c306-4751-b367-a11000000502'] = true", "}"));
   }
 
   @Test
   public void testEnableSimModsModDisableUnselectedMods() throws Exception {
-    Iterable<? extends CharSequence> lines = Arrays.asList("active_mods = {", "    ['9e8ea941-c306-4751-b367-f00000000005'] = true,", "    ['9e8ea941-c306-4751-b367-a11000000502'] = true", "}");
+    Iterable<? extends CharSequence> lines = Arrays.asList("active_mods = {",
+                                                           "    ['9e8ea941-c306-4751-b367-f00000000005'] = true,",
+                                                           "    ['9e8ea941-c306-4751-b367-a11000000502'] = true", "}");
     Files.write(gamePrefsPath, lines);
 
     HashSet<String> simMods = new HashSet<>();
@@ -295,7 +307,8 @@ public class ModServiceTest extends PlatformTest {
     assertThat(modVersion.getMod().getDisplayName(), is("BlackOps Unleashed"));
     assertThat(modVersion.getVersion(), is(new ComparableVersion("8")));
     assertThat(modVersion.getMod().getAuthor(), is("Lt_hawkeye"));
-    assertThat(modVersion.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
+    assertThat(modVersion.getDescription(),
+               is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
     assertThat(modVersion.getImagePath(), is(modsDirectory.resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
     assertThat(modVersion.getSelectable(), is(true));
     assertThat(modVersion.getId(), is(nullValue()));
@@ -342,10 +355,8 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testGetPathForModUnknownModReturnsNull() {
     assertThat(instance.getInstalledMods(), hasSize(1));
-    assertThat(instance.getPathForMod(ModVersionBeanBuilder.create()
-        .defaultValues()
-        .uid("1")
-        .get()), Matchers.nullValue());
+    assertThat(instance.getPathForMod(ModVersionBeanBuilder.create().defaultValues().uid("1").get()),
+               Matchers.nullValue());
   }
 
   @Test
@@ -366,9 +377,9 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testLoadThumbnail() throws MalformedURLException {
     ModVersionBean modVersion = ModVersionBeanBuilder.create()
-        .defaultValues()
-        .thumbnailUrl(new URL("http://127.0.0.1:65534/thumbnail.png"))
-        .get();
+                                                     .defaultValues()
+                                                     .thumbnailUrl(new URL("http://127.0.0.1:65534/thumbnail.png"))
+                                                     .get();
     instance.loadThumbnail(modVersion);
     verify(assetService).loadAndCacheImage(eq(modVersion.getThumbnailUrl()), eq(Path.of("mods")), any());
   }
@@ -441,21 +452,25 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testGetRecommendedMods() {
     ModVersionBean modVersionBean = ModVersionBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
+        List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
     when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
     List<ModVersionBean> results = instance.getRecommendedModsWithPageCount(10, 0).join().getT1();
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().bool("recommended")
-        .isTrue())));
+    verify(fafApiAccessor).getManyWithPageCount(
+        argThat(ElideMatchers.hasFilter(qBuilder().bool("recommended").isTrue())));
     assertThat(results, contains(modVersionBean));
   }
 
   @Test
   public void testGetFeaturedFiles() {
     FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
-    when(fafApiAccessor.getMany(eq(FeaturedModFile.class), anyString(), anyInt(), any())).thenReturn(Flux.just(new FeaturedModFile()));
+    when(fafApiAccessor.getMany(eq(FeaturedModFile.class), anyString(), anyInt(), any())).thenReturn(
+        Flux.just(new FeaturedModFile()));
 
     instance.getFeaturedModFiles(featuredMod, 0);
-    verify(fafApiAccessor).getMany(eq(FeaturedModFile.class), eq(String.format("/featuredMods/%s/files/%s", featuredMod.getId(), 0)), eq(100), any());
+    verify(fafApiAccessor).getMany(eq(FeaturedModFile.class),
+                                   eq(String.format("/featuredMods/%s/files/%s", featuredMod.getId(), 0)), eq(100),
+                                   any());
   }
 
   @Test
@@ -473,7 +488,8 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testFindByQuery() throws Exception {
     ModVersionBean modVersionBean = ModVersionBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
+        List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
     SearchConfig searchConfig = new SearchConfig(new SortConfig("testSort", SortOrder.ASC), "testQuery");
@@ -488,11 +504,12 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testGetHighestRated() {
     ModVersionBean modVersionBean = ModVersionBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
+        List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
     when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
     List<ModVersionBean> results = instance.getHighestRatedModsWithPageCount(10, 1).join().getT1();
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type")
-        .eq("SIM"))));
+    verify(fafApiAccessor).getManyWithPageCount(
+        argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type").eq("SIM"))));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("reviewsSummary.lowerBound", false)));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
@@ -502,11 +519,12 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testGetHighestRatedUI() {
     ModVersionBean modVersionBean = ModVersionBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
+        List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
     when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
     List<ModVersionBean> results = instance.getHighestRatedUiModsWithPageCount(10, 1).join().getT1();
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type")
-        .eq("UI"))));
+    verify(fafApiAccessor).getManyWithPageCount(
+        argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type").eq("UI"))));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("reviewsSummary.lowerBound", false)));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
@@ -516,7 +534,8 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testGetNewest() {
     ModVersionBean modVersionBean = ModVersionBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
+        List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
     when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
     List<ModVersionBean> results = instance.getNewestModsWithPageCount(10, 1).join().getT1();
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("latestVersion.createTime", false)));

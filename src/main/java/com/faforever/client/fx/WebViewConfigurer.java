@@ -1,7 +1,7 @@
 package com.faforever.client.fx;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.theme.UiService;
+import com.faforever.client.theme.ThemeService;
 import javafx.concurrent.Worker.State;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
@@ -30,7 +30,7 @@ public class WebViewConfigurer {
   private static final String JAVA_REFERENCE_IN_JAVASCRIPT = "java";
   private static final double ZOOM_STEP = 0.2d;
 
-  private final UiService uiService;
+  private final ThemeService themeService;
   private final ClientProperties clientProperties;
   private final ObjectFactory<BrowserCallback> browserCallbackFactory;
 
@@ -57,12 +57,12 @@ public class WebViewConfigurer {
     webView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
 
     engine.setUserAgent(clientProperties.getUserAgent()); // removes faforever.com header and footer
-    uiService.registerWebView(webView);
+    themeService.registerWebView(webView);
     JavaFxUtil.addListener(engine.getLoadWorker().stateProperty(), (observable, oldValue, newValue) -> {
       if (newValue != State.SUCCEEDED) {
         return;
       }
-      uiService.registerWebView(webView);
+      themeService.registerWebView(webView);
 
       ((JSObject) engine.executeScript("window")).setMember(JAVA_REFERENCE_IN_JAVASCRIPT, browserCallback);
 
@@ -76,8 +76,6 @@ public class WebViewConfigurer {
         Element link = (Element) nodeList.item(i);
         String href = link.getAttribute("href");
 
-        link.setAttribute("onMouseOver", "java.previewUrl('" + href + "')");
-        link.setAttribute("onMouseOut", "java.hideUrlPreview()");
         link.setAttribute("href", "javascript:java.openUrl('" + href + "');");
       }
     });

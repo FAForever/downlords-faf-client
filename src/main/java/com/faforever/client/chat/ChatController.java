@@ -1,15 +1,16 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.exception.ProgrammingError;
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.SimpleChangeListener;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.theme.UiService;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
+import javafx.collections.WeakListChangeListener;
+import javafx.collections.WeakMapChangeListener;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
@@ -30,13 +31,18 @@ import java.util.Optional;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ChatController extends AbstractViewController<AnchorPane> {
+public class ChatController extends NodeController<AnchorPane> {
 
   private final ChatService chatService;
   private final UiService uiService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final Map<ChatChannel, AbstractChatTabController> channelToChatTabController = new HashMap<>();
+  private final ListChangeListener<Tab> tabListChangeListener = change -> {
+    while (change.next()) {
+      change.getRemoved().forEach(tab -> channelToChatTabController.remove((ChatChannel) tab.getUserData()));
+    }
+  };
   private final MapChangeListener<String, ChatChannel> channelChangeListener = change -> {
     if (change.wasRemoved()) {
       onChannelLeft(change.getValueRemoved());
@@ -53,22 +59,15 @@ public class ChatController extends AbstractViewController<AnchorPane> {
   public TextField channelNameTextField;
 
   @Override
-  public void initialize() {
-    super.initialize();
+  protected void onInitialize() {
+    super.onInitialize();
 
-    chatService.addChannelsListener(channelChangeListener);
+    chatService.addChannelsListener(new WeakMapChangeListener<>(channelChangeListener));
+    chatService.getChannels().forEach(this::onChannelJoined);
 
-    JavaFxUtil.addAndTriggerListener(chatService.connectionStateProperty(), (SimpleChangeListener<ConnectionState>) this::onConnectionStateChange);
+    chatService.connectionStateProperty().when(showing).subscribe(this::onConnectionStateChange);
 
-    JavaFxUtil.addListener(tabPane.getTabs(), (ListChangeListener<Tab>) change -> {
-      while (change.next()) {
-        change.getRemoved().forEach(tab -> channelToChatTabController.remove((ChatChannel) tab.getUserData()));
-      }
-    });
-  }
-
-  public void dispose() {
-    chatService.removeChannelsListener(channelChangeListener);
+    JavaFxUtil.addListener(tabPane.getTabs(), new WeakListChangeListener<>(tabListChangeListener));
   }
 
   private void onChannelLeft(ChatChannel chatChannel) {
@@ -128,9 +127,10 @@ public class ChatController extends AbstractViewController<AnchorPane> {
         }
         tabController.setChatChannel(chatChannel);
         channelToChatTabController.put(chatChannel, tabController);
-
         Tab tab = tabController.getRoot();
         tab.setUserData(chatChannel);
+
+
         if (chatService.isDefaultChannel(chatChannel)) {
           tabPane.getTabs().add(0, tab);
           tabPane.getSelectionModel().select(tab);
@@ -139,7 +139,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
           tabPane.getTabs().add(tabPane.getTabs().size() - 1, tab);
 
           if (chatChannel.isPrivateChannel() || tabPane.getSelectionModel().getSelectedIndex() == tabPane.getTabs()
-              .size() - 1) {
+                                                                                                         .size() - 1) {
             tabPane.getSelectionModel().select(tab);
             tabController.onDisplay();
           }
@@ -157,6 +157,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
     }
   }
 
+  @Override
   public AnchorPane getRoot() {
     return chatRoot;
   }
@@ -172,11 +173,11 @@ public class ChatController extends AbstractViewController<AnchorPane> {
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  protected void onNavigate(NavigateEvent navigateEvent) {
     if (tabPane.getTabs().size() > 1) {
       Tab tab = tabPane.getSelectionModel().getSelectedItem();
       Optional.ofNullable(channelToChatTabController.get((ChatChannel) tab.getUserData()))
-          .ifPresent(AbstractChatTabController::onDisplay);
+              .ifPresent(AbstractChatTabController::onDisplay);
     }
   }
 }

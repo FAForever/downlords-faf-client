@@ -1,6 +1,6 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.theme.UiService;
@@ -17,14 +17,15 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class TransientNotificationsController implements Controller<Node> {
+public class TransientNotificationsController extends NodeController<Node> {
 
   private final UiService uiService;
   private final NotificationPrefs notificationPrefs;
 
   public VBox transientNotificationsRoot;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     ToastPosition toastPosition = notificationPrefs.getToastPosition();
 
     switch (toastPosition) {
@@ -36,6 +37,7 @@ public class TransientNotificationsController implements Controller<Node> {
     }
   }
 
+  @Override
   public Pane getRoot() {
     return transientNotificationsRoot;
   }

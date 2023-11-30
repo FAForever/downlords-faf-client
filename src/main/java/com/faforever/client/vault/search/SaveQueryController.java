@@ -1,6 +1,6 @@
 package com.faforever.client.vault.search;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import javafx.collections.ObservableMap;
 import javafx.scene.Parent;
 import javafx.scene.control.TextField;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class SaveQueryController implements Controller<Parent> {
+public class SaveQueryController extends NodeController<Parent> {
 
   public TextField queryName;
   public VBox root;

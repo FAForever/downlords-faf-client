@@ -7,13 +7,9 @@ import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
-import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.util.IdenticonUtil;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 /**
@@ -21,24 +17,15 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class FriendJoinedGameNotifier implements InitializingBean {
+public class FriendJoinedGameNotifier {
 
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final EventBus eventBus;
   private final JoinGameHelper joinGameHelper;
   private final AudioService audioService;
   private final NotificationPrefs notificationPrefs;
 
-  @Override
-  public void afterPropertiesSet() {
-    eventBus.register(this);
-  }
-
-  @Subscribe
-  public void onFriendJoinedGame(FriendJoinedGameEvent event) {
-    PlayerBean player = event.player();
-    GameBean game = event.game();
+  public void onFriendJoinedGame(PlayerBean player, GameBean game) {
     if (notificationPrefs.isFriendJoinsGameSoundEnabled()) {
       audioService.playFriendJoinsGameSound();
     }
@@ -48,7 +35,7 @@ public class FriendJoinedGameNotifier implements InitializingBean {
           i18n.get("friend.joinedGameNotification.title", player.getUsername(), game.getTitle()),
           i18n.get("friend.joinedGameNotification.action"),
           IdenticonUtil.createIdenticon(player.getId()),
-          event1 -> joinGameHelper.join(player.getGame())
+          event -> joinGameHelper.join(game)
       ));
     }
   }

@@ -3,8 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.domain.PlayerBean;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -26,9 +24,9 @@ import java.util.Set;
 public class ChatChannelUser {
 
   @EqualsAndHashCode.Include
-  ReadOnlyStringWrapper username = new ReadOnlyStringWrapper();
+  String username;
   @EqualsAndHashCode.Include
-  ReadOnlyStringWrapper channel = new ReadOnlyStringWrapper();
+  String channel;
   BooleanProperty moderator = new SimpleBooleanProperty();
   ObjectProperty<Color> color = new SimpleObjectProperty<>();
   ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
@@ -43,8 +41,8 @@ public class ChatChannelUser {
       .flatMap(category -> moderator.map(isMod -> isMod ? Set.of(ChatUserCategory.MODERATOR, category) : Set.of(category)));
 
   public ChatChannelUser(String username, String channel) {
-    this.username.set(username);
-    this.channel.set(channel);
+    this.username = username;
+    this.channel = channel;
   }
 
   public Optional<PlayerBean> getPlayer() {
@@ -77,22 +75,6 @@ public class ChatChannelUser {
 
   public void setModerator(boolean moderator) {
     this.moderator.set(moderator);
-  }
-
-  public String getUsername() {
-    return username.get();
-  }
-
-  public ReadOnlyStringProperty usernameProperty() {
-    return username.getReadOnlyProperty();
-  }
-
-  public String getChannel() {
-    return channel.get();
-  }
-
-  public ReadOnlyStringProperty channelProperty() {
-    return channel.getReadOnlyProperty();
   }
 
   public BooleanProperty moderatorProperty() {

@@ -1,6 +1,6 @@
 package com.faforever.client.main;
 
-import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigationItem;
 import javafx.collections.FXCollections;
@@ -18,13 +18,13 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-public class StartTabChooseController extends AbstractViewController<Parent> {
+public class StartTabChooseController extends NodeController<Parent> {
   private final I18n i18n;
   public ComboBox<NavigationItem> tabItemChoiceBox;
   public HBox root;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     tabItemChoiceBox.setConverter(new StringConverter<>() {
       @Override
       public String toString(NavigationItem navigationItem) {

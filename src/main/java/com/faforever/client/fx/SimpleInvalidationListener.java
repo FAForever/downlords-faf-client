@@ -8,6 +8,7 @@ public interface SimpleInvalidationListener extends InvalidationListener {
 
   void invalidated();
 
+  @Override
   default void invalidated(Observable observable) {
       invalidated();
   }

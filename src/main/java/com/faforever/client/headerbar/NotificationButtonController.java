@@ -1,7 +1,7 @@
 package com.faforever.client.headerbar;
 
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
@@ -23,7 +23,7 @@ import java.util.Collection;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class NotificationButtonController implements Controller<Node> {
+public class NotificationButtonController extends NodeController<Node> {
 
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_CLASS = PseudoClass.getPseudoClass("info");
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_CLASS = PseudoClass.getPseudoClass("warn");
@@ -36,7 +36,8 @@ public class NotificationButtonController implements Controller<Node> {
   public Button notificationButton;
   public Popup persistentNotificationsPopup;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     updateNotificationsButton(notificationService.getPersistentNotifications());
     notificationService.addPersistentNotificationListener(change -> fxApplicationThreadExecutor.execute(() -> updateNotificationsButton(change.getSet())));
 
@@ -69,6 +70,7 @@ public class NotificationButtonController implements Controller<Node> {
         .getWindow(), screenBounds.getMaxX(), screenBounds.getMaxY());
   }
 
+  @Override
   public StackPane getRoot() {
     return root;
   }

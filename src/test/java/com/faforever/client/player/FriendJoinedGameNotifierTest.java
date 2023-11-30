@@ -9,20 +9,14 @@ import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
-import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.test.ServiceTest;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.springframework.util.ReflectionUtils;
 
-import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -37,8 +31,6 @@ public class FriendJoinedGameNotifierTest extends ServiceTest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private EventBus eventBus;
-  @Mock
   private I18n i18n;
   @Mock
   private JoinGameHelper joinGameHelper;
@@ -48,18 +40,6 @@ public class FriendJoinedGameNotifierTest extends ServiceTest {
   @Spy
   private NotificationPrefs notificationPrefs;
 
-  @BeforeEach
-  public void setUp() throws Exception {
-    instance.afterPropertiesSet();
-    verify(eventBus).register(instance);
-  }
-
-  @Test
-  public void testSubscribeAnnotations() {
-    assertThat(ReflectionUtils.findMethod(instance.getClass(), "onFriendJoinedGame", FriendJoinedGameEvent.class),
-        hasAnnotation(Subscribe.class));
-  }
-
   @Test
   public void onFriendJoinedGame() throws Exception {
     GameBean game = GameBeanBuilder.create().defaultValues().title("My Game").get();
@@ -68,7 +48,7 @@ public class FriendJoinedGameNotifierTest extends ServiceTest {
     when(i18n.get("friend.joinedGameNotification.title", "junit", "My Game")).thenReturn("junit joined My Game");
     when(i18n.get("friend.joinedGameNotification.action")).thenReturn("Click to join");
 
-    instance.onFriendJoinedGame(new FriendJoinedGameEvent(player, game));
+    instance.onFriendJoinedGame(player, game);
 
     ArgumentCaptor<TransientNotification> captor = ArgumentCaptor.forClass(TransientNotification.class);
     verify(notificationService).addNotification(captor.capture());
@@ -83,7 +63,8 @@ public class FriendJoinedGameNotifierTest extends ServiceTest {
   public void testNoNotificationIfDisabledInPreferences() throws Exception {
     notificationPrefs.setFriendJoinsGameToastEnabled(false);
 
-    instance.onFriendJoinedGame(new FriendJoinedGameEvent(PlayerBeanBuilder.create().defaultValues().username("junit").get(), GameBeanBuilder.create().defaultValues().get()));
+    instance.onFriendJoinedGame(PlayerBeanBuilder.create().defaultValues().username("junit").get(),
+                                GameBeanBuilder.create().defaultValues().get());
 
     verify(notificationService, never()).addNotification(any(TransientNotification.class));
   }

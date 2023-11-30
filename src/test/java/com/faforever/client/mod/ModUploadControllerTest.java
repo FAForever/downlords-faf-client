@@ -9,7 +9,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.PlatformTest;
-import com.google.common.eventbus.EventBus;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,8 +57,6 @@ public class ModUploadControllerTest extends PlatformTest {
 
   @Mock
   private I18n i18n;
-  @Mock
-  private EventBus eventBus;
 
   @Mock
   private FafApiAccessor fafApiAccessor;

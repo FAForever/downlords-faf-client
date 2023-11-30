@@ -10,17 +10,16 @@ import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayBean.ChatMessage;
 import com.faforever.client.domain.ReplayBean.GameOption;
 import com.faforever.client.domain.ReplayReviewBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.game.RatingPrecision;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.main.event.DeleteLocalReplayEvent;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
@@ -41,7 +40,6 @@ import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.api.dto.Faction;
 import com.faforever.commons.api.dto.Validity;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringExpression;
@@ -90,11 +88,10 @@ import java.util.stream.Collectors;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class ReplayDetailController implements Controller<Node> {
+public class ReplayDetailController extends NodeController<Node> {
 
   private final TimeService timeService;
   private final I18n i18n;
-  private final EventBus eventBus;
   private final UiService uiService;
   private final ReplayService replayService;
   private final RatingService ratingService;
@@ -150,10 +147,12 @@ public class ReplayDetailController implements Controller<Node> {
   public Button deleteButton;
   public Label notRatedReasonLabel;
 
-  public void initialize() {
-    BooleanExpression showing = uiService.createShowingProperty(getRoot());
+  private Runnable onDeleteListener;
 
-    JavaFxUtil.bindManagedToVisible(downloadMoreInfoButton, moreInformationPane, teamsInfoBox, reviewsContainer, ratingSeparator, reviewSeparator, deleteButton, getRoot());
+  @Override
+  protected void onInitialize() {
+    JavaFxUtil.bindManagedToVisible(downloadMoreInfoButton, moreInformationPane, teamsInfoBox, reviewsContainer,
+                                    ratingSeparator, reviewSeparator, deleteButton, getRoot());
 
     imageViewHelper.setDefaultPlaceholderImage(mapThumbnailImageView);
     JavaFxUtil.bindManagedToVisible(notRatedReasonLabel, showRatingChangeButton);
@@ -178,116 +177,140 @@ public class ReplayDetailController implements Controller<Node> {
   }
 
   private void bindProperties() {
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
     ObservableValue<Validity> validityObservable = replay.flatMap(ReplayBean::validityProperty);
-    BooleanExpression isValidObservable = BooleanExpression.booleanExpression(validityObservable.map(Validity.VALID::equals));
-    BooleanExpression changedRatingObservable = BooleanExpression.booleanExpression(replay.map(replayService::replayChangedRating));
+    BooleanExpression isValidObservable = BooleanExpression.booleanExpression(
+        validityObservable.map(Validity.VALID::equals));
+    BooleanExpression changedRatingObservable = BooleanExpression.booleanExpression(
+        replay.map(replayService::replayChangedRating));
 
     showRatingChangeButton.visibleProperty()
-        .bind(Bindings.and(isValidObservable, changedRatingObservable).when(showing));
+                          .bind(Bindings.and(isValidObservable, changedRatingObservable).when(showing));
     notRatedReasonLabel.visibleProperty().bind(showRatingChangeButton.visibleProperty().not());
     notRatedReasonLabel.textProperty()
-        .bind(validityObservable.map(validity -> i18n.getOrDefault(validity.toString(), "game.reasonNotValid", i18n.get(validity.getI18nKey())))
-            .orElse(i18n.get("game.notRatedYet")));
+                       .bind(validityObservable.map(
+                                                   validity -> i18n.getOrDefault(validity.toString(), "game.reasonNotValid",
+                                                                                 i18n.get(validity.getI18nKey())))
+                                               .orElse(i18n.get("game.notRatedYet")));
 
-    BooleanExpression hasReplayFileObservable = BooleanExpression.booleanExpression(replay.flatMap(ReplayBean::replayFileProperty)
-        .map(Objects::nonNull)
-        .orElse(false));
-    BooleanExpression replayAvailableOnline = BooleanExpression.booleanExpression(replay.flatMap(ReplayBean::replayAvailableProperty));
+    BooleanExpression hasReplayFileObservable = BooleanExpression.booleanExpression(
+        replay.flatMap(ReplayBean::replayFileProperty).map(Objects::nonNull).orElse(false));
+    BooleanExpression replayAvailableOnline = BooleanExpression.booleanExpression(
+        replay.flatMap(ReplayBean::replayAvailableProperty));
     BooleanExpression replayAvailable = Bindings.or(hasReplayFileObservable, replayAvailableOnline);
 
     watchButton.disableProperty().bind(replayAvailable.not().when(showing));
     watchButton.textProperty()
-        .bind(replayAvailable.map(available -> available ? i18n.get("game.watch") : i18n.get("game.replayFileMissing"))
-            .when(showing));
+               .bind(replayAvailable.map(
+                   available -> available ? i18n.get("game.watch") : i18n.get("game.replayFileMissing")).when(showing));
     downloadMoreInfoButton.visibleProperty()
-        .bind(Bindings.and(replayAvailableOnline, hasReplayFileObservable.not()).when(showing));
+                          .bind(Bindings.and(replayAvailableOnline, hasReplayFileObservable.not()).when(showing));
     downloadMoreInfoButton.textProperty()
-        .bind(replayAvailable.map(available -> available ? i18n.get("game.downloadMoreInfoNoSize") : i18n.get("game.replayFileMissing"))
-            .when(showing));
+                          .bind(replayAvailable.map(
+                              available -> available ? i18n.get("game.downloadMoreInfoNoSize") : i18n.get(
+                                  "game.replayFileMissing")).when(showing));
 
     replayIdField.textProperty()
-        .bind(replay.flatMap(ReplayBean::idProperty).map(id -> i18n.get("game.idFormat", id)).when(showing));
+                 .bind(replay.flatMap(ReplayBean::idProperty).map(id -> i18n.get("game.idFormat", id)).when(showing));
     titleLabel.textProperty().bind(replay.flatMap(ReplayBean::titleProperty).when(showing));
     dateLabel.textProperty().bind(replay.flatMap(ReplayBean::startTimeProperty).map(timeService::asDate).when(showing));
     timeLabel.textProperty()
-        .bind(replay.flatMap(ReplayBean::startTimeProperty).map(timeService::asShortTime).when(showing));
+             .bind(replay.flatMap(ReplayBean::startTimeProperty).map(timeService::asShortTime).when(showing));
     ObservableValue<MapVersionBean> mapVersionObservable = replay.flatMap(ReplayBean::mapVersionProperty);
     mapThumbnailImageView.imageProperty()
-        .bind(mapVersionObservable.flatMap(mapVersion -> Bindings.createObjectBinding(() -> mapService.loadPreview(mapVersion, PreviewSize.SMALL), mapService.isInstalledBinding(mapVersion)))
-            .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
-            .orElse(imageViewHelper.getDefaultPlaceholderImage())
-            .when(showing));
+                         .bind(mapVersionObservable.flatMap(mapVersion -> Bindings.createObjectBinding(
+                                                       () -> mapService.loadPreview(mapVersion, PreviewSize.SMALL),
+                                                       mapService.isInstalledBinding(mapVersion)))
+                                                   .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
+                                                   .orElse(imageViewHelper.getDefaultPlaceholderImage())
+                                                   .when(showing));
     onMapLabel.textProperty()
-        .bind(mapVersionObservable.flatMap(MapVersionBean::mapProperty)
-            .flatMap(MapBean::displayNameProperty)
-            .map(displayName -> i18n.get("game.onMapFormat", displayName))
-            .orElse(i18n.get("game.onUnknownMap"))
-            .when(showing));
+              .bind(mapVersionObservable.flatMap(MapVersionBean::mapProperty)
+                                        .flatMap(MapBean::displayNameProperty)
+                                        .map(displayName -> i18n.get("game.onMapFormat", displayName))
+                                        .orElse(i18n.get("game.onUnknownMap"))
+                                        .when(showing));
     durationLabel.visibleProperty()
-        .bind(replay.flatMap(ReplayBean::endTimeProperty).map(Objects::nonNull).orElse(false).when(showing));
+                 .bind(replay.flatMap(ReplayBean::endTimeProperty).map(Objects::nonNull).orElse(false).when(showing));
     durationLabel.textProperty().bind(replay.flatMap(replayValue -> Bindings.createObjectBinding(() -> {
       OffsetDateTime startTime = replayValue.getStartTime();
       OffsetDateTime endTime = replayValue.getEndTime();
       return startTime == null || endTime == null ? null : Duration.between(startTime, endTime);
-    }, replayValue.startTimeProperty(), replayValue.endTimeProperty()).map(timeService::shortDuration)));
-    replayDurationLabel.visibleProperty()
-        .bind(replay.flatMap(ReplayBean::replayTicksProperty).map(Objects::nonNull).orElse(false).when(showing));
-    replayDurationLabel.textProperty()
-        .bind(replay.flatMap(ReplayBean::replayTicksProperty)
-            .map(ticks -> ticks * 100)
-            .map(Duration::ofMillis)
-            .map(timeService::shortDuration)
-            .when(showing));
-    modLabel.textProperty()
-        .bind(replay.flatMap(ReplayBean::featuredModProperty)
-            .flatMap(FeaturedModBean::displayNameProperty)
-            .orElse(i18n.get("unknown"))
-            .when(showing));
-    ObservableValue<Double> qualityObservable = replay.map(ratingService::calculateQuality);
-    BooleanExpression qualityNotDefined = BooleanExpression.booleanExpression(qualityObservable.map(quality -> quality.isNaN()));
-    qualityLabel.textProperty()
-        .bind(Bindings.when(qualityNotDefined)
-            .then(i18n.get("gameQuality.undefined"))
-            .otherwise(StringExpression.stringExpression(qualityObservable.map(quality -> quality * 100)
-                .map(Math::round)
-                .map(quality -> i18n.get("percentage", quality))))
-            .when(showing));
-    playerCountLabel.textProperty()
-        .bind(replay.flatMap(ReplayBean::teamsProperty)
-            .map(teams -> teams.values().stream().mapToInt(Collection::size).sum())
-            .map(i18n::number)
-            .when(showing));
-    ratingLabel.textProperty()
-        .bind(replay.flatMap(ReplayBean::teamPlayerStatsProperty)
-            .map(teamStats -> teamStats.values()
-                .stream()
-                .flatMapToInt(playerStats -> playerStats.stream()
-                    .map(GamePlayerStatsBean::getLeaderboardRatingJournals)
-                    .mapToInt(journals -> journals.stream().map(RatingUtil::getRating).findFirst().orElse(0)))
-                .average()
-                .orElse(Double.NaN))
-            .map(average -> average.isNaN() ? "-" : i18n.number(average))
-            .when(showing));
+    }, replayValue.startTimeProperty(), replayValue.endTimeProperty()).map(timeService::shortDuration)).when(showing));
 
-    BooleanExpression hasChatMessages = BooleanExpression.booleanExpression(replay.flatMap(ReplayBean::chatMessagesProperty)
-        .map(Collection::isEmpty)).not();
-    BooleanExpression hasGameOptions = BooleanExpression.booleanExpression(replay.flatMap(ReplayBean::gameOptionsProperty)
-        .map(Collection::isEmpty)).not();
+    replayDurationLabel.visibleProperty()
+                       .bind(replay.flatMap(ReplayBean::replayTicksProperty)
+                                   .map(Objects::nonNull)
+                                   .orElse(false)
+                                   .when(showing));
+
+    replayDurationLabel.textProperty()
+                       .bind(replay.flatMap(ReplayBean::replayTicksProperty)
+                                   .map(ticks -> ticks * 100)
+                                   .map(Duration::ofMillis)
+                                   .map(timeService::shortDuration)
+                                   .when(showing));
+
+    modLabel.textProperty()
+            .bind(replay.flatMap(ReplayBean::featuredModProperty)
+                        .flatMap(FeaturedModBean::displayNameProperty)
+                        .orElse(i18n.get("unknown"))
+                        .when(showing));
+
+    ObservableValue<Double> qualityObservable = replay.map(ratingService::calculateQuality);
+    BooleanExpression qualityNotDefined = BooleanExpression.booleanExpression(
+        qualityObservable.map(quality -> quality.isNaN()));
+    qualityLabel.textProperty()
+                .bind(Bindings.when(qualityNotDefined)
+                              .then(i18n.get("gameQuality.undefined"))
+                              .otherwise(StringExpression.stringExpression(
+                                  qualityObservable.map(quality -> quality * 100)
+                                                   .map(Math::round)
+                                                   .map(quality -> i18n.get("percentage", quality))))
+                              .when(showing));
+
+    playerCountLabel.textProperty()
+                    .bind(replay.flatMap(ReplayBean::teamsProperty)
+                                .map(teams -> teams.values().stream().mapToInt(Collection::size).sum())
+                                .map(i18n::number)
+                                .when(showing));
+
+    ratingLabel.textProperty()
+               .bind(replay.flatMap(ReplayBean::teamPlayerStatsProperty)
+                           .map(teamStats -> teamStats.values()
+                                                      .stream()
+                                                      .flatMapToInt(playerStats -> playerStats.stream()
+                                                                                              .map(
+                                                                                                  GamePlayerStatsBean::getLeaderboardRatingJournals)
+                                                                                              .mapToInt(
+                                                                                                  journals -> journals.stream()
+                                                                                                                      .map(
+                                                                                                                          RatingUtil::getRating)
+                                                                                                                      .findFirst()
+                                                                                                                      .orElse(
+                                                                                                                          0)))
+                                                      .average()
+                                                      .orElse(Double.NaN))
+                           .map(average -> average.isNaN() ? "-" : i18n.number(average))
+                           .when(showing));
+
+    BooleanExpression hasChatMessages = BooleanExpression.booleanExpression(
+        replay.flatMap(ReplayBean::chatMessagesProperty).map(Collection::isEmpty)).not();
+    BooleanExpression hasGameOptions = BooleanExpression.booleanExpression(
+        replay.flatMap(ReplayBean::gameOptionsProperty).map(Collection::isEmpty)).not();
     moreInformationPane.visibleProperty().bind(Bindings.or(hasChatMessages, hasGameOptions).when(showing));
 
-    ratingSeparator.visibleProperty().bind(reviewsContainer.visibleProperty());
-    reviewSeparator.visibleProperty().bind(reviewsContainer.visibleProperty());
+    ratingSeparator.visibleProperty().bind(reviewsContainer.visibleProperty().when(showing));
+    reviewSeparator.visibleProperty().bind(reviewsContainer.visibleProperty().when(showing));
+
     BooleanExpression localObservable = BooleanExpression.booleanExpression(replay.flatMap(ReplayBean::localProperty));
     reviewsContainer.visibleProperty().bind(localObservable.not().when(showing));
     deleteButton.visibleProperty().bind(localObservable.when(showing));
-    teams.bind(replay.flatMap(ReplayBean::teamPlayerStatsProperty));
+    teams.bind(replay.flatMap(ReplayBean::teamPlayerStatsProperty).when(showing));
 
     optionsTable.itemsProperty()
-        .bind(replay.flatMap(ReplayBean::gameOptionsProperty).map(FXCollections::observableList).when(showing));
+                .bind(replay.flatMap(ReplayBean::gameOptionsProperty).map(FXCollections::observableList).when(showing));
     chatTable.itemsProperty()
-        .bind(replay.flatMap(ReplayBean::chatMessagesProperty).map(FXCollections::observableList).when(showing));
+             .bind(replay.flatMap(ReplayBean::chatMessagesProperty).map(FXCollections::observableList).when(showing));
   }
 
   private void onReplayChanged(ReplayBean newValue) {
@@ -304,9 +327,9 @@ public class ReplayDetailController implements Controller<Node> {
     reviewsController.setCanWriteReview(true);
 
     reviewService.getReplayReviews(newValue)
-        .collectList()
-        .publishOn(fxApplicationThreadExecutor.asScheduler())
-        .subscribe(reviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
+                 .collectList()
+                 .publishOn(fxApplicationThreadExecutor.asScheduler())
+                 .subscribe(reviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
   }
 
   public void setReplay(ReplayBean replay) {
@@ -358,25 +381,25 @@ public class ReplayDetailController implements Controller<Node> {
   @VisibleForTesting
   void onDeleteReview(ReplayReviewBean review) {
     reviewService.deleteGameReview(review)
-        .publishOn(fxApplicationThreadExecutor.asScheduler())
-        .subscribe(null, throwable -> {
-          log.error("Review could not be saved", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
-        }, () -> reviews.remove(review));
+                 .publishOn(fxApplicationThreadExecutor.asScheduler())
+                 .subscribe(null, throwable -> {
+                   log.error("Review could not be saved", throwable);
+                   notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
+                 }, () -> reviews.remove(review));
   }
 
   @VisibleForTesting
   void onSendReview(ReplayReviewBean review) {
     reviewService.saveReplayReview(review)
-        .filter(savedReview -> !reviews.contains(savedReview))
-        .publishOn(fxApplicationThreadExecutor.asScheduler())
-        .subscribe(savedReview -> {
-          reviews.remove(review);
-          reviews.add(savedReview);
-        }, throwable -> {
-          log.error("Review could not be saved", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "review.save.error");
-        });
+                 .filter(savedReview -> !reviews.contains(savedReview))
+                 .publishOn(fxApplicationThreadExecutor.asScheduler())
+                 .subscribe(savedReview -> {
+                   reviews.remove(review);
+                   reviews.add(savedReview);
+                 }, throwable -> {
+                   log.error("Review could not be saved", throwable);
+                   notificationService.addImmediateErrorNotification(throwable, "review.save.error");
+                 });
   }
 
   public void onDownloadMoreInfoClicked() {
@@ -435,7 +458,9 @@ public class ReplayDetailController implements Controller<Node> {
       List<GamePlayerStatsBean> playerStats = entry.getValue();
 
       Map<PlayerBean, GamePlayerStatsBean> statsByPlayer = playerStats.stream()
-          .collect(Collectors.toMap(GamePlayerStatsBean::getPlayer, Function.identity()));
+                                                                      .collect(Collectors.toMap(
+                                                                          GamePlayerStatsBean::getPlayer,
+                                                                          Function.identity()));
 
       TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
 
@@ -457,12 +482,12 @@ public class ReplayDetailController implements Controller<Node> {
   private Integer getPlayerRating(PlayerBean player, Map<PlayerBean, GamePlayerStatsBean> statsByPlayerId) {
     GamePlayerStatsBean playerStats = statsByPlayerId.get(player);
     return playerStats == null ? null : playerStats.getLeaderboardRatingJournals()
-        .stream()
-        .findFirst()
-        .filter(ratingJournal -> ratingJournal.getMeanBefore() != null)
-        .filter(ratingJournal -> ratingJournal.getDeviationBefore() != null)
-        .map(RatingUtil::getRating)
-        .orElse(null);
+                                                   .stream()
+                                                   .findFirst()
+                                                   .filter(ratingJournal -> ratingJournal.getMeanBefore() != null)
+                                                   .filter(ratingJournal -> ratingJournal.getDeviationBefore() != null)
+                                                   .map(RatingUtil::getRating)
+                                                   .orElse(null);
   }
 
   public void onReport() {
@@ -476,12 +501,21 @@ public class ReplayDetailController implements Controller<Node> {
   }
 
   public void onDeleteButtonClicked() {
-    notificationService.addNotification(new ImmediateNotification(i18n.get("replay.deleteNotification.heading", replay.get()
-        .getTitle()), i18n.get("replay.deleteNotification.info"), Severity.INFO, Arrays.asList(new Action(i18n.get("cancel")), new Action(i18n.get("delete"), event -> deleteReplay()))));
+    notificationService.addNotification(
+        new ImmediateNotification(i18n.get("replay.deleteNotification.heading", replay.get().getTitle()),
+                                  i18n.get("replay.deleteNotification.info"), Severity.INFO,
+                                  Arrays.asList(new Action(i18n.get("cancel")),
+                                                new Action(i18n.get("delete"), event -> deleteReplay()))));
+  }
+
+  public void setOnDeleteListener(Runnable onDeleteListener) {
+    this.onDeleteListener = onDeleteListener;
   }
 
   private void deleteReplay() {
-    eventBus.post(new DeleteLocalReplayEvent(replay.get().getReplayFile()));
+    if (replayService.deleteReplayFile(replay.get().getReplayFile()) && onDeleteListener != null) {
+      onDeleteListener.run();
+    }
     onCloseButtonClicked();
   }
 
@@ -508,15 +542,16 @@ public class ReplayDetailController implements Controller<Node> {
 
 
   public void copyLink() {
-    String replayUrl = ReplayBean.getReplayUrl(replay.get().getId(), clientProperties.getVault()
-        .getReplayDownloadUrlFormat());
+    String replayUrl = ReplayBean.getReplayUrl(replay.get().getId(),
+                                               clientProperties.getVault().getReplayDownloadUrlFormat());
     ClipboardUtil.copyToClipboard(replayUrl);
   }
 
   public void showRatingChange() {
     Map<String, List<GamePlayerStatsBean>> teamsValue = teams.get();
 
-    teamCardControllers.forEach(teamCardController -> teamCardController.setStats(teamsValue.get(String.valueOf(teamCardController.getTeamId()))));
+    teamCardControllers.forEach(teamCardController -> teamCardController.setStats(
+        teamsValue.get(String.valueOf(teamCardController.getTeamId()))));
   }
 
   public void onMapPreviewImageClicked() {

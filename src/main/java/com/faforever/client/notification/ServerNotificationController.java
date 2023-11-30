@@ -1,7 +1,7 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.ui.dialog.DialogLayout;
 import javafx.scene.Node;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ServerNotificationController implements Controller<Node> {
+public class ServerNotificationController extends NodeController<Node> {
 
   private final WebViewConfigurer webViewConfigurer;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -37,7 +37,8 @@ public class ServerNotificationController implements Controller<Node> {
   public VBox serverNotificationRoot;
   private Runnable closeListener;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     exceptionAreaTitleLabel.managedProperty().bind(exceptionAreaTitleLabel.visibleProperty());
     exceptionAreaTitleLabel.visibleProperty().bind(exceptionTextArea.visibleProperty());
     exceptionTextArea.managedProperty().bind(exceptionTextArea.visibleProperty());
@@ -93,6 +94,7 @@ public class ServerNotificationController implements Controller<Node> {
     closeListener.run();
   }
 
+  @Override
   public Region getRoot() {
     return serverNotificationRoot;
   }

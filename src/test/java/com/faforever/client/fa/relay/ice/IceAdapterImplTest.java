@@ -4,11 +4,8 @@ import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fa.relay.event.CloseGameEvent;
-import com.faforever.client.fa.relay.event.GameFullEvent;
-import com.faforever.client.fa.relay.event.RehostRequestEvent;
-import com.faforever.client.fa.relay.ice.event.GpgOutboundMessageEvent;
-import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
+import com.faforever.client.fa.GameFullNotifier;
+import com.faforever.client.game.GameService;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.os.OperatingSystem;
@@ -20,7 +17,6 @@ import com.faforever.commons.api.dto.CoturnServer;
 import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.MessageTarget;
-import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -40,7 +36,6 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -58,7 +53,9 @@ public class IceAdapterImplTest extends ServiceTest {
   @Mock
   private FafServerAccessor fafServerAccessor;
   @Mock
-  private EventBus eventBus;
+  private GameFullNotifier gameFullNotifier;
+  @Mock
+  private GameService gameService;
   @Mock
   private ObjectFactory<IceAdapterCallbacks> iceAdapterCallbacksFactory;
 
@@ -77,21 +74,18 @@ public class IceAdapterImplTest extends ServiceTest {
 
   @Test
   public void onIceAdapterStateChanged() throws Exception {
-    instance.onIceAdapterStateChanged(new IceAdapterStateChanged("Disconnected"));
-    instance.onIceAdapterStateChanged(new IceAdapterStateChanged("Connected"));
+    instance.onIceAdapterStateChanged("Disconnected");
+    instance.onIceAdapterStateChanged("Connected");
     verify(iceAdapterApi, times(1)).quit();
   }
 
   @Test
   public void onGpgGameMessage() throws Exception {
-    instance.onGpgGameMessage(new GpgOutboundMessageEvent(new GpgGameOutboundMessage("Rehost", List.of(), MessageTarget.GAME)));
-    verify(eventBus).post(any(RehostRequestEvent.class));
-
-    instance.onGpgGameMessage(new GpgOutboundMessageEvent(new GpgGameOutboundMessage("GameFull", List.of(), MessageTarget.GAME)));
-    verify(eventBus).post(any(GameFullEvent.class));
+    instance.onGpgGameMessage(new GpgGameOutboundMessage("GameFull", List.of(), MessageTarget.GAME));
+    verify(gameFullNotifier).onGameFull();
 
     GpgGameOutboundMessage message = new GpgGameOutboundMessage("Test", List.of(), MessageTarget.GAME);
-    instance.onGpgGameMessage(new GpgOutboundMessageEvent(message));
+    instance.onGpgGameMessage(message);
     verify(fafServerAccessor).sendGpgMessage(message);
   }
 
@@ -169,7 +163,7 @@ public class IceAdapterImplTest extends ServiceTest {
 
   @Test
   public void testGameClosey() throws Exception {
-    instance.onGameCloseRequested(new CloseGameEvent());
+    instance.onGameCloseRequested();
     verify(iceAdapterApi).quit();
   }
 

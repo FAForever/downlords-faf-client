@@ -3,7 +3,6 @@ package com.faforever.client.fa;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.exception.ProgrammingError;
-import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -11,8 +10,6 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -30,14 +27,13 @@ import static java.lang.Thread.sleep;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class OnGameFullNotifier implements InitializingBean {
+public class GameFullNotifier implements InitializingBean {
 
   private final PlatformService platformService;
   private final ExecutorService executorService;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final MapService mapService;
-  private final EventBus eventBus;
   private final GameService gameService;
   private final ClientProperties clientProperties;
 
@@ -46,12 +42,10 @@ public class OnGameFullNotifier implements InitializingBean {
 
   @Override
   public void afterPropertiesSet() {
-    eventBus.register(this);
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
   }
 
-  @Subscribe
-  public void onGameFull(GameFullEvent event) {
+  public void onGameFull() {
     GameBean currentGame = gameService.getCurrentGame();
     if (currentGame == null) {
       throw new ProgrammingError("Got a GameFull notification but player is not in a game");

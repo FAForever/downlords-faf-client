@@ -1,8 +1,8 @@
 package com.faforever.client.vault.search;
 
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.query.BinaryFilterController;
@@ -50,7 +50,7 @@ import java.util.function.Function;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class SearchController implements Controller<Pane> {
+public class SearchController extends NodeController<Pane> {
   private final UiService uiService;
   private final I18n i18n;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -76,7 +76,6 @@ public class SearchController implements Controller<Pane> {
   public FlowPane filterPane;
   public CheckBox onlyShowLastYearCheckBox;
   private final SimpleInvalidationListener queryInvalidationListener = () -> queryTextField.setText(buildQuery());
-  ;
   /**
    * Called with the query string when the user hits "search".
    */
@@ -92,7 +91,7 @@ public class SearchController implements Controller<Pane> {
   private ObservableMap<String, String> savedQueries;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(queryTextField, criteriaPane, filterPane, onlyShowLastYearCheckBox,
         initialLogicalNodeController.logicalOperatorField, initialLogicalNodeController.removeCriteriaButton,
         addCriteriaButton);

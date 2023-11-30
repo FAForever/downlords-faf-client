@@ -1,23 +1,23 @@
 package com.faforever.client.game;
 
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.DecimalCell;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.IconCell;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.theme.UiService;
+import com.faforever.client.social.SocialService;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Joiner;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @RequiredArgsConstructor
-public class GamesTableController implements Controller<Node> {
+public class GamesTableController extends NodeController<Node> {
 
   private static final PseudoClass FRIEND_IN_GAME_PSEUDO_CLASS = PseudoClass.getPseudoClass("friendInGame");
 
@@ -61,9 +61,10 @@ public class GamesTableController implements Controller<Node> {
   private final MapService mapService;
   private final JoinGameHelper joinGameHelper;
   private final I18n i18n;
-  private final UiService uiService;
   private final ImageViewHelper imageViewHelper;
   private final PlayerService playerService;
+  private final SocialService socialService;
+  private final AvatarService avatarService;
   private final Preferences preferences;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
@@ -86,6 +87,7 @@ public class GamesTableController implements Controller<Node> {
     return selectedGame;
   }
 
+  @Override
   public Node getRoot() {
     return gamesTable;
   }
@@ -96,7 +98,6 @@ public class GamesTableController implements Controller<Node> {
 
   public void initializeGameTable(ObservableList<GameBean> games, Function<String, String> coopMissionNameProvider,
                                   boolean listenToFilterPreferences) {
-    BooleanExpression showing = uiService.createShowingProperty(getRoot());
 
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
 
@@ -109,7 +110,7 @@ public class GamesTableController implements Controller<Node> {
     applyLastSorting(gamesTable);
     gamesTable.setOnSort(this::onColumnSorted);
 
-    passwordProtectionColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty());
+    passwordProtectionColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty().when(showing));
     passwordProtectionColumn.setCellFactory(param -> passwordIndicatorColumn());
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(imageViewHelper));
@@ -135,7 +136,7 @@ public class GamesTableController implements Controller<Node> {
         .when(ratingRangeColumn.visibleProperty().and(showing)));
     ratingRangeColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty().when(showing));
-    hostColumn.setCellFactory(param -> new HostTableCell(playerService));
+    hostColumn.setCellFactory(param -> new HostTableCell(playerService, avatarService));
     modsColumn.setCellValueFactory(param -> param.getValue().simModsProperty().when(showing));
     modsColumn.setCellFactory(param -> new StringCell<>(this::convertSimModsToContent));
     coopMissionName.setVisible(coopMissionNameProvider != null);
@@ -158,12 +159,9 @@ public class GamesTableController implements Controller<Node> {
         .flatMap(TableViewSelectionModel::selectedItemProperty)
         .when(showing));
 
-    //bindings do not work as that interferes with some bidirectional bindings in the TableView itself
     if (listenToFilterPreferences && coopMissionNameProvider == null) {
-      JavaFxUtil.addAndTriggerListener(preferences.hideModdedGamesProperty()
-          .when(showing), observable -> modsColumn.setVisible(!preferences.isHideModdedGames()));
-      JavaFxUtil.addAndTriggerListener(preferences.hidePrivateGamesProperty()
-          .when(showing), observable -> passwordProtectionColumn.setVisible(!preferences.isHidePrivateGames()));
+      modsColumn.visibleProperty().bind(preferences.hideModdedGamesProperty().not().when(showing));
+      passwordProtectionColumn.visibleProperty().bind(preferences.hidePrivateGamesProperty().not().when(showing));
     }
 
     selectFirstGame();
@@ -213,7 +211,8 @@ public class GamesTableController implements Controller<Node> {
           pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, false);
         } else {
           setTooltip(tooltip);
-          pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, playerService.areFriendsInGame(game) && game.getGameType() != GameType.COOP); // do not highlight coop games
+          pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, socialService.areFriendsInGame(
+              game) && game.getGameType() != GameType.COOP); // do not highlight coop games
         }
       }
     };

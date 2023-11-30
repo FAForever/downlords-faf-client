@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.fx.Controller;
-import com.faforever.client.theme.UiService;
+import com.faforever.client.fx.NodeController;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.util.Assert;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -23,9 +23,10 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class EnterPasswordController implements Controller<Node> {
+public class EnterPasswordController extends NodeController<Node> {
 
-  private final UiService uiService;
+  private final ThemeService themeServiceService;
+
   public Label loginErrorLabel;
   public Label titleLabel;
   public TextField passwordField;
@@ -37,7 +38,8 @@ public class EnterPasswordController implements Controller<Node> {
   private GameBean game;
   private boolean ignoreRating;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     loginErrorLabel.setVisible(false); // ToDo: manage negative logins
     loginErrorLabel.managedProperty().bind(loginErrorLabel.visibleProperty());
     joinButton.disableProperty().bind(passwordField.textProperty().isEmpty());
@@ -54,6 +56,7 @@ public class EnterPasswordController implements Controller<Node> {
     getRoot().getScene().getWindow().hide();
   }
 
+  @Override
   public Parent getRoot() {
     return enterPasswordRoot;
   }
@@ -75,7 +78,7 @@ public class EnterPasswordController implements Controller<Node> {
     userInfoWindow.initModality(Modality.NONE);
     userInfoWindow.initOwner(owner);
 
-    Scene scene = uiService.createScene(getRoot());
+    Scene scene = themeServiceService.createScene(getRoot());
     userInfoWindow.setScene(scene);
     userInfoWindow.show();
   }

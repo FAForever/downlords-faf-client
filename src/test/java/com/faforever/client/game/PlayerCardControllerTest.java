@@ -10,10 +10,9 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.PlatformTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
-import com.google.common.eventbus.EventBus;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class PlayerCardControllerTest extends PlatformTest {
@@ -39,8 +37,6 @@ public class PlayerCardControllerTest extends PlatformTest {
   @Mock
   private AvatarService avatarService;
   @Mock
-  private EventBus eventBus;
-  @Mock
   private ContextMenuBuilder contextMenuBuilder;
 
   private PlayerCardController instance;
@@ -49,8 +45,8 @@ public class PlayerCardControllerTest extends PlatformTest {
   public void setUp() throws Exception {
     instance = new PlayerCardController(uiService, countryFlagService, avatarService, contextMenuBuilder, i18n);
 
-    when(uiService.getImage(UiService.RANDOM_FACTION_IMAGE)).thenReturn(new Image(UiService.RANDOM_FACTION_IMAGE));
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
+    when(uiService.getImage(ThemeService.RANDOM_FACTION_IMAGE)).thenReturn(
+        new Image(ThemeService.RANDOM_FACTION_IMAGE));
     loadFxml("theme/player_card.fxml", clazz -> instance);
   }
 
@@ -67,7 +63,7 @@ public class PlayerCardControllerTest extends PlatformTest {
     instance.setRating(1000);
     instance.setFaction(Faction.CYBRAN);
 
-    assertTrue(instance.factionIcon.getStyleClass().contains(UiService.CYBRAN_STYLE_CLASS));
+    assertTrue(instance.factionIcon.getStyleClass().contains(ThemeService.CYBRAN_STYLE_CLASS));
     assertTrue(instance.factionIcon.isVisible());
     assertFalse(instance.factionImage.isVisible());
     assertTrue(instance.foeIconText.isVisible());
@@ -88,7 +84,7 @@ public class PlayerCardControllerTest extends PlatformTest {
     instance.setRating(1000);
     instance.setFaction(Faction.SERAPHIM);
 
-    assertTrue(instance.factionIcon.getStyleClass().contains(UiService.SERAPHIM_STYLE_CLASS));
+    assertTrue(instance.factionIcon.getStyleClass().contains(ThemeService.SERAPHIM_STYLE_CLASS));
     assertTrue(instance.factionIcon.isVisible());
     assertFalse(instance.factionImage.isVisible());
     assertFalse(instance.foeIconText.isVisible());
@@ -109,7 +105,7 @@ public class PlayerCardControllerTest extends PlatformTest {
     instance.setRating(1000);
     instance.setFaction(Faction.RANDOM);
 
-    assertTrue(instance.factionImage.getImage().getUrl().contains(UiService.RANDOM_FACTION_IMAGE));
+    assertTrue(instance.factionImage.getImage().getUrl().contains(ThemeService.RANDOM_FACTION_IMAGE));
     assertFalse(instance.factionIcon.isVisible());
     assertTrue(instance.factionImage.isVisible());
     assertFalse(instance.foeIconText.isVisible());

@@ -9,7 +9,6 @@ import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.main.event.DeleteLocalReplayEvent;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.notification.Action;
@@ -21,7 +20,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.review.StarsController;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -56,7 +54,6 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
   private final NotificationService notificationService;
   private final ImageViewHelper imageViewHelper;
   private final I18n i18n;
-  private final EventBus eventBus;
 
   public Label dateLabel;
   public ImageView mapThumbnailImageView;
@@ -77,9 +74,10 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
   public StarsController starsController;
 
   private Consumer<ReplayBean> onOpenDetailListener;
+  private Runnable onDeleteListener;
 
-  public void initialize() {
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(deleteButton, tickDurationLabel, realTimeDurationLabel);
 
     ObservableValue<MapVersionBean> mapVersionObservable = entity.flatMap(ReplayBean::mapVersionProperty);
@@ -160,12 +158,17 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
     });
   }
 
+  @Override
   public Node getRoot() {
     return replayTileRoot;
   }
 
   public void setOnOpenDetailListener(Consumer<ReplayBean> onOpenDetailListener) {
     this.onOpenDetailListener = onOpenDetailListener;
+  }
+
+  public void setOnDeleteListener(Runnable onDeleteListener) {
+    this.onDeleteListener = onDeleteListener;
   }
 
   public void onShowReplayDetail() {
@@ -182,6 +185,8 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
   }
 
   private void deleteReplay() {
-    eventBus.post(new DeleteLocalReplayEvent(entity.get().getReplayFile()));
+    if (replayService.deleteReplayFile(entity.get().getReplayFile()) && onDeleteListener != null) {
+      onDeleteListener.run();
+    }
   }
 }

@@ -27,6 +27,7 @@ public final class CacheNames {
   public static final String MAP_GENERATOR = "mapGenerator";
   public static final String MAP_GENERATOR_STYLES = "mapGeneratorStyles";
   public static final String THEME_IMAGES = "themeImages";
+  public static final String THEME_URLS = "themeURLs";
   public static final String IMAGES = "images";
   public static final String MOD_THUMBNAIL = "modThumbnail";
   public static final String COOP_MAPS = "coopMaps";

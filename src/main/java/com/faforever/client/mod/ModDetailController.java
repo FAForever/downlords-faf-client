@@ -5,10 +5,10 @@ import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionReviewBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.FaStrings;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class ModDetailController implements Controller<Node> {
+public class ModDetailController extends NodeController<Node> {
 
   private final ModService modService;
   private final NotificationService notificationService;
@@ -82,7 +82,8 @@ public class ModDetailController implements Controller<Node> {
   public ReviewsController<ModVersionReviewBean> reviewsController;
   public Label authorLabel;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     imageViewHelper.setDefaultPlaceholderImage(thumbnailImageView);
     JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, getRoot());
     JavaFxUtil.fixScrollSpeed(scrollPane);
@@ -104,7 +105,6 @@ public class ModDetailController implements Controller<Node> {
   }
 
   private void bindProperties() {
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
     ObservableValue<ModBean> modObservable = modVersion.flatMap(ModVersionBean::modProperty);
     thumbnailImageView.imageProperty()
         .bind(modVersion.map(modService::loadThumbnail)
@@ -138,14 +138,15 @@ public class ModDetailController implements Controller<Node> {
     installButton.visibleProperty().bind(installed.not().when(showing));
     uninstallButton.visibleProperty().bind(installed.when(showing));
     progressBar.visibleProperty()
-        .bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
-    progressLabel.visibleProperty().bind(progressBar.visibleProperty());
+               .bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()).when(showing));
+    progressLabel.visibleProperty().bind(progressBar.visibleProperty().when(showing));
   }
 
   public void onCloseButtonClicked() {
     getRoot().setVisible(false);
   }
 
+  @Override
   public Node getRoot() {
     return modDetailRoot;
   }

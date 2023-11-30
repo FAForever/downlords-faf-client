@@ -5,13 +5,11 @@ import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.test.PlatformTest;
-import com.google.common.eventbus.EventBus;
 import javafx.collections.FXCollections;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Spy;
 
 import java.util.HashMap;
@@ -26,9 +24,6 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends PlatformTes
   private static final String CHANNEL_NAME = "testChannel";
   private static final String USERNAME = "junit";
 
-
-  @Mock
-  private EventBus eventBus;
   @Spy
   private ChatPrefs chatPrefs;
   @InjectMocks
@@ -46,7 +41,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends PlatformTes
     chatPrefs.setUserToColor(FXCollections.observableMap(Map.of(USERNAME, Color.BLACK)));
     ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).get();
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.setObject(chatChannelUser);
     });
     assertEquals(Color.BLACK, instance.colorPicker.getValue());
@@ -60,7 +55,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends PlatformTes
     chatPrefs.setUserToColor(FXCollections.observableMap(colorMap));
     ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).color(Color.BLACK).get();
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.setObject(chatChannelUser);
       instance.colorPicker.setValue(Color.WHITE);
     });
@@ -76,7 +71,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends PlatformTes
     chatPrefs.setUserToColor(FXCollections.observableMap(colorMap));
     ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).color(Color.BLACK).get();
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.setObject(chatChannelUser);
       instance.colorPicker.setValue(null);
     });
@@ -89,7 +84,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends PlatformTes
   public void testVisibleItem() {
     ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).color(Color.BLACK).get();
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.setObject(chatChannelUser);
     });
     assertTrue(instance.getRoot().isVisible());
@@ -100,7 +95,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends PlatformTes
     ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).color(Color.BLACK).get();
     chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
     runOnFxThreadAndWait(() -> {
-      instance.initialize();
+      reinitialize(instance);
       instance.setObject(chatChannelUser);
     });
     assertFalse(instance.getRoot().isVisible());

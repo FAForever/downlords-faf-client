@@ -1,23 +1,20 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
-import com.faforever.client.fx.SimpleChangeListener;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.contextmenu.CancelActionNotifyMeMenuItem;
 import com.faforever.client.fx.contextmenu.CancelActionRunReplayImmediatelyMenuItem;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.NotifyMeMenuItem;
 import com.faforever.client.fx.contextmenu.RunReplayImmediatelyMenuItem;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -38,11 +35,10 @@ import java.time.OffsetDateTime;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class WatchButtonController implements Controller<Node> {
+public class WatchButtonController extends NodeController<Node> {
 
   public static final PseudoClass TRACKABLE_PSEUDO_CLASS = PseudoClass.getPseudoClass("trackable");
 
-  private final UiService uiService;
   private final LiveReplayService liveReplayService;
   private final TimeService timeService;
   private final I18n i18n;
@@ -56,20 +52,20 @@ public class WatchButtonController implements Controller<Node> {
 
   private ContextMenu contextMenu;
 
-  public void initialize() {
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
+  @Override
+  protected void onInitialize() {
     watchTimeTimeline.setCycleCount(Timeline.INDEFINITE);
 
     game.flatMap(GameBean::startTimeProperty)
         .when(showing)
-        .addListener((SimpleChangeListener<OffsetDateTime>) this::checkGameTimeline);
+        .subscribe(this::checkGameTimeline);
 
     liveReplayService.trackingLiveReplayProperty()
         .map(TrackingLiveReplay::gameId)
-        .flatMap(trackedId -> game.flatMap(GameBean::idProperty).map(trackedId::equals).orElse(false))
+                     .flatMap(trackedId -> game.flatMap(GameBean::idProperty).map(trackedId::equals))
+                     .orElse(false)
         .when(showing)
-        .addListener((SimpleChangeListener<Boolean>) this::updateButtonTrackingClass);
+                     .subscribe(this::updateButtonTrackingClass);
 
     watchButton.onActionProperty()
         .bind(game.flatMap(game -> game.startTimeProperty()
@@ -77,6 +73,20 @@ public class WatchButtonController implements Controller<Node> {
                 .orElse(false)
                 .map(canWatch -> canWatch ? (EventHandler<ActionEvent>) event -> liveReplayService.runLiveReplay(game.getId()) : (EventHandler<ActionEvent>) event -> showContextMenu()))
             .when(showing));
+  }
+
+  @Override
+  public void onShow() {
+    GameBean game = this.game.get();
+    OffsetDateTime startTime = game == null ? null : game.getStartTime();
+    if (startTime != null) {
+      checkGameTimeline(startTime);
+    }
+  }
+
+  @Override
+  public void onHide() {
+    watchTimeTimeline.stop();
   }
 
   public void setGame(GameBean game) {
@@ -145,9 +155,5 @@ public class WatchButtonController implements Controller<Node> {
   @Override
   public Node getRoot() {
     return watchButton;
-  }
-
-  public void dispose() {
-    watchTimeTimeline.stop();
   }
 }

@@ -1,12 +1,11 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.chat.InitiatePrivateChatEvent;
+import com.faforever.client.chat.ChatService;
 import com.faforever.client.clan.ClanService;
 import com.faforever.client.domain.ClanBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.Assert;
-import com.google.common.eventbus.EventBus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -19,7 +18,7 @@ public class SendPrivateMessageClanLeaderMenuItem extends AbstractMenuItem<Playe
 
   private final I18n i18n;
   private final ClanService clanService;
-  private final EventBus eventBus;
+  private final ChatService chatService;
 
   @Override
   protected void onClicked() {
@@ -28,8 +27,7 @@ public class SendPrivateMessageClanLeaderMenuItem extends AbstractMenuItem<Playe
     clanService.getClanByTag(object.getClan())
         .thenAccept(possibleClan -> possibleClan.map(ClanBean::getLeader)
             .map(PlayerBean::getUsername)
-            .map(InitiatePrivateChatEvent::new)
-            .ifPresent(eventBus::post));
+                                                .ifPresent(chatService::onInitiatePrivateChat));
   }
 
   @Override

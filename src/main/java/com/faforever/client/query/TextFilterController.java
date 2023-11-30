@@ -9,7 +9,8 @@ import javafx.beans.InvalidationListener;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.controlsfx.control.textfield.TextFields;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -21,20 +22,23 @@ import java.util.Optional;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@Data
-public class TextFilterController implements FilterNodeController {
+@Setter
+@Getter
+public class TextFilterController extends FilterNodeController {
 
   public VBox textBox;
   public TextField textField;
   private String propertyName;
   private boolean exact;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     textField = TextFields.createClearableTextField();
     JavaFxUtil.bindManagedToVisible(textField);
     textBox.getChildren().add(textField);
   }
 
+  @Override
   public Optional<List<Condition>> getCondition() {
     QBuilder qBuilder = new QBuilder<>();
     StringProperty property = qBuilder.string(propertyName);
@@ -53,14 +57,17 @@ public class TextFilterController implements FilterNodeController {
     }
   }
 
+  @Override
   public void addQueryListener(InvalidationListener queryListener) {
     textField.textProperty().addListener(queryListener);
   }
 
+  @Override
   public void clear() {
     textField.setText("");
   }
 
+  @Override
   public void setTitle(String title) {
     textField.setPromptText(title);
   }

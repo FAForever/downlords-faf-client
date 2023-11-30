@@ -1,8 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.emoticons.EmoticonService;
-import com.faforever.client.chat.event.UnreadPartyMessageEvent;
-import com.faforever.client.discord.JoinDiscordEvent;
+import com.faforever.client.discord.JoinDiscordEventHandler;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -11,11 +10,11 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.PlatformTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
-import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -23,14 +22,11 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.time.Instant;
-
-import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
-import static com.faforever.client.theme.UiService.CHAT_SECTION_COMPACT;
-import static com.faforever.client.theme.UiService.CHAT_TEXT_COMPACT;
+import static com.faforever.client.theme.ThemeService.CHAT_CONTAINER;
+import static com.faforever.client.theme.ThemeService.CHAT_SECTION_COMPACT;
+import static com.faforever.client.theme.ThemeService.CHAT_TEXT_COMPACT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -54,15 +50,17 @@ public class MatchmakingChatControllerTest extends PlatformTest {
   @Mock
   private UiService uiService;
   @Mock
+  private ThemeService themeService;
+  @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
   private ReportingService reportingService;
   @Mock
-  private EventBus eventBus;
-  @Mock
   private CountryFlagService countryFlagService;
   @Mock
   private EmoticonService emoticonService;
+  @Mock
+  private JoinDiscordEventHandler joinDiscordEventHandler;
   @Spy
   private ChatPrefs chatPrefs;
 
@@ -74,9 +72,12 @@ public class MatchmakingChatControllerTest extends PlatformTest {
     when(i18n.get(anyString())).thenReturn("");
     when(chatService.getOrCreateChannel("partyName")).thenReturn(new ChatChannel("partyName"));
     when(loginService.getUsername()).thenReturn("junit");
-    when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
-    when(uiService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_section.html"));
-    when(uiService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_text.html"));
+    when(themeService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(
+        getClass().getResource("/theme/chat/chat_container.html"));
+    when(themeService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(
+        getClass().getResource("/theme/chat/compact/chat_section.html"));
+    when(themeService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(
+        getClass().getResource("/theme/chat/compact/chat_text.html"));
     when(timeService.asShortTime(any())).thenReturn("");
 
     loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml", clazz -> instance);
@@ -85,18 +86,9 @@ public class MatchmakingChatControllerTest extends PlatformTest {
   }
 
   @Test
-  public void testOnChatMessage() {
-    doReturn(false).when(instance).hasFocus();
-
-    instance.onChatMessage(new ChatMessage(Instant.now(), "mock", "test", true));
-
-    verify(eventBus).post(any(UnreadPartyMessageEvent.class));
-  }
-
-  @Test
-  public void testOnJoinDiscordButtonClicked() {
+  public void testOnJoinDiscordButtonClicked() throws Exception {
     instance.onDiscordButtonClicked();
-    verify(eventBus).post(any(JoinDiscordEvent.class));
+    verify(joinDiscordEventHandler).onJoin(any());
   }
 
   @Test

@@ -12,6 +12,7 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.map.generator.MapGeneratorService;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.FakeTestException;
@@ -23,7 +24,6 @@ import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -86,7 +86,7 @@ public class MapDetailControllerTest extends PlatformTest {
   @Mock
   private StarController starController;
   @Mock
-  private EventBus eventBus;
+  private NavigationHandler navigationHandler;
   @Mock
   private ImageViewHelper imageViewHelper;
 
@@ -130,7 +130,6 @@ public class MapDetailControllerTest extends PlatformTest {
     when(mapService.isInstalled(testMap.getFolderName())).thenReturn(true);
     when(mapService.hasPlayedMap(eq(currentPlayer), eq(testMap))).thenReturn(Mono.just(true));
     when(mapService.getFileSize(any(MapVersionBean.class))).thenReturn(CompletableFuture.completedFuture(12));
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/vault/map/map_detail.fxml", param -> {
       if (param == ReviewsController.class) {
@@ -159,7 +158,7 @@ public class MapDetailControllerTest extends PlatformTest {
     instance.onCreateGameButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
     verify(mapService).downloadAndInstallMap(any(), any(DoubleProperty.class), any(StringProperty.class));
-    verify(eventBus).post(any(HostGameEvent.class));
+    verify(navigationHandler).navigateTo(any(HostGameEvent.class));
   }
 
   @Test
@@ -170,7 +169,7 @@ public class MapDetailControllerTest extends PlatformTest {
 
     instance.onCreateGameButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
-    verify(eventBus).post(any(HostGameEvent.class));
+    verify(navigationHandler).navigateTo(any(HostGameEvent.class));
   }
 
   @Test

@@ -109,7 +109,6 @@ public class ModDetailControllerTest extends PlatformTest {
         .getUploader()
         .getUsername())).thenReturn(modVersion.getMod().getUploader().getUsername());
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     loadFxml("theme/vault/mod/mod_detail.fxml", clazz -> {
       if (clazz == ReviewsController.class) {
@@ -149,7 +148,6 @@ public class ModDetailControllerTest extends PlatformTest {
 
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
-    ;
 
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -167,7 +165,6 @@ public class ModDetailControllerTest extends PlatformTest {
     when(modService.loadThumbnail(modVersion)).thenReturn(image);
 
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
-    ;
 
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -179,7 +176,6 @@ public class ModDetailControllerTest extends PlatformTest {
     when(modService.downloadAndInstallMod(any(ModVersionBean.class), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
-    ;
     instance.onInstallButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -194,7 +190,6 @@ public class ModDetailControllerTest extends PlatformTest {
     when(modService.downloadAndInstallMod(any(ModVersionBean.class), any(), any())).thenReturn(future);
 
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
-    ;
 
     instance.onInstallButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
@@ -206,7 +201,6 @@ public class ModDetailControllerTest extends PlatformTest {
   @Test
   public void testOnUninstallButtonClicked() {
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
-    ;
     when(modService.uninstallMod(modVersion)).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onUninstallButtonClicked();
@@ -221,7 +215,6 @@ public class ModDetailControllerTest extends PlatformTest {
     when(i18n.get("modVault.install")).thenReturn("install");
 
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
-    ;
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.installButton.isDisabled());
@@ -232,7 +225,6 @@ public class ModDetailControllerTest extends PlatformTest {
   public void testOnUninstallButtonClickedThrowsException() {
     modVersion.setMod(ModBeanBuilder.create().defaultValues().get());
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
-    ;
 
     CompletableFuture<Void> future = new CompletableFuture<>();
     future.completeExceptionally(new FakeTestException());
@@ -341,7 +333,6 @@ public class ModDetailControllerTest extends PlatformTest {
     ModVersionReviewBean review = ModVersionReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
 
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
-    ;
 
     when(reviewService.deleteModVersionReview(review)).thenReturn(Mono.error(new FakeTestException()));
 

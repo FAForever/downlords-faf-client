@@ -2,8 +2,8 @@ package com.faforever.client.game;
 
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.CustomGamesFilterController;
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.ToStringOnlyConverter;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.faforever.client.i18n.I18n;
@@ -12,14 +12,12 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
-import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
+import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -50,17 +48,15 @@ import java.util.function.Predicate;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class CustomGamesController extends AbstractViewController<Node> {
+public class CustomGamesController extends NodeController<Node> {
 
   private final UiService uiService;
   private final GameService gameService;
-  private final EventBus eventBus;
   private final I18n i18n;
   private final Preferences preferences;
+  private final GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
 
   public GameDetailController gameDetailController;
-  public GamesTableController gamesTableController;
-  public GamesTilesContainerController gamesTilesContainerController;
 
   public ToggleButton tableButton;
   public ToggleButton tilesButton;
@@ -77,11 +73,12 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private CustomGamesFilterController customGamesFilterController;
   private Popup gameFilterPopup;
 
+  private FilteredList<GameBean> filteredGames;
   private final Predicate<GameBean> openGamesPredicate = game -> game.getStatus() == GameStatus.OPEN && game.getGameType() == GameType.CUSTOM;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(chooseSortingTypeChoiceBox, gameDetailPane);
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
 
     initializeFilterController();
 
@@ -91,8 +88,8 @@ public class CustomGamesController extends AbstractViewController<Node> {
     chooseSortingTypeChoiceBox.setConverter(new ToStringOnlyConverter<>(tilesSortingOrder -> tilesSortingOrder == null ? "null" : i18n.get(tilesSortingOrder.getDisplayNameKey())));
     chooseSortingTypeChoiceBox.valueProperty().bindBidirectional(preferences.gameTileSortingOrderProperty());
 
-    FilteredList<GameBean> filteredGames = new FilteredList<>(gameService.getGames());
-    filteredGames.predicateProperty().bind(customGamesFilterController.predicateProperty());
+    filteredGames = new FilteredList<>(gameService.getGames());
+    filteredGames.predicateProperty().bind(customGamesFilterController.predicateProperty().when(showing));
 
     IntegerBinding filteredGameCount = Bindings.size(filteredGames);
     IntegerBinding gameCount = Bindings.size(gameService.getGames().filtered(openGamesPredicate));
@@ -117,7 +114,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
             .map(ToggleButton::getId)
             .when(showing));
 
-    viewToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+    viewToggleGroup.selectedToggleProperty().when(showing).subscribe((oldValue, newValue) -> {
       if (newValue == null) {
         if (oldValue != null) {
           viewToggleGroup.selectToggle(oldValue);
@@ -127,16 +124,9 @@ public class CustomGamesController extends AbstractViewController<Node> {
       }
     });
 
-    gameDetailPane.visibleProperty().bind(toggleGameDetailPaneButton.selectedProperty());
+    gameDetailPane.visibleProperty().bind(toggleGameDetailPaneButton.selectedProperty().when(showing));
 
     toggleGameDetailPaneButton.selectedProperty().bindBidirectional(preferences.showGameDetailsSidePaneProperty());
-
-    gamesTilesContainerController.createTiledFlowPane(filteredGames);
-    gamesTableController.initializeGameTable(filteredGames);
-
-    gamesTilesContainerController.sortingOrderProperty().bind(chooseSortingTypeChoiceBox.valueProperty());
-    chooseSortingTypeChoiceBox.visibleProperty()
-        .bind(gamesTilesContainerController.getRoot().parentProperty().isNotNull());
   }
 
   private void initializeFilterController() {
@@ -144,12 +134,14 @@ public class CustomGamesController extends AbstractViewController<Node> {
     customGamesFilterController.setDefaultPredicate(openGamesPredicate);
     customGamesFilterController.completeSetting();
 
-    JavaFxUtil.addAndTriggerListener(customGamesFilterController.filterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));
-    JavaFxUtil.addAndTriggerListener(filterButton.selectedProperty(), observable -> filterButton.setSelected(customGamesFilterController.getFilterState()));
+    customGamesFilterController.filterActiveProperty().when(showing).subscribe(filterButton::setSelected);
+    filterButton.selectedProperty()
+                .when(showing)
+                .subscribe(() -> filterButton.setSelected(customGamesFilterController.getFilterActive()));
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  protected void onNavigate(NavigateEvent navigateEvent) {
     if (navigateEvent instanceof HostGameEvent hostGameEvent) {
       onCreateGame(hostGameEvent.getMapFolderName());
     }
@@ -162,7 +154,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private void onCreateGame(@Nullable String mapFolderName) {
     if (preferences.getForgedAlliance().getInstallationPath() == null) {
       CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
-      eventBus.post(new GameDirectoryChooseEvent(gameDirectoryFuture));
+      gameDirectoryRequiredHandler.onChooseGameDirectory(gameDirectoryFuture);
       gameDirectoryFuture.thenAccept(path -> Optional.ofNullable(path).ifPresent(path1 -> onCreateGame(null)));
       return;
     }
@@ -181,13 +173,17 @@ public class CustomGamesController extends AbstractViewController<Node> {
     root.requestFocus();
   }
 
+  @Override
   public Node getRoot() {
     return gamesRoot;
   }
 
   public void onTableButtonClicked() {
-    gameDetailController.gameProperty().bind(gamesTableController.selectedGameProperty());
+    GamesTableController gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
+    gamesTableController.initializeGameTable(filteredGames);
     populateContainer(gamesTableController.getRoot());
+    gameDetailController.gameProperty().bind(gamesTableController.selectedGameProperty());
+    chooseSortingTypeChoiceBox.setVisible(false);
   }
 
   private void populateContainer(Node root) {
@@ -199,8 +195,13 @@ public class CustomGamesController extends AbstractViewController<Node> {
   }
 
   public void onTilesButtonClicked() {
-    gameDetailController.gameProperty().bind(gamesTilesContainerController.selectedGameProperty());
+    GamesTilesContainerController gamesTilesContainerController = uiService.loadFxml(
+        "theme/play/games_tiles_container.fxml");
+    gamesTilesContainerController.createTiledFlowPane(filteredGames);
+    gamesTilesContainerController.sortingOrderProperty().bind(chooseSortingTypeChoiceBox.valueProperty());
     populateContainer(gamesTilesContainerController.getRoot());
+    gameDetailController.gameProperty().bind(gamesTilesContainerController.selectedGameProperty());
+    chooseSortingTypeChoiceBox.setVisible(true);
   }
 
   public void onFilterButtonClicked() {

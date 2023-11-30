@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.Integer?>
 <?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
@@ -12,17 +11,16 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
-
-<?import javafx.scene.layout.Region?>
+<?import java.lang.Integer?>
 <GridPane fx:id="coopRoot" gridLinesVisible="true" hgap="10.0" xmlns="http://javafx.com/javafx/17"
           xmlns:fx="http://javafx.com/fxml/1"
           fx:controller="com.faforever.client.coop.CoopController">
@@ -74,8 +72,10 @@
                     </padding>
                 </GridPane>
                 <Separator/>
-                <AnchorPane fx:id="gameViewContainer" maxHeight="1.7976931348623157E308"
-                            maxWidth="1.7976931348623157E308" minWidth="0.0" VBox.vgrow="ALWAYS"/>
+                <StackPane fx:id="gameViewContainer" maxHeight="1.7976931348623157E308"
+                           maxWidth="1.7976931348623157E308" minWidth="0.0" VBox.vgrow="ALWAYS">
+                    <fx:include fx:id="gamesTable" source="../games_table.fxml"/>
+                </StackPane>
             </children>
             <GridPane.margin>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>

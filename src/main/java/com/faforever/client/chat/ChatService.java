@@ -27,6 +27,10 @@ public interface ChatService {
 
   void removeChannelsListener(MapChangeListener<String, ChatChannel> listener);
 
+  default void leaveChannel(String channelName) {
+    leaveChannel(getOrCreateChannel(channelName));
+  }
+
   void leaveChannel(ChatChannel channel);
 
   CompletableFuture<Void> sendActionInBackground(ChatChannel chatChannel, String action);
@@ -54,7 +58,7 @@ public interface ChatService {
    */
   void incrementUnreadMessagesCount(int delta);
 
-  void onInitiatePrivateChat(InitiatePrivateChatEvent event);
+  void onInitiatePrivateChat(String username);
 
   Set<ChatChannel> getChannels();
 }

@@ -78,7 +78,6 @@ public class MapCardControllerTest extends PlatformTest {
     when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
     when(mapService.downloadAndInstallMap(any(), isNull(), isNull())).thenReturn(CompletableFuture.runAsync(() -> {}));
     when(mapService.uninstallMap(any())).thenReturn(CompletableFuture.runAsync(() -> {}));
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
     mapBean = MapVersionBeanBuilder.create()
         .defaultValues()
         .map(MapBeanBuilder.create().defaultValues().get())

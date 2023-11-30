@@ -7,7 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SaveQueryControllerTest extends PlatformTest {
 
@@ -29,6 +29,6 @@ public class SaveQueryControllerTest extends PlatformTest {
   public void testOnSaveButtonClicked() {
     instance.queryName.setText("name");
     instance.onSaveButtonClicked();
-    assertTrue(savedQueries.get("name").equals("test"));
+    assertEquals("test", savedQueries.get("name"));
   }
 }

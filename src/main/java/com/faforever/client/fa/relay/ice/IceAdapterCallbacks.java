@@ -1,12 +1,9 @@
 package com.faforever.client.fa.relay.ice;
 
 
-import com.faforever.client.fa.relay.ice.event.GpgOutboundMessageEvent;
-import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.MessageTarget;
-import com.google.common.eventbus.EventBus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -25,17 +22,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class IceAdapterCallbacks {
 
-  private final EventBus eventBus;
+  private final IceAdapter iceAdapter;
   private final FafServerAccessor fafServerAccessor;
 
   public void onConnectionStateChanged(String newState) {
     log.debug("ICE adapter connection state changed to: {}", newState);
-    eventBus.post(new IceAdapterStateChanged(newState));
+    iceAdapter.onIceAdapterStateChanged(newState);
   }
 
   public void onGpgNetMessageReceived(String header, List<Object> chunks) {
     log.debug("Message from game: '{}' '{}'", header, chunks);
-    eventBus.post(new GpgOutboundMessageEvent(new GpgGameOutboundMessage(header, chunks, MessageTarget.GAME)));
+    iceAdapter.onGpgGameMessage(new GpgGameOutboundMessage(header, chunks, MessageTarget.GAME));
   }
 
   public void onIceMsg(long localPlayerId, long remotePlayerId, Object message) {

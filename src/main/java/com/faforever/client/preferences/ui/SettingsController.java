@@ -7,9 +7,9 @@ import com.faforever.client.chat.ChatFormat;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
 import com.faforever.client.fa.relay.ice.CoturnService;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.SimpleInvalidationListener;
@@ -39,13 +39,13 @@ import com.faforever.client.preferences.tasks.MoveDirectoryTask;
 import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.Theme;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.list.NoSelectionModelListView;
-import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
+import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.LoginService;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -93,14 +93,14 @@ import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class SettingsController implements Controller<Node> {
+public class SettingsController extends NodeController<Node> {
 
   private final NotificationService notificationService;
   private final LoginService loginService;
   private final PreferencesService preferencesService;
   private final UiService uiService;
+  private final ThemeService themeService;
   private final I18n i18n;
-  private final EventBus eventBus;
   private final PlatformService platformService;
   private final ClientProperties clientProperties;
   private final ClientUpdateService clientUpdateService;
@@ -112,6 +112,7 @@ public class SettingsController implements Controller<Node> {
   private final ObjectFactory<DeleteDirectoryTask> deleteDirectoryTaskFactory;
   private final ObjectFactory<DownloadFAFDebuggerTask> downloadFAFDebuggerTaskFactory;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
 
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
@@ -177,13 +178,13 @@ public class SettingsController implements Controller<Node> {
   public ListView<IceServer> preferredCoturnListView;
 
   private final SimpleChangeListener<Theme> selectedThemeChangeListener = this::onThemeChanged;
-  private final SimpleChangeListener<Theme> currentThemeChangeListener = newValue -> themeComboBox.getSelectionModel().select(newValue);;
+  private final SimpleChangeListener<Theme> currentThemeChangeListener = newValue -> themeComboBox.getSelectionModel()
+                                                                                                  .select(newValue);
   private final SimpleInvalidationListener availableLanguagesListener = this::setAvailableLanguages;
-  ;
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(vaultLocationWarningLabel);
-    eventBus.register(this);
     themeComboBox.setButtonCell(new StringListCell<>(Theme::getDisplayName, fxApplicationThreadExecutor));
     themeComboBox.setCellFactory(param -> new StringListCell<>(Theme::getDisplayName, fxApplicationThreadExecutor));
 
@@ -243,8 +244,8 @@ public class SettingsController implements Controller<Node> {
   }
 
   private void onThemeChanged(Theme newValue) {
-    uiService.setTheme(newValue);
-    if (uiService.doesThemeNeedRestart(newValue)) {
+    themeService.setTheme(newValue);
+    if (themeService.doesThemeNeedRestart(newValue)) {
       notificationService.addNotification(new PersistentNotification(i18n.get("theme.needsRestart.message", newValue.getDisplayName()), Severity.WARN,
           Collections.singletonList(new Action(i18n.get("theme.needsRestart.quit"), event -> Platform.exit()))));
       // FIXME reload application (stage & application context) https://github.com/FAForever/downlords-faf-client/issues/1794
@@ -361,7 +362,7 @@ public class SettingsController implements Controller<Node> {
     autoChannelListView.setSelectionModel(new NoSelectionModelListView<>());
     autoChannelListView.setFocusTraversable(false);
     autoChannelListView.setItems(preferences.getChat().getAutoJoinChannels());
-    autoChannelListView.setCellFactory(param -> uiService.<RemovableListCellController<String>>loadFxml("theme/settings/removable_cell.fxml"));
+    autoChannelListView.setCellFactory(param -> new RemovableListCell<>(uiService, fxApplicationThreadExecutor));
     JavaFxUtil.addListener(autoChannelListView.getItems(), (InvalidationListener) observable -> autoChannelListView.setVisible(!autoChannelListView.getItems().isEmpty()));
   }
 
@@ -512,12 +513,12 @@ public class SettingsController implements Controller<Node> {
   }
 
   private void configureThemeSelection() {
-    themeComboBox.setItems(FXCollections.observableArrayList(uiService.getAvailableThemes()));
+    themeComboBox.setItems(FXCollections.observableList(themeService.getAvailableThemes()));
 
-    themeComboBox.getSelectionModel().select(uiService.getCurrentTheme());
+    themeComboBox.getSelectionModel().select(themeService.getCurrentTheme());
 
     themeComboBox.getSelectionModel().selectedItemProperty().addListener(selectedThemeChangeListener);
-    JavaFxUtil.addListener(uiService.currentThemeProperty(), new WeakChangeListener<>(currentThemeChangeListener));
+    JavaFxUtil.addListener(themeService.currentThemeProperty(), new WeakChangeListener<>(currentThemeChangeListener));
   }
 
   private void configureLanguageSelection() {
@@ -570,12 +571,13 @@ public class SettingsController implements Controller<Node> {
         .bind(toastScreenComboBox.valueProperty().map(value -> Screen.getScreens().indexOf(value)));
   }
 
+  @Override
   public Region getRoot() {
     return settingsRoot;
   }
 
   public void onSelectGameLocation() {
-    eventBus.post(new GameDirectoryChooseEvent());
+    gameDirectoryRequiredHandler.onChooseGameDirectory(null);
   }
 
   public void onSelectVaultLocation() {

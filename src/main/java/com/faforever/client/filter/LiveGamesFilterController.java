@@ -1,15 +1,17 @@
 package com.faforever.client.filter;
 
+import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.filter.converter.FeaturedModConverter;
 import com.faforever.client.filter.function.FeaturedModFilterFunction;
 import com.faforever.client.filter.function.SimModsFilterFunction;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.ToStringOnlyConverter;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.social.SocialService;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameType;
 import javafx.util.StringConverter;
@@ -26,17 +28,20 @@ import java.util.Optional;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class LiveGamesFilterController extends AbstractFilterController<GameBean> {
 
+  private final SocialService socialService;
   private final PlayerService playerService;
   private final ModService modService;
   private final MapGeneratorService mapGeneratorService;
 
   public LiveGamesFilterController(UiService uiService, I18n i18n, ModService modService, PlayerService playerService,
                                    MapGeneratorService mapGeneratorService,
-                                   FxApplicationThreadExecutor fxApplicationThreadExecutor) {
+                                   FxApplicationThreadExecutor fxApplicationThreadExecutor,
+                                   SocialService socialService) {
     super(uiService, i18n, fxApplicationThreadExecutor);
     this.modService = modService;
     this.playerService = playerService;
     this.mapGeneratorService = mapGeneratorService;
+    this.socialService = socialService;
   }
 
   @Override
@@ -45,7 +50,8 @@ public class LiveGamesFilterController extends AbstractFilterController<GameBean
 
     filterBuilder.checkbox(i18n.get("hideSingleGames"), (selected, game) -> !selected || game.getNumActivePlayers() != 1);
 
-    filterBuilder.checkbox(i18n.get("showGamesWithFriends"), (selected, game) -> !selected || playerService.areFriendsInGame(game));
+    filterBuilder.checkbox(i18n.get("showGamesWithFriends"),
+                           (selected, game) -> !selected || socialService.areFriendsInGame(game));
 
     filterBuilder.checkbox(i18n.get("showGeneratedMaps"), (selected, game) -> !selected || mapGeneratorService.isGeneratedMap(game.getMapFolderName()));
 
@@ -53,7 +59,8 @@ public class LiveGamesFilterController extends AbstractFilterController<GameBean
         (selectedGameTypes, game) -> selectedGameTypes.isEmpty() || selectedGameTypes.contains(game.getGameType()));
 
     filterBuilder.multiCheckbox(i18n.get("featuredMod.displayName"), modService.getFeaturedMods(),
-        new FeaturedModConverter(), new FeaturedModFilterFunction());
+                                new ToStringOnlyConverter<>(FeaturedModBean::getDisplayName),
+                                new FeaturedModFilterFunction());
 
     filterBuilder.textField(i18n.get("game.player.username"), (text, game) -> text.isEmpty() || game.getTeams()
         .values()

@@ -1,6 +1,6 @@
 package com.faforever.client.chat.emoticons;
 
-import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.theme.UiService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.scene.Node;
@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class EmoticonsWindowController implements Controller<VBox> {
+public class EmoticonsWindowController extends NodeController<VBox> {
 
   private final EmoticonService emoticonService;
   private final UiService uiService;
@@ -32,7 +32,7 @@ public class EmoticonsWindowController implements Controller<VBox> {
   private TextInputControl textInputControl;
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     List<Node> nodes = new ArrayList<>();
     emoticonService.getEmoticonsGroups().forEach(group -> {
       EmoticonsGroupController controller = uiService.loadFxml("theme/chat/emoticons/emoticons_group.fxml");

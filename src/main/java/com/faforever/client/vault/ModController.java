@@ -1,6 +1,6 @@
 package com.faforever.client.vault;
 
-import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.mod.ModVaultController;
 import com.faforever.client.theme.UiService;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ModController extends AbstractViewController<Node> {
+public class ModController extends NodeController<Node> {
   private final UiService uiService;
   public StackPane root;
   public ModVaultController modVaultController;
@@ -27,13 +27,13 @@ public class ModController extends AbstractViewController<Node> {
   }
 
   @Override
-  public void initialize() {
+  protected void onInitialize() {
     modVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", ModVaultController.class);
     root.getChildren().add(modVaultController.getRoot());
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
+  protected void onNavigate(NavigateEvent navigateEvent) {
     modVaultController.display(navigateEvent);
   }
 }

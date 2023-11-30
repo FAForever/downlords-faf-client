@@ -1,7 +1,7 @@
 package com.faforever.client.main;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.theme.UiService;
 import javafx.scene.Node;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class LinksAndHelpController extends AbstractViewController<Node> {
+public class LinksAndHelpController extends NodeController<Node> {
 
   private final ClientProperties clientProperties;
   private final UiService uiService;
@@ -28,7 +28,8 @@ public class LinksAndHelpController extends AbstractViewController<Node> {
     this.i18n = i18n;
   }
 
-  public void initialize() {
+  @Override
+  protected void onInitialize() {
     clientProperties.getLinks().forEach((name, url) -> {
       LinkDetailController linkDetailController = uiService.loadFxml("theme/link_detail.fxml");
       linkContainer.getChildren().add(linkDetailController.getRoot());

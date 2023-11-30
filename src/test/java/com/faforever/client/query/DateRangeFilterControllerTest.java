@@ -16,7 +16,6 @@ import org.mockito.Mock;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -91,7 +90,7 @@ public class DateRangeFilterControllerTest extends PlatformTest {
     instance.clear();
 
     assertNull(instance.beforeDate.getValue());
-    assertEquals(LocalDate.now().minus(1, ChronoUnit.YEARS), instance.afterDate.getValue());
+    assertEquals(LocalDate.now().minusYears(1), instance.afterDate.getValue());
   }
 
   @Test

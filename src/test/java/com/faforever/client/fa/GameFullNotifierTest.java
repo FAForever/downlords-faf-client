@@ -4,7 +4,6 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.ForgedAlliance;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -12,7 +11,6 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.test.ServiceTest;
-import com.google.common.eventbus.EventBus;
 import javafx.event.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,11 +26,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-public class OnGameFullNotifierTest extends ServiceTest {
+public class GameFullNotifierTest extends ServiceTest {
   @InjectMocks
-  private OnGameFullNotifier instance;
-  @Mock
-  private EventBus eventBus;
+  private GameFullNotifier instance;
   @Mock
   private ExecutorService executorService;
   @Mock
@@ -56,7 +52,6 @@ public class OnGameFullNotifierTest extends ServiceTest {
     when(clientProperties.getForgedAlliance()).thenReturn(forgedAlliance);
 
     instance.afterPropertiesSet();
-    verify(eventBus).register(instance);
   }
 
   @Test
@@ -66,7 +61,7 @@ public class OnGameFullNotifierTest extends ServiceTest {
     when(gameService.getRunningProcessId()).thenReturn(1L);
     when(platformService.getFocusedWindowProcessId()).thenReturn(2L);
 
-    instance.onGameFull(new GameFullEvent());
+    instance.onGameFull();
     verify(notificationService).addNotification(any(TransientNotification.class));
   }
 
@@ -77,7 +72,7 @@ public class OnGameFullNotifierTest extends ServiceTest {
     when(gameService.getRunningProcessId()).thenReturn(1L);
     when(platformService.getFocusedWindowProcessId()).thenReturn(1L);
 
-    instance.onGameFull(new GameFullEvent());
+    instance.onGameFull();
     verifyNoInteractions(notificationService);
   }
 
@@ -88,7 +83,7 @@ public class OnGameFullNotifierTest extends ServiceTest {
     when(gameService.getRunningProcessId()).thenReturn(1L);
     when(platformService.getFocusedWindowProcessId()).thenReturn(2L);
 
-    instance.onGameFull(new GameFullEvent());
+    instance.onGameFull();
     ArgumentCaptor<TransientNotification> argumentCaptor = ArgumentCaptor.forClass(TransientNotification.class);
     verify(notificationService).addNotification(argumentCaptor.capture());
 
@@ -105,7 +100,7 @@ public class OnGameFullNotifierTest extends ServiceTest {
     when(platformService.getFocusedWindowProcessId()).thenReturn(2L);
     when(platformService.isWindowFocused(forgedAlliance.getWindowTitle())).thenReturn(true);
 
-    instance.onGameFull(new GameFullEvent());
+    instance.onGameFull();
     ArgumentCaptor<TransientNotification> argumentCaptor = ArgumentCaptor.forClass(TransientNotification.class);
     verify(notificationService).addNotification(argumentCaptor.capture());
 
@@ -121,7 +116,7 @@ public class OnGameFullNotifierTest extends ServiceTest {
     when(gameService.getRunningProcessId()).thenReturn(1L);
     when(platformService.getFocusedWindowProcessId()).thenReturn(2L);
 
-    instance.onGameFull(new GameFullEvent());
+    instance.onGameFull();
     ArgumentCaptor<Runnable> argumentCaptor = ArgumentCaptor.forClass(Runnable.class);
     verify(executorService).execute(argumentCaptor.capture());
 
@@ -136,7 +131,7 @@ public class OnGameFullNotifierTest extends ServiceTest {
     when(gameService.getRunningProcessId()).thenReturn(1L);
     when(platformService.getFocusedWindowProcessId()).thenReturn(2L);
 
-    instance.onGameFull(new GameFullEvent());
+    instance.onGameFull();
     ArgumentCaptor<Runnable> argumentCaptor = ArgumentCaptor.forClass(Runnable.class);
     verify(executorService).execute(argumentCaptor.capture());
 

@@ -54,9 +54,8 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
 
   private Consumer<MapVersionBean> onOpenDetailListener;
 
-  public void initialize() {
-    ObservableValue<Boolean> showing = uiService.createShowingProperty(getRoot());
-
+  @Override
+  protected void onInitialize() {
     imageViewHelper.setDefaultPlaceholderImage(thumbnailImageView);
     JavaFxUtil.bindManagedToVisible(installButton, uninstallButton);
 
@@ -127,6 +126,7 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
     });
   }
 
+  @Override
   public Node getRoot() {
     return mapTileRoot;
   }

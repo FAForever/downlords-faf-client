@@ -2,13 +2,12 @@ package com.faforever.client.news;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Website;
-import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.main.event.NavigateEvent;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
+import com.faforever.client.theme.UiService;
 import javafx.concurrent.Worker;
 import javafx.scene.Node;
 import javafx.scene.control.Control;
@@ -22,11 +21,11 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class NewsController extends AbstractViewController<Node> {
-  private final EventBus eventBus;
+public class NewsController extends NodeController<Node> {
   private final WebViewConfigurer webViewConfigurer;
   private final ClientProperties clientProperties;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final UiService uiService;
 
   public Pane newsRoot;
   public WebView newsWebView;
@@ -35,11 +34,9 @@ public class NewsController extends AbstractViewController<Node> {
       -> loadingIndicator.getParent().getChildrenUnmodifiable().stream()
       .filter(node -> node != loadingIndicator)
       .forEach(node -> node.setVisible(!newValue));
-  ;
 
   @Override
-  public void initialize() {
-    eventBus.register(this);
+  protected void onInitialize() {
     newsWebView.setContextMenuEnabled(false);
     webViewConfigurer.configureWebView(newsWebView);
 
@@ -65,20 +62,10 @@ public class NewsController extends AbstractViewController<Node> {
   }
 
   @Override
-  protected void onDisplay(NavigateEvent navigateEvent) {
-    eventBus.post(new UnreadNewsEvent(false));
+  protected void onNavigate(NavigateEvent navigateEvent) {
     onLoadingStart();
     loadNews();
   }
-
-  @Subscribe
-  public void onUnreadNewsEvent(UnreadNewsEvent unreadNewsEvent) {
-    if (unreadNewsEvent.hasUnreadNews()) {
-      onLoadingStart();
-      loadNews();
-    }
-  }
-
 
   private void loadNews() {
     fxApplicationThreadExecutor.execute(() -> {
@@ -87,6 +74,7 @@ public class NewsController extends AbstractViewController<Node> {
     });
   }
 
+  @Override
   public Node getRoot() {
     return newsRoot;
   }

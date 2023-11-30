@@ -9,17 +9,16 @@ import com.faforever.client.domain.PartyBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.LoginService;
 import com.faforever.commons.lobby.Player;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,7 +50,7 @@ public class MatchmakingQueueItemControllerTest extends PlatformTest {
   @Mock
   private TeamMatchmakingService teamMatchmakingService;
   @Mock
-  private EventBus eventBus;
+  private NavigationHandler navigationHandler;
 
   private PlayerBean player;
   @InjectMocks
@@ -79,7 +78,6 @@ public class MatchmakingQueueItemControllerTest extends PlatformTest {
     when(loginService.ownPlayerProperty()).thenReturn(new SimpleObjectProperty<>(ownPlayer));
     when(loginService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
     when(loginService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
-    when(uiService.createShowingProperty(any())).thenReturn(new SimpleBooleanProperty(true));
 
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(partyMembersNotReadyProperty);
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(partyMembersNotReadyProperty.get());
@@ -98,7 +96,7 @@ public class MatchmakingQueueItemControllerTest extends PlatformTest {
   public void testShowMapPool() {
     instance.showMapPool();
 
-    verify(eventBus).post(any(ShowMapPoolEvent.class));
+    verify(navigationHandler).navigateTo(any(ShowMapPoolEvent.class));
   }
 
   @Test

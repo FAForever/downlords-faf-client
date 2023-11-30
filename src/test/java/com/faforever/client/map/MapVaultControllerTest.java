@@ -18,7 +18,6 @@ import com.faforever.client.vault.VaultEntityController.ShowRoomCategory;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
-import com.google.common.eventbus.EventBus;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,8 +46,6 @@ public class MapVaultControllerTest extends PlatformTest {
   private UiService uiService;
   @Mock
   private I18n i18n;
-  @Mock
-  private EventBus eventBus;
 
   @Mock
   private NotificationService notificationService;

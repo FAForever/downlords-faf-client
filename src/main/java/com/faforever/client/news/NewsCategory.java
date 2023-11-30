@@ -1,7 +1,7 @@
 package com.faforever.client.news;
 
 
-import com.faforever.client.theme.UiService;
+import com.faforever.client.theme.ThemeService;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -9,18 +9,18 @@ import java.util.Map;
 
 public enum NewsCategory {
 
-  SERVER_UPDATE("server update", UiService.SERVER_UPDATE_NEWS_IMAGE),
-  TOURNAMENT("tournament", UiService.TOURNAMENT_NEWS_IMAGE),
-  FA_UPDATE("fa update", UiService.FA_UPDATE_NEWS_IMAGE),
-  LOBBY_UPDATE("lobby update", UiService.LOBBY_UPDATE_NEWS_IMAGE),
-  BALANCE("balance", UiService.BALANCE_NEWS_IMAGE),
-  WEBSITE("website", UiService.WEBSITE_NEWS_IMAGE),
-  CAST("cast", UiService.CAST_NEWS_IMAGE),
-  PODCAST("podcast", UiService.PODCAST_NEWS_IMAGE),
-  FEATURED_MOD("featured mods", UiService.FEATURED_MOD_NEWS_IMAGE),
-  DEVELOPMENT("development update", UiService.DEVELOPMENT_NEWS_IMAGE),
-  UNCATEGORIZED("uncategorized", UiService.DEFAULT_NEWS_IMAGE),
-  LADDER("ladder", UiService.LADDER_NEWS_IMAGE);
+  SERVER_UPDATE("server update", ThemeService.SERVER_UPDATE_NEWS_IMAGE),
+  TOURNAMENT("tournament", ThemeService.TOURNAMENT_NEWS_IMAGE),
+  FA_UPDATE("fa update", ThemeService.FA_UPDATE_NEWS_IMAGE),
+  LOBBY_UPDATE("lobby update", ThemeService.LOBBY_UPDATE_NEWS_IMAGE),
+  BALANCE("balance", ThemeService.BALANCE_NEWS_IMAGE),
+  WEBSITE("website", ThemeService.WEBSITE_NEWS_IMAGE),
+  CAST("cast", ThemeService.CAST_NEWS_IMAGE),
+  PODCAST("podcast", ThemeService.PODCAST_NEWS_IMAGE),
+  FEATURED_MOD("featured mods", ThemeService.FEATURED_MOD_NEWS_IMAGE),
+  DEVELOPMENT("development update", ThemeService.DEVELOPMENT_NEWS_IMAGE),
+  UNCATEGORIZED("uncategorized", ThemeService.DEFAULT_NEWS_IMAGE),
+  LADDER("ladder", ThemeService.LADDER_NEWS_IMAGE);
 
   private static final Map<String, NewsCategory> fromString;
 

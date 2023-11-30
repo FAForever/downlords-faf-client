@@ -1,6 +1,6 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.theme.UiService;
+import com.faforever.client.theme.ThemeService;
 import com.google.common.base.Strings;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -15,8 +15,9 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class DualStringListCellController implements Controller<Node> {
-  private final UiService uiService;
+public class DualStringListCellController extends NodeController<Node> {
+  private final ThemeService themeService;
+
   public HBox root;
   public Label left;
   public Label right;
@@ -30,7 +31,7 @@ public class DualStringListCellController implements Controller<Node> {
 
   public void setWebViewToolTip(String apply) {
     if (!Strings.isNullOrEmpty(apply)) {
-      uiService.registerWebView(webViewToolTip);
+      themeService.registerWebView(webViewToolTip);
       webViewToolTip.getEngine().loadContent(apply);
     }
   }

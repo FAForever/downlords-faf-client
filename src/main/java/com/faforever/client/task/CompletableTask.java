@@ -19,6 +19,7 @@ public abstract class CompletableTask<V> extends Task<V> implements PrioritizedC
     setOnSucceeded(event -> future.complete(getValue()));
   }
 
+  @Override
   public CompletableFuture<V> getFuture() {
     return future;
   }
