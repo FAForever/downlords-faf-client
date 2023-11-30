@@ -6,6 +6,15 @@
       <inspection_tool class="SubjectLimit" enabled="true" level="WARNING" enabled_by_default="true" />
     </profile>
   </component>
+  <component name="GitSharedSettings">
+    <option name="FORCE_PUSH_PROHIBITED_PATTERNS">
+      <list>
+        <option value="master" />
+        <option value="main" />
+        <option value="develop" />
+      </list>
+    </option>
+  </component>
   <component name="GithubSharedProjectSettings">
     <option name="branchProtectionPatterns">
       <list>

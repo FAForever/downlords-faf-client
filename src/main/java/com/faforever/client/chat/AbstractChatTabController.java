@@ -340,6 +340,7 @@ public abstract class AbstractChatTabController extends TabController {
     synchronized (waitingMessages) {
       waitingMessages.forEach(AbstractChatTabController.this::addMessage);
       waitingMessages.clear();
+      scrollToBottomIfDesired();
       isChatReady = true;
     }
   }
