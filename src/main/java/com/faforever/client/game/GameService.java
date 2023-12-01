@@ -43,7 +43,6 @@ import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameStatus;
-import com.faforever.commons.lobby.GameVisibility;
 import com.faforever.commons.lobby.NoticeInfo;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
@@ -75,7 +74,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -161,7 +159,6 @@ public class GameService implements InitializingBean {
   private CompletableFuture<Void> matchmakerFuture;
   private boolean gameKilled;
   private boolean replayKilled;
-  private boolean rehostRequested;
   private int localReplayPort;
 
   @Override
@@ -683,7 +680,6 @@ public class GameService implements InitializingBean {
                          gameKilled = false;
                          gameParameters.setLocalGpgPort(adapterPort);
                          gameParameters.setLocalReplayPort(localReplayPort);
-                         gameParameters.setRehost(rehostRequested);
                          try {
                            process = forgedAllianceService.startGameOnline(gameParameters);
                          } catch (IOException e) {
@@ -720,7 +716,6 @@ public class GameService implements InitializingBean {
 
   @VisibleForTesting
   CompletableFuture<Void> spawnTerminationListener(Process process, Boolean forOnlineGame) {
-    rehostRequested = false;
     return process.onExit().thenAccept(finishedProcess -> {
       handleTermination(finishedProcess, false);
 
@@ -734,10 +729,6 @@ public class GameService implements InitializingBean {
           } catch (IOException e) {
             throw new GameCleanupException("Error during post-game processing", e, "replayServer.stopError");
           }
-        }
-
-        if (rehostRequested) {
-          rehost();
         }
       }
     });
@@ -775,29 +766,6 @@ public class GameService implements InitializingBean {
             new Action(i18n.get("game.open.log"),
                        event -> platformService.reveal(logFile.orElse(operatingSystem.getLoggingDirectory()))),
             new DismissAction(i18n))));
-      }
-    }
-  }
-
-  private void rehost() {
-    synchronized (currentGame) {
-      GameBean game = currentGame.get();
-
-      modService.getFeaturedMod(game.getFeaturedMod())
-                .toFuture()
-                .thenCompose(featuredModBean -> hostGame(
-                    new NewGameInfo(game.getTitle(), game.getPassword(), featuredModBean, game.getMapFolderName(),
-                                    new HashSet<>(game.getSimMods().values()), GameVisibility.PUBLIC,
-                                    game.getRatingMin(), game.getRatingMax(), game.getEnforceRating())));
-    }
-  }
-
-  public void onRehostRequest() {
-    this.rehostRequested = true;
-    synchronized (gameRunning) {
-      if (!gameRunning.get()) {
-        // If the game already has terminated, the rehost is issued here. Otherwise it will be issued after termination
-        rehost();
       }
     }
   }

@@ -734,44 +734,6 @@ public class GameServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testRehostIfGameIsNotRunning() throws Exception {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
-    instance.currentGame.set(game);
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().uid(game.getId()).get();
-    GameParameters gameParameters = gameMapper.map(gameLaunchMessage);
-    gameParameters.setRehost(true);
-
-    mockStartGameProcess(gameParameters);
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
-        .defaultValues()
-        .get()));
-    when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(fafServerAccessor.requestHostGame(any())).thenReturn(completedFuture(GameLaunchMessageBuilder.create()
-        .defaultValues()
-        .get()));
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
-        .defaultValues()
-        .get()));
-    when(mapService.download(game.getMapFolderName())).thenReturn(completedFuture(null));
-
-    instance.onRehostRequest();
-
-    verify(forgedAllianceService).startGameOnline(eq(gameParameters));
-  }
-
-  @Test
-  public void testRehostIfGameIsRunning() throws Exception {
-    instance.gameRunning.set(true);
-
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
-    instance.currentGame.set(game);
-
-    instance.onRehostRequest();
-
-    verify(forgedAllianceService, never()).startGameOnline(any());
-  }
-
-  @Test
   public void testCurrentGameEndedBehaviour() {
     notificationPrefs.setAfterGameReviewEnabled(true);
     notificationPrefs.setTransientNotificationsEnabled(true);

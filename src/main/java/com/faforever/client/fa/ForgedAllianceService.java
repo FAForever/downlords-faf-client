@@ -78,7 +78,6 @@ public class ForgedAllianceService {
         .logFile(loggingService.getNewGameLogFile(uid))
         .localGpgPort(gameParameters.getLocalGpgPort())
         .localReplayPort(gameParameters.getLocalReplayPort())
-        .rehost(gameParameters.isRehost())
         .build();
 
     return launch(launchCommand);
