@@ -3,6 +3,7 @@ package com.faforever.client.update;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsPosix;
+import com.faforever.client.os.OsUnknown;
 import com.faforever.client.os.OsWindows;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
@@ -48,14 +49,12 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
       ReleaseInfo latestRelease = clientConfiguration.getLatestRelease();
       String version = latestRelease.getVersion();
 
-      URL downloadUrl;
-      if (operatingSystem instanceof OsWindows) {
-        downloadUrl = latestRelease.getWindowsUrl();
-      } else if (operatingSystem instanceof OsPosix) {
-        downloadUrl = latestRelease.getLinuxUrl();
-      } else {
-        return null;
-      }
+      URL downloadUrl = switch (operatingSystem) {
+        case OsWindows osWindows -> latestRelease.getWindowsUrl();
+        case OsPosix osPosix -> latestRelease.getLinuxUrl();
+        case OsUnknown osUnknown -> null;
+      };
+
       if (downloadUrl == null) {
         return null;
       }

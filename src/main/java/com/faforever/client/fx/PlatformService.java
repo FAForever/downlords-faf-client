@@ -2,6 +2,7 @@ package com.faforever.client.fx;
 
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsPosix;
+import com.faforever.client.os.OsUnknown;
 import com.faforever.client.os.OsWindows;
 import com.faforever.client.ui.StageHolder;
 import com.google.common.collect.Sets;
@@ -41,7 +42,8 @@ import static org.bridj.Platform.show;
 public class PlatformService {
 
   // Taken from https://stackoverflow.com/questions/163360/regular-expression-to-match-urls-in-java
-  public static final Pattern URL_REGEX_PATTERN = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
+  public static final Pattern URL_REGEX_PATTERN = Pattern.compile(
+      "^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
 
   private final OperatingSystem operatingSystem;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -52,28 +54,18 @@ public class PlatformService {
    * exceptions are intercepted by our side, and we can tell the user what happened wrong.
    */
   public void showDocument(String url) {
-    final String[] browsers = {
-        "xdg-open",
-        "google-chrome",
-        "firefox",
-        "opera",
-        "konqueror",
-        "mozilla"
-    };
+    final String[] browsers = {"xdg-open", "google-chrome", "firefox", "opera", "konqueror", "mozilla"};
 
     String osName = System.getProperty("os.name");
     try {
       if (osName.startsWith("Mac OS")) {
-        Runtime.getRuntime().exec(
-            "open " + url);
+        Runtime.getRuntime().exec("open " + url);
       } else if (osName.startsWith("Windows")) {
-        Runtime.getRuntime().exec(
-            "rundll32 url.dll,FileProtocolHandler " + url);
+        Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url);
       } else { //assume Unix or Linux
         String browser = null;
         for (String b : browsers) {
-          if (browser == null && Runtime.getRuntime().exec(
-              new String[]{"which", b}).getInputStream().read() != -1) {
+          if (browser == null && Runtime.getRuntime().exec(new String[]{"which", b}).getInputStream().read() != -1) {
             Runtime.getRuntime().exec(new String[]{browser = b, url});
           }
         }
@@ -91,15 +83,19 @@ public class PlatformService {
    */
   public void reveal(Path path) {
     try {
-      if (operatingSystem instanceof OsWindows) {
-        show(path.toFile());
-      } else if (operatingSystem instanceof OsPosix) {
-        //Might not work on all linux distros but let's give it a try
-        if (Files.isRegularFile(path)) {
-          path = path.getParent();
+      switch (operatingSystem) {
+        case OsWindows osWindows -> show(path.toFile());
+        case OsPosix osPosix -> {
+          //Might not work on all linux distros but let's give it a try
+          if (Files.isRegularFile(path)) {
+            path = path.getParent();
+          }
+          ProcessBuilder builder = new ProcessBuilder("xdg-open", path.toAbsolutePath().toString());
+          builder.start();
         }
-        ProcessBuilder builder = new ProcessBuilder("xdg-open", path.toAbsolutePath().toString());
-        builder.start();
+        case OsUnknown osUnknown -> {
+          log.warn("Unknown OS, unable to reveal path");
+        }
       }
     } catch (IOException | NoSuchMethodException e) {
       throw new RuntimeException(e);
@@ -108,9 +104,8 @@ public class PlatformService {
 
   /**
    * Show a Window, restore it to it's state before minimizing (normal/restored or maximized) and move it to foreground
-   * will only work on windows systems
-   * Note: An application cannot force a window to the foreground while the user is working with another window.
-   * Instead, Windows flashes the taskbar button of the window to notify the user.
+   * will only work on windows systems Note: An application cannot force a window to the foreground while the user is
+   * working with another window. Instead, Windows flashes the taskbar button of the window to notify the user.
    */
   public void focusWindow(String windowTitle) {
     focusWindow(windowTitle, null);
@@ -209,7 +204,8 @@ public class PlatformService {
 
   @Nullable
   private String getForegroundWindowTitle() {
-    return operatingSystem instanceof OsWindows ? WindowUtils.getWindowTitle(User32.INSTANCE.GetForegroundWindow()) : null;
+    return operatingSystem instanceof OsWindows ? WindowUtils.getWindowTitle(
+        User32.INSTANCE.GetForegroundWindow()) : null;
   }
 
   public long getFocusedWindowProcessId() {
@@ -225,10 +221,13 @@ public class PlatformService {
   @Nullable
   private HWND getWindow(String windowTitle, @Nullable Long processId) {
     if (processId != null) {
-      return WindowUtils.getAllWindows(false).stream()
-          .filter(desktopWindow -> desktopWindow.getTitle().equals(windowTitle))
-          .filter(desktopWindow -> getWindowProcessId(desktopWindow.getHWND()) == processId)
-          .findFirst().map(DesktopWindow::getHWND).orElse(null);
+      return WindowUtils.getAllWindows(false)
+                        .stream()
+                        .filter(desktopWindow -> desktopWindow.getTitle().equals(windowTitle))
+                        .filter(desktopWindow -> getWindowProcessId(desktopWindow.getHWND()) == processId)
+                        .findFirst()
+                        .map(DesktopWindow::getHWND)
+                        .orElse(null);
     }
     return User32.INSTANCE.FindWindow(null, windowTitle);
   }
@@ -250,7 +249,8 @@ public class PlatformService {
     // client needs executable bit for running and the writeable bit set to alter the version
     if (SystemUtils.IS_OS_UNIX) {
       Files.setPosixFilePermissions(exePath, Sets.immutableEnumSet(PosixFilePermission.OWNER_READ,
-          PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE));
+                                                                   PosixFilePermission.OWNER_WRITE,
+                                                                   PosixFilePermission.OWNER_EXECUTE));
     }
   }
 
@@ -278,7 +278,8 @@ public class PlatformService {
     return Optional.ofNullable(result.get()).map(File::toPath);
   }
 
-  public Optional<Path> askForFile(String title, @Nullable Path initialDirectoryOrFile, ExtensionFilter extensionFilter) {
+  public Optional<Path> askForFile(String title, @Nullable Path initialDirectoryOrFile,
+                                   ExtensionFilter extensionFilter) {
     AtomicReference<File> result = new AtomicReference<>();
     CountDownLatch waitForUserInput = new CountDownLatch(1);
     fxApplicationThreadExecutor.execute(() -> {

@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.nio.file.Path;
 
-public interface OperatingSystem {
+public sealed interface OperatingSystem permits OsPosix, OsUnknown, OsWindows {
 
   boolean runsAsAdmin();
 
