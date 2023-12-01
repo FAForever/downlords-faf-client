@@ -212,7 +212,7 @@ fx2j {
 tasks.register('buildInstall4jMediaFiles', Install4jTask) {
   group "distribution"
   description 'Creates install4j media files'
-  dependsOn 'installDist'
+  dependsOn 'installDist', "fx2jJar"
 
   projectFile = file('faf-client.install4j')
   release = version
