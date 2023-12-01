@@ -43,7 +43,6 @@ public class LaunchCommandBuilder {
   private URI replayUri;
   private Faction faction;
   private String executableDecorator;
-  private boolean rehost;
   private Integer localReplayPort;
   private Integer numberOfGames;
   private Integer expectedPlayers;
@@ -165,11 +164,6 @@ public class LaunchCommandBuilder {
     return this;
   }
 
-  public LaunchCommandBuilder rehost(boolean rehost) {
-    this.rehost = rehost;
-    return this;
-  }
-
   public LaunchCommandBuilder numberOfGames(Integer numberOfGames) {
     this.numberOfGames = numberOfGames;
     return this;
@@ -279,10 +273,6 @@ public class LaunchCommandBuilder {
     if (replayId != null) {
       command.add("/replayid");
       command.add(String.valueOf(replayId));
-    }
-
-    if (rehost) {
-      command.add("/rehost");
     }
 
     if (numberOfGames != null) {
