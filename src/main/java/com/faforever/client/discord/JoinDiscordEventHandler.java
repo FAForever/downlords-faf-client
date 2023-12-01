@@ -15,7 +15,6 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 @Component
 @RequiredArgsConstructor
@@ -24,7 +23,7 @@ public class JoinDiscordEventHandler {
 
   private final PlatformService platformService;
 
-  public void onJoin(String channelUrl) throws URISyntaxException {
+  public void onJoin(String channelUrl) {
     joinViaDiscord(channelUrl);
   }
 
@@ -32,12 +31,13 @@ public class JoinDiscordEventHandler {
     platformService.showDocument(joinUrl);
   }
 
-  private void joinViaDiscord(String joinUrl) throws URISyntaxException {
+  private void joinViaDiscord(String joinUrl) {
     StandardWebSocketClient client = new StandardWebSocketClient();
     HttpHeaders headers = new HttpHeaders();
     headers.add("Origin", "https://discord.com");
     WebSocketHttpHeaders webSocketHttpHeaders = new WebSocketHttpHeaders(headers);
-    client.doHandshake(getWebSocketHandler(joinUrl), webSocketHttpHeaders, new URI("ws://127.0.0.1:6463/?v=1")).addCallback(result -> {
+    client.doHandshake(getWebSocketHandler(joinUrl), webSocketHttpHeaders, URI.create("ws://127.0.0.1:6463/?v=1"))
+          .addCallback(result -> {
     }, ex -> {
       log.warn("Connection to Discord not possible", ex);
       joinViaBrowser(joinUrl);

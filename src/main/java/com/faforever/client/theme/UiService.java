@@ -9,14 +9,6 @@ import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.ui.dialog.Dialog.DialogTransition;
 import com.faforever.client.ui.dialog.DialogLayout;
 import io.github.sheikah45.fx2j.api.Fx2jLoader;
-import javafx.beans.binding.BooleanExpression;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -36,7 +28,6 @@ import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.concurrent.locks.ReentrantLock;
 
 
