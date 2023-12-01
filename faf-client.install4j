@@ -78,9 +78,6 @@
   <installerGui>
     <applications>
       <application id="installer" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" actionElevationType="elevated" launchInNewProcess="false">
-        <variables>
-          <variable name="garbageCollectorVMOption" value="-XX:+UseZGC" valueClass="string" />
-        </variables>
         <startup>
           <screen id="1" beanClass="com.install4j.runtime.beans.screens.StartupScreen" rollbackBarrierExitCode="0">
             <actions>
@@ -316,8 +313,9 @@ return console.askOkCancel(message, true);
               <action id="823" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
                 <serializedBean>
                   <property name="launcherId" type="string">25</property>
-                  <property name="vmOptions" type="array" elementType="string" length="1">
+                  <property name="vmOptions" type="array" elementType="string" length="2">
                     <element index="0">-XX:+UseZGC</element>
+                    <element index="1">-XX:+ZGenerational</element>
                   </property>
                 </serializedBean>
                 <condition>Double.parseDouble(System.getProperty("os.version")) &gt;= 10.0</condition>
