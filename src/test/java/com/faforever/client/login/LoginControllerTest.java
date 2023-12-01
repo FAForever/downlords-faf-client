@@ -8,6 +8,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.OAuthValuesReceiver.Values;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.os.OsPosix;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -68,8 +69,8 @@ public class LoginControllerTest extends PlatformTest {
 
   @InjectMocks
   private LoginController instance;
-  @Mock
-  private OperatingSystem operatingSystem;
+  @Spy
+  private OperatingSystem operatingSystem = new OsPosix();
   @Mock
   private GameService gameService;
   @Mock

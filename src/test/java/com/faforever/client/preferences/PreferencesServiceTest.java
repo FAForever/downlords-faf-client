@@ -2,11 +2,11 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.os.OsPosix;
 import com.faforever.client.test.ServiceTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Spy;
 
 import java.nio.file.Path;
@@ -20,8 +20,8 @@ public class PreferencesServiceTest extends ServiceTest {
 
   private PreferencesService instance;
 
-  @Mock
-  private OperatingSystem operatingSystem;
+  @Spy
+  private OperatingSystem operatingSystem = new OsPosix();
   @Spy
   private ClientProperties clientProperties;
   @Spy

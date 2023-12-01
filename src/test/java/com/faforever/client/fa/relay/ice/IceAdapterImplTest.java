@@ -9,6 +9,7 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.os.OsPosix;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.remote.FafServerAccessor;
@@ -44,8 +45,8 @@ public class IceAdapterImplTest extends ServiceTest {
 
   @InjectMocks
   private IceAdapterImpl instance;
-  @Mock
-  private OperatingSystem operatingSystem;
+  @Spy
+  private OperatingSystem operatingSystem = new OsPosix();
   @Mock
   private ClientProperties clientProperties;
   @Mock

@@ -1,11 +1,12 @@
 package com.faforever.client.logging;
 
 import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.os.OsPosix;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,8 +22,8 @@ public class LoggingServiceTest extends ServiceTest {
 
   @InjectMocks
   private LoggingService instance;
-  @Mock
-  private OperatingSystem operatingSystem;
+  @Spy
+  private OperatingSystem operatingSystem = new OsPosix();
 
 
   @BeforeEach

@@ -5,6 +5,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.os.OsPosix;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;
@@ -44,8 +45,8 @@ public class ClientUpdateServiceTest extends ServiceTest {
 
   @TempDir
   public Path fafBinDirectory;
-  @Mock
-  private OperatingSystem operatingSystem;
+  @Spy
+  private OperatingSystem operatingSystem = new OsPosix();
   @Mock
   private NotificationService notificationService;
   @Mock

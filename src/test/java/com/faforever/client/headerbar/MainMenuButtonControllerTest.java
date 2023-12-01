@@ -2,6 +2,7 @@ package com.faforever.client.headerbar;
 
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.os.OsPosix;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.ui.SettingsController;
@@ -28,8 +29,8 @@ public class MainMenuButtonControllerTest extends PlatformTest {
   private SettingsController settingsController;
   @Mock
   private UiService uiService;
-  @Mock
-  private OperatingSystem operatingSystem;
+  @Spy
+  private OperatingSystem operatingSystem = new OsPosix();
   @Spy
   private ForgedAlliancePrefs forgedAlliancePrefs;
   @Spy
