@@ -165,19 +165,6 @@ public class LaunchCommandBuilderTest extends ServiceTest {
   }
 
   @Test
-  public void testRehost() throws Exception {
-    assertThat(
-        defaultBuilder().rehost(true).build(),
-        contains(
-            Path.of("test.exe").toAbsolutePath().toString(),
-            "/init", "init.lua",
-            "/nobugreport",
-            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
-            "/rehost"
-        ));
-  }
-
-  @Test
   public void testGpgPort() throws Exception {
     assertThat(
         defaultBuilder().localGpgPort(0).build(),
