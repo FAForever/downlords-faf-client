@@ -70,8 +70,8 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
       String contentType = connection.getContentType();
 
       ImageView imageView = new ImageView();
-      imageView.setFitWidth(300);
-      imageView.setFitHeight(200);
+      imageView.setFitHeight(200.0);
+      imageView.setFitWidth(300.0);
 
       if (MediaType.JPEG.toString().equals(contentType)
           || MediaType.PNG.toString().equals(contentType)) {

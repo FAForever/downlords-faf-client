@@ -63,6 +63,7 @@ public class SubDivisionTabController extends TabController {
 
     nameColumn.setCellValueFactory(param -> param.getValue().getPlayer().usernameProperty());
     nameColumn.setCellFactory(param -> new StringCell<>(name -> name));
+    nameColumn.prefWidthProperty().bind(ratingTable.widthProperty().subtract(250));
 
     gamesPlayedColumn.setCellValueFactory(param -> param.getValue().gamesPlayedProperty());
     gamesPlayedColumn.setCellFactory(param -> new StringCell<>(count -> i18n.number(count.intValue())));

@@ -8,7 +8,7 @@
 <VBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1" fx:id="root"
       alignment="CENTER" spacing="10.0"
       fx:controller="com.faforever.client.vault.VaultEntityShowRoomController">
-    <Label fx:id="label" prefWidth="${root.width}" styleClass="h2"
+    <Label fx:id="label" styleClass="h2"
            text="%vault.replays.ownReplays"/>
     <FlowPane fx:id="pane" hgap="10.0" maxWidth="1.7976931348623157E308"
               prefWrapLength="1500.0" vgap="10.0">

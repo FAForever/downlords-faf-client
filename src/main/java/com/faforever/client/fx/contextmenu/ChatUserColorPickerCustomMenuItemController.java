@@ -5,8 +5,6 @@ import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.util.Assert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ColorPicker;
 import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +20,7 @@ import static com.faforever.client.chat.ChatColorMode.RANDOM;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomMenuItemController<ChatChannelUser> {
-
-  public ColorPicker colorPicker;
-  public Button removeCustomColorButton;
+public class ChatUserColorPickerCustomMenuItemController extends AbstractColorPickerCustomMenuItemController<ChatChannelUser> {
 
   private final ChatPrefs chatPrefs;
 

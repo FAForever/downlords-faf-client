@@ -1,3 +1,4 @@
+<?controllerType com.faforever.client.fx.contextmenu.AbstractColorPickerCustomMenuItemController?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ColorPicker?>
 <?import javafx.scene.control.CustomMenuItem?>

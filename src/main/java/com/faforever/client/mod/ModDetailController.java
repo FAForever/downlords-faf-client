@@ -61,7 +61,7 @@ public class ModDetailController extends NodeController<Node> {
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final ObjectProperty<ModVersionBean> modVersion = new SimpleObjectProperty<>();
-  private final ObservableList<ModVersionReviewBean> reviews = FXCollections.observableArrayList();
+  private final ObservableList<ModVersionReviewBean> modReviews = FXCollections.observableArrayList();
 
   public Label updatedLabel;
   public Label sizeLabel;
@@ -158,7 +158,7 @@ public class ModDetailController extends NodeController<Node> {
   private void onModVersionChanged(ModVersionBean newValue) {
     if (newValue == null) {
       reviewsController.setCanWriteReview(false);
-      reviews.clear();
+      modReviews.clear();
       installButton.setText("");
       return;
     }
@@ -173,7 +173,7 @@ public class ModDetailController extends NodeController<Node> {
     reviewService.getModReviews(newValue.getMod())
         .collectList()
         .publishOn(fxApplicationThreadExecutor.asScheduler())
-        .subscribe(reviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
+        .subscribe(modReviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
 
     modService.getFileSize(newValue)
         .thenAcceptAsync(modFileSize -> {
@@ -198,7 +198,7 @@ public class ModDetailController extends NodeController<Node> {
       review.setModVersion(modVersion.get());
       return review;
     });
-    reviewsController.bindReviews(reviews);
+    reviewsController.bindReviews(modReviews);
   }
 
   @VisibleForTesting
@@ -208,17 +208,17 @@ public class ModDetailController extends NodeController<Node> {
         .subscribe(null, throwable -> {
           log.error("Review could not be deleted", throwable);
           notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
-        }, () -> reviews.remove(review));
+        }, () -> modReviews.remove(review));
   }
 
   @VisibleForTesting
   void onSendReview(ModVersionReviewBean review) {
     reviewService.saveModVersionReview(review)
-        .filter(savedReview -> !reviews.contains(savedReview))
+        .filter(savedReview -> !modReviews.contains(savedReview))
         .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(savedReview -> {
-          reviews.remove(review);
-          reviews.add(savedReview);
+          modReviews.remove(review);
+          modReviews.add(savedReview);
         }, throwable -> {
           log.error("Review could not be saved", throwable);
           notificationService.addImmediateErrorNotification(throwable, "review.save.error");

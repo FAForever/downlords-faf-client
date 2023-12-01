@@ -141,7 +141,9 @@
                     text="%game.generateMap">
                 <graphic>
                     <Label styleClass="button-mini-label" text="%game.create.generatedMapNew">
-                        <Insets left="250"/>
+                        <padding>
+                            <Insets left="250"/>
+                        </padding>
                     </Label>
                 </graphic>
             </Button>

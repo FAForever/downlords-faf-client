@@ -274,7 +274,7 @@ public class LeaderboardController extends NodeController<StackPane> {
               .getDivision()
               .getIndex())
           .forEach(subdivision -> {
-            SubDivisionTabController controller = uiService.loadFxml("theme/leaderboard/subDivisionTab.fxml");
+            SubDivisionTabController controller = uiService.loadFxml("theme/leaderboard/sub_division_tab.fxml");
             controller.getRoot().setUserData(subdivision.getIndex());
             controller.populate(subdivision);
             fxApplicationThreadExecutor.execute(() -> {

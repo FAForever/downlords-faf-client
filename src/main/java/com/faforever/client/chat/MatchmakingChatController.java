@@ -28,7 +28,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -128,7 +127,7 @@ public class MatchmakingChatController extends AbstractChatTabController {
     return messagesWebView;
   }
 
-  public void onDiscordButtonClicked() throws URISyntaxException {
+  public void onDiscordButtonClicked() {
     joinDiscordEventHandler.onJoin(discordLink.getText());
   }
 
