@@ -121,10 +121,11 @@ public class NotificationService {
   }
 
   public void addErrorNotification(NotifiableException throwable) {
-    if (throwable instanceof MajorNotifiableException) {
-      addImmediateErrorNotification(throwable.getCause(), throwable.getI18nKey(), throwable.getI18nArgs());
-    } else if (throwable instanceof MinorNotifiableException) {
-      addPersistentErrorNotification(throwable.getCause(), throwable.getI18nKey(), throwable.getI18nArgs());
+    switch (throwable) {
+      case MajorNotifiableException majorNotifiableException ->
+          addImmediateErrorNotification(throwable.getCause(), throwable.getI18nKey(), throwable.getI18nArgs());
+      case MinorNotifiableException minorNotifiableException ->
+          addPersistentErrorNotification(throwable.getCause(), throwable.getI18nKey(), throwable.getI18nArgs());
     }
   }
 

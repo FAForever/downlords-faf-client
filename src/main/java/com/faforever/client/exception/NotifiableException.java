@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public abstract class NotifiableException extends RuntimeException {
+public abstract sealed class NotifiableException extends RuntimeException permits MajorNotifiableException, MinorNotifiableException {
   String i18nKey;
   Object[] i18nArgs;
 
