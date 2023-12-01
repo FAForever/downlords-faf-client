@@ -98,12 +98,6 @@ java {
   }
 }
 
-
-//Specify jacoco version to work with java17
-jacoco {
-  toolVersion = "0.8.7"
-}
-
 sourceCompatibility = JavaVersion.VERSION_21
 targetCompatibility = JavaVersion.VERSION_21
 
