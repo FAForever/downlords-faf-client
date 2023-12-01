@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="10.0.3" transformSequenceNumber="10">
+<install4j version="10.0.6" transformSequenceNumber="10">
   <directoryPresets config="./build/resources/steam_appid.txt" />
   <application name="FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="faf" publisher="FAForever" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="17" allowBetaVM="true">
     <languages>
@@ -712,14 +712,14 @@ return console.askYesNo(message, true);
         <entry location="lib/faf-uid" />
         <entry location="lib/uid" />
       </exclude>
-      <jreBundle usePack200="false" jreBundleSource="preCreated" includedJre="windows-amd64-17.0.1" directDownload="true" />
+      <jreBundle usePack200="false" jreBundleSource="preCreated" includedJre="windows-amd64-21.0.1" directDownload="true" />
     </windows>
     <windowsArchive name="Windows Archive" id="330" installDir="faf-client-${compiler:sys.version}" architecture="64">
       <exclude>
         <entry location="lib/faf-ice-adapter" />
         <entry location="lib/faf-uid" />
       </exclude>
-      <jreBundle jreBundleSource="preCreated" includedJre="windows-amd64-17.0.1" />
+      <jreBundle jreBundleSource="preCreated" includedJre="windows-amd64-21.0.1" />
     </windowsArchive>
     <unixArchive name="Unix Archive" id="331" installDir="faf-client-${compiler:sys.version}">
       <exclude>
