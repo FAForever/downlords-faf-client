@@ -43,10 +43,9 @@ public class TrayIconManager {
    * generated on top of the icon.
    */
   public void onSetApplicationBadgeEvent(UpdateApplicationBadgeEvent event) {
-    if (event instanceof Delta delta) {
-      badgeCount += delta.value();
-    } else if (event instanceof NewValue newValue) {
-      badgeCount = newValue.value();
+    switch (event) {
+      case Delta(Integer value) -> badgeCount += value;
+      case NewValue(Integer value) -> badgeCount = value;
     }
 
     fxApplicationThreadExecutor.execute(() -> {
