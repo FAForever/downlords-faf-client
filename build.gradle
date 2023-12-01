@@ -206,6 +206,7 @@ install4j {
 fx2j {
   modularizeIfPossible = false
   basePackage = "com.faforever.client.fx2j"
+  strict = true
 }
 
 tasks.register('buildInstall4jMediaFiles', Install4jTask) {

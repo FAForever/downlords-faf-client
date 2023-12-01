@@ -3,14 +3,13 @@ package com.faforever.client.test;
 import com.faforever.client.fx.AttachedUtil;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import io.github.sheikah45.fx2j.api.Fx2jLoader;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
-import javafx.util.Callback;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
@@ -30,6 +29,7 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Locale;
+import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
@@ -71,11 +71,11 @@ public abstract class PlatformTest {
   }
 
   protected void loadFxml(String fileName,
-                          Callback<Class<?>, Object> controllerFactory) throws IOException, InterruptedException {
+                          Function<Class<?>, Object> controllerFactory) throws IOException, InterruptedException {
     loadFxml(fileName, controllerFactory, null);
   }
 
-  protected void loadFxml(String fileName, Callback<Class<?>, Object> controllerFactory,
+  protected void loadFxml(String fileName, Function<Class<?>, Object> controllerFactory,
                           Controller<?> controller) throws IOException, InterruptedException {
     ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
     messageSource.setBasename("i18n.messages");
@@ -87,7 +87,7 @@ public abstract class PlatformTest {
 
     ExceptionWrapper loadExceptionWrapper = new ExceptionWrapper();
 
-    FXMLLoader loader = new FXMLLoader();
+    Fx2jLoader loader = new Fx2jLoader();
     loader.setLocation(getThemeFileUrl(fileName));
     loader.setResources(new MessageSourceResourceBundle(messageSource, Locale.US));
     loader.setControllerFactory(controllerFactory);
