@@ -7,10 +7,12 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.commons.lobby.GameStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.arikia.dev.drpc.DiscordRPC;
 import net.arikia.dev.drpc.DiscordRichPresence;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
@@ -21,7 +23,8 @@ import java.util.TimerTask;
 
 @Slf4j
 @Service
-public class DiscordRichPresenceService implements DisposableBean {
+@RequiredArgsConstructor
+public class DiscordRichPresenceService implements DisposableBean, InitializingBean {
   private static final String HOSTING = "Hosting";
   private static final String WAITING = "Waiting";
   private static final String PLAYING = "Playing";
@@ -36,16 +39,14 @@ public class DiscordRichPresenceService implements DisposableBean {
   private final PlayerService playerService;
   private final ObjectMapper objectMapper;
   private final Preferences preferences;
+  private final DiscordEventHandler discordEventHandler;
+  private final GameService gameService;
 
   private final Timer timer = new Timer("Discord RPC", true);
 
-  public DiscordRichPresenceService(PlayerService playerService, DiscordEventHandler discordEventHandler,
-                                    ClientProperties clientProperties, GameService gameService, Preferences preferences,
-                                    ObjectMapper objectMapper) {
-    this.playerService = playerService;
-    this.clientProperties = clientProperties;
-    this.objectMapper = objectMapper;
-    this.preferences = preferences;
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
     String applicationId = clientProperties.getDiscord().getApplicationId();
     if (applicationId == null) {
       return;
@@ -62,19 +63,23 @@ public class DiscordRichPresenceService implements DisposableBean {
       log.error("Error in discord init", t);
     }
 
-    Runnable updateGamePresence = () -> updatePlayedGameTo(gameService.getCurrentGame());
-    gameService.currentGameProperty().flatMap(GameBean::statusProperty).subscribe(updateGamePresence);
-    gameService.currentGameProperty().flatMap(GameBean::allPlayersInGameProperty).subscribe(updateGamePresence);
+    // This need to be change and not invalidation listeners but not quite sure why since they don't get triggered more than
+    // once as invalidation listeners
+    gameService.currentGameProperty().flatMap(GameBean::statusProperty).subscribe(ignored -> updatePlayedGame());
+    gameService.currentGameProperty()
+               .flatMap(GameBean::allPlayersInGameProperty)
+               .subscribe(ignored -> updatePlayedGame());
   }
 
-  public void updatePlayedGameTo(GameBean game) {
+  private void updatePlayedGame() {
+    GameBean game = gameService.getCurrentGame();
     String applicationId = clientProperties.getDiscord().getApplicationId();
     if (applicationId == null) {
       return;
     }
     try {
 
-      if (game == null || game.getStatus() == GameStatus.CLOSED || game.getTeams() == null || !playerService.isCurrentPlayerInGame(game)) {
+      if (game == null || game.getStatus() == GameStatus.CLOSED || !playerService.isCurrentPlayerInGame(game)) {
         clearGameInfo();
         return;
       }
@@ -122,7 +127,7 @@ public class DiscordRichPresenceService implements DisposableBean {
     timer.cancel();
   }
 
-  public void clearGameInfo() {
+  private void clearGameInfo() {
     try {
       DiscordRPC.discordClearPresence();
       log.debug("Cleared discord rich presence");
