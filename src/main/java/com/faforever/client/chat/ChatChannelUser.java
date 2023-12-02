@@ -9,6 +9,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.paint.Color;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
@@ -24,8 +25,10 @@ import java.util.Set;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class ChatChannelUser {
 
+  @Getter
   @EqualsAndHashCode.Include
   String username;
+  @Getter
   @EqualsAndHashCode.Include
   String channel;
   BooleanProperty moderator = new SimpleBooleanProperty();
