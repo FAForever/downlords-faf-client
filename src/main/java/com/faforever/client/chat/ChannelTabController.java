@@ -23,6 +23,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -46,7 +47,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,7 +68,6 @@ public class ChannelTabController extends AbstractChatTabController {
   private static final int TOPIC_CHARACTERS_LIMIT = 350;
 
   private final PlatformService platformService;
-  private final AudioService audioService;
   private int curMessageHistoryIndex = 0;
 
   public Tab root;
@@ -90,6 +92,7 @@ public class ChannelTabController extends AbstractChatTabController {
                                                                                     .orElse(
                                                                                         FXCollections.emptyObservableList());
   private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = this::updateChangedUsersStyles;
+  private final List<ChatMessage> userMessageHistory = new ArrayList<>();
 
 
   public ChannelTabController(WebViewConfigurer webViewConfigurer, LoginService loginService, ChatService chatService,
@@ -171,6 +174,16 @@ public class ChannelTabController extends AbstractChatTabController {
       }
     });
 
+    chatChannel.when(attached).subscribe((oldValue, newValue) -> {
+      if(newValue != null){
+        newValue.addMessageListener(chatMessage -> {
+          if(chatMessage.username().equals(playerService.getCurrentPlayer().getUsername())){
+            userMessageHistory.add(chatMessage);
+          }
+        });
+      }
+    });
+
     AutoCompletionHelper autoCompletionHelper = getAutoCompletionHelper();
     autoCompletionHelper.bindTo(messageTextField());
   }
@@ -197,14 +210,14 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private void onUpOrDownArrowKeyClick(KeyEvent event){
     if(event.getCode() == KeyCode.UP){
-      if(curMessageHistoryIndex+1 <= messageHistory.size()){
-        messageTextField.setText(messageHistory.get(messageHistory.size() - curMessageHistoryIndex - 1));
+      if(curMessageHistoryIndex+1 <= userMessageHistory.size()){
+        messageTextField.setText(userMessageHistory.get(userMessageHistory.size() - curMessageHistoryIndex - 1).message());
         curMessageHistoryIndex++;
       }
     } else if(event.getCode() == KeyCode.DOWN){
       if(curMessageHistoryIndex-1 >= 0){
         curMessageHistoryIndex--;
-        messageTextField.setText(messageHistory.get(messageHistory.size() - curMessageHistoryIndex - 1));
+        messageTextField.setText(userMessageHistory.get(userMessageHistory.size() - curMessageHistoryIndex - 1).message());
       }
     } else {
       curMessageHistoryIndex = 0;
