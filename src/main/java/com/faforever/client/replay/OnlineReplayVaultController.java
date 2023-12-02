@@ -94,11 +94,15 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
   }
 
   @Override
-  protected List<ShowRoomCategory> getShowRoomCategories() {
+  protected List<ShowRoomCategory<ReplayBean>> getShowRoomCategories() {
     return List.of(
-        new ShowRoomCategory(() -> replayService.getOwnReplaysWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.OWN, "vault.replays.ownReplays"),
-        new ShowRoomCategory(() -> replayService.getNewestReplaysWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.NEWEST, "vault.replays.newest"),
-        new ShowRoomCategory(() -> replayService.getHighestRatedReplaysWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.HIGHEST_RATED, "vault.replays.highestRated")
+        new ShowRoomCategory<>(() -> replayService.getOwnReplaysWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.OWN,
+                               "vault.replays.ownReplays"),
+        new ShowRoomCategory<>(() -> replayService.getNewestReplaysWithPageCount(TOP_ELEMENT_COUNT, 1),
+                               SearchType.NEWEST,
+                               "vault.replays.newest"),
+        new ShowRoomCategory<>(() -> replayService.getHighestRatedReplaysWithPageCount(TOP_ELEMENT_COUNT, 1),
+                               SearchType.HIGHEST_RATED, "vault.replays.highestRated")
     );
   }
 

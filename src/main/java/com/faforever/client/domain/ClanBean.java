@@ -6,15 +6,16 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
-@Value
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class ClanBean extends AbstractEntityBean<ClanBean> {
   
   StringProperty description = new SimpleStringProperty();

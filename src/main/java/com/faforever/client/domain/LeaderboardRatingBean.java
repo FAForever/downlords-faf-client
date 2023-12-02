@@ -4,12 +4,13 @@ import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import lombok.Value;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
 /**
  * Represents a leaderboard rating
  */
-@Value
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class LeaderboardRatingBean {
 
   FloatProperty deviation = new SimpleFloatProperty();

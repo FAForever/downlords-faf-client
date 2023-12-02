@@ -9,16 +9,17 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.net.URL;
 
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@Value
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class MapVersionBean extends AbstractEntityBean<MapVersionBean> {
 
   @ToString.Include

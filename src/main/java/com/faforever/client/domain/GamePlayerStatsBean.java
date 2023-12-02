@@ -7,14 +7,15 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
-@Value
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 public class GamePlayerStatsBean {

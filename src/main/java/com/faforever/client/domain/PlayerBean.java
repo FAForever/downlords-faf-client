@@ -11,9 +11,10 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
@@ -27,12 +28,14 @@ import static com.faforever.client.player.SocialStatus.OTHER;
  */
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
-@Value
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @Slf4j
 public class PlayerBean extends AbstractEntityBean<PlayerBean> {
 
-  private static final SimpleObjectProperty<PlayerStatus> PLAYING_STATUS_PROPERTY = new SimpleObjectProperty<>(PlayerStatus.PLAYING);
-  private static final SimpleObjectProperty<PlayerStatus> IDLE_STATUS_PROPERTY = new SimpleObjectProperty<>(PlayerStatus.IDLE);
+  private static final SimpleObjectProperty<PlayerStatus> PLAYING_STATUS_PROPERTY = new SimpleObjectProperty<>(
+      PlayerStatus.PLAYING);
+  private static final SimpleObjectProperty<PlayerStatus> IDLE_STATUS_PROPERTY = new SimpleObjectProperty<>(
+      PlayerStatus.IDLE);
 
   @ToString.Include
   StringProperty username = new SimpleStringProperty();
@@ -40,15 +43,14 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   StringProperty country = new SimpleStringProperty();
   ObjectProperty<AvatarBean> avatar = new SimpleObjectProperty<>();
   ObjectProperty<SocialStatus> socialStatus = new SimpleObjectProperty<>(OTHER);
-  ReadOnlyMapWrapper<String, LeaderboardRatingBean> leaderboardRatings = new ReadOnlyMapWrapper<>(FXCollections.unmodifiableObservableMap(FXCollections.observableHashMap()));
+  ReadOnlyMapWrapper<String, LeaderboardRatingBean> leaderboardRatings = new ReadOnlyMapWrapper<>(
+      FXCollections.unmodifiableObservableMap(FXCollections.observableHashMap()));
   ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
   ObservableValue<PlayerStatus> status = game.flatMap(this::statusPropertyFromGame).orElse(PlayerStatus.IDLE);
   ObjectProperty<Instant> idleSince = new SimpleObjectProperty<>();
   StringProperty note = new SimpleStringProperty();
-  ObservableValue<Integer> numGames = leaderboardRatings.map(ratings -> ratings.values()
-      .stream()
-      .mapToInt(LeaderboardRatingBean::getNumberOfGames)
-      .sum()).orElse(0);
+  ObservableValue<Integer> numberOfGames = leaderboardRatings.map(
+      ratings -> ratings.values().stream().mapToInt(LeaderboardRatingBean::getNumberOfGames).sum()).orElse(0);
 
 
   public SocialStatus getSocialStatus() {
@@ -64,11 +66,11 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   }
 
   public int getNumberOfGames() {
-    return numGames.getValue();
+    return numberOfGames.getValue();
   }
 
   public ObservableValue<Integer> numberOfGamesProperty() {
-    return numGames;
+    return numberOfGames;
   }
 
   public String getUsername() {
@@ -124,7 +126,9 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   }
 
   public void setLeaderboardRatings(Map<String, LeaderboardRatingBean> leaderboardRatings) {
-    this.leaderboardRatings.setValue(leaderboardRatings == null ? FXCollections.emptyObservableMap() : FXCollections.unmodifiableObservableMap(FXCollections.observableMap(leaderboardRatings)));
+    this.leaderboardRatings.setValue(
+        leaderboardRatings == null ? FXCollections.emptyObservableMap() : FXCollections.unmodifiableObservableMap(
+            FXCollections.observableMap(leaderboardRatings)));
   }
 
   public ReadOnlyMapProperty<String, LeaderboardRatingBean> leaderboardRatingsProperty() {
@@ -163,16 +167,29 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
     return note.get();
   }
 
+  public Instant getIdleSince() {
+    return idleSince.get();
+  }
+
+  public ObjectProperty<Instant> idleSinceProperty() {
+    return idleSince;
+  }
+
+  public void setIdleSince(Instant idleSince) {
+    this.idleSince.set(idleSince);
+  }
+
   public int getNumberOfGamesForLeaderboard(final String leaderboardName) {
     return Optional.ofNullable(leaderboardRatings.get(leaderboardName))
-        .map(LeaderboardRatingBean::getNumberOfGames)
-        .orElse(0);
+                   .map(LeaderboardRatingBean::getNumberOfGames)
+                   .orElse(0);
   }
 
   private ObservableValue<PlayerStatus> statusPropertyFromGame(GameBean game) {
     return game.statusProperty().flatMap(status -> switch (status) {
       case OPEN -> game.hostProperty()
-          .map(host -> host.equalsIgnoreCase(getUsername()) ? PlayerStatus.HOSTING : PlayerStatus.LOBBYING);
+                       .map(
+                           host -> host.equalsIgnoreCase(getUsername()) ? PlayerStatus.HOSTING : PlayerStatus.LOBBYING);
       case PLAYING -> PLAYING_STATUS_PROPERTY;
       default -> IDLE_STATUS_PROPERTY;
     });

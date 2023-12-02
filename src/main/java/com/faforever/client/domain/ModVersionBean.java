@@ -11,11 +11,12 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
@@ -26,7 +27,7 @@ import java.util.List;
 @Slf4j
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
-@Value
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class ModVersionBean extends AbstractEntityBean<ModVersionBean> {
   ObjectProperty<Path> imagePath = new SimpleObjectProperty<>();
 

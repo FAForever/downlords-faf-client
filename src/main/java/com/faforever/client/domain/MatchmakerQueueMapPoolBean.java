@@ -4,11 +4,12 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@Value
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class MatchmakerQueueMapPoolBean extends AbstractEntityBean<MatchmakerQueueMapPoolBean> {
   DoubleProperty minRating = new SimpleDoubleProperty();
   DoubleProperty maxRating = new SimpleDoubleProperty();

@@ -45,6 +45,7 @@ import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.StringExpression;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -349,19 +350,19 @@ public class ReplayDetailController extends NodeController<Node> {
   }
 
   private void initializeTableColumns() {
-    chatGameTimeColumn.setCellValueFactory(param -> param.getValue().timeProperty());
+    chatGameTimeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().time()));
     chatGameTimeColumn.setCellFactory(param -> new StringCell<>(timeService::asHms));
 
-    chatSenderColumn.setCellValueFactory(param -> param.getValue().senderProperty());
+    chatSenderColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().sender()));
     chatSenderColumn.setCellFactory(param -> new StringCell<>(String::toString));
 
-    chatMessageColumn.setCellValueFactory(param -> param.getValue().messageProperty());
+    chatMessageColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().message()));
     chatMessageColumn.setCellFactory(param -> new StringCell<>(String::toString));
 
-    optionKeyColumn.setCellValueFactory(param -> param.getValue().keyProperty());
+    optionKeyColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().key()));
     optionKeyColumn.setCellFactory(param -> new StringCell<>(String::toString));
 
-    optionValueColumn.setCellValueFactory(param -> param.getValue().valueProperty());
+    optionValueColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().value()));
     optionValueColumn.setCellFactory(param -> new StringCell<>(String::toString));
   }
 

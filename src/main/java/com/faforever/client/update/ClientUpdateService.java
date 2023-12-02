@@ -104,7 +104,7 @@ public class ClientUpdateService implements InitializingBean {
         return;
       }
 
-      if (!Version.shouldUpdate(Version.getCurrentVersion(), updateInfo.getName())) {
+      if (!Version.shouldUpdate(Version.getCurrentVersion(), updateInfo.name())) {
         return;
       }
 
@@ -115,11 +115,13 @@ public class ClientUpdateService implements InitializingBean {
       }
 
       actions.add(new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
-          event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
+                             event -> platformService.showDocument(updateInfo.releaseNotesUrl().toExternalForm())
       ));
 
       notificationService.addNotification(new PersistentNotification(
-          i18n.get(updateInfo.isPrerelease() ? "clientUpdateAvailable.prereleaseNotification" : "clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
+          i18n.get(
+              updateInfo.prerelease() ? "clientUpdateAvailable.prereleaseNotification" : "clientUpdateAvailable.notification",
+              updateInfo.name(), formatSize(updateInfo.size(), i18n.getUserSpecificLocale())),
           INFO, actions)
       );
     }).exceptionally(throwable -> {

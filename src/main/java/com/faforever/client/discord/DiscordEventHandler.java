@@ -42,7 +42,7 @@ public class DiscordEventHandler extends DiscordEventHandlers {
   private void onJoinGame(String joinSecret) {
     try {
       DiscordJoinSecret discordJoinSecret = objectMapper.readValue(joinSecret, DiscordJoinSecret.class);
-      joinGameHelper.onDiscordGameJoinEvent(discordJoinSecret.getGameId());
+      joinGameHelper.onDiscordGameJoinEvent(discordJoinSecret.gameId());
     } catch (Exception e) {
       log.error("Could not join game from discord rich presence", e);
       notificationService.addImmediateErrorNotification(e, "discord.couldNotOpen");
@@ -52,7 +52,7 @@ public class DiscordEventHandler extends DiscordEventHandlers {
   private void onSpectate(String spectateSecret) {
     try {
       DiscordSpectateSecret discordSpectateSecret = objectMapper.readValue(spectateSecret, DiscordSpectateSecret.class);
-      liveReplayService.runLiveReplay(discordSpectateSecret.getGameId());
+      liveReplayService.runLiveReplay(discordSpectateSecret.gameId());
     } catch (Exception e) {
       log.error("Could not join game from discord rich presence", e);
       notificationService.addImmediateErrorNotification(e, "discord.couldNotOpen");

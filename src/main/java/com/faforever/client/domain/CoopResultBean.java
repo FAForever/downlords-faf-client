@@ -6,12 +6,13 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 
 import java.time.Duration;
 
-@Value
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class CoopResultBean {
   @EqualsAndHashCode.Include

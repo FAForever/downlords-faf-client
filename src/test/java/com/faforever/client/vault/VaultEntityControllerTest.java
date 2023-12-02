@@ -112,9 +112,10 @@ public class VaultEntityControllerTest extends PlatformTest {
       }
 
       @Override
-      protected List<ShowRoomCategory> getShowRoomCategories() {
-        List<ShowRoomCategory> categories = new ArrayList<>();
-        categories.add(new ShowRoomCategory(() -> mocksAsFuture(items, TOP_ELEMENT_COUNT, 0), SearchType.NEWEST, "mock"));
+      protected List<ShowRoomCategory<Integer>> getShowRoomCategories() {
+        List<ShowRoomCategory<Integer>> categories = new ArrayList<>();
+        categories.add(
+            new ShowRoomCategory<>(() -> mocksAsFuture(items, TOP_ELEMENT_COUNT, 0), SearchType.NEWEST, "mock"));
         return categories;
       }
 

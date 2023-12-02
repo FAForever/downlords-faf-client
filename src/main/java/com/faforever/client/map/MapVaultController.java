@@ -124,21 +124,25 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
   }
 
   @Override
-  protected List<ShowRoomCategory> getShowRoomCategories() {
+  protected List<ShowRoomCategory<MapVersionBean>> getShowRoomCategories() {
 return List.of(
-        new ShowRoomCategory(() -> {
-          int recommendedPage;
-          if (recommendedShowRoomPageCount != null && recommendedShowRoomPageCount > 0) {
-            recommendedPage = new Random().nextInt(recommendedShowRoomPageCount) + 1;
-          } else {
-            recommendedPage = 1;
-          }
-          return mapService.getRecommendedMapsWithPageCount(TOP_ELEMENT_COUNT, recommendedPage);
-        }, SearchType.RECOMMENDED, "mapVault.recommended"),
-        new ShowRoomCategory(() -> mapService.getHighestRatedMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.HIGHEST_RATED, "mapVault.mostLikedMaps"),
-        new ShowRoomCategory(() -> mapService.getNewestMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.NEWEST, "mapVault.newestMaps"),
-        new ShowRoomCategory(() -> mapService.getMostPlayedMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.PLAYED, "mapVault.mostPlayed"),
-        new ShowRoomCategory(() -> mapService.getOwnedMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.OWN, "mapVault.owned"));
+    new ShowRoomCategory<>(() -> {
+      int recommendedPage;
+      if (recommendedShowRoomPageCount != null && recommendedShowRoomPageCount > 0) {
+        recommendedPage = new Random().nextInt(recommendedShowRoomPageCount) + 1;
+      } else {
+        recommendedPage = 1;
+      }
+      return mapService.getRecommendedMapsWithPageCount(TOP_ELEMENT_COUNT, recommendedPage);
+    }, SearchType.RECOMMENDED, "mapVault.recommended"),
+    new ShowRoomCategory<>(() -> mapService.getHighestRatedMapsWithPageCount(TOP_ELEMENT_COUNT, 1),
+                           SearchType.HIGHEST_RATED, "mapVault.mostLikedMaps"),
+    new ShowRoomCategory<>(() -> mapService.getNewestMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.NEWEST,
+                           "mapVault.newestMaps"),
+    new ShowRoomCategory<>(() -> mapService.getMostPlayedMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.PLAYED,
+                           "mapVault.mostPlayed"),
+    new ShowRoomCategory<>(() -> mapService.getOwnedMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.OWN,
+                           "mapVault.owned"));
   }
 
   @Override

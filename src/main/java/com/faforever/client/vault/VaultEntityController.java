@@ -29,7 +29,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -61,7 +60,7 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
 
   protected final ObjectProperty<State> state = new SimpleObjectProperty<>(State.UNINITIALIZED);
 
-  private final Map<ShowRoomCategory, ObservableList<T>> showRoomEntities = new HashMap<>();
+  private final Map<ShowRoomCategory<T>, ObservableList<T>> showRoomEntities = new HashMap<>();
   private final List<VBox> showRoomRoots = new ArrayList<>();
   private final ObservableList<T> resultEntities = FXCollections.observableArrayList();
   private final ObservableList<Node> resultCardRoots = FXCollections.observableArrayList();
@@ -89,13 +88,14 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
   public ComboBox<Integer> perPageComboBox;
 
   protected CompletableFuture<Tuple2<List<T>, Integer>> currentSupplier;
-  private final CompletableFuture<Void> showRoomInitializedFuture = CompletableFuture.runAsync(this::initializeShowRoomCards);
+  private final CompletableFuture<Void> showRoomInitializedFuture = CompletableFuture.runAsync(
+      this::initializeShowRoomCards);
 
   protected abstract void initSearchController();
 
   protected abstract VaultEntityCardController<T> createEntityCard();
 
-  protected abstract List<ShowRoomCategory> getShowRoomCategories();
+  protected abstract List<ShowRoomCategory<T>> getShowRoomCategories();
 
   protected abstract void setSupplier(SearchConfig searchConfig);
 
@@ -115,11 +115,12 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
   protected void onInitialize() {
     super.onInitialize();
     JavaFxUtil.fixScrollSpeed(scrollPane);
-    JavaFxUtil.bindManagedToVisible(loadingPane, searchResultGroup, backButton, refreshButton, pagination, firstPageButton, lastPageButton, showRoomGroup, searchBox, searchSeparator);
+    JavaFxUtil.bindManagedToVisible(loadingPane, searchResultGroup, backButton, refreshButton, pagination,
+                                    firstPageButton, lastPageButton, showRoomGroup, searchBox, searchSeparator);
 
     firstPageButton.disableProperty().bind(pagination.currentPageIndexProperty().isEqualTo(0));
     lastPageButton.disableProperty()
-        .bind(pagination.currentPageIndexProperty().isEqualTo(pagination.pageCountProperty().subtract(1)));
+                  .bind(pagination.currentPageIndexProperty().isEqualTo(pagination.pageCountProperty().subtract(1)));
 
     backButton.setOnAction(event -> onBackButtonClicked());
     refreshButton.setOnAction(event -> onRefreshButtonClicked());
@@ -128,7 +129,10 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
 
     searchController.setSearchListener(this::onSearch);
     perPageComboBox.getItems().addAll(5, 10, 20, 50, 100);
-    perPageComboBox.valueProperty().addListener(((observable, oldValue, newValue) -> onPerPageCountChanged(oldValue == null ? 0 : oldValue, newValue)));
+    perPageComboBox.valueProperty()
+                   .addListener(
+                       ((observable, oldValue, newValue) -> onPerPageCountChanged(oldValue == null ? 0 : oldValue,
+                                                                                  newValue)));
     perPageComboBox.setValue(20);
     perPageComboBox.setOnAction((event -> changePerPageCount()));
     pageSize = perPageComboBox.getValue();
@@ -173,7 +177,7 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
   }
 
   private void initializeShowRoomCards() {
-    List<ShowRoomCategory> showRoomCategories = getShowRoomCategories();
+    List<ShowRoomCategory<T>> showRoomCategories = getShowRoomCategories();
     showRoomCategories.forEach(showRoomCategory -> {
       ObservableList<Node> categoryRoots = FXCollections.observableArrayList();
       ObservableList<T> categoryEntities = FXCollections.observableArrayList();
@@ -237,19 +241,27 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
   protected void loadShowRooms() {
     enterSearchingState();
     showRoomInitializedFuture.thenComposeAsync(aVoid -> CompletableFuture.allOf(showRoomEntities.entrySet()
-        .stream()
-        .map(entry -> entry.getKey()
-            .getEntitySupplier()
-            .get()
-            .thenAcceptAsync(results -> entry.getValue().setAll(results.getT1()), fxApplicationThreadExecutor))
-        .toArray(CompletableFuture[]::new))).thenRunAsync(this::enterShowRoomState);
+                                                                                                .stream()
+                                                                                                .map(
+                                                                                                    entry -> entry.getKey()
+                                                                                                                  .entitySupplier()
+                                                                                                                  .get()
+                                                                                                                  .thenAcceptAsync(
+                                                                                                                      results -> entry.getValue()
+                                                                                                                                      .setAll(
+                                                                                                                                          results.getT1()),
+                                                                                                                      fxApplicationThreadExecutor))
+                                                                                                .toArray(
+                                                                                                    CompletableFuture[]::new)))
+                             .thenRunAsync(this::enterShowRoomState);
   }
 
   private VaultEntityShowRoomController loadShowRoom(ShowRoomCategory showRoomCategory) {
-    VaultEntityShowRoomController vaultEntityShowRoomController = uiService.loadFxml("theme/vault/vault_entity_show_room.fxml");
-    vaultEntityShowRoomController.getLabel().setText(i18n.get(showRoomCategory.getI18nKey()));
+    VaultEntityShowRoomController vaultEntityShowRoomController = uiService.loadFxml(
+        "theme/vault/vault_entity_show_room.fxml");
+    vaultEntityShowRoomController.getLabel().setText(i18n.get(showRoomCategory.i18nKey()));
     vaultEntityShowRoomController.getMoreButton().setOnAction(event -> {
-      searchType = showRoomCategory.getSearchType();
+      searchType = showRoomCategory.searchType();
       onFirstPageOpened(null);
     });
     return vaultEntityShowRoomController;
@@ -327,7 +339,7 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
   protected void onNavigate(NavigateEvent navigateEvent) {
     Class<? extends NavigateEvent> defaultNavigateEvent = getDefaultNavigateEvent();
     if (!(navigateEvent.getClass().equals(defaultNavigateEvent)) && !navigateEvent.getClass()
-        .equals(NavigateEvent.class)) {
+                                                                                  .equals(NavigateEvent.class)) {
       handleSpecialNavigateEvent(navigateEvent);
     } else if (state.get() == State.UNINITIALIZED) {
       loadShowRooms();
@@ -347,10 +359,7 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
     SEARCH, OWN, NEWEST, HIGHEST_RATED, PLAYER, RECOMMENDED, MAP_POOL, PLAYED, HIGHEST_RATED_UI
   }
 
-  @Value
-  public class ShowRoomCategory {
-    Supplier<CompletableFuture<Tuple2<List<T>, Integer>>> entitySupplier;
-    SearchType searchType;
-    String i18nKey;
-  }
+  public record ShowRoomCategory<T>(
+      Supplier<CompletableFuture<Tuple2<List<T>, Integer>>> entitySupplier, SearchType searchType, String i18nKey
+  ) {}
 }

@@ -13,10 +13,10 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -29,8 +29,7 @@ import java.util.Optional;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
-@Value
-@NoArgsConstructor
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class ReplayBean {
 
   @EqualsAndHashCode.Include
@@ -311,87 +310,7 @@ public class ReplayBean {
     this.local.set(local);
   }
 
-  @Value
-  public static class ChatMessage {
-    ObjectProperty<Duration> time = new SimpleObjectProperty<>();
-    StringProperty sender = new SimpleStringProperty();
-    StringProperty message = new SimpleStringProperty();
+  public record ChatMessage(Duration time, String sender, String message) {}
 
-    public ChatMessage(Duration time, String sender, String message) {
-      setTime(time);
-      setSender(sender);
-      setMessage(message);
-    }
-
-    public Duration getTime() {
-      return time.get();
-    }
-
-    public void setTime(Duration time) {
-      this.time.set(time);
-    }
-
-    public ObjectProperty<Duration> timeProperty() {
-      return time;
-    }
-
-    public String getSender() {
-      return sender.get();
-    }
-
-    public void setSender(String sender) {
-      this.sender.set(sender);
-    }
-
-    public StringProperty senderProperty() {
-      return sender;
-    }
-
-    public String getMessage() {
-      return message.get();
-    }
-
-    public void setMessage(String message) {
-      this.message.set(message);
-    }
-
-    public StringProperty messageProperty() {
-      return message;
-    }
-  }
-
-  @Value
-  public static class GameOption {
-    StringProperty key = new SimpleStringProperty();
-    StringProperty value = new SimpleStringProperty();
-
-    public GameOption(String key, Object value) {
-      setKey(key);
-      setValue(String.valueOf(value));
-    }
-
-    public String getKey() {
-      return key.get();
-    }
-
-    public void setKey(String key) {
-      this.key.set(key);
-    }
-
-    public StringProperty keyProperty() {
-      return key;
-    }
-
-    public String getValue() {
-      return value.get();
-    }
-
-    public void setValue(String value) {
-      this.value.set(value);
-    }
-
-    public StringProperty valueProperty() {
-      return value;
-    }
-  }
+  public record GameOption(String key, String value) {}
 }

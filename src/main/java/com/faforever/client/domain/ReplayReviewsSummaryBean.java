@@ -2,11 +2,12 @@ package com.faforever.client.domain;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@Value
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class ReplayReviewsSummaryBean extends ReviewsSummaryBean {
   ObjectProperty<ReplayBean> replay = new SimpleObjectProperty<>();
 

@@ -7,15 +7,16 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 
 import java.time.OffsetDateTime;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
-@Value
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class LeagueSeasonBean extends AbstractEntityBean<LeagueSeasonBean> {
   ObjectProperty<LeagueBean> league = new SimpleObjectProperty<>();
   ObjectProperty<LeaderboardBean> leaderboard = new SimpleObjectProperty<>();

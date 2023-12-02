@@ -9,13 +9,14 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 
 import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
-@Value
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class ModerationReportBean extends AbstractEntityBean<ModerationReportBean>  {
   StringProperty reportDescription = new SimpleStringProperty();
   ObjectProperty<ModerationReportStatus> reportStatus = new SimpleObjectProperty<>();

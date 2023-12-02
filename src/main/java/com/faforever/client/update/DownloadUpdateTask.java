@@ -40,10 +40,10 @@ public class DownloadUpdateTask extends CompletableTask<Path> {
   @Override
   protected Path call() throws Exception {
     updateTitle(i18n.get("clientUpdateDownloadTask.title"));
-    URL url = updateInfo.getUrl();
+    URL url = updateInfo.url();
 
     Path updateDirectory = dataPrefs.getCacheDirectory().resolve("update");
-    Path targetFile = updateDirectory.resolve(updateInfo.getFileName());
+    Path targetFile = updateDirectory.resolve(updateInfo.fileName());
     Files.createDirectories(targetFile.getParent());
 
     Path tempFile = Files.createTempFile(targetFile.getParent(), "update", null);
@@ -52,7 +52,7 @@ public class DownloadUpdateTask extends CompletableTask<Path> {
     try (InputStream inputStream = url.openStream(); OutputStream outputStream = Files.newOutputStream(tempFile)) {
       ByteCopier.from(inputStream)
           .to(outputStream)
-          .totalBytes(updateInfo.getSize())
+                .totalBytes(updateInfo.size())
           .listener(this::updateProgress)
           .copy();
 

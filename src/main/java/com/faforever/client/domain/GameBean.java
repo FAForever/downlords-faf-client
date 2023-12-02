@@ -22,7 +22,7 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 
 import java.time.OffsetDateTime;
 import java.util.Collection;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
-@Value
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class GameBean {
   public static final int OBSERVERS_TEAM = -1;
   public static final int NO_TEAM = 1;

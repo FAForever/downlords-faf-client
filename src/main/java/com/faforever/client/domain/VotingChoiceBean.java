@@ -4,11 +4,12 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@Value
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class VotingChoiceBean extends AbstractEntityBean<VotingChoiceBean> {
   StringProperty choiceTextKey = new SimpleStringProperty();
   StringProperty choiceText = new SimpleStringProperty();

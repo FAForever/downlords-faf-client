@@ -2,16 +2,17 @@ package com.faforever.client.domain;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 
 /**
  * Represents a leaderboard rating
  */
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@Value
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class LeaderboardRatingJournalBean extends AbstractEntityBean<LeaderboardRatingJournalBean> {
 
   ObjectProperty<Double> meanAfter = new SimpleObjectProperty<>();

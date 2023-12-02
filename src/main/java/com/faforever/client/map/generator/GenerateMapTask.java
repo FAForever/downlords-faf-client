@@ -64,19 +64,19 @@ public class GenerateMapTask extends CompletableTask<String> {
         .mapName(mapName);
 
     if (generatorOptions != null) {
-      generatorCommandBuilder.spawnCount(generatorOptions.getSpawnCount())
-          .numTeams(generatorOptions.getNumTeams())
-          .mapSize(generatorOptions.getMapSize())
-          .generationType(generatorOptions.getGenerationType())
-          .landDensity(generatorOptions.getLandDensity())
-          .plateauDensity(generatorOptions.getPlateauDensity())
-          .mountainDensity(generatorOptions.getMountainDensity())
-          .rampDensity(generatorOptions.getRampDensity())
-          .mexDensity(generatorOptions.getMexDensity())
-          .reclaimDensity(generatorOptions.getReclaimDensity())
-          .style(generatorOptions.getStyle())
-          .biome(generatorOptions.getBiome())
-          .commandLineArgs(generatorOptions.getCommandLineArgs());
+      generatorCommandBuilder.spawnCount(generatorOptions.spawnCount())
+                             .numTeams(generatorOptions.numTeams())
+                             .mapSize(generatorOptions.mapSize())
+                             .generationType(generatorOptions.generationType())
+                             .landDensity(generatorOptions.landDensity())
+                             .plateauDensity(generatorOptions.plateauDensity())
+                             .mountainDensity(generatorOptions.mountainDensity())
+                             .rampDensity(generatorOptions.rampDensity())
+                             .mexDensity(generatorOptions.mexDensity())
+                             .reclaimDensity(generatorOptions.reclaimDensity())
+                             .style(generatorOptions.style())
+                             .biome(generatorOptions.biome())
+                             .commandLineArgs(generatorOptions.commandLineArgs());
     }
 
     Path workingDirectory = forgedAlliancePrefs.getMapsDirectory();
@@ -103,7 +103,9 @@ public class GenerateMapTask extends CompletableTask<String> {
       });
       OsUtils.gobbleLines(process.getErrorStream(), generatorLogger::error);
       process.waitFor(MapGeneratorService.GENERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-      if (process.isAlive() && generatorOptions.getCommandLineArgs() != null && !generatorOptions.getCommandLineArgs().contains("--visualize")) {
+      if (process.isAlive() && generatorOptions.commandLineArgs() != null && !generatorOptions.commandLineArgs()
+                                                                                              .contains(
+                                                                                                  "--visualize")) {
         log.warn("Map generation timed out, killing process");
         process.destroyForcibly();
         notificationService.addImmediateErrorNotification(new RuntimeException("Map generation timed out"), "game.mapGeneration.failed.message");

@@ -243,19 +243,19 @@ public class GamesTableController extends NodeController<Node> {
 
   private TableCell<GameBean, RatingRange> ratingTableCell() {
     return new StringCell<>(ratingRange -> {
-      if (ratingRange.getMin() == null && ratingRange.getMax() == null) {
+      if (ratingRange.min() == null && ratingRange.max() == null) {
         return "";
       }
 
-      if (ratingRange.getMin() != null && ratingRange.getMax() != null) {
-        return i18n.get("game.ratingFormat.minMax", ratingRange.getMin(), ratingRange.getMax());
+      if (ratingRange.min() != null && ratingRange.max() != null) {
+        return i18n.get("game.ratingFormat.minMax", ratingRange.min(), ratingRange.max());
       }
 
-      if (ratingRange.getMin() != null) {
-        return i18n.get("game.ratingFormat.minOnly", ratingRange.getMin());
+      if (ratingRange.min() != null) {
+        return i18n.get("game.ratingFormat.minOnly", ratingRange.min());
       }
 
-      return i18n.get("game.ratingFormat.maxOnly", ratingRange.getMax());
+      return i18n.get("game.ratingFormat.maxOnly", ratingRange.max());
     });
   }
 
