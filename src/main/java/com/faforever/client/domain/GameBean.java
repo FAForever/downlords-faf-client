@@ -22,7 +22,6 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import lombok.Value;
 
 import java.time.OffsetDateTime;
 import java.util.Collection;
@@ -37,36 +36,35 @@ import java.util.stream.Collectors;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
-@Value
 public class GameBean {
   public static final int OBSERVERS_TEAM = -1;
   public static final int NO_TEAM = 1;
 
-  StringProperty host = new SimpleStringProperty();
+  private final StringProperty host = new SimpleStringProperty();
   @ToString.Include
-  StringProperty title = new SimpleStringProperty();
-  StringProperty mapFolderName = new SimpleStringProperty();
-  StringProperty featuredMod = new SimpleStringProperty();
+  private final StringProperty title = new SimpleStringProperty();
+  private final StringProperty mapFolderName = new SimpleStringProperty();
+  private final StringProperty featuredMod = new SimpleStringProperty();
   @EqualsAndHashCode.Include
   @ToString.Include
-  IntegerProperty id = new SimpleIntegerProperty();
-  IntegerProperty maxPlayers = new SimpleIntegerProperty();
-  StringProperty leaderboard = new SimpleStringProperty();
-  ObjectProperty<Integer> ratingMin = new SimpleObjectProperty<>();
-  ObjectProperty<Integer> ratingMax = new SimpleObjectProperty<>();
-  BooleanProperty passwordProtected = new SimpleBooleanProperty();
-  StringProperty password = new SimpleStringProperty();
+  private final IntegerProperty id = new SimpleIntegerProperty();
+  private final IntegerProperty maxPlayers = new SimpleIntegerProperty();
+  private final StringProperty leaderboard = new SimpleStringProperty();
+  private final ObjectProperty<Integer> ratingMin = new SimpleObjectProperty<>();
+  private final ObjectProperty<Integer> ratingMax = new SimpleObjectProperty<>();
+  private final BooleanProperty passwordProtected = new SimpleBooleanProperty();
+  private final StringProperty password = new SimpleStringProperty();
   @ToString.Include
-  ObjectProperty<GameStatus> status = new SimpleObjectProperty<>();
-  ObjectProperty<VictoryCondition> victoryCondition = new SimpleObjectProperty<>();
-  ObjectProperty<OffsetDateTime> startTime = new SimpleObjectProperty<>();
-  BooleanProperty enforceRating = new SimpleBooleanProperty();
-  ObjectProperty<GameType> gameType = new SimpleObjectProperty<>();
+  private final ObjectProperty<GameStatus> status = new SimpleObjectProperty<>();
+  private final ObjectProperty<VictoryCondition> victoryCondition = new SimpleObjectProperty<>();
+  private final ObjectProperty<OffsetDateTime> startTime = new SimpleObjectProperty<>();
+  private final BooleanProperty enforceRating = new SimpleBooleanProperty();
+  private final ObjectProperty<GameType> gameType = new SimpleObjectProperty<>();
   /**
    * Maps a sim mod's UID to its name.
    */
-  ReadOnlyObjectWrapper<Map<String, String>> simMods = new ReadOnlyObjectWrapper<>(Map.of());
-  ReadOnlyObjectWrapper<Map<Integer, List<Integer>>> teams = new ReadOnlyObjectWrapper<>(Map.of());
+  private final ReadOnlyObjectWrapper<Map<String, String>> simMods = new ReadOnlyObjectWrapper<>(Map.of());
+  private final ReadOnlyObjectWrapper<Map<Integer, List<Integer>>> teams = new ReadOnlyObjectWrapper<>(Map.of());
   ObservableValue<Set<Integer>> allPlayersInGame = teams.map(team -> team.values()
       .stream()
       .flatMap(Collection::stream)
@@ -84,7 +82,7 @@ public class GameBean {
 
   IntegerExpression numActivePlayers = IntegerBinding.integerExpression(activePlayersInGame.map(Collection::size).orElse(0));
 
-  Set<ChangeListener<Set<Integer>>> playerChangeListeners = new HashSet<>();
+  private final Set<ChangeListener<Set<Integer>>> playerChangeListeners = new HashSet<>();
 
   public String getHost() {
     return host.get();

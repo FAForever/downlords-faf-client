@@ -5,14 +5,13 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import lombok.EqualsAndHashCode;
-import lombok.Value;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@Value
 public class ReplayReviewBean extends ReviewBean {
-  ObjectProperty<ReplayBean> replay = new SimpleObjectProperty<>();
-  ReadOnlyObjectWrapper<ComparableVersion> stubVersion = new ReadOnlyObjectWrapper<>(new ComparableVersion("0"));
+  private final ObjectProperty<ReplayBean> replay = new SimpleObjectProperty<>();
+  private final ReadOnlyObjectWrapper<ComparableVersion> stubVersion = new ReadOnlyObjectWrapper<>(
+      new ComparableVersion("0"));
 
   public ReplayBean getReplay() {
     return replay.get();

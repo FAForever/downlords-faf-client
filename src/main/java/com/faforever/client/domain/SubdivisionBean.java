@@ -8,7 +8,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URL;
@@ -16,19 +15,18 @@ import java.net.URL;
 @Slf4j
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
-@Value
-public class SubdivisionBean extends AbstractEntityBean<SubdivisionBean> {
+public class SubdivisionBean extends AbstractEntityBean {
   @ToString.Include
-  StringProperty nameKey = new SimpleStringProperty();
-  StringProperty descriptionKey = new SimpleStringProperty();
-  IntegerProperty index = new SimpleIntegerProperty();
-  IntegerProperty highestScore = new SimpleIntegerProperty();
-  IntegerProperty maxRating = new SimpleIntegerProperty();
-  IntegerProperty minRating = new SimpleIntegerProperty();
-  ObjectProperty<DivisionBean> division = new SimpleObjectProperty<>();
-  ObjectProperty<URL> imageUrl = new SimpleObjectProperty<>();
-  ObjectProperty<URL> mediumImageUrl = new SimpleObjectProperty<>();
-  ObjectProperty<URL> smallImageUrl = new SimpleObjectProperty<>();
+  private final StringProperty nameKey = new SimpleStringProperty();
+  private final StringProperty descriptionKey = new SimpleStringProperty();
+  private final IntegerProperty index = new SimpleIntegerProperty();
+  private final IntegerProperty highestScore = new SimpleIntegerProperty();
+  private final IntegerProperty maxRating = new SimpleIntegerProperty();
+  private final IntegerProperty minRating = new SimpleIntegerProperty();
+  private final ObjectProperty<DivisionBean> division = new SimpleObjectProperty<>();
+  private final ObjectProperty<URL> imageUrl = new SimpleObjectProperty<>();
+  private final ObjectProperty<URL> mediumImageUrl = new SimpleObjectProperty<>();
+  private final ObjectProperty<URL> smallImageUrl = new SimpleObjectProperty<>();
 
   public String getNameKey() {
     return nameKey.get();

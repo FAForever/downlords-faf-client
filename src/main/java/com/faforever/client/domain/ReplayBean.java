@@ -14,9 +14,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
-import lombok.Value;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -29,31 +27,30 @@ import java.util.Optional;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
-@Value
-@NoArgsConstructor
 public class ReplayBean {
 
   @EqualsAndHashCode.Include
   @ToString.Include
-  IntegerProperty id = new SimpleIntegerProperty();
+  private final IntegerProperty id = new SimpleIntegerProperty();
   @ToString.Include
-  StringProperty title = new SimpleStringProperty();
-  BooleanProperty replayAvailable = new SimpleBooleanProperty();
-  ReadOnlyObjectWrapper<Map<String, List<String>>> teams = new ReadOnlyObjectWrapper<>(Map.of());
-  ReadOnlyObjectWrapper<Map<String, List<GamePlayerStatsBean>>> teamPlayerStats = new ReadOnlyObjectWrapper<>(Map.of());
-  ObjectProperty<PlayerBean> host = new SimpleObjectProperty<>();
-  ObjectProperty<OffsetDateTime> startTime = new SimpleObjectProperty<>();
-  ObjectProperty<OffsetDateTime> endTime = new SimpleObjectProperty<>();
-  ObjectProperty<FeaturedModBean> featuredMod = new SimpleObjectProperty<>();
-  ObjectProperty<MapVersionBean> mapVersion = new SimpleObjectProperty<>();
-  ObjectProperty<Path> replayFile = new SimpleObjectProperty<>();
-  ObjectProperty<Integer> replayTicks = new SimpleObjectProperty<>();
-  IntegerProperty views = new SimpleIntegerProperty();
-  ReadOnlyObjectWrapper<List<ChatMessage>> chatMessages = new ReadOnlyObjectWrapper<>(List.of());
-  ReadOnlyObjectWrapper<List<GameOption>> gameOptions = new ReadOnlyObjectWrapper<>(List.of());
-  ObjectProperty<Validity> validity = new SimpleObjectProperty<>();
-  ObjectProperty<ReplayReviewsSummaryBean> gameReviewsSummary = new SimpleObjectProperty<>();
-  BooleanProperty local = new SimpleBooleanProperty();
+  private final StringProperty title = new SimpleStringProperty();
+  private final BooleanProperty replayAvailable = new SimpleBooleanProperty();
+  private final ReadOnlyObjectWrapper<Map<String, List<String>>> teams = new ReadOnlyObjectWrapper<>(Map.of());
+  private final ReadOnlyObjectWrapper<Map<String, List<GamePlayerStatsBean>>> teamPlayerStats = new ReadOnlyObjectWrapper<>(
+      Map.of());
+  private final ObjectProperty<PlayerBean> host = new SimpleObjectProperty<>();
+  private final ObjectProperty<OffsetDateTime> startTime = new SimpleObjectProperty<>();
+  private final ObjectProperty<OffsetDateTime> endTime = new SimpleObjectProperty<>();
+  private final ObjectProperty<FeaturedModBean> featuredMod = new SimpleObjectProperty<>();
+  private final ObjectProperty<MapVersionBean> mapVersion = new SimpleObjectProperty<>();
+  private final ObjectProperty<Path> replayFile = new SimpleObjectProperty<>();
+  private final ObjectProperty<Integer> replayTicks = new SimpleObjectProperty<>();
+  private final IntegerProperty views = new SimpleIntegerProperty();
+  private final ReadOnlyObjectWrapper<List<ChatMessage>> chatMessages = new ReadOnlyObjectWrapper<>(List.of());
+  private final ReadOnlyObjectWrapper<List<GameOption>> gameOptions = new ReadOnlyObjectWrapper<>(List.of());
+  private final ObjectProperty<Validity> validity = new SimpleObjectProperty<>();
+  private final ObjectProperty<ReplayReviewsSummaryBean> gameReviewsSummary = new SimpleObjectProperty<>();
+  private final BooleanProperty local = new SimpleBooleanProperty();
   ObservableValue<Integer> numPlayers = teams.map(team -> team.values().stream().mapToInt(Collection::size).sum())
       .orElse(0);
   ObservableValue<Double> averageRating = teamPlayerStats.map(playerStats -> playerStats.values()
@@ -311,87 +308,7 @@ public class ReplayBean {
     this.local.set(local);
   }
 
-  @Value
-  public static class ChatMessage {
-    ObjectProperty<Duration> time = new SimpleObjectProperty<>();
-    StringProperty sender = new SimpleStringProperty();
-    StringProperty message = new SimpleStringProperty();
+  public record ChatMessage(Duration time, String sender, String message) {}
 
-    public ChatMessage(Duration time, String sender, String message) {
-      setTime(time);
-      setSender(sender);
-      setMessage(message);
-    }
-
-    public Duration getTime() {
-      return time.get();
-    }
-
-    public void setTime(Duration time) {
-      this.time.set(time);
-    }
-
-    public ObjectProperty<Duration> timeProperty() {
-      return time;
-    }
-
-    public String getSender() {
-      return sender.get();
-    }
-
-    public void setSender(String sender) {
-      this.sender.set(sender);
-    }
-
-    public StringProperty senderProperty() {
-      return sender;
-    }
-
-    public String getMessage() {
-      return message.get();
-    }
-
-    public void setMessage(String message) {
-      this.message.set(message);
-    }
-
-    public StringProperty messageProperty() {
-      return message;
-    }
-  }
-
-  @Value
-  public static class GameOption {
-    StringProperty key = new SimpleStringProperty();
-    StringProperty value = new SimpleStringProperty();
-
-    public GameOption(String key, Object value) {
-      setKey(key);
-      setValue(String.valueOf(value));
-    }
-
-    public String getKey() {
-      return key.get();
-    }
-
-    public void setKey(String key) {
-      this.key.set(key);
-    }
-
-    public StringProperty keyProperty() {
-      return key;
-    }
-
-    public String getValue() {
-      return value.get();
-    }
-
-    public void setValue(String value) {
-      this.value.set(value);
-    }
-
-    public StringProperty valueProperty() {
-      return value;
-    }
-  }
+  public record GameOption(String key, String value) {}
 }

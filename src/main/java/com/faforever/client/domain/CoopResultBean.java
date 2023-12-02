@@ -7,20 +7,18 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 import java.time.Duration;
 
-@Value
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class CoopResultBean {
   @EqualsAndHashCode.Include
-  ObjectProperty<Integer> id = new SimpleObjectProperty<>();
-  BooleanProperty secondaryObjectives = new SimpleBooleanProperty();
-  ObjectProperty<Duration> duration = new SimpleObjectProperty<>();
-  IntegerProperty ranking = new SimpleIntegerProperty();
-  IntegerProperty playerCount = new SimpleIntegerProperty();
-  ObjectProperty<ReplayBean> replay = new SimpleObjectProperty<>();
+  private final ObjectProperty<Integer> id = new SimpleObjectProperty<>();
+  private final BooleanProperty secondaryObjectives = new SimpleBooleanProperty();
+  private final ObjectProperty<Duration> duration = new SimpleObjectProperty<>();
+  private final IntegerProperty ranking = new SimpleIntegerProperty();
+  private final IntegerProperty playerCount = new SimpleIntegerProperty();
+  private final ObjectProperty<ReplayBean> replay = new SimpleObjectProperty<>();
 
   public Integer getId() {
     return id.get();

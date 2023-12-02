@@ -8,17 +8,21 @@ import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 
-@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
+
 public class VaultPrefs {
-  ObjectProperty<SortConfig> onlineReplaySortConfig = new SimpleObjectProperty<>(new SortConfig("startTime", SortOrder.DESC));
-  ObjectProperty<SortConfig> mapSortConfig = new SimpleObjectProperty<>(new SortConfig("gamesPlayed", SortOrder.DESC));
-  ObjectProperty<SortConfig> modVaultConfig = new SimpleObjectProperty<>(new SortConfig("latestVersion.createTime", SortOrder.DESC));
-  MapProperty<String, String> savedReplayQueries = new SimpleMapProperty<>(FXCollections.observableHashMap());
-  MapProperty<String, String> savedMapQueries = new SimpleMapProperty<>(FXCollections.observableHashMap());
-  MapProperty<String, String> savedModQueries = new SimpleMapProperty<>(FXCollections.observableHashMap());
+  private final ObjectProperty<SortConfig> onlineReplaySortConfig = new SimpleObjectProperty<>(
+      new SortConfig("startTime", SortOrder.DESC));
+  private final ObjectProperty<SortConfig> mapSortConfig = new SimpleObjectProperty<>(
+      new SortConfig("gamesPlayed", SortOrder.DESC));
+  private final ObjectProperty<SortConfig> modVaultConfig = new SimpleObjectProperty<>(
+      new SortConfig("latestVersion.createTime", SortOrder.DESC));
+  private final MapProperty<String, String> savedReplayQueries = new SimpleMapProperty<>(
+      FXCollections.observableHashMap());
+  private final MapProperty<String, String> savedMapQueries = new SimpleMapProperty<>(
+      FXCollections.observableHashMap());
+  private final MapProperty<String, String> savedModQueries = new SimpleMapProperty<>(
+      FXCollections.observableHashMap());
 
   public SortConfig getOnlineReplaySortConfig() {
     return onlineReplaySortConfig.get();

@@ -2,12 +2,10 @@ package com.faforever.client.preferences;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 
 import java.nio.file.Path;
 
-@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
+
 public class DataPrefs {
   private static final String BIN_SUB_FOLDER = "bin";
   private static final String REPLAYS_SUB_FOLDER = "replays";
@@ -20,7 +18,7 @@ public class DataPrefs {
   private static final String LANGUAGES_SUB_FOLDER = "languages";
   public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
 
-  ObjectProperty<Path> baseDataDirectory = new SimpleObjectProperty<>();
+  private final ObjectProperty<Path> baseDataDirectory = new SimpleObjectProperty<>();
 
   public Path getBaseDataDirectory() {
     return baseDataDirectory.get();

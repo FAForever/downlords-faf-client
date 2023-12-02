@@ -136,9 +136,9 @@ public class MapVaultControllerTest extends PlatformTest {
 
   @Test
   public void testGetShowRoomCategories() {
-    List<VaultEntityController<MapVersionBean>.ShowRoomCategory> categories = instance.getShowRoomCategories();
-    for (ShowRoomCategory category : categories) {
-      category.getEntitySupplier().get();
+    List<VaultEntityController.ShowRoomCategory<MapVersionBean>> categories = instance.getShowRoomCategories();
+    for (ShowRoomCategory<MapVersionBean> category : categories) {
+      category.entitySupplier().get();
     }
     verify(mapService).getHighestRatedMapsWithPageCount(anyInt(), anyInt());
     verify(mapService).getNewestMapsWithPageCount(anyInt(), anyInt());

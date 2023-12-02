@@ -22,8 +22,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
 import javafx.scene.paint.Color;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 
 import java.util.Locale;
 import java.util.Map;
@@ -34,35 +32,39 @@ import static com.faforever.client.preferences.LanguageChannel.FRENCH;
 import static com.faforever.client.preferences.LanguageChannel.GERMAN;
 import static com.faforever.client.preferences.LanguageChannel.RUSSIAN;
 
-@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
+
 public class ChatPrefs {
 
   @VisibleForTesting
   public static final ImmutableMap<Locale, LanguageChannel> LOCALE_LANGUAGES_TO_CHANNELS = ImmutableMap.<Locale, LanguageChannel>builder()
       .put(Locale.FRENCH, FRENCH)
       .put(Locale.GERMAN, GERMAN)
-      .put(new Locale("ru"), RUSSIAN)
-      .put(new Locale("be"), RUSSIAN)
+                                                                                                       .put(Locale.of(
+                                                                                                                "ru"),
+                                                                                                            RUSSIAN)
+                                                                                                       .put(Locale.of(
+                                                                                                                "be"),
+                                                                                                            RUSSIAN)
       .build();
 
-  DoubleProperty zoom = new SimpleDoubleProperty(1);
-  BooleanProperty previewImageUrls = new SimpleBooleanProperty(true);
-  IntegerProperty maxMessages = new SimpleIntegerProperty(500);
-  ObjectProperty<ChatColorMode> chatColorMode = new SimpleObjectProperty<>(DEFAULT);
-  MapProperty<String, Color> userToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
-  MapProperty<ChatUserCategory, Color> groupToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
-  BooleanProperty hideFoeMessages = new SimpleBooleanProperty(true);
-  BooleanProperty playerListShown = new SimpleBooleanProperty(true);
-  ObjectProperty<TimeInfo> timeFormat = new SimpleObjectProperty<>(TimeInfo.AUTO);
-  ObjectProperty<ChatFormat> chatFormat = new SimpleObjectProperty<>(ChatFormat.COMPACT);
-  ListProperty<String> autoJoinChannels = new SimpleListProperty<>(FXCollections.observableArrayList());
-  BooleanProperty showMapName = new SimpleBooleanProperty(false);
-  BooleanProperty showMapPreview = new SimpleBooleanProperty(false);
+  private final DoubleProperty zoom = new SimpleDoubleProperty(1);
+  private final BooleanProperty previewImageUrls = new SimpleBooleanProperty(true);
+  private final IntegerProperty maxMessages = new SimpleIntegerProperty(500);
+  private final ObjectProperty<ChatColorMode> chatColorMode = new SimpleObjectProperty<>(DEFAULT);
+  private final MapProperty<String, Color> userToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
+  private final MapProperty<ChatUserCategory, Color> groupToColor = new SimpleMapProperty<>(
+      FXCollections.observableHashMap());
+  private final BooleanProperty hideFoeMessages = new SimpleBooleanProperty(true);
+  private final BooleanProperty playerListShown = new SimpleBooleanProperty(true);
+  private final ObjectProperty<TimeInfo> timeFormat = new SimpleObjectProperty<>(TimeInfo.AUTO);
+  private final ObjectProperty<ChatFormat> chatFormat = new SimpleObjectProperty<>(ChatFormat.COMPACT);
+  private final ListProperty<String> autoJoinChannels = new SimpleListProperty<>(FXCollections.observableArrayList());
+  private final BooleanProperty showMapName = new SimpleBooleanProperty(false);
+  private final BooleanProperty showMapPreview = new SimpleBooleanProperty(false);
   ObservableMap<String, ObservableSet<ChatUserCategory>> channelNameToHiddenCategories = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
 
   public ChatPrefs() {
-    Locale localeLanguage = new Locale(Locale.getDefault().getLanguage());
-    Optional.ofNullable(LOCALE_LANGUAGES_TO_CHANNELS.get(localeLanguage))
+    Optional.ofNullable(LOCALE_LANGUAGES_TO_CHANNELS.get(Locale.of(Locale.getDefault().getLanguage())))
         .ifPresent(channel -> autoJoinChannels.get().add(channel.getChannelName()));
   }
 

@@ -87,7 +87,7 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
     return controller;
   }
   @Override
-  protected List<ShowRoomCategory> getShowRoomCategories() {
+  protected List<ShowRoomCategory<ReplayBean>> getShowRoomCategories() {
     return List.of();
   }
 

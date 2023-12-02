@@ -13,13 +13,13 @@ import lombok.EqualsAndHashCode;
 @Data
 public abstract class ReviewsSummaryBean {
   @EqualsAndHashCode.Include
-  ObjectProperty<Integer> id = new SimpleObjectProperty<>();
-  FloatProperty positive = new SimpleFloatProperty();
-  FloatProperty negative = new SimpleFloatProperty();
-  FloatProperty score = new SimpleFloatProperty();
-  FloatProperty averageScore = new SimpleFloatProperty();
-  IntegerProperty numReviews = new SimpleIntegerProperty();
-  FloatProperty lowerBound = new SimpleFloatProperty();
+  private final ObjectProperty<Integer> id = new SimpleObjectProperty<>();
+  private final FloatProperty positive = new SimpleFloatProperty();
+  private final FloatProperty negative = new SimpleFloatProperty();
+  private final FloatProperty score = new SimpleFloatProperty();
+  private final FloatProperty averageScore = new SimpleFloatProperty();
+  private final IntegerProperty numReviews = new SimpleIntegerProperty();
+  private final FloatProperty lowerBound = new SimpleFloatProperty();
 
   public Integer getId() {
     return id.get();

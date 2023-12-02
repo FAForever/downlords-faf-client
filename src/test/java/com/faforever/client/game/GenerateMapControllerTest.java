@@ -687,18 +687,18 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     GeneratorOptions result = captor.getValue();
 
-    assertEquals(1 - 1 / 127f, result.getLandDensity(), 0);
-    assertEquals(2 / 127f, result.getPlateauDensity(), 0);
-    assertEquals(3 / 127f, result.getMountainDensity(),  0);
-    assertEquals(4 / 127f, result.getRampDensity(), 0);
-    assertEquals(5 / 127f, result.getMexDensity(), 0);
-    assertEquals(6 / 127f, result.getReclaimDensity(), 0);
-    assertEquals(2, result.getSpawnCount());
-    assertEquals(512, result.getMapSize());
-    assertEquals(2, result.getNumTeams());
-    assertEquals(GenerationType.CASUAL, result.getGenerationType());
-    assertNull(result.getCommandLineArgs());
-    assertEquals("TEST", result.getStyle());
+    assertEquals(1 - 1 / 127f, result.landDensity(), 0);
+    assertEquals(2 / 127f, result.plateauDensity(), 0);
+    assertEquals(3 / 127f, result.mountainDensity(), 0);
+    assertEquals(4 / 127f, result.rampDensity(), 0);
+    assertEquals(5 / 127f, result.mexDensity(), 0);
+    assertEquals(6 / 127f, result.reclaimDensity(), 0);
+    assertEquals(2, result.spawnCount());
+    assertEquals(512, result.mapSize());
+    assertEquals(2, result.numTeams());
+    assertEquals(GenerationType.CASUAL, result.generationType());
+    assertNull(result.commandLineArgs());
+    assertEquals("TEST", result.style());
   }
 
   @Test
@@ -715,7 +715,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     GeneratorOptions result = captor.getValue();
 
-    assertEquals(result.getCommandLineArgs(), "--test");
+    assertEquals(result.commandLineArgs(), "--test");
   }
 
   @Test
@@ -737,12 +737,12 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     GeneratorOptions result = captor.getValue();
 
-    assertNull(result.getLandDensity());
-    assertNull(result.getPlateauDensity());
-    assertNull(result.getMountainDensity());
-    assertNull(result.getRampDensity());
-    assertNull(result.getMexDensity());
-    assertNull(result.getReclaimDensity());
+    assertNull(result.landDensity());
+    assertNull(result.plateauDensity());
+    assertNull(result.mountainDensity());
+    assertNull(result.rampDensity());
+    assertNull(result.mexDensity());
+    assertNull(result.reclaimDensity());
   }
 }
 

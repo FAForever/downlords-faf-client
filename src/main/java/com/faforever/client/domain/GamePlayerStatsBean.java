@@ -9,25 +9,23 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
-@Value
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 public class GamePlayerStatsBean {
   @EqualsAndHashCode.Include
   @ToString.Include
-  ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
-  IntegerProperty score = new SimpleIntegerProperty();
-  IntegerProperty team = new SimpleIntegerProperty();
-  ObjectProperty<Faction> faction = new SimpleObjectProperty<>();
-  ObjectProperty<OffsetDateTime> scoreTime = new SimpleObjectProperty<>();
+  private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
+  private final IntegerProperty score = new SimpleIntegerProperty();
+  private final IntegerProperty team = new SimpleIntegerProperty();
+  private final ObjectProperty<Faction> faction = new SimpleObjectProperty<>();
+  private final ObjectProperty<OffsetDateTime> scoreTime = new SimpleObjectProperty<>();
   @EqualsAndHashCode.Include
   @ToString.Include
-  ObjectProperty<ReplayBean> game = new SimpleObjectProperty<>();
+  private final ObjectProperty<ReplayBean> game = new SimpleObjectProperty<>();
   ObservableList<LeaderboardRatingJournalBean> leaderboardRatingJournals = FXCollections.observableArrayList();
 
   public PlayerBean getPlayer() {

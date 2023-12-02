@@ -4,17 +4,15 @@ import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import lombok.Value;
 
 /**
  * Represents a leaderboard rating
  */
-@Value
 public class LeaderboardRatingBean {
 
-  FloatProperty deviation = new SimpleFloatProperty();
-  FloatProperty mean = new SimpleFloatProperty();
-  IntegerProperty numberOfGames = new SimpleIntegerProperty();
+  private final FloatProperty deviation = new SimpleFloatProperty();
+  private final FloatProperty mean = new SimpleFloatProperty();
+  private final IntegerProperty numberOfGames = new SimpleIntegerProperty();
 
   public int getNumberOfGames() {
     return numberOfGames.get();

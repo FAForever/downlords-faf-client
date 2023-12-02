@@ -5,17 +5,15 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@Value
-public class VotingChoiceBean extends AbstractEntityBean<VotingChoiceBean> {
-  StringProperty choiceTextKey = new SimpleStringProperty();
-  StringProperty choiceText = new SimpleStringProperty();
-  StringProperty descriptionKey = new SimpleStringProperty();
-  StringProperty description = new SimpleStringProperty();
-  IntegerProperty numberOfAnswers = new SimpleIntegerProperty();
-  IntegerProperty ordinal = new SimpleIntegerProperty();
+public class VotingChoiceBean extends AbstractEntityBean {
+  private final StringProperty choiceTextKey = new SimpleStringProperty();
+  private final StringProperty choiceText = new SimpleStringProperty();
+  private final StringProperty descriptionKey = new SimpleStringProperty();
+  private final StringProperty description = new SimpleStringProperty();
+  private final IntegerProperty numberOfAnswers = new SimpleIntegerProperty();
+  private final IntegerProperty ordinal = new SimpleIntegerProperty();
 
   public String getChoiceTextKey() {
     return choiceTextKey.get();

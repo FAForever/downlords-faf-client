@@ -11,25 +11,23 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import lombok.EqualsAndHashCode;
-import lombok.Value;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@Value
-public class VotingSubjectBean extends AbstractEntityBean<VotingSubjectBean> {
-  StringProperty subjectKey = new SimpleStringProperty();
-  StringProperty subject = new SimpleStringProperty();
-  StringProperty descriptionKey = new SimpleStringProperty();
-  StringProperty description = new SimpleStringProperty();
-  StringProperty topicUrl = new SimpleStringProperty();
-  ObjectProperty<OffsetDateTime> beginOfVoteTime = new SimpleObjectProperty<>();
-  ObjectProperty<OffsetDateTime> endOfVoteTime = new SimpleObjectProperty<>();
-  IntegerProperty numberOfVotes = new SimpleIntegerProperty();
-  IntegerProperty minGamesToVote = new SimpleIntegerProperty();
-  BooleanProperty revealWinner = new SimpleBooleanProperty();
-  ObjectProperty<VotingSubjectBean> votingSubject = new SimpleObjectProperty<>();
+public class VotingSubjectBean extends AbstractEntityBean {
+  private final StringProperty subjectKey = new SimpleStringProperty();
+  private final StringProperty subject = new SimpleStringProperty();
+  private final StringProperty descriptionKey = new SimpleStringProperty();
+  private final StringProperty description = new SimpleStringProperty();
+  private final StringProperty topicUrl = new SimpleStringProperty();
+  private final ObjectProperty<OffsetDateTime> beginOfVoteTime = new SimpleObjectProperty<>();
+  private final ObjectProperty<OffsetDateTime> endOfVoteTime = new SimpleObjectProperty<>();
+  private final IntegerProperty numberOfVotes = new SimpleIntegerProperty();
+  private final IntegerProperty minGamesToVote = new SimpleIntegerProperty();
+  private final BooleanProperty revealWinner = new SimpleBooleanProperty();
+  private final ObjectProperty<VotingSubjectBean> votingSubject = new SimpleObjectProperty<>();
   ObservableList<VotingChoiceBean> winners = FXCollections.observableArrayList();
   ObservableList<VotingQuestionBean> votingQuestions = FXCollections.observableArrayList();
 

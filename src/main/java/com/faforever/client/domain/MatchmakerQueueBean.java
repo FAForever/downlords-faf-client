@@ -10,24 +10,22 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
 
 import java.time.OffsetDateTime;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
-@Value
-public class MatchmakerQueueBean extends AbstractEntityBean<MatchmakerQueueBean> {
+public class MatchmakerQueueBean extends AbstractEntityBean {
   @ToString.Include
-  StringProperty technicalName = new SimpleStringProperty();
+  private final StringProperty technicalName = new SimpleStringProperty();
   ObjectProperty<OffsetDateTime> queuePopTime= new SimpleObjectProperty<OffsetDateTime>();
-  IntegerProperty teamSize = new SimpleIntegerProperty(0);
-  IntegerProperty playersInQueue = new SimpleIntegerProperty(0);
-  IntegerProperty activeGames = new SimpleIntegerProperty(0);
-  BooleanProperty selected = new SimpleBooleanProperty(true);
-  ObjectProperty<MatchingStatus> matchingStatus = new SimpleObjectProperty<>();
-  ObjectProperty<LeaderboardBean> leaderboard = new SimpleObjectProperty<>();
-  ObjectProperty<FeaturedModBean> featuredMod = new SimpleObjectProperty<>();
+  private final IntegerProperty teamSize = new SimpleIntegerProperty(0);
+  private final IntegerProperty playersInQueue = new SimpleIntegerProperty(0);
+  private final IntegerProperty activeGames = new SimpleIntegerProperty(0);
+  private final BooleanProperty selected = new SimpleBooleanProperty(true);
+  private final ObjectProperty<MatchingStatus> matchingStatus = new SimpleObjectProperty<>();
+  private final ObjectProperty<LeaderboardBean> leaderboard = new SimpleObjectProperty<>();
+  private final ObjectProperty<FeaturedModBean> featuredMod = new SimpleObjectProperty<>();
 
   public MatchingStatus getMatchingStatus() {
     return matchingStatus.get();

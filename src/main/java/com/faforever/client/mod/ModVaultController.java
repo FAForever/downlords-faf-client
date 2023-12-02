@@ -98,9 +98,9 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
   }
 
   @Override
-  protected List<ShowRoomCategory> getShowRoomCategories() {
+  protected List<ShowRoomCategory<ModVersionBean>> getShowRoomCategories() {
     return List.of(
-        new ShowRoomCategory(() -> {
+        new ShowRoomCategory<>(() -> {
           int recommendedPage;
           if (recommendedShowRoomPageCount != null && recommendedShowRoomPageCount > 0) {
             recommendedPage = new Random().nextInt(recommendedShowRoomPageCount) + 1;
@@ -109,9 +109,12 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
           }
           return modService.getRecommendedModsWithPageCount(TOP_ELEMENT_COUNT, recommendedPage);
         }, SearchType.RECOMMENDED, "modVault.recommended"),
-    new ShowRoomCategory(() -> modService.getHighestRatedModsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.HIGHEST_RATED, "modVault.highestRated"),
-        new ShowRoomCategory(() -> modService.getHighestRatedUiModsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.HIGHEST_RATED_UI, "modVault.highestRatedUiMods"),
-        new ShowRoomCategory(() -> modService.getNewestModsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.NEWEST, "modVault.newestMods")
+        new ShowRoomCategory<>(() -> modService.getHighestRatedModsWithPageCount(TOP_ELEMENT_COUNT, 1),
+                               SearchType.HIGHEST_RATED, "modVault.highestRated"),
+        new ShowRoomCategory<>(() -> modService.getHighestRatedUiModsWithPageCount(TOP_ELEMENT_COUNT, 1),
+                               SearchType.HIGHEST_RATED_UI, "modVault.highestRatedUiMods"),
+        new ShowRoomCategory<>(() -> modService.getNewestModsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.NEWEST,
+                               "modVault.newestMods")
     );
   }
 

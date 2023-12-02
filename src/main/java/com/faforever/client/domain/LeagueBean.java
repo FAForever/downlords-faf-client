@@ -8,22 +8,20 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
 
 import java.net.URL;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
-@Value
-public class LeagueBean extends AbstractEntityBean<LeagueBean> {
+public class LeagueBean extends AbstractEntityBean {
   @ToString.Include
-  StringProperty technicalName = new SimpleStringProperty();
-  BooleanProperty enabled = new SimpleBooleanProperty();
-  StringProperty nameKey = new SimpleStringProperty();
-  StringProperty descriptionKey = new SimpleStringProperty();
-  ObjectProperty<URL> imageUrl = new SimpleObjectProperty<>();
-  ObjectProperty<URL> mediumImageUrl = new SimpleObjectProperty<>();
-  ObjectProperty<URL> smallImageUrl = new SimpleObjectProperty<>();
+  private final StringProperty technicalName = new SimpleStringProperty();
+  private final BooleanProperty enabled = new SimpleBooleanProperty();
+  private final StringProperty nameKey = new SimpleStringProperty();
+  private final StringProperty descriptionKey = new SimpleStringProperty();
+  private final ObjectProperty<URL> imageUrl = new SimpleObjectProperty<>();
+  private final ObjectProperty<URL> mediumImageUrl = new SimpleObjectProperty<>();
+  private final ObjectProperty<URL> smallImageUrl = new SimpleObjectProperty<>();
 
   public String getDescriptionKey() {
     return descriptionKey.get();

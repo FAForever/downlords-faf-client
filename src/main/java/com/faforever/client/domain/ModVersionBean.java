@@ -15,7 +15,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
@@ -26,33 +25,32 @@ import java.util.List;
 @Slf4j
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
-@Value
-public class ModVersionBean extends AbstractEntityBean<ModVersionBean> {
-  ObjectProperty<Path> imagePath = new SimpleObjectProperty<>();
+public class ModVersionBean extends AbstractEntityBean {
+  private final ObjectProperty<Path> imagePath = new SimpleObjectProperty<>();
 
   /**
    * UID as specified in the mod itself (specified by the uploader).
    */
   @ToString.Include
   @EqualsAndHashCode.Include
-  StringProperty uid = new SimpleStringProperty();
-  StringProperty description = new SimpleStringProperty();
-  BooleanProperty selectable = new SimpleBooleanProperty();
-  ObjectProperty<ComparableVersion> version = new SimpleObjectProperty<>();
-  ObjectProperty<URL> thumbnailUrl = new SimpleObjectProperty<>();
+  private final StringProperty uid = new SimpleStringProperty();
+  private final StringProperty description = new SimpleStringProperty();
+  private final BooleanProperty selectable = new SimpleBooleanProperty();
+  private final ObjectProperty<ComparableVersion> version = new SimpleObjectProperty<>();
+  private final ObjectProperty<URL> thumbnailUrl = new SimpleObjectProperty<>();
   ObservableList<String> comments = FXCollections.observableArrayList();
-  BooleanProperty selected = new SimpleBooleanProperty();
-  IntegerProperty played = new SimpleIntegerProperty();
-  ObjectProperty<URL> downloadUrl = new SimpleObjectProperty<>();
+  private final BooleanProperty selected = new SimpleBooleanProperty();
+  private final IntegerProperty played = new SimpleIntegerProperty();
+  private final ObjectProperty<URL> downloadUrl = new SimpleObjectProperty<>();
   ObservableList<MountInfo> mountPoints = FXCollections.observableArrayList();
   ObservableList<String> hookDirectories = FXCollections.observableArrayList();
-  ObjectProperty<ModVersionReviewsSummaryBean> reviewsSummary = new SimpleObjectProperty<>();
-  ObjectProperty<ModType> modType = new SimpleObjectProperty<>();
-  StringProperty filename = new SimpleStringProperty();
-  StringProperty icon = new SimpleStringProperty();
-  BooleanProperty ranked = new SimpleBooleanProperty();
-  BooleanProperty hidden = new SimpleBooleanProperty();
-  ObjectProperty<ModBean> mod = new SimpleObjectProperty<>();
+  private final ObjectProperty<ModVersionReviewsSummaryBean> reviewsSummary = new SimpleObjectProperty<>();
+  private final ObjectProperty<ModType> modType = new SimpleObjectProperty<>();
+  private final StringProperty filename = new SimpleStringProperty();
+  private final StringProperty icon = new SimpleStringProperty();
+  private final BooleanProperty ranked = new SimpleBooleanProperty();
+  private final BooleanProperty hidden = new SimpleBooleanProperty();
+  private final ObjectProperty<ModBean> mod = new SimpleObjectProperty<>();
 
   public URL getDownloadUrl() {
     return downloadUrl.get();

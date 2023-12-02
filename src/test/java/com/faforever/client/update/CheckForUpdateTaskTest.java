@@ -69,17 +69,20 @@ public class CheckForUpdateTaskTest extends ServiceTest {
 
     UpdateInfo updateInfo = instance.call();
 
-    assertThat(updateInfo.getSize(), is(123));
-    assertThat(updateInfo.getFileName(), is("dfaf_windows_0_4_7-alpha.exe"));
-    assertThat(updateInfo.getName(), is("0.4.7-alpha"));
-    assertThat(updateInfo.getReleaseNotesUrl(), is(new URL("https://www.example.com/")));
+    assertThat(updateInfo.size(), is(123));
+    assertThat(updateInfo.fileName(), is("dfaf_windows_0_4_7-alpha.exe"));
+    assertThat(updateInfo.name(), is("0.4.7-alpha"));
+    assertThat(updateInfo.releaseNotesUrl(), is(new URL("https://www.example.com/")));
 
     if (org.bridj.Platform.isWindows()) {
-      assertThat(updateInfo.getUrl(), is(new URL("https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_windows_0_4_7-alpha.exe")));
+      assertThat(updateInfo.url(), is(new URL(
+          "https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_windows_0_4_7-alpha.exe")));
     } else if (org.bridj.Platform.isLinux()) {
-      assertThat(updateInfo.getUrl(), is(new URL("https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_linux_0_4_7-alpha.tar.gz")));
+      assertThat(updateInfo.url(), is(new URL(
+          "https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_linux_0_4_7-alpha.tar.gz")));
     } else if (org.bridj.Platform.isMacOSX()) {
-      assertThat(updateInfo.getUrl(), is(new URL("https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_mac_0_4_7-alpha.dmg")));
+      assertThat(updateInfo.url(), is(new URL(
+          "https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_mac_0_4_7-alpha.dmg")));
     } else {
       throw new IllegalStateException("Unsupported platform");
     }

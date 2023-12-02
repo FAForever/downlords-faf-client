@@ -7,19 +7,17 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 
-@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
+
 public class LastGamePrefs {
-  StringProperty lastGameType = new SimpleStringProperty(KnownFeaturedMod.DEFAULT.getTechnicalName());
-  StringProperty lastGameTitle = new SimpleStringProperty();
-  StringProperty lastMap = new SimpleStringProperty();
-  StringProperty lastGamePassword = new SimpleStringProperty();
-  ObjectProperty<Integer> lastGameMinRating = new SimpleObjectProperty<>(null);
-  ObjectProperty<Integer> lastGameMaxRating = new SimpleObjectProperty<>(null);
-  BooleanProperty lastGameOnlyFriends = new SimpleBooleanProperty();
-  BooleanProperty lastGameEnforceRating = new SimpleBooleanProperty(false);
+  private final StringProperty lastGameType = new SimpleStringProperty(KnownFeaturedMod.DEFAULT.getTechnicalName());
+  private final StringProperty lastGameTitle = new SimpleStringProperty();
+  private final StringProperty lastMap = new SimpleStringProperty();
+  private final StringProperty lastGamePassword = new SimpleStringProperty();
+  private final ObjectProperty<Integer> lastGameMinRating = new SimpleObjectProperty<>(null);
+  private final ObjectProperty<Integer> lastGameMaxRating = new SimpleObjectProperty<>(null);
+  private final BooleanProperty lastGameOnlyFriends = new SimpleBooleanProperty();
+  private final BooleanProperty lastGameEnforceRating = new SimpleBooleanProperty(false);
 
   public String getLastGameType() {
     return lastGameType.get();

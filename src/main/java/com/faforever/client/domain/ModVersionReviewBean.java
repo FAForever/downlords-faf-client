@@ -4,13 +4,15 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import lombok.EqualsAndHashCode;
-import lombok.Value;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@Value
 public class ModVersionReviewBean extends ReviewBean {
-  ObjectProperty<ModVersionBean> modVersion = new SimpleObjectProperty<>();
+  private final ObjectProperty<ModVersionBean> modVersion = new SimpleObjectProperty<>();
+  private final ObservableValue<ComparableVersion> latestVersion = modVersion.flatMap(ModVersionBean::modProperty)
+                                                                             .flatMap(ModBean::latestVersionProperty)
+                                                                             .flatMap(ModVersionBean::versionProperty);
+  private final ObservableValue<ComparableVersion> version = modVersion.flatMap(ModVersionBean::versionProperty);
 
   public ModVersionBean getModVersion() {
     return modVersion.get();
@@ -26,13 +28,11 @@ public class ModVersionReviewBean extends ReviewBean {
 
   @Override
   public ObservableValue<ComparableVersion> versionProperty() {
-    return modVersion.flatMap(ModVersionBean::versionProperty);
+    return version;
   }
 
   @Override
   public ObservableValue<ComparableVersion> latestVersionProperty() {
-    return modVersion.flatMap(ModVersionBean::modProperty)
-        .flatMap(ModBean::latestVersionProperty)
-        .flatMap(ModVersionBean::versionProperty);
+    return latestVersion;
   }
 }

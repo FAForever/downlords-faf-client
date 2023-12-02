@@ -8,17 +8,15 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
-@Value
-public class DivisionBean extends AbstractEntityBean<DivisionBean> {
-  StringProperty descriptionKey = new SimpleStringProperty();
-  IntegerProperty index = new SimpleIntegerProperty();
+public class DivisionBean extends AbstractEntityBean {
+  private final StringProperty descriptionKey = new SimpleStringProperty();
+  private final IntegerProperty index = new SimpleIntegerProperty();
   @ToString.Include
-  StringProperty nameKey = new SimpleStringProperty();
-  ObjectProperty<LeagueSeasonBean> leagueSeason = new SimpleObjectProperty<>();
+  private final StringProperty nameKey = new SimpleStringProperty();
+  private final ObjectProperty<LeagueSeasonBean> leagueSeason = new SimpleObjectProperty<>();
 
   public LeagueSeasonBean getLeagueSeason() {
     return leagueSeason.get();

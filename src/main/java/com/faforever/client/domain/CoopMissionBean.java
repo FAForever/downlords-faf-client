@@ -9,24 +9,22 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
-@Value
 public class CoopMissionBean {
   @EqualsAndHashCode.Include
-  ObjectProperty<Integer> id = new SimpleObjectProperty<>();
+  private final ObjectProperty<Integer> id = new SimpleObjectProperty<>();
   @ToString.Include
-  StringProperty name = new SimpleStringProperty();
-  StringProperty description = new SimpleStringProperty();
+  private final StringProperty name = new SimpleStringProperty();
+  private final StringProperty description = new SimpleStringProperty();
   @ToString.Include
-  IntegerProperty version = new SimpleIntegerProperty();
-  ObjectProperty<CoopCategory> category = new SimpleObjectProperty<>();
-  StringProperty downloadUrl = new SimpleStringProperty();
-  StringProperty thumbnailUrlSmall = new SimpleStringProperty();
-  StringProperty thumbnailUrlLarge = new SimpleStringProperty();
-  StringProperty mapFolderName = new SimpleStringProperty();
+  private final IntegerProperty version = new SimpleIntegerProperty();
+  private final ObjectProperty<CoopCategory> category = new SimpleObjectProperty<>();
+  private final StringProperty downloadUrl = new SimpleStringProperty();
+  private final StringProperty thumbnailUrlSmall = new SimpleStringProperty();
+  private final StringProperty thumbnailUrlLarge = new SimpleStringProperty();
+  private final StringProperty mapFolderName = new SimpleStringProperty();
 
   public String getDescription() {
     return description.get();

@@ -12,25 +12,23 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import lombok.Value;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
-@Value
-public class MapBean extends AbstractEntityBean<MapBean> {
+public class MapBean extends AbstractEntityBean {
 
   @ToString.Include
   @EqualsAndHashCode.Include
-  StringProperty displayName = new SimpleStringProperty();
-  IntegerProperty gamesPlayed = new SimpleIntegerProperty(0);
-  ObjectProperty<PlayerBean> author = new SimpleObjectProperty<>();
-  BooleanProperty recommended = new SimpleBooleanProperty();
-  ObjectProperty<MapType> mapType = new SimpleObjectProperty<>();
-  ObjectProperty<MapVersionBean> latestVersion = new SimpleObjectProperty<>();
-  ObjectProperty<MapReviewsSummaryBean> mapReviewsSummary = new SimpleObjectProperty<>();
+  private final StringProperty displayName = new SimpleStringProperty();
+  private final IntegerProperty gamesPlayed = new SimpleIntegerProperty(0);
+  private final ObjectProperty<PlayerBean> author = new SimpleObjectProperty<>();
+  private final BooleanProperty recommended = new SimpleBooleanProperty();
+  private final ObjectProperty<MapType> mapType = new SimpleObjectProperty<>();
+  private final ObjectProperty<MapVersionBean> latestVersion = new SimpleObjectProperty<>();
+  private final ObjectProperty<MapReviewsSummaryBean> mapReviewsSummary = new SimpleObjectProperty<>();
 
   public PlayerBean getAuthor() {
     return author.get();

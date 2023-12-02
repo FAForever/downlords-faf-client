@@ -10,23 +10,21 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
-@Value
-public class TutorialBean extends AbstractEntityBean<TutorialBean> {
+public class TutorialBean extends AbstractEntityBean {
 
   @ToString.Include
-  StringProperty title = new SimpleStringProperty();
-  StringProperty description = new SimpleStringProperty();
-  ObjectProperty<TutorialCategoryBean> category = new SimpleObjectProperty<>();
-  StringProperty image = new SimpleStringProperty();
-  StringProperty imageUrl = new SimpleStringProperty();
-  IntegerProperty ordinal = new SimpleIntegerProperty();
-  BooleanProperty launchable = new SimpleBooleanProperty();
-  ObjectProperty<MapVersionBean> mapVersion = new SimpleObjectProperty<>();
-  StringProperty technicalName = new SimpleStringProperty();
+  private final StringProperty title = new SimpleStringProperty();
+  private final StringProperty description = new SimpleStringProperty();
+  private final ObjectProperty<TutorialCategoryBean> category = new SimpleObjectProperty<>();
+  private final StringProperty image = new SimpleStringProperty();
+  private final StringProperty imageUrl = new SimpleStringProperty();
+  private final IntegerProperty ordinal = new SimpleIntegerProperty();
+  private final BooleanProperty launchable = new SimpleBooleanProperty();
+  private final ObjectProperty<MapVersionBean> mapVersion = new SimpleObjectProperty<>();
+  private final StringProperty technicalName = new SimpleStringProperty();
 
   public String getDescription() {
     return description.get();

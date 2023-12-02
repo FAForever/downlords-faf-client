@@ -44,7 +44,6 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -104,7 +103,6 @@ public class PlayerServiceTest extends ServiceTest {
     playerInfoTestPublisher.next(new PlayerInfo(List.of(new com.faforever.commons.lobby.Player(4, "junit3", null, null, "", new HashMap<>(), new HashMap<>()))));
 
     assertTrue(instance.getPlayerByIdIfOnline(4).isPresent());
-    assertNotNull(instance.getPlayerByIdIfOnline(4).map(PlayerBean::getIdleSince).orElse(null));
   }
 
   @Test

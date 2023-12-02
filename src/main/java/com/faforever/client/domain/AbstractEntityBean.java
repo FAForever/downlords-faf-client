@@ -9,7 +9,7 @@ import java.time.OffsetDateTime;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
-public abstract class AbstractEntityBean<T extends AbstractEntityBean<T>> {
+public abstract class AbstractEntityBean {
   @EqualsAndHashCode.Include
   @ToString.Include
   private final ObjectProperty<Integer> id = new SimpleObjectProperty<>();

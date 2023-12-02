@@ -76,18 +76,21 @@ public class GameUpdaterImpl implements GameUpdater {
 
       featuredModUpdateFuture = simModsUpdateFuture.thenCompose(aVoid -> modService.getFeaturedMod(FAF.getTechnicalName()).toFuture())
           .thenCompose(baseMod -> updateFeaturedMod(baseMod, baseVersion, forReplays))
-          .thenCompose(patchResult -> updateGameBinaries(patchResult.getVersion(), forReplays))
+                                                   .thenCompose(patchResult -> updateGameBinaries(patchResult.version(),
+                                                                                                  forReplays))
           .thenCompose(aVoid -> updateFeaturedMod(featuredMod, featuredModVersion, forReplays));
     } else {
       featuredModUpdateFuture = simModsUpdateFuture.thenCompose(aVoid -> updateFeaturedMod(featuredMod, baseVersion, forReplays))
-          .thenCompose(patchResult -> updateGameBinaries(patchResult.getVersion(), forReplays).thenApply(aVoid -> patchResult));
+                                                   .thenCompose(patchResult -> updateGameBinaries(patchResult.version(),
+                                                                                                  forReplays).thenApply(
+                                                       aVoid -> patchResult));
     }
 
     return featuredModUpdateFuture
         .thenAccept(patchResult -> {
           try {
             createFaPathLuaFile(forReplays);
-            copyInitFile(patchResult.getInitFile());
+            copyInitFile(patchResult.initFile());
           } catch (IOException e) {
             throw new CompletionException(e);
           }
