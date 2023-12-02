@@ -688,6 +688,7 @@ public class GameService implements InitializingBean {
                          setGameRunning(true);
                          return process;
                        })
+                       .thenCompose(process -> spawnTerminationListener(process, true))
                        .exceptionally(throwable -> {
                          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
                          log.error("Game could not be started", throwable);
@@ -699,8 +700,7 @@ public class GameService implements InitializingBean {
                          iceAdapter.stop();
                          setGameRunning(false);
                          return null;
-                       })
-                       .thenCompose(process -> spawnTerminationListener(process, true));
+                       });
   }
 
   private void onRecentlyPlayedGameEnded(GameBean game) {
