@@ -155,7 +155,6 @@ public class ForgedAllianceService {
 
     log.info("Starting Forged Alliance with command: {} in directory: {}", processBuilder.command(), executeDirectory);
 
-    Process process = processBuilder.start();
-    return process;
+    return processBuilder.start();
   }
 }
