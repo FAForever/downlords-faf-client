@@ -7,9 +7,10 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.paint.Color;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 
 import java.util.Optional;
 import java.util.Set;
@@ -20,7 +21,7 @@ import java.util.Set;
  */
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@Value
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class ChatChannelUser {
 
   @EqualsAndHashCode.Include
