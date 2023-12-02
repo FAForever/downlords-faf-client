@@ -15,7 +15,6 @@ import org.mockito.Spy;
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -62,7 +61,6 @@ public class ReplayFileWriterImplTest extends ServiceTest {
 
     when(clientProperties.getReplay()).thenReturn(replay);
     when(replay.getReplayFileFormat()).thenReturn(replayFileFormat);
-    when(i81n.getUserSpecificLocale()).thenReturn(Locale.US);
   }
 
   @Test

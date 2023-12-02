@@ -61,6 +61,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -158,10 +159,6 @@ public class ModServiceTest extends PlatformTest {
     forgedAlliancePrefs.setPreferencesFile(gamePrefsPath);
     forgedAlliancePrefs.setVaultBaseDirectory(tempDirectory);
 
-    when(fileSizeReader.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
-
-    when(fafApiAccessor.getMaxPageSize()).thenReturn(100);
-
     doAnswer(invocation -> {
       CompletableTask<?> task = invocation.getArgument(0);
       WaitForAsyncUtils.asyncFx(task);
@@ -208,9 +205,6 @@ public class ModServiceTest extends PlatformTest {
 
     assertThat(instance.getInstalledMods().size(), is(1));
 
-    URL modUrl = new URL("http://example.com/some/mod.zip");
-
-
     copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -226,7 +220,7 @@ public class ModServiceTest extends PlatformTest {
 
     when(downloadModTaskFactory.getObject()).thenReturn(task);
 
-    URL modUrl = new URL("http://example.com/some/mod.zip");
+    URL modUrl = URI.create("http://example.com/some/mod.zip").toURL();
 
     StringProperty stringProperty = new SimpleStringProperty();
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
@@ -248,7 +242,7 @@ public class ModServiceTest extends PlatformTest {
 
     when(downloadModTaskFactory.getObject()).thenReturn(task);
 
-    URL modUrl = new URL("http://example.com/some/modVersion.zip");
+    URL modUrl = URI.create("http://example.com/some/modVersion.zip").toURL();
 
     assertThat(instance.getInstalledMods().size(), is(1));
 
@@ -378,7 +372,8 @@ public class ModServiceTest extends PlatformTest {
   public void testLoadThumbnail() throws MalformedURLException {
     ModVersionBean modVersion = ModVersionBeanBuilder.create()
                                                      .defaultValues()
-                                                     .thumbnailUrl(new URL("http://127.0.0.1:65534/thumbnail.png"))
+                                                     .thumbnailUrl(
+                                                         URI.create("http://127.0.0.1:65534/thumbnail.png").toURL())
                                                      .get();
     instance.loadThumbnail(modVersion);
     verify(assetService).loadAndCacheImage(eq(modVersion.getThumbnailUrl()), eq(Path.of("mods")), any());
@@ -431,8 +426,6 @@ public class ModServiceTest extends PlatformTest {
 
     when(downloadModTaskFactory.getObject()).thenReturn(stubDownloadModTask());
 
-    prepareUninstallModTask(modVersion);
-
     Collection<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
 
     verify(taskService, times(2)).submitTask(any());
@@ -463,6 +456,7 @@ public class ModServiceTest extends PlatformTest {
 
   @Test
   public void testGetFeaturedFiles() {
+    when(fafApiAccessor.getMaxPageSize()).thenReturn(100);
     FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
     when(fafApiAccessor.getMany(eq(FeaturedModFile.class), anyString(), anyInt(), any())).thenReturn(
         Flux.just(new FeaturedModFile()));

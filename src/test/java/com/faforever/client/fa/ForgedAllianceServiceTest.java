@@ -39,7 +39,6 @@ public class ForgedAllianceServiceTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     dataPrefs.setBaseDataDirectory(Path.of("."));
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
   }
 
   @Test
@@ -52,6 +51,7 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
   @Test
   public void testStartGameOnline() throws Exception {
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
     GameParameters gameParameters = new GameParameters();
     gameParameters.setUid(1);
     gameParameters.setLocalGpgPort(0);
@@ -75,6 +75,7 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
   @Test
   public void testStartOnlineReplay() throws Exception {
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
     IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(URI.create("google.com"), 0));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 

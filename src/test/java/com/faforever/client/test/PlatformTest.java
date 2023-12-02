@@ -19,8 +19,6 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
@@ -36,8 +34,6 @@ import static org.mockito.Mockito.mockStatic;
 
 @Execution(ExecutionMode.SAME_THREAD)
 @ExtendWith({MockitoExtension.class})
-@MockitoSettings(strictness = Strictness.LENIENT)
-//TODO figure out best way to refactor so that tests don't have to be lenient due to unnecessary stubbings spam
 @Slf4j
 public abstract class PlatformTest {
 

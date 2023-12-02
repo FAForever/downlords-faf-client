@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -73,14 +74,14 @@ public class PartyMemberItemControllerTest extends PlatformTest {
     player = PlayerBeanBuilder.create().defaultValues().username("player").id(100).defaultValues().get();
     PartyMember partyMember = PartyMemberBuilder.create(player).defaultValues().get();
     party.getMembers().add(partyMember);
-    when(i18n.get(anyString())).thenReturn("");
-    when(i18n.getOrDefault(anyString(), anyString())).thenReturn("");
-    when(i18n.get("teammatchmaking.inPlacement")).thenReturn("In placement");
-    when(i18n.get(eq("leaderboard.divisionName"), anyString(), anyString())).thenReturn("division V");
-    when(i18n.get(eq("teammatchmaking.gameCount"), anyInt())).thenReturn("GAMES PLAYED: 0");
-    when(playerService.getCurrentPlayer()).thenReturn(owner);
-    when(teamMatchmakingService.getParty()).thenReturn(party);
-    when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
+    lenient().when(i18n.get(anyString())).thenReturn("");
+    lenient().when(i18n.getOrDefault(anyString(), anyString())).thenReturn("");
+    lenient().when(i18n.get("teammatchmaking.inPlacement")).thenReturn("In placement");
+    lenient().when(i18n.get(eq("leaderboard.divisionName"), anyString(), anyString())).thenReturn("division V");
+    lenient().when(i18n.get(eq("teammatchmaking.gameCount"), anyInt())).thenReturn("GAMES PLAYED: 0");
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(owner);
+    lenient().when(teamMatchmakingService.getParty()).thenReturn(party);
+    lenient().when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
         CompletableFuture.completedFuture(Optional.empty()));
 
     loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml", clazz -> instance);

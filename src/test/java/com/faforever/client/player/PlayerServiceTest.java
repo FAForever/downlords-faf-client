@@ -47,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,19 +79,19 @@ public class PlayerServiceTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(playerMapper);
-    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
-    when(fafServerAccessor.getEvents(PlayerInfo.class)).thenReturn(playerInfoTestPublisher.flux());
+    lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
+    lenient().when(fafServerAccessor.getEvents(PlayerInfo.class)).thenReturn(playerInfoTestPublisher.flux());
     currentPlayer = new Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>());
     playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null, new Avatar("https://test.com/test.png", "junit"), "", new HashMap<>(), new HashMap<>());
     playerInfo2 = new com.faforever.commons.lobby.Player(3, "junit3", null, null, "", new HashMap<>(), new HashMap<>());
 
-    when(loginService.ownPlayerProperty()).thenReturn(new ReadOnlyObjectWrapper<>(currentPlayer));
-    when(loginService.getUsername()).thenReturn("junit");
-    when(loginService.getUserId()).thenReturn(1);
+    lenient().when(loginService.ownPlayerProperty()).thenReturn(new ReadOnlyObjectWrapper<>(currentPlayer));
+    lenient().when(loginService.getUsername()).thenReturn("junit");
+    lenient().when(loginService.getUserId()).thenReturn(1);
 
     userPrefs.getNotesByPlayerId().put(3, "junit3");
 
-    when(loginService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(loginService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
 
     instance.afterPropertiesSet();
     playerInfoTestPublisher.next(new PlayerInfo(List.of(playerInfo1, playerInfo2)));

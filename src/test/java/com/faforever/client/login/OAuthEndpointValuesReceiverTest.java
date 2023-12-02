@@ -187,11 +187,6 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
 
   @Test
   void assertFirstRedirectUsed() throws Exception {
-    String title = "JUnit Login Success";
-    String message = "JUnit Login Message";
-    when(i18n.get("login.browser.success.title")).thenReturn(title);
-    when(i18n.get("login.browser.success.message")).thenReturn(message);
-
     CompletableFuture<Values> future = instance.receiveValues(List.of(URI.create("http://127.0.0.1"), REDIRECT_URI), STATE, VERIFIER);
     ArgumentCaptor<URI> captor = ArgumentCaptor.forClass(URI.class);
 

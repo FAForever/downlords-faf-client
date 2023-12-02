@@ -14,6 +14,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 
@@ -27,13 +28,13 @@ public class CountryFlagServiceTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() {
-    when(i18n.getCountryNameLocalized(anyString())).thenReturn(""); //Default result to avoid nullPointers
+    lenient().when(i18n.getCountryNameLocalized(anyString())).thenReturn(""); //Default result to avoid nullPointers
   }
 
   @Test
   public void shouldFindOnCountryMatch() {
     //Arrange
-    Locale.setDefault(new Locale("da", "DK"));
+    Locale.setDefault(Locale.of("da", "DK"));
     String[] inputs = {"d", "D", "dk", "DK"};
     for (String input : inputs) {
       //Act

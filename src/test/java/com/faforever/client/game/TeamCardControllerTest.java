@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,11 +49,11 @@ public class TeamCardControllerTest extends PlatformTest {
     playerList.add(player);
     teams = FXCollections.observableHashMap();
 
-    when(uiService.loadFxml("theme/player_card.fxml")).thenReturn(playerCardController);
-    when(playerCardController.ratingProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(playerCardController.factionProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(playerCardController.playerProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(playerCardController.getRoot()).thenReturn(new Label());
+    lenient().when(uiService.loadFxml("theme/player_card.fxml")).thenReturn(playerCardController);
+    lenient().when(playerCardController.ratingProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(playerCardController.factionProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(playerCardController.playerProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(playerCardController.getRoot()).thenReturn(new Label());
     playerStats = GamePlayerStatsBeanBuilder.create()
         .defaultValues()
         .player(PlayerBeanBuilder.create().defaultValues().get())

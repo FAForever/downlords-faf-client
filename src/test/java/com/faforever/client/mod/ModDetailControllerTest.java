@@ -46,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -96,19 +97,20 @@ public class ModDetailControllerTest extends PlatformTest {
         .get();
     modVersion.setMod(ModBeanBuilder.create().defaultValues().get());
 
-    when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
-    when(reviewService.getModReviews(any())).thenReturn(Flux.empty());
-    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
+    lenient().when(imageViewHelper.createPlaceholderImageOnErrorObservable(any()))
+             .thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
+    lenient().when(reviewService.getModReviews(any())).thenReturn(Flux.empty());
+    lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
 
-    when(modService.isInstalledBinding(any())).thenReturn(installed);
-    when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(currentPlayer));
-    when(modService.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
-    when(i18n.get("modVault.details.author", modVersion.getMod().getAuthor())).thenReturn(modVersion.getMod()
+    lenient().when(modService.isInstalledBinding(any())).thenReturn(installed);
+    lenient().when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(currentPlayer));
+    lenient().when(modService.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
+    lenient().when(i18n.get("modVault.details.author", modVersion.getMod().getAuthor())).thenReturn(modVersion.getMod()
         .getAuthor());
-    when(i18n.get("modVault.details.uploader", modVersion.getMod()
+    lenient().when(i18n.get("modVault.details.uploader", modVersion.getMod()
         .getUploader()
         .getUsername())).thenReturn(modVersion.getMod().getUploader().getUsername());
-    when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
 
     loadFxml("theme/vault/mod/mod_detail.fxml", clazz -> {
       if (clazz == ReviewsController.class) {

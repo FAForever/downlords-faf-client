@@ -16,10 +16,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import java.util.Optional;
+import java.time.OffsetDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,7 +49,6 @@ public class WatchButtonControllerTest extends PlatformTest {
     game = GameBeanBuilder.create().defaultValues().get();
 
     when(liveReplayService.trackingLiveReplayProperty()).thenReturn(trackingLiveReplayProperty);
-    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.ofNullable(trackingLiveReplayProperty.get()));
     when(i18n.get("game.watch")).thenReturn("watch");
 
     loadFxml("theme/vault/replay/watch_button.fxml", clazz -> instance);
@@ -57,6 +57,7 @@ public class WatchButtonControllerTest extends PlatformTest {
   @Test
   public void testRunReplayWhenAvailable() {
     when(liveReplayService.canWatchReplay(game)).thenReturn(true);
+    when(liveReplayService.canWatchReplay(any(OffsetDateTime.class))).thenReturn(true);
 
     setGame(game);
     clickWatchButton();

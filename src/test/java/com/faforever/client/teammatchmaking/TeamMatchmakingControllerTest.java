@@ -50,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -93,26 +94,27 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
 
     matchmakerPrefs.getFactions().setAll(List.of(Faction.SERAPHIM, Faction.AEON));
 
-    when(teamMatchmakingService.getParty()).thenReturn(party);
+    lenient().when(teamMatchmakingService.getParty()).thenReturn(party);
 
-    when(i18n.get(anyString(), any(Object.class))).thenReturn("");
-    when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
+    lenient().when(i18n.get(anyString(), any(Object.class))).thenReturn("");
+    lenient().when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
         CompletableFuture.completedFuture(Optional.empty()));
-    when(teamMatchmakingService.inQueueProperty()).thenReturn(new SimpleBooleanProperty(false));
-    when(teamMatchmakingService.searchingProperty()).thenReturn(new SimpleBooleanProperty());
-    when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(new ReadOnlyBooleanWrapper());
-    when(teamMatchmakingService.partyMembersNotReady()).thenReturn(false);
-    when(teamMatchmakingService.anyQueueSelectedProperty()).thenReturn(new SimpleBooleanProperty().not());
-    when(teamMatchmakingService.isAnyQueueSelected()).thenReturn(false);
-    when(teamMatchmakingService.getQueues()).thenReturn(matchmakerQueues);
-    when(playerService.getCurrentPlayer()).thenReturn(player);
-    when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(player));
-    when(i18n.get(anyString())).thenReturn("");
-    when(i18n.getOrDefault(anyString(), anyString())).thenReturn("");
-    when(i18n.get("teammatchmaking.inPlacement")).thenReturn("In Placement");
-    when(i18n.get(eq("leaderboard.divisionName"), anyString(), anyString())).thenReturn("division V");
-    when(matchmakingChatController.getRoot()).thenReturn(new Tab());
-    when(uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml")).thenAnswer(invocation -> matchmakingChatController);
+    lenient().when(teamMatchmakingService.inQueueProperty()).thenReturn(new SimpleBooleanProperty(false));
+    lenient().when(teamMatchmakingService.searchingProperty()).thenReturn(new SimpleBooleanProperty());
+    lenient().when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(new ReadOnlyBooleanWrapper());
+    lenient().when(teamMatchmakingService.partyMembersNotReady()).thenReturn(false);
+    lenient().when(teamMatchmakingService.anyQueueSelectedProperty()).thenReturn(new SimpleBooleanProperty().not());
+    lenient().when(teamMatchmakingService.isAnyQueueSelected()).thenReturn(false);
+    lenient().when(teamMatchmakingService.getQueues()).thenReturn(matchmakerQueues);
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
+    lenient().when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(player));
+    lenient().when(i18n.get(anyString())).thenReturn("");
+    lenient().when(i18n.getOrDefault(anyString(), anyString())).thenReturn("");
+    lenient().when(i18n.get("teammatchmaking.inPlacement")).thenReturn("In Placement");
+    lenient().when(i18n.get(eq("leaderboard.divisionName"), anyString(), anyString())).thenReturn("division V");
+    lenient().when(matchmakingChatController.getRoot()).thenReturn(new Tab());
+    lenient().when(uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml"))
+             .thenAnswer(invocation -> matchmakingChatController);
 
     loadFxml("theme/play/team_matchmaking.fxml", clazz -> {
       if (clazz == MatchmakingChatController.class) {

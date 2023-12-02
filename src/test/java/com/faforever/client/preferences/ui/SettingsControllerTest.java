@@ -62,6 +62,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -121,15 +122,17 @@ public class SettingsControllerTest extends PlatformTest {
 
     preferences.getData().setBaseDataDirectory(Path.of("."));
 
-    when(themeService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(themeService.getCurrentTheme()).thenReturn(FIRST_THEME);
-    when(themeService.getAvailableThemes()).thenReturn(Arrays.asList(FIRST_THEME, SECOND_THEME));
+    lenient().when(themeService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(themeService.getCurrentTheme()).thenReturn(FIRST_THEME);
+    lenient().when(themeService.getAvailableThemes()).thenReturn(Arrays.asList(FIRST_THEME, SECOND_THEME));
     IceServer coturnServer = new IceServer("0", "Test");
-    when(coturnService.getActiveCoturns()).thenReturn(CompletableFuture.completedFuture(List.of(coturnServer)));
-    when(gameService.isGamePrefsPatchedToAllowMultiInstances()).thenReturn(CompletableFuture.completedFuture(true));
+    lenient().when(coturnService.getActiveCoturns())
+             .thenReturn(CompletableFuture.completedFuture(List.of(coturnServer)));
+    lenient().when(gameService.isGamePrefsPatchedToAllowMultiInstances())
+             .thenReturn(CompletableFuture.completedFuture(true));
 
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
-    when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
+    lenient().when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
 
     loadFxml("theme/settings/settings.fxml", param -> instance);
   }

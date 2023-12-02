@@ -31,6 +31,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -53,7 +54,7 @@ public class ModerationServiceTest extends ServiceTest {
 
     player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
 
-    when(playerService.getCurrentPlayer()).thenReturn(player);
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
   }
 
   @Test

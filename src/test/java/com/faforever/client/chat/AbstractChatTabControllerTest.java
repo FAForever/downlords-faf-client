@@ -92,11 +92,7 @@ public class AbstractChatTabControllerTest extends PlatformTest {
   public void setup() throws Exception {
     when(themeService.getThemeFileUrl(any())).thenReturn(
         getClass().getResource("/" + ThemeService.CHAT_SECTION_EXTENDED));
-    when(timeService.asShortTime(any())).thenReturn("123");
     when(loginService.getUsername()).thenReturn("junit");
-    when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(":uef:|:aeon:"));
-    when(emoticonService.getBase64SvgContentByShortcode(":uef:")).thenReturn("uefBase64Content");
-    when(emoticonService.getBase64SvgContentByShortcode(":aeon:")).thenReturn("aeonBase64Content");
 
     fxApplicationThreadExecutor.executeAndWait(() -> {
       instance = new AbstractChatTabController(loginService, chatService, playerService, timeService, i18n,
@@ -272,6 +268,10 @@ public class AbstractChatTabControllerTest extends PlatformTest {
 
   @Test
   public void testTransformEmoticonShortcodesToImages() {
+    when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(":uef:|:aeon:"));
+    when(emoticonService.getBase64SvgContentByShortcode(":uef:")).thenReturn("uefBase64Content");
+    when(emoticonService.getBase64SvgContentByShortcode(":aeon:")).thenReturn("aeonBase64Content");
+
     String text = ":uef: Hello, world :aeon:";
     assertEquals(
         "<img src=\"data:image/svg+xml;base64,uefBase64Content\" width=\"24\" height=\"24\" /> " + "Hello, world <img src=\"data:image/svg+xml;base64,aeonBase64Content\" width=\"24\" height=\"24\" />",

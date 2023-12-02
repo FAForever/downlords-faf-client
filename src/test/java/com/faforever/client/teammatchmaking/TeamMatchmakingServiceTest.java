@@ -83,7 +83,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -146,25 +146,28 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     MapperSetup.injectMappers(matchmakerMapper);
     player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
     otherPlayer = PlayerBeanBuilder.create().defaultValues().username("junit2").id(2).get();
-    when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(otherPlayer));
-    when(playerService.getPlayerByIdIfOnline(1)).thenReturn(Optional.of(player));
-    when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
-    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
+    lenient().when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(otherPlayer));
+    lenient().when(playerService.getPlayerByIdIfOnline(1)).thenReturn(Optional.of(player));
+    lenient().when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
+    lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
 
-    when(loginService.loggedInProperty()).thenReturn(loggedIn);
-    when(fafServerAccessor.getEvents(MatchmakerInfo.class)).thenReturn(matchmakerInfoTestPublisher.flux());
-    when(fafServerAccessor.getEvents(MatchmakerMatchFoundResponse.class)).thenReturn(matchmakerFoundTestPublisher.flux());
-    when(fafServerAccessor.getEvents(MatchmakerMatchCancelledResponse.class)).thenReturn(matchmakerCancelledTestPublisher.flux());
-    when(fafServerAccessor.getEvents(PartyInvite.class)).thenReturn(inviteTestPublisher.flux());
-    when(fafServerAccessor.getEvents(PartyKick.class)).thenReturn(kickTestPublisher.flux());
-    when(fafServerAccessor.getEvents(PartyInfo.class)).thenReturn(partyInfoTestPublisher.flux());
-    when(fafServerAccessor.getEvents(SearchInfo.class)).thenReturn(searchInfoTestPublisher.flux());
-    when(fafServerAccessor.getEvents(GameLaunchResponse.class)).thenReturn(gameLaunchResponseTestPublisher.flux());
-    when(fafServerAccessor.connectionStateProperty()).thenReturn(connectionState);
+    lenient().when(loginService.loggedInProperty()).thenReturn(loggedIn);
+    lenient().when(fafServerAccessor.getEvents(MatchmakerInfo.class)).thenReturn(matchmakerInfoTestPublisher.flux());
+    lenient().when(fafServerAccessor.getEvents(MatchmakerMatchFoundResponse.class))
+             .thenReturn(matchmakerFoundTestPublisher.flux());
+    lenient().when(fafServerAccessor.getEvents(MatchmakerMatchCancelledResponse.class))
+             .thenReturn(matchmakerCancelledTestPublisher.flux());
+    lenient().when(fafServerAccessor.getEvents(PartyInvite.class)).thenReturn(inviteTestPublisher.flux());
+    lenient().when(fafServerAccessor.getEvents(PartyKick.class)).thenReturn(kickTestPublisher.flux());
+    lenient().when(fafServerAccessor.getEvents(PartyInfo.class)).thenReturn(partyInfoTestPublisher.flux());
+    lenient().when(fafServerAccessor.getEvents(SearchInfo.class)).thenReturn(searchInfoTestPublisher.flux());
+    lenient().when(fafServerAccessor.getEvents(GameLaunchResponse.class))
+             .thenReturn(gameLaunchResponseTestPublisher.flux());
+    lenient().when(fafServerAccessor.connectionStateProperty()).thenReturn(connectionState);
 
-    when(preferencesService.isValidGamePath()).thenReturn(true);
-    when(playerService.getCurrentPlayer()).thenReturn(player);
-    doAnswer(invocation -> {
+    lenient().when(preferencesService.isValidGamePath()).thenReturn(true);
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
+    lenient().doAnswer(invocation -> {
       Runnable runnable = invocation.getArgument(0);
       runnable.run();
       return null;
@@ -488,7 +491,6 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
 
-    when(mapService.downloadAllMatchmakerMaps(any())).thenReturn(CompletableFuture.completedFuture(null));
     when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
     when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
@@ -508,7 +510,6 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
 
-    when(mapService.downloadAllMatchmakerMaps(any())).thenReturn(CompletableFuture.completedFuture(null));
     when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
     when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
@@ -527,10 +528,6 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     instance.getParty().setOwner(null);
 
     matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
-
-    when(mapService.downloadAllMatchmakerMaps(any())).thenReturn(CompletableFuture.completedFuture(null));
-    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
-    when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
     Boolean success = instance.joinQueues().join();
 
@@ -561,7 +558,6 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Test
   public void testJoinQueuesFailed() {
     MatchmakerQueueBean queue = new MatchmakerQueueBean();
-    when(mapService.downloadAllMatchmakerMaps(queue)).thenReturn(CompletableFuture.completedFuture(null));
     when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
     when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.failedFuture(new Exception()));
 
@@ -589,8 +585,6 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     instance.setSearching(true);
 
     when(mapService.downloadAllMatchmakerMaps(any())).thenReturn(CompletableFuture.completedFuture(null));
-    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
-    when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
     SearchInfo message1 = new SearchInfo("queue1", MatchmakerState.START);
     SearchInfo message2 = new SearchInfo("queue2", MatchmakerState.START);

@@ -19,7 +19,6 @@ import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
-import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -41,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -76,12 +76,10 @@ public class CoopControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(coopService.getLeaderboard(any(), anyInt())).thenReturn(completedFuture(emptyList()));
-    when(coopService.getMissions()).thenReturn(completedFuture(emptyList()));
-    when(modService.getFeaturedMod(COOP.getTechnicalName())).thenReturn(Mono.just(FeaturedModBeanBuilder.create().defaultValues().technicalName("coop").get()));
-    when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
-    when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
-    when(gamesTableController.getRoot()).thenReturn(new Pane());
+    lenient().when(coopService.getLeaderboard(any(), anyInt())).thenReturn(completedFuture(emptyList()));
+    lenient().when(coopService.getMissions()).thenReturn(completedFuture(emptyList()));
+    lenient().when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
+    lenient().when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
 
     loadFxml("theme/play/coop/coop.fxml", clazz -> {
       if (GamesTableController.class == clazz) {
@@ -100,6 +98,10 @@ public class CoopControllerTest extends PlatformTest {
 
   @Test
   public void onPlayButtonClicked() {
+    when(modService.getFeaturedMod(COOP.getTechnicalName())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
+        .defaultValues()
+        .technicalName("coop")
+        .get()));
     when(coopService.getMissions()).thenReturn(completedFuture(singletonList(new CoopMissionBean())));
     runOnFxThreadAndWait(() -> reinitialize(instance));
 

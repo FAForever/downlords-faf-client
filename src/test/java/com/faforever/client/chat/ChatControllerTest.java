@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -62,11 +63,11 @@ public class ChatControllerTest extends PlatformTest {
   public void setUp() throws Exception {
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
 
-    when(uiService.loadFxml("theme/chat/private_chat_tab.fxml")).thenReturn(privateChatTabController);
-    when(uiService.loadFxml("theme/chat/channel_tab.fxml")).thenReturn(channelTabController);
-    when(loginService.getUsername()).thenReturn(TEST_USER_NAME);
-    when(loginService.getOwnUser()).thenReturn(new MeResult());
-    when(chatService.connectionStateProperty()).thenReturn(connectionState);
+    lenient().when(uiService.loadFxml("theme/chat/private_chat_tab.fxml")).thenReturn(privateChatTabController);
+    lenient().when(uiService.loadFxml("theme/chat/channel_tab.fxml")).thenReturn(channelTabController);
+    lenient().when(loginService.getUsername()).thenReturn(TEST_USER_NAME);
+    lenient().when(loginService.getOwnUser()).thenReturn(new MeResult());
+    lenient().when(chatService.connectionStateProperty()).thenReturn(connectionState);
 
     loadFxml("theme/chat/chat.fxml", clazz -> instance);
 

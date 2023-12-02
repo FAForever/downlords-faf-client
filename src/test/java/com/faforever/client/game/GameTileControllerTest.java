@@ -37,6 +37,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -74,12 +75,12 @@ public class GameTileControllerTest extends PlatformTest {
 
     game = GameBeanBuilder.create().defaultValues().get();
 
-    when(i18n.get(anyString())).thenReturn("test");
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(
+    lenient().when(i18n.get(anyString())).thenReturn("test");
+    lenient().when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(
         Mono.just(FeaturedModBeanBuilder.create().defaultValues().get()));
-    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
-    when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
-    when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(
+    lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
+    lenient().when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
+    lenient().when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(
         invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
 
     loadFxml("theme/play/game_card.fxml", clazz -> instance);

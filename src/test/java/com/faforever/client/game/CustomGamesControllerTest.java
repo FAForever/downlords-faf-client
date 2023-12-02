@@ -20,6 +20,7 @@ import org.mockito.Spy;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -58,28 +59,24 @@ public class CustomGamesControllerTest extends PlatformTest {
     preferences.setGamesViewMode("tableButton");
     preferences.setShowGameDetailsSidePane(true);
 
-    when(gameService.getGames()).thenReturn(games);
-    when(gameService.gameRunningProperty()).thenReturn(new SimpleBooleanProperty());
-    when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
-    when(uiService.loadFxml("theme/play/games_tiles_container.fxml")).thenReturn(gamesTilesContainerController);
-    when(gameDetailController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(gamesTilesContainerController.getRoot()).thenReturn(new Pane());
-    when(gamesTableController.getRoot()).thenReturn(new Pane());
-    when(gamesTableController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(gamesTilesContainerController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(uiService.loadFxml("theme/filter/filter.fxml", CustomGamesFilterController.class)).thenReturn(customGamesFilterController);
-    when(customGamesFilterController.filterActiveProperty()).thenReturn(new SimpleBooleanProperty());
-    when(customGamesFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
-    when(gamesTilesContainerController.sortingOrderProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(gameDetailController.getRoot()).thenReturn(new Pane());
+    lenient().when(gameService.getGames()).thenReturn(games);
+    lenient().when(gameService.gameRunningProperty()).thenReturn(new SimpleBooleanProperty());
+    lenient().when(gameDetailController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(gamesTilesContainerController.getRoot()).thenReturn(new Pane());
+    lenient().when(gamesTableController.getRoot()).thenReturn(new Pane());
+    lenient().when(gamesTableController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(uiService.loadFxml("theme/filter/filter.fxml", CustomGamesFilterController.class))
+             .thenReturn(customGamesFilterController);
+    lenient().when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
+    lenient().when(uiService.loadFxml("theme/play/games_tiles_container.fxml"))
+             .thenReturn(gamesTilesContainerController);
+    lenient().when(customGamesFilterController.filterActiveProperty()).thenReturn(new SimpleBooleanProperty());
+    lenient().when(customGamesFilterController.predicateProperty())
+             .thenReturn(new SimpleObjectProperty<>(item -> true));
+    lenient().when(gamesTilesContainerController.sortingOrderProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(gameDetailController.getRoot()).thenReturn(new Pane());
 
     loadFxml("theme/play/custom_games.fxml", clazz -> {
-      if (clazz == GamesTableController.class) {
-        return gamesTableController;
-      }
-      if (clazz == GamesTilesContainerController.class) {
-        return gamesTilesContainerController;
-      }
       if (clazz == GameDetailController.class) {
         return gameDetailController;
       }
@@ -108,6 +105,8 @@ public class CustomGamesControllerTest extends PlatformTest {
 
   @Test
   public void testDisplayTiles() {
+    when(gamesTilesContainerController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
+
     runOnFxThreadAndWait(() -> instance.tilesButton.fire());
     verify(gamesTilesContainerController).createTiledFlowPane(games);
   }

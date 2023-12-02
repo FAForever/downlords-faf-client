@@ -82,6 +82,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -176,51 +177,36 @@ public class KittehChatServiceTest extends ServiceTest {
 
     chatPrefs.setChatColorMode(DEFAULT);
 
-    when(loginService.getUsername()).thenReturn(CHAT_USER_NAME);
-    when(loginService.getOwnPlayer()).thenReturn(new Player(0, CHAT_USER_NAME, null, null, "", Map.of(), Map.of()));
-    when(loginService.loggedInProperty()).thenReturn(loggedIn);
-    when(defaultChannel.getClient()).thenReturn(realClient);
-    when(defaultChannel.getName()).thenReturn(DEFAULT_CHANNEL_NAME);
-    when(otherChannel.getClient()).thenReturn(realClient);
-    when(otherChannel.getName()).thenReturn(OTHER_CHANNEL_NAME);
+    lenient().when(loginService.getUsername()).thenReturn(CHAT_USER_NAME);
+    lenient().when(loginService.getOwnPlayer())
+             .thenReturn(new Player(0, CHAT_USER_NAME, null, null, "", Map.of(), Map.of()));
+    lenient().when(loginService.loggedInProperty()).thenReturn(loggedIn);
+    lenient().when(defaultChannel.getClient()).thenReturn(realClient);
+    lenient().when(defaultChannel.getName()).thenReturn(DEFAULT_CHANNEL_NAME);
 
     Character userPrefix = '+';
 
-    when(user1.getClient()).thenReturn(realClient);
-    when(user1.getNick()).thenReturn("user1");
-    when(user1Mode.getNickPrefix()).thenReturn(userPrefix);
-    when(defaultChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix))
-        .add(user1Mode)
-        .build()));
-    when(otherChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix))
+    lenient().when(user1.getClient()).thenReturn(realClient);
+    lenient().when(user1.getNick()).thenReturn("user1");
+    lenient().when(defaultChannel.getUserModes(user1))
+             .thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix))
         .add(user1Mode)
         .build()));
 
-    when(user2.getClient()).thenReturn(realClient);
-    when(user2.getNick()).thenReturn("user2");
-    when(user2Mode.getNickPrefix()).thenReturn(userPrefix);
-    when(defaultChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix))
+    lenient().when(user2.getClient()).thenReturn(realClient);
+    lenient().when(user2.getNick()).thenReturn("user2");
+    lenient().when(user2Mode.getNickPrefix()).thenReturn(userPrefix);
+    lenient().when(defaultChannel.getUserModes(user1))
+        .thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix))
         .add(user2Mode)
-        .build()));
-    when(otherChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix))
-        .add(user1Mode)
         .build()));
 
     player1 = PlayerBeanBuilder.create().defaultValues().get();
-    when(playerService.getPlayerByNameIfOnline(user1.getNick())).thenReturn(Optional.of(player1));
-    when(playerService.getPlayerByNameIfOnline(user2.getNick())).thenReturn(Optional.empty());
+    lenient().when(playerService.getPlayerByNameIfOnline(user1.getNick())).thenReturn(Optional.of(player1));
+    lenient().when(playerService.getPlayerByNameIfOnline(user2.getNick())).thenReturn(Optional.empty());
 
-    when(spyClient.getChannel(DEFAULT_CHANNEL_NAME)).thenReturn(Optional.of(defaultChannel));
-    when(spyClient.getChannel(OTHER_CHANNEL_NAME)).thenReturn(Optional.of(otherChannel));
-    when(defaultChannel.getUser(user1.getNick())).thenReturn(Optional.of(user1));
-    when(otherChannel.getUser(user1.getNick())).thenReturn(Optional.of(user1));
-    when(defaultChannel.getUser(user2.getNick())).thenReturn(Optional.of(user2));
-
-    doAnswer(invocation -> {
-      Runnable runnable = invocation.getArgument(0);
-      runnable.run();
-      return null;
-    }).when(fxApplicationThreadExecutor).execute(any());
+    lenient().when(spyClient.getChannel(DEFAULT_CHANNEL_NAME)).thenReturn(Optional.of(defaultChannel));
+    lenient().when(defaultChannel.getUser(user1.getNick())).thenReturn(Optional.of(user1));
 
     instance.afterPropertiesSet();
 
@@ -384,6 +370,12 @@ public class KittehChatServiceTest extends ServiceTest {
 
   @Test
   public void testOnPlayerOnline() {
+    doAnswer(invocation -> {
+      Runnable runnable = invocation.getArgument(0);
+      runnable.run();
+      return null;
+    }).when(fxApplicationThreadExecutor).execute(any());
+
     connect();
 
     join(defaultChannel, user2);
@@ -437,6 +429,13 @@ public class KittehChatServiceTest extends ServiceTest {
 
   @Test
   public void testOnChatUserQuit() {
+    when(otherChannel.getClient()).thenReturn(realClient);
+    when(otherChannel.getName()).thenReturn(OTHER_CHANNEL_NAME);
+    when(user1Mode.getNickPrefix()).thenReturn('+');
+    when(otherChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix))
+        .add(user1Mode)
+        .build()));
+
     ChatChannel chatChannel1 = instance.getOrCreateChannel(defaultChannel.getName());
     ChatChannel chatChannel2 = instance.getOrCreateChannel(otherChannel.getName());
     assertThat(chatChannel1.getUsers(), empty());
@@ -520,10 +519,6 @@ public class KittehChatServiceTest extends ServiceTest {
   @Test
   public void testChatMessageEventTriggeredByPrivateMessage() throws Exception {
     CompletableFuture<ChatMessage> chatMessageFuture = new CompletableFuture<>();
-
-    Channel privateChannel = mock(Channel.class);
-    when(spyClient.getChannel(user1.getNick())).thenReturn(Optional.of(privateChannel));
-    when(privateChannel.getUser(user1.getNick())).thenReturn(Optional.of(user1));
 
     String message = "private message";
 
@@ -640,6 +635,20 @@ public class KittehChatServiceTest extends ServiceTest {
 
   @Test
   public void testGetChatUsersForChannelTwoUsersInDifferentChannels() {
+    when(otherChannel.getClient()).thenReturn(realClient);
+    when(otherChannel.getName()).thenReturn(OTHER_CHANNEL_NAME);
+    when(otherChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix))
+        .add(user1Mode)
+        .build()));
+    when(spyClient.getChannel(OTHER_CHANNEL_NAME)).thenReturn(Optional.of(otherChannel));
+    when(otherChannel.getUser(user1.getNick())).thenReturn(Optional.of(user1));
+    when(defaultChannel.getUser(user2.getNick())).thenReturn(Optional.of(user2));
+    doAnswer(invocation -> {
+      Runnable runnable = invocation.getArgument(0);
+      runnable.run();
+      return null;
+    }).when(fxApplicationThreadExecutor).execute(any());
+
     connect();
     join(defaultChannel, user1);
     join(otherChannel, user2);

@@ -97,8 +97,8 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -180,17 +180,17 @@ public class GameServiceTest extends ServiceTest {
     MapperSetup.injectMappers(gameMapper);
     junitPlayer = PlayerBeanBuilder.create().defaultValues().get();
 
-    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
-    when(fafServerAccessor.getEvents(GameInfo.class)).thenReturn(testGamePublisher.flux());
-    when(fafServerAccessor.getEvents(NoticeInfo.class)).thenReturn(testNoticePublisher.flux());
-    when(coturnService.getSelectedCoturns(anyInt())).thenReturn(completedFuture(List.of()));
-    when(preferencesService.isValidGamePath()).thenReturn(true);
-    when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(replayServer.start(anyInt(), any())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
-    when(iceAdapter.start(anyInt())).thenReturn(completedFuture(GPG_PORT));
-    when(playerService.getCurrentPlayer()).thenReturn(junitPlayer);
+    lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
+    lenient().when(fafServerAccessor.getEvents(GameInfo.class)).thenReturn(testGamePublisher.flux());
+    lenient().when(fafServerAccessor.getEvents(NoticeInfo.class)).thenReturn(testNoticePublisher.flux());
+    lenient().when(coturnService.getSelectedCoturns(anyInt())).thenReturn(completedFuture(List.of()));
+    lenient().when(preferencesService.isValidGamePath()).thenReturn(true);
+    lenient().when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(replayServer.start(anyInt(), any())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
+    lenient().when(iceAdapter.start(anyInt())).thenReturn(completedFuture(GPG_PORT));
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(junitPlayer);
 
-    doAnswer(invocation -> {
+    lenient().doAnswer(invocation -> {
       try {
         ((Runnable) invocation.getArgument(0)).run();
       } catch (Exception e) {
@@ -208,7 +208,7 @@ public class GameServiceTest extends ServiceTest {
   private void mockStartGameProcess(GameParameters gameParameters) throws IOException {
     gameParameters.setLocalGpgPort(GPG_PORT);
     gameParameters.setLocalReplayPort(LOCAL_REPLAY_PORT);
-    when(forgedAllianceService.startGameOnline(gameParameters)
+    lenient().when(forgedAllianceService.startGameOnline(gameParameters)
     ).thenReturn(process);
   }
 
@@ -283,12 +283,10 @@ public class GameServiceTest extends ServiceTest {
     when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
         .get()));
-    when(process.isAlive()).thenReturn(false);
 
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
     future.join();
     mockStartReplayProcess(replayPath, replayId);
-    when(process.isAlive()).thenReturn(true);
     future = instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
     future.join();
 
@@ -313,12 +311,10 @@ public class GameServiceTest extends ServiceTest {
     when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
         .get()));
-    when(process.isAlive()).thenReturn(false);
 
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
     future.join();
     mockStartLiveReplayProcess(replayUrl, gameId);
-    when(process.isAlive()).thenReturn(true);
     future = instance.runWithLiveReplay(replayUrl, gameId, "faf", "map");
     future.join();
 
@@ -844,7 +840,6 @@ public class GameServiceTest extends ServiceTest {
         .thenReturn(Mono.just(FeaturedModBeanBuilder.create().defaultValues().get()));
     when(process.isAlive()).thenReturn(false);
     when(process.onExit()).thenReturn(new CompletableFuture<>());
-    when(process.exitValue()).thenReturn(1);
     Map<String, String> gameOptions = new LinkedHashMap<>();
     gameOptions.put("Share", "ShareUntilDeath");
     gameOptions.put("UnitCap", "500");
@@ -873,9 +868,6 @@ public class GameServiceTest extends ServiceTest {
     when(preferencesService.isValidGamePath()).thenReturn(true);
     when(modService.getFeaturedMod(FAF.getTechnicalName()))
         .thenReturn(Mono.just(FeaturedModBeanBuilder.create().defaultValues().get()));
-    when(process.isAlive()).thenReturn(false);
-    when(process.onExit()).thenReturn(new CompletableFuture<>());
-    when(process.exitValue()).thenReturn(1);
     Map<String, String> gameOptions = new LinkedHashMap<>();
     gameOptions.put("Share", "ShareUntilDeath");
     gameOptions.put("UnitCap", "500");

@@ -45,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -90,15 +91,21 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
     leaderboard = LeaderboardBeanBuilder.create().defaultValues().get();
     player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
 
-    when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey())).thenReturn(leaderboard.getTechnicalName());
-    when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
-    when(achievementItemController.getRoot()).thenReturn(new HBox());
-    when(uiService.loadFxml("theme/chat/player_rating_chart_tooltip.fxml")).thenReturn(playerRatingChartTooltipController);
-    when(playerRatingChartTooltipController.getRoot()).thenReturn(new Pane());
-    when(playerService.getPlayerNames(any())).thenReturn(CompletableFuture.completedFuture(List.of()));
-    when(leaderboardService.getLeaderboards()).thenReturn(CompletableFuture.completedFuture(List.of(leaderboard)));
-    when(leaderboardService.getEntriesForPlayer(eq(player))).thenReturn(CompletableFuture.completedFuture(List.of(LeaderboardEntryBeanBuilder.create().defaultValues().get())));
-    when(statisticsService.getRatingHistory(eq(player), any())).thenReturn(CompletableFuture.completedFuture(asList(
+    lenient().when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()))
+             .thenReturn(leaderboard.getTechnicalName());
+    lenient().when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
+    lenient().when(achievementItemController.getRoot()).thenReturn(new HBox());
+    lenient().when(uiService.loadFxml("theme/chat/player_rating_chart_tooltip.fxml"))
+             .thenReturn(playerRatingChartTooltipController);
+    lenient().when(playerRatingChartTooltipController.getRoot()).thenReturn(new Pane());
+    lenient().when(playerService.getPlayerNames(any())).thenReturn(CompletableFuture.completedFuture(List.of()));
+    lenient().when(leaderboardService.getLeaderboards())
+             .thenReturn(CompletableFuture.completedFuture(List.of(leaderboard)));
+    lenient().when(leaderboardService.getEntriesForPlayer(eq(player)))
+             .thenReturn(CompletableFuture.completedFuture(
+                 List.of(LeaderboardEntryBeanBuilder.create().defaultValues().get())));
+    lenient().when(statisticsService.getRatingHistory(eq(player), any()))
+             .thenReturn(CompletableFuture.completedFuture(asList(
         LeaderboardRatingJournalBeanBuilder.create().defaultValues().createTime(OffsetDateTime.now()).meanBefore(1500d).deviationBefore(50d).get(),
         LeaderboardRatingJournalBeanBuilder.create().defaultValues().createTime(OffsetDateTime.now().plusDays(1)).meanBefore(1500d).deviationBefore(50d).get()
     )));

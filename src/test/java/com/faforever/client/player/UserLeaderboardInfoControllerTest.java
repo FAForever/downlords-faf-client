@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 public class UserLeaderboardInfoControllerTest extends PlatformTest {
@@ -44,7 +45,8 @@ public class UserLeaderboardInfoControllerTest extends PlatformTest {
     leaderboard = LeaderboardBeanBuilder.create().defaultValues().technicalName("1v1").get();
     player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
 
-    when(leaderboardService.loadDivisionImage(any())).thenReturn(new Image("https://content.faforever.com/divisions/icons/unranked.png"));
+    lenient().when(leaderboardService.loadDivisionImage(any()))
+             .thenReturn(new Image("https://content.faforever.com/divisions/icons/unranked.png"));
 
     loadFxml("theme/user_leaderboard_info.fxml", clazz -> instance);
   }

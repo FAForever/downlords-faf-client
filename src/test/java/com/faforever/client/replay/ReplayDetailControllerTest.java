@@ -65,6 +65,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -137,36 +138,40 @@ public class ReplayDetailControllerTest extends PlatformTest {
         .replayFile(Path.of("foo.tmp"))
         .get();
 
-    when(i18n.get("game.notRatedYet")).thenReturn("not rated yet");
-    when(replayService.loadReplayDetails(any())).thenReturn(new ReplayDetails(List.of(), List.of(), mapBean));
-    when(mapService.isInstalledBinding(Mockito.<MapVersionBean>any())).thenReturn(installed);
-    when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
-    when(reviewService.getReplayReviews(any())).thenReturn(Flux.empty());
-    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
+    lenient().when(i18n.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+    lenient().when(replayService.loadReplayDetails(any())).thenReturn(new ReplayDetails(List.of(), List.of(), mapBean));
+    lenient().when(mapService.isInstalledBinding(Mockito.<MapVersionBean>any())).thenReturn(installed);
+    lenient().when(imageViewHelper.createPlaceholderImageOnErrorObservable(any()))
+             .thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
+    lenient().when(reviewService.getReplayReviews(any())).thenReturn(Flux.empty());
+    lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
 
-    when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(currentPlayer));
-    when(reviewsController.getRoot()).thenReturn(new Pane());
-    when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE))).thenReturn(new Image(InputStream.nullInputStream()));
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
-    when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(List.of(PlayerBeanBuilder.create()
+    lenient().when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(currentPlayer));
+    lenient().when(reviewsController.getRoot()).thenReturn(new Pane());
+    lenient().when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE)))
+             .thenReturn(new Image(InputStream.nullInputStream()));
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
+    lenient().when(playerService.getPlayersByIds(any()))
+             .thenReturn(CompletableFuture.completedFuture(List.of(PlayerBeanBuilder.create()
         .defaultValues()
         .get())));
-    when(replayService.getFileSize(onlineReplay)).thenReturn(CompletableFuture.completedFuture(12));
-    when(replayService.replayChangedRating(onlineReplay)).thenReturn(true);
-    when(timeService.asDate(onlineReplay.getStartTime())).thenReturn("Min Date");
-    when(timeService.asShortTime(onlineReplay.getStartTime())).thenReturn("Min Time");
-    when(timeService.asDate(localReplay.getStartTime())).thenReturn("Min Date");
-    when(timeService.asShortTime(localReplay.getStartTime())).thenReturn("Min Time");
-    when(timeService.shortDuration(any(Duration.class))).thenReturn("Forever");
-    when(i18n.get("game.onUnknownMap")).thenReturn("unknown map");
-    when(i18n.get("unknown")).thenReturn("unknown");
-    when(i18n.number(anyInt())).thenReturn("1234");
-    when(i18n.get("game.idFormat", onlineReplay.getId())).thenReturn(String.valueOf(onlineReplay.getId()));
-    when(i18n.get("game.onMapFormat", mapBean.getMap().getDisplayName())).thenReturn(mapBean.getMap().getDisplayName());
-    when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
-    when(teamCardController.getRoot()).thenReturn(new HBox());
-    when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
-    when(reportDialogController.getRoot()).thenReturn(new Pane());
+    lenient().when(replayService.getFileSize(onlineReplay)).thenReturn(CompletableFuture.completedFuture(12));
+    lenient().when(replayService.replayChangedRating(onlineReplay)).thenReturn(true);
+    lenient().when(timeService.asDate(onlineReplay.getStartTime())).thenReturn("Min Date");
+    lenient().when(timeService.asShortTime(onlineReplay.getStartTime())).thenReturn("Min Time");
+    lenient().when(timeService.asDate(localReplay.getStartTime())).thenReturn("Min Date");
+    lenient().when(timeService.asShortTime(localReplay.getStartTime())).thenReturn("Min Time");
+    lenient().when(timeService.shortDuration(any(Duration.class))).thenReturn("Forever");
+    lenient().when(i18n.get("game.onUnknownMap")).thenReturn("unknown map");
+    lenient().when(i18n.get("unknown")).thenReturn("unknown");
+    lenient().when(i18n.number(anyInt())).thenReturn("1234");
+    lenient().when(i18n.get("game.idFormat", onlineReplay.getId())).thenReturn(String.valueOf(onlineReplay.getId()));
+    lenient().when(i18n.get("game.onMapFormat", mapBean.getMap().getDisplayName()))
+             .thenReturn(mapBean.getMap().getDisplayName());
+    lenient().when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
+    lenient().when(teamCardController.getRoot()).thenReturn(new HBox());
+    lenient().when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
+    lenient().when(reportDialogController.getRoot()).thenReturn(new Pane());
 
     loadFxml("theme/vault/replay/replay_detail.fxml", param -> {
       if (param == ReviewsController.class) {
@@ -187,7 +192,6 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void setReplayOnline() {
-    when(replayService.getFileSize(onlineReplay)).thenReturn(CompletableFuture.completedFuture(1024));
     when(ratingService.calculateQuality(onlineReplay)).thenReturn(0.427);
     when(i18n.get(eq("percentage"), eq(Math.round(0.427 * 100)))).thenReturn("42");
 
@@ -218,7 +222,6 @@ public class ReplayDetailControllerTest extends PlatformTest {
   @Test
   public void setReplayLocal() throws Exception {
     when(replayService.loadReplayDetails(any())).thenReturn(new ReplayDetails(localReplay.getChatMessages(), localReplay.getGameOptions(), mapBean));
-    when(ratingService.calculateQuality(localReplay)).thenReturn(Double.NaN);
 
     runOnFxThreadAndWait(() -> instance.setReplay(localReplay));
 
@@ -288,13 +291,12 @@ public class ReplayDetailControllerTest extends PlatformTest {
   @Test
   public void setReplayNoRatingChange() {
     onlineReplay.setValidity(null);
-    when(replayService.replayChangedRating(onlineReplay)).thenReturn(false);
 
     runOnFxThreadAndWait(() -> instance.setReplay(onlineReplay));
 
     assertFalse(instance.showRatingChangeButton.isVisible());
     assertTrue(instance.notRatedReasonLabel.isVisible());
-    assertEquals("not rated yet", instance.notRatedReasonLabel.getText());
+    assertEquals("game.notRatedYet", instance.notRatedReasonLabel.getText());
   }
 
   @Test
@@ -304,8 +306,6 @@ public class ReplayDetailControllerTest extends PlatformTest {
         .teamPlayerStats(FXCollections.observableMap(PlayerStatsMapBuilder.create().defaultValues().get()))
         .get();
 
-    when(replayService.getFileSize(replay)).thenReturn(CompletableFuture.completedFuture(1024));
-    when(ratingService.calculateQuality(replay)).thenReturn(0.427);
     when(i18n.getOrDefault(replay.getValidity().toString(), "game.reasonNotValid", i18n.get(replay.getValidity()
         .getI18nKey()))).thenReturn("Reason: HAS_AI");
 
@@ -318,7 +318,6 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void tickTimeDisplayed() {
-    when(replayService.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
     when(timeService.shortDuration(any())).thenReturn("16min 40s");
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().replayTicks(10_000).get();
 
@@ -332,7 +331,6 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void onDownloadMoreInfoClicked() throws Exception {
-    when(replayService.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
     ReplayReviewBean review = ReplayReviewBeanBuilder.create()
         .defaultValues()

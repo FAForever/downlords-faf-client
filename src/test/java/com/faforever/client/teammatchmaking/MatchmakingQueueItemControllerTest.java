@@ -26,7 +26,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -34,6 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -66,21 +66,24 @@ public class MatchmakingQueueItemControllerTest extends PlatformTest {
     queue = MatchmakerQueueBeanBuilder.create().defaultValues().get();
     party = PartyBuilder.create().defaultValues().get();
     player = party.getOwner();
-    when(teamMatchmakingService.getParty()).thenReturn(party);
-    when(i18n.getOrDefault(eq(queue.getTechnicalName()), anyString())).thenReturn(queue.getTechnicalName());
-    when(i18n.get(anyString())).thenReturn("");
-    when(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())).thenReturn(String.valueOf(queue.getPlayersInQueue()));
-    when(i18n.get("teammatchmaking.activeGames", queue.getActiveGames())).thenReturn(String.valueOf(queue.getActiveGames()));
-    when(playerService.getCurrentPlayer()).thenReturn(player);
-    when(playerService.currentPlayerProperty()).thenReturn(new ReadOnlyObjectWrapper<>(player));
+    lenient().when(teamMatchmakingService.getParty()).thenReturn(party);
+    lenient().when(i18n.getOrDefault(eq(queue.getTechnicalName()), anyString())).thenReturn(queue.getTechnicalName());
+    lenient().when(i18n.get(anyString())).thenReturn("");
+    lenient().when(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()))
+             .thenReturn(String.valueOf(queue.getPlayersInQueue()));
+    lenient().when(i18n.get("teammatchmaking.activeGames", queue.getActiveGames()))
+             .thenReturn(String.valueOf(queue.getActiveGames()));
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
+    lenient().when(playerService.currentPlayerProperty()).thenReturn(new ReadOnlyObjectWrapper<>(player));
     Player ownPlayer = new Player(0, "junit", null, null, "us", null, Map.of());
-    when(loginService.getOwnPlayer()).thenReturn(ownPlayer);
-    when(loginService.ownPlayerProperty()).thenReturn(new SimpleObjectProperty<>(ownPlayer));
-    when(loginService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
-    when(loginService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
+    lenient().when(loginService.getOwnPlayer()).thenReturn(ownPlayer);
+    lenient().when(loginService.ownPlayerProperty()).thenReturn(new SimpleObjectProperty<>(ownPlayer));
+    lenient().when(loginService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
+    lenient().when(loginService.connectionStateProperty())
+             .thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
 
-    when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(partyMembersNotReadyProperty);
-    when(teamMatchmakingService.partyMembersNotReady()).thenReturn(partyMembersNotReadyProperty.get());
+    lenient().when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(partyMembersNotReadyProperty);
+    lenient().when(teamMatchmakingService.partyMembersNotReady()).thenReturn(partyMembersNotReadyProperty.get());
     loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml", clazz -> instance);
     runOnFxThreadAndWait(() -> {
       instance.setQueue(queue);
@@ -101,8 +104,6 @@ public class MatchmakingQueueItemControllerTest extends PlatformTest {
 
   @Test
   public void testOnJoinLeaveQueueButtonClicked() {
-    when(teamMatchmakingService.joinQueues()).thenReturn(CompletableFuture.completedFuture(true));
-
     runOnFxThreadAndWait(() -> instance.selectButton.fire());
 
     assertThat(instance.getQueue().isSelected(), is(true));
@@ -199,7 +200,6 @@ public class MatchmakingQueueItemControllerTest extends PlatformTest {
   public void testMembersNotReadyListener() {
     assertThat(instance.selectButton.isDisabled(), is(false));
 
-    when(teamMatchmakingService.partyMembersNotReady()).thenReturn(true);
     runOnFxThreadAndWait(() -> partyMembersNotReadyProperty.set(true));
     assertThat(instance.selectButton.isDisabled(), is(true));
   }
