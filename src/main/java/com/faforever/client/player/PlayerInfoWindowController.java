@@ -466,7 +466,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
     xAxis.setTickLabelFormatter(ratingLabelFormatter());
     if (!values.isEmpty()) {
       xAxis.setLowerBound(values.getFirst().getXValue().doubleValue());
-      xAxis.setUpperBound(values.get(values.size() - 1).getXValue().doubleValue());
+      xAxis.setUpperBound(values.getLast().getXValue().doubleValue());
     }
     xAxis.setTickUnit((xAxis.getUpperBound() - xAxis.getLowerBound()) / 10);
 
