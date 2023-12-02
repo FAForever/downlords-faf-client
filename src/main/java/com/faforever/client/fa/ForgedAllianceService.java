@@ -156,10 +156,6 @@ public class ForgedAllianceService {
     log.info("Starting Forged Alliance with command: {} in directory: {}", processBuilder.command(), executeDirectory);
 
     Process process = processBuilder.start();
-    if (forgedAlliancePrefs.isChangeProcessPriority()) {
-      log.info("Increasing process priority");
-      operatingSystem.increaseProcessPriority(process);
-    }
     return process;
   }
 }
