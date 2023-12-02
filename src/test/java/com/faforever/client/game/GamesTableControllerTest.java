@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 public class GamesTableControllerTest extends PlatformTest {
 
@@ -57,12 +57,13 @@ public class GamesTableControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);
-    when(gameTooltipController.getRoot()).thenReturn(new Pane());
-    when(i18n.get(any())).then(invocation -> invocation.getArguments()[0]);
-    when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
-    when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
-    when(playerService.getAverageRatingPropertyForGame(any())).thenReturn(new SimpleObjectProperty<>(0d));
+    lenient().when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);
+    lenient().when(gameTooltipController.getRoot()).thenReturn(new Pane());
+    lenient().when(i18n.get(any())).then(invocation -> invocation.getArguments()[0]);
+    lenient().when(imageViewHelper.createPlaceholderImageOnErrorObservable(any()))
+             .thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
+    lenient().when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
+    lenient().when(playerService.getAverageRatingPropertyForGame(any())).thenReturn(new SimpleObjectProperty<>(0d));
 
     loadFxml("theme/play/games_table.fxml", clazz -> {
       if (clazz == GameTooltipController.class) {

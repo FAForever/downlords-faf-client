@@ -35,8 +35,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 public class MapCardControllerTest extends PlatformTest {
@@ -73,11 +75,13 @@ public class MapCardControllerTest extends PlatformTest {
     doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
         .createPlaceholderImageOnErrorObservable(any());
 
-    when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
-    when(mapService.isInstalledBinding(Mockito.<ObservableValue<MapVersionBean>>any())).thenReturn(installed);
-    when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
-    when(mapService.downloadAndInstallMap(any(), isNull(), isNull())).thenReturn(CompletableFuture.runAsync(() -> {}));
-    when(mapService.uninstallMap(any())).thenReturn(CompletableFuture.runAsync(() -> {}));
+    lenient().when(imageViewHelper.createPlaceholderImageOnErrorObservable(any()))
+             .thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
+    lenient().when(mapService.isInstalledBinding(Mockito.<ObservableValue<MapVersionBean>>any())).thenReturn(installed);
+    lenient().when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
+    lenient().when(mapService.downloadAndInstallMap(any(), isNull(), isNull()))
+             .thenReturn(CompletableFuture.runAsync(() -> {}));
+    lenient().when(mapService.uninstallMap(any())).thenReturn(CompletableFuture.runAsync(() -> {}));
     mapBean = MapVersionBeanBuilder.create()
         .defaultValues()
         .map(MapBeanBuilder.create().defaultValues().get())
@@ -86,7 +90,8 @@ public class MapCardControllerTest extends PlatformTest {
         .id(23)
         .size(MapSize.valueOf(1, 1))
         .get();
-    when(i18n.get("versionFormat", mapBean.getVersion().getCanonical())).thenReturn("v10");
+    lenient().when(i18n.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+    lenient().when(i18n.get("versionFormat", mapBean.getVersion().getCanonical())).thenReturn("v10");
 
     loadFxml("theme/vault/map/map_card.fxml", param -> {
       if (param == ReviewsController.class) {

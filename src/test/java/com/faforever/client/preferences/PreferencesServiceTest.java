@@ -13,7 +13,6 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 public class PreferencesServiceTest extends ServiceTest {
 
@@ -29,7 +28,6 @@ public class PreferencesServiceTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(operatingSystem.getPreferencesDirectory()).thenReturn(Path.of("."));
     instance = new PreferencesService(clientProperties, preferences, new ObjectMapper());
   }
 

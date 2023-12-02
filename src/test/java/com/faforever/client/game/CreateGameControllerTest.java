@@ -62,6 +62,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -108,23 +109,27 @@ public class CreateGameControllerTest extends PlatformTest {
 
     mapList = FXCollections.observableArrayList();
 
-    when(mapGeneratorService.downloadGeneratorIfNecessary(any())).thenReturn(completedFuture(null));
-    when(mapGeneratorService.getGeneratorStyles()).thenReturn(completedFuture(List.of()));
-    when(uiService.showInDialog(any(), any(), any())).thenReturn(new Dialog());
-    when(uiService.loadFxml("theme/play/generate_map.fxml")).thenReturn(generateMapController);
-    when(mapService.getInstalledMaps()).thenReturn(mapList);
-    when(modService.getFeaturedMods()).thenReturn(completedFuture(emptyList()));
-    when(mapService.loadPreview(anyString(), any())).thenReturn(new Image("/theme/images/default_achievement.png"));
-    when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
-    when(i18n.number(anyInt())).then(invocation -> invocation.getArgument(0).toString());
-    when(loginService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
-    when(loginService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
-    when(modService.updateAndActivateModVersions(any()))
+    lenient().when(mapGeneratorService.downloadGeneratorIfNecessary(any())).thenReturn(completedFuture(null));
+    lenient().when(mapGeneratorService.getGeneratorStyles()).thenReturn(completedFuture(List.of()));
+    lenient().when(uiService.showInDialog(any(), any(), any())).thenReturn(new Dialog());
+    lenient().when(uiService.loadFxml("theme/play/generate_map.fxml")).thenReturn(generateMapController);
+    lenient().when(mapService.getInstalledMaps()).thenReturn(mapList);
+    lenient().when(modService.getFeaturedMods()).thenReturn(completedFuture(emptyList()));
+    lenient().when(mapService.loadPreview(anyString(), any()))
+             .thenReturn(new Image("/theme/images/default_achievement.png"));
+    lenient().when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
+    lenient().when(i18n.get(any())).then(invocation -> invocation.getArgument(0));
+    lenient().when(i18n.number(anyInt())).then(invocation -> invocation.getArgument(0).toString());
+    lenient().when(loginService.connectionStateProperty())
+             .thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
+    lenient().when(loginService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
+    lenient().when(modService.updateAndActivateModVersions(any()))
         .thenAnswer(invocation -> completedFuture(invocation.getArgument(0)));
-    when(uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class)).thenReturn(mapFilterController);
-    when(mapFilterController.filterActiveProperty()).thenReturn(new SimpleBooleanProperty());
-    when(mapFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
-    when(mapFilterController.getRoot()).thenReturn(new SplitPane());
+    lenient().when(uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class))
+             .thenReturn(mapFilterController);
+    lenient().when(mapFilterController.filterActiveProperty()).thenReturn(new SimpleBooleanProperty());
+    lenient().when(mapFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
+    lenient().when(mapFilterController.getRoot()).thenReturn(new SplitPane());
 
     loadFxml("theme/play/create_game.fxml", clazz -> {
       if (clazz.equals(ModManagerController.class)) {
@@ -321,7 +326,6 @@ public class CreateGameControllerTest extends PlatformTest {
 
     MapBean map = MapBeanBuilder.create().defaultValues().get();
     when(mapService.updateLatestVersionIfNecessary(map.getLatestVersion())).thenReturn(completedFuture(map.getLatestVersion()));
-    when(gameService.hostGame(any())).thenReturn(completedFuture(null));
 
     mapList.add(map.getLatestVersion());
     instance.mapListView.getSelectionModel().select(0);

@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -73,7 +74,7 @@ public class SearchControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(uiService.loadFxml("theme/vault/search/logical_node.fxml")).thenAnswer(invocation -> {
+    lenient().when(uiService.loadFxml("theme/vault/search/logical_node.fxml")).thenAnswer(invocation -> {
       LogicalNodeController controller = mock(LogicalNodeController.class);
       controller.logicalOperatorField = new ComboBox<>();
       controller.specificationController = mock(SpecificationController.class);
@@ -83,9 +84,9 @@ public class SearchControllerTest extends PlatformTest {
       when(controller.getRoot()).thenReturn(new Pane());
       return controller;
     });
-    when(uiService.loadFxml("theme/vault/search/save_query.fxml")).thenReturn(saveQueryController);
-    when(uiService.loadFxml("theme/vault/search/saved_queries.fxml")).thenReturn(savedQueriesController);
-    when(uiService.showInDialog(any(), any(), any())).thenReturn(mock(Dialog.class));
+    lenient().when(uiService.loadFxml("theme/vault/search/save_query.fxml")).thenReturn(saveQueryController);
+    lenient().when(uiService.loadFxml("theme/vault/search/saved_queries.fxml")).thenReturn(savedQueriesController);
+    lenient().when(uiService.showInDialog(any(), any(), any())).thenReturn(mock(Dialog.class));
 
     instance.setSavedQueries(savedQueries);
 

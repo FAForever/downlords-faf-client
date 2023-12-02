@@ -14,8 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class UserButtonControllerTest extends PlatformTest {
   private static final String TEST_USER_NAME = "junit";
@@ -38,12 +38,12 @@ public class UserButtonControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
-    when(uiService.loadFxml("theme/user_info_window.fxml")).thenReturn(playerInfoWindowController);
+    lenient().when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
+    lenient().when(uiService.loadFxml("theme/user_info_window.fxml")).thenReturn(playerInfoWindowController);
 
     player = PlayerBeanBuilder.create().defaultValues().username(TEST_USER_NAME).get();
-    when(playerService.getCurrentPlayer()).thenReturn(player);
-    when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(player));
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
+    lenient().when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(player));
 
     loadFxml("theme/headerbar/user_button.fxml", clazz -> instance);
   }

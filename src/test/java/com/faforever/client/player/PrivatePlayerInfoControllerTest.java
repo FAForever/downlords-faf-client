@@ -34,8 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class PrivatePlayerInfoControllerTest extends PlatformTest {
   private static final String CHANNEL_NAME = "testChannel";
@@ -67,14 +67,19 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
     player = PlayerBeanBuilder.create().defaultValues().game(null).get();
     chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).defaultValues().player(player).get();
 
-    when(gameDetailController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(achievementService.getPlayerAchievements(player.getId())).thenReturn(CompletableFuture.completedFuture(List.of()));
-    when(achievementService.getAchievementDefinitions()).thenReturn(CompletableFuture.completedFuture(List.of()));
-    when(leaderboardService.getLeaderboards()).thenReturn(CompletableFuture.completedFuture(List.of(leaderboard)));
-    when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey())).thenReturn(leaderboard.getTechnicalName());
-    when(i18n.get("leaderboard.rating", leaderboard.getTechnicalName())).thenReturn(leaderboard.getTechnicalName());
-    when(i18n.get(eq("chat.privateMessage.achievements.unlockedFormat"), any(), any())).thenReturn("0/0");
-    when(i18n.number(anyInt())).thenReturn("123");
+    lenient().when(gameDetailController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(achievementService.getPlayerAchievements(player.getId()))
+             .thenReturn(CompletableFuture.completedFuture(List.of()));
+    lenient().when(achievementService.getAchievementDefinitions())
+             .thenReturn(CompletableFuture.completedFuture(List.of()));
+    lenient().when(leaderboardService.getLeaderboards())
+             .thenReturn(CompletableFuture.completedFuture(List.of(leaderboard)));
+    lenient().when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()))
+             .thenReturn(leaderboard.getTechnicalName());
+    lenient().when(i18n.get("leaderboard.rating", leaderboard.getTechnicalName()))
+             .thenReturn(leaderboard.getTechnicalName());
+    lenient().when(i18n.get(eq("chat.privateMessage.achievements.unlockedFormat"), any(), any())).thenReturn("0/0");
+    lenient().when(i18n.number(anyInt())).thenReturn("123");
 
     loadFxml("theme/chat/private_user_info.fxml", clazz -> {
       if (clazz == GameDetailController.class) {

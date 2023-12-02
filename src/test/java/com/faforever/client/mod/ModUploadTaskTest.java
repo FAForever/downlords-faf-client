@@ -18,8 +18,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsArrayWithSize.emptyArray;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class ModUploadTaskTest extends PlatformTest {
 
@@ -41,8 +41,8 @@ public class ModUploadTaskTest extends PlatformTest {
     dataPrefs.setBaseDataDirectory(tempDirectory);
 
     Files.createDirectories(dataPrefs.getCacheDirectory());
-    when(i18n.get(any())).thenReturn("");
-    when(fafApiAccessor.uploadFile(any(), any(), any(), any())).thenReturn(Mono.empty());
+    lenient().when(i18n.get(any())).thenReturn("");
+    lenient().when(fafApiAccessor.uploadFile(any(), any(), any(), any())).thenReturn(Mono.empty());
   }
 
   @Test

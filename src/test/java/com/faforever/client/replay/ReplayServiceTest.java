@@ -75,8 +75,8 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -172,7 +172,7 @@ public class ReplayServiceTest extends ServiceTest {
     cacheDirectory = Files.createDirectories(dataPrefs.getCacheDirectory());
     replayDirectory = Files.createDirectories(dataPrefs.getReplaysDirectory());
 
-    when(fileSizeReader.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
+    lenient().when(fileSizeReader.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
 
     ReplayMetadata replayMetadata = new ReplayMetadata();
     replayMetadata.setUid(123);
@@ -181,15 +181,15 @@ public class ReplayServiceTest extends ServiceTest {
     replayMetadata.setFeaturedMod("faf");
     replayMetadata.setMapname(TEST_MAP_NAME);
 
-    when(replayFileReader.parseReplay(any())).thenReturn(replayDataParser);
-    when(replayDataParser.getMetadata()).thenReturn(replayMetadata);
-    when(replayDataParser.getData()).thenReturn(REPLAY_FIRST_BYTES);
-    when(replayDataParser.getChatMessages()).thenReturn(List.of());
-    when(replayDataParser.getGameOptions()).thenReturn(List.of());
-    when(replayDataParser.getMods()).thenReturn(Map.of());
-    when(replayDataParser.getMap()).thenReturn(TEST_MAP_PATH);
-    when(replayDataParser.getReplayPatchFieldId()).thenReturn(TEST_VERSION_STRING);
-    doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
+    lenient().when(replayFileReader.parseReplay(any())).thenReturn(replayDataParser);
+    lenient().when(replayDataParser.getMetadata()).thenReturn(replayMetadata);
+    lenient().when(replayDataParser.getData()).thenReturn(REPLAY_FIRST_BYTES);
+    lenient().when(replayDataParser.getChatMessages()).thenReturn(List.of());
+    lenient().when(replayDataParser.getGameOptions()).thenReturn(List.of());
+    lenient().when(replayDataParser.getMods()).thenReturn(Map.of());
+    lenient().when(replayDataParser.getMap()).thenReturn(TEST_MAP_PATH);
+    lenient().when(replayDataParser.getReplayPatchFieldId()).thenReturn(TEST_VERSION_STRING);
+    lenient().doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
   }
 
   @Test
@@ -294,7 +294,6 @@ public class ReplayServiceTest extends ServiceTest {
     replay.setReplayFile(replayFile);
 
     when(replayDataParser.getMap()).thenReturn(TEST_MAP_PATH_GENERATED);
-    when(mapGeneratorService.isGeneratedMap(TEST_MAP_NAME_GENERATED)).thenReturn(true);
 
     instance.runReplay(replay);
 

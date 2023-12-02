@@ -18,9 +18,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class HeaderBarControllerTest extends PlatformTest {
 
@@ -40,10 +40,11 @@ public class HeaderBarControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setup() throws Exception {
-    when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
-    when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
-    when(navigationHandler.navigationEventProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(navigationHandler.getHighlightedItems()).thenReturn(FXCollections.observableSet());
+    lenient().when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
+    lenient().when(uiService.loadFxml("theme/persistent_notifications.fxml"))
+             .thenReturn(persistentNotificationsController);
+    lenient().when(navigationHandler.navigationEventProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(navigationHandler.getHighlightedItems()).thenReturn(FXCollections.observableSet());
 
     loadFxml("theme/headerbar/header_bar.fxml", clazz -> {
       if (clazz == instance.getClass()) {

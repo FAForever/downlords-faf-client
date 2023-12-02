@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -64,13 +65,10 @@ public class JoinGameHelperTest extends PlatformTest {
         .ratingMax(1000)
         .get();
 
-    when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
-
-    when(uiService.loadFxml("theme/enter_password.fxml")).thenReturn(enterPasswordController);
-
-    when(gameService.joinGame(any(), any())).thenReturn(new CompletableFuture<>());
-
-    when(preferencesService.isValidGamePath()).thenReturn(true);
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
+    lenient().when(uiService.loadFxml("theme/enter_password.fxml")).thenReturn(enterPasswordController);
+    lenient().when(gameService.joinGame(any(), any())).thenReturn(new CompletableFuture<>());
+    lenient().when(preferencesService.isValidGamePath()).thenReturn(true);
   }
 
 

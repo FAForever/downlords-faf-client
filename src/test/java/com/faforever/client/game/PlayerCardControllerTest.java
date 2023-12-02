@@ -52,7 +52,7 @@ public class PlayerCardControllerTest extends PlatformTest {
 
   @Test
   public void testSetFoe() {
-    when(i18n.get("userInfo.tooltipFormat.withRating", "foe", 1000)).thenReturn("foe(1000)");
+    when(i18n.get("userInfo.tooltipFormat.noRating", "foe")).thenReturn("foe");
 
     PlayerBeanBuilder playerBeanBuilder = PlayerBeanBuilder.create()
         .defaultValues()
@@ -68,12 +68,12 @@ public class PlayerCardControllerTest extends PlatformTest {
     assertFalse(instance.factionImage.isVisible());
     assertTrue(instance.foeIconText.isVisible());
     assertFalse(instance.friendIconText.isVisible());
-    assertEquals("foe(1000)", instance.playerInfo.getText());
+    assertEquals("foe", instance.playerInfo.getText());
   }
 
   @Test
   public void testSetFriend() {
-    when(i18n.get("userInfo.tooltipFormat.withRating", "user", 1000)).thenReturn("user(1000)");
+    when(i18n.get("userInfo.tooltipFormat.noRating", "user")).thenReturn("user");
 
     PlayerBeanBuilder playerBeanBuilder = PlayerBeanBuilder.create()
         .defaultValues()
@@ -89,12 +89,12 @@ public class PlayerCardControllerTest extends PlatformTest {
     assertFalse(instance.factionImage.isVisible());
     assertFalse(instance.foeIconText.isVisible());
     assertTrue(instance.friendIconText.isVisible());
-    assertEquals("user(1000)", instance.playerInfo.getText());
+    assertEquals("user", instance.playerInfo.getText());
   }
 
   @Test
   public void testSetOther() {
-    when(i18n.get("userInfo.tooltipFormat.withRating", "user", 1000)).thenReturn("user(1000)");
+    when(i18n.get("userInfo.tooltipFormat.noRating", "user")).thenReturn("user");
 
     PlayerBeanBuilder playerBeanBuilder = PlayerBeanBuilder.create()
         .defaultValues()
@@ -110,7 +110,7 @@ public class PlayerCardControllerTest extends PlatformTest {
     assertTrue(instance.factionImage.isVisible());
     assertFalse(instance.foeIconText.isVisible());
     assertFalse(instance.friendIconText.isVisible());
-    assertEquals("user(1000)", instance.playerInfo.getText());
+    assertEquals("user", instance.playerInfo.getText());
   }
 
   @Test

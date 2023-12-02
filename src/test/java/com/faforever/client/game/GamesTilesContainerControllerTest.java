@@ -25,6 +25,7 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 public class GamesTilesContainerControllerTest extends PlatformTest {
@@ -42,10 +43,13 @@ public class GamesTilesContainerControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(uiService.loadFxml("theme/play/game_card.fxml")).thenReturn(gameTileController);
-    when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);
-    when(gameTooltipController.getRoot()).thenReturn(new Pane());
-    when(gameTileController.getRoot()).thenReturn(new Pane()).thenReturn(new FlowPane()).thenReturn(new StackPane());
+    lenient().when(uiService.loadFxml("theme/play/game_card.fxml")).thenReturn(gameTileController);
+    lenient().when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);
+    lenient().when(gameTooltipController.getRoot()).thenReturn(new Pane());
+    lenient().when(gameTileController.getRoot())
+             .thenReturn(new Pane())
+             .thenReturn(new FlowPane())
+             .thenReturn(new StackPane());
 
     loadFxml("theme/play/games_tiles_container.fxml", clazz -> {
       if (clazz == GameTooltipController.class) {

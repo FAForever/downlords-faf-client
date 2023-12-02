@@ -80,6 +80,7 @@ public class LeaderboardControllerTest extends PlatformTest {
     when(i18n.getOrDefault("seasonName", "leaderboard.season.seasonName", 1)).thenReturn("seasonName 1");
     when(i18n.get("leagues.divisionName.test_name")).thenReturn("Bronze");
     when(i18n.get("leagues.divisionName.silver")).thenReturn("Silver");
+    when(i18n.get("leaderboard.seasonDate", null, null)).thenReturn("-");
     when(i18n.get("leaderboard.noEntry")).thenReturn("Play matchmaker games to get assigned to a division");
 
     season = LeagueSeasonBeanBuilder.create().defaultValues().get();

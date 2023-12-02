@@ -194,16 +194,12 @@ public class AbstractChatTabControllerTest extends PlatformTest {
 
   @Test
   public void testOnChatMessage() {
-    when(timeService.asShortTime(any())).thenReturn("123");
-
     // TODO assert something, maybe we can spy on engine
     runOnFxThreadAndWait(() -> instance.onChatMessage(new ChatMessage(Instant.now(), "junit", "Test message")));
   }
 
   @Test
   public void testOnChatMessageAction() {
-    when(timeService.asShortTime(any())).thenReturn("123");
-
     // TODO assert something, maybe we can spy on engine
     runOnFxThreadAndWait(() -> instance.onChatMessage(new ChatMessage(Instant.now(), "junit", "Test action", true)));
   }

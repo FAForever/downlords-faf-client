@@ -12,9 +12,12 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.StageHolder;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -27,9 +30,10 @@ import static com.faforever.client.theme.ThemeService.CHAT_SECTION_COMPACT;
 import static com.faforever.client.theme.ThemeService.CHAT_TEXT_COMPACT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class MatchmakingChatControllerTest extends PlatformTest {
 
@@ -69,16 +73,21 @@ public class MatchmakingChatControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(i18n.get(anyString())).thenReturn("");
-    when(chatService.getOrCreateChannel("partyName")).thenReturn(new ChatChannel("partyName"));
-    when(loginService.getUsername()).thenReturn("junit");
-    when(themeService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(
+    lenient().when(i18n.get(anyString())).thenReturn("");
+    lenient().when(chatService.getOrCreateChannel("partyName")).thenReturn(new ChatChannel("partyName"));
+    lenient().when(loginService.getUsername()).thenReturn("junit");
+    lenient().when(themeService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(
         getClass().getResource("/theme/chat/chat_container.html"));
-    when(themeService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(
+    lenient().when(themeService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(
         getClass().getResource("/theme/chat/compact/chat_section.html"));
-    when(themeService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(
+    lenient().when(themeService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(
         getClass().getResource("/theme/chat/compact/chat_text.html"));
-    when(timeService.asShortTime(any())).thenReturn("");
+    lenient().when(timeService.asShortTime(any())).thenReturn("");
+
+    Stage stage = mock(Stage.class);
+    lenient().when(stage.focusedProperty()).thenReturn(new SimpleBooleanProperty());
+
+    StageHolder.setStage(stage);
 
     loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml", clazz -> instance);
 

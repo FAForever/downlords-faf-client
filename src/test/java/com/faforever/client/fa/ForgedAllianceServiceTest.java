@@ -43,7 +43,6 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
   @Test
   public void testStartGameOffline() throws Exception {
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
     IOException throwable = assertThrows(IOException.class, () -> instance.startGameOffline("test"));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
@@ -52,6 +51,7 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
   @Test
   public void testStartGameOnline() throws Exception {
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
     GameParameters gameParameters = new GameParameters();
     gameParameters.setUid(1);
     gameParameters.setLocalGpgPort(0);
@@ -66,7 +66,6 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
   @Test
   public void testStartReplay() throws Exception {
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
     IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(Path.of("."), 0));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
@@ -76,6 +75,7 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
   @Test
   public void testStartOnlineReplay() throws Exception {
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
     IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(URI.create("google.com"), 0));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 

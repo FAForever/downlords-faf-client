@@ -45,6 +45,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -88,10 +89,10 @@ public class ChatUserItemControllerTest extends PlatformTest {
   public void setUp() throws Exception {
     defaultUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
 
-    when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
-    when(i18n.get(eq("clan.messageLeader"))).thenReturn("Message clan leader");
-    when(i18n.get(eq("clan.visitPage"))).thenReturn("Visit clan website");
-    doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
+    lenient().when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
+    lenient().when(i18n.get(eq("clan.messageLeader"))).thenReturn("Message clan leader");
+    lenient().when(i18n.get(eq("clan.visitPage"))).thenReturn("Visit clan website");
+    lenient().doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
         .createPlaceholderImageOnErrorObservable(any());
 
     loadFxml("theme/chat/chat_user_item.fxml", param -> instance);

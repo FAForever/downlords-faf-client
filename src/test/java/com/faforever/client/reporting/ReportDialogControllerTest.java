@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -64,13 +65,16 @@ public class ReportDialogControllerTest extends PlatformTest {
         .teams(FXCollections.observableMap(new HashMap<>(Map.of("1", List.of(player.getUsername())))))
         .get();
 
-    when(i18n.get("report.noReports")).thenReturn("noReports");
+    lenient().when(i18n.get("report.noReports")).thenReturn("noReports");
 
-    when(playerService.getCurrentPlayer()).thenReturn(player);
-    when(playerService.getPlayerByName(player.getUsername())).thenReturn(CompletableFuture.completedFuture(Optional.of(player)));
-    when(replayService.findById(replay.getId())).thenReturn(CompletableFuture.completedFuture(Optional.of(replay)));
-    when(moderationService.getModerationReports()).thenReturn(CompletableFuture.completedFuture(List.of()));
-    when(moderationService.postModerationReport(any())).thenReturn(CompletableFuture.completedFuture(ModerationReportBeanBuilder.create().defaultValues().get()));
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
+    lenient().when(playerService.getPlayerByName(player.getUsername()))
+             .thenReturn(CompletableFuture.completedFuture(Optional.of(player)));
+    lenient().when(replayService.findById(replay.getId()))
+             .thenReturn(CompletableFuture.completedFuture(Optional.of(replay)));
+    lenient().when(moderationService.getModerationReports()).thenReturn(CompletableFuture.completedFuture(List.of()));
+    lenient().when(moderationService.postModerationReport(any()))
+             .thenReturn(CompletableFuture.completedFuture(ModerationReportBeanBuilder.create().defaultValues().get()));
 
     loadFxml("theme/reporting/report_dialog.fxml", clazz -> instance);
 

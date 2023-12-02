@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,13 +59,14 @@ public class ModCardControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
+    lenient().doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
         .createPlaceholderImageOnErrorObservable(any());
 
-    when(modService.isInstalledBinding(Mockito.any())).thenReturn(installed);
-    when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
-    when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
-    when(i18n.get(ModType.UI.getI18nKey())).thenReturn(ModType.UI.name());
+    lenient().when(modService.isInstalledBinding(Mockito.any())).thenReturn(installed);
+    lenient().when(imageViewHelper.createPlaceholderImageOnErrorObservable(any()))
+             .thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
+    lenient().when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
+    lenient().when(i18n.get(ModType.UI.getI18nKey())).thenReturn(ModType.UI.name());
 
     modVersion = ModVersionBeanBuilder.create()
         .defaultValues()

@@ -22,8 +22,6 @@ import com.faforever.client.update.Version;
 import com.faforever.client.user.LoginService;
 import com.faforever.commons.api.dto.MeResult;
 import com.faforever.commons.lobby.Player;
-import javafx.scene.control.Label;
-import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -86,12 +84,6 @@ public class LoginControllerTest extends PlatformTest {
   @Mock
   private ClientUpdateService clientUpdateService;
   @Mock
-  private AnnouncementController announcementController;
-  @Mock
-  private OfflineServiceController offlineServiceController;
-  @Mock
-  private OfflineServicesController offlineServicesController;
-  @Mock
   private OAuthValuesReceiver oAuthValuesReceiver;
 
   @Spy
@@ -103,10 +95,6 @@ public class LoginControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(announcementController.getRoot()).thenReturn(new Pane());
-    when(offlineServiceController.getRoot()).thenReturn(new Label());
-    when(offlineServicesController.getRoot()).thenReturn(new Pane());
-
     loadFxml("theme/login/login.fxml", param -> instance);
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
@@ -146,7 +134,6 @@ public class LoginControllerTest extends PlatformTest {
   public void testLoginFailsWrongState() throws Exception {
     String wrongState = "a";
 
-    when(loginService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(Mono.empty());
     when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
         .thenReturn(CompletableFuture.completedFuture(new Values(CODE, wrongState, REDIRECT_URI)));
 

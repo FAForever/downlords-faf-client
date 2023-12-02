@@ -19,7 +19,7 @@ import org.mockito.Spy;
 import org.springframework.beans.factory.ObjectFactory;
 import reactor.core.publisher.Mono;
 
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,17 +79,19 @@ public class GameUpdaterImplTest extends ServiceTest {
     binDirectory = Files.createDirectories(dataPrefs.getBinDirectory());
     replayDataDirectory = Files.createDirectories(dataPrefs.getReplayDataDirectory());
     replayBinDirectory = Files.createDirectories(dataPrefs.getReplayBinDirectory());
-    when(gameBinariesUpdateTaskFactory.getObject()).thenReturn(gameBinariesUpdateTask);
-    when(taskService.submitTask(gameBinariesUpdateTask)).thenReturn(gameBinariesUpdateTask);
-    when(gameBinariesUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
-    when(simpleHttpFeaturedModUpdater.updateMod(any(FeaturedModBean.class), any(), eq(false))).thenAnswer(invocation -> {
+    lenient().when(gameBinariesUpdateTaskFactory.getObject()).thenReturn(gameBinariesUpdateTask);
+    lenient().when(taskService.submitTask(gameBinariesUpdateTask)).thenReturn(gameBinariesUpdateTask);
+    lenient().when(gameBinariesUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
+    lenient().when(simpleHttpFeaturedModUpdater.updateMod(any(FeaturedModBean.class), any(), eq(false)))
+             .thenAnswer(invocation -> {
       FeaturedModBean featuredMod = invocation.getArgument(0, FeaturedModBean.class);
       Path initFile = binDirectory.resolve(String.format("init_%s", featuredMod.getTechnicalName()));
       Files.createFile(initFile);
       int version = Objects.requireNonNullElse(invocation.getArgument(1, Integer.class), Integer.MAX_VALUE);
       return CompletableFuture.completedFuture(new PatchResult(new ComparableVersion(String.valueOf(version)), initFile));
     });
-    when(simpleHttpFeaturedModUpdater.updateMod(any(FeaturedModBean.class), any(), eq(true))).thenAnswer(invocation -> {
+    lenient().when(simpleHttpFeaturedModUpdater.updateMod(any(FeaturedModBean.class), any(), eq(true)))
+             .thenAnswer(invocation -> {
       FeaturedModBean featuredMod = invocation.getArgument(0, FeaturedModBean.class);
       Path initFile = replayBinDirectory.resolve(String.format("init_%s", featuredMod.getTechnicalName()));
       Files.createFile(initFile);
@@ -111,7 +114,8 @@ public class GameUpdaterImplTest extends ServiceTest {
   @Test
   public void badChecksumTest() throws Exception {
     when(simpleHttpFeaturedModUpdater.updateMod(any(FeaturedModBean.class), any(), anyBoolean()))
-        .thenAnswer(invocation -> CompletableFuture.failedFuture(new ChecksumMismatchException(new URL("http://google.com"), "asd", "qwe")));
+        .thenAnswer(invocation -> CompletableFuture.failedFuture(new ChecksumMismatchException(
+            URI.create("http://google.com").toURL(), "asd", "qwe")));
 
     CompletionException exception = assertThrows(CompletionException.class, () -> instance.update(FeaturedModBeanBuilder.create().defaultValues().get(), Set.of(), Map.of(), 0, false).join());
     assertEquals(ChecksumMismatchException.class, exception.getCause().getClass());
@@ -125,7 +129,6 @@ public class GameUpdaterImplTest extends ServiceTest {
     when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(baseMod));
     String technicalName = "Test_Mod";
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
-    when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
 
     instance.update(updatedMod, Set.of(), Map.of(), 0, false).join();
 
@@ -145,7 +148,6 @@ public class GameUpdaterImplTest extends ServiceTest {
     when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(baseMod));
     String technicalName = "Test_Mod";
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
-    when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
 
     instance.update(updatedMod, Set.of(), Map.of("1", 100), 0, false).join();
 
@@ -165,7 +167,6 @@ public class GameUpdaterImplTest extends ServiceTest {
     when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(baseMod));
     String technicalName = "Test_Mod";
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
-    when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
 
     instance.update(updatedMod, Set.of(), Map.of("1", 100), 0, true).join();
 
@@ -186,7 +187,6 @@ public class GameUpdaterImplTest extends ServiceTest {
     when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(baseMod));
     String technicalName = "Test_Mod";
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().id(100).technicalName(technicalName).get();
-    when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
 
     instance.update(updatedMod, Set.of(), null, null, false).join();
 
@@ -204,7 +204,6 @@ public class GameUpdaterImplTest extends ServiceTest {
   public void baseModUpdateTest() throws Exception {
     String technicalName = FAF.getTechnicalName();
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
-    when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
 
     instance.update(updatedMod, Set.of(), Map.of(), 0, false).join();
 
@@ -220,7 +219,6 @@ public class GameUpdaterImplTest extends ServiceTest {
   public void baseModUpdateWithCacheDirectoryTest() throws Exception {
     String technicalName = FAF.getTechnicalName();
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
-    when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
 
     instance.update(updatedMod, Set.of(), Map.of(), 0, true).join();
 
@@ -237,7 +235,6 @@ public class GameUpdaterImplTest extends ServiceTest {
   public void baseModUpdateWithSimModsInstalledTest() throws Exception {
     String technicalName = FAF.getTechnicalName();
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
-    when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
     String modUID = "abc";
     when(modService.isInstalled(modUID)).thenReturn(true);
 
@@ -256,7 +253,6 @@ public class GameUpdaterImplTest extends ServiceTest {
   public void baseModUpdateWithSimModsNotInstalledTest() throws Exception {
     String technicalName = FAF.getTechnicalName();
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
-    when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
     String modUID = "abc";
     when(modService.isInstalled(modUID)).thenReturn(false);
     when(modService.downloadAndInstallMod(modUID)).thenReturn(CompletableFuture.completedFuture(null));
@@ -278,7 +274,6 @@ public class GameUpdaterImplTest extends ServiceTest {
     Integer gameVersion = 3711;
     String clientVersion = Version.getCurrentVersion();
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(gameType).get();
-    when(modService.getFeaturedMod(gameType)).thenReturn(Mono.just(updatedMod));
 
     instance.update(updatedMod, Set.of(), Map.of(), gameVersion, false).join();
 

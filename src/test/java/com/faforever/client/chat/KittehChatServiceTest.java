@@ -177,22 +177,24 @@ public class KittehChatServiceTest extends ServiceTest {
 
     chatPrefs.setChatColorMode(DEFAULT);
 
-    when(loginService.getUsername()).thenReturn(CHAT_USER_NAME);
-    when(loginService.getOwnPlayer()).thenReturn(new Player(0, CHAT_USER_NAME, null, null, "", Map.of(), Map.of()));
-    when(loginService.loggedInProperty()).thenReturn(loggedIn);
+    lenient().when(loginService.getUsername()).thenReturn(CHAT_USER_NAME);
+    lenient().when(loginService.getOwnPlayer())
+             .thenReturn(new Player(0, CHAT_USER_NAME, null, null, "", Map.of(), Map.of()));
+    lenient().when(loginService.loggedInProperty()).thenReturn(loggedIn);
     lenient().when(defaultChannel.getClient()).thenReturn(realClient);
     lenient().when(defaultChannel.getName()).thenReturn(DEFAULT_CHANNEL_NAME);
 
     Character userPrefix = '+';
 
     lenient().when(user1.getClient()).thenReturn(realClient);
-    when(user1.getNick()).thenReturn("user1");
-    when(defaultChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix))
+    lenient().when(user1.getNick()).thenReturn("user1");
+    lenient().when(defaultChannel.getUserModes(user1))
+             .thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix))
         .add(user1Mode)
         .build()));
 
     lenient().when(user2.getClient()).thenReturn(realClient);
-    when(user2.getNick()).thenReturn("user2");
+    lenient().when(user2.getNick()).thenReturn("user2");
     lenient().when(user2Mode.getNickPrefix()).thenReturn(userPrefix);
     lenient().when(defaultChannel.getUserModes(user1))
         .thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix))
@@ -517,10 +519,6 @@ public class KittehChatServiceTest extends ServiceTest {
   @Test
   public void testChatMessageEventTriggeredByPrivateMessage() throws Exception {
     CompletableFuture<ChatMessage> chatMessageFuture = new CompletableFuture<>();
-
-    Channel privateChannel = mock(Channel.class);
-    when(spyClient.getChannel(user1.getNick())).thenReturn(Optional.of(privateChannel));
-    when(privateChannel.getUser(user1.getNick())).thenReturn(Optional.of(user1));
 
     String message = "private message";
 

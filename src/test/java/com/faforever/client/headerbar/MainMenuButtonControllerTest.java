@@ -18,8 +18,8 @@ import org.mockito.Spy;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class MainMenuButtonControllerTest extends PlatformTest {
 
@@ -45,8 +45,8 @@ public class MainMenuButtonControllerTest extends PlatformTest {
     forgedAlliancePrefs.setVaultBaseDirectory(cwd);
     dataPrefs.setBaseDataDirectory(cwd);
 
-    when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
-    when(settingsController.getRoot()).thenReturn(new Region());
+    lenient().when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
+    lenient().when(settingsController.getRoot()).thenReturn(new Region());
 
     loadFxml("theme/headerbar/main_menu_button.fxml", clazz -> instance);
   }

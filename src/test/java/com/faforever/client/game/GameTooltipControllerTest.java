@@ -24,7 +24,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 public class GameTooltipControllerTest extends PlatformTest {
 
@@ -40,12 +40,13 @@ public class GameTooltipControllerTest extends PlatformTest {
   
   @BeforeEach
   public void setUp() throws Exception {
-    when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
-    when(teamCardController.getRoot()).then(invocation -> new Pane());
-    when(teamCardController.playerIdsProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(teamCardController.teamIdProperty()).thenReturn(new SimpleIntegerProperty());
-    when(teamCardController.ratingProviderProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(playerService.getPlayerByNameIfOnline(Mockito.anyString())).thenReturn(Optional.of(PlayerBeanBuilder.create().defaultValues().get()));
+    lenient().when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
+    lenient().when(teamCardController.getRoot()).then(invocation -> new Pane());
+    lenient().when(teamCardController.playerIdsProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(teamCardController.teamIdProperty()).thenReturn(new SimpleIntegerProperty());
+    lenient().when(teamCardController.ratingProviderProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(playerService.getPlayerByNameIfOnline(Mockito.anyString()))
+             .thenReturn(Optional.of(PlayerBeanBuilder.create().defaultValues().get()));
 
     loadFxml("theme/play/game_tooltip.fxml", clazz -> instance);
   }

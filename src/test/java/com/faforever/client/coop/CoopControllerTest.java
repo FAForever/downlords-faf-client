@@ -77,9 +77,9 @@ public class CoopControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     lenient().when(coopService.getLeaderboard(any(), anyInt())).thenReturn(completedFuture(emptyList()));
-    when(coopService.getMissions()).thenReturn(completedFuture(emptyList()));
-    when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
-    when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
+    lenient().when(coopService.getMissions()).thenReturn(completedFuture(emptyList()));
+    lenient().when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
+    lenient().when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
 
     loadFxml("theme/play/coop/coop.fxml", clazz -> {
       if (GamesTableController.class == clazz) {

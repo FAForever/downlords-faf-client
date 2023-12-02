@@ -35,6 +35,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,13 +79,13 @@ public class ClientUpdateServiceTest extends ServiceTest {
     UpdateInfo normalUpdateInfo = new UpdateInfo("v0.4.9.1-alpha", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), false);
     UpdateInfo betaUpdateInfo = new UpdateInfo("v0.4.9.0-RC1", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), true);
 
-    when(loginService.loggedInProperty()).thenReturn(loggedIn);
-    when(checkForUpdateTaskFactory.getObject()).thenReturn(checkForUpdateTask);
-    when(checkForBetaUpdateTaskFactory.getObject()).thenReturn(checkForBetaUpdateTask);
-    when(taskService.submitTask(any(CheckForUpdateTask.class))).thenReturn(checkForUpdateTask);
-    when(taskService.submitTask(any(CheckForBetaUpdateTask.class))).thenReturn(checkForBetaUpdateTask);
-    when(checkForUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(normalUpdateInfo));
-    when(checkForBetaUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(betaUpdateInfo));
+    lenient().when(loginService.loggedInProperty()).thenReturn(loggedIn);
+    lenient().when(checkForUpdateTaskFactory.getObject()).thenReturn(checkForUpdateTask);
+    lenient().when(checkForBetaUpdateTaskFactory.getObject()).thenReturn(checkForBetaUpdateTask);
+    lenient().when(taskService.submitTask(any(CheckForUpdateTask.class))).thenReturn(checkForUpdateTask);
+    lenient().when(taskService.submitTask(any(CheckForBetaUpdateTask.class))).thenReturn(checkForBetaUpdateTask);
+    lenient().when(checkForUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(normalUpdateInfo));
+    lenient().when(checkForBetaUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(betaUpdateInfo));
 
     instance = new ClientUpdateService(operatingSystem, taskService, notificationService, i18n, platformService, loginService, preferences, checkForBetaUpdateTaskFactory, checkForUpdateTaskFactory, downloadUpdateTaskFactory);
 

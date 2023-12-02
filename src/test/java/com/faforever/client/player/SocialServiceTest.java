@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -58,9 +59,9 @@ public class SocialServiceTest extends ServiceTest {
     player1 = PlayerBeanBuilder.create().defaultValues().id(2).username("junit2").get();
     player2 = PlayerBeanBuilder.create().defaultValues().id(3).username("junit3").get();
 
-    when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
-    when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(player1));
-    when(playerService.getPlayerByIdIfOnline(3)).thenReturn(Optional.of(player2));
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
+    lenient().when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(player1));
+    lenient().when(playerService.getPlayerByIdIfOnline(3)).thenReturn(Optional.of(player2));
 
     userPrefs.getNotesByPlayerId().put(3, "junit3");
 

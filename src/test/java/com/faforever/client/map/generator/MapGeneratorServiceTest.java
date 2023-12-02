@@ -30,11 +30,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 public class MapGeneratorServiceTest extends ServiceTest {
 
@@ -91,20 +90,21 @@ public class MapGeneratorServiceTest extends ServiceTest {
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
     Files.createFile(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
 
-    when(downloadMapGeneratorTaskFactory.getObject()).thenReturn(downloadMapGeneratorTask);
-    when(generateMapTaskFactory.getObject()).thenReturn(generateMapTask);
-    when(generatorOptionsTaskFactory.getObject()).thenReturn(generatorOptionsTask);
-    when(clientProperties.getMapGenerator()).thenReturn(mapGenerator);
-    when(mapGenerator.getMaxSupportedMajorVersion()).thenReturn(maxVersion);
-    when(mapGenerator.getMinSupportedMajorVersion()).thenReturn(minVersion);
+    lenient().when(downloadMapGeneratorTaskFactory.getObject()).thenReturn(downloadMapGeneratorTask);
+    lenient().when(generateMapTaskFactory.getObject()).thenReturn(generateMapTask);
+    lenient().when(generatorOptionsTaskFactory.getObject()).thenReturn(generatorOptionsTask);
+    lenient().when(clientProperties.getMapGenerator()).thenReturn(mapGenerator);
+    lenient().when(mapGenerator.getMaxSupportedMajorVersion()).thenReturn(maxVersion);
+    lenient().when(mapGenerator.getMinSupportedMajorVersion()).thenReturn(minVersion);
 
     instance = new MapGeneratorService(taskService, clientProperties, forgedAlliancePrefs, dataPrefs, WebClient.builder()
         .build(), generateMapTaskFactory, downloadMapGeneratorTaskFactory, generatorOptionsTaskFactory);
 
-    when(downloadMapGeneratorTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
-    when(generateMapTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
-    when(generatorOptionsTask.getFuture()).thenReturn(CompletableFuture.completedFuture(new ArrayList<>(List.of("TEST"))));
-    doAnswer(invocation -> {
+    lenient().when(downloadMapGeneratorTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
+    lenient().when(generateMapTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
+    lenient().when(generatorOptionsTask.getFuture())
+             .thenReturn(CompletableFuture.completedFuture(new ArrayList<>(List.of("TEST"))));
+    lenient().doAnswer(invocation -> {
       CompletableTask<Void> task = invocation.getArgument(0);
       task.getFuture().get();
       return task;

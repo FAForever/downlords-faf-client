@@ -52,6 +52,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -113,23 +114,24 @@ public class MapDetailControllerTest extends PlatformTest {
         .get();
     review = MapVersionReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
 
-    when(mapService.isInstalledBinding(Mockito.<ObservableValue<MapVersionBean>>any())).thenReturn(installed);
-    when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
-    when(reviewService.getMapReviews(any())).thenReturn(Flux.empty());
-    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
-    when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(currentPlayer));
-    when(timeService.asDate(any(OffsetDateTime.class))).thenReturn("test date");
-    when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
-    when(mapService.downloadAndInstallMap(any(), any(DoubleProperty.class), any(StringProperty.class))).thenReturn(CompletableFuture.runAsync(() -> {
+    lenient().when(mapService.isInstalledBinding(Mockito.<ObservableValue<MapVersionBean>>any())).thenReturn(installed);
+    lenient().when(imageViewHelper.createPlaceholderImageOnErrorObservable(any()))
+             .thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
+    lenient().when(reviewService.getMapReviews(any())).thenReturn(Flux.empty());
+    lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
+    lenient().when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(currentPlayer));
+    lenient().when(timeService.asDate(any(OffsetDateTime.class))).thenReturn("test date");
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
+    lenient().when(mapService.downloadAndInstallMap(any(), any(DoubleProperty.class), any(StringProperty.class)))
+             .thenReturn(CompletableFuture.runAsync(() -> {
     }));
-    when(i18n.number(testMap.getMaxPlayers())).thenReturn(String.valueOf(testMap.getMaxPlayers()));
-    when(i18n.get("map.id", testMap.getId())).thenReturn(String.valueOf(testMap.getId()));
-    when(i18n.get("yes")).thenReturn("yes");
-    when(i18n.get("no")).thenReturn("no");
-    when(i18n.get(eq("mapPreview.size"), anyInt(), anyInt())).thenReturn("map size");
-    when(mapService.isInstalled(testMap.getFolderName())).thenReturn(true);
-    when(mapService.hasPlayedMap(eq(currentPlayer), eq(testMap))).thenReturn(Mono.just(true));
-    when(mapService.getFileSize(any(MapVersionBean.class))).thenReturn(CompletableFuture.completedFuture(12));
+    lenient().when(i18n.number(testMap.getMaxPlayers())).thenReturn(String.valueOf(testMap.getMaxPlayers()));
+    lenient().when(i18n.get("map.id", testMap.getId())).thenReturn(String.valueOf(testMap.getId()));
+    lenient().when(i18n.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+    lenient().when(i18n.get(eq("mapPreview.size"), anyInt(), anyInt())).thenReturn("map size");
+    lenient().when(mapService.isInstalled(testMap.getFolderName())).thenReturn(true);
+    lenient().when(mapService.hasPlayedMap(eq(currentPlayer), eq(testMap))).thenReturn(Mono.just(true));
+    lenient().when(mapService.getFileSize(any(MapVersionBean.class))).thenReturn(CompletableFuture.completedFuture(12));
 
     loadFxml("theme/vault/map/map_detail.fxml", param -> {
       if (param == ReviewsController.class) {
@@ -181,8 +183,6 @@ public class MapDetailControllerTest extends PlatformTest {
 
   @Test
   public void testSetVisibleOwnedMap() {
-    when(mapService.isInstalled(ownedMap.getFolderName())).thenReturn(true);
-
     runOnFxThreadAndWait(() -> instance.setMapVersion(ownedMap));
 
     assertNotEquals(instance.hideRow.getPrefHeight(), 0);
@@ -194,8 +194,6 @@ public class MapDetailControllerTest extends PlatformTest {
 
   @Test
   public void testSetHiddenOwnedMap() {
-    when(mapService.isInstalled(ownedMap.getFolderName())).thenReturn(true);
-
     ownedMap.setRanked(false);
     ownedMap.setHidden(true);
 
