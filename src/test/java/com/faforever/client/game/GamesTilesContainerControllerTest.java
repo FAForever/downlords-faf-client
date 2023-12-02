@@ -120,6 +120,6 @@ public class GamesTilesContainerControllerTest extends PlatformTest {
     instance.setSortingOrder(TilesSortingOrder.PLAYER_ASC);
 
     runOnFxThreadAndWait(() -> instance.createTiledFlowPane(observableList));
-    assertEquals(game2, instance.tiledFlowPane.getChildren().get(0).getUserData());
+    assertEquals(game2, instance.tiledFlowPane.getChildren().getFirst().getUserData());
   }
 }

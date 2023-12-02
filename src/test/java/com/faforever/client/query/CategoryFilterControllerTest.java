@@ -113,7 +113,9 @@ public class CategoryFilterControllerTest extends PlatformTest {
     Optional<List<Condition>> result = instance.getCondition();
 
     assertTrue(result.isPresent());
-    assertEquals(result.get().get(0).query(new RSQLVisitor()), property.in(instance.checkListView.getCheckModel().getCheckedItems().toArray()).query(new RSQLVisitor()));
+    assertEquals(result.get().getFirst().query(new RSQLVisitor()),
+                 property.in(instance.checkListView.getCheckModel().getCheckedItems().toArray())
+                         .query(new RSQLVisitor()));
     assertTrue(instance.menu.getStyleClass().contains("query-filter-selected"));
   }
 
@@ -127,7 +129,7 @@ public class CategoryFilterControllerTest extends PlatformTest {
     Optional<List<Condition>> result = instance.getCondition();
 
     assertTrue(result.isPresent());
-    assertEquals(result.get().get(0).query(new RSQLVisitor()),
+    assertEquals(result.get().getFirst().query(new RSQLVisitor()),
         property.in(instance.checkListView.getCheckModel().getCheckedItems().stream().map(itemMap::get).toArray()).query(new RSQLVisitor()));
     assertTrue(instance.menu.getStyleClass().contains("query-filter-selected"));
   }

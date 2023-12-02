@@ -279,7 +279,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     assertThat(instance.partyMembersNotReady(), is(false));
 
-    instance.getParty().getMembers().get(0).getPlayer().setGame(GameBeanBuilder.create().defaultValues().get());
+    instance.getParty().getMembers().getFirst().getPlayer().setGame(GameBeanBuilder.create().defaultValues().get());
 
     assertThat(instance.partyMembersNotReady(), is(true));
   }
@@ -300,7 +300,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     verify(gameService).startSearchMatchmaker();
     assertThat(instance.isInQueue(), is(true));
-    assertThat(instance.getQueues().get(0).isSelected(), is(true));
+    assertThat(instance.getQueues().getFirst().isSelected(), is(true));
   }
 
   @Test
@@ -312,7 +312,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     ArgumentCaptor<TransientNotification> captor = ArgumentCaptor.forClass(TransientNotification.class);
     verify(notificationService).addNotification(captor.capture());
-    assertThat(instance.getQueues().get(0).getMatchingStatus(), is(MatchingStatus.MATCH_FOUND));
+    assertThat(instance.getQueues().getFirst().getMatchingStatus(), is(MatchingStatus.MATCH_FOUND));
     assertThat(instance.getQueues().get(1).getMatchingStatus(), is(nullValue()));
     assertThat(instance.isInQueue(), is(false));
   }
@@ -323,7 +323,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     matchmakerCancelledTestPublisher.next(new MatchmakerMatchCancelledResponse());
 
-    assertThat(instance.getQueues().get(0).getMatchingStatus(), is(MatchingStatus.MATCH_CANCELLED));
+    assertThat(instance.getQueues().getFirst().getMatchingStatus(), is(MatchingStatus.MATCH_CANCELLED));
     assertThat(instance.getQueues().get(1).getMatchingStatus(), is(nullValue()));
   }
 
@@ -338,7 +338,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     gameLaunchResponseTestPublisher.next(message);
 
-    assertThat(instance.getQueues().get(0).getMatchingStatus(), is(MatchingStatus.GAME_LAUNCHING));
+    assertThat(instance.getQueues().getFirst().getMatchingStatus(), is(MatchingStatus.GAME_LAUNCHING));
     assertThat(instance.getQueues().get(1).getMatchingStatus(), is(nullValue()));
   }
 

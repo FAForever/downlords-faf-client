@@ -58,7 +58,7 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
   @Override
   protected boolean isItemVisible() {
     return object != null && object.getSocialStatus() == SELF &&
-        avatarComboBox.getItems().size() > 1 && avatarComboBox.getItems().get(0).equals(noAvatar);
+        avatarComboBox.getItems().size() > 1 && avatarComboBox.getItems().getFirst().equals(noAvatar);
   }
 
   private void loadAvailableAvatars() {

@@ -35,7 +35,7 @@ public class ImmediateNotificationControllerTest extends PlatformTest {
 
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals("title", ((Label) instance.getDialogLayout().getHeading().get(0)).getText());
+    assertEquals("title", ((Label) instance.getDialogLayout().getHeading().getFirst()).getText());
     assertEquals("text", instance.notificationText.getText());
     assertThat(instance.getDialogLayout().getActions(), empty());
   }
@@ -50,16 +50,16 @@ public class ImmediateNotificationControllerTest extends PlatformTest {
 
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals("title", ((Label) instance.getDialogLayout().getHeading().get(0)).getText());
+    assertEquals("title", ((Label) instance.getDialogLayout().getHeading().getFirst()).getText());
     assertEquals("text", instance.notificationText.getText());
     assertThat(instance.getDialogLayout().getActions(), hasSize(1));
-    assertEquals("actionTitle", ((Button) instance.getDialogLayout().getActions().get(0)).getText());
+    assertEquals("actionTitle", ((Button) instance.getDialogLayout().getActions().getFirst()).getText());
   }
 
   @Test
   public void testGetRoot() throws Exception {
     assertThat(instance.getRoot(), is(instance.immediateNotificationRoot));
-    assertThat(instance.getRoot().getParent(), is(instance.getDialogLayout().getBody().get(0).getParent()));
+    assertThat(instance.getRoot().getParent(), is(instance.getDialogLayout().getBody().getFirst().getParent()));
   }
 
   @Test

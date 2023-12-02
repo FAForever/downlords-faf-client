@@ -88,7 +88,8 @@ public class BinaryFilterControllerTest extends PlatformTest {
     instance.secondCheckBox.setSelected(false);
 
     assertTrue(instance.getCondition().isPresent());
-    assertEquals(instance.getCondition().get().get(0).query(new RSQLVisitor()), property.in(firstValue).query(new RSQLVisitor()));
+    assertEquals(instance.getCondition().get().getFirst().query(new RSQLVisitor()),
+                 property.in(firstValue).query(new RSQLVisitor()));
 
     property = new QBuilder<>().string(propertyName);
     instance.secondCheckBox.setSelected(true);
@@ -97,6 +98,6 @@ public class BinaryFilterControllerTest extends PlatformTest {
     Optional<List<Condition>> result = instance.getCondition();
 
     assertTrue(result.isPresent());
-    assertEquals(result.get().get(0).query(new RSQLVisitor()), property.in(secondValue).query(new RSQLVisitor()));
+    assertEquals(result.get().getFirst().query(new RSQLVisitor()), property.in(secondValue).query(new RSQLVisitor()));
   }
 }

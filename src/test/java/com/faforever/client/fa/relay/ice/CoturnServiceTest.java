@@ -60,7 +60,7 @@ public class CoturnServiceTest extends ServiceTest {
     List<CoturnServer> servers = instance.getSelectedCoturns(123).join();
 
     assertEquals(1, servers.size());
-    assertEquals("0", servers.get(0).getId());
+    assertEquals("0", servers.getFirst().getId());
     verify(fafApiAccessor).getApiObject(endsWith("123"), eq(IceSession.class));
   }
 
@@ -73,7 +73,7 @@ public class CoturnServiceTest extends ServiceTest {
     List<CoturnServer> servers = instance.getSelectedCoturns(123).join();
 
     assertEquals(1, servers.size());
-    assertEquals("0", servers.get(0).getId());
+    assertEquals("0", servers.getFirst().getId());
     verify(fafApiAccessor).getApiObject(endsWith("123"), eq(IceSession.class));
   }
 
@@ -90,7 +90,7 @@ public class CoturnServiceTest extends ServiceTest {
     List<CoturnServer> servers = instance.getSelectedCoturns(123).join();
 
     assertEquals(1, servers.size());
-    assertEquals("1", servers.get(0).getId());
+    assertEquals("1", servers.getFirst().getId());
     verify(fafApiAccessor).getApiObject(endsWith("123"), eq(IceSession.class));
   }
 }

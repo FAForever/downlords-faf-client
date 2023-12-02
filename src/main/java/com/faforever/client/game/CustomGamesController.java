@@ -119,7 +119,7 @@ public class CustomGamesController extends NodeController<Node> {
         if (oldValue != null) {
           viewToggleGroup.selectToggle(oldValue);
         } else {
-          viewToggleGroup.selectToggle(viewToggleGroup.getToggles().get(0));
+          viewToggleGroup.selectToggle(viewToggleGroup.getToggles().getFirst());
         }
       }
     });

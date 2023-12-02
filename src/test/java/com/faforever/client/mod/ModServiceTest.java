@@ -302,7 +302,7 @@ public class ModServiceTest extends PlatformTest {
     ArrayList<ModVersionBean> installedMods = new ArrayList<>(instance.getInstalledMods());
     installedMods.sort(Comparator.comparing(modVersionBean -> modVersionBean.getMod().getDisplayName()));
 
-    ModVersionBean modVersion = installedMods.get(0);
+    ModVersionBean modVersion = installedMods.getFirst();
 
     assertThat(modVersion.getMod().getDisplayName(), is("BlackOps Unleashed"));
     assertThat(modVersion.getVersion(), is(new ComparableVersion("8")));
@@ -335,9 +335,9 @@ public class ModServiceTest extends PlatformTest {
 
   @Test
   public void testUninstallMod() {
-    prepareUninstallModTask(instance.getInstalledMods().get(0));
+    prepareUninstallModTask(instance.getInstalledMods().getFirst());
 
-    instance.uninstallMod(instance.getInstalledMods().get(0));
+    instance.uninstallMod(instance.getInstalledMods().getFirst());
 
     verify(taskService).submitTask(any(UninstallModTask.class));
   }
@@ -346,7 +346,7 @@ public class ModServiceTest extends PlatformTest {
   public void testGetPathForMod() {
     assertThat(instance.getInstalledMods(), hasSize(1));
 
-    Path actual = instance.getPathForMod(instance.getInstalledMods().get(0));
+    Path actual = instance.getPathForMod(instance.getInstalledMods().getFirst());
 
     Path expected = modsDirectory.resolve(BLACK_OPS_UNLEASHED_DIRECTORY_NAME);
     assertThat(actual, is(expected));

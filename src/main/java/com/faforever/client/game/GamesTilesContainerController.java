@@ -123,7 +123,7 @@ public class GamesTilesContainerController extends NodeController<Node> {
   }
 
   private void selectFirstGame() {
-    selectedGame.set(!gameCards.isEmpty() ? (GameBean) gameCards.get(0).getUserData() : null);
+    selectedGame.set(!gameCards.isEmpty() ? (GameBean) gameCards.getFirst().getUserData() : null);
   }
 
   private void addGameCard(GameBean game) {

@@ -390,7 +390,7 @@ public class LaunchCommandBuilderTest extends ServiceTest {
   @Test
   public void testUseDebugger() throws Exception {
     assertEquals(Path.of("debugger").toAbsolutePath().toString(),
-        defaultBuilder().debuggerExecutable(Path.of("debugger")).build().get(0)
+                 defaultBuilder().debuggerExecutable(Path.of("debugger")).build().getFirst()
     );
   }
 }

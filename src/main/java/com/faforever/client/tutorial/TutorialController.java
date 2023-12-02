@@ -69,7 +69,7 @@ public class TutorialController extends NodeController<Node> {
       });
 
       if (tutorialDetailController.getTutorial() == null && !tutorialListItemControllers.isEmpty()) {
-        onTutorialClicked(tutorialListItemControllers.get(0));
+        onTutorialClicked(tutorialListItemControllers.getFirst());
       }
       setLoading(false);
       setNothingToShow(false);

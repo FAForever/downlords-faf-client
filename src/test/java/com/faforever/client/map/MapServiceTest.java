@@ -183,7 +183,7 @@ public class MapServiceTest extends PlatformTest {
     ObservableList<MapVersionBean> localMapBeans = instance.getInstalledMaps();
     assertThat(localMapBeans, hasSize(1));
 
-    MapVersionBean mapBean = localMapBeans.get(0);
+    MapVersionBean mapBean = localMapBeans.getFirst();
     assertThat(mapBean, notNullValue());
     assertThat(mapBean.getFolderName(), is("SCMP_001"));
     assertThat(mapBean.getMap().getDisplayName(), is("Burial Mounds"));
@@ -529,7 +529,7 @@ public class MapServiceTest extends PlatformTest {
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasDtoClass(MapPoolAssignment.class)), anyString());
     assertThat(results.getT1(), hasSize(1));
-    assertThat(results.getT1().get(0).getId(), is(2));
+    assertThat(results.getT1().getFirst().getId(), is(2));
     assertThat(results.getT2(), is(3));
   }
 

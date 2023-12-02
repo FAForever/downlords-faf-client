@@ -35,7 +35,7 @@ public class PlayerTest extends ServiceTest {
     );
 
     callParameters.forEach(objects -> checkStatusSetCorrectly(
-        (GameStatus) objects.get(0), (PlayerStatus) objects.get(1), (String) objects.get(2))
+        (GameStatus) objects.getFirst(), (PlayerStatus) objects.get(1), (String) objects.get(2))
     );
 
   }

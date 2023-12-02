@@ -124,7 +124,7 @@ public class ChatControllerTest extends PlatformTest {
     tabAddedLatch.await(2, TimeUnit.SECONDS);
 
     assertThat(instance.tabPane.getTabs(), hasSize(2));
-    assertThat(instance.tabPane.getTabs().get(0).getId(), is(TEST_CHANNEL_NAME));
+    assertThat(instance.tabPane.getTabs().getFirst().getId(), is(TEST_CHANNEL_NAME));
   }
 
   @Test

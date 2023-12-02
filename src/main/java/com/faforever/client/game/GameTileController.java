@@ -147,7 +147,7 @@ public class GameTileController extends NodeController<Node> {
     List<String> modNames = simMods.values().stream().limit(2).collect(Collectors.toList());
 
     if (simMods.size() > 2) {
-      return i18n.get("game.mods.twoAndMore", modNames.get(0), simMods.size() - 1);
+      return i18n.get("game.mods.twoAndMore", modNames.getFirst(), simMods.size() - 1);
     }
     return Joiner.on(i18n.get("textSeparator")).join(modNames);
   }

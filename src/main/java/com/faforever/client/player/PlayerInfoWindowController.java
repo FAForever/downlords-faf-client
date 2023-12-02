@@ -464,9 +464,9 @@ public class PlayerInfoWindowController extends NodeController<Node> {
         .collect(Collectors.toList());
 
     xAxis.setTickLabelFormatter(ratingLabelFormatter());
-    if (values.size() > 0) {
-      xAxis.setLowerBound(values.get(0).getXValue().doubleValue());
-      xAxis.setUpperBound(values.get(values.size() - 1).getXValue().doubleValue());
+    if (!values.isEmpty()) {
+      xAxis.setLowerBound(values.getFirst().getXValue().doubleValue());
+      xAxis.setUpperBound(values.getLast().getXValue().doubleValue());
     }
     xAxis.setTickUnit((xAxis.getUpperBound() - xAxis.getLowerBound()) / 10);
 

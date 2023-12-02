@@ -115,7 +115,7 @@ public class IceAdapterImplTest extends ServiceTest {
 
     List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711);
 
-    assertEquals(javaExecutablePath.toAbsolutePath().toString(), command.get(0));
+    assertEquals(javaExecutablePath.toAbsolutePath().toString(), command.getFirst());
     assertEquals("-Dorg.ice4j.ipv6.DISABLED=true", command.get(1));
     assertEquals("-cp", command.get(2));
     assertTrue(command.get(3).contains("faf-ice-adapter.jar"));
@@ -185,7 +185,7 @@ public class IceAdapterImplTest extends ServiceTest {
 
     assertEquals(1, value.size());
 
-    Map<String, Object> iceMap = value.get(0);
+    Map<String, Object> iceMap = value.getFirst();
 
     assertEquals(coturnServer.getUsername(), iceMap.get("username"));
     assertEquals(coturnServer.getCredential(), iceMap.get("credential"));

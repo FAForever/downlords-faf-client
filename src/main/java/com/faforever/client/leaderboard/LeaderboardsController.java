@@ -72,7 +72,7 @@ public class LeaderboardsController extends NodeController<Node> {
                         }).toList();
 
                         LeagueBean lastLeagueTab = navigationHandler.getLastLeagueTab();
-                        loadLeague(lastLeagueTab == null ? leagues.get(0) : lastLeagueTab);
+                        loadLeague(lastLeagueTab == null ? leagues.getFirst() : lastLeagueTab);
 
                         return leagueButtons;
                       })

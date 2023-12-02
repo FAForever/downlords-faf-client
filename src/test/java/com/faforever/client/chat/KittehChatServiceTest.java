@@ -647,11 +647,11 @@ public class KittehChatServiceTest extends ServiceTest {
     ObservableList<ChatChannelUser> usersInDefaultChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
         .getUsers();
     assertThat(usersInDefaultChannel, hasSize(1));
-    assertEquals(user1.getNick(), usersInDefaultChannel.get(0).getUsername());
+    assertEquals(user1.getNick(), usersInDefaultChannel.getFirst().getUsername());
 
     ObservableList<ChatChannelUser> usersInOtherChannel = instance.getOrCreateChannel(OTHER_CHANNEL_NAME).getUsers();
     assertThat(usersInOtherChannel, hasSize(1));
-    assertEquals(user2.getNick(), usersInOtherChannel.get(0).getUsername());
+    assertEquals(user2.getNick(), usersInOtherChannel.getFirst().getUsername());
   }
 
   @Test
