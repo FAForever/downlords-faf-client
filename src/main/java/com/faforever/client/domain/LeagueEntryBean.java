@@ -6,24 +6,21 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.experimental.FieldDefaults;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class LeagueEntryBean extends AbstractEntityBean<LeagueEntryBean> {
+public class LeagueEntryBean extends AbstractEntityBean {
   @ToString.Include
-  ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
-  IntegerProperty gamesPlayed = new SimpleIntegerProperty();
-  IntegerProperty score = new SimpleIntegerProperty();
-  BooleanProperty returningPlayer = new SimpleBooleanProperty();
-  ObjectProperty<LeagueSeasonBean> leagueSeason = new SimpleObjectProperty<>();
-  ObjectProperty<SubdivisionBean> subdivision = new SimpleObjectProperty<>();
+  private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
+  private final IntegerProperty gamesPlayed = new SimpleIntegerProperty();
+  private final IntegerProperty score = new SimpleIntegerProperty();
+  private final BooleanProperty returningPlayer = new SimpleBooleanProperty();
+  private final ObjectProperty<LeagueSeasonBean> leagueSeason = new SimpleObjectProperty<>();
+  private final ObjectProperty<SubdivisionBean> subdivision = new SimpleObjectProperty<>();
   // This doesn't get set by the api, but we set it dynamically because it is dependent on how many other entries there are.
-  IntegerProperty rank = new SimpleIntegerProperty();
+  private final IntegerProperty rank = new SimpleIntegerProperty();
 
   public PlayerBean getPlayer() {
     return player.get();

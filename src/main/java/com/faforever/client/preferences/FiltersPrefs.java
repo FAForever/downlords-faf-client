@@ -4,13 +4,11 @@ import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 
-@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
+
 public class FiltersPrefs {
 
-  ListProperty<String> mapNameBlacklist = new SimpleListProperty<>(FXCollections.observableArrayList());
+  private final ListProperty<String> mapNameBlacklist = new SimpleListProperty<>(FXCollections.observableArrayList());
 
   public ObservableList<String> getMapNameBlacklist() {
     return mapNameBlacklist.getValue();

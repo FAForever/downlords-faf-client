@@ -9,23 +9,20 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.experimental.FieldDefaults;
 
 import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class ModerationReportBean extends AbstractEntityBean<ModerationReportBean>  {
-  StringProperty reportDescription = new SimpleStringProperty();
-  ObjectProperty<ModerationReportStatus> reportStatus = new SimpleObjectProperty<>();
-  StringProperty gameIncidentTimeCode = new SimpleStringProperty();
-  StringProperty moderatorNotice = new SimpleStringProperty();
-  ObjectProperty<PlayerBean> lastModerator = new SimpleObjectProperty<>();
-  ObjectProperty<PlayerBean> reporter = new SimpleObjectProperty<>();
-  SetProperty<PlayerBean> reportedUsers = new SimpleSetProperty<>(FXCollections.observableSet());
-  ObjectProperty<ReplayBean> game = new SimpleObjectProperty<>();
+public class ModerationReportBean extends AbstractEntityBean {
+  private final StringProperty reportDescription = new SimpleStringProperty();
+  private final ObjectProperty<ModerationReportStatus> reportStatus = new SimpleObjectProperty<>();
+  private final StringProperty gameIncidentTimeCode = new SimpleStringProperty();
+  private final StringProperty moderatorNotice = new SimpleStringProperty();
+  private final ObjectProperty<PlayerBean> lastModerator = new SimpleObjectProperty<>();
+  private final ObjectProperty<PlayerBean> reporter = new SimpleObjectProperty<>();
+  private final SetProperty<PlayerBean> reportedUsers = new SimpleSetProperty<>(FXCollections.observableSet());
+  private final ObjectProperty<ReplayBean> game = new SimpleObjectProperty<>();
 
   public ModerationReportStatus getReportStatus() {
     return reportStatus.get();

@@ -10,23 +10,20 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class VotingQuestionBean extends AbstractEntityBean<VotingQuestionBean> {
-  StringProperty question = new SimpleStringProperty();
-  StringProperty questionKey = new SimpleStringProperty();
-  StringProperty descriptionKey = new SimpleStringProperty();
-  StringProperty description = new SimpleStringProperty();
-  IntegerProperty maxAnswers = new SimpleIntegerProperty();
-  IntegerProperty ordinal = new SimpleIntegerProperty();
-  BooleanProperty alternativeQuestion = new SimpleBooleanProperty();
-  ObjectProperty<VotingSubjectBean> votingSubject = new SimpleObjectProperty<>();
+public class VotingQuestionBean extends AbstractEntityBean {
+  private final StringProperty question = new SimpleStringProperty();
+  private final StringProperty questionKey = new SimpleStringProperty();
+  private final StringProperty descriptionKey = new SimpleStringProperty();
+  private final StringProperty description = new SimpleStringProperty();
+  private final IntegerProperty maxAnswers = new SimpleIntegerProperty();
+  private final IntegerProperty ordinal = new SimpleIntegerProperty();
+  private final BooleanProperty alternativeQuestion = new SimpleBooleanProperty();
+  private final ObjectProperty<VotingSubjectBean> votingSubject = new SimpleObjectProperty<>();
   ObservableList<VotingChoiceBean> winners = FXCollections.observableArrayList();
   ObservableList<VotingChoiceBean> votingChoices = FXCollections.observableArrayList();
 

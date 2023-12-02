@@ -8,24 +8,22 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 
 import java.nio.file.Path;
 
-@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
+
 public class ForgedAlliancePrefs {
 
   public static final String INIT_FILE_NAME = "init.lua";
   private static final String MAPS_SUB_FOLDER = "maps";
   private static final String MODS_SUB_FOLDER = "mods";
 
-  ObjectProperty<Path> installationPath = new SimpleObjectProperty<>();
-  ObjectProperty<Path> preferencesFile = new SimpleObjectProperty<>();
-  ObjectProperty<Path> vaultBaseDirectory = new SimpleObjectProperty<>();
-  BooleanProperty warnNonAsciiVaultPath = new SimpleBooleanProperty(true);
-  BooleanProperty autoDownloadMaps = new SimpleBooleanProperty(true);
-  BooleanProperty allowIpv6 = new SimpleBooleanProperty(false);
+  private final ObjectProperty<Path> installationPath = new SimpleObjectProperty<>();
+  private final ObjectProperty<Path> preferencesFile = new SimpleObjectProperty<>();
+  private final ObjectProperty<Path> vaultBaseDirectory = new SimpleObjectProperty<>();
+  private final BooleanProperty warnNonAsciiVaultPath = new SimpleBooleanProperty(true);
+  private final BooleanProperty autoDownloadMaps = new SimpleBooleanProperty(true);
+  private final BooleanProperty allowIpv6 = new SimpleBooleanProperty(false);
 
   /**
    * String format to use when building the launch command. Takes exact one parameter; the executable path. <p>
@@ -35,10 +33,10 @@ public class ForgedAlliancePrefs {
    * <pre>wine "C:\Game\ForgedAlliance.exe"</pre>
    * </p>
    */
-  StringProperty executableDecorator = new SimpleStringProperty();
-  ObjectProperty<Path> executionDirectory = new SimpleObjectProperty<>();
-  BooleanProperty runFAWithDebugger = new SimpleBooleanProperty(false);
-  BooleanProperty showIceAdapterDebugWindow = new SimpleBooleanProperty(false);
+  private final StringProperty executableDecorator = new SimpleStringProperty();
+  private final ObjectProperty<Path> executionDirectory = new SimpleObjectProperty<>();
+  private final BooleanProperty runFAWithDebugger = new SimpleBooleanProperty(false);
+  private final BooleanProperty showIceAdapterDebugWindow = new SimpleBooleanProperty(false);
   ObservableSet<String> preferredCoturnIds = FXCollections.observableSet();
 
   public Path getPreferencesFile() {

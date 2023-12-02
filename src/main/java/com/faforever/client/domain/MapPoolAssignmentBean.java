@@ -5,17 +5,14 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.experimental.FieldDefaults;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class MapPoolAssignmentBean extends AbstractEntityBean<MapPoolAssignmentBean> {
-  ObjectProperty<MapParams> mapParams = new SimpleObjectProperty<>();
-  ObjectProperty<MapPoolBean> mapPool = new SimpleObjectProperty<>();
-  ObjectProperty<MapVersionBean> mapVersion = new SimpleObjectProperty<>();
-  IntegerProperty weight = new SimpleIntegerProperty();
+public class MapPoolAssignmentBean extends AbstractEntityBean {
+  private final ObjectProperty<MapParams> mapParams = new SimpleObjectProperty<>();
+  private final ObjectProperty<MapPoolBean> mapPool = new SimpleObjectProperty<>();
+  private final ObjectProperty<MapVersionBean> mapVersion = new SimpleObjectProperty<>();
+  private final IntegerProperty weight = new SimpleIntegerProperty();
 
   public MapParams getMapParams() {
     return mapParams.get();

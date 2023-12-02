@@ -4,17 +4,14 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.experimental.FieldDefaults;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class MatchmakerQueueMapPoolBean extends AbstractEntityBean<MatchmakerQueueMapPoolBean> {
-  DoubleProperty minRating = new SimpleDoubleProperty();
-  DoubleProperty maxRating = new SimpleDoubleProperty();
-  ObjectProperty<MatchmakerQueueBean> matchmakerQueue = new SimpleObjectProperty<>();
-  ObjectProperty<MapPoolBean> mapPool = new SimpleObjectProperty<>();
+public class MatchmakerQueueMapPoolBean extends AbstractEntityBean {
+  private final DoubleProperty minRating = new SimpleDoubleProperty();
+  private final DoubleProperty maxRating = new SimpleDoubleProperty();
+  private final ObjectProperty<MatchmakerQueueBean> matchmakerQueue = new SimpleObjectProperty<>();
+  private final ObjectProperty<MapPoolBean> mapPool = new SimpleObjectProperty<>();
 
   public double getMinRating() {
     return minRating.get();

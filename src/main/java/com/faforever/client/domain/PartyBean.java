@@ -19,13 +19,8 @@ import java.util.List;
 public class PartyBean {
 
   @EqualsAndHashCode.Include
-  private final ObjectProperty<PlayerBean> owner;
-  private final ObservableList<PartyMember> members;
-
-  public PartyBean() {
-    owner = new SimpleObjectProperty<>();
-    members = FXCollections.observableArrayList();
-  }
+  private final ObjectProperty<PlayerBean> owner = new SimpleObjectProperty<>();
+  private final ObservableList<PartyMember> members = FXCollections.observableArrayList();
 
   public PlayerBean getOwner() {
     return owner.get();

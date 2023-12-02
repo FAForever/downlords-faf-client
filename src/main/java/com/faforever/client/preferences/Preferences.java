@@ -14,79 +14,78 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.TableColumn.SortType;
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.experimental.FieldDefaults;
 
 import java.util.Map;
 
 import static javafx.collections.FXCollections.observableHashMap;
 
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
+
 public class Preferences {
 
   public static final String DEFAULT_THEME_NAME = "default";
 
   @JsonMerge
   @Getter
-  GeneralPrefs general = new GeneralPrefs();
+  private final GeneralPrefs general = new GeneralPrefs();
   @JsonMerge
   @Getter
-  DataPrefs data = new DataPrefs();
+  private final DataPrefs data = new DataPrefs();
   @Getter
   @JsonMerge
-  WindowPrefs mainWindow = new WindowPrefs();
+  private final WindowPrefs mainWindow = new WindowPrefs();
   @JsonMerge
   @Getter
-  GeneratorPrefs generator = new GeneratorPrefs();
+  private final GeneratorPrefs generator = new GeneratorPrefs();
   @JsonMerge
   @Getter
-  ForgedAlliancePrefs forgedAlliance = new ForgedAlliancePrefs();
+  private final ForgedAlliancePrefs forgedAlliance = new ForgedAlliancePrefs();
   @JsonMerge
   @Getter
-  LoginPrefs login = new LoginPrefs();
+  private final LoginPrefs login = new LoginPrefs();
   @JsonMerge
   @Getter
-  ChatPrefs chat = new ChatPrefs();
+  private final ChatPrefs chat = new ChatPrefs();
   @JsonMerge
   @Getter
-  NotificationPrefs notification = new NotificationPrefs();
+  private final NotificationPrefs notification = new NotificationPrefs();
   @JsonMerge
   @Getter
-  LocalizationPrefs localization = new LocalizationPrefs();
+  private final LocalizationPrefs localization = new LocalizationPrefs();
   @JsonMerge
   @Getter
-  LastGamePrefs lastGame = new LastGamePrefs();
+  private final LastGamePrefs lastGame = new LastGamePrefs();
   @JsonMerge
   @Getter
-  MatchmakerPrefs matchmaker = new MatchmakerPrefs();
+  private final MatchmakerPrefs matchmaker = new MatchmakerPrefs();
   @JsonMerge
   @Getter
-  DeveloperPrefs developer = new DeveloperPrefs();
+  private final DeveloperPrefs developer = new DeveloperPrefs();
   @JsonMerge
   @Getter
-  VaultPrefs vault = new VaultPrefs();
+  private final VaultPrefs vault = new VaultPrefs();
   @JsonMerge
   @Getter
-  UserPrefs user = new UserPrefs();
+  private final UserPrefs user = new UserPrefs();
   @JsonMerge
   @Getter
-  FiltersPrefs filters = new FiltersPrefs();
+  private final FiltersPrefs filters = new FiltersPrefs();
 
-  StringProperty themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
-  BooleanProperty preReleaseCheckEnabled = new SimpleBooleanProperty(false);
-  BooleanProperty mapAndModAutoUpdate = new SimpleBooleanProperty(true);
-  BooleanProperty hidePrivateGames = new SimpleBooleanProperty(false);
-  BooleanProperty hideModdedGames = new SimpleBooleanProperty(false);
-  StringProperty gamesViewMode = new SimpleStringProperty();
-  MapProperty<String, SortType> gameTableSorting = new SimpleMapProperty<>(observableHashMap());
-  ObjectProperty<TilesSortingOrder> gameTileSortingOrder = new SimpleObjectProperty<>(TilesSortingOrder.PLAYER_DES);
-  ObjectProperty<UnitDataBaseType> unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.SPOOKY);
-  BooleanProperty disallowJoinsViaDiscord = new SimpleBooleanProperty();
-  BooleanProperty showGameDetailsSidePane = new SimpleBooleanProperty(false);
-  BooleanProperty advancedIceLogEnabled = new SimpleBooleanProperty(false);
-  IntegerProperty cacheLifeTimeInDays = new SimpleIntegerProperty(30);
-  BooleanProperty gameDataCacheActivated = new SimpleBooleanProperty(false);
+  private final StringProperty themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
+  private final BooleanProperty preReleaseCheckEnabled = new SimpleBooleanProperty(false);
+  private final BooleanProperty mapAndModAutoUpdate = new SimpleBooleanProperty(true);
+  private final BooleanProperty hidePrivateGames = new SimpleBooleanProperty(false);
+  private final BooleanProperty hideModdedGames = new SimpleBooleanProperty(false);
+  private final StringProperty gamesViewMode = new SimpleStringProperty();
+  private final MapProperty<String, SortType> gameTableSorting = new SimpleMapProperty<>(observableHashMap());
+  private final ObjectProperty<TilesSortingOrder> gameTileSortingOrder = new SimpleObjectProperty<>(
+      TilesSortingOrder.PLAYER_DES);
+  private final ObjectProperty<UnitDataBaseType> unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.SPOOKY);
+  private final BooleanProperty disallowJoinsViaDiscord = new SimpleBooleanProperty();
+  private final BooleanProperty showGameDetailsSidePane = new SimpleBooleanProperty(false);
+  private final BooleanProperty advancedIceLogEnabled = new SimpleBooleanProperty(false);
+  private final IntegerProperty cacheLifeTimeInDays = new SimpleIntegerProperty(30);
+  private final BooleanProperty gameDataCacheActivated = new SimpleBooleanProperty(false);
 
 
   public TilesSortingOrder getGameTileSortingOrder() {

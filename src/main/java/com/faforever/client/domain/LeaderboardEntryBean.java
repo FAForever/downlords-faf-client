@@ -8,23 +8,20 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.experimental.FieldDefaults;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class LeaderboardEntryBean extends AbstractEntityBean<LeaderboardEntryBean> {
+public class LeaderboardEntryBean extends AbstractEntityBean {
 
   @ToString.Include
-  ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
-  DoubleProperty rating = new SimpleDoubleProperty();
-  IntegerProperty gamesPlayed = new SimpleIntegerProperty();
-  FloatProperty winLossRatio = new SimpleFloatProperty();
+  private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
+  private final DoubleProperty rating = new SimpleDoubleProperty();
+  private final IntegerProperty gamesPlayed = new SimpleIntegerProperty();
+  private final FloatProperty winLossRatio = new SimpleFloatProperty();
   @ToString.Include
-  ObjectProperty<LeaderboardBean> leaderboard = new SimpleObjectProperty<>();
+  private final ObjectProperty<LeaderboardBean> leaderboard = new SimpleObjectProperty<>();
 
   public PlayerBean getPlayer() {
     return player.get();

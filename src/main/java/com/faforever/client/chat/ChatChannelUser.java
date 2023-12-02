@@ -7,11 +7,10 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.paint.Color;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import lombok.experimental.FieldDefaults;
 
 import java.util.Optional;
 import java.util.Set;
@@ -22,19 +21,22 @@ import java.util.Set;
  */
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
 public class ChatChannelUser {
 
   @Getter
   @EqualsAndHashCode.Include
-  String username;
+  @ToString.Include
+  private final String username;
   @Getter
   @EqualsAndHashCode.Include
-  String channel;
-  BooleanProperty moderator = new SimpleBooleanProperty();
-  ObjectProperty<Color> color = new SimpleObjectProperty<>();
-  ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
-  ObservableValue<Set<ChatUserCategory>> categories = player.flatMap(PlayerBean::socialStatusProperty)
+  @ToString.Include
+  private final String channel;
+
+  private final BooleanProperty moderator = new SimpleBooleanProperty();
+  private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
+  private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
+  private final ObservableValue<Set<ChatUserCategory>> categories = player.flatMap(PlayerBean::socialStatusProperty)
       .map(socialStatus -> switch (socialStatus) {
         case FRIEND -> ChatUserCategory.FRIEND;
         case FOE -> ChatUserCategory.FOE;
@@ -43,11 +45,6 @@ public class ChatChannelUser {
       })
       .orElse(ChatUserCategory.CHAT_ONLY)
       .flatMap(category -> moderator.map(isMod -> isMod ? Set.of(ChatUserCategory.MODERATOR, category) : Set.of(category)));
-
-  public ChatChannelUser(String username, String channel) {
-    this.username = username;
-    this.channel = channel;
-  }
 
   public Optional<PlayerBean> getPlayer() {
     return Optional.ofNullable(player.get());

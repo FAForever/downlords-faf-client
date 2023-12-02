@@ -1,26 +1,18 @@
 package com.faforever.client.preferences;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.util.Locale;
 
+@Getter
+@RequiredArgsConstructor
 public enum TimeInfo {
   AUTO("settings.time.system", null),
-  MILITARY_TIME("settings.time.24", new Locale("de", "DE")),
-  UK_TIME("settings.time.12", new Locale("en", "UK"));
+  MILITARY_TIME("settings.time.24", Locale.of("de", "DE")),
+  UK_TIME("settings.time.12", Locale.of("en", "UK"));
 
-  private final Locale usedLocale;
   private final String displayNameKey;
-
-  TimeInfo(String displayNameKey, Locale usedLocale) {
-    this.displayNameKey = displayNameKey;
-    this.usedLocale = usedLocale;
-  }
-
-  public Locale getUsedLocale() {
-    return usedLocale;
-  }
-
-  public String getDisplayNameKey() {
-    return displayNameKey;
-  }
+  private final Locale usedLocale;
 }
 

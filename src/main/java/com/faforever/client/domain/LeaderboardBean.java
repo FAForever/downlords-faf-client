@@ -9,7 +9,7 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
 @Data
-public class LeaderboardBean extends AbstractEntityBean<LeaderboardBean> {
+public class LeaderboardBean extends AbstractEntityBean {
   private final StringProperty descriptionKey = new SimpleStringProperty();
   private final StringProperty nameKey = new SimpleStringProperty();
   @ToString.Include

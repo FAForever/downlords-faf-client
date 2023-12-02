@@ -9,33 +9,30 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.experimental.FieldDefaults;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.net.URL;
 
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class MapVersionBean extends AbstractEntityBean<MapVersionBean> {
+public class MapVersionBean extends AbstractEntityBean {
 
   @ToString.Include
   @EqualsAndHashCode.Include
-  StringProperty folderName = new SimpleStringProperty();
-  IntegerProperty gamesPlayed = new SimpleIntegerProperty(0);
-  StringProperty description = new SimpleStringProperty();
-  IntegerProperty maxPlayers = new SimpleIntegerProperty();
-  ObjectProperty<MapSize> size = new SimpleObjectProperty<>();
-  ObjectProperty<ComparableVersion> version = new SimpleObjectProperty<>();
-  BooleanProperty hidden = new SimpleBooleanProperty();
-  BooleanProperty ranked = new SimpleBooleanProperty();
-  ObjectProperty<URL> downloadUrl = new SimpleObjectProperty<>();
-  ObjectProperty<URL> thumbnailUrlSmall = new SimpleObjectProperty<>();
-  ObjectProperty<URL> thumbnailUrlLarge = new SimpleObjectProperty<>();
-  ObjectProperty<MapBean> map = new SimpleObjectProperty<>();
+  private final StringProperty folderName = new SimpleStringProperty();
+  private final IntegerProperty gamesPlayed = new SimpleIntegerProperty(0);
+  private final StringProperty description = new SimpleStringProperty();
+  private final IntegerProperty maxPlayers = new SimpleIntegerProperty();
+  private final ObjectProperty<MapSize> size = new SimpleObjectProperty<>();
+  private final ObjectProperty<ComparableVersion> version = new SimpleObjectProperty<>();
+  private final BooleanProperty hidden = new SimpleBooleanProperty();
+  private final BooleanProperty ranked = new SimpleBooleanProperty();
+  private final ObjectProperty<URL> downloadUrl = new SimpleObjectProperty<>();
+  private final ObjectProperty<URL> thumbnailUrlSmall = new SimpleObjectProperty<>();
+  private final ObjectProperty<URL> thumbnailUrlLarge = new SimpleObjectProperty<>();
+  private final ObjectProperty<MapBean> map = new SimpleObjectProperty<>();
 
   public URL getDownloadUrl() {
     return downloadUrl.get();

@@ -2,14 +2,12 @@ package com.faforever.client.preferences;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 
-@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
+
 public class GeneralPrefs {
 
-  BooleanProperty disableSteamStart = new SimpleBooleanProperty(false);
-  BooleanProperty showCyrillicWarning = new SimpleBooleanProperty(true);
+  private final BooleanProperty disableSteamStart = new SimpleBooleanProperty(false);
+  private final BooleanProperty showCyrillicWarning = new SimpleBooleanProperty(true);
 
   public boolean getDisableSteamStart() {
     return disableSteamStart.get();

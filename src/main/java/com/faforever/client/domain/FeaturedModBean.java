@@ -6,22 +6,19 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.experimental.FieldDefaults;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class FeaturedModBean {
 
   @EqualsAndHashCode.Include
-  ObjectProperty<Integer> id = new SimpleObjectProperty<>();
-  StringProperty technicalName = new SimpleStringProperty();
-  StringProperty displayName = new SimpleStringProperty();
-  StringProperty description = new SimpleStringProperty();
-  StringProperty gitUrl = new SimpleStringProperty();
-  StringProperty gitBranch = new SimpleStringProperty();
-  BooleanProperty visible = new SimpleBooleanProperty();
+  private final ObjectProperty<Integer> id = new SimpleObjectProperty<>();
+  private final StringProperty technicalName = new SimpleStringProperty();
+  private final StringProperty displayName = new SimpleStringProperty();
+  private final StringProperty description = new SimpleStringProperty();
+  private final StringProperty gitUrl = new SimpleStringProperty();
+  private final StringProperty gitBranch = new SimpleStringProperty();
+  private final BooleanProperty visible = new SimpleBooleanProperty();
 
   public String getTechnicalName() {
     return technicalName.get();

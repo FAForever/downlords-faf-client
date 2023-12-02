@@ -6,20 +6,17 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class TutorialCategoryBean {
 
   @EqualsAndHashCode.Include
-  ObjectProperty<Integer> id = new SimpleObjectProperty<>();
-  StringProperty categoryKey = new SimpleStringProperty();
-  StringProperty category = new SimpleStringProperty();
+  private final ObjectProperty<Integer> id = new SimpleObjectProperty<>();
+  private final StringProperty categoryKey = new SimpleStringProperty();
+  private final StringProperty category = new SimpleStringProperty();
   ObservableList<TutorialBean> tutorials = FXCollections.observableArrayList();
 
   public Integer getId() {

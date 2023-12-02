@@ -13,10 +13,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -29,30 +27,30 @@ import java.util.Optional;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class ReplayBean {
 
   @EqualsAndHashCode.Include
   @ToString.Include
-  IntegerProperty id = new SimpleIntegerProperty();
+  private final IntegerProperty id = new SimpleIntegerProperty();
   @ToString.Include
-  StringProperty title = new SimpleStringProperty();
-  BooleanProperty replayAvailable = new SimpleBooleanProperty();
-  ReadOnlyObjectWrapper<Map<String, List<String>>> teams = new ReadOnlyObjectWrapper<>(Map.of());
-  ReadOnlyObjectWrapper<Map<String, List<GamePlayerStatsBean>>> teamPlayerStats = new ReadOnlyObjectWrapper<>(Map.of());
-  ObjectProperty<PlayerBean> host = new SimpleObjectProperty<>();
-  ObjectProperty<OffsetDateTime> startTime = new SimpleObjectProperty<>();
-  ObjectProperty<OffsetDateTime> endTime = new SimpleObjectProperty<>();
-  ObjectProperty<FeaturedModBean> featuredMod = new SimpleObjectProperty<>();
-  ObjectProperty<MapVersionBean> mapVersion = new SimpleObjectProperty<>();
-  ObjectProperty<Path> replayFile = new SimpleObjectProperty<>();
-  ObjectProperty<Integer> replayTicks = new SimpleObjectProperty<>();
-  IntegerProperty views = new SimpleIntegerProperty();
-  ReadOnlyObjectWrapper<List<ChatMessage>> chatMessages = new ReadOnlyObjectWrapper<>(List.of());
-  ReadOnlyObjectWrapper<List<GameOption>> gameOptions = new ReadOnlyObjectWrapper<>(List.of());
-  ObjectProperty<Validity> validity = new SimpleObjectProperty<>();
-  ObjectProperty<ReplayReviewsSummaryBean> gameReviewsSummary = new SimpleObjectProperty<>();
-  BooleanProperty local = new SimpleBooleanProperty();
+  private final StringProperty title = new SimpleStringProperty();
+  private final BooleanProperty replayAvailable = new SimpleBooleanProperty();
+  private final ReadOnlyObjectWrapper<Map<String, List<String>>> teams = new ReadOnlyObjectWrapper<>(Map.of());
+  private final ReadOnlyObjectWrapper<Map<String, List<GamePlayerStatsBean>>> teamPlayerStats = new ReadOnlyObjectWrapper<>(
+      Map.of());
+  private final ObjectProperty<PlayerBean> host = new SimpleObjectProperty<>();
+  private final ObjectProperty<OffsetDateTime> startTime = new SimpleObjectProperty<>();
+  private final ObjectProperty<OffsetDateTime> endTime = new SimpleObjectProperty<>();
+  private final ObjectProperty<FeaturedModBean> featuredMod = new SimpleObjectProperty<>();
+  private final ObjectProperty<MapVersionBean> mapVersion = new SimpleObjectProperty<>();
+  private final ObjectProperty<Path> replayFile = new SimpleObjectProperty<>();
+  private final ObjectProperty<Integer> replayTicks = new SimpleObjectProperty<>();
+  private final IntegerProperty views = new SimpleIntegerProperty();
+  private final ReadOnlyObjectWrapper<List<ChatMessage>> chatMessages = new ReadOnlyObjectWrapper<>(List.of());
+  private final ReadOnlyObjectWrapper<List<GameOption>> gameOptions = new ReadOnlyObjectWrapper<>(List.of());
+  private final ObjectProperty<Validity> validity = new SimpleObjectProperty<>();
+  private final ObjectProperty<ReplayReviewsSummaryBean> gameReviewsSummary = new SimpleObjectProperty<>();
+  private final BooleanProperty local = new SimpleBooleanProperty();
   ObservableValue<Integer> numPlayers = teams.map(team -> team.values().stream().mapToInt(Collection::size).sum())
       .orElse(0);
   ObservableValue<Double> averageRating = teamPlayerStats.map(playerStats -> playerStats.values()

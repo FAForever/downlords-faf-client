@@ -11,10 +11,8 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -27,9 +25,8 @@ import static com.faforever.client.player.SocialStatus.OTHER;
  */
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @Slf4j
-public class PlayerBean extends AbstractEntityBean<PlayerBean> {
+public class PlayerBean extends AbstractEntityBean {
 
   private static final SimpleObjectProperty<PlayerStatus> PLAYING_STATUS_PROPERTY = new SimpleObjectProperty<>(
       PlayerStatus.PLAYING);
@@ -37,16 +34,16 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
       PlayerStatus.IDLE);
 
   @ToString.Include
-  StringProperty username = new SimpleStringProperty();
-  StringProperty clan = new SimpleStringProperty();
-  StringProperty country = new SimpleStringProperty();
-  ObjectProperty<AvatarBean> avatar = new SimpleObjectProperty<>();
-  ObjectProperty<SocialStatus> socialStatus = new SimpleObjectProperty<>(OTHER);
+  private final StringProperty username = new SimpleStringProperty();
+  private final StringProperty clan = new SimpleStringProperty();
+  private final StringProperty country = new SimpleStringProperty();
+  private final ObjectProperty<AvatarBean> avatar = new SimpleObjectProperty<>();
+  private final ObjectProperty<SocialStatus> socialStatus = new SimpleObjectProperty<>(OTHER);
   ReadOnlyMapWrapper<String, LeaderboardRatingBean> leaderboardRatings = new ReadOnlyMapWrapper<>(
       FXCollections.unmodifiableObservableMap(FXCollections.observableHashMap()));
-  ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
+  private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
   ObservableValue<PlayerStatus> status = game.flatMap(this::statusPropertyFromGame).orElse(PlayerStatus.IDLE);
-  StringProperty note = new SimpleStringProperty();
+  private final StringProperty note = new SimpleStringProperty();
   ObservableValue<Integer> numberOfGames = leaderboardRatings.map(
       ratings -> ratings.values().stream().mapToInt(LeaderboardRatingBean::getNumberOfGames).sum()).orElse(0);
 

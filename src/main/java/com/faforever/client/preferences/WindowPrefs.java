@@ -9,21 +9,19 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 
 import java.nio.file.Path;
 
-@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
+
 public class WindowPrefs {
 
-  IntegerProperty width = new SimpleIntegerProperty(800);
-  IntegerProperty height = new SimpleIntegerProperty(600);
-  BooleanProperty maximized = new SimpleBooleanProperty();
-  ObjectProperty<NavigationItem> navigationItem = new SimpleObjectProperty<>();
-  DoubleProperty x = new SimpleDoubleProperty(-1d);
-  DoubleProperty y = new SimpleDoubleProperty(-1d);
-  ObjectProperty<Path> backgroundImagePath = new SimpleObjectProperty<>();
+  private final IntegerProperty width = new SimpleIntegerProperty(800);
+  private final IntegerProperty height = new SimpleIntegerProperty(600);
+  private final BooleanProperty maximized = new SimpleBooleanProperty();
+  private final ObjectProperty<NavigationItem> navigationItem = new SimpleObjectProperty<>();
+  private final DoubleProperty x = new SimpleDoubleProperty(-1d);
+  private final DoubleProperty y = new SimpleDoubleProperty(-1d);
+  private final ObjectProperty<Path> backgroundImagePath = new SimpleObjectProperty<>();
 
   public int getWidth() {
     return width.get();

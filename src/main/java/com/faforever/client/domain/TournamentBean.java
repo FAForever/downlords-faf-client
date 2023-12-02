@@ -9,31 +9,28 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.experimental.FieldDefaults;
 
 import java.time.OffsetDateTime;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class TournamentBean {
   @EqualsAndHashCode.Include
-  ObjectProperty<Integer> id = new SimpleObjectProperty<>();
-  StringProperty name = new SimpleStringProperty();
-  StringProperty description = new SimpleStringProperty();
-  StringProperty tournamentType = new SimpleStringProperty();
-  ObjectProperty<OffsetDateTime> createdAt = new SimpleObjectProperty<>();
-  IntegerProperty participantCount = new SimpleIntegerProperty();
-  ObjectProperty<OffsetDateTime> startingAt = new SimpleObjectProperty<>();
-  ObjectProperty<OffsetDateTime> completedAt = new SimpleObjectProperty<>();
-  StringProperty challongeUrl = new SimpleStringProperty();
-  StringProperty liveImageUrl = new SimpleStringProperty();
-  StringProperty signUpUrl = new SimpleStringProperty();
-  BooleanProperty openForSignup = new SimpleBooleanProperty();
-  ObjectProperty<Status> status = new SimpleObjectProperty<>();
+  private final ObjectProperty<Integer> id = new SimpleObjectProperty<>();
+  private final StringProperty name = new SimpleStringProperty();
+  private final StringProperty description = new SimpleStringProperty();
+  private final StringProperty tournamentType = new SimpleStringProperty();
+  private final ObjectProperty<OffsetDateTime> createdAt = new SimpleObjectProperty<>();
+  private final IntegerProperty participantCount = new SimpleIntegerProperty();
+  private final ObjectProperty<OffsetDateTime> startingAt = new SimpleObjectProperty<>();
+  private final ObjectProperty<OffsetDateTime> completedAt = new SimpleObjectProperty<>();
+  private final StringProperty challongeUrl = new SimpleStringProperty();
+  private final StringProperty liveImageUrl = new SimpleStringProperty();
+  private final StringProperty signUpUrl = new SimpleStringProperty();
+  private final BooleanProperty openForSignup = new SimpleBooleanProperty();
+  private final ObjectProperty<Status> status = new SimpleObjectProperty<>();
 
   public TournamentBean() {
     status.bind(Bindings.createObjectBinding(() -> {

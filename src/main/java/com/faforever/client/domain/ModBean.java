@@ -6,24 +6,21 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.experimental.FieldDefaults;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class ModBean extends AbstractEntityBean<ModBean> {
+public class ModBean extends AbstractEntityBean {
 
   @ToString.Include
   @EqualsAndHashCode.Include
-  StringProperty displayName = new SimpleStringProperty();
-  BooleanProperty recommended = new SimpleBooleanProperty();
-  StringProperty author = new SimpleStringProperty();
-  ObjectProperty<PlayerBean> uploader = new SimpleObjectProperty<>();
-  ObjectProperty<ModReviewsSummaryBean> modReviewsSummary = new SimpleObjectProperty<>();
-  ObjectProperty<ModVersionBean> latestVersion = new SimpleObjectProperty<>();
+  private final StringProperty displayName = new SimpleStringProperty();
+  private final BooleanProperty recommended = new SimpleBooleanProperty();
+  private final StringProperty author = new SimpleStringProperty();
+  private final ObjectProperty<PlayerBean> uploader = new SimpleObjectProperty<>();
+  private final ObjectProperty<ModReviewsSummaryBean> modReviewsSummary = new SimpleObjectProperty<>();
+  private final ObjectProperty<ModVersionBean> latestVersion = new SimpleObjectProperty<>();
 
   public String getDisplayName() {
     return displayName.get();

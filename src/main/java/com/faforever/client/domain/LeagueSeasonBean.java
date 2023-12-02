@@ -7,26 +7,23 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.experimental.FieldDefaults;
 
 import java.time.OffsetDateTime;
 
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class LeagueSeasonBean extends AbstractEntityBean<LeagueSeasonBean> {
-  ObjectProperty<LeagueBean> league = new SimpleObjectProperty<>();
-  ObjectProperty<LeaderboardBean> leaderboard = new SimpleObjectProperty<>();
+public class LeagueSeasonBean extends AbstractEntityBean {
+  private final ObjectProperty<LeagueBean> league = new SimpleObjectProperty<>();
+  private final ObjectProperty<LeaderboardBean> leaderboard = new SimpleObjectProperty<>();
   @ToString.Include
-  StringProperty nameKey = new SimpleStringProperty();
-  IntegerProperty seasonNumber = new SimpleIntegerProperty();
-  IntegerProperty placementGames = new SimpleIntegerProperty();
-  IntegerProperty placementGamesReturningPlayer = new SimpleIntegerProperty();
-  ObjectProperty<OffsetDateTime> startDate = new SimpleObjectProperty<>();
-  ObjectProperty<OffsetDateTime> endDate = new SimpleObjectProperty<>();
+  private final StringProperty nameKey = new SimpleStringProperty();
+  private final IntegerProperty seasonNumber = new SimpleIntegerProperty();
+  private final IntegerProperty placementGames = new SimpleIntegerProperty();
+  private final IntegerProperty placementGamesReturningPlayer = new SimpleIntegerProperty();
+  private final ObjectProperty<OffsetDateTime> startDate = new SimpleObjectProperty<>();
+  private final ObjectProperty<OffsetDateTime> endDate = new SimpleObjectProperty<>();
 
   public LeagueBean getLeague() {
     return league.get();

@@ -2,28 +2,25 @@ package com.faforever.client.domain;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.experimental.FieldDefaults;
 
 /**
  * Represents a leaderboard rating
  */
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class LeaderboardRatingJournalBean extends AbstractEntityBean<LeaderboardRatingJournalBean> {
+public class LeaderboardRatingJournalBean extends AbstractEntityBean {
 
-  ObjectProperty<Double> meanAfter = new SimpleObjectProperty<>();
-  ObjectProperty<Double> deviationAfter = new SimpleObjectProperty<>();
+  private final ObjectProperty<Double> meanAfter = new SimpleObjectProperty<>();
+  private final ObjectProperty<Double> deviationAfter = new SimpleObjectProperty<>();
   @ToString.Include
-  ObjectProperty<Double> meanBefore = new SimpleObjectProperty<>();
+  private final ObjectProperty<Double> meanBefore = new SimpleObjectProperty<>();
   @ToString.Include
-  ObjectProperty<Double> deviationBefore = new SimpleObjectProperty<>();
-  ObjectProperty<GamePlayerStatsBean> gamePlayerStats = new SimpleObjectProperty<>();
+  private final ObjectProperty<Double> deviationBefore = new SimpleObjectProperty<>();
+  private final ObjectProperty<GamePlayerStatsBean> gamePlayerStats = new SimpleObjectProperty<>();
   @ToString.Include
-  ObjectProperty<LeaderboardBean> leaderboard = new SimpleObjectProperty<>();
+  private final ObjectProperty<LeaderboardBean> leaderboard = new SimpleObjectProperty<>();
 
   public Double getMeanAfter() {
     return meanAfter.get();
