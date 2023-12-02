@@ -60,7 +60,7 @@ public class SubDivisionTabControllerTest extends PlatformTest {
 
     instance.populate(subdivisionBean);
     assertEquals(2, instance.ratingTable.getItems().size());
-    assertEquals(leagueEntryBean1, instance.ratingTable.getItems().get(0));
+    assertEquals(leagueEntryBean1, instance.ratingTable.getItems().getFirst());
     assertEquals(11, leagueEntryBean1.getRank());
     assertEquals(12, leagueEntryBean2.getRank());
   }

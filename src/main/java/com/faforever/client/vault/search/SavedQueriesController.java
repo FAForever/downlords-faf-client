@@ -33,14 +33,14 @@ public class SavedQueriesController extends NodeController<Parent> {
   private Runnable onCloseButtonClickedListener;
 
   public void onSearchButtonClicked() {
-    queryTextField.setText(queries.get(queryListView.getSelectionModel().getSelectedItems().get(0)));
+    queryTextField.setText(queries.get(queryListView.getSelectionModel().getSelectedItems().getFirst()));
     searchController.onSearchButtonClicked();
     onCloseButtonClickedListener.run();
   }
 
   public void onRemoveQueryButtonClicked() {
-    queries.remove(queryListView.getSelectionModel().getSelectedItems().get(0));
-    queryListView.getItems().remove(queryListView.getSelectionModel().getSelectedItems().get(0));
+    queries.remove(queryListView.getSelectionModel().getSelectedItems().getFirst());
+    queryListView.getItems().remove(queryListView.getSelectionModel().getSelectedItems().getFirst());
     queryListView.getSelectionModel().clearSelection();
   }
 

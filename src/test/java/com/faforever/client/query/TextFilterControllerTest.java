@@ -80,6 +80,6 @@ public class TextFilterControllerTest extends PlatformTest {
     Optional<List<Condition>> result = instance.getCondition();
 
     assertTrue(result.isPresent());
-    assertEquals(result.get().get(0).query(new RSQLVisitor()), property.eq("*test*").query(new RSQLVisitor()));
+    assertEquals(result.get().getFirst().query(new RSQLVisitor()), property.eq("*test*").query(new RSQLVisitor()));
   }
 }

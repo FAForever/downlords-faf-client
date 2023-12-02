@@ -115,7 +115,7 @@ public class DateRangeFilterControllerTest extends PlatformTest {
     Optional<List<Condition>> result = instance.getCondition();
 
     assertTrue(result.isPresent());
-    assertEquals(result.get().get(0).query(new RSQLVisitor()),
+    assertEquals(result.get().getFirst().query(new RSQLVisitor()),
         property.after(after.atStartOfDay().toInstant(ZoneOffset.UTC), false).query(new RSQLVisitor()));
     assertTrue(instance.menu.getStyleClass().contains("query-filter-selected"));
   }
@@ -128,7 +128,7 @@ public class DateRangeFilterControllerTest extends PlatformTest {
     Optional<List<Condition>> result = instance.getCondition();
 
     assertTrue(result.isPresent());
-    assertEquals(result.get().get(0).query(new RSQLVisitor()),
+    assertEquals(result.get().getFirst().query(new RSQLVisitor()),
         property.before(before.atStartOfDay().toInstant(ZoneOffset.UTC), false).query(new RSQLVisitor()));
     assertTrue(instance.menu.getStyleClass().contains("query-filter-selected"));
   }
@@ -144,7 +144,7 @@ public class DateRangeFilterControllerTest extends PlatformTest {
     assertEquals(result.get().get(1).query(new RSQLVisitor()),
         new QBuilder<>().instant(propertyName).before(before.atStartOfDay().toInstant(ZoneOffset.UTC), false)
             .query(new RSQLVisitor()));
-    assertEquals(result.get().get(0).query(new RSQLVisitor()),
+    assertEquals(result.get().getFirst().query(new RSQLVisitor()),
         new QBuilder<>().instant(propertyName).after(after.atStartOfDay().toInstant(ZoneOffset.UTC), false)
             .query(new RSQLVisitor()));
     assertTrue(instance.menu.getStyleClass().contains("query-filter-selected"));

@@ -179,7 +179,7 @@ public class LiveReplayController extends NodeController<Node> {
         .map(Entry::getValue)
         .collect(Collectors.toList());
     if (simModCount > 2) {
-      return new SimpleStringProperty(i18n.get("game.mods.twoAndMore", modNames.get(0), simMods.size() - 1));
+      return new SimpleStringProperty(i18n.get("game.mods.twoAndMore", modNames.getFirst(), simMods.size() - 1));
     }
     return new SimpleStringProperty(Joiner.on(i18n.get("textSeparator")).join(modNames));
   }

@@ -116,13 +116,13 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
   private void invalidate(Change<? extends String> change) {
     if (change.next()) {
       if (change.wasAdded()) {
-        String checkedItem = change.getAddedSubList().get(0);
+        String checkedItem = change.getAddedSubList().getFirst();
         if (!selectedStringListProperty.contains(checkedItem)) {
           selectedStringListProperty.add(checkedItem);
           selectedItemListProperty.add(sourceList.get(convertedSourceList.indexOf(checkedItem)));
         }
       } else if (change.wasRemoved()) {
-        String uncheckedItem = change.getRemoved().get(0);
+        String uncheckedItem = change.getRemoved().getFirst();
         if (selectedStringListProperty.contains(uncheckedItem)) {
           selectedStringListProperty.remove(uncheckedItem);
           selectedItemListProperty.remove(sourceList.get(convertedSourceList.indexOf(uncheckedItem)));

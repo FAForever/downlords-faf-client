@@ -144,8 +144,8 @@ public class GamesTableControllerTest extends PlatformTest {
     });
 
     assertThat(instance.gamesTable.getSortOrder(), hasSize(1));
-    assertThat(instance.gamesTable.getSortOrder().get(0).getId(), is("hostColumn"));
-    assertThat(instance.gamesTable.getSortOrder().get(0).getSortType(), is(SortType.DESCENDING));
+    assertThat(instance.gamesTable.getSortOrder().getFirst().getId(), is("hostColumn"));
+    assertThat(instance.gamesTable.getSortOrder().getFirst().getSortType(), is(SortType.DESCENDING));
   }
 
   @Test
@@ -157,7 +157,7 @@ public class GamesTableControllerTest extends PlatformTest {
           GameBeanBuilder.create().defaultValues().get(),
           GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
       ));
-      TableColumn<GameBean, ?> column = instance.gamesTable.getColumns().get(0);
+      TableColumn<GameBean, ?> column = instance.gamesTable.getColumns().getFirst();
       column.setSortType(SortType.ASCENDING);
       instance.gamesTable.getSortOrder().add(column);
     });

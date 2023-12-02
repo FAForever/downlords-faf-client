@@ -269,8 +269,8 @@ public class ReplayServiceTest extends ServiceTest {
     List<ReplayBean> localReplays = instance.loadLocalReplayPage(1, 1).get().getT1();
 
     assertThat(localReplays, hasSize(1));
-    assertThat(localReplays.get(0).getId(), is(123));
-    assertThat(localReplays.get(0).getTitle(), is("title"));
+    assertThat(localReplays.getFirst().getId(), is(123));
+    assertThat(localReplays.getFirst().getTitle(), is("title"));
   }
 
   @Test

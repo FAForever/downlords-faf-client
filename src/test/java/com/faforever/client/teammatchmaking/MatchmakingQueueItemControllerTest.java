@@ -165,7 +165,7 @@ public class MatchmakingQueueItemControllerTest extends PlatformTest {
         PlayerBeanBuilder.create().defaultValues().username("notMe").get()).defaultValues().get()));
     assertThat(instance.selectButton.isDisabled(), is(true));
 
-    runOnFxThreadAndWait(() -> party.getMembers().setAll(party.getMembers().get(0)));
+    runOnFxThreadAndWait(() -> party.getMembers().setAll(party.getMembers().getFirst()));
     assertThat(instance.selectButton.isDisabled(), is(false));
   }
 

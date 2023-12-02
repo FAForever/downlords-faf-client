@@ -130,7 +130,7 @@ public class RangeFilterControllerTest extends PlatformTest {
     Optional<List<Condition>> result = instance.getCondition();
 
     assertTrue(result.isPresent());
-    assertEquals(result.get().get(0).query(new RSQLVisitor()), property.lte(50.0).query(new RSQLVisitor()));
+    assertEquals(result.get().getFirst().query(new RSQLVisitor()), property.lte(50.0).query(new RSQLVisitor()));
     assertTrue(instance.menu.getStyleClass().contains("query-filter-selected"));
   }
 
@@ -142,7 +142,7 @@ public class RangeFilterControllerTest extends PlatformTest {
     Optional<List<Condition>> result = instance.getCondition();
 
     assertTrue(result.isPresent());
-    assertEquals(result.get().get(0).query(new RSQLVisitor()), property.gte(50.0).query(new RSQLVisitor()));
+    assertEquals(result.get().getFirst().query(new RSQLVisitor()), property.gte(50.0).query(new RSQLVisitor()));
     assertTrue(instance.menu.getStyleClass().contains("query-filter-selected"));
   }
 
@@ -154,7 +154,8 @@ public class RangeFilterControllerTest extends PlatformTest {
     Optional<List<Condition>> result = instance.getCondition();
 
     assertTrue(result.isPresent());
-    assertEquals(result.get().get(0).query(new RSQLVisitor()), new QBuilder<>().doubleNum(propertyName).gte(50.0).query(new RSQLVisitor()));
+    assertEquals(result.get().getFirst().query(new RSQLVisitor()),
+                 new QBuilder<>().doubleNum(propertyName).gte(50.0).query(new RSQLVisitor()));
     assertEquals(result.get().get(1).query(new RSQLVisitor()), new QBuilder<>().doubleNum(propertyName).lte(50.0).query(new RSQLVisitor()));
     assertTrue(instance.menu.getStyleClass().contains("query-filter-selected"));
   }

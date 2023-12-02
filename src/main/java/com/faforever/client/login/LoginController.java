@@ -149,7 +149,7 @@ public class LoginController extends NodeController<Pane> {
     if (clientProperties.isUseRemotePreferences()) {
       initializeFuture = preferencesService.getRemotePreferencesAsync()
           .thenApply(clientConfiguration -> {
-            ServerEndpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
+            ServerEndpoints defaultEndpoint = clientConfiguration.getEndpoints().getFirst();
 
             clientProperties.updateFromEndpoint(defaultEndpoint);
 

@@ -95,13 +95,13 @@ public class EmoticonServiceTest extends ServiceTest {
   @Test
   public void testGetSvgContentByShortcode() throws Exception {
     EmoticonsGroup emoticonsGroup = EmoticonGroupBuilder.create().defaultValues().get();
-    Emoticon emoticon = emoticonsGroup.getEmoticons().get(0);
+    Emoticon emoticon = emoticonsGroup.getEmoticons().getFirst();
     EmoticonsGroup[] emoticonsGroupsArray = new EmoticonsGroup[]{emoticonsGroup};
     when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
 
     instance.loadAndVerifyEmoticons();
     assertEquals(emoticon.getBase64SvgContent(), instance.getBase64SvgContentByShortcode(emoticon.getShortcodes()
-        .get(0)));
+                                                                                                 .getFirst()));
     emoticon.getShortcodes().forEach(shortcode -> assertTrue(instance.getEmoticonShortcodeDetectorPattern().pattern().contains(shortcode)));
     assertTrue(instance.getEmoticonShortcodeDetectorPattern().pattern().contains("|"));
   }

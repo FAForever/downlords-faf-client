@@ -160,7 +160,7 @@ public class ChatChannelTabControllerTest extends PlatformTest {
     initializeDefaultChatChannel();
 
     assertEquals(2, instance.topicText.getChildren().size());
-    assertEquals("topic ", ((Labeled) instance.topicText.getChildren().get(0)).getText());
+    assertEquals("topic ", ((Labeled) instance.topicText.getChildren().getFirst()).getText());
     assertEquals("https://example.com/1", ((Labeled) instance.topicText.getChildren().get(1)).getText());
     assertTrue(instance.topicPane.isVisible());
   }
@@ -193,7 +193,7 @@ public class ChatChannelTabControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> defaultChatChannel.setTopic(new ChannelTopic("junit2", "topic2: https://faforever.com topic3: https://faforever.com/example")));
     assertEquals(4, instance.topicText.getChildren().size());
-    assertEquals("topic2: ", ((Labeled) instance.topicText.getChildren().get(0)).getText());
+    assertEquals("topic2: ", ((Labeled) instance.topicText.getChildren().getFirst()).getText());
     assertEquals("https://faforever.com", ((Labeled) instance.topicText.getChildren().get(1)).getText());
     assertEquals("topic3: ", ((Labeled) instance.topicText.getChildren().get(2)).getText());
     assertEquals("https://faforever.com/example", ((Labeled) instance.topicText.getChildren().get(3)).getText());
@@ -264,7 +264,7 @@ public class ChatChannelTabControllerTest extends PlatformTest {
     });
 
     assertEquals(2, instance.topicText.getChildren().size());
-    assertEquals("topic: ", ((Labeled) instance.topicText.getChildren().get(0)).getText());
+    assertEquals("topic: ", ((Labeled) instance.topicText.getChildren().getFirst()).getText());
     assertEquals("https://faforever.com", ((Labeled) instance.topicText.getChildren().get(1)).getText());
     assertFalse(instance.topicTextField.isVisible());
     assertTrue(instance.topicText.isVisible());

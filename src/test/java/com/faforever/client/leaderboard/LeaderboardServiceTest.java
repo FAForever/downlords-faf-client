@@ -84,7 +84,7 @@ public class LeaderboardServiceTest extends ServiceTest {
 
     verify(fafApiAccessor).getMany(any());
     assertThat(results, hasSize(1));
-    assertThat(results.get(0), is(leaderboardBean));
+    assertThat(results.getFirst(), is(leaderboardBean));
   }
 
   @Test
@@ -110,7 +110,7 @@ public class LeaderboardServiceTest extends ServiceTest {
     verify(fafApiAccessor).getMany(any());
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().bool("enabled").isTrue())));
     assertThat(results, hasSize(1));
-    assertThat(results.get(0), is(leagueBean));
+    assertThat(results.getFirst(), is(leagueBean));
   }
 
   @Test

@@ -28,7 +28,7 @@ public class EmoticonController extends NodeController<AnchorPane> {
 
   public void setEmoticon(Emoticon emoticon, Consumer<String> onAction) {
     emoticonImageView.setImage(emoticon.getImage());
-    root.setOnMouseClicked(event -> onAction.accept(emoticon.getShortcodes().get(0)));
+    root.setOnMouseClicked(event -> onAction.accept(emoticon.getShortcodes().getFirst()));
 
     displayShortcodesOnHover(emoticon.getShortcodes());
   }
