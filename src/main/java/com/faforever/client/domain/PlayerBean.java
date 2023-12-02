@@ -17,7 +17,6 @@ import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 
@@ -47,7 +46,6 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
       FXCollections.unmodifiableObservableMap(FXCollections.observableHashMap()));
   ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
   ObservableValue<PlayerStatus> status = game.flatMap(this::statusPropertyFromGame).orElse(PlayerStatus.IDLE);
-  ObjectProperty<Instant> idleSince = new SimpleObjectProperty<>();
   StringProperty note = new SimpleStringProperty();
   ObservableValue<Integer> numberOfGames = leaderboardRatings.map(
       ratings -> ratings.values().stream().mapToInt(LeaderboardRatingBean::getNumberOfGames).sum()).orElse(0);
@@ -165,18 +163,6 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
 
   public String getNote() {
     return note.get();
-  }
-
-  public Instant getIdleSince() {
-    return idleSince.get();
-  }
-
-  public ObjectProperty<Instant> idleSinceProperty() {
-    return idleSince;
-  }
-
-  public void setIdleSince(Instant idleSince) {
-    this.idleSince.set(idleSince);
   }
 
   public int getNumberOfGamesForLeaderboard(final String leaderboardName) {
