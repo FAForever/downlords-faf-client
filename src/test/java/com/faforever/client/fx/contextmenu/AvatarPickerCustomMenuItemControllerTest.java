@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
@@ -40,9 +40,21 @@ public class AvatarPickerCustomMenuItemControllerTest extends PlatformTest {
   @Test
   public void testVisibleItemIfThereAvailableAvatars() throws Exception {
     when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
-        AvatarBeanBuilder.create().defaultValues().url(new URL("http://www.example.com/avatar1.png")).description("Avatar Number #1").get(),
-        AvatarBeanBuilder.create().defaultValues().url(new URL("http://www.example.com/avatar2.png")).description("Avatar Number #2").get(),
-        AvatarBeanBuilder.create().defaultValues().url(new URL("http://www.example.com/avatar3.png")).description("Avatar Number #3").get()
+        AvatarBeanBuilder.create()
+                         .defaultValues()
+                         .url(URI.create("http://www.example.com/avatar1.png").toURL())
+                         .description("Avatar Number #1")
+                         .get(),
+        AvatarBeanBuilder.create()
+                         .defaultValues()
+                         .url(URI.create("http://www.example.com/avatar2.png").toURL())
+                         .description("Avatar Number #2")
+                         .get(),
+        AvatarBeanBuilder.create()
+                         .defaultValues()
+                         .url(URI.create("http://www.example.com/avatar3.png").toURL())
+                         .description("Avatar Number #3")
+                         .get()
     )));
 
     runOnFxThreadAndWait(() -> instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get()));
@@ -70,7 +82,11 @@ public class AvatarPickerCustomMenuItemControllerTest extends PlatformTest {
 
   @Test
   public void testSelectAvatar() throws Exception {
-    AvatarBean avatar = AvatarBeanBuilder.create().defaultValues().url(new URL("http://www.example.com/avatar1.png")).description("Avatar Number #1").get();
+    AvatarBean avatar = AvatarBeanBuilder.create()
+                                         .defaultValues()
+                                         .url(URI.create("http://www.example.com/avatar1.png").toURL())
+                                         .description("Avatar Number #1")
+                                         .get();
     when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(avatar)));
 
     runOnFxThreadAndWait(() -> instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get()));
@@ -81,7 +97,11 @@ public class AvatarPickerCustomMenuItemControllerTest extends PlatformTest {
 
   @Test
   public void testSelectNoAvatar() throws Exception {
-    AvatarBean avatar = AvatarBeanBuilder.create().defaultValues().url(new URL("http://www.example.com/avatar1.png")).description("Avatar Number #1").get();
+    AvatarBean avatar = AvatarBeanBuilder.create()
+                                         .defaultValues()
+                                         .url(URI.create("http://www.example.com/avatar1.png").toURL())
+                                         .description("Avatar Number #1")
+                                         .get();
     when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(avatar)));
     when(i18n.get("chat.userContext.noAvatar")).thenReturn("no avatar");
 

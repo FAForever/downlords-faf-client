@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -79,7 +80,7 @@ public class ImgurUploadTask extends CompletableTask<String> implements Initiali
     String dataImage = BaseEncoding.base64().encode(byteArrayOutputStream.toByteArray());
     String data = URLEncoder.encode("image", StandardCharsets.UTF_8) + "=" + URLEncoder.encode(dataImage, StandardCharsets.UTF_8);
 
-    URL url = new URL(baseUrl);
+    URL url = URI.create(baseUrl).toURL();
     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 
     urlConnection.setDoOutput(true);

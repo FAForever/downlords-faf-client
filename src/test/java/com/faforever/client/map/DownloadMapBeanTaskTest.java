@@ -9,7 +9,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -47,7 +47,7 @@ public class DownloadMapBeanTaskTest extends PlatformTest {
 
   @Test
   public void testCallWithoutFolderNameThrowsException() throws Exception {
-    instance.setMapUrl(new URL("http://www.example.com"));
+    instance.setMapUrl(URI.create("http://www.example.com").toURL());
     assertEquals("folderName has not been set", assertThrows(NullPointerException.class, () -> instance.call()).getMessage());
   }
 

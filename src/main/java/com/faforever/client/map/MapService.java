@@ -77,6 +77,7 @@ import reactor.util.retry.Retry;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -150,13 +151,13 @@ public class MapService implements InitializingBean, DisposableBean {
   private Thread directoryWatcherThread;
 
   private static URL getDownloadUrl(String mapName, String baseUrl) throws MalformedURLException {
-    return new URL(format(baseUrl, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US)));
+    return URI.create(format(baseUrl, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US))).toURL();
   }
 
   private static URL getPreviewUrl(String mapName, String baseUrl,
                                    PreviewSize previewSize) throws MalformedURLException {
-    return new URL(format(baseUrl, previewSize.folderName, urlFragmentEscaper().escape(mapName)
-        .toLowerCase(Locale.US)));
+    return URI.create(format(baseUrl, previewSize.folderName, urlFragmentEscaper().escape(mapName)
+                                                                                  .toLowerCase(Locale.US))).toURL();
   }
 
   @Override

@@ -22,7 +22,7 @@ import java.io.Reader;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URL;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -72,17 +72,20 @@ public class CheckForUpdateTaskTest extends ServiceTest {
     assertThat(updateInfo.size(), is(123));
     assertThat(updateInfo.fileName(), is("dfaf_windows_0_4_7-alpha.exe"));
     assertThat(updateInfo.name(), is("0.4.7-alpha"));
-    assertThat(updateInfo.releaseNotesUrl(), is(new URL("https://www.example.com/")));
+    assertThat(updateInfo.releaseNotesUrl(), is(URI.create("https://www.example.com/").toURL()));
 
     if (org.bridj.Platform.isWindows()) {
-      assertThat(updateInfo.url(), is(new URL(
-          "https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_windows_0_4_7-alpha.exe")));
+      assertThat(updateInfo.url(), is(URI.create(
+                                             "https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_windows_0_4_7-alpha.exe")
+                                         .toURL()));
     } else if (org.bridj.Platform.isLinux()) {
-      assertThat(updateInfo.url(), is(new URL(
-          "https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_linux_0_4_7-alpha.tar.gz")));
+      assertThat(updateInfo.url(), is(URI.create(
+                                             "https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_linux_0_4_7-alpha.tar.gz")
+                                         .toURL()));
     } else if (org.bridj.Platform.isMacOSX()) {
-      assertThat(updateInfo.url(), is(new URL(
-          "https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_mac_0_4_7-alpha.dmg")));
+      assertThat(updateInfo.url(), is(URI.create(
+                                             "https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_mac_0_4_7-alpha.dmg")
+                                         .toURL()));
     } else {
       throw new IllegalStateException("Unsupported platform");
     }

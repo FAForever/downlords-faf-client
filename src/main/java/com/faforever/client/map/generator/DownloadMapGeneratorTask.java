@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -57,7 +58,7 @@ public class DownloadMapGeneratorTask extends CompletableTask<Void> {
 
     updateTitle(i18n.get("game.mapGeneration.downloadGenerator.title", version));
 
-    URL url = new URL(String.format(clientProperties.getMapGenerator().getDownloadUrlFormat(), version));
+    URL url = URI.create(String.format(clientProperties.getMapGenerator().getDownloadUrlFormat(), version)).toURL();
 
     URLConnection urlConnection = url.openConnection();
 

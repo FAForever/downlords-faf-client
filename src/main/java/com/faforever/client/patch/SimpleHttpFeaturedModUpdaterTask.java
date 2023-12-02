@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -155,7 +155,8 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
     // query string effectively renders the cache ineffective.
     Map<String, String> requestParameters = Map.of(featuredModFile.getHmacParameter(), featuredModFile.getHmacToken());
 
-    downloadService.downloadFile(new URL(featuredModFile.getCacheableUrl()), requestParameters, targetPath, this::updateProgress, md5sum);
+    downloadService.downloadFile(URI.create(featuredModFile.getCacheableUrl()).toURL(), requestParameters, targetPath,
+                                 this::updateProgress, md5sum);
   }
 
   public void setFeaturedMod(FeaturedModBean featuredMod) {

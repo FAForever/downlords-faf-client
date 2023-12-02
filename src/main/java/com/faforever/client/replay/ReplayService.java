@@ -50,7 +50,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -300,8 +300,9 @@ public class ReplayService {
 
   public CompletableFuture<Integer> getFileSize(ReplayBean replay) {
     try {
-      return fileSizeReader.getFileSize(new URL(String.format(clientProperties.getVault()
-          .getReplayDownloadUrlFormat(), replay.getId())));
+      return fileSizeReader.getFileSize(URI.create(String.format(clientProperties.getVault()
+                                                                                 .getReplayDownloadUrlFormat(),
+                                                                 replay.getId())).toURL());
     } catch (MalformedURLException e) {
       log.error("Could not open connection to download replay", e);
       return CompletableFuture.completedFuture(-1);

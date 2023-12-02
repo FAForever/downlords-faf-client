@@ -35,7 +35,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -176,7 +176,10 @@ public class PrivateChatTabControllerTest extends PlatformTest {
     assertNotNull(instance.avatarImageView.getImage());
 
     Image newAvatar = new Image(InputStream.nullInputStream());
-    AvatarBean avatarBean = AvatarBeanBuilder.create().defaultValues().url(new URL("https://test11.com")).get();
+    AvatarBean avatarBean = AvatarBeanBuilder.create()
+                                             .defaultValues()
+                                             .url(URI.create("https://test11.com").toURL())
+                                             .get();
     when(avatarService.loadAvatar(avatarBean)).thenReturn(newAvatar);
     runOnFxThreadAndWait(() -> player.setAvatar(avatarBean));
     assertEquals(newAvatar, instance.avatarImageView.getImage());

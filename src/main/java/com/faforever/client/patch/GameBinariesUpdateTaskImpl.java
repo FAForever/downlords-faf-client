@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
+import java.net.URI;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -114,7 +114,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
     ResourceLocks.acquireDownloadLock();
     try {
       log.debug("Downloading `{}` to `{}`", fafExeUrl, exePath);
-      URLConnection urlConnection = new URL(fafExeUrl).openConnection();
+      URLConnection urlConnection = URI.create(fafExeUrl).toURL().openConnection();
       try (InputStream inputStream = urlConnection.getInputStream();
            OutputStream outputStream = Files.newOutputStream(exePath)) {
         ByteCopier.from(inputStream)

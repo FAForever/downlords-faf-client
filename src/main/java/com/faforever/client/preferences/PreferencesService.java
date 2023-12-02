@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -128,7 +129,7 @@ public class PreferencesService implements InitializingBean {
       return clientConfiguration;
     }
 
-    URL url = new URL(clientProperties.getClientConfigUrl());
+    URL url = URI.create(clientProperties.getClientConfigUrl()).toURL();
     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
     urlConnection.setConnectTimeout((int) clientProperties.getClientConfigConnectTimeout().toMillis());
 

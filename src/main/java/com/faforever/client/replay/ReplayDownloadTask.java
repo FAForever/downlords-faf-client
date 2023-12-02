@@ -17,7 +17,7 @@ import java.io.BufferedOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -51,7 +51,7 @@ public class ReplayDownloadTask extends CompletableTask<Path> {
 
     log.info("Downloading replay `{}` from `{}`", replayId, replayUrl);
 
-    HttpURLConnection urlConnection = (HttpURLConnection) new URL(replayUrl).openConnection();
+    HttpURLConnection urlConnection = (HttpURLConnection) URI.create(replayUrl).toURL().openConnection();
     urlConnection.setInstanceFollowRedirects(true);
     int bytesToRead = urlConnection.getContentLength();
 

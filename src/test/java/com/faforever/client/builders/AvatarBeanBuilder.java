@@ -3,6 +3,7 @@ package com.faforever.client.builders;
 import com.faforever.client.domain.AvatarBean;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.time.OffsetDateTime;
 
@@ -17,7 +18,7 @@ public class AvatarBeanBuilder {
   public AvatarBeanBuilder defaultValues() {
     id(0);
     try {
-      url(new URL("https:google.com"));
+      url(URI.create("https:google.com").toURL());
     } catch (MalformedURLException ignored) {}
     description("test");
     return this;

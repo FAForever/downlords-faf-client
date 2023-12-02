@@ -25,7 +25,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.springframework.beans.factory.ObjectFactory;
 
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
@@ -76,8 +76,11 @@ public class ClientUpdateServiceTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    UpdateInfo normalUpdateInfo = new UpdateInfo("v0.4.9.1-alpha", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), false);
-    UpdateInfo betaUpdateInfo = new UpdateInfo("v0.4.9.0-RC1", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), true);
+    UpdateInfo normalUpdateInfo = new UpdateInfo("v0.4.9.1-alpha", "test.exe",
+                                                 URI.create("http://www.example.com").toURL(), 56098816,
+                                                 URI.create("http://www.example.com").toURL(), false);
+    UpdateInfo betaUpdateInfo = new UpdateInfo("v0.4.9.0-RC1", "test.exe", URI.create("http://www.example.com").toURL(),
+                                               56098816, URI.create("http://www.example.com").toURL(), true);
 
     lenient().when(loginService.loggedInProperty()).thenReturn(loggedIn);
     lenient().when(checkForUpdateTaskFactory.getObject()).thenReturn(checkForUpdateTask);

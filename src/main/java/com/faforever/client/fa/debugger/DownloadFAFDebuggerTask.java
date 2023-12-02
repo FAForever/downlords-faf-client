@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -63,7 +64,7 @@ public class DownloadFAFDebuggerTask extends CompletableTask<Void> {
         .switchIfEmpty(Mono.error(new RuntimeException("No valid debugger version found")))
         .block();
 
-    URL url = new URL(String.format(clientProperties.getFafDebugger().getDownloadUrlFormat(), version));
+    URL url = URI.create(String.format(clientProperties.getFafDebugger().getDownloadUrlFormat(), version)).toURL();
 
     URLConnection urlConnection = url.openConnection();
 

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -42,7 +43,9 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
 
   private static boolean testUrl(String urlString) {
     try {
-      return ((HttpURLConnection) new URL(urlString).openConnection()).getResponseCode() == HttpURLConnection.HTTP_OK;
+      return ((HttpURLConnection) URI.create(urlString)
+                                     .toURL()
+                                     .openConnection()).getResponseCode() == HttpURLConnection.HTTP_OK;
     } catch (IOException e) {
       return false;
     }
@@ -55,7 +58,7 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
     String guessedUrl = guessUrl(urlString);
 
     try {
-      URL url = new URL(guessedUrl);
+      URL url = URI.create(guessedUrl).toURL();
       String protocol = url.getProtocol();
 
       if (!"http".equals(protocol) && !"https".equals(protocol)) {

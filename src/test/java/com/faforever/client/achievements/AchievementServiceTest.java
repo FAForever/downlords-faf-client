@@ -15,7 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import reactor.core.publisher.Flux;
 
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -86,7 +86,8 @@ public class AchievementServiceTest extends ServiceTest {
     AchievementDefinition achievementDefinition = AchievementDefinitionBuilder.create().defaultValues().get();
     Path cacheSubDir = Path.of("achievements").resolve(AchievementState.REVEALED.name().toLowerCase());
     instance.getImage(achievementDefinition, AchievementState.REVEALED);
-    verify(assetService).loadAndCacheImage(new URL(achievementDefinition.getRevealedIconUrl()), cacheSubDir, null, 128, 128);
+    verify(assetService).loadAndCacheImage(URI.create(achievementDefinition.getRevealedIconUrl()).toURL(), cacheSubDir,
+                                           null, 128, 128);
   }
 
   @Test
@@ -94,6 +95,7 @@ public class AchievementServiceTest extends ServiceTest {
     AchievementDefinition achievementDefinition = AchievementDefinitionBuilder.create().defaultValues().get();
     Path cacheSubDir = Path.of("achievements").resolve(AchievementState.UNLOCKED.name().toLowerCase());
     instance.getImage(achievementDefinition, AchievementState.UNLOCKED);
-    verify(assetService).loadAndCacheImage(new URL(achievementDefinition.getUnlockedIconUrl()), cacheSubDir, null, 128, 128);
+    verify(assetService).loadAndCacheImage(URI.create(achievementDefinition.getUnlockedIconUrl()).toURL(), cacheSubDir,
+                                           null, 128, 128);
   }
 }

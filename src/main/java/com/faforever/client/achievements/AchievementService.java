@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
@@ -62,8 +63,8 @@ public class AchievementService {
   public Image getImage(AchievementDefinition achievementDefinition, AchievementState achievementState) {
     try {
       URL url = switch (achievementState) {
-        case REVEALED -> new URL(achievementDefinition.getRevealedIconUrl());
-        case UNLOCKED -> new URL(achievementDefinition.getUnlockedIconUrl());
+        case REVEALED -> URI.create(achievementDefinition.getRevealedIconUrl()).toURL();
+        case UNLOCKED -> URI.create(achievementDefinition.getUnlockedIconUrl()).toURL();
         default -> throw new UnsupportedOperationException("Not yet implemented");
       };
       return assetService.loadAndCacheImage(url, Path.of("achievements").resolve(achievementState.name().toLowerCase()),

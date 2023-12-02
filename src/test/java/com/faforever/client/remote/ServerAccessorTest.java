@@ -80,6 +80,7 @@ import reactor.test.StepVerifier;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -609,7 +610,7 @@ public class ServerAccessorTest extends ServiceTest {
 
   @Test
   public void testSelectAvatar() throws MalformedURLException {
-    URL url = new URL("http://google.com");
+    URL url = URI.create("http://google.com").toURL();
 
     instance.selectAvatar(url);
 

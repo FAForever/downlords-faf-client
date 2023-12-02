@@ -42,6 +42,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.DirectoryStream;
@@ -307,7 +308,7 @@ public class ThemeService implements InitializingBean, DisposableBean {
   public URL getThemeFileUrl(String relativeFile) throws IOException {
     String themeFile = getThemeFile(relativeFile);
     if (themeFile.startsWith("file:") || themeFile.startsWith("jar:")) {
-      return new URL(themeFile);
+      return URI.create(themeFile).toURL();
     }
     return new ClassPathResource(getThemeFile(relativeFile)).getURL();
   }
@@ -430,7 +431,7 @@ public class ThemeService implements InitializingBean, DisposableBean {
 
       Path newTempStyleSheet = Files.createTempFile(stylesheetsCacheDirectory, "style-webview", ".css");
 
-      try (InputStream inputStream = new URL(styleSheetUrl).openStream()) {
+      try (InputStream inputStream = URI.create(styleSheetUrl).toURL().openStream()) {
         Files.copy(inputStream, newTempStyleSheet, StandardCopyOption.REPLACE_EXISTING);
       }
       if (currentTempStyleSheet != null) {

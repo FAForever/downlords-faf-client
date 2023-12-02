@@ -4,6 +4,7 @@ import com.faforever.client.domain.DivisionBean;
 import com.faforever.client.domain.SubdivisionBean;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.time.OffsetDateTime;
 
@@ -23,13 +24,13 @@ public class SubdivisionBeanBuilder {
     minRating(-100);
     division(DivisionBeanBuilder.create().defaultValues().get());
     try {
-      imageUrl(new URL("https:example.com/test_nameI.png"));
+      imageUrl(URI.create("https:example.com/test_nameI.png").toURL());
     } catch (MalformedURLException ignored) {}
     try {
-      mediumImageUrl(new URL("https:example.com/medium/test_nameI.png"));
+      mediumImageUrl(URI.create("https:example.com/medium/test_nameI.png").toURL());
     } catch (MalformedURLException ignored) {}
     try {
-      smallImageUrl(new URL("https:example.com/small/test_nameI.png"));
+      smallImageUrl(URI.create("https:example.com/small/test_nameI.png").toURL());
     } catch (MalformedURLException ignored) {}
     id(1);
     return this;

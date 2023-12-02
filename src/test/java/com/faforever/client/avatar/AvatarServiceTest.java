@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
@@ -72,7 +73,7 @@ public class AvatarServiceTest extends ServiceTest {
   public void changeAvatar() throws Exception {
     when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().get());
 
-    URL url = new URL("https://example.com");
+    URL url = URI.create("https://example.com").toURL();
     instance.changeAvatar(AvatarBeanBuilder.create().url(url).description("Description").get());
 
     verify(fafServerAccessor).selectAvatar(url);

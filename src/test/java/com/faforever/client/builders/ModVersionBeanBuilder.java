@@ -9,6 +9,7 @@ import javafx.collections.FXCollections;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
@@ -31,13 +32,13 @@ public class ModVersionBeanBuilder {
     selectable(true);
     version(new ComparableVersion("1"));
     try {
-      thumbnailUrl(new URL("https://www.google.com"));
+      thumbnailUrl(URI.create("https://www.google.com").toURL());
     } catch (MalformedURLException ignored) { }
     comments(FXCollections.observableArrayList());
     selected(false);
     played(100);
     try {
-      downloadUrl(new URL("https://www.google.com"));
+      downloadUrl(URI.create("https://www.google.com").toURL());
     } catch (MalformedURLException ignored) { }
     hookDirectories(FXCollections.observableArrayList());
     modType(ModType.UI);
