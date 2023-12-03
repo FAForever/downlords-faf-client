@@ -68,7 +68,6 @@ public class ChannelTabController extends AbstractChatTabController {
   private static final int TOPIC_CHARACTERS_LIMIT = 350;
 
   private final PlatformService platformService;
-  private int curMessageHistoryIndex = 0;
 
   public Tab root;
   public SplitPane splitPane;
@@ -92,7 +91,6 @@ public class ChannelTabController extends AbstractChatTabController {
                                                                                     .orElse(
                                                                                         FXCollections.emptyObservableList());
   private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = this::updateChangedUsersStyles;
-  private final List<ChatMessage> userMessageHistory = new ArrayList<>();
 
 
   public ChannelTabController(WebViewConfigurer webViewConfigurer, LoginService loginService, ChatService chatService,
@@ -138,8 +136,6 @@ public class ChannelTabController extends AbstractChatTabController {
                             .or(topicTextField.visibleProperty())
                             .when(showing));
 
-    messageTextField.setOnKeyPressed(this::onUpOrDownArrowKeyClick);
-
     root.idProperty().bind(channelName.when(showing));
     root.textProperty().bind(channelName.map(name -> name.replaceFirst("^#", "")).when(showing));
 
@@ -174,15 +170,6 @@ public class ChannelTabController extends AbstractChatTabController {
       }
     });
 
-    chatChannel.when(attached).subscribe((oldValue, newValue) -> {
-      if(newValue != null){
-        newValue.addMessageListener(chatMessage -> {
-          if(chatMessage.username().equals(playerService.getCurrentPlayer().getUsername())){
-            userMessageHistory.add(chatMessage);
-          }
-        });
-      }
-    });
 
     AutoCompletionHelper autoCompletionHelper = getAutoCompletionHelper();
     autoCompletionHelper.bindTo(messageTextField());
@@ -208,21 +195,6 @@ public class ChannelTabController extends AbstractChatTabController {
                                                         .collect(Collectors.toList()));
   }
 
-  private void onUpOrDownArrowKeyClick(KeyEvent event){
-    if(event.getCode() == KeyCode.UP){
-      if(curMessageHistoryIndex+1 <= userMessageHistory.size()){
-        messageTextField.setText(userMessageHistory.get(userMessageHistory.size() - curMessageHistoryIndex - 1).message());
-        curMessageHistoryIndex++;
-      }
-    } else if(event.getCode() == KeyCode.DOWN){
-      if(curMessageHistoryIndex-1 >= 0){
-        curMessageHistoryIndex--;
-        messageTextField.setText(userMessageHistory.get(userMessageHistory.size() - curMessageHistoryIndex - 1).message());
-      }
-    } else {
-      curMessageHistoryIndex = 0;
-    }
-  }
 
   private void highlightText(String newValue) {
     if (StringUtils.isBlank(newValue)) {

@@ -101,8 +101,6 @@ public class ChatUserItemController extends NodeController<Node> {
   protected void onInitialize() {
     initializeTooltips();
     bindProperties();
-
-
   }
 
   private void initializeTooltips() {

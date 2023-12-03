@@ -41,6 +41,8 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.skin.TabPaneSkin;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -139,12 +141,13 @@ public abstract class AbstractChatTabController extends TabController {
    * Messages that arrived before the web view was ready. Those are appended as soon as it is ready.
    */
   private final List<ChatMessage> waitingMessages = new ArrayList<>();
+  private final List<ChatMessage> userMessageHistory = new ArrayList<>();
   private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
+  private int curMessageHistoryIndex = 0;
   protected final ObjectProperty<ChatChannel> chatChannel = new SimpleObjectProperty<>();
   protected final ObservableValue<String> channelName = chatChannel.map(ChatChannel::getName);
 
   private final Consumer<ChatMessage> messageListener = this::onChatMessage;
-
   private int lastEntryId;
   private boolean isChatReady;
 
@@ -164,6 +167,8 @@ public abstract class AbstractChatTabController extends TabController {
         "(^|[^A-Za-z0-9-])" + Pattern.quote(loginService.getUsername()) + "([^A-Za-z0-9-]|$)", CASE_INSENSITIVE);
 
     initChatView();
+
+    messageTextField().setOnKeyPressed(this::onUpOrDownArrowKeyClick);
 
     chatChannel.when(attached).subscribe(((oldValue, newValue) -> {
       if (oldValue != null) {
@@ -209,6 +214,22 @@ public abstract class AbstractChatTabController extends TabController {
   private void clearUnreadIfFocused() {
     if (hasFocus()) {
       setUnread(false);
+    }
+  }
+
+  private void onUpOrDownArrowKeyClick(KeyEvent event){
+    if(event.getCode() == KeyCode.UP) {
+      if(curMessageHistoryIndex+1 <= userMessageHistory.size()) {
+        messageTextField().setText(userMessageHistory.get(userMessageHistory.size() - curMessageHistoryIndex - 1).message());
+        curMessageHistoryIndex++;
+      }
+    } else if(event.getCode() == KeyCode.DOWN) {
+      if(curMessageHistoryIndex-1 >= 0){
+        curMessageHistoryIndex--;
+        messageTextField().setText(userMessageHistory.get(userMessageHistory.size() - curMessageHistoryIndex - 1).message());
+      }
+    } else {
+      curMessageHistoryIndex = 0;
     }
   }
 
@@ -431,6 +452,9 @@ public abstract class AbstractChatTabController extends TabController {
   }
 
   protected void onChatMessage(ChatMessage chatMessage) {
+    if(chatMessage.username().equals(playerService.getCurrentPlayer().getUsername())) {
+      userMessageHistory.add(chatMessage);
+    }
     synchronized (waitingMessages) {
       if (!isChatReady) {
         waitingMessages.add(chatMessage);
