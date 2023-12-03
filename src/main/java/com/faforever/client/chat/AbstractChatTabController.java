@@ -171,6 +171,7 @@ public abstract class AbstractChatTabController extends TabController {
     messageTextField().setOnKeyPressed(this::onUpOrDownArrowKeyClick);
 
     chatChannel.when(attached).subscribe(((oldValue, newValue) -> {
+      userMessageHistory.clear();
       if (oldValue != null) {
         oldValue.openProperty().unbind();
         oldValue.removeMessageListener(messageListener);
