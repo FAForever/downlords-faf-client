@@ -227,7 +227,6 @@ public class ReplayDetailController extends NodeController<Node> {
     onMapLabel.textProperty()
               .bind(mapVersionObservable.flatMap(MapVersionBean::mapProperty)
                                         .flatMap(MapBean::displayNameProperty)
-                                        .map(displayName -> i18n.get("game.onMapFormat", displayName))
                                         .orElse(i18n.get("game.onUnknownMap"))
                                         .when(showing));
     durationLabel.visibleProperty()
