@@ -22,6 +22,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -38,8 +40,8 @@ public class MatchmakingChatController extends AbstractChatTabController {
 
   private final JoinDiscordEventHandler joinDiscordEventHandler;
 
+  public StackPane webViewContainer;
   public Tab matchmakingChatTabRoot;
-  public WebView messagesWebView;
   public TextField messageTextField;
   public TextFlow topicText;
   public Hyperlink discordLink;
@@ -53,6 +55,8 @@ public class MatchmakingChatController extends AbstractChatTabController {
       }
     }
   };
+
+  private CompletableFuture<WebView> webViewInitializationFuture;
 
   // TODO cut dependencies
   public MatchmakingChatController(LoginService loginService,
@@ -96,6 +100,13 @@ public class MatchmakingChatController extends AbstractChatTabController {
     }).toList();
     topicText.getChildren().setAll(labels);
     topicText.getChildren().add(discordLink);
+
+    webViewInitializationFuture = CompletableFuture.supplyAsync(() -> {
+      WebView webView = new WebView();
+      webViewContainer.getChildren().add(webView);
+      configureWebView(webView);
+      return webView;
+    }, fxApplicationThreadExecutor);
   }
 
   @Override
@@ -123,8 +134,8 @@ public class MatchmakingChatController extends AbstractChatTabController {
   }
 
   @Override
-  protected WebView getMessagesWebView() {
-    return messagesWebView;
+  protected CompletableFuture<WebView> getMessagesWebView() {
+    return webViewInitializationFuture;
   }
 
   public void onDiscordButtonClicked() {

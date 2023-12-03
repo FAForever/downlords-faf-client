@@ -36,6 +36,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +48,7 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.fx.PlatformService.URL_REGEX_PATTERN;
@@ -70,7 +72,7 @@ public class ChannelTabController extends AbstractChatTabController {
   public HBox chatMessageSearchContainer;
   public Button closeChatMessageSearchButton;
   public TextField chatMessageSearchTextField;
-  public WebView messagesWebView;
+  public StackPane webViewContainer;
   public TextField messageTextField;
   public HBox topicPane;
   public Label topicCharactersLimitLabel;
@@ -87,6 +89,8 @@ public class ChannelTabController extends AbstractChatTabController {
                                                                                     .orElse(
                                                                                         FXCollections.emptyObservableList());
   private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = this::updateChangedUsersStyles;
+
+  private CompletableFuture<WebView> webViewInitializationFuture;
 
 
   public ChannelTabController(WebViewConfigurer webViewConfigurer, LoginService loginService, ChatService chatService,
@@ -167,6 +171,13 @@ public class ChannelTabController extends AbstractChatTabController {
 
     AutoCompletionHelper autoCompletionHelper = getAutoCompletionHelper();
     autoCompletionHelper.bindTo(messageTextField());
+
+    webViewInitializationFuture = CompletableFuture.supplyAsync(() -> {
+      WebView webView = new WebView();
+      webViewContainer.getChildren().add(webView);
+      configureWebView(webView);
+      return webView;
+    }, fxApplicationThreadExecutor);
   }
 
   @Override
@@ -397,7 +408,7 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @Override
-  protected WebView getMessagesWebView() {
-    return messagesWebView;
+  protected CompletableFuture<WebView> getMessagesWebView() {
+    return webViewInitializationFuture;
   }
 }

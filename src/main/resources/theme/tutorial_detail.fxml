@@ -7,7 +7,6 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.web.WebView?>
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:id="root" prefHeight="200.0" prefWidth="200.0"
             xmlns="http://javafx.com/javafx/8.0.141"
             fx:controller="com.faforever.client.tutorial.TutorialDetailController">
@@ -27,10 +26,7 @@
         </VBox>
     </right>
     <center>
-        <VBox BorderPane.alignment="CENTER">
-            <children>
-                <WebView fx:id="descriptionWebView" prefHeight="-1.0" prefWidth="-1.0" VBox.vgrow="ALWAYS"/>
-            </children>
+        <VBox fx:id="webViewContainer" BorderPane.alignment="CENTER">
             <padding>
                 <Insets left="10.0"/>
             </padding>

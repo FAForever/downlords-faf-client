@@ -90,8 +90,6 @@ public class AbstractChatTabControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setup() throws Exception {
-    when(themeService.getThemeFileUrl(any())).thenReturn(
-        getClass().getResource("/" + ThemeService.CHAT_SECTION_EXTENDED));
     when(loginService.getUsername()).thenReturn("junit");
 
     fxApplicationThreadExecutor.executeAndWait(() -> {
@@ -115,8 +113,8 @@ public class AbstractChatTabControllerTest extends PlatformTest {
         }
 
         @Override
-        protected WebView getMessagesWebView() {
-          return webView;
+        protected CompletableFuture<WebView> getMessagesWebView() {
+          return CompletableFuture.completedFuture(webView);
         }
       };
     });

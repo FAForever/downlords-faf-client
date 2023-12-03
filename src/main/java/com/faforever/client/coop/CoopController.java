@@ -28,7 +28,6 @@ import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
-import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.google.common.base.Strings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -49,6 +48,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +63,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -97,7 +98,7 @@ public class CoopController extends NodeController<Node> {
 
   public GridPane coopRoot;
   public ComboBox<CoopMissionBean> missionComboBox;
-  public WebView descriptionWebView;
+  public StackPane webViewContainer;
   public Pane gameViewContainer;
   public TextField titleTextField;
   public Button playButton;
@@ -115,6 +116,8 @@ public class CoopController extends NodeController<Node> {
   public TableColumn<CoopResultBean, Duration> timeColumn;
   public TableColumn<CoopResultBean, String> replayColumn;
   public GamesTableController gamesTableController;
+
+  private CompletableFuture<WebView> webViewInitializationFuture;
 
   @Override
   protected void onInitialize() {
@@ -190,9 +193,14 @@ public class CoopController extends NodeController<Node> {
     tooltip.setShowDuration(javafx.util.Duration.seconds(30));
     Tooltip.install(leaderboardInfoIcon, tooltip);
 
-    // Without this and no coop missions, the WebView is empty and the transparent background can't be applied to <html>
-    descriptionWebView.getEngine().loadContent("<html></html>");
-    webViewConfigurer.configureWebView(descriptionWebView);
+    webViewInitializationFuture = CompletableFuture.supplyAsync(() -> {
+      WebView webView = new WebView();
+
+      // Without this and no coop missions, the WebView is empty and the transparent background can't be applied to <html>
+      webView.getEngine().loadContent("<html></html>");
+      webViewConfigurer.configureWebView(webView);
+      return webView;
+    }, fxApplicationThreadExecutor);
 
     FilteredList<GameBean> filteredItems = new FilteredList<>(gameService.getGames());
     filteredItems.setPredicate(OPEN_COOP_GAMES_PREDICATE);
@@ -310,7 +318,8 @@ public class CoopController extends NodeController<Node> {
     fxApplicationThreadExecutor.execute(() -> {
       String description = mission.getDescription();
       if (description != null) {
-        descriptionWebView.getEngine().loadContent(description);
+        webViewInitializationFuture.thenAcceptAsync(webView -> webView.getEngine().loadContent(description),
+                                                    fxApplicationThreadExecutor);
       }
     });
     loadLeaderboard();

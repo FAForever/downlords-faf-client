@@ -44,7 +44,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -134,7 +133,7 @@ public class PrivateChatTabControllerTest extends PlatformTest {
       tabPane.getTabs().add(instance.getRoot());
       instance.setChatChannel(new ChatChannel(playerName));
     });
-    verify(webViewConfigurer).configureWebView(eq(instance.messagesWebView));
+    verify(webViewConfigurer).configureWebView(any());
   }
 
   @Test

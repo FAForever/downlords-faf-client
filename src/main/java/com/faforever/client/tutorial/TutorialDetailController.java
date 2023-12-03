@@ -3,6 +3,7 @@ package com.faforever.client.tutorial;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.TutorialBean;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
@@ -13,41 +14,50 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.CompletableFuture;
+
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class TutorialDetailController extends NodeController<Node> {
   private final I18n i18n;
   private final MapService mapService;
   private final WebViewConfigurer webViewConfigurer;
-  private final TutorialService tutorialServie;
+  private final TutorialService tutorialService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+
   public VBox mapContainer;
   public BorderPane root;
   public ImageView mapImage;
   public Label mapNameLabel;
-  public WebView descriptionWebView;
+  public VBox webViewContainer;
   public Label titleLabel;
   public Button launchButton;
   private TutorialBean tutorial;
 
-  public TutorialDetailController(I18n i18n, MapService mapService, WebViewConfigurer webViewConfigurer, TutorialService tutorialService) {
-    this.i18n = i18n;
-    this.mapService = mapService;
-    this.webViewConfigurer = webViewConfigurer;
-    this.tutorialServie = tutorialService;
-  }
+  private CompletableFuture<WebView> initializeWebViewFuture;
 
   @Override
   protected void onInitialize() {
     mapContainer.managedProperty().bind(mapContainer.visibleProperty());
-    descriptionWebView.setContextMenuEnabled(false);
-    webViewConfigurer.configureWebView(descriptionWebView);
     launchButton.managedProperty().bind(launchButton.visibleProperty());
+
+    initializeWebViewFuture = CompletableFuture.supplyAsync(() -> {
+      WebView webView = new WebView();
+      webView.setContextMenuEnabled(false);
+      webViewConfigurer.configureWebView(webView);
+      webViewContainer.getChildren().add(webView);
+      VBox.setVgrow(webView, Priority.ALWAYS);
+      return webView;
+    }, fxApplicationThreadExecutor);
   }
 
   @Override
@@ -57,7 +67,7 @@ public class TutorialDetailController extends NodeController<Node> {
 
   public void launchReplay() {
     if (tutorial != null) {
-      tutorialServie.launchTutorial(tutorial);
+      tutorialService.launchTutorial(tutorial);
     }
   }
 
@@ -81,7 +91,8 @@ public class TutorialDetailController extends NodeController<Node> {
       mapContainer.setVisible(false);
     }
 
-    descriptionWebView.getEngine().loadContent(tutorial.getDescription());
+    initializeWebViewFuture.thenAcceptAsync(webView -> webView.getEngine().loadContent(tutorial.getDescription()),
+                                            fxApplicationThreadExecutor);
     launchButton.visibleProperty().bind(tutorial.launchableProperty());
   }
 }

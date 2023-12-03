@@ -3,13 +3,16 @@ package com.faforever.client.notification;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.WebViewConfigurer;
+import com.faforever.client.notification.Action.Type;
 import com.faforever.client.ui.dialog.DialogLayout;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Component;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Component
@@ -31,21 +35,28 @@ public class ServerNotificationController extends NodeController<Node> {
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final DialogLayout dialogLayout = new DialogLayout();
-  public WebView errorMessageView;
+  public StackPane webViewContainer;
   public Label exceptionAreaTitleLabel;
   public TextArea exceptionTextArea;
   public VBox serverNotificationRoot;
   private Runnable closeListener;
+
+  private CompletableFuture<WebView> webViewInitializeFuture;
 
   @Override
   protected void onInitialize() {
     exceptionAreaTitleLabel.managedProperty().bind(exceptionAreaTitleLabel.visibleProperty());
     exceptionAreaTitleLabel.visibleProperty().bind(exceptionTextArea.visibleProperty());
     exceptionTextArea.managedProperty().bind(exceptionTextArea.visibleProperty());
-    webViewConfigurer.configureWebView(errorMessageView);
-    errorMessageView.managedProperty().bind(errorMessageView.visibleProperty());
-
     dialogLayout.setBody(serverNotificationRoot);
+
+    webViewInitializeFuture = CompletableFuture.supplyAsync(() -> {
+      WebView webView = new WebView();
+      webViewConfigurer.configureWebView(webView);
+      webView.managedProperty().bind(webView.visibleProperty());
+      return webView;
+    }, fxApplicationThreadExecutor);
+
   }
 
   public ServerNotificationController setNotification(ImmediateNotification notification) {
@@ -60,7 +71,8 @@ public class ServerNotificationController extends NodeController<Node> {
     }
 
     dialogLayout.setHeading(new Label(notification.getTitle()));
-    fxApplicationThreadExecutor.execute(() -> errorMessageView.getEngine().loadContent(notification.getText()));
+    webViewInitializeFuture.thenAcceptAsync(webView -> webView.getEngine().loadContent(notification.getText()),
+                                            fxApplicationThreadExecutor);
 
     Optional.ofNullable(notification.getActions())
         .map(actions -> actions.stream().map(this::createButton).collect(Collectors.toList()))
@@ -80,11 +92,9 @@ public class ServerNotificationController extends NodeController<Node> {
       }
     });
 
-    switch (action.getType()) {
-      case OK_DONE:
-        button.getStyleClass().add("dialog-accept");
-        ButtonBar.setButtonData(button, ButtonBar.ButtonData.OK_DONE);
-        break;
+    if (action.getType() == Type.OK_DONE) {
+      button.getStyleClass().add("dialog-accept");
+      ButtonBar.setButtonData(button, ButtonData.OK_DONE);
     }
 
     return button;

@@ -14,6 +14,7 @@ import com.google.common.io.CharStreams;
 import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.text.MessageFormat;
 import java.util.Comparator;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -43,10 +45,12 @@ public class TournamentsController extends NodeController<Node> {
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public Pane tournamentRoot;
-  public WebView tournamentDetailWebView;
+  public StackPane webViewContainer;
   public Pane loadingIndicator;
   public Node contentPane;
   public ListView<TournamentBean> tournamentListView;
+
+  private CompletableFuture<WebView> webViewInitializationFuture;
 
   @Override
   public Node getRoot() {
@@ -60,6 +64,14 @@ public class TournamentsController extends NodeController<Node> {
 
     tournamentListView.setCellFactory(param -> new TournamentItemListCell(uiService));
     tournamentListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> displayTournamentItem(newValue));
+
+    webViewInitializationFuture = CompletableFuture.supplyAsync(() -> {
+      WebView webView = new WebView();
+      webView.setContextMenuEnabled(false);
+      webViewConfigurer.configureWebView(webView);
+      webViewContainer.getChildren().add(webView);
+      return webView;
+    }, fxApplicationThreadExecutor);
   }
 
   private void onLoadingStart() {
@@ -80,9 +92,6 @@ public class TournamentsController extends NodeController<Node> {
       return;
     }
     onLoadingStart();
-
-    tournamentDetailWebView.setContextMenuEnabled(false);
-    webViewConfigurer.configureWebView(tournamentDetailWebView);
 
     tournamentService.getAllTournaments()
         .thenAcceptAsync(tournaments -> {
@@ -125,7 +134,8 @@ public class TournamentsController extends NodeController<Node> {
           .replace("{completed-at-label}", i18n.get("tournament.completedAt"))
           .replace("{loading-label}", i18n.get("loading"));
 
-      tournamentDetailWebView.getEngine().loadContent(html);
+      webViewInitializationFuture.thenAcceptAsync(webView -> webView.getEngine().loadContent(html),
+                                                  fxApplicationThreadExecutor);
     } catch (IOException e) {
       throw new AssetLoadException("Tournament view could not be loaded", e, "tournament.viewNotLoaded");
     }

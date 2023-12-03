@@ -93,7 +93,7 @@ public class CoopControllerTest extends PlatformTest {
       return instance;
     });
 
-    verify(webViewConfigurer).configureWebView(instance.descriptionWebView);
+    verify(webViewConfigurer).configureWebView(any());
   }
 
   @Test
