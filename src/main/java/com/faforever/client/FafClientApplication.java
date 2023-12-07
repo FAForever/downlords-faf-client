@@ -71,7 +71,6 @@ public class FafClientApplication extends Application {
 
       showMainWindow(fxStage);
 
-      // TODO publish event instead
       if (!applicationContext.getBeansOfType(WindowsTaskbarProgressUpdater.class).isEmpty()) {
         applicationContext.getBean(WindowsTaskbarProgressUpdater.class).initTaskBar();
       }

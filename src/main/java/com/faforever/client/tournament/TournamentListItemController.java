@@ -36,10 +36,6 @@ public class TournamentListItemController extends NodeController<Node> {
   }
 
   void setTournamentItem(TournamentBean tournamentBean) {
-
-    // TODO only use this if there's no thumbnail. However, there's never a thumbnail ATM.
-//    imageView.setImage(uiService.getThemeImage(tournamentBean.getNewsCategory().getImagePath()));
-
     nameLabel.setText(tournamentBean.getName());
     if (tournamentBean.getStartingAt() == null) {
       startingLabel.setText(i18n.get("unknown"));

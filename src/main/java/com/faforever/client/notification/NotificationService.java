@@ -30,7 +30,6 @@ import static javafx.collections.FXCollections.synchronizedObservableSet;
 @Lazy
 @Service
 @RequiredArgsConstructor
-// TODO instead of being required an called explicitly, this service should listen for application events only
 public class NotificationService {
 
   private final ObservableSet<PersistentNotification> persistentNotifications = synchronizedObservableSet(observableSet(new TreeSet<>()));
