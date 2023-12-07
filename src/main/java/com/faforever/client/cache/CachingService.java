@@ -1,6 +1,5 @@
 package com.faforever.client.cache;
 
-import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.user.LoginService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +21,7 @@ public class CachingService implements InitializingBean {
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    loginService.loggedInProperty().addListener((SimpleInvalidationListener) this::evictAllCaches);
+    loginService.loggedInProperty().subscribe(this::evictAllCaches);
   }
 
   private void evictAllCaches() {

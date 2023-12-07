@@ -26,7 +26,6 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.ThemeService;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -119,7 +118,6 @@ public class MapService implements InitializingBean, DisposableBean {
   private final FafApiAccessor fafApiAccessor;
   private final AssetService assetService;
   private final I18n i18n;
-  private final UiService uiService;
   private final ThemeService themeService;
   private final MapGeneratorService mapGeneratorService;
   private final PlayerService playerService;

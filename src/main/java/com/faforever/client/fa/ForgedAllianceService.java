@@ -3,7 +3,6 @@ package com.faforever.client.fa;
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.logging.LoggingService;
-import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -39,7 +38,6 @@ public class ForgedAllianceService {
 
   private final PlayerService playerService;
   private final LoggingService loggingService;
-  private final OperatingSystem operatingSystem;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final DataPrefs dataPrefs;
 
