@@ -55,7 +55,7 @@ public class CountryFlagService {
 
   public List<Country> getCountries() {
     return getISOCountries(null).stream()
-        .map(code -> new Locale(Locale.ENGLISH.getLanguage(), code))
+                                .map(code -> Locale.of(Locale.ENGLISH.getLanguage(), code))
         .map(locale -> new Country(locale.getCountry(), locale.getDisplayCountry()))
         .toList();
   }

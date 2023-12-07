@@ -154,7 +154,7 @@ public class MapServiceTest extends PlatformTest {
       return task;
     }).when(taskService).submitTask(any());
 
-    instance = new MapService(notificationService, taskService, fafApiAccessor, assetService, i18n, uiService,
+    instance = new MapService(notificationService, taskService, fafApiAccessor, assetService, i18n,
                               themeService, mapGeneratorService, playerService, mapMapper, fileSizeReader,
                               clientProperties, forgedAlliancePrefs, preferences, mapUploadTaskFactory,
                               downloadMapTaskFactory, uninstallMapTaskFactory, fxApplicationThreadExecutor);

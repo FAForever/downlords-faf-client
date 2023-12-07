@@ -60,7 +60,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
   private final PlayerService playerService;
   private final ReportingService reportingService;
 
-  private Future<?> futureTask;
+  private Future<?> replayAvailableTask;
   private final ObjectProperty<TrackingLiveReplay> trackingLiveReplayProperty = new SimpleObjectProperty<>(null);
 
   @Override
@@ -103,7 +103,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
   }
 
   private void notifyUserWhenReplayAvailable(GameBean game) {
-    futureTask = taskScheduler.schedule(() -> {
+    replayAvailableTask = taskScheduler.schedule(() -> {
       clearTrackingLiveReplayProperty();
       notificationService.addNotification(new PersistentNotification(
           i18n.get("vault.liveReplays.replayAvailable", game.getTitle()),
@@ -113,7 +113,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
   }
 
   private void runLiveReplayWhenAvailable(GameBean game) {
-    futureTask = taskScheduler.schedule(() -> {
+    replayAvailableTask = taskScheduler.schedule(() -> {
       notificationService.addNotification(new TransientNotification(
           i18n.get("vault.liveReplays.replayAvailable", game.getTitle()),
           i18n.get("vault.liveReplays.replayLaunching")));
@@ -127,11 +127,11 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
   }
 
   public void stopTrackingLiveReplay() {
-    if (futureTask != null && !futureTask.isCancelled()) {
-      futureTask.cancel(false);
+    if (replayAvailableTask != null && !replayAvailableTask.isCancelled()) {
+      replayAvailableTask.cancel(false);
       clearTrackingLiveReplayProperty();
     }
-    futureTask = null;
+    replayAvailableTask = null;
   }
 
   public ObjectProperty<TrackingLiveReplay> trackingLiveReplayProperty() {
