@@ -177,24 +177,6 @@ public class ModServiceTest extends PlatformTest {
   }
 
   @Test
-  public void testDownloadAndInstallMod() throws Exception {
-    assertThat(instance.getInstalledMods().size(), is(1));
-
-    DownloadModTask task = stubDownloadModTask();
-    task.getFuture().complete(null);
-
-    when(downloadModTaskFactory.getObject()).thenReturn(task);
-
-
-    assertThat(instance.getInstalledMods().size(), is(1));
-
-    copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertThat(instance.getInstalledMods().size(), is(2));
-  }
-
-  @Test
   public void testDownloadAndInstallModWithProperties() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
