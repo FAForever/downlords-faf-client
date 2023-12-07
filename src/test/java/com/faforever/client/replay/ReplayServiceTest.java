@@ -7,6 +7,7 @@ import com.faforever.client.builders.ReplayReviewsSummaryBeanBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayReviewsSummaryBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -17,7 +18,6 @@ import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.ReplayMapper;
 import com.faforever.client.mapstruct.ReviewMapper;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.player.PlayerService;
@@ -140,7 +140,7 @@ public class ReplayServiceTest extends ServiceTest {
   @Mock
   private PlatformService platformService;
   @Mock
-  private ModService modService;
+  private FeaturedModService featuredModService;
   @Mock
   private MapService mapService;
   @Mock
@@ -263,7 +263,7 @@ public class ReplayServiceTest extends ServiceTest {
 
     when(replayDataParser.getMetadata()).thenReturn(replayMetadata);
     when(replayFileReader.parseReplay(file1)).thenReturn(replayDataParser);
-    when(modService.getFeaturedMod(any())).thenReturn(Mono.empty());
+    when(featuredModService.getFeaturedMod(any())).thenReturn(Mono.empty());
     when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapVersionBeanBuilder.create().defaultValues().get())));
 
     List<ReplayBean> localReplays = instance.loadLocalReplayPage(1, 1).get().getT1();

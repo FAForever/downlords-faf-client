@@ -1,6 +1,7 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.io.ChecksumMismatchException;
 import com.faforever.client.mod.ModService;
@@ -41,13 +42,14 @@ public class GameUpdaterImpl implements GameUpdater {
   private static final List<String> NAMES_OF_FEATURED_BASE_MODS = Stream.of(FAF, FAF_BETA, FAF_DEVELOP)
       .map(KnownFeaturedMod::getTechnicalName).toList();
 
-  private FeaturedModUpdater featuredModUpdater;
   private final ModService modService;
+  private final FeaturedModService featuredModService;
   private final TaskService taskService;
   private final DataPrefs dataPrefs;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final ObjectFactory<GameBinariesUpdateTask> gameBinariesUpdateTaskFactory;
 
+  private FeaturedModUpdater featuredModUpdater;
   private ComparableVersion gameVersion;
   private String gameType;
 
@@ -74,7 +76,8 @@ public class GameUpdaterImpl implements GameUpdater {
       // Really don't want to encourage the ability for featuredModFiles to not be packaged together
       Integer featuredModVersion = Optional.ofNullable(featuredModFileVersions).map(Map::values).stream().flatMap(Collection::stream).max(Comparator.nullsLast(Comparator.naturalOrder())).orElse(null);
 
-      featuredModUpdateFuture = simModsUpdateFuture.thenCompose(aVoid -> modService.getFeaturedMod(FAF.getTechnicalName()).toFuture())
+      featuredModUpdateFuture = simModsUpdateFuture.thenCompose(
+                                                       aVoid -> featuredModService.getFeaturedMod(FAF.getTechnicalName()).toFuture())
           .thenCompose(baseMod -> updateFeaturedMod(baseMod, baseVersion, forReplays))
                                                    .thenCompose(patchResult -> updateGameBinaries(patchResult.version(),
                                                                                                   forReplays))

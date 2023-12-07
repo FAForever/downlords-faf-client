@@ -17,6 +17,7 @@ import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.GameParameters;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
@@ -137,6 +138,8 @@ public class GameServiceTest extends ServiceTest {
   @Mock
   private ModService modService;
   @Mock
+  private FeaturedModService featuredModService;
+  @Mock
   private LeaderboardService leaderboardService;
   @Mock
   private NotificationService notificationService;
@@ -223,7 +226,7 @@ public class GameServiceTest extends ServiceTest {
 
 
   private void mockMatchmakerChain() {
-    when(modService.getFeaturedMod(FAF.getTechnicalName()))
+    when(featuredModService.getFeaturedMod(FAF.getTechnicalName()))
         .thenReturn(Mono.just(FeaturedModBeanBuilder.create().defaultValues().get()));
     when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(new CompletableFuture<>());
@@ -254,7 +257,7 @@ public class GameServiceTest extends ServiceTest {
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
     when(fafServerAccessor.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
+    when(featuredModService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
         .get()));
 
@@ -280,7 +283,7 @@ public class GameServiceTest extends ServiceTest {
     when(mapService.isInstalled(anyString())).thenReturn(true);
     when(fafServerAccessor.requestJoinGame(anyInt(), isNull())).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
+    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
         .get()));
 
@@ -308,7 +311,7 @@ public class GameServiceTest extends ServiceTest {
     when(mapService.isInstalled(anyString())).thenReturn(true);
     when(fafServerAccessor.requestJoinGame(anyInt(), isNull())).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
+    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
         .get()));
 
@@ -340,7 +343,7 @@ public class GameServiceTest extends ServiceTest {
     when(mapService.isInstalled("map")).thenReturn(true);
     when(fafServerAccessor.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
+    when(featuredModService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
         .get()));
 
@@ -578,7 +581,7 @@ public class GameServiceTest extends ServiceTest {
     when(gameUpdater.update(featuredMod, Set.of(), null, null, false)).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
     when(mapService.download(map)).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(featuredMod));
+    when(featuredModService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(featuredMod));
     when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
 
     instance.startSearchMatchmaker();
@@ -615,7 +618,7 @@ public class GameServiceTest extends ServiceTest {
     when(gameUpdater.update(featuredMod, Set.of(), null, null, false)).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
     when(mapService.download(map)).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(featuredMod));
+    when(featuredModService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(featuredMod));
     when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
 
     instance.startSearchMatchmaker();
@@ -650,7 +653,7 @@ public class GameServiceTest extends ServiceTest {
     when(gameUpdater.update(featuredMod, Set.of(), null, null, false)).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
     when(mapService.download(map)).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(featuredMod));
+    when(featuredModService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(featuredMod));
     when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process).newIncompleteFuture());
 
     instance.startSearchMatchmaker();
@@ -685,7 +688,7 @@ public class GameServiceTest extends ServiceTest {
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
     when(mapService.isInstalled(anyString())).thenReturn(true);
-    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(featuredMod));
+    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(featuredMod));
     when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
 
     CompletableFuture<Void> future = instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
@@ -808,7 +811,7 @@ public class GameServiceTest extends ServiceTest {
   @Test
   public void startSearchMatchmakerWithGameOptions() throws IOException {
     when(preferencesService.isValidGamePath()).thenReturn(true);
-    when(modService.getFeaturedMod(FAF.getTechnicalName()))
+    when(featuredModService.getFeaturedMod(FAF.getTechnicalName()))
         .thenReturn(Mono.just(FeaturedModBeanBuilder.create().defaultValues().get()));
     when(process.onExit()).thenReturn(completedFuture(process));
     when(process.exitValue()).thenReturn(0);
@@ -836,7 +839,7 @@ public class GameServiceTest extends ServiceTest {
   @Test
   public void startSearchMatchmakerThenCancelledWithGame() throws IOException {
     when(preferencesService.isValidGamePath()).thenReturn(true);
-    when(modService.getFeaturedMod(FAF.getTechnicalName()))
+    when(featuredModService.getFeaturedMod(FAF.getTechnicalName()))
         .thenReturn(Mono.just(FeaturedModBeanBuilder.create().defaultValues().get()));
     when(process.isAlive()).thenReturn(false);
     when(process.onExit()).thenReturn(new CompletableFuture<>());
@@ -866,7 +869,7 @@ public class GameServiceTest extends ServiceTest {
   @Test
   public void startSearchMatchmakerThenCancelledNoGame() throws IOException {
     when(preferencesService.isValidGamePath()).thenReturn(true);
-    when(modService.getFeaturedMod(FAF.getTechnicalName()))
+    when(featuredModService.getFeaturedMod(FAF.getTechnicalName()))
         .thenReturn(Mono.just(FeaturedModBeanBuilder.create().defaultValues().get()));
     Map<String, String> gameOptions = new LinkedHashMap<>();
     gameOptions.put("Share", "ShareUntilDeath");
@@ -911,7 +914,7 @@ public class GameServiceTest extends ServiceTest {
 
     when(mapService.isInstalled(anyString())).thenReturn(true);
     when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
+    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
         .get()));
 
@@ -933,7 +936,7 @@ public class GameServiceTest extends ServiceTest {
 
     when(mapService.isInstalled(anyString())).thenReturn(true);
     when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
+    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
         .get()));
     mockStartLiveReplayProcess(replayUrl, gameId);
@@ -952,7 +955,7 @@ public class GameServiceTest extends ServiceTest {
 
     when(mapService.isInstalled(anyString())).thenReturn(true);
     when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
+    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
         .get()));
 
@@ -971,7 +974,7 @@ public class GameServiceTest extends ServiceTest {
 
     when(mapService.isInstalled(anyString())).thenReturn(true);
     when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
+    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
         .get()));
     mockStartLiveReplayProcess(replayUrl, gameId);
@@ -1002,7 +1005,7 @@ public class GameServiceTest extends ServiceTest {
     when(mapService.isInstalled("map")).thenReturn(true);
     when(fafServerAccessor.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
+    when(featuredModService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
         .get()));
     when(replayServer.start(anyInt(), any(Supplier.class))).thenReturn(completedFuture(new Throwable()));
@@ -1048,7 +1051,7 @@ public class GameServiceTest extends ServiceTest {
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
     when(fafServerAccessor.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
+    when(featuredModService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
         .get()));
 

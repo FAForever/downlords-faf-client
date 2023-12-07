@@ -3,13 +3,13 @@ package com.faforever.client.filter;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.filter.function.FeaturedModFilterFunction;
 import com.faforever.client.filter.function.SimModsFilterFunction;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ToStringOnlyConverter;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratorService;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.social.SocialService;
 import com.faforever.client.theme.UiService;
@@ -30,15 +30,16 @@ public class LiveGamesFilterController extends AbstractFilterController<GameBean
 
   private final SocialService socialService;
   private final PlayerService playerService;
-  private final ModService modService;
+  private final FeaturedModService featuredModService;
   private final MapGeneratorService mapGeneratorService;
 
-  public LiveGamesFilterController(UiService uiService, I18n i18n, ModService modService, PlayerService playerService,
+  public LiveGamesFilterController(UiService uiService, I18n i18n, FeaturedModService featuredModService,
+                                   PlayerService playerService,
                                    MapGeneratorService mapGeneratorService,
                                    FxApplicationThreadExecutor fxApplicationThreadExecutor,
                                    SocialService socialService) {
     super(uiService, i18n, fxApplicationThreadExecutor);
-    this.modService = modService;
+    this.featuredModService = featuredModService;
     this.playerService = playerService;
     this.mapGeneratorService = mapGeneratorService;
     this.socialService = socialService;
@@ -58,7 +59,7 @@ public class LiveGamesFilterController extends AbstractFilterController<GameBean
     filterBuilder.multiCheckbox(i18n.get("gameType"), List.of(GameType.CUSTOM, GameType.MATCHMAKER, GameType.COOP), gameTypeConverter,
         (selectedGameTypes, game) -> selectedGameTypes.isEmpty() || selectedGameTypes.contains(game.getGameType()));
 
-    filterBuilder.multiCheckbox(i18n.get("featuredMod.displayName"), modService.getFeaturedMods(),
+    filterBuilder.multiCheckbox(i18n.get("featuredMod.displayName"), featuredModService.getFeaturedMods(),
                                 new ToStringOnlyConverter<>(FeaturedModBean::getDisplayName),
                                 new FeaturedModFilterFunction());
 

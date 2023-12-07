@@ -10,6 +10,7 @@ import com.faforever.client.domain.MatchingStatus;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -17,7 +18,6 @@ import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.MatchmakerMapper;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
@@ -94,7 +94,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Mock
   private MapService mapService;
   @Mock
-  private ModService modService;
+  private FeaturedModService featuredModService;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -467,7 +467,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
 
     when(mapService.downloadAllMatchmakerMaps(any())).thenReturn(CompletableFuture.completedFuture(null));
-    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
+    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
     when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
     Boolean success = instance.joinQueues().join();
@@ -491,7 +491,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
 
-    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
+    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
     when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
     Boolean success = instance.joinQueues().join();
@@ -510,7 +510,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
 
-    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
+    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
     when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
     Boolean success = instance.joinQueues().join();
@@ -545,7 +545,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
 
     when(mapService.downloadAllMatchmakerMaps(any())).thenReturn(CompletableFuture.failedFuture(new Exception()));
-    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
+    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
     when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
     Boolean success = instance.joinQueues().join();
@@ -558,7 +558,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Test
   public void testJoinQueuesFailed() {
     MatchmakerQueueBean queue = new MatchmakerQueueBean();
-    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
+    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
     when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.failedFuture(new Exception()));
 
     Boolean success = instance.joinQueues().join();

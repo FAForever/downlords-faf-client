@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
@@ -13,7 +14,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.WatchButtonController;
 import com.faforever.client.theme.UiService;
@@ -64,7 +64,7 @@ public class GameDetailController extends NodeController<Pane> {
 
   private final I18n i18n;
   private final MapService mapService;
-  private final ModService modService;
+  private final FeaturedModService featuredModService;
   private final TimeService timeService;
   private final UiService uiService;
   private final JoinGameHelper joinGameHelper;
@@ -199,7 +199,7 @@ public class GameDetailController extends NodeController<Pane> {
 
   private void onFeaturedModChanged(String featuredModTechnicalName) {
     Mono.justOrEmpty(featuredModTechnicalName)
-        .flatMap(modService::getFeaturedMod)
+        .flatMap(featuredModService::getFeaturedMod)
         .map(FeaturedModBean::getDisplayName)
         .switchIfEmpty(Mono.just(i18n.get("unknown")))
         .publishOn(fxApplicationThreadExecutor.asScheduler())

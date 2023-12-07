@@ -6,6 +6,7 @@ import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fa.FaStrings;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.filter.MapFilterController;
 import com.faforever.client.fx.DualStringListCell;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
@@ -91,6 +92,7 @@ public class CreateGameController extends NodeController<Pane> {
   private static final int MAX_RATING_LENGTH = 4;
 
   private final MapService mapService;
+  private final FeaturedModService featuredModService;
   private final ModService modService;
   private final GameService gameService;
   private final I18n i18n;
@@ -163,7 +165,7 @@ public class CreateGameController extends NodeController<Pane> {
     JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH, true);
     JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH, true);
 
-    modService.getFeaturedMods().thenAcceptAsync(featuredModBeans -> {
+    featuredModService.getFeaturedMods().thenAcceptAsync(featuredModBeans -> {
       featuredModListView.setItems(FXCollections.observableList(featuredModBeans)
           .filtered(FeaturedModBean::getVisible));
       selectLastOrDefaultGameType();

@@ -1,10 +1,8 @@
 package com.faforever.client.mapstruct;
 
-import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
-import com.faforever.commons.api.dto.FeaturedMod;
 import com.faforever.commons.api.dto.Mod;
 import com.faforever.commons.api.dto.ModVersion;
 import org.mapstruct.Context;
@@ -45,10 +43,4 @@ public interface ModMapper {
     ModVersionBean map(ModVersion dto, @Context CycleAvoidingMappingContext context);
 
     ModVersion map(ModVersionBean bean, @Context CycleAvoidingMappingContext context);
-
-    FeaturedModBean map(FeaturedMod dto, @Context CycleAvoidingMappingContext context);
-
-    FeaturedMod map(FeaturedModBean bean, @Context CycleAvoidingMappingContext context);
-
-
 }

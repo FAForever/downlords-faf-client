@@ -5,6 +5,7 @@ import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.domain.CoopMissionBean;
 import com.faforever.client.domain.CoopResultBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameService;
@@ -12,7 +13,6 @@ import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.game.GamesTableController;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.PlatformTest;
@@ -63,7 +63,7 @@ public class CoopControllerTest extends PlatformTest {
   @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
-  private ModService modService;
+  private FeaturedModService featuredModService;
   @Mock
   private ReplayService replayService;
   @Mock
@@ -98,10 +98,11 @@ public class CoopControllerTest extends PlatformTest {
 
   @Test
   public void onPlayButtonClicked() {
-    when(modService.getFeaturedMod(COOP.getTechnicalName())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
-        .defaultValues()
-        .technicalName("coop")
-        .get()));
+    when(featuredModService.getFeaturedMod(COOP.getTechnicalName())).thenReturn(
+        Mono.just(FeaturedModBeanBuilder.create()
+                                        .defaultValues()
+                                        .technicalName("coop")
+                                        .get()));
     when(coopService.getMissions()).thenReturn(completedFuture(singletonList(new CoopMissionBean())));
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
