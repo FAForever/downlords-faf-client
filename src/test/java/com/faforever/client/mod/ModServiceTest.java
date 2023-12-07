@@ -177,7 +177,6 @@ public class ModServiceTest extends PlatformTest {
   }
 
   @Test
-  @Disabled("Flaky Test")
   public void testDownloadAndInstallMod() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
@@ -312,7 +311,6 @@ public class ModServiceTest extends PlatformTest {
   }
 
   @Test
-  @Disabled("flaky")
   public void testUninstallMod() {
     prepareUninstallModTask(instance.getInstalledMods().getFirst());
 
