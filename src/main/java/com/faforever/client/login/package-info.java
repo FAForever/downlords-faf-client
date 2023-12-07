@@ -1,4 +1,4 @@
 /**
- * Types for login and maybe registration (TODO think about renaming).
+ * Types for login and maybe registration
  */
 package com.faforever.client.login;
