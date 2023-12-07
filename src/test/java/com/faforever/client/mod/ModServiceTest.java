@@ -21,6 +21,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ApiTestUtil;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.PlatformTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -40,7 +41,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mapstruct.factory.Mappers;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.beans.factory.ObjectFactory;
@@ -92,13 +92,14 @@ public class ModServiceTest extends PlatformTest {
       "/mods/blackops_support_mod_info.lua");
   private static final ClassPathResource BLACKOPS_UNLEASHED_MOD_INFO = new ClassPathResource(
       "/mods/blackops_unleashed_mod_info.lua");
-  private static final ClassPathResource ECO_MANAGER_MOD_INFO = new ClassPathResource("/mods/eco_manager_mod_info.lua");
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
 
   @TempDir
   public Path tempDirectory;
 
+  @Mock
+  private ThemeService themeService;
   @Mock
   private TaskService taskService;
   @Mock
@@ -128,13 +129,17 @@ public class ModServiceTest extends PlatformTest {
   @Spy
   private Preferences preferences;
 
-  private Path modsDirectory;
-  @InjectMocks
   private ModService instance;
+
+  private Path modsDirectory;
   private Path gamePrefsPath;
 
   @BeforeEach
   public void setUp() throws Exception {
+    instance = new ModService(fafApiAccessor, taskService, notificationService, i18n, platformService, assetService,
+                              themeService, fileSizeReader, modMapper, forgedAlliancePrefs, preferences,
+                              modUploadTaskFactory, downloadModTaskFactory, uninstallModTaskFactory,
+                              fxApplicationThreadExecutor);
     MapperSetup.injectMappers(modMapper);
     modsDirectory = tempDirectory.resolve("mods");
     Files.createDirectories(modsDirectory);
