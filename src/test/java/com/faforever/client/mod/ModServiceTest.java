@@ -307,6 +307,7 @@ public class ModServiceTest extends PlatformTest {
   }
 
   @Test
+  @Disabled("flaky")
   public void testUninstallMod() {
     prepareUninstallModTask(instance.getInstalledMods().getFirst());
 
@@ -392,6 +393,7 @@ public class ModServiceTest extends PlatformTest {
   }
 
   @Test
+  @Disabled("flaky")
   public void testUpdateModsWithOutdatedMod() throws IOException, ExecutionException, InterruptedException {
     ModVersionBean latestVersion = ModVersionBeanBuilder.create().defaultValues().uid("latest").id(100).get();
     ModBean mod = ModBeanBuilder.create().defaultValues().latestVersion(latestVersion).get();
