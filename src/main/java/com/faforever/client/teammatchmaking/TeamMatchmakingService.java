@@ -8,6 +8,7 @@ import com.faforever.client.domain.PartyBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.exception.NotifiableException;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
@@ -20,7 +21,6 @@ import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MatchmakerMapper;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
@@ -97,7 +97,7 @@ import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 public class TeamMatchmakingService implements InitializingBean {
 
   private final MapService mapService;
-  private final ModService modService;
+  private final FeaturedModService featuredModService;
   private final PlayerService playerService;
   private final NotificationService notificationService;
   private final ChatService chatService;
@@ -408,15 +408,16 @@ public class TeamMatchmakingService implements InitializingBean {
       return CompletableFuture.completedFuture(false);
     }
 
-    return modService.getFeaturedMod(FAF.getTechnicalName())
-                     .toFuture()
-                     .thenCompose(featuredModBean -> gameService.updateGameIfNecessary(featuredModBean, Set.of()))
-                     .thenCompose(aVoid -> validQueues.stream()
+    return featuredModService.getFeaturedMod(FAF.getTechnicalName())
+                             .toFuture()
+                             .thenCompose(
+                                 featuredModBean -> gameService.updateGameIfNecessary(featuredModBean, Set.of()))
+                             .thenCompose(aVoid -> validQueues.stream()
                                                       .map(this::joinQueue)
                                                       .reduce((future1, future2) -> future1.thenCombine(future2,
                                                                                                         (result1, result2) -> result1 || result2))
                                                       .orElse(CompletableFuture.completedFuture(false)))
-                     .exceptionally(throwable -> {
+                             .exceptionally(throwable -> {
                        throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
                        log.error("Unable to join queues", throwable);
                        if (throwable instanceof NotifiableException notifiableException) {

@@ -3,9 +3,9 @@ package com.faforever.client.filter;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratorService;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.social.SocialService;
 import com.faforever.client.test.PlatformTest;
@@ -41,7 +41,7 @@ public class LiveGamesFilterControllerTest extends PlatformTest {
   @Mock
   private I18n i18n;
   @Mock
-  private ModService modService;
+  private FeaturedModService featuredModService;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -75,7 +75,8 @@ public class LiveGamesFilterControllerTest extends PlatformTest {
         mock(FilterMultiCheckboxController.class), // Featured mods
         playerNameController
     );
-    when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(FXCollections.observableArrayList()));
+    when(featuredModService.getFeaturedMods()).thenReturn(
+        CompletableFuture.completedFuture(FXCollections.observableArrayList()));
 
     loadFxml("theme/filter/filter.fxml", clazz -> instance, instance);
   }

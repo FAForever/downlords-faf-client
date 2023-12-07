@@ -1,5 +1,6 @@
 package com.faforever.client.config;
 
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.patch.GameBinariesUpdateTask;
 import com.faforever.client.patch.GameUpdater;
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
 public class FeaturedModUpdaterConfig {
 
   private final ModService modService;
+  private final FeaturedModService featuredModService;
   private final ObjectFactory<GameBinariesUpdateTask> gameBinariesUpdateTaskFactory;
   private final TaskService taskService;
   private final SimpleHttpFeaturedModUpdater httpFeaturedModUpdater;
@@ -26,7 +28,8 @@ public class FeaturedModUpdaterConfig {
 
   @Bean
   GameUpdater gameUpdater() {
-    return new GameUpdaterImpl(modService, taskService, dataPrefs, forgedAlliancePrefs, gameBinariesUpdateTaskFactory)
+    return new GameUpdaterImpl(modService, featuredModService, taskService, dataPrefs, forgedAlliancePrefs,
+                               gameBinariesUpdateTaskFactory)
         .setFeaturedModUpdater(httpFeaturedModUpdater);
   }
 }

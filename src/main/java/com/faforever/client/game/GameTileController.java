@@ -4,6 +4,7 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
@@ -11,7 +12,6 @@ import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.social.SocialService;
 import com.google.common.base.Joiner;
@@ -49,7 +49,7 @@ public class GameTileController extends NodeController<Node> {
   private final MapService mapService;
   private final I18n i18n;
   private final JoinGameHelper joinGameHelper;
-  private final ModService modService;
+  private final FeaturedModService featuredModService;
   private final PlayerService playerService;
   private final AvatarService avatarService;
   private final SocialService socialService;
@@ -132,11 +132,12 @@ public class GameTileController extends NodeController<Node> {
       return;
     }
 
-    modService.getFeaturedMod(featuredMod)
-              .map(FeaturedModBean::getDisplayName)
-              .map(StringUtils::defaultString)
-              .publishOn(fxApplicationThreadExecutor.asScheduler())
-              .subscribe(gameTypeLabel::setText, throwable -> log.error("Unable to set game type label", throwable));
+    featuredModService.getFeaturedMod(featuredMod)
+                      .map(FeaturedModBean::getDisplayName)
+                      .map(StringUtils::defaultString)
+                      .publishOn(fxApplicationThreadExecutor.asScheduler())
+                      .subscribe(gameTypeLabel::setText,
+                                 throwable -> log.error("Unable to set game type label", throwable));
   }
 
   public void setGame(GameBean game) {

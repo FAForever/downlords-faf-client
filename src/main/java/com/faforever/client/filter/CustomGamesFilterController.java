@@ -2,12 +2,12 @@ package com.faforever.client.filter;
 
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.filter.function.FeaturedModFilterFunction;
 import com.faforever.client.filter.function.SimModsFilterFunction;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ToStringOnlyConverter;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.FiltersPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.theme.UiService;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class CustomGamesFilterController extends AbstractFilterController<GameBean> {
 
-  private final ModService modService;
+  private final FeaturedModService featuredModService;
   private final Preferences preferences;
   private final FiltersPrefs filtersPrefs;
 
@@ -28,11 +28,12 @@ public class CustomGamesFilterController extends AbstractFilterController<GameBe
   private FilterCheckboxController<GameBean> privateGameFilter;
   private FilterCheckboxController<GameBean> simModsFilter;
 
-  public CustomGamesFilterController(UiService uiService, I18n i18n, ModService modService, Preferences preferences,
+  public CustomGamesFilterController(UiService uiService, I18n i18n, FeaturedModService featuredModService,
+                                     Preferences preferences,
                                      FiltersPrefs filtersPrefs,
                                      FxApplicationThreadExecutor fxApplicationThreadExecutor) {
     super(uiService, i18n, fxApplicationThreadExecutor);
-    this.modService = modService;
+    this.featuredModService = featuredModService;
     this.preferences = preferences;
     this.filtersPrefs = filtersPrefs;
   }
@@ -43,7 +44,7 @@ public class CustomGamesFilterController extends AbstractFilterController<GameBe
 
     simModsFilter = filterBuilder.checkbox(i18n.get("moddedGames"), new SimModsFilterFunction());
 
-    filterBuilder.multiCheckbox(i18n.get("featuredMod.displayName"), modService.getFeaturedMods(),
+    filterBuilder.multiCheckbox(i18n.get("featuredMod.displayName"), featuredModService.getFeaturedMods(),
                                 new ToStringOnlyConverter<>(FeaturedModBean::getDisplayName),
                                 new FeaturedModFilterFunction());
 

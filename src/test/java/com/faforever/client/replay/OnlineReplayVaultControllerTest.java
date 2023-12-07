@@ -1,11 +1,11 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.CategoryFilterController;
@@ -49,7 +49,7 @@ public class OnlineReplayVaultControllerTest extends PlatformTest {
   private OnlineReplayVaultController instance;
 
   @Mock
-  private ModService modService;
+  private FeaturedModService featuredModService;
   @Mock
   private LeaderboardService leaderboardService;
   @Mock
@@ -90,7 +90,7 @@ public class OnlineReplayVaultControllerTest extends PlatformTest {
 
     when(uiService.loadFxml("theme/vault/replay/replay_detail.fxml")).thenReturn(replayDetailController);
 
-    when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(List.of()));
+    when(featuredModService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(List.of()));
     when(leaderboardService.getLeaderboards()).thenReturn(CompletableFuture.completedFuture(List.of()));
     when(replayService.getNewestReplaysWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
     when(replayService.getHighestRatedReplaysWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());

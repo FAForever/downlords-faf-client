@@ -9,6 +9,7 @@ import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.GameParameters;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
@@ -128,6 +129,7 @@ public class GameService implements InitializingBean {
   private final NavigationHandler navigationHandler;
   private final IceAdapter iceAdapter;
   private final ModService modService;
+  private final FeaturedModService featuredModService;
   private final PlatformService platformService;
   private final ReplayServer replayServer;
   private final OperatingSystem operatingSystem;
@@ -350,7 +352,7 @@ public class GameService implements InitializingBean {
     log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
 
     Set<String> simModUIds = game.getSimMods().keySet();
-    return modService.getFeaturedMod(game.getFeaturedMod())
+    return featuredModService.getFeaturedMod(game.getFeaturedMod())
                      .toFuture()
                      .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simModUIds))
                      .thenRun(() -> {
@@ -408,7 +410,7 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     }
 
-    return modService.getFeaturedMod(featuredMod)
+    return featuredModService.getFeaturedMod(featuredMod)
                      .toFuture()
                      .thenCompose(featuredModBean -> updateReplayFilesIfNecessary(featuredModBean, simMods,
                                                                                   featuredModFileVersions,
@@ -498,7 +500,7 @@ public class GameService implements InitializingBean {
 
     Set<String> simModUids = game.getSimMods().keySet();
 
-    return modService.getFeaturedMod(gameType)
+    return featuredModService.getFeaturedMod(gameType)
                      .toFuture()
                      .thenCompose(
                          featuredModBean -> updateReplayFilesIfNecessary(featuredModBean, simModUids, null, null))
@@ -548,7 +550,7 @@ public class GameService implements InitializingBean {
 
     log.info("Matchmaking search has been started");
 
-    matchmakerFuture = modService.getFeaturedMod(FAF.getTechnicalName())
+    matchmakerFuture = featuredModService.getFeaturedMod(FAF.getTechnicalName())
                                  .toFuture()
                                  .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
                                  .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
@@ -801,7 +803,7 @@ public class GameService implements InitializingBean {
       return;
     }
 
-    modService.getFeaturedMod(TUTORIALS.getTechnicalName())
+    featuredModService.getFeaturedMod(TUTORIALS.getTechnicalName())
               .toFuture()
               .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, emptySet()))
               .thenCompose(aVoid -> downloadMapIfNecessary(mapVersion.getFolderName()))

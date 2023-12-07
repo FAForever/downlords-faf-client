@@ -6,11 +6,11 @@ import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.social.SocialService;
 import com.faforever.client.test.PlatformTest;
@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 public class GameTileControllerTest extends PlatformTest {
 
   @Mock
-  private ModService modService;
+  private FeaturedModService featuredModService;
   @Mock
   private JoinGameHelper joinGameHelper;
   @Mock
@@ -70,13 +70,14 @@ public class GameTileControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new GameTileController(mapService, i18n, joinGameHelper, modService, playerService, avatarService,
+    instance = new GameTileController(mapService, i18n, joinGameHelper, featuredModService, playerService,
+                                      avatarService,
                                       socialService, imageViewHelper, fxApplicationThreadExecutor);
 
     game = GameBeanBuilder.create().defaultValues().get();
 
     lenient().when(i18n.get(anyString())).thenReturn("test");
-    lenient().when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(
+    lenient().when(featuredModService.getFeaturedMod(game.getFeaturedMod())).thenReturn(
         Mono.just(FeaturedModBeanBuilder.create().defaultValues().get()));
     lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
     lenient().when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
