@@ -409,6 +409,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   private void onDisconnected() {
     channels.values().forEach(ChatChannel::clearUsers);
+    channels.clear();
     if (autoReconnect) {
       connect();
     }
@@ -431,6 +432,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Handler
   private void onDisconnect(ClientConnectionEndedEvent event) {
+    client.getEventManager().unregisterEventListener(this);
     connectionState.set(ConnectionState.DISCONNECTED);
   }
 
@@ -444,7 +446,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     autoChannels.clear();
     autoChannels.addAll(socialMessage.getChannels());
     autoChannels.remove(defaultChannelName);
-    autoChannels.add(0, defaultChannelName);
+    autoChannels.addFirst(defaultChannelName);
     joinAutoChannels();
   }
 
@@ -502,9 +504,9 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                         .map(IrcChatToken::value)
                         .subscribe(token -> {
                           client.getAuthManager()
-                                .addProtocol(new SaslPlain(client, username, "token:%s".formatted(token)));
+                                .addProtocol(
+                                    new SaslPlain(client, "%s@FAF".formatted(username), "token:%s".formatted(token)));
                           client.getEventManager().registerEventListener(this);
-                          client.getActorTracker().setQueryChannelInformation(false);
                           client.connect();
                         });
   }
