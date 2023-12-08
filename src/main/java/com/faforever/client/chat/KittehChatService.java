@@ -6,7 +6,6 @@ import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.navigation.NavigationHandler;
@@ -135,7 +134,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void afterPropertiesSet() {
-    loginService.loggedInProperty().addListener((SimpleChangeListener<Boolean>) loggedIn -> {
+    loginService.loggedInProperty().subscribe(loggedIn -> {
       if (loggedIn) {
         connect();
       } else {
@@ -513,8 +512,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Override
   public void disconnect() {
     autoReconnect = false;
-    log.info("Disconnecting from IRC");
-    client.shutdown("Goodbye");
+    if (client != null) {
+      log.info("Disconnecting from IRC");
+      client.shutdown("Goodbye");
+    }
   }
 
   @Override

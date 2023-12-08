@@ -12,13 +12,13 @@ import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.MeResult;
 import com.faforever.commons.lobby.Player;
-import javafx.beans.property.SimpleBooleanProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Mono;
+import reactor.test.publisher.TestPublisher;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -42,8 +42,6 @@ public class LoginServiceTest extends ServiceTest {
   public static final String STATE = "abc";
   public static final String VERIFIER = "def";
 
-  private final SimpleBooleanProperty tokenInvalid = new SimpleBooleanProperty(false);
-
   @Spy
   private ClientProperties clientProperties;
   @Mock
@@ -62,6 +60,8 @@ public class LoginServiceTest extends ServiceTest {
   private MeResult meResult;
   private Player me;
 
+  private final TestPublisher<Long> invalidationTestPublisher = TestPublisher.create();
+
   @BeforeEach
   public void setUp() throws Exception {
     me = new Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>());
@@ -75,7 +75,7 @@ public class LoginServiceTest extends ServiceTest {
     oauth.setRedirectUri(REDIRECT_URI);
     oauth.setScopes(SCOPES);
 
-    when(tokenRetriever.tokenInvalidProperty()).thenReturn(tokenInvalid);
+    when(tokenRetriever.invalidationFlux()).thenReturn(invalidationTestPublisher.flux());
 
     instance.afterPropertiesSet();
   }
@@ -267,7 +267,7 @@ public class LoginServiceTest extends ServiceTest {
   @Test
   public void testOnSessionExpired() throws Exception {
     testLogin();
-    tokenInvalid.set(true);
+    invalidationTestPublisher.next(0L);
 
     verify(notificationService).addImmediateInfoNotification(anyString());
   }
