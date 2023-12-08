@@ -18,14 +18,13 @@ import reactor.test.StepVerifier;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TokenRetrieverTest extends ServiceTest {
 
@@ -55,6 +54,7 @@ public class TokenRetrieverTest extends ServiceTest {
     loginPrefs.setRefreshToken("abc");
 
     instance = new TokenRetriever(clientProperties, WebClient.builder().build(), loginPrefs);
+    instance.afterPropertiesSet();
   }
 
   private void prepareTokenResponse(Map<String, String> tokenProperties) throws Exception {
@@ -70,7 +70,10 @@ public class TokenRetrieverTest extends ServiceTest {
   public void testLoginWithCode() throws Exception {
     Map<String, String> tokenProperties = Map.of(ACCESS_TOKEN, "test", REFRESH_TOKEN, "refresh", EXPIRES_IN, "90", TOKEN_TYPE, "bearer");
     prepareTokenResponse(tokenProperties);
-    assertTrue(instance.isTokenInvalid());
+    StepVerifier verifier = StepVerifier.create(instance.invalidationFlux())
+                                        .expectNextCount(0)
+                                        .thenCancel()
+                                        .verifyLater();
 
     StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).verifyComplete();
     String request = URLDecoder.decode(mockApi.takeRequest()
@@ -86,7 +89,7 @@ public class TokenRetrieverTest extends ServiceTest {
     assertEquals("authorization_code", requestParams.get("grant_type"));
     assertEquals(oauth.getClientId(), requestParams.get("client_id"));
     assertEquals(REDIRECT_URI.toString(), requestParams.get("redirect_uri"));
-    assertFalse(instance.isTokenInvalid());
+    verifier.verify(Duration.ofSeconds(1));
   }
 
   @Test
@@ -94,7 +97,10 @@ public class TokenRetrieverTest extends ServiceTest {
     Map<String, String> tokenProperties = Map.of(ACCESS_TOKEN, "test", REFRESH_TOKEN, "refresh", EXPIRES_IN, "90", TOKEN_TYPE, "bearer");
     prepareTokenResponse(tokenProperties);
 
-    assertTrue(instance.isTokenInvalid());
+    StepVerifier verifier = StepVerifier.create(instance.invalidationFlux())
+                                        .expectNextCount(0)
+                                        .thenCancel()
+                                        .verifyLater();
 
     StepVerifier.create(instance.loginWithRefreshToken()).verifyComplete();
     String request = URLDecoder.decode(mockApi.takeRequest()
@@ -108,7 +114,7 @@ public class TokenRetrieverTest extends ServiceTest {
 
     assertEquals(REFRESH_TOKEN, requestParams.get("grant_type"));
     assertEquals(oauth.getClientId(), requestParams.get("client_id"));
-    assertFalse(instance.isTokenInvalid());
+    verifier.verify(Duration.ofSeconds(1));
   }
 
   @Test
@@ -157,6 +163,7 @@ public class TokenRetrieverTest extends ServiceTest {
 
   @Test
   public void testNoToken() {
+    instance.invalidateToken();
     StepVerifier.create(instance.getRefreshedTokenValue()).verifyError(NoRefreshTokenException.class);
   }
 

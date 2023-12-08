@@ -5,12 +5,11 @@ import com.faforever.client.config.ClientProperties.Oauth;
 import com.faforever.client.login.NoRefreshTokenException;
 import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.client.preferences.LoginPrefs;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
@@ -20,7 +19,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
+import reactor.core.publisher.Sinks.EmitFailureHandler;
+import reactor.core.publisher.Sinks.Many;
 
 import java.net.URI;
 import java.time.Duration;
@@ -29,19 +32,32 @@ import java.time.Instant;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class TokenRetriever {
+public class TokenRetriever implements InitializingBean {
   private final ClientProperties clientProperties;
   private final WebClient defaultWebClient;
   private final LoginPrefs loginPrefs;
 
+  private final Many<Long> invalidateSink = Sinks.many().multicast().directBestEffort();
+  private final Flux<Long> invalidateFlux = invalidateSink.asFlux().publish().autoConnect();
   private final StringProperty refreshTokenValue = new SimpleStringProperty();
-  private final ReadOnlyBooleanWrapper tokenInvalid = new ReadOnlyBooleanWrapper(true);
 
   private final Mono<String> refreshedTokenMono = Mono.defer(this::refreshAccess)
-      .cacheInvalidateIf(token -> tokenInvalid.get() || Duration.between(Instant.now(), token.getExpiresAt())
-          .minusSeconds(30)
-          .isNegative())
+                                                      .cacheInvalidateWhen(this::getExpirationMono)
+
       .map(OAuth2AccessToken::getTokenValue);
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    refreshTokenValue.set(loginPrefs.getRefreshToken());
+    loginPrefs.refreshTokenProperty()
+              .bind(loginPrefs.rememberMeProperty().flatMap(remember -> remember ? refreshTokenValue : null));
+  }
+
+  private Mono<Void> getExpirationMono(OAuth2AccessToken token) {
+    Mono<Long> invalidationMono = invalidateFlux.next();
+    Mono<Long> expirationMono = Mono.delay(Duration.between(Instant.now(), token.getExpiresAt()).minusSeconds(30));
+    return Mono.firstWithSignal(invalidationMono, expirationMono).then();
+  }
 
   public Mono<String> getRefreshedTokenValue() {
     return refreshedTokenMono.doOnError(this::onTokenError);
@@ -59,7 +75,6 @@ public class TokenRetriever {
   }
 
   public Mono<Void> loginWithRefreshToken() {
-    refreshTokenValue.set(loginPrefs.getRefreshToken());
     return refreshedTokenMono.then();
   }
 
@@ -71,7 +86,6 @@ public class TokenRetriever {
   private Mono<OAuth2AccessToken> refreshAccess() {
     String refreshToken = refreshTokenValue.get();
     if (refreshToken == null) {
-      loginPrefs.setRefreshToken(null);
       return Mono.error(new NoRefreshTokenException("No refresh token to log in with"));
     }
 
@@ -103,24 +117,17 @@ public class TokenRetriever {
         .doOnNext(tokenResponse -> {
           OAuth2RefreshToken refreshToken = tokenResponse.getRefreshToken();
           refreshTokenValue.set(refreshToken != null ? refreshToken.getTokenValue() : null);
-          loginPrefs.setRefreshToken(loginPrefs.isRememberMe() ? refreshTokenValue.get() : null);
-          tokenInvalid.set(false);
         })
         .map(OAuth2AccessTokenResponse::getAccessToken)
         .doOnNext(token -> log.info("Token valid until {}", token.getExpiresAt()));
   }
 
   public void invalidateToken() {
-    tokenInvalid.set(true);
     refreshTokenValue.set(null);
-    loginPrefs.setRefreshToken(null);
+    invalidateSink.emitNext(0L, EmitFailureHandler.busyLooping(Duration.ofMillis(100)));
   }
 
-  public boolean isTokenInvalid() {
-    return tokenInvalid.get();
-  }
-
-  public ReadOnlyBooleanProperty tokenInvalidProperty() {
-    return tokenInvalid.getReadOnlyProperty();
+  public Flux<Long> invalidationFlux() {
+    return invalidateFlux;
   }
 }
