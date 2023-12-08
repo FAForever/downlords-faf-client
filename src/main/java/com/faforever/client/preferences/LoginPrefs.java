@@ -8,8 +8,21 @@ import javafx.beans.property.StringProperty;
 
 
 public class LoginPrefs {
+  private final StringProperty endpoint = new SimpleStringProperty();
   private final StringProperty refreshToken = new SimpleStringProperty();
   private final BooleanProperty rememberMe = new SimpleBooleanProperty(true);
+
+  public String getEndpoint() {
+    return endpoint.get();
+  }
+
+  public StringProperty endpointProperty() {
+    return endpoint;
+  }
+
+  public void setEndpoint(String endpoint) {
+    this.endpoint.set(endpoint);
+  }
 
   public String getRefreshToken() {
     return refreshToken.get();

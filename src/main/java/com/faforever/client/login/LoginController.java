@@ -148,10 +148,17 @@ public class LoginController extends NodeController<Pane> {
 
     if (clientProperties.isUseRemotePreferences()) {
       initializeFuture = preferencesService.getRemotePreferencesAsync()
-          .thenApply(clientConfiguration -> {
-            ServerEndpoints defaultEndpoint = clientConfiguration.getEndpoints().getFirst();
+                                           .thenAccept(clientConfiguration -> {
+                                             List<ServerEndpoints> endpoints = clientConfiguration.getEndpoints();
+                                             ServerEndpoints startingEndpoint = endpoints.stream()
+                                                                                         .filter(
+                                                                                             endpoint -> endpoint.getName()
+                                                                                                                 .equals(
+                                                                                                                     loginPrefs.getEndpoint()))
+                                                                                         .findFirst()
+                                                                                         .orElse(endpoints.getFirst());
 
-            clientProperties.updateFromEndpoint(defaultEndpoint);
+                                             clientProperties.updateFromEndpoint(startingEndpoint);
 
             String minimumVersion = clientConfiguration.getLatestRelease().getMinimumVersion();
             boolean shouldUpdate = false;
@@ -160,21 +167,26 @@ public class LoginController extends NodeController<Pane> {
 
               if (shouldUpdate) {
                 fxApplicationThreadExecutor.execute(() -> showClientOutdatedPane(minimumVersion));
+                return;
               }
             }
 
             fxApplicationThreadExecutor.execute(() -> {
-              environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
-              environmentComboBox.getSelectionModel().select(defaultEndpoint);
+              environmentComboBox.getItems().addAll(endpoints);
+              environmentComboBox.getSelectionModel().select(startingEndpoint);
+              loginPrefs.endpointProperty()
+                        .bind(environmentComboBox.getSelectionModel()
+                                                 .selectedItemProperty()
+                                                 .map(ServerEndpoints::getName)
+                                                 .when(showing));
             });
-            return shouldUpdate;
-          }).exceptionally(throwable -> {
+
+                                             if (loginPrefs.isRememberMe() && loginPrefs.getRefreshToken() != null) {
+                                               loginWithToken();
+                                             }
+                                           }).exceptionally(throwable -> {
             log.error("Could not read remote preferences", throwable);
-            return false;
-          }).thenAccept(shouldUpdate -> {
-            if (!shouldUpdate && loginPrefs.isRememberMe() && loginPrefs.getRefreshToken() != null) {
-              loginWithToken();
-            }
+            return null;
           });
     } else {
       initializeFuture = CompletableFuture.completedFuture(null);
