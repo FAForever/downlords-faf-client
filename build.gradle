@@ -309,7 +309,7 @@ dependencies {
   implementation("com.neovisionaries:nv-i18n:1.29")
   implementation("com.nativelibs4java:bridj:0.7.0")
   implementation("org.luaj:luaj-jse:3.0.1")
-  implementation("commons-validator:commons-validator:1.7") {
+  implementation("commons-validator:commons-validator:1.8.0") {
     exclude module: 'commons-logging'
   }
   implementation("com.github.micheljung:JJsonRpc:01a7fba5f4")
