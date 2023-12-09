@@ -136,6 +136,7 @@ jacocoTestReport {
 
 test {
   useJUnitPlatform()
+  dependsOn("fx2jJar")
   systemProperties = [
           'junit.jupiter.execution.parallel.enabled': true
   ]

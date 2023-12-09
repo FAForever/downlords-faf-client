@@ -1,6 +1,7 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.test.PlatformTest;
+import com.faforever.client.theme.ThemeService;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,8 @@ public class PersistentNotificationControllerTest extends PlatformTest {
 
   @Mock
   private NotificationService notificationService;
+  @Mock
+  private ThemeService themeService;
 
   @BeforeEach
   public void setUp() throws Exception {
