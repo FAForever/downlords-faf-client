@@ -40,6 +40,7 @@ import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType;
 import org.kitteh.irc.client.library.defaults.DefaultClient;
 import org.kitteh.irc.client.library.element.Actor;
 import org.kitteh.irc.client.library.element.Channel;
+import org.kitteh.irc.client.library.element.MessageTag.Time;
 import org.kitteh.irc.client.library.element.User;
 import org.kitteh.irc.client.library.element.mode.ChannelUserMode;
 import org.kitteh.irc.client.library.element.mode.Mode;
@@ -55,6 +56,7 @@ import org.kitteh.irc.client.library.event.client.ClientNegotiationCompleteEvent
 import org.kitteh.irc.client.library.event.connection.ClientConnectionEndedEvent;
 import org.kitteh.irc.client.library.event.connection.ClientConnectionFailedEvent;
 import org.kitteh.irc.client.library.event.user.PrivateMessageEvent;
+import org.kitteh.irc.client.library.event.user.UserAwayMessageEvent;
 import org.kitteh.irc.client.library.event.user.UserQuitEvent;
 import org.kitteh.irc.client.library.feature.auth.SaslPlain;
 import org.slf4j.Logger;
@@ -214,6 +216,12 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Handler
+  public void onUserAway(UserAwayMessageEvent event) {
+    String nick = event.getActor().getNick();
+    channels.values().forEach(chatChannel -> chatChannel.getUser(nick).ifPresent(chatUser -> chatUser.setAway(true)));
+  }
+
+  @Handler
   public void onConnect(ClientNegotiationCompleteEvent event) {
     connectionState.set(ConnectionState.CONNECTED);
     channels.keySet().forEach(this::joinChannel);
@@ -285,7 +293,15 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     ChatChannelUser sender = getOrCreateChatUser(user.getNick(), chatChannel.getName());
     notifyIfMentioned(text, chatChannel, sender);
 
-    chatChannel.addMessage(new ChatMessage(Instant.now(), sender, text, false));
+    Instant messageTime = event.getTags()
+                               .stream()
+                               .filter(Time.class::isInstance)
+                               .map(Time.class::cast)
+                               .map(Time::getTime)
+                               .findFirst()
+                               .orElse(Instant.now());
+
+    chatChannel.addMessage(new ChatMessage(messageTime, sender, text, false));
   }
 
   private void notifyIfMentioned(String text, ChatChannel chatChannel, ChatChannelUser sender) {
@@ -342,7 +358,15 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     String message = event.getMessage().replace("ACTION", senderNick);
     ChatChannel chatChannel = getOrCreateChannel(channelName);
     ChatChannelUser sender = getOrCreateChatUser(senderNick, chatChannel.getName());
-    chatChannel.addMessage(new ChatMessage(Instant.now(), sender, message, true));
+    Instant messageTime = event.getTags()
+                               .stream()
+                               .filter(Time.class::isInstance)
+                               .map(Time.class::cast)
+                               .map(Time::getTime)
+                               .findFirst()
+                               .orElse(Instant.now());
+
+    getOrCreateChannel(channelName).addMessage(new ChatMessage(messageTime, sender, message, true));
   }
 
   @Handler
@@ -383,7 +407,15 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     ChatChannelUser sender = getOrCreateChatUser(user.getNick(), chatChannel.getName());
     notifyOnPrivateMessage(text, chatChannel, senderNick);
 
-    chatChannel.addMessage(new ChatMessage(Instant.now(), sender, text));
+    Instant messageTime = event.getTags()
+                               .stream()
+                               .filter(Time.class::isInstance)
+                               .map(Time.class::cast)
+                               .map(Time::getTime)
+                               .findFirst()
+                               .orElse(Instant.now());
+
+    chatChannel.addMessage(new ChatMessage(messageTime, sender, text));
   }
 
   private void joinAutoChannels() {

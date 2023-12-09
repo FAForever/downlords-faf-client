@@ -10,6 +10,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -91,7 +92,8 @@ public class ChatUserListController extends NodeController<VBox> {
   private final ObservableValue<ObservableList<ChatChannelUser>> users = chatChannel.map(ChatChannel::getUsers);
   private final ObservableValue<String> channelName = chatChannel.map(ChatChannel::getName);
   private final ObservableList<ChatListItem> unfilteredSource = FXCollections.synchronizedObservableList(
-      FXCollections.observableArrayList());
+      FXCollections.observableArrayList(
+          item -> item.user() == null ? new Observable[0] : new Observable[]{item.user().awayProperty()}));
   private final FilteredList<ChatListItem> items = new FilteredList<>(
       new SortedList<>(unfilteredSource, CHAT_LIST_ITEM_COMPARATOR));
   private final ObjectProperty<ObservableSet<ChatUserCategory>> hiddenCategories = new SimpleObjectProperty<>(
@@ -194,7 +196,9 @@ public class ChatUserListController extends NodeController<VBox> {
 
     items.predicateProperty()
          .bind(chatUserFilterController.predicateProperty()
-                                       .flatMap(filterPredicate -> hiddenCategoryPredicate.map(filterPredicate::and)));
+                                       .flatMap(filterPredicate -> hiddenCategoryPredicate.map(filterPredicate::and))
+                                       .map(predicate -> predicate.and(
+                                           item -> item.user() == null || !item.user().isAway())));
   }
 
   private void onUserJoined(ChatChannelUser user) {

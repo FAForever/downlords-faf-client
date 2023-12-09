@@ -33,6 +33,7 @@ public class ChatChannelUser {
   @ToString.Include
   private final String channel;
 
+  private final BooleanProperty away = new SimpleBooleanProperty();
   private final BooleanProperty moderator = new SimpleBooleanProperty();
   private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
   private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
@@ -88,5 +89,17 @@ public class ChatChannelUser {
 
   public ObservableValue<Set<ChatUserCategory>> categoriesProperty() {
     return categories;
+  }
+
+  public boolean isAway() {
+    return away.get();
+  }
+
+  public BooleanProperty awayProperty() {
+    return away;
+  }
+
+  public void setAway(boolean away) {
+    this.away.set(away);
   }
 }
