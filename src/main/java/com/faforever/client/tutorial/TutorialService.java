@@ -3,7 +3,7 @@ package com.faforever.client.tutorial;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.domain.TutorialBean;
 import com.faforever.client.domain.TutorialCategoryBean;
-import com.faforever.client.game.GameService;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.TutorialMapper;
 import com.faforever.commons.api.dto.TutorialCategory;
@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class TutorialService {
   private final FafApiAccessor fafApiAccessor;
-  private final GameService gameService;
+  private final GameRunner gameRunner;
   private final TutorialMapper tutorialMapper;
 
   public CompletableFuture<List<TutorialCategoryBean>> getTutorialCategories() {
@@ -34,6 +34,6 @@ public class TutorialService {
   }
 
   public void launchTutorial(TutorialBean tutorial) {
-    gameService.launchTutorial(tutorial.getMapVersion(), tutorial.getTechnicalName());
+    gameRunner.launchTutorial(tutorial.getMapVersion(), tutorial.getTechnicalName());
   }
 }

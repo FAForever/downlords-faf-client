@@ -83,6 +83,7 @@ public class EnterPasswordController extends NodeController<Node> {
     userInfoWindow.show();
   }
 
+  @FunctionalInterface
   interface OnPasswordEnteredListener {
 
     void onPasswordEntered(GameBean game, String password, boolean ignoreRating);

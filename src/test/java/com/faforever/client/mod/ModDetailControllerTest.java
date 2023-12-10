@@ -175,13 +175,14 @@ public class ModDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnInstallButtonClicked() {
-    when(modService.downloadAndInstallMod(any(ModVersionBean.class), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(modService.downloadAndInstallModIfNecessary(any(ModVersionBean.class), any(), any())).thenReturn(
+        CompletableFuture.completedFuture(null));
 
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
     instance.onInstallButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(modService).downloadAndInstallMod(any(ModVersionBean.class), any(), any());
+    verify(modService).downloadAndInstallModIfNecessary(any(ModVersionBean.class), any(), any());
   }
 
   @Test
@@ -189,14 +190,14 @@ public class ModDetailControllerTest extends PlatformTest {
     modVersion.setMod(ModBeanBuilder.create().defaultValues().get());
     CompletableFuture<Void> future = new CompletableFuture<>();
     future.completeExceptionally(new FakeTestException());
-    when(modService.downloadAndInstallMod(any(ModVersionBean.class), any(), any())).thenReturn(future);
+    when(modService.downloadAndInstallModIfNecessary(any(ModVersionBean.class), any(), any())).thenReturn(future);
 
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
 
     instance.onInstallButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(modService).downloadAndInstallMod(any(ModVersionBean.class), any(), any());
+    verify(modService).downloadAndInstallModIfNecessary(any(ModVersionBean.class), any(), any());
     verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString(), anyString(), anyString());
   }
 

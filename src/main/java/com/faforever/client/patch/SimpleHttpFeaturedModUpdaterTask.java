@@ -11,6 +11,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.commons.api.dto.FeaturedModFile;
 import com.faforever.commons.fa.ForgedAllianceExePatcher;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -18,7 +19,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -30,6 +31,7 @@ import java.util.Objects;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
+@Setter
 public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResult> {
   private final FeaturedModService featuredModService;
   private final DownloadService downloadService;
@@ -37,7 +39,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
   private final FeaturedModFileCacheService featuredModFileCacheService;
   private final DataPrefs dataPrefs;
 
-  private FeaturedModBean featuredMod;
+  private String featuredModName;
   private Integer version;
   private boolean useReplayFolder;
 
@@ -58,6 +60,8 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
 
   @Override
   protected PatchResult call() throws Exception {
+    FeaturedModBean featuredMod = featuredModService.getFeaturedMod(featuredModName).blockOptional().orElseThrow();
+
     String initFileName = "init_" + featuredMod.getTechnicalName() + ".lua";
 
     updateTitle(i18n.get("updater.taskTitle"));
@@ -155,19 +159,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
     // query string effectively renders the cache ineffective.
     Map<String, String> requestParameters = Map.of(featuredModFile.getHmacParameter(), featuredModFile.getHmacToken());
 
-    downloadService.downloadFile(new URL(featuredModFile.getCacheableUrl()), requestParameters, targetPath, this::updateProgress, md5sum);
+    downloadService.downloadFile(URI.create(featuredModFile.getCacheableUrl()).toURL(), requestParameters, targetPath,
+                                 this::updateProgress, md5sum);
   }
-
-  public void setFeaturedMod(FeaturedModBean featuredMod) {
-    this.featuredMod = featuredMod;
-  }
-
-  public void setVersion(Integer version) {
-    this.version = version;
-  }
-
-  public void setUseReplayFolder(boolean useReplayFolder) {
-    this.useReplayFolder = useReplayFolder;
-  }
-
 }

@@ -121,7 +121,7 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
   @Override
   public void onUploadButtonClicked() {
     platformService.askForPath(i18n.get("modVault.upload.chooseDirectory"), forgedAlliancePrefs.getModsDirectory())
-        .ifPresent(this::openUploadWindow);
+                   .thenAccept(possiblePath -> possiblePath.ifPresent(this::openUploadWindow));
   }
 
   @Override
@@ -174,7 +174,7 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
 
     Node root = modUploadController.getRoot();
     Dialog dialog = uiService.showInDialog(vaultRoot, root, i18n.get("modVault.upload.title"));
-    modUploadController.setOnCancelButtonClickedListener(dialog::close);
     modUploadController.setUploadListener(this::onRefreshButtonClicked);
+    modUploadController.setOnCancelButtonClickedListener(dialog::close);
   }
 }

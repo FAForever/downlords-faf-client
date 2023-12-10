@@ -2,7 +2,7 @@ package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
@@ -59,14 +59,16 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
   private final GameService gameService;
   private final PlayerService playerService;
   private final ReportingService reportingService;
+  private final GameRunner gameRunner;
+  private final ReplayRunner replayRunner;
 
   private Future<?> replayAvailableTask;
   private final ObjectProperty<TrackingLiveReplay> trackingLiveReplayProperty = new SimpleObjectProperty<>(null);
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    JavaFxUtil.addListener(gameService.gameRunningProperty(), observable -> {
-      if (gameService.isGameRunning()) {
+    gameRunner.runningProperty().subscribe(gameRunning -> {
+      if (gameRunning) {
         stopTrackingLiveReplay();
       }
     });
@@ -143,7 +145,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
   }
 
   public void runLiveReplay(int gameId) {
-    GameBean game = gameService.getByUid(gameId);
+    GameBean game = gameService.getByUid(gameId).orElse(null);
     if (game == null) {
       log.warn("No game with ID `{}`", gameId);
       return;
@@ -182,7 +184,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
                                         .path(uri.getPath())
                                         .build()
                                         .toUri();
-    gameService.runWithLiveReplay(replayUri, gameId, gameType, mapName)
+    replayRunner.runWithLiveReplay(replayUri, gameId, gameType, mapName)
                .exceptionally(throwable -> {
                  notificationService.addNotification(new ImmediateNotification(
                      i18n.get("errorTitle"),

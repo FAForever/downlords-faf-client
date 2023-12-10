@@ -2,7 +2,7 @@ package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.game.JoinGameHelper;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.SocialStatus;
@@ -21,12 +21,12 @@ import static com.faforever.client.player.SocialStatus.SELF;
 public class JoinGameMenuItem extends AbstractMenuItem<PlayerBean> {
 
   private final I18n i18n;
-  private final JoinGameHelper joinGameHelper;
+  private final GameRunner gameRunner;
 
   @Override
   protected void onClicked() {
     Assert.checkNullIllegalState(object, "no player has been set");
-    joinGameHelper.join(object.getGame());
+    gameRunner.join(object.getGame());
   }
 
   @Override

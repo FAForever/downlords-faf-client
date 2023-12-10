@@ -26,5 +26,4 @@ public class GameParameters {
   private String subdivision;
   private Integer localGpgPort;
   private Integer localReplayPort;
-  private boolean rehost;
 }

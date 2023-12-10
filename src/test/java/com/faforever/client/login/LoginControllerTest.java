@@ -3,6 +3,7 @@ package com.faforever.client.login;
 import com.faforever.client.builders.ClientConfigurationBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.OAuthValuesReceiver.Values;
@@ -69,6 +70,8 @@ public class LoginControllerTest extends PlatformTest {
   private LoginController instance;
   @Spy
   private OperatingSystem operatingSystem = new OsPosix();
+  @Mock
+  private GameRunner gameRunner;
   @Mock
   private GameService gameService;
   @Mock
@@ -388,16 +391,16 @@ public class LoginControllerTest extends PlatformTest {
     instance.onPlayOfflineButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(gameService).startGameOffline();
+    verify(gameRunner).startGameOffline();
   }
 
   @Test
   public void testOnPlayOfflineButtonClickedNoExe() throws Exception {
-    doThrow(new IOException()).when(gameService).startGameOffline();
+    doThrow(new IOException()).when(gameRunner).startGameOffline();
     instance.onPlayOfflineButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(gameService).startGameOffline();
+    verify(gameRunner).startGameOffline();
     verify(notificationService).addImmediateWarnNotification(eq("offline.noExe"));
   }
 }

@@ -3,14 +3,12 @@ package com.faforever.client.game;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 
@@ -26,14 +24,10 @@ public class GamePathHandler {
    * Checks whether the chosen game path contains a ForgedAlliance.exe (either directly if the user selected the "bin"
    * directory, or in the "bin" sub folder). If the path is valid, it is stored in the preferences.
    */
-  public void onGameDirectoryChosenEvent(GameDirectoryChosenEvent event) {
-    Path path = event.path();
-    Optional<CompletableFuture<Path>> future = Optional.ofNullable(event.future());
-
+  public CompletableFuture<Path> onGameDirectoryChosenEvent(Path path) {
     if (path == null) {
       notificationService.addImmediateWarnNotification("gamePath.select.noneChosen");
-      future.ifPresent(pathCompletableFuture -> pathCompletableFuture.completeExceptionally(new CancellationException("User cancelled")));
-      return;
+      return CompletableFuture.failedFuture(new CancellationException("User cancelled"));
     }
 
     Path pathWithBin = path.resolve("bin");
@@ -49,18 +43,16 @@ public class GamePathHandler {
     } catch (Exception e) {
       log.error("Game path selection error", e);
       notificationService.addImmediateErrorNotification(e, "gamePath.select.error");
-      future.ifPresent(pathCompletableFuture -> pathCompletableFuture.completeExceptionally(e));
-      return;
+      return CompletableFuture.failedFuture(e);
     }
 
     if (gamePathValidWithError != null) {
       notificationService.addImmediateWarnNotification(gamePathValidWithError);
-      future.ifPresent(pathCompletableFuture -> pathCompletableFuture.completeExceptionally(new IllegalArgumentException("Invalid path")));
-      return;
+      return CompletableFuture.failedFuture(new IllegalArgumentException("Invalid path"));
     }
 
     log.info("Found game path at {}", gamePath);
     forgedAlliancePrefs.setInstallationPath(gamePath);
-    future.ifPresent(pathCompletableFuture -> pathCompletableFuture.complete(gamePath));
+    return CompletableFuture.completedFuture(gamePath);
   }
 }

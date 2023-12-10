@@ -8,7 +8,7 @@ import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.GameService;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.os.OperatingSystem;
@@ -55,7 +55,7 @@ import java.util.concurrent.CompletableFuture;
 public class LoginController extends NodeController<Pane> {
 
   private final OperatingSystem operatingSystem;
-  private final GameService gameService;
+  private final GameRunner gameRunner;
   private final LoginService loginService;
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
@@ -359,7 +359,7 @@ public class LoginController extends NodeController<Pane> {
 
   public void onPlayOfflineButtonClicked() {
     try {
-      gameService.startGameOffline();
+      gameRunner.startGameOffline();
     } catch (IOException e) {
       notificationService.addImmediateWarnNotification("offline.noExe");
     }

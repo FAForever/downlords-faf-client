@@ -51,6 +51,7 @@ import java.util.function.Predicate;
 public class CustomGamesController extends NodeController<Node> {
 
   private final UiService uiService;
+  private final GameRunner gameRunner;
   private final GameService gameService;
   private final I18n i18n;
   private final Preferences preferences;
@@ -82,7 +83,7 @@ public class CustomGamesController extends NodeController<Node> {
 
     initializeFilterController();
 
-    createGameButton.disableProperty().bind(gameService.gameRunningProperty().when(showing));
+    createGameButton.disableProperty().bind(gameRunner.runningProperty().when(showing));
 
     chooseSortingTypeChoiceBox.getItems().addAll(TilesSortingOrder.values());
     chooseSortingTypeChoiceBox.setConverter(new ToStringOnlyConverter<>(tilesSortingOrder -> tilesSortingOrder == null ? "null" : i18n.get(tilesSortingOrder.getDisplayNameKey())));
@@ -154,7 +155,7 @@ public class CustomGamesController extends NodeController<Node> {
   private void onCreateGame(@Nullable String mapFolderName) {
     if (preferences.getForgedAlliance().getInstallationPath() == null) {
       CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
-      gameDirectoryRequiredHandler.onChooseGameDirectory(gameDirectoryFuture);
+      gameDirectoryRequiredHandler.onChooseGameDirectory();
       gameDirectoryFuture.thenAccept(path -> Optional.ofNullable(path).ifPresent(path1 -> onCreateGame(null)));
       return;
     }

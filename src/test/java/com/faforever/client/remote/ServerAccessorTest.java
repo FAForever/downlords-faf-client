@@ -363,13 +363,13 @@ public class ServerAccessorTest extends ServiceTest {
         "rating_max",
         "enforce_rating_range",
         "password",
-        newGameInfo.getMap(),
-        newGameInfo.getTitle(),
-        newGameInfo.getFeaturedMod().getTechnicalName(),
-        newGameInfo.getPassword(),
+        newGameInfo.map(),
+        newGameInfo.title(),
+        newGameInfo.featuredModName(),
+        newGameInfo.password(),
         "public",
-        String.valueOf(newGameInfo.getRatingMax()),
-        String.valueOf(newGameInfo.getRatingMin()),
+        String.valueOf(newGameInfo.ratingMax()),
+        String.valueOf(newGameInfo.ratingMin()),
         "true"
     );
   }

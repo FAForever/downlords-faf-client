@@ -75,6 +75,7 @@ import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -91,6 +92,7 @@ public class CreateGameController extends NodeController<Pane> {
   public static final PseudoClass PSEUDO_CLASS_INVALID = PseudoClass.getPseudoClass("invalid");
   private static final int MAX_RATING_LENGTH = 4;
 
+  private final GameRunner gameRunner;
   private final MapService mapService;
   private final FeaturedModService featuredModService;
   private final ModService modService;
@@ -423,17 +425,19 @@ public class CreateGameController extends NodeController<Pane> {
     MapVersionBean selectedMap = mapListView.getSelectionModel().getSelectedItem();
     Collection<ModVersionBean> selectedModVersions = modManagerController.getSelectedModVersions();
 
-    mapService.updateLatestVersionIfNecessary(selectedMap).exceptionally(throwable -> {
-      log.error("Error when updating the map", throwable);
-      return selectedMap;
-    }).thenCombine(modService.updateAndActivateModVersions(selectedModVersions).exceptionally(throwable -> {
+    CompletableFuture<MapVersionBean> mapUpdateFuture = mapService.updateLatestVersionIfNecessary(selectedMap)
+                                                                  .exceptionally(throwable -> {
+                                                                    log.error("Error when updating the map", throwable);
+                                                                    return selectedMap;
+                                                                  });
+    CompletableFuture<Collection<ModVersionBean>> modUpdateFuture = modService.updateAndActivateModVersions(
+        selectedModVersions).exceptionally(throwable -> {
       log.error("Error when updating selected mods", throwable);
       notificationService.addImmediateErrorNotification(throwable, "game.create.errorUpdatingMods");
       return selectedModVersions;
-    }), (mapBean, mods) -> {
-      hostGame(mapBean, getUUIDsFromModVersions(mods));
-      return null;
-    }).exceptionally(throwable -> {
+    });
+
+    mapUpdateFuture.thenAcceptBoth(modUpdateFuture, this::hostGame).exceptionally(throwable -> {
       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
       log.error("Game could not be hosted", throwable);
       if (throwable instanceof NotifiableException notifiableException) {
@@ -451,7 +455,7 @@ public class CreateGameController extends NodeController<Pane> {
     return modVersions.stream().map(ModVersionBean::getUid).collect(Collectors.toSet());
   }
 
-  private void hostGame(MapVersionBean mapVersion, Set<String> mods) {
+  private void hostGame(MapVersionBean mapVersion, Collection<ModVersionBean> mods) {
     Integer minRating = null;
     Integer maxRating = null;
     boolean enforceRating;
@@ -466,20 +470,14 @@ public class CreateGameController extends NodeController<Pane> {
 
     enforceRating = enforceRankingCheckBox.isSelected();
 
-    NewGameInfo newGameInfo = new NewGameInfo(titleTextField.getText()
-        .trim(), Strings.emptyToNull(passwordTextField.getText()), featuredModListView.getSelectionModel()
-        .getSelectedItem(), mapVersion.getFolderName(), mods, onlyForFriendsCheckBox.isSelected() ? GameVisibility.PRIVATE : GameVisibility.PUBLIC, minRating, maxRating, enforceRating);
+    String featuredModName = featuredModListView.getSelectionModel().getSelectedItem().getTechnicalName();
+    NewGameInfo newGameInfo = new NewGameInfo(titleTextField.getText().trim(),
+                                              Strings.emptyToNull(passwordTextField.getText()), featuredModName,
+                                              mapVersion.getFolderName(), getUUIDsFromModVersions(mods),
+                                              onlyForFriendsCheckBox.isSelected() ? GameVisibility.PRIVATE : GameVisibility.PUBLIC,
+                                              minRating, maxRating, enforceRating);
 
-    gameService.hostGame(newGameInfo).exceptionally(throwable -> {
-      throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-      log.error("Game could not be hosted", throwable);
-      if (throwable instanceof NotifiableException notifiableException) {
-        notificationService.addErrorNotification(notifiableException);
-      } else {
-        notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
-      }
-      return null;
-    });
+    gameRunner.host(newGameInfo);
   }
 
   @Override

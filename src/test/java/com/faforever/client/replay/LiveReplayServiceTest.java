@@ -5,6 +5,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -25,6 +26,7 @@ import org.springframework.scheduling.TaskScheduler;
 import java.net.URI;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 
@@ -46,6 +48,10 @@ public class LiveReplayServiceTest extends PlatformTest {
   @Mock
   private GameService gameService;
   @Mock
+  private GameRunner gameRunner;
+  @Mock
+  private ReplayRunner replayRunner;
+  @Mock
   private PlayerService playerService;
   @Mock
   private TaskScheduler taskScheduler;
@@ -64,7 +70,7 @@ public class LiveReplayServiceTest extends PlatformTest {
   public void setUp() throws Exception {
     gameRunningProperty = new SimpleBooleanProperty(false);
     clientProperties.getReplay().setWatchDelaySeconds(WATCH_DELAY);
-    when(gameService.gameRunningProperty()).thenReturn(gameRunningProperty);
+    when(gameRunner.runningProperty()).thenReturn(gameRunningProperty);
 
     instance.afterPropertiesSet();
   }
@@ -92,12 +98,12 @@ public class LiveReplayServiceTest extends PlatformTest {
 
   @Test
   public void testRunLiveReplay() throws Exception {
-    when(gameService.runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString()))
+    when(replayRunner.runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString()))
         .thenReturn(CompletableFuture.completedFuture(null));
 
     instance.runLiveReplay(new URI("faflive://example.com/123/456.scfareplay?mod=faf&map=map%20name"));
 
-    verify(gameService).runWithLiveReplay(new URI("gpgnet://example.com/123/456.scfareplay"), 123, "faf", "map name");
+    verify(replayRunner).runWithLiveReplay(new URI("gpgnet://example.com/123/456.scfareplay"), 123, "faf", "map name");
   }
 
   @Test
@@ -120,9 +126,9 @@ public class LiveReplayServiceTest extends PlatformTest {
     GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
 
-    when(gameService.runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString()))
+    when(replayRunner.runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString()))
         .thenReturn(CompletableFuture.completedFuture(null));
-    when(gameService.getByUid(game.getId())).thenReturn(game);
+    when(gameService.getByUid(game.getId())).thenReturn(Optional.of(game));
     when(playerService.getCurrentPlayer()).thenReturn(player);
     instance.performActionWhenAvailable(game, TrackingLiveReplayAction.RUN_REPLAY);
 
@@ -131,7 +137,7 @@ public class LiveReplayServiceTest extends PlatformTest {
     runReplayCaptor.getValue().run();
 
     verify(notificationService).addNotification(any(TransientNotification.class));
-    verify(gameService).runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString());
+    verify(replayRunner).runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString());
     assertNull(instance.trackingLiveReplayProperty().getValue());
   }
 
@@ -174,7 +180,6 @@ public class LiveReplayServiceTest extends PlatformTest {
 
     instance.performActionWhenAvailable(game, TrackingLiveReplayAction.NOTIFY_ME);
     assertEquals(new TrackingLiveReplay(game.getId(), TrackingLiveReplayAction.NOTIFY_ME), instance.trackingLiveReplayProperty().getValue());
-    when(gameService.isGameRunning()).thenReturn(true);
     gameRunningProperty.set(true);
     assertNull(instance.trackingLiveReplayProperty().getValue());
   }

@@ -5,13 +5,13 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.MatchingStatus;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
@@ -61,7 +61,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.scheduling.TaskScheduler;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.publisher.TestPublisher;
 
@@ -79,6 +78,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -115,6 +115,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Mock
   private GameService gameService;
+  @Mock
+  private GameRunner gameRunner;
   @Mock
   private NavigationHandler navigationHandler;
   @Spy
@@ -295,13 +297,13 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     searchInfoTestPublisher.next(message);
 
-    verify(gameService, never()).startSearchMatchmaker();
+    verify(gameRunner, never()).startSearchMatchmaker();
 
     SearchInfo message2 = new SearchInfo("queue1", MatchmakerState.START);
 
     searchInfoTestPublisher.next(message2);
 
-    verify(gameService).startSearchMatchmaker();
+    verify(gameRunner).startSearchMatchmaker();
     assertThat(instance.isInQueue(), is(true));
     assertThat(instance.getQueues().getFirst().isSelected(), is(true));
   }
@@ -429,7 +431,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
   @Test
   public void testAcceptInviteGameRunning() {
-    when(gameService.isGameRunning()).thenReturn(true);
+    when(gameRunner.isRunning()).thenReturn(true);
 
     instance.acceptPartyInvite(player);
 
@@ -467,8 +469,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
 
     when(mapService.downloadAllMatchmakerMaps(any())).thenReturn(CompletableFuture.completedFuture(null));
-    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
-    when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(featuredModService.updateFeaturedModToLatest(anyString(), anyBoolean())).thenReturn(
+        CompletableFuture.completedFuture(null));
 
     Boolean success = instance.joinQueues().join();
 
@@ -491,8 +493,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
 
-    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
-    when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(featuredModService.updateFeaturedModToLatest(anyString(), anyBoolean())).thenReturn(
+        CompletableFuture.completedFuture(null));
 
     Boolean success = instance.joinQueues().join();
 
@@ -510,8 +512,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
 
-    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
-    when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(featuredModService.updateFeaturedModToLatest(anyString(), anyBoolean())).thenReturn(
+        CompletableFuture.completedFuture(null));
 
     Boolean success = instance.joinQueues().join();
 
@@ -545,8 +547,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
 
     when(mapService.downloadAllMatchmakerMaps(any())).thenReturn(CompletableFuture.failedFuture(new Exception()));
-    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
-    when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(featuredModService.updateFeaturedModToLatest(anyString(), anyBoolean())).thenReturn(
+        CompletableFuture.completedFuture(null));
 
     Boolean success = instance.joinQueues().join();
 
@@ -558,8 +560,9 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Test
   public void testJoinQueuesFailed() {
     MatchmakerQueueBean queue = new MatchmakerQueueBean();
-    when(featuredModService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
-    when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.failedFuture(new Exception()));
+    when(featuredModService.updateFeaturedModToLatest(anyString(), anyBoolean())).thenReturn(
+        CompletableFuture.failedFuture(new Exception()));
+    when(gameRunner.isRunning()).thenReturn(false);
 
     Boolean success = instance.joinQueues().join();
 
@@ -570,7 +573,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
   @Test
   public void testJoinQueueWhileGameRunning() {
-    when(gameService.isGameRunning()).thenReturn(true);
+    when(gameRunner.isRunning()).thenReturn(true);
 
     Boolean success = instance.joinQueues().join();
 

@@ -574,15 +574,16 @@ public class SettingsController extends NodeController<Node> {
   }
 
   public void onSelectGameLocation() {
-    gameDirectoryRequiredHandler.onChooseGameDirectory(null);
+    gameDirectoryRequiredHandler.onChooseGameDirectory();
   }
 
   public void onSelectVaultLocation() {
-    platformService.askForPath(i18n.get("settings.vault.select")).ifPresent(vaultPathHandler::onVaultPathUpdated);
+    vaultPathHandler.askForPathAndUpdate();
   }
 
   public void onSelectDataLocation() {
-    platformService.askForPath(i18n.get("settings.data.select")).ifPresent(newDataDirectory -> {
+    platformService.askForPath(i18n.get("settings.data.select"))
+                   .thenAccept(possiblePath -> possiblePath.ifPresent(newDataDirectory -> {
       log.info("User changed data directory to: `{}`", newDataDirectory);
       DataPrefs dataPrefs = preferences.getData();
 
@@ -591,7 +592,7 @@ public class SettingsController extends NodeController<Node> {
       moveDirectoryTask.setOldDirectory(dataPrefs.getBaseDataDirectory());
       moveDirectoryTask.setAfterCopyAction(() -> dataPrefs.setBaseDataDirectory(newDataDirectory));
       taskService.submitTask(moveDirectoryTask);
-    });
+                   }));
   }
 
   public void onSelectExecutionDirectory() {

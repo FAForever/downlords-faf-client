@@ -128,8 +128,6 @@ public class SettingsControllerTest extends PlatformTest {
     IceServer coturnServer = new IceServer("0", "Test");
     lenient().when(coturnService.getActiveCoturns())
              .thenReturn(CompletableFuture.completedFuture(List.of(coturnServer)));
-    lenient().when(gameService.isGamePrefsPatchedToAllowMultiInstances())
-             .thenReturn(CompletableFuture.completedFuture(true));
 
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     lenient().when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
@@ -251,9 +249,8 @@ public class SettingsControllerTest extends PlatformTest {
   @Test
   public void testOnSelectVaultLocation() throws Exception {
     Optional<Path> path = Optional.of(mock(Path.class));
-    when(platformService.askForPath(any())).thenReturn(path);
     instance.onSelectVaultLocation();
-    verify(vaultPathHandler).onVaultPathUpdated(path.get());
+    verify(vaultPathHandler).askForPathAndUpdate();
   }
 
   @Test
@@ -261,7 +258,7 @@ public class SettingsControllerTest extends PlatformTest {
   public void testSetDataLocation() throws Exception {
     MoveDirectoryTask moveDirectoryTask = mock(MoveDirectoryTask.class);
     Path newDataLocation = Path.of(".");
-    when(platformService.askForPath(any())).thenReturn(Optional.of(newDataLocation));
+    when(platformService.askForPath(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(newDataLocation)));
     when(moveDirectoryTaskFactory.getObject()).thenReturn(moveDirectoryTask);
 
     instance.onSelectDataLocation();
@@ -276,7 +273,7 @@ public class SettingsControllerTest extends PlatformTest {
   public void testSetGameLocation() throws Exception {
     instance.onSelectGameLocation();
 
-    verify(gameDirectoryRequiredHandler).onChooseGameDirectory(any());
+    verify(gameDirectoryRequiredHandler).onChooseGameDirectory();
   }
 
   @Test

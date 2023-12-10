@@ -1,13 +1,13 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.fx.NodeController;
-import com.faforever.client.notification.Action.ActionCallback;
 import com.faforever.client.preferences.NotificationPrefs;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
+import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import static javafx.util.Duration.millis;
 
@@ -38,7 +39,7 @@ public class TransientNotificationController extends NodeController<Node> {
   public Label titleLabel;
   public ImageView imageView;
   private ChangeListener<Number> animationListener;
-  private ActionCallback action;
+  private Consumer<Event> action;
   private Timeline timeline;
   private int toastDisplayTime;
 
@@ -95,7 +96,7 @@ public class TransientNotificationController extends NodeController<Node> {
     titleLabel.setText(notification.getTitle());
     messageLabel.setText(notification.getText());
     imageView.setImage(notification.getImage());
-    action = notification.getActionCallback();
+    action = notification.getCallback();
   }
 
   public void onCloseButtonClicked() {
@@ -111,7 +112,7 @@ public class TransientNotificationController extends NodeController<Node> {
     if (event.getButton().equals(MouseButton.SECONDARY)) {
       dismiss();
     } else if (action != null) {
-      action.call(event);
+      action.accept(event);
     }
   }
 }

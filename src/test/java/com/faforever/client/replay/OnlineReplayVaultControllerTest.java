@@ -68,6 +68,8 @@ public class OnlineReplayVaultControllerTest extends PlatformTest {
   private I18n i18n;
   @Mock
   private SearchController searchController;
+  @Mock
+  private ReplayCardController replayCardController;
 
   @Mock
   private ReportingService reportingService;
@@ -97,6 +99,7 @@ public class OnlineReplayVaultControllerTest extends PlatformTest {
     when(replayService.findById(anyInt())).thenReturn(CompletableFuture.completedFuture(Optional.of(testReplay)));
     when(replayService.getOwnReplaysWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
     when(uiService.loadFxml("theme/vault/vault_entity_show_room.fxml")).thenReturn(vaultEntityShowRoomController);
+    when(uiService.loadFxml("theme/vault/replay/replay_card.fxml")).thenReturn(replayCardController);
     when(vaultEntityShowRoomController.getRoot()).thenReturn(new VBox(), new VBox(), new VBox());
     when(vaultEntityShowRoomController.getLabel()).thenReturn(new Label());
     when(vaultEntityShowRoomController.getMoreButton()).thenReturn(new Button());

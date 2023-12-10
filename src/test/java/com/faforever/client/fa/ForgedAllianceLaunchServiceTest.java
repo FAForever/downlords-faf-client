@@ -22,10 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ForgedAllianceServiceTest extends ServiceTest {
+public class ForgedAllianceLaunchServiceTest extends ServiceTest {
   @InjectMocks
   @Spy
-  private ForgedAllianceService instance;
+  private ForgedAllianceLaunchService instance;
   @Mock
   private PlayerService playerService ;
   @Mock

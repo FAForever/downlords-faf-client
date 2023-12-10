@@ -59,7 +59,7 @@ public class GamesTableController extends NodeController<Node> {
 
   private final ObjectProperty<GameBean> selectedGame = new SimpleObjectProperty<>();
   private final MapService mapService;
-  private final JoinGameHelper joinGameHelper;
+  private final GameRunner gameRunner;
   private final I18n i18n;
   private final ImageViewHelper imageViewHelper;
   private final PlayerService playerService;
@@ -219,7 +219,7 @@ public class GamesTableController extends NodeController<Node> {
     row.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
         GameBean game = row.getItem();
-        joinGameHelper.join(game);
+        gameRunner.join(game);
       }
     });
     row.setOnMouseEntered(event -> gameTooltipController.setGame(row.getItem()));

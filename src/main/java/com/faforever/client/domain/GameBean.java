@@ -53,7 +53,6 @@ public class GameBean {
   private final ObjectProperty<Integer> ratingMin = new SimpleObjectProperty<>();
   private final ObjectProperty<Integer> ratingMax = new SimpleObjectProperty<>();
   private final BooleanProperty passwordProtected = new SimpleBooleanProperty();
-  private final StringProperty password = new SimpleStringProperty();
   @ToString.Include
   private final ObjectProperty<GameStatus> status = new SimpleObjectProperty<>();
   private final ObjectProperty<VictoryCondition> victoryCondition = new SimpleObjectProperty<>();
@@ -284,18 +283,6 @@ public class GameBean {
 
   public void setPasswordProtected(Boolean passwordProtected) {
     this.passwordProtected.setValue(passwordProtected);
-  }
-
-  public String getPassword() {
-    return password.get();
-  }
-
-  public void setPassword(String password) {
-    this.password.set(password);
-  }
-
-  public StringProperty passwordProperty() {
-    return password;
   }
 
   public OffsetDateTime getStartTime() {

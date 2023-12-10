@@ -25,14 +25,14 @@ import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANC
 
 /**
  * Knows how to start/stop Forged Alliance with proper parameters. Downloading maps, mods and updates as well as
- * notifying the server about whether the preferences is running or not is <strong>not</strong> this service's
+ * notifying the server about whether the preferences are running or not is <strong>not</strong> this service's
  * responsibility.
  */
 @Lazy
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ForgedAllianceService {
+public class ForgedAllianceLaunchService {
 
   public static final String DEBUGGER_EXE = "FAFDebugger.exe";
 

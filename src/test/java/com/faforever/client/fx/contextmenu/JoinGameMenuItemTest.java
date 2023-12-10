@@ -3,7 +3,7 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.game.JoinGameHelper;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.commons.lobby.GameStatus;
@@ -20,13 +20,13 @@ public class JoinGameMenuItemTest extends PlatformTest {
   @Mock
   private I18n i18n;
   @Mock
-  private JoinGameHelper joinGameHelper;
+  private GameRunner gameRunner;
 
   private JoinGameMenuItem instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new JoinGameMenuItem(i18n, joinGameHelper);
+    instance = new JoinGameMenuItem(i18n, gameRunner);
   }
 
   @Test
@@ -37,7 +37,7 @@ public class JoinGameMenuItemTest extends PlatformTest {
     instance.setObject(player);
     instance.onClicked();
 
-    verify(joinGameHelper).join(player.getGame());
+    verify(gameRunner).join(player.getGame());
   }
 
   @Test

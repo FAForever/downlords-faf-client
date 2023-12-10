@@ -3,7 +3,6 @@ package com.faforever.client.game;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -27,7 +26,7 @@ public class GamePathHandlerTest extends ServiceTest {
   @Test
   public void testNotificationOnEmptyString() throws Exception {
     CompletableFuture<Path> completableFuture = new CompletableFuture<>();
-    instance.onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(null, completableFuture));
+    instance.onGameDirectoryChosenEvent(null);
     verify(notificationService).addImmediateWarnNotification("gamePath.select.noneChosen");
     assertThat(completableFuture.isCompletedExceptionally(), is(true));
   }
@@ -35,7 +34,7 @@ public class GamePathHandlerTest extends ServiceTest {
   @Test
   public void testNotificationOnNull() throws Exception {
     CompletableFuture<Path> completableFuture = new CompletableFuture<>();
-    instance.onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(null, completableFuture));
+    instance.onGameDirectoryChosenEvent(null);
     verify(notificationService).addImmediateWarnNotification("gamePath.select.noneChosen");
     assertThat(completableFuture.isCompletedExceptionally(), is(true));
   }

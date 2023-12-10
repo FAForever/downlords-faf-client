@@ -2,7 +2,7 @@ package com.faforever.client;
 
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.exception.GlobalExceptionHandler;
-import com.faforever.client.game.GameService;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.MainController;
 import com.faforever.client.notification.Action;
@@ -89,7 +89,7 @@ public class FafClientApplication extends Application {
   }
 
   private void closeMainWindow(WindowEvent event) {
-    if (applicationContext.getBean(GameService.class).isGameRunning()) {
+    if (applicationContext.getBean(GameRunner.class).isRunning()) {
       I18n i18n = applicationContext.getBean(I18n.class);
       NotificationService notificationService = applicationContext.getBean(NotificationService.class);
       notificationService.addNotification(new ImmediateNotification(i18n.get("exitWarning.title"),

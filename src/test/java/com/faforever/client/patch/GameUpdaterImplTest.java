@@ -1,10 +1,6 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.builders.FeaturedModBeanBuilder;
-import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.io.ChecksumMismatchException;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.task.TaskService;
@@ -18,14 +14,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.beans.factory.ObjectFactory;
-import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -38,33 +32,29 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class GameUpdaterImplTest extends ServiceTest {
 
-  @InjectMocks
-  private GameUpdaterImpl instance;
   @TempDir
   public Path tempDir;
+  @InjectMocks
+  private GameUpdaterImpl instance;
+
   @Mock
-  private ModService modService;
-  @Mock
-  private FeaturedModService featuredModService;
-  @Mock
-  private SimpleHttpFeaturedModUpdater simpleHttpFeaturedModUpdater;
+  private FeaturedModUpdater featuredModUpdater;
   @Mock
   private TaskService taskService;
   @Mock
   private ObjectFactory<GameBinariesUpdateTask> gameBinariesUpdateTaskFactory;
-
-  @Mock
-  private GameBinariesUpdateTaskImpl gameBinariesUpdateTask;
   @Spy
   private DataPrefs dataPrefs;
   @Spy
   private ForgedAlliancePrefs forgedAlliancePrefs;
+
+  @Mock
+  private GameBinariesUpdateTaskImpl gameBinariesUpdateTask;
 
   private Path fafDataDirectory;
   private Path binDirectory;
@@ -74,7 +64,6 @@ public class GameUpdaterImplTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     Path cwd = Path.of(".");
-    instance.setFeaturedModUpdater(simpleHttpFeaturedModUpdater);
     forgedAlliancePrefs.setInstallationPath(cwd);
     forgedAlliancePrefs.setVaultBaseDirectory(cwd);
     dataPrefs.setBaseDataDirectory(tempDir.resolve("faf_temp_data"));
@@ -85,42 +74,33 @@ public class GameUpdaterImplTest extends ServiceTest {
     lenient().when(gameBinariesUpdateTaskFactory.getObject()).thenReturn(gameBinariesUpdateTask);
     lenient().when(taskService.submitTask(gameBinariesUpdateTask)).thenReturn(gameBinariesUpdateTask);
     lenient().when(gameBinariesUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
-    lenient().when(simpleHttpFeaturedModUpdater.updateMod(any(FeaturedModBean.class), any(), eq(false)))
+    lenient().when(featuredModUpdater.updateMod(any(String.class), any(), eq(false)))
              .thenAnswer(invocation -> {
-      FeaturedModBean featuredMod = invocation.getArgument(0, FeaturedModBean.class);
-      Path initFile = binDirectory.resolve(String.format("init_%s", featuredMod.getTechnicalName()));
+               String featuredModName = invocation.getArgument(0, String.class);
+               Path initFile = binDirectory.resolve(String.format("init_%s", featuredModName));
       Files.createFile(initFile);
       int version = Objects.requireNonNullElse(invocation.getArgument(1, Integer.class), Integer.MAX_VALUE);
       return CompletableFuture.completedFuture(new PatchResult(new ComparableVersion(String.valueOf(version)), initFile));
     });
-    lenient().when(simpleHttpFeaturedModUpdater.updateMod(any(FeaturedModBean.class), any(), eq(true)))
+    lenient().when(featuredModUpdater.updateMod(any(String.class), any(), eq(true)))
              .thenAnswer(invocation -> {
-      FeaturedModBean featuredMod = invocation.getArgument(0, FeaturedModBean.class);
-      Path initFile = replayBinDirectory.resolve(String.format("init_%s", featuredMod.getTechnicalName()));
+               String featuredModName = invocation.getArgument(0, String.class);
+               Path initFile = replayBinDirectory.resolve(String.format("init_%s", featuredModName));
       Files.createFile(initFile);
       int version = Objects.requireNonNullElse(invocation.getArgument(1, Integer.class), Integer.MAX_VALUE);
       return CompletableFuture.completedFuture(new PatchResult(new ComparableVersion(String.valueOf(version)), initFile));
     });
-  }
-
-  @Test
-  public void noUpdatersTest() throws Exception {
-    // We need to get rid of the injected updater again
-    instance.setFeaturedModUpdater(null);
-
-    CompletionException exception = assertThrows(CompletionException.class, () -> instance.update(FeaturedModBeanBuilder.create().defaultValues().get(), Set.of(), Map.of(), 0, false).join());
-    assertEquals(UnsupportedOperationException.class, exception.getCause().getClass());
-    assertFalse(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
-    assertFalse(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
   }
 
   @Test
   public void badChecksumTest() throws Exception {
-    when(simpleHttpFeaturedModUpdater.updateMod(any(FeaturedModBean.class), any(), anyBoolean()))
+    when(featuredModUpdater.updateMod(any(String.class), any(), anyBoolean()))
         .thenAnswer(invocation -> CompletableFuture.failedFuture(new ChecksumMismatchException(
             URI.create("http://google.com").toURL(), "asd", "qwe")));
 
-    CompletionException exception = assertThrows(CompletionException.class, () -> instance.update(FeaturedModBeanBuilder.create().defaultValues().get(), Set.of(), Map.of(), 0, false).join());
+    CompletionException exception = assertThrows(CompletionException.class,
+                                                 () -> instance.update(FAF.getTechnicalName(), Map.of(), 0, false)
+                                                               .join());
     assertEquals(ChecksumMismatchException.class, exception.getCause().getClass());
     assertFalse(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
     assertFalse(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
@@ -128,18 +108,14 @@ public class GameUpdaterImplTest extends ServiceTest {
 
   @Test
   public void nonBaseModUpdateTestEmptyVersions() throws Exception {
-    FeaturedModBean baseMod = FeaturedModBeanBuilder.create().defaultValues().get();
-    when(featuredModService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(baseMod));
     String technicalName = "Test_Mod";
-    FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
 
-    instance.update(updatedMod, Set.of(), Map.of(), 0, false).join();
+    instance.update(technicalName, Map.of(), 0, false).join();
 
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
-    verify(featuredModService).getFeaturedMod(FAF.getTechnicalName());
-    verify(simpleHttpFeaturedModUpdater).updateMod(baseMod, 0, false);
-    verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, null, false);
+    verify(featuredModUpdater).updateMod(FAF.getTechnicalName(), 0, false);
+    verify(featuredModUpdater).updateMod(technicalName, null, false);
     assertTrue(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
     assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
     assertTrue(Files.exists(binDirectory.resolve(String.format("init_%s", technicalName))));
@@ -147,38 +123,30 @@ public class GameUpdaterImplTest extends ServiceTest {
 
   @Test
   public void nonBaseModUpdateTest() throws Exception {
-    FeaturedModBean baseMod = FeaturedModBeanBuilder.create().defaultValues().get();
-    when(featuredModService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(baseMod));
     String technicalName = "Test_Mod";
-    FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
 
-    instance.update(updatedMod, Set.of(), Map.of("1", 100), 0, false).join();
+    instance.update(technicalName, Map.of("1", 100), 0, false).join();
 
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
-    verify(featuredModService).getFeaturedMod(FAF.getTechnicalName());
-    verify(simpleHttpFeaturedModUpdater).updateMod(baseMod, 0, false);
-    verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 100, false);
+    verify(featuredModUpdater).updateMod(FAF.getTechnicalName(), 0, false);
+    verify(featuredModUpdater).updateMod(technicalName, 100, false);
     assertTrue(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
     assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
     assertTrue(Files.exists(binDirectory.resolve(String.format("init_%s", technicalName))));
   }
 
   @Test
-  public void nonBaseModUpdateWithCacheDirectoryTest() throws Exception {
-    FeaturedModBean baseMod = FeaturedModBeanBuilder.create().defaultValues().get();
-    when(featuredModService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(baseMod));
+  public void nonBaseModUpdateWithCacheDirectoryTest() {
     String technicalName = "Test_Mod";
-    FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
 
-    instance.update(updatedMod, Set.of(), Map.of("1", 100), 0, true).join();
+    instance.update(technicalName, Map.of("1", 100), 0, true).join();
 
     verify(gameBinariesUpdateTaskFactory).getObject();
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
-    verify(featuredModService).getFeaturedMod(FAF.getTechnicalName());
-    verify(simpleHttpFeaturedModUpdater).updateMod(baseMod, 0, true);
-    verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 100, true);
+    verify(featuredModUpdater).updateMod(FAF.getTechnicalName(), 0, true);
+    verify(featuredModUpdater).updateMod(technicalName, 100, true);
     assertTrue(Files.exists(replayDataDirectory.resolve("fa_path.lua")));
     assertTrue(Files.exists(replayBinDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
     assertTrue(Files.exists(replayBinDirectory.resolve(String.format("init_%s", technicalName))));
@@ -186,18 +154,14 @@ public class GameUpdaterImplTest extends ServiceTest {
 
   @Test
   public void nonBaseModUpdateTestWithNulls() throws Exception {
-    FeaturedModBean baseMod = FeaturedModBeanBuilder.create().defaultValues().get();
-    when(featuredModService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(baseMod));
     String technicalName = "Test_Mod";
-    FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().id(100).technicalName(technicalName).get();
 
-    instance.update(updatedMod, Set.of(), null, null, false).join();
+    instance.update(technicalName, null, null, false).join();
 
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(Integer.MAX_VALUE)));
-    verify(featuredModService).getFeaturedMod(FAF.getTechnicalName());
-    verify(simpleHttpFeaturedModUpdater).updateMod(baseMod, null, false);
-    verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, null, false);
+    verify(featuredModUpdater).updateMod(FAF.getTechnicalName(), null, false);
+    verify(featuredModUpdater).updateMod(technicalName, null, false);
     assertTrue(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
     assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
     assertTrue(Files.exists(binDirectory.resolve(String.format("init_%s", technicalName))));
@@ -206,13 +170,12 @@ public class GameUpdaterImplTest extends ServiceTest {
   @Test
   public void baseModUpdateTest() throws Exception {
     String technicalName = FAF.getTechnicalName();
-    FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
 
-    instance.update(updatedMod, Set.of(), Map.of(), 0, false).join();
+    instance.update(technicalName, Map.of(), 0, false).join();
 
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
-    verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 0, false);
+    verify(featuredModUpdater).updateMod(technicalName, 0, false);
     assertTrue(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
     assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
     assertTrue(Files.exists(binDirectory.resolve(String.format("init_%s", technicalName))));
@@ -221,14 +184,13 @@ public class GameUpdaterImplTest extends ServiceTest {
   @Test
   public void baseModUpdateWithCacheDirectoryTest() throws Exception {
     String technicalName = FAF.getTechnicalName();
-    FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
 
-    instance.update(updatedMod, Set.of(), Map.of(), 0, true).join();
+    instance.update(technicalName, Map.of(), 0, true).join();
 
     verify(gameBinariesUpdateTaskFactory).getObject();
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
-    verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 0, true);
+    verify(featuredModUpdater).updateMod(technicalName, 0, true);
     assertTrue(Files.exists(replayDataDirectory.resolve("fa_path.lua")));
     assertTrue(Files.exists(replayBinDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
     assertTrue(Files.exists(replayBinDirectory.resolve(String.format("init_%s", technicalName))));
@@ -237,16 +199,12 @@ public class GameUpdaterImplTest extends ServiceTest {
   @Test
   public void baseModUpdateWithSimModsInstalledTest() throws Exception {
     String technicalName = FAF.getTechnicalName();
-    FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
-    String modUID = "abc";
-    when(modService.isInstalled(modUID)).thenReturn(true);
 
-    instance.update(updatedMod, Set.of(modUID), Map.of(), 0, false).join();
+    instance.update(technicalName, Map.of(), 0, false).join();
 
-    verify(modService, never()).downloadAndInstallMod(modUID);
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
-    verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 0, false);
+    verify(featuredModUpdater).updateMod(technicalName, 0, false);
     assertTrue(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
     assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
     assertTrue(Files.exists(binDirectory.resolve(String.format("init_%s", technicalName))));
@@ -255,17 +213,12 @@ public class GameUpdaterImplTest extends ServiceTest {
   @Test
   public void baseModUpdateWithSimModsNotInstalledTest() throws Exception {
     String technicalName = FAF.getTechnicalName();
-    FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
-    String modUID = "abc";
-    when(modService.isInstalled(modUID)).thenReturn(false);
-    when(modService.downloadAndInstallMod(modUID)).thenReturn(CompletableFuture.completedFuture(null));
 
-    instance.update(updatedMod, Set.of(modUID), Map.of(), 0, false).join();
+    instance.update(technicalName, Map.of(), 0, false).join();
 
-    verify(modService).downloadAndInstallMod(modUID);
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
-    verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 0, false);
+    verify(featuredModUpdater).updateMod(technicalName, 0, false);
     assertTrue(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
     assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
     assertTrue(Files.exists(binDirectory.resolve(String.format("init_%s", technicalName))));
@@ -276,9 +229,8 @@ public class GameUpdaterImplTest extends ServiceTest {
     String gameType = FAF.getTechnicalName();
     Integer gameVersion = 3711;
     String clientVersion = Version.getCurrentVersion();
-    FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(gameType).get();
 
-    instance.update(updatedMod, Set.of(), Map.of(), gameVersion, false).join();
+    instance.update(gameType, Map.of(), gameVersion, false).join();
 
     String content = Files.readString(fafDataDirectory.resolve("fa_path.lua"));
     assertTrue(content.contains("GameType = \"" + gameType + "\""));

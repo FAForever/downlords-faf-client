@@ -9,7 +9,6 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
-import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
 import com.faforever.client.user.LoginService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +55,7 @@ public class MissingGamePathNotifier implements InitializingBean {
   public void onMissingGamePathEvent(boolean immediateUserActionRequired) {
     List<Action> actions = Collections.singletonList(
         new Action(i18n.get("missingGamePath.locate"),
-                   chooseEvent -> gameDirectoryRequiredHandler.onChooseGameDirectory(null))
+                   chooseEvent -> gameDirectoryRequiredHandler.onChooseGameDirectory())
     );
     String notificationText = i18n.get("missingGamePath.notification");
 
@@ -70,7 +69,7 @@ public class MissingGamePathNotifier implements InitializingBean {
   private void detectGamePath() {
     for (Path path : USUAL_GAME_PATHS) {
       if (preferencesService.isValidGamePath(path.resolve("bin"))) {
-        gamePathHandler.onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(path, null));
+        gamePathHandler.onGameDirectoryChosenEvent(path);
         return;
       }
     }

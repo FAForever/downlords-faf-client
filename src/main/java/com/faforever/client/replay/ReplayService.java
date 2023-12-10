@@ -94,6 +94,7 @@ public class ReplayService {
   private final ReplayFileReader replayFileReader;
   private final NotificationService notificationService;
   private final GameService gameService;
+  private final ReplayRunner replayRunner;
   private final TaskService taskService;
   private final I18n i18n;
   private final PlatformService platformService;
@@ -368,7 +369,7 @@ public class ReplayService {
 
     Integer version = parseSupComVersion(replayData);
 
-    gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods, mapName);
+    replayRunner.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods, mapName);
   }
 
   private void runSupComReplayFile(Path path) throws IOException, CompressorException {
@@ -380,7 +381,7 @@ public class ReplayService {
     String gameType = guessModByFileName(fileName);
     Set<String> simMods = parseModUIDs(replayData);
 
-    gameService.runWithReplay(path, null, gameType, version, emptyMap(), simMods, mapName);
+    replayRunner.runWithReplay(path, null, gameType, version, emptyMap(), simMods, mapName);
   }
 
   @Cacheable(value = CacheNames.REPLAYS_RECENT, sync = true)

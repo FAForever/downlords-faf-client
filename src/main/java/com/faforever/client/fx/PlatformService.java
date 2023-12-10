@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
@@ -254,28 +255,21 @@ public class PlatformService {
     }
   }
 
-  public Optional<Path> askForPath(String title) {
+  public CompletableFuture<Optional<Path>> askForPath(String title) {
     return askForPath(title, null);
   }
 
-  public Optional<Path> askForPath(String title, Path initialDirectory) {
-    AtomicReference<File> result = new AtomicReference<>();
-    CountDownLatch waitForUserInput = new CountDownLatch(1);
-    fxApplicationThreadExecutor.execute(() -> {
-      DirectoryChooser directoryChooser = new DirectoryChooser();
-      directoryChooser.setTitle(title);
-      if (initialDirectory != null) {
-        directoryChooser.setInitialDirectory(initialDirectory.toFile());
-      }
-      result.set(directoryChooser.showDialog(StageHolder.getStage().getScene().getWindow()));
-      waitForUserInput.countDown();
-    });
-    try {
-      waitForUserInput.await();
-    } catch (InterruptedException e) {
-      log.warn("Thread interrupted while waiting for user folder selection", e);
+  public CompletableFuture<Optional<Path>> askForPath(String title, Path initialDirectory) {
+    CompletableFuture<File> result = new CompletableFuture<>();
+    DirectoryChooser directoryChooser = new DirectoryChooser();
+    directoryChooser.setTitle(title);
+    if (initialDirectory != null) {
+      directoryChooser.setInitialDirectory(initialDirectory.toFile());
     }
-    return Optional.ofNullable(result.get()).map(File::toPath);
+
+    fxApplicationThreadExecutor.execute(
+        () -> result.complete(directoryChooser.showDialog(StageHolder.getStage().getScene().getWindow())));
+    return result.thenApply(file -> Optional.ofNullable(file).map(File::toPath));
   }
 
   public Optional<Path> askForFile(String title, @Nullable Path initialDirectoryOrFile,

@@ -61,11 +61,18 @@ public class VaultPathHandler implements InitializingBean {
     CheckBox ignoreCheckbox = new CheckBox(i18n.get("ignoreWarning"));
     JavaFxUtil.addListener(ignoreCheckbox.selectedProperty(), (SimpleChangeListener<Boolean>) newValue -> forgedAlliancePrefs.setWarnNonAsciiVaultPath(!newValue));
 
-    notificationService.addImmediateWarnNotification(i18n.get("vaultBasePath.nonAscii.warning.title"), i18n.get("vaultBasePath.nonAscii.warning.text"), List.of(new Action(i18n.get("vaultBasePath.nonAscii.warning.changePath"), event -> platformService.askForPath(i18n.get("settings.vault.select"))
-        .ifPresent(this::onVaultPathUpdated)), new OkAction(i18n)), ignoreCheckbox);
+    notificationService.addImmediateWarnNotification(i18n.get("vaultBasePath.nonAscii.warning.title"),
+                                                     i18n.get("vaultBasePath.nonAscii.warning.text"), List.of(
+            new Action(i18n.get("vaultBasePath.nonAscii.warning.changePath"), event -> askForPathAndUpdate()),
+            new OkAction(i18n)), ignoreCheckbox);
   }
 
-  public void onVaultPathUpdated(Path newPath) {
+  public void askForPathAndUpdate() {
+    platformService.askForPath(i18n.get("settings.vault.select"))
+                   .thenAccept(possiblePath -> possiblePath.ifPresent(this::onVaultPathUpdated));
+  }
+
+  private void onVaultPathUpdated(Path newPath) {
     log.info("User changed vault directory to: `{}`", newPath);
 
     MoveDirectoryTask moveDirectoryTask = moveDirectoryTaskFactory.getObject();

@@ -48,7 +48,7 @@ public class GameTileController extends NodeController<Node> {
 
   private final MapService mapService;
   private final I18n i18n;
-  private final JoinGameHelper joinGameHelper;
+  private final GameRunner gameRunner;
   private final FeaturedModService featuredModService;
   private final PlayerService playerService;
   private final AvatarService avatarService;
@@ -163,7 +163,7 @@ public class GameTileController extends NodeController<Node> {
 
     if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
       mouseEvent.consume();
-      joinGameHelper.join(gameValue);
+      gameRunner.join(gameValue);
     }
   }
 }
