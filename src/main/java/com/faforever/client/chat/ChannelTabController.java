@@ -23,8 +23,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
-import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
@@ -47,9 +45,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -136,8 +132,7 @@ public class ChannelTabController extends AbstractChatTabController {
                             .or(topicTextField.visibleProperty())
                             .when(showing));
 
-    root.idProperty().bind(channelName.when(showing));
-    root.textProperty().bind(channelName.map(name -> name.replaceFirst("^#", "")).when(showing));
+    root.textProperty().bind(channelName.map(name -> name.replaceFirst("^#", "")).when(attached));
 
     chatUserListController.chatChannelProperty().bind(chatChannel.when(showing));
 
@@ -170,7 +165,6 @@ public class ChannelTabController extends AbstractChatTabController {
       }
     });
 
-
     AutoCompletionHelper autoCompletionHelper = getAutoCompletionHelper();
     autoCompletionHelper.bindTo(messageTextField());
   }
@@ -194,7 +188,6 @@ public class ChannelTabController extends AbstractChatTabController {
                                                         .sorted()
                                                         .collect(Collectors.toList()));
   }
-
 
   private void highlightText(String newValue) {
     if (StringUtils.isBlank(newValue)) {

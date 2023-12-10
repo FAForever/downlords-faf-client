@@ -142,8 +142,9 @@ public abstract class AbstractChatTabController extends TabController {
    */
   private final List<ChatMessage> waitingMessages = new ArrayList<>();
   private final List<ChatMessage> userMessageHistory = new ArrayList<>();
-  private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
+  private String currentUserMessage = "";
   private int curMessageHistoryIndex = 0;
+  private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
   protected final ObjectProperty<ChatChannel> chatChannel = new SimpleObjectProperty<>();
   protected final ObservableValue<String> channelName = chatChannel.map(ChatChannel::getName);
 
@@ -169,6 +170,8 @@ public abstract class AbstractChatTabController extends TabController {
     initChatView();
 
     messageTextField().setOnKeyPressed(this::onUpOrDownArrowKeyClick);
+    currentUserMessage = "";
+    curMessageHistoryIndex = 0;
 
     chatChannel.when(attached).subscribe(((oldValue, newValue) -> {
       userMessageHistory.clear();
@@ -219,16 +222,25 @@ public abstract class AbstractChatTabController extends TabController {
   }
 
   private void onUpOrDownArrowKeyClick(KeyEvent event){
-    if(event.getCode() == KeyCode.UP) {
-      if(curMessageHistoryIndex+1 <= userMessageHistory.size()) {
-        messageTextField().setText(userMessageHistory.get(userMessageHistory.size() - curMessageHistoryIndex - 1).message());
-        curMessageHistoryIndex++;
+    if(event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.UP){
+      if(curMessageHistoryIndex == 0){
+        currentUserMessage = messageTextField().getText();
       }
-    } else if(event.getCode() == KeyCode.DOWN) {
-      if(curMessageHistoryIndex-1 >= 0){
+      if(event.getCode() == KeyCode.DOWN)
         curMessageHistoryIndex--;
-        messageTextField().setText(userMessageHistory.get(userMessageHistory.size() - curMessageHistoryIndex - 1).message());
-      }
+      if(event.getCode() == KeyCode.UP)
+        curMessageHistoryIndex++;
+
+     if(curMessageHistoryIndex > 0 && curMessageHistoryIndex <= userMessageHistory.size()){
+        messageTextField().setText(userMessageHistory.get(userMessageHistory.size() - curMessageHistoryIndex).message());
+     }
+     if (curMessageHistoryIndex > userMessageHistory.size()){
+       curMessageHistoryIndex =  userMessageHistory.size();
+     }
+     if (curMessageHistoryIndex <= 0){
+       curMessageHistoryIndex =  0;
+       messageTextField().setText(currentUserMessage);
+     }
     } else {
       curMessageHistoryIndex = 0;
     }
