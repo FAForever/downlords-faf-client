@@ -64,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -162,8 +163,6 @@ public abstract class AbstractChatTabController extends TabController {
   protected void onInitialize() {
     mentionPattern = Pattern.compile(
         "(^|[^A-Za-z0-9-])" + Pattern.quote(loginService.getUsername()) + "([^A-Za-z0-9-]|$)", CASE_INSENSITIVE);
-
-    initChatView();
 
     chatChannel.when(attached).subscribe(((oldValue, newValue) -> {
       if (oldValue != null) {
@@ -294,13 +293,12 @@ public abstract class AbstractChatTabController extends TabController {
 
   protected abstract TextInputControl messageTextField();
 
-  private void initChatView() {
-    WebView messagesWebView = getMessagesWebView();
-    webViewConfigurer.configureWebView(messagesWebView);
+  protected void configureWebView(WebView webView) {
+    webViewConfigurer.configureWebView(webView);
 
-    messagesWebView.zoomProperty().bindBidirectional(chatPrefs.zoomProperty());
+    webView.zoomProperty().bindBidirectional(chatPrefs.zoomProperty());
 
-    configureBrowser(messagesWebView);
+    configureBrowser(webView);
     loadChatContainer();
   }
 
@@ -323,10 +321,6 @@ public abstract class AbstractChatTabController extends TabController {
   private void configureBrowser(WebView messagesWebView) {
     engine = messagesWebView.getEngine();
 
-    configureLoadListener();
-  }
-
-  private void configureLoadListener() {
     engine.getLoadWorker()
           .stateProperty()
           .addListener((observable, oldValue, newValue) -> sendWaitingMessagesIfLoaded(newValue));
@@ -345,13 +339,17 @@ public abstract class AbstractChatTabController extends TabController {
     }
   }
 
-  protected abstract WebView getMessagesWebView();
+  protected abstract CompletableFuture<WebView> getMessagesWebView();
 
   protected JSObject getJsObject() {
     return (JSObject) engine.executeScript("window");
   }
 
   protected void callJsMethod(String methodName, Object... args) {
+    if (engine == null) {
+      return;
+    }
+
     try {
       getJsObject().call(methodName, args);
     } catch (Exception e) {
@@ -628,7 +626,7 @@ public abstract class AbstractChatTabController extends TabController {
   private void insertIntoContainer(String html, String containerId) {
     ((JSObject) engine.executeScript("document.getElementById('" + containerId + "')")).call("insertAdjacentHTML",
                                                                                              "beforeend", html);
-    getMessagesWebView().requestLayout();
+    getMessagesWebView().thenAcceptAsync(WebView::requestLayout, fxApplicationThreadExecutor);
   }
 
   /**

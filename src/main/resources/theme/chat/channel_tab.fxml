@@ -13,7 +13,6 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.TextFlow?>
-<?import javafx.scene.web.WebView?>
 <Tab fx:id="root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
      fx:controller="com.faforever.client.chat.ChannelTabController">
     <graphic>
@@ -50,9 +49,9 @@
                         <Separator maxWidth="1.7976931348623157E308"/>
                         <AnchorPane VBox.vgrow="ALWAYS">
                             <children>
-                                <WebView fx:id="messagesWebView" minHeight="100.0" minWidth="100.0" prefHeight="-1.0"
-                                         prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                                         AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                                <StackPane fx:id="webViewContainer" minHeight="100.0" minWidth="100.0"
+                                           AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                           AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
                                 <HBox fx:id="chatMessageSearchContainer" visible="false" AnchorPane.rightAnchor="0.0"
                                       AnchorPane.topAnchor="0.0">
                                     <children>

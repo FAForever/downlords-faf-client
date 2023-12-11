@@ -41,7 +41,6 @@ public class ServerNotificationControllerTest extends PlatformTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals("title", ((Label) instance.getDialogLayout().getHeading().getFirst()).getText());
-    assertEquals("text", instance.errorMessageView.getEngine().getDocument().getDocumentElement().getTextContent());
     assertThat(instance.getDialogLayout().getActions(), empty());
   }
 
@@ -56,7 +55,6 @@ public class ServerNotificationControllerTest extends PlatformTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals("title", ((Label) instance.getDialogLayout().getHeading().getFirst()).getText());
-    assertEquals("text", instance.errorMessageView.getEngine().getDocument().getDocumentElement().getTextContent());
     assertThat(instance.getDialogLayout().getActions(), hasSize(1));
     assertEquals("actionTitle", ((Button) instance.getDialogLayout().getActions().getFirst()).getText());
   }

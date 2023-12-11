@@ -19,7 +19,6 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.web.WebView?>
 <?import java.lang.Integer?>
 <GridPane fx:id="coopRoot" gridLinesVisible="true" hgap="10.0" xmlns="http://javafx.com/javafx/17"
           xmlns:fx="http://javafx.com/fxml/1"
@@ -63,9 +62,9 @@
                         </StackPane>
 
                         <ComboBox fx:id="missionComboBox" prefHeight="25.0" prefWidth="200.0"/>
-                        <WebView fx:id="descriptionWebView" maxHeight="-1.0" minHeight="100.0" minWidth="-1.0"
-                                 prefHeight="-1.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.rowIndex="1"
-                                 GridPane.valignment="TOP"/>
+                        <StackPane fx:id="webViewContainer" minHeight="100.0"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                   GridPane.valignment="TOP"/>
                     </children>
                     <padding>
                         <Insets bottom="8.0" left="8.0" right="8.0" top="8.0"/>

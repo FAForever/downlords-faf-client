@@ -14,7 +14,6 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.TextFlow?>
-<?import javafx.scene.web.WebView?>
 <Tab xmlns="http://javafx.com/javafx"
      xmlns:fx="http://javafx.com/fxml" fx:id="matchmakingChatTabRoot"
      fx:controller="com.faforever.client.chat.MatchmakingChatController">
@@ -40,9 +39,9 @@
                 </padding>
             </HBox>
             <Separator maxWidth="1.7976931348623157E308" />
-            <WebView fx:id="messagesWebView" VBox.vgrow="ALWAYS" minHeight="100.0" minWidth="100.0" prefHeight="-1.0"
-                     prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                     AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+            <StackPane fx:id="webViewContainer" VBox.vgrow="ALWAYS" minHeight="100.0" minWidth="100.0" prefHeight="-1.0"
+                       prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                       AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
             <HBox alignment="CENTER_LEFT" styleClass="channel-chat-container">
                 <children>
                     <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308"

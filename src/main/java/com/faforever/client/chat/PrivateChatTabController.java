@@ -28,6 +28,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.player.SocialStatus.FOE;
 
@@ -48,14 +50,15 @@ public class PrivateChatTabController extends AbstractChatTabController {
   public Tab privateChatTabRoot;
   public ImageView avatarImageView;
   public Region defaultIconImageView;
-  public WebView messagesWebView;
   public TextField messageTextField;
   public PrivatePlayerInfoController privatePlayerInfoController;
   public ScrollPane gameDetailScrollPane;
+  public StackPane webViewContainer;
 
   private final ListChangeListener<ChatChannelUser> usersChangeListener = this::handlerPlayerChange;
 
   private boolean userOffline;
+  private CompletableFuture<WebView> webViewInitializationFuture;
 
   @Autowired
   // TODO cut dependencies
@@ -104,6 +107,13 @@ public class PrivateChatTabController extends AbstractChatTabController {
         newValue.addUsersListeners(usersChangeListener);
       }
     }));
+
+    webViewInitializationFuture = CompletableFuture.supplyAsync(() -> {
+      WebView webView = new WebView();
+      webViewContainer.getChildren().add(webView);
+      configureWebView(webView);
+      return webView;
+    }, fxApplicationThreadExecutor);
   }
 
   @Override
@@ -136,8 +146,8 @@ public class PrivateChatTabController extends AbstractChatTabController {
   }
 
   @Override
-  protected WebView getMessagesWebView() {
-    return messagesWebView;
+  protected CompletableFuture<WebView> getMessagesWebView() {
+    return webViewInitializationFuture;
   }
 
   @Override

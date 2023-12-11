@@ -6,12 +6,11 @@
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.web.WebView?>
 <Tab xmlns:fx="http://javafx.com/fxml/1" fx:id="privateChatTabRoot" xmlns="http://javafx.com/javafx/8.0.111"
      fx:controller="com.faforever.client.chat.PrivateChatTabController">
     <graphic>
@@ -26,11 +25,7 @@
             <SplitPane dividerPositions="0.8" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                 <items>
                     <VBox>
-                        <AnchorPane VBox.vgrow="ALWAYS">
-                            <WebView fx:id="messagesWebView" minHeight="100.0" minWidth="100.0" prefHeight="-1.0"
-                                     prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                                     AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
-                        </AnchorPane>
+                        <StackPane fx:id="webViewContainer" VBox.vgrow="ALWAYS"/>
                         <HBox alignment="CENTER_LEFT" styleClass="channel-chat-container">
                             <children>
                                 <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308"
