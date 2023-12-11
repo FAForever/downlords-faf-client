@@ -32,7 +32,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.NoticeInfo;
@@ -50,7 +49,6 @@ import org.mockito.Spy;
 import reactor.test.publisher.TestPublisher;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,7 +126,7 @@ public class GameRunnerTest extends ServiceTest {
   @Mock
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Mock
-  private GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
+  private GamePathHandler gamePathHandler;
   @Spy
   private GameMapper gameMapper = Mappers.getMapper(GameMapper.class);
   @Spy
@@ -415,9 +413,9 @@ public class GameRunnerTest extends ServiceTest {
   @Test
   public void testGameHostIfNoGameSet() {
     when(preferencesService.isValidGamePath()).thenReturn(false);
-    when(gameDirectoryRequiredHandler.onChooseGameDirectory()).thenReturn(new CompletableFuture<>());
+    when(gamePathHandler.chooseAndValidateGameDirectory()).thenReturn(new CompletableFuture<>());
     instance.host(null);
-    verify(gameDirectoryRequiredHandler).onChooseGameDirectory();
+    verify(gamePathHandler).chooseAndValidateGameDirectory();
   }
 
   @Test
@@ -444,17 +442,17 @@ public class GameRunnerTest extends ServiceTest {
   @Test
   public void testOfflineGameInvalidPath() throws IOException {
     when(preferencesService.isValidGamePath()).thenReturn(false);
-    when(gameDirectoryRequiredHandler.onChooseGameDirectory()).thenReturn(new CompletableFuture<>());
+    when(gamePathHandler.chooseAndValidateGameDirectory()).thenReturn(new CompletableFuture<>());
     instance.startGameOffline();
-    verify(gameDirectoryRequiredHandler).onChooseGameDirectory();
+    verify(gamePathHandler).chooseAndValidateGameDirectory();
   }
 
   @Test
   public void startSearchMatchmakerIfNoGameSet() {
     when(preferencesService.isValidGamePath()).thenReturn(false);
-    when(gameDirectoryRequiredHandler.onChooseGameDirectory()).thenReturn(new CompletableFuture<>());
+    when(gamePathHandler.chooseAndValidateGameDirectory()).thenReturn(new CompletableFuture<>());
     instance.startSearchMatchmaker();
-    verify(gameDirectoryRequiredHandler).onChooseGameDirectory();
+    verify(gamePathHandler).chooseAndValidateGameDirectory();
   }
 
   @Test
@@ -527,17 +525,17 @@ public class GameRunnerTest extends ServiceTest {
   @Test
   public void joinGameIfNoGameSet() {
     when(preferencesService.isValidGamePath()).thenReturn(false);
-    when(gameDirectoryRequiredHandler.onChooseGameDirectory()).thenReturn(new CompletableFuture<>());
+    when(gamePathHandler.chooseAndValidateGameDirectory()).thenReturn(new CompletableFuture<>());
     instance.join(null);
-    verify(gameDirectoryRequiredHandler).onChooseGameDirectory();
+    verify(gamePathHandler).chooseAndValidateGameDirectory();
   }
 
   @Test
   public void launchTutorialIfNoGameSet() {
     when(preferencesService.isValidGamePath()).thenReturn(false);
-    when(gameDirectoryRequiredHandler.onChooseGameDirectory()).thenReturn(new CompletableFuture<>());
+    when(gamePathHandler.chooseAndValidateGameDirectory()).thenReturn(new CompletableFuture<>());
     instance.launchTutorial(null, null);
-    verify(gameDirectoryRequiredHandler).onChooseGameDirectory();
+    verify(gamePathHandler).chooseAndValidateGameDirectory();
   }
 
   @Test
@@ -582,11 +580,11 @@ public class GameRunnerTest extends ServiceTest {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     when(preferencesService.isValidGamePath()).thenReturn(false).thenReturn(true);
 
-    when(gameDirectoryRequiredHandler.onChooseGameDirectory()).thenReturn(completedFuture(Path.of(".")));
+    when(gamePathHandler.chooseAndValidateGameDirectory()).thenReturn(completedFuture(null));
 
     instance.join(game);
 
-    verify(gameDirectoryRequiredHandler).onChooseGameDirectory();
+    verify(gamePathHandler).chooseAndValidateGameDirectory();
   }
 
   /**
@@ -598,12 +596,12 @@ public class GameRunnerTest extends ServiceTest {
 
     when(preferencesService.isValidGamePath()).thenReturn(false);
 
-    when(gameDirectoryRequiredHandler.onChooseGameDirectory()).thenReturn(completedFuture(Path.of(".")),
-                                                                          failedFuture(new CancellationException()));
+    when(gamePathHandler.chooseAndValidateGameDirectory()).thenReturn(completedFuture(null),
+                                                                      failedFuture(new CancellationException()));
 
     instance.join(game);
 
-    verify(gameDirectoryRequiredHandler, times(2)).onChooseGameDirectory();
+    verify(gamePathHandler, times(2)).chooseAndValidateGameDirectory();
   }
 
   /**

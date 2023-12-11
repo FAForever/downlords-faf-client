@@ -14,6 +14,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.StringListCell;
+import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.VaultPathHandler;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigationItem;
@@ -42,7 +43,6 @@ import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.list.NoSelectionModelListView;
-import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.LoginService;
 import com.google.common.annotations.VisibleForTesting;
@@ -112,7 +112,7 @@ public class SettingsController extends NodeController<Node> {
   private final ObjectFactory<DeleteDirectoryTask> deleteDirectoryTaskFactory;
   private final ObjectFactory<DownloadFAFDebuggerTask> downloadFAFDebuggerTaskFactory;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
-  private final GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
+  private final GamePathHandler gamePathHandler;
 
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
@@ -574,7 +574,7 @@ public class SettingsController extends NodeController<Node> {
   }
 
   public void onSelectGameLocation() {
-    gameDirectoryRequiredHandler.onChooseGameDirectory();
+    gamePathHandler.chooseAndValidateGameDirectory();
   }
 
   public void onSelectVaultLocation() {

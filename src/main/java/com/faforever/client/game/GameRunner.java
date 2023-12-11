@@ -39,7 +39,6 @@ import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
-import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.client.util.RatingUtil;
@@ -106,7 +105,7 @@ public class GameRunner implements InitializingBean {
   private final OperatingSystem operatingSystem;
   private final ClientProperties clientProperties;
   private final GameMapper gameMapper;
-  private final GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
+  private final GamePathHandler gamePathHandler;
   private final NavigationHandler navigationHandler;
   private final NotificationPrefs notificationPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -189,8 +188,7 @@ public class GameRunner implements InitializingBean {
     }
 
     if (!preferencesService.isValidGamePath()) {
-      CompletableFuture<Path> gameDirectoryFuture = askForDirectory();
-      gameDirectoryFuture.thenAccept(ignored -> host(newGameInfo));
+      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(ignored -> host(newGameInfo));
       return;
     }
 
@@ -228,7 +226,7 @@ public class GameRunner implements InitializingBean {
     }
 
     if (!preferencesService.isValidGamePath()) {
-      askForDirectory().thenAccept(ignored -> join(game, password, ignoreRating));
+      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(ignored -> join(game, password, ignoreRating));
       return;
     }
 
@@ -281,10 +279,6 @@ public class GameRunner implements InitializingBean {
         new Action(i18n.get("game.join"), event -> join(game, password, true)), new Action(i18n.get("game.cancel")))));
   }
 
-  public CompletableFuture<Path> askForDirectory() {
-    return gameDirectoryRequiredHandler.onChooseGameDirectory();
-  }
-
   public void startSearchMatchmaker() {
     if (isRunning()) {
       log.info("Game is running, ignoring matchmaking search request");
@@ -298,8 +292,7 @@ public class GameRunner implements InitializingBean {
     }
 
     if (!preferencesService.isValidGamePath()) {
-      CompletableFuture<Path> gameDirectoryFuture = askForDirectory();
-      gameDirectoryFuture.thenRun(this::startSearchMatchmaker);
+      gamePathHandler.chooseAndValidateGameDirectory().thenRun(this::startSearchMatchmaker);
       return;
     }
 
@@ -464,8 +457,7 @@ public class GameRunner implements InitializingBean {
     fxApplicationThreadExecutor.execute(() -> runningGameId.set(null));
 
     if (!preferencesService.isValidGamePath()) {
-      CompletableFuture<Path> gameDirectoryFuture = askForDirectory();
-      gameDirectoryFuture.thenAccept(path -> launchTutorial(mapVersion, technicalMapName));
+      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(path -> launchTutorial(mapVersion, technicalMapName));
       return;
     }
 
@@ -502,8 +494,7 @@ public class GameRunner implements InitializingBean {
     fxApplicationThreadExecutor.execute(() -> runningGameId.set(null));
 
     if (!preferencesService.isValidGamePath()) {
-      CompletableFuture<Path> gameDirectoryFuture = askForDirectory();
-      gameDirectoryFuture.thenAccept(path -> {
+      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(path -> {
         try {
           startGameOffline();
         } catch (IOException e) {

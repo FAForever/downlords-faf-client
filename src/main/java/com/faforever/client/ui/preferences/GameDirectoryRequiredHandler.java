@@ -7,9 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
-
 
 @Component
 @RequiredArgsConstructor
@@ -20,12 +17,6 @@ public class GameDirectoryRequiredHandler {
   private final PlatformService platformService;
   private final GamePathHandler gamePathHandler;
 
-  public CompletableFuture<Path> onChooseGameDirectory() {
-    return platformService.askForPath(i18n.get("missingGamePath.chooserTitle"))
-                          .thenCompose(
-                              possiblePath -> gamePathHandler.onGameDirectoryChosenEvent(possiblePath.orElse(null)));
-  }
 
-  ;
 
 }

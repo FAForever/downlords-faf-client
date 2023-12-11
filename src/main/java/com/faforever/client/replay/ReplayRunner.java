@@ -4,6 +4,7 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.error.GameLaunchException;
 import com.faforever.client.i18n.I18n;
@@ -14,7 +15,6 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
@@ -52,7 +52,7 @@ public class ReplayRunner {
   private final ModService modService;
   private final FeaturedModService featuredModService;
   private final GameService gameService;
-  private final GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
+  private final GamePathHandler gamePathHandler;
 
   private Process process;
 
@@ -83,8 +83,7 @@ public class ReplayRunner {
     }
 
     if (!preferencesService.isValidGamePath()) {
-      CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
-      gameDirectoryFuture.thenAccept(
+      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(
           pathSet -> runWithReplay(path, replayId, featuredModName, baseFafVersion, featuredModFileVersions, simMods,
                                    mapFolderName));
       return completedFuture(null);
@@ -114,12 +113,6 @@ public class ReplayRunner {
     return true;
   }
 
-  public CompletableFuture<Path> postGameDirectoryChooseEvent() {
-    CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
-    gameDirectoryRequiredHandler.onChooseGameDirectory();
-    return gameDirectoryFuture;
-  }
-
   private void askWhetherToStartWithOutMap(Throwable throwable) throws Throwable {
     JavaFxUtil.assertBackgroundThread();
     log.error("Error loading map for replay", throwable);
@@ -145,8 +138,8 @@ public class ReplayRunner {
     }
 
     if (!preferencesService.isValidGamePath()) {
-      CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
-      return gameDirectoryFuture.thenCompose(path -> runWithLiveReplay(replayUrl, gameId, gameType, mapName));
+      return gamePathHandler.chooseAndValidateGameDirectory()
+                            .thenCompose(path -> runWithLiveReplay(replayUrl, gameId, gameType, mapName));
     }
 
     Set<String> simModUids = gameService.getByUid(gameId).map(GameBean::getSimMods).map(Map::keySet).orElse(Set.of());

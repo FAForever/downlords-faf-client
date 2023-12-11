@@ -12,9 +12,9 @@ import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
+import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.GameService;
-import com.faforever.client.game.MissingGamePathNotifier;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
@@ -113,7 +113,7 @@ public class TeamMatchmakingService implements InitializingBean {
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final MatchmakerMapper matchmakerMapper;
   private final MatchmakerPrefs matchmakerPrefs;
-  private final MissingGamePathNotifier missingGamePathNotifier;
+  private final GamePathHandler gamePathHandler;
 
   @Getter
   private final PartyBean party = new PartyBean();
@@ -391,7 +391,8 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   public CompletableFuture<Boolean> joinQueues() {
-    if (gamePathInvalid()) {
+    if (!preferencesService.isValidGamePath()) {
+      gamePathHandler.notifyMissingGamePath(true);
       return CompletableFuture.completedFuture(false);
     }
 
@@ -474,7 +475,8 @@ public class TeamMatchmakingService implements InitializingBean {
       return;
     }
 
-    if (gamePathInvalid()) {
+    if (!preferencesService.isValidGamePath()) {
+      gamePathHandler.notifyMissingGamePath(true);
       return;
     }
 
@@ -488,7 +490,8 @@ public class TeamMatchmakingService implements InitializingBean {
       return;
     }
 
-    if (gamePathInvalid()) {
+    if (!preferencesService.isValidGamePath()) {
+      gamePathHandler.notifyMissingGamePath(true);
       return;
     }
 
@@ -539,14 +542,6 @@ public class TeamMatchmakingService implements InitializingBean {
 
   public void sendFactionSelection(List<Faction> factions) {
     fafServerAccessor.setPartyFactions(factions);
-  }
-
-  private boolean gamePathInvalid() {
-    if (!preferencesService.isValidGamePath()) {
-      missingGamePathNotifier.onMissingGamePathEvent(true);
-      return true;
-    }
-    return false;
   }
 
   public boolean isInQueue() {

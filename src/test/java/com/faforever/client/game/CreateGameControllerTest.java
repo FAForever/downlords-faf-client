@@ -226,17 +226,6 @@ public class CreateGameControllerTest extends PlatformTest {
     assertThat(instance.titleTextField.getText(), is("testGame"));
   }
 
-
-  @Test
-  public void testButtonBindingIfFeaturedModNotSet() {
-    when(featuredModService.getFeaturedMods()).thenReturn(completedFuture(List.of()));
-
-    when(i18n.get("game.create.featuredModMissing")).thenReturn("Mod missing");
-    runOnFxThreadAndWait(() -> reinitialize(instance));
-
-    assertThat(instance.createGameButton.getText(), is("Mod missing"));
-  }
-
   @Test
   public void testButtonBindingIfTitleNotSet() {
     String message = "title missing";

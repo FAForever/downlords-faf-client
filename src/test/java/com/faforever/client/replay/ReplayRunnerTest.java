@@ -9,6 +9,7 @@ import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -25,7 +26,6 @@ import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -40,21 +40,16 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ReplayRunnerTest extends ServiceTest {
-
-  private static final long TIMEOUT = 5000;
-  private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
-  private static final Integer GPG_PORT = 1234;
-  private static final int LOCAL_REPLAY_PORT = 15111;
-  private static final String LADDER_1v1_RATING_TYPE = "ladder_1v1";
 
   @InjectMocks
   private ReplayRunner instance;
@@ -100,7 +95,7 @@ public class ReplayRunnerTest extends ServiceTest {
   @Mock
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Mock
-  private GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
+  private GamePathHandler gamePathHandler;
   @Spy
   private GameMapper gameMapper = Mappers.getMapper(GameMapper.class);
   @Spy
@@ -141,14 +136,16 @@ public class ReplayRunnerTest extends ServiceTest {
   @Test
   public void runWithLiveReplayIfNoGameSet() {
     when(preferencesService.isValidGamePath()).thenReturn(false);
+    when(gamePathHandler.chooseAndValidateGameDirectory()).thenReturn(failedFuture(new CancellationException()));
     instance.runWithLiveReplay(null, null, null, null);
-    verify(gameDirectoryRequiredHandler).onChooseGameDirectory();
+    verify(gamePathHandler).chooseAndValidateGameDirectory();
   }
 
   @Test
   public void runWithReplayIfNoGameSet() {
     when(preferencesService.isValidGamePath()).thenReturn(false);
+    when(gamePathHandler.chooseAndValidateGameDirectory()).thenReturn(failedFuture(new CancellationException()));
     instance.runWithReplay(null, null, null, null, null, null, null);
-    verify(gameDirectoryRequiredHandler).onChooseGameDirectory();
+    verify(gamePathHandler).chooseAndValidateGameDirectory();
   }
 }
