@@ -20,6 +20,12 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.review.StarsController;
+import com.faforever.client.domain.GamePlayerStatsBean;
+import com.faforever.client.domain.PlayerBean;
+import com.faforever.commons.api.dto.Faction;
+import com.faforever.client.game.TeamCardController;
+import com.faforever.client.game.RatingPrecision;
+import com.faforever.client.util.RatingUtil;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -39,6 +45,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.function.Function;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -137,27 +145,45 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
             .flatMap(reviewsSummary -> reviewsSummary.scoreProperty().divide(reviewsSummary.numReviewsProperty()))
             .when(showing));
 
-    entity.flatMap(ReplayBean::teamsProperty)
+    entity.flatMap(ReplayBean::teamPlayerStatsProperty)
         .when(showing)
-        .addListener((SimpleChangeListener<Map<String, List<String>>>) this::onTeamsChanged);
+        .addListener((SimpleChangeListener<Map<String, List<GamePlayerStatsBean>>>) this::onTeamsChanged);
   }
 
-  private void onTeamsChanged(Map<String, List<String>> teams) {
+  private void onTeamsChanged(Map<String, List<GamePlayerStatsBean>> teams) {
     teamsContainer.getChildren().clear();
-    teams.forEach((id, team) -> {
-      VBox teamBox = new VBox();
+    teams.forEach((team, playerStats) -> {
+      TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
 
-      String teamLabelText = id.equals("1") ? i18n.get("replay.noTeam") : i18n.get("replay.team", Integer.parseInt(id) - 1);
-      Label teamLabel = new Label(teamLabelText);
-      teamLabel.getStyleClass().add("replay-card-team-label");
-      teamLabel.setPadding(new Insets(0, 0, 5, 0));
-      teamBox.getChildren().add(teamLabel);
-      team.forEach(player -> teamBox.getChildren().add(new Label(player)));
+      Map<PlayerBean, GamePlayerStatsBean> statsByPlayer = playerStats.stream()
+                                                                      .collect(Collectors.toMap(
+                                                                          GamePlayerStatsBean::getPlayer,
+                                                                          Function.identity()));
+      controller.setRatingPrecision(RatingPrecision.EXACT);
+      controller.setRatingProvider(player -> getPlayerRating(player, statsByPlayer));
+      controller.setFactionProvider(player -> getPlayerFaction(player, statsByPlayer));
+      controller.setTeamId(Integer.parseInt(team));
+      controller.setPlayers(statsByPlayer.keySet());
 
-      teamsContainer.getChildren().add(teamBox);
+      teamsContainer.getChildren().add(controller.getRoot());
     });
   }
 
+  private Faction getPlayerFaction(PlayerBean player, Map<PlayerBean, GamePlayerStatsBean> statsByPlayerId) {
+    GamePlayerStatsBean playerStats = statsByPlayerId.get(player);
+    return playerStats == null ? null : playerStats.getFaction();
+  }
+
+  private Integer getPlayerRating(PlayerBean player, Map<PlayerBean, GamePlayerStatsBean> statsByPlayerId) {
+    GamePlayerStatsBean playerStats = statsByPlayerId.get(player);
+    return playerStats == null ? null : playerStats.getLeaderboardRatingJournals()
+                                                   .stream()
+                                                   .findFirst()
+                                                   .filter(ratingJournal -> ratingJournal.getMeanBefore() != null)
+                                                   .filter(ratingJournal -> ratingJournal.getDeviationBefore() != null)
+                                                   .map(RatingUtil::getRating)
+                                                   .orElse(null);
+  }
   @Override
   public Node getRoot() {
     return replayTileRoot;
