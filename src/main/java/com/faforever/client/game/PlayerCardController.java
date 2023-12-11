@@ -169,6 +169,7 @@ public class PlayerCardController extends NodeController<Node> {
           .build()
           .show(getRoot().getScene().getWindow(), event.getScreenX(), event.getScreenY());
     }
+    event.consume();
   }
 
   private void onFactionChanged(Faction oldFaction, Faction newFaction) {
