@@ -68,6 +68,8 @@ public class GenerateMapController extends NodeController<Pane> {
   public ComboBox<GenerationType> generationTypeComboBox;
   public Label mapStyleLabel;
   public ComboBox<String> mapStyleComboBox;
+  public Label biomeLabel;
+  public ComboBox<String> biomeComboBox;
   public Spinner<Integer> spawnCountSpinner;
   public Spinner<Double> mapSizeSpinner;
   public Slider waterSlider;
@@ -108,10 +110,11 @@ public class GenerateMapController extends NodeController<Pane> {
 
   @Override
   protected void onInitialize() {
-    JavaFxUtil.bindManagedToVisible(commandLineLabel, commandLineArgsText, mapStyleComboBox, mapStyleLabel);
+    JavaFxUtil.bindManagedToVisible(commandLineLabel, commandLineArgsText, mapStyleComboBox, mapStyleLabel, biomeComboBox, biomeLabel);
     initCommandlineArgs();
     initGenerationTypeComboBox();
     initMapStyleComboBox();
+    initBiomeComboBox();
     initNumTeamsSpinner();
     initSpawnCountSpinner();
     initMapSizeSpinner();
@@ -236,7 +239,18 @@ public class GenerateMapController extends NodeController<Pane> {
     mapStyleComboBox.disableProperty()
         .bind(previousMapName.textProperty().isNotEmpty()
             .or(generationTypeComboBox.valueProperty().isNotEqualTo(GenerationType.CASUAL))
-            .or(commandLineArgsText.textProperty().isNotEmpty()));
+            .or(commandLineArgsText.textProperty().isNotEmpty())
+            .or(biomeComboBox.valueProperty().isNotNull())
+                .and(biomeComboBox.valueProperty().isNotEqualTo(MapGeneratorService.GENERATOR_RANDOM_BIOME)));
+  }
+
+  private void initBiomeComboBox() {
+    biomeComboBox.disableProperty()
+        .bind(previousMapName.textProperty().isNotEmpty()
+            .or(generationTypeComboBox.valueProperty().isNotEqualTo(GenerationType.CASUAL))
+            .or(commandLineArgsText.textProperty().isNotEmpty())
+            .or(mapStyleComboBox.valueProperty().isNotNull())
+               .and(mapStyleComboBox.valueProperty().isNotEqualTo(MapGeneratorService.GENERATOR_RANDOM_STYLE)));
   }
 
   private void initOptionSlider(IntegerProperty valueProperty, BooleanProperty randomProperty, Slider slider,
@@ -278,6 +292,7 @@ public class GenerateMapController extends NodeController<Pane> {
     optionsBuilder.numTeams(numTeamsSpinner.getValue());
     optionsBuilder.generationType(generationTypeComboBox.getValue());
     optionsBuilder.style(mapStyleComboBox.getValue());
+    optionsBuilder.biome(biomeComboBox.getValue());
     getSliderValue(waterSlider, waterRandom).ifPresent(value -> optionsBuilder.landDensity(1 - value));
     getSliderValue(plateauSlider, plateauRandom).ifPresent(optionsBuilder::plateauDensity);
     getSliderValue(mountainSlider, mountainRandom).ifPresent(optionsBuilder::mountainDensity);
@@ -356,6 +371,20 @@ public class GenerateMapController extends NodeController<Pane> {
     generatorPrefs.mapStyleProperty().bind(mapStyleComboBox.valueProperty());
     mapStyleComboBox.setVisible(true);
     mapStyleLabel.setVisible(true);
+  }
+
+  protected void setBiomes(List<String> biomes) {
+    biomes.add(0, MapGeneratorService.GENERATOR_RANDOM_BIOME);
+    biomeComboBox.setItems(FXCollections.observableList(biomes));
+    String biome = generatorPrefs.getBiome();
+    if (biomeComboBox.getItems().contains(biome)) {
+      biomeComboBox.getSelectionModel().select(biome);
+    } else {
+      biomeComboBox.getSelectionModel().select(MapGeneratorService.GENERATOR_RANDOM_BIOME);
+    }
+    generatorPrefs.biomeProperty().bind(biomeComboBox.valueProperty());
+    biomeComboBox.setVisible(true);
+    biomeLabel.setVisible(true);
   }
 
   public void onNewLabelClicked(MouseEvent mouseEvent) {

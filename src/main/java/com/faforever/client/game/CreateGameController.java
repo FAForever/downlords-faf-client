@@ -411,6 +411,8 @@ public class CreateGameController extends NodeController<Pane> {
     mapGeneratorService.getNewestGenerator()
         .thenCompose(aVoid -> mapGeneratorService.getGeneratorStyles())
         .thenAccept(generateMapController::setStyles)
+        .thenCompose(aVoid -> mapGeneratorService.getGeneratorBiomes())
+        .thenAccept(generateMapController::setBiomes)
         .thenRunAsync(() -> {
           Pane root = generateMapController.getRoot();
           generateMapController.setCreateGameController(this);
