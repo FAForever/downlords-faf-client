@@ -39,7 +39,6 @@ public class ClanTooltipController extends NodeController<Node> {
 
   public void setClan(ClanBean clan) {
     nameLabel.setText(clan.getName());
-    // TODO improve formatting
     membersLabel.setText(i18n.number(clan.getMembers().size()));
     descriptionLabel.setText(clan.getDescription());
     leaderLabel.setText(clan.getLeader().getUsername());

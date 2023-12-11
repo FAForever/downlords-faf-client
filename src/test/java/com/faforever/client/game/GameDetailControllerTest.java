@@ -4,13 +4,13 @@ import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.replay.WatchButtonController;
@@ -58,7 +58,7 @@ public class GameDetailControllerTest extends PlatformTest {
   @Mock
   private MapService mapService;
   @Mock
-  private ModService modService;
+  private FeaturedModService featuredModService;
   @Mock
   private UiService uiService;
   @Mock
@@ -99,9 +99,9 @@ public class GameDetailControllerTest extends PlatformTest {
     when(teamCardController.ratingProviderProperty()).thenReturn(new SimpleObjectProperty<>());
     when(teamCardController.playerIdsProperty()).thenReturn(new SimpleObjectProperty<>());
     when(teamCardController.teamIdProperty()).thenReturn(new SimpleIntegerProperty());
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
-        .defaultValues()
-        .get()));
+    when(featuredModService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
+                                                                                                              .defaultValues()
+                                                                                                              .get()));
     when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(new Image(InputStream.nullInputStream()));
     when(timeService.shortDuration(any())).thenReturn("duration");
@@ -186,7 +186,7 @@ public class GameDetailControllerTest extends PlatformTest {
         .technicalName("ladder")
         .displayName("LADDER")
         .get();
-    when(modService.getFeaturedMod(mod.getTechnicalName())).thenReturn(Mono.just(mod));
+    when(featuredModService.getFeaturedMod(mod.getTechnicalName())).thenReturn(Mono.just(mod));
     runOnFxThreadAndWait(() -> game.setFeaturedMod(mod.getTechnicalName()));
     assertEquals(mod.getDisplayName(), instance.gameTypeLabel.getText());
   }

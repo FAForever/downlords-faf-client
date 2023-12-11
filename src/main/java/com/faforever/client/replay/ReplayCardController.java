@@ -16,7 +16,6 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.rating.RatingService;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.review.StarsController;
@@ -54,7 +53,6 @@ import java.util.function.Function;
 // TODO: Add tests
 public class ReplayCardController extends VaultEntityCardController<ReplayBean> {
 
-  private final UiService uiService;
   private final ReplayService replayService;
   private final TimeService timeService;
   private final MapService mapService;

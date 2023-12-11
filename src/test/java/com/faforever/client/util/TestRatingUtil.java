@@ -23,5 +23,4 @@ public class TestRatingUtil extends ServiceTest {
     assertThat(RatingUtil.roundRatingToNextLowest100(2000.1), is(2000));
     assertThat(RatingUtil.roundRatingToNextLowest100(2099.9), is(2000));
   }
-  // TODO more tests
 }

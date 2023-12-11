@@ -9,6 +9,7 @@ import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayBean.ChatMessage;
 import com.faforever.client.domain.ReplayBean.GameOption;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -16,7 +17,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.ReplayMapper;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -98,7 +98,7 @@ public class ReplayService {
   private final I18n i18n;
   private final PlatformService platformService;
   private final FafApiAccessor fafApiAccessor;
-  private final ModService modService;
+  private final FeaturedModService featuredModService;
   private final MapService mapService;
   private final FileSizeReader fileSizeReader;
   private final ReplayMapper replayMapper;
@@ -196,8 +196,9 @@ public class ReplayService {
       ReplayDataParser replayData = replayFileReader.parseReplay(replayFile);
       ReplayMetadata replayMetadata = replayData.getMetadata();
 
-      CompletableFuture<FeaturedModBean> featuredModFuture = modService.getFeaturedMod(replayMetadata.getFeaturedMod())
-          .toFuture();
+      CompletableFuture<FeaturedModBean> featuredModFuture = featuredModService.getFeaturedMod(
+                                                                                   replayMetadata.getFeaturedMod())
+                                                                               .toFuture();
       CompletableFuture<Optional<MapVersionBean>> mapVersionFuture = mapService.findByMapFolderName(replayMetadata.getMapname());
 
       return CompletableFuture.allOf(featuredModFuture, mapVersionFuture).thenApply(ignoredVoid -> {

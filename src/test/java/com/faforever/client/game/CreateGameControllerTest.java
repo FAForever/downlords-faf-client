@@ -9,6 +9,7 @@ import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.filter.MapFilterController;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
@@ -78,6 +79,8 @@ public class CreateGameControllerTest extends PlatformTest {
   @Mock
   private ModService modService;
   @Mock
+  private FeaturedModService featuredModService;
+  @Mock
   private GameService gameService;
   @Mock
   private NotificationService notificationService;
@@ -105,7 +108,9 @@ public class CreateGameControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new CreateGameController(mapService, modService, gameService, i18n, notificationService, loginService, mapGeneratorService, uiService, contextMenuBuilder, lastGamePrefs, fxApplicationThreadExecutor);
+    instance = new CreateGameController(mapService, featuredModService, modService, gameService, i18n,
+                                        notificationService, loginService, mapGeneratorService, uiService,
+                                        contextMenuBuilder, lastGamePrefs, fxApplicationThreadExecutor);
 
     mapList = FXCollections.observableArrayList();
 
@@ -114,7 +119,7 @@ public class CreateGameControllerTest extends PlatformTest {
     lenient().when(uiService.showInDialog(any(), any(), any())).thenReturn(new Dialog());
     lenient().when(uiService.loadFxml("theme/play/generate_map.fxml")).thenReturn(generateMapController);
     lenient().when(mapService.getInstalledMaps()).thenReturn(mapList);
-    lenient().when(modService.getFeaturedMods()).thenReturn(completedFuture(emptyList()));
+    lenient().when(featuredModService.getFeaturedMods()).thenReturn(completedFuture(emptyList()));
     lenient().when(mapService.loadPreview(anyString(), any()))
              .thenReturn(new Image("/theme/images/default_achievement.png"));
     lenient().when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
@@ -476,7 +481,7 @@ public class CreateGameControllerTest extends PlatformTest {
   @Test
   public void testInitGameTypeComboBoxPostPopulated() {
     FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().get();
-    when(modService.getFeaturedMods()).thenReturn(completedFuture(singletonList(featuredModBean)));
+    when(featuredModService.getFeaturedMods()).thenReturn(completedFuture(singletonList(featuredModBean)));
 
     WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
@@ -493,7 +498,7 @@ public class CreateGameControllerTest extends PlatformTest {
         .get();
 
     lastGamePrefs.setLastGameType(null);
-    when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
+    when(featuredModService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
 
     WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
@@ -510,7 +515,7 @@ public class CreateGameControllerTest extends PlatformTest {
         .get();
 
     lastGamePrefs.setLastGameType("last");
-    when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
+    when(featuredModService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
 
     WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();

@@ -1,8 +1,8 @@
 package com.faforever.client.filter;
 
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.FiltersPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -39,7 +39,7 @@ public class CustomGamesFilterControllerTest extends PlatformTest {
   @Mock
   private I18n i18n;
   @Mock
-  private ModService modService;
+  private FeaturedModService featuredModService;
   @Mock
   private PlayerService playerService;
 
@@ -66,7 +66,8 @@ public class CustomGamesFilterControllerTest extends PlatformTest {
         mock(FilterMultiCheckboxController.class),  // Featured mods
         mapFolderNameBlackListFilter
     );
-    when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(FXCollections.observableArrayList()));
+    when(featuredModService.getFeaturedMods()).thenReturn(
+        CompletableFuture.completedFuture(FXCollections.observableArrayList()));
     when(mapFolderNameBlackListFilter.valueProperty()).thenReturn(new SimpleListProperty<>());
     when(privateGameFilter.valueProperty()).thenReturn(new SimpleBooleanProperty());
     when(simModsFilter.valueProperty()).thenReturn(new SimpleBooleanProperty());

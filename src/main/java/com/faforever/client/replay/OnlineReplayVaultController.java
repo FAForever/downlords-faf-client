@@ -2,6 +2,7 @@ package com.faforever.client.replay;
 
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
@@ -10,7 +11,6 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.CategoryFilterController;
@@ -43,14 +43,14 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
 
   private static final int TOP_ELEMENT_COUNT = 6;
 
-  private final ModService modService;
+  private final FeaturedModService featuredModService;
   private final LeaderboardService leaderboardService;
   private final ReplayService replayService;
 
   private int playerId;
   private ReplayDetailController replayDetailController;
 
-  public OnlineReplayVaultController(ModService modService, LeaderboardService leaderboardService,
+  public OnlineReplayVaultController(FeaturedModService featuredModService, LeaderboardService leaderboardService,
                                      ReplayService replayService, UiService uiService,
                                      NotificationService notificationService, I18n i18n,
                                      ReportingService reportingService, VaultPrefs vaultPrefs,
@@ -58,7 +58,7 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
     super(uiService, notificationService, i18n, reportingService, vaultPrefs, fxApplicationThreadExecutor);
     this.leaderboardService = leaderboardService;
     this.replayService = replayService;
-    this.modService = modService;
+    this.featuredModService = featuredModService;
   }
 
   @Override
@@ -140,7 +140,7 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
     CategoryFilterController featuredModFilterController = searchController.addCategoryFilter("featuredMod.displayName",
         i18n.get("featuredMod.displayName"), List.of());
 
-    modService.getFeaturedMods().thenAccept(featuredMods ->
+    featuredModService.getFeaturedMods().thenAccept(featuredMods ->
         fxApplicationThreadExecutor.execute(() ->
             featuredModFilterController.setItems(featuredMods.stream().map(FeaturedModBean::getDisplayName)
                 .collect(Collectors.toList()))));

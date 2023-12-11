@@ -40,7 +40,7 @@ public class I18n implements InitializingBean {
   public void afterPropertiesSet() throws IOException {
     Locale locale = localizationPrefs.getLanguage();
     if (locale != null) {
-      userSpecificLocale = new Locale(locale.getLanguage(), locale.getCountry());
+      userSpecificLocale = Locale.of(locale.getLanguage(), locale.getCountry());
       Locale.setDefault(userSpecificLocale);
     } else {
       userSpecificLocale = Locale.getDefault();
@@ -55,17 +55,17 @@ public class I18n implements InitializingBean {
         Locale.US,
         Locale.GERMAN,
         Locale.FRENCH,
-        new Locale("ru"),
+        Locale.of("ru"),
         Locale.CHINESE,
         Locale.TRADITIONAL_CHINESE,
-        new Locale("cs"),
-        new Locale("es"),
-        new Locale("uk"),
-        new Locale("tr"),
-        new Locale("nl"),
-        new Locale("cat"),
+        Locale.of("cs"),
+        Locale.of("es"),
+        Locale.of("uk"),
+        Locale.of("tr"),
+        Locale.of("nl"),
+        Locale.of("cat"),
         Locale.ITALIAN,
-        new Locale("pl")
+        Locale.of("pl")
     ));
 
     Path languagesDirectory = dataPrefs.getLanguagesDirectory();
@@ -81,7 +81,7 @@ public class I18n implements InitializingBean {
           .filter(Matcher::matches)
           .forEach(matcher -> {
             newBaseNames.add(Path.of(matcher.group(1)).toUri().toString());
-            availableLanguages.add(new Locale(matcher.group(2), Strings.nullToEmpty(matcher.group(3))));
+            availableLanguages.add(Locale.of(matcher.group(2), Strings.nullToEmpty(matcher.group(3))));
           });
     }
     // Make sure that current base names are added last; the files above have precedence
@@ -123,7 +123,7 @@ public class I18n implements InitializingBean {
     if (isoCode == null) {
       return "";
     }
-    return new Locale("", isoCode).getDisplayCountry(this.userSpecificLocale);
+    return Locale.of("", isoCode).getDisplayCountry(this.userSpecificLocale);
   }
 
   public String getQuantized(String singularKey, String pluralKey, long arg) {

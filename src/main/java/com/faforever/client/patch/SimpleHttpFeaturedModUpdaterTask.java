@@ -1,11 +1,11 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ChecksumMismatchException;
 import com.faforever.client.io.DownloadService;
 import com.faforever.client.io.FeaturedModFileCacheService;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
@@ -31,7 +31,7 @@ import java.util.Objects;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResult> {
-  private final ModService modService;
+  private final FeaturedModService featuredModService;
   private final DownloadService downloadService;
   private final I18n i18n;
   private final FeaturedModFileCacheService featuredModFileCacheService;
@@ -42,14 +42,14 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
   private boolean useReplayFolder;
 
   public SimpleHttpFeaturedModUpdaterTask(
-      ModService modService,
+      FeaturedModService featuredModService,
       DownloadService downloadService,
       I18n i18n,
       FeaturedModFileCacheService featuredModFileCacheService,
       DataPrefs dataPrefs) {
     super(Priority.HIGH);
 
-    this.modService = modService;
+    this.featuredModService = featuredModService;
     this.downloadService = downloadService;
     this.i18n = i18n;
     this.featuredModFileCacheService = featuredModFileCacheService;
@@ -70,7 +70,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
       fafDataDirectory = dataPrefs.getBaseDataDirectory();
     }
 
-    List<FeaturedModFile> featuredModFiles = modService.getFeaturedModFiles(featuredMod, version).join();
+    List<FeaturedModFile> featuredModFiles = featuredModService.getFeaturedModFiles(featuredMod, version).join();
 
     featuredModFiles
         .forEach(featuredModFile -> {

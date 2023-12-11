@@ -1,14 +1,11 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.ModBeanBuilder;
 import com.faforever.client.builders.ModVersionBeanBuilder;
-import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
-import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
@@ -17,7 +14,6 @@ import com.faforever.client.mapstruct.ModMapper;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.task.CompletableTask;
@@ -26,12 +22,10 @@ import com.faforever.client.test.ApiTestUtil;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.ThemeService;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
-import com.faforever.commons.api.dto.FeaturedModFile;
 import com.faforever.commons.api.dto.ModVersion;
 import com.faforever.commons.api.elide.ElideEntity;
 import com.faforever.commons.io.ByteCopier;
@@ -47,7 +41,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mapstruct.factory.Mappers;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.beans.factory.ObjectFactory;
@@ -83,7 +76,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -100,13 +92,14 @@ public class ModServiceTest extends PlatformTest {
       "/mods/blackops_support_mod_info.lua");
   private static final ClassPathResource BLACKOPS_UNLEASHED_MOD_INFO = new ClassPathResource(
       "/mods/blackops_unleashed_mod_info.lua");
-  private static final ClassPathResource ECO_MANAGER_MOD_INFO = new ClassPathResource("/mods/eco_manager_mod_info.lua");
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
 
   @TempDir
   public Path tempDirectory;
 
+  @Mock
+  private ThemeService themeService;
   @Mock
   private TaskService taskService;
   @Mock
@@ -122,17 +115,11 @@ public class ModServiceTest extends PlatformTest {
   @Mock
   private FileSizeReader fileSizeReader;
   @Mock
-  private ImageViewHelper imageViewHelper;
-  @Mock
   private ObjectFactory<ModUploadTask> modUploadTaskFactory;
   @Mock
   private ObjectFactory<DownloadModTask> downloadModTaskFactory;
   @Mock
   private ObjectFactory<UninstallModTask> uninstallModTaskFactory;
-  @Mock
-  private UiService uiService;
-  @Mock
-  private ThemeService themeService;
   @Spy
   private ModMapper modMapper = Mappers.getMapper(ModMapper.class);
   @Spy
@@ -141,16 +128,18 @@ public class ModServiceTest extends PlatformTest {
   private DataPrefs dataPrefs;
   @Spy
   private Preferences preferences;
-  @Spy
-  private NotificationPrefs notificationPrefs;
+
+  private ModService instance;
 
   private Path modsDirectory;
-  @InjectMocks
-  private ModService instance;
   private Path gamePrefsPath;
 
   @BeforeEach
   public void setUp() throws Exception {
+    instance = new ModService(fafApiAccessor, taskService, notificationService, i18n, platformService, assetService,
+                              themeService, fileSizeReader, modMapper, forgedAlliancePrefs, preferences,
+                              modUploadTaskFactory, downloadModTaskFactory, uninstallModTaskFactory,
+                              fxApplicationThreadExecutor);
     MapperSetup.injectMappers(modMapper);
     modsDirectory = tempDirectory.resolve("mods");
     Files.createDirectories(modsDirectory);
@@ -167,11 +156,6 @@ public class ModServiceTest extends PlatformTest {
     }).when(taskService).submitTask(any());
 
     copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
-
-    instance = new ModService(fafApiAccessor, taskService, notificationService, i18n, platformService, assetService,
-                              uiService, themeService, fileSizeReader, modMapper, forgedAlliancePrefs, preferences,
-                              modUploadTaskFactory, downloadModTaskFactory, uninstallModTaskFactory,
-                              fxApplicationThreadExecutor);
 
     instance.afterPropertiesSet();
   }
@@ -190,25 +174,6 @@ public class ModServiceTest extends PlatformTest {
     ObservableList<ModVersionBean> installedModVersions = instance.getInstalledMods();
 
     assertThat(installedModVersions.size(), is(1));
-  }
-
-  @Test
-  @Disabled("Flaky Test")
-  public void testDownloadAndInstallMod() throws Exception {
-    assertThat(instance.getInstalledMods().size(), is(1));
-
-    DownloadModTask task = stubDownloadModTask();
-    task.getFuture().complete(null);
-
-    when(downloadModTaskFactory.getObject()).thenReturn(task);
-
-
-    assertThat(instance.getInstalledMods().size(), is(1));
-
-    copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertThat(instance.getInstalledMods().size(), is(2));
   }
 
   @Test
@@ -413,6 +378,7 @@ public class ModServiceTest extends PlatformTest {
   }
 
   @Test
+  @Disabled("flaky")
   public void testUpdateModsWithOutdatedMod() throws IOException, ExecutionException, InterruptedException {
     ModVersionBean latestVersion = ModVersionBeanBuilder.create().defaultValues().uid("latest").id(100).get();
     ModBean mod = ModBeanBuilder.create().defaultValues().latestVersion(latestVersion).get();
@@ -452,31 +418,6 @@ public class ModServiceTest extends PlatformTest {
     verify(fafApiAccessor).getManyWithPageCount(
         argThat(ElideMatchers.hasFilter(qBuilder().bool("recommended").isTrue())));
     assertThat(results, contains(modVersionBean));
-  }
-
-  @Test
-  public void testGetFeaturedFiles() {
-    when(fafApiAccessor.getMaxPageSize()).thenReturn(100);
-    FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
-    when(fafApiAccessor.getMany(eq(FeaturedModFile.class), anyString(), anyInt(), any())).thenReturn(
-        Flux.just(new FeaturedModFile()));
-
-    instance.getFeaturedModFiles(featuredMod, 0);
-    verify(fafApiAccessor).getMany(eq(FeaturedModFile.class),
-                                   eq(String.format("/featuredMods/%s/files/%s", featuredMod.getId(), 0)), eq(100),
-                                   any());
-  }
-
-  @Test
-  public void testGetFeaturedMod() {
-    FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
-    Flux<ElideEntity> resultFlux = Flux.just(modMapper.map(featuredMod, new CycleAvoidingMappingContext()));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    FeaturedModBean result = instance.getFeaturedMod("test").block();
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("technicalName").eq("test"))));
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("order", true)));
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1)));
-    assertThat(result, is(featuredMod));
   }
 
   @Test

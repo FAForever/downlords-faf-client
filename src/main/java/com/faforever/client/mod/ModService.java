@@ -2,7 +2,6 @@ package com.faforever.client.mod;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
@@ -20,13 +19,10 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.ThemeService;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
-import com.faforever.commons.api.dto.FeaturedMod;
-import com.faforever.commons.api.dto.FeaturedModFile;
 import com.faforever.commons.api.dto.Mod;
 import com.faforever.commons.api.dto.ModVersion;
 import com.faforever.commons.api.elide.ElideNavigator;
@@ -89,7 +85,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
-import static java.lang.String.format;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.list;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
@@ -114,7 +109,6 @@ public class ModService implements InitializingBean, DisposableBean {
   private final I18n i18n;
   private final PlatformService platformService;
   private final AssetService assetService;
-  private final UiService uiService;
   private final ThemeService themeService;
   private final FileSizeReader fileSizeReader;
   private final ModMapper modMapper;
@@ -489,45 +483,6 @@ public class ModService implements InitializingBean, DisposableBean {
                          .map(dto -> modMapper.map(dto, new CycleAvoidingMappingContext()))
                          .toFuture()
                          .thenApply(Optional::ofNullable);
-  }
-
-  @Cacheable(value = CacheNames.FEATURED_MOD_FILES, sync = true)
-  public CompletableFuture<List<FeaturedModFile>> getFeaturedModFiles(FeaturedModBean featuredMod, Integer version) {
-    String endpoint = format("/featuredMods/%s/files/%s", featuredMod.getId(),
-                             Optional.ofNullable(version).map(String::valueOf).orElse("latest"));
-    return fafApiAccessor.getMany(FeaturedModFile.class, endpoint, fafApiAccessor.getMaxPageSize(), java.util.Map.of())
-                         .collectList()
-                         .switchIfEmpty(Mono.just(List.of()))
-                         .toFuture();
-  }
-
-  @Cacheable(value = CacheNames.FEATURED_MODS, sync = true)
-  public Mono<FeaturedModBean> getFeaturedMod(String technicalName) {
-    ElideNavigatorOnCollection<FeaturedMod> navigator = ElideNavigator.of(FeaturedMod.class)
-                                                                      .collection()
-                                                                      .setFilter(qBuilder().string("technicalName")
-                                                                                           .eq(technicalName))
-                                                                      .addSortingRule("order", true)
-                                                                      .pageSize(1);
-    return fafApiAccessor.getMany(navigator)
-                         .next()
-                         .switchIfEmpty(
-                             Mono.error(new IllegalArgumentException("Not a valid featured mod: " + technicalName)))
-                         .map(dto -> modMapper.map(dto, new CycleAvoidingMappingContext()))
-                         .cache();
-  }
-
-  @Cacheable(value = CacheNames.FEATURED_MODS, sync = true)
-  public CompletableFuture<List<FeaturedModBean>> getFeaturedMods() {
-    ElideNavigatorOnCollection<FeaturedMod> navigator = ElideNavigator.of(FeaturedMod.class)
-                                                                      .collection()
-                                                                      .setFilter(qBuilder().bool("visible").isTrue())
-                                                                      .addSortingRule("order", true)
-                                                                      .pageSize(50);
-    return fafApiAccessor.getMany(navigator)
-                         .map(dto -> modMapper.map(dto, new CycleAvoidingMappingContext()))
-                         .collectList()
-                         .toFuture();
   }
 
   @Cacheable(value = CacheNames.MODS, sync = true)

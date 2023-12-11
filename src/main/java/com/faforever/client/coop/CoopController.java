@@ -5,6 +5,7 @@ import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.exception.NotifiableException;
+import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.ControllerTableCell;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
@@ -18,7 +19,6 @@ import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.ThemeService;
@@ -28,7 +28,6 @@ import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
-import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.google.common.base.Strings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -90,7 +89,7 @@ public class CoopController extends NodeController<Node> {
   private final TimeService timeService;
   private final MapService mapService;
   private final WebViewConfigurer webViewConfigurer;
-  private final ModService modService;
+  private final FeaturedModService featuredModService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final ObservableList<CoopResultBean> leaderboardUnFilteredList = FXCollections.observableArrayList();
   private final FilteredList<CoopResultBean> leaderboardFilteredList = new FilteredList<>(leaderboardUnFilteredList);
@@ -317,12 +316,12 @@ public class CoopController extends NodeController<Node> {
   }
 
   public void onPlayButtonClicked() {
-    modService.getFeaturedMod(COOP.getTechnicalName())
-              .toFuture()
-              .thenAccept(featuredModBean -> gameService.hostGame(
+    featuredModService.getFeaturedMod(COOP.getTechnicalName())
+                      .toFuture()
+                      .thenAccept(featuredModBean -> gameService.hostGame(
                   new NewGameInfo(titleTextField.getText(), Strings.emptyToNull(passwordTextField.getText()),
                                   featuredModBean, getSelectedMission().getMapFolderName(), emptySet())))
-              .exceptionally(throwable -> {
+                      .exceptionally(throwable -> {
                 throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
                 log.error("Could not host coop game", throwable);
                 if (throwable instanceof NotifiableException notifiableException) {

@@ -136,6 +136,7 @@ public class ClientConfigurationBuilder {
       liveReplay("liveReplay", 15000);
       api("api");
       oauth("oauth");
+      name("test");
       return this;
     }
 

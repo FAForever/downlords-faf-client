@@ -4,7 +4,6 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Oauth;
-import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LoginPrefs;
@@ -50,12 +49,12 @@ public class LoginService implements InitializingBean {
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    tokenRetriever.tokenInvalidProperty().addListener(((SimpleChangeListener<Boolean>) tokenInvalid -> {
-      if (tokenInvalid && loggedIn.get()) {
+    tokenRetriever.invalidationFlux().doOnNext(ignored -> {
+      if (loggedIn.get()) {
         notificationService.addImmediateInfoNotification("session.expired.message");
         logOut();
       }
-    }));
+    }).doOnError(throwable -> log.error("Error invalidation", throwable)).retry().subscribe();
   }
 
   public String getHydraUrl(String state, String codeVerifier, URI redirectUri) {
@@ -84,9 +83,7 @@ public class LoginService implements InitializingBean {
 
       ownUser.set(meResult);
       ownPlayer.set(mePlayer);
-    })).doOnError(throwable -> resetLoginState()).then(Mono.fromRunnable(() -> {
-      loggedIn.set(true);
-    }));
+    })).doOnError(throwable -> resetLoginState()).then(Mono.fromRunnable(() -> loggedIn.set(true)));
   }
 
   private Mono<MeResult> loginToApi() {
@@ -111,17 +108,17 @@ public class LoginService implements InitializingBean {
 
   public void logOut() {
     log.info("Logging out");
-    loginPrefs.setRefreshToken(null);
-    loggedIn.set(false);
     resetLoginState();
   }
 
   private void resetLoginState() {
-    tokenRetriever.invalidateToken();
-    fafApiAccessor.reset();
-    fafServerAccessor.disconnect();
+    loginPrefs.setRememberMe(false);
     ownUser.set(null);
     ownPlayer.set(null);
+    fafApiAccessor.reset();
+    fafServerAccessor.disconnect();
+    loggedIn.set(false);
+    tokenRetriever.invalidateToken();
   }
 
   public MeResult getOwnUser() {
