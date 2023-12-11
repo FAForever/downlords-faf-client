@@ -25,6 +25,7 @@ import com.faforever.commons.api.dto.Faction;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.game.RatingPrecision;
 import com.faforever.client.util.RatingUtil;
+import com.faforever.client.theme.UiService;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -53,6 +54,7 @@ import java.util.function.Function;
 // TODO: Add tests
 public class ReplayCardController extends VaultEntityCardController<ReplayBean> {
 
+  private final UiService uiService;
   private final ReplayService replayService;
   private final TimeService timeService;
   private final MapService mapService;
