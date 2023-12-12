@@ -142,8 +142,6 @@ public abstract class AbstractChatTabController extends TabController {
    */
   private final List<ChatMessage> waitingMessages = new ArrayList<>();
   private final List<ChatMessage> userMessageHistory = new ArrayList<>();
-  private String currentUserMessage = "";
-  private int curMessageHistoryIndex = 0;
   private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
   protected final ObjectProperty<ChatChannel> chatChannel = new SimpleObjectProperty<>();
   protected final ObservableValue<String> channelName = chatChannel.map(ChatChannel::getName);
@@ -158,6 +156,8 @@ public abstract class AbstractChatTabController extends TabController {
 
   private ChatMessage lastMessage;
   private WebEngine engine;
+  private String currentUserMessage = "";
+  private int curMessageHistoryIndex = 0;
 
   @VisibleForTesting
   Pattern mentionPattern;
@@ -466,7 +466,12 @@ public abstract class AbstractChatTabController extends TabController {
 
   protected void onChatMessage(ChatMessage chatMessage) {
     if(chatMessage.username().equals(playerService.getCurrentPlayer().getUsername())) {
-      userMessageHistory.add(chatMessage);
+      if(userMessageHistory.size() >= 50){
+        userMessageHistory.remove(0);
+        userMessageHistory.add(chatMessage);
+      } else {
+        userMessageHistory.add(chatMessage);
+      }
     }
     synchronized (waitingMessages) {
       if (!isChatReady) {
