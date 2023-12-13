@@ -240,8 +240,8 @@ public class GenerateMapController extends NodeController<Pane> {
         .bind(previousMapName.textProperty().isNotEmpty()
             .or(generationTypeComboBox.valueProperty().isNotEqualTo(GenerationType.CASUAL))
             .or(commandLineArgsText.textProperty().isNotEmpty())
-            .or(biomeComboBox.valueProperty().isNotNull())
-                .and(biomeComboBox.valueProperty().isNotEqualTo(MapGeneratorService.GENERATOR_RANDOM_BIOME)));
+            .or(biomeComboBox.valueProperty().isNotNull()
+                .and(biomeComboBox.valueProperty().isNotEqualTo(MapGeneratorService.GENERATOR_RANDOM_BIOME))));
   }
 
   private void initBiomeComboBox() {
@@ -249,8 +249,8 @@ public class GenerateMapController extends NodeController<Pane> {
         .bind(previousMapName.textProperty().isNotEmpty()
             .or(generationTypeComboBox.valueProperty().isNotEqualTo(GenerationType.CASUAL))
             .or(commandLineArgsText.textProperty().isNotEmpty())
-            .or(mapStyleComboBox.valueProperty().isNotNull())
-               .and(mapStyleComboBox.valueProperty().isNotEqualTo(MapGeneratorService.GENERATOR_RANDOM_STYLE)));
+            .or(mapStyleComboBox.valueProperty().isNotNull()
+               .and(mapStyleComboBox.valueProperty().isNotEqualTo(MapGeneratorService.GENERATOR_RANDOM_STYLE))));
   }
 
   private void initOptionSlider(IntegerProperty valueProperty, BooleanProperty randomProperty, Slider slider,
