@@ -241,6 +241,7 @@ public abstract class AbstractChatTabController extends TabController {
        curMessageHistoryIndex =  0;
        messageTextField().setText(currentUserMessage);
      }
+     messageTextField().positionCaret(messageTextField().getText().length());
     } else {
       curMessageHistoryIndex = 0;
     }
