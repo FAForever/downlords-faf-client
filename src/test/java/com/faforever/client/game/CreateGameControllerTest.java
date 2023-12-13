@@ -524,9 +524,9 @@ public class CreateGameControllerTest extends PlatformTest {
 
   @Test
   public void testOnGenerateMapClicked() {
-    when(mapGeneratorService.getNewestGenerator()).thenReturn(CompletableFuture.completedFuture(null));
-    when(mapGeneratorService.getGeneratorStyles()).thenReturn(CompletableFuture.completedFuture(List.of()));
-    when(mapGeneratorService.getGeneratorBiomes()).thenReturn(CompletableFuture.completedFuture(List.of()));
+    when(mapGeneratorService.getNewestGenerator()).thenReturn(completedFuture(null));
+    when(mapGeneratorService.getGeneratorStyles()).thenReturn(completedFuture(List.of()));
+    when(mapGeneratorService.getGeneratorBiomes()).thenReturn(completedFuture(List.of()));
 
     runOnFxThreadAndWait(() -> instance.onGenerateMapButtonClicked());
 
