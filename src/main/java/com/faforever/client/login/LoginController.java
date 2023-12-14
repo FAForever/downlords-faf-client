@@ -359,7 +359,7 @@ public class LoginController extends NodeController<Pane> {
 
   public void onPlayOfflineButtonClicked() {
     try {
-      gameRunner.startGameOffline();
+      gameRunner.startOffline();
     } catch (IOException e) {
       notificationService.addImmediateWarnNotification("offline.noExe");
     }

@@ -2,11 +2,13 @@ package com.faforever.client.game;
 
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.GameLaunchMessageBuilder;
+import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.NewGameInfoBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.DiscordRichPresenceService;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameParameters;
@@ -22,6 +24,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.mapstruct.GameMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -63,8 +66,13 @@ import java.util.concurrent.TimeUnit;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
@@ -158,6 +166,7 @@ public class GameRunnerTest extends ServiceTest {
     lenient().when(replayServer.start(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     lenient().when(iceAdapter.start(anyInt())).thenReturn(completedFuture(GPG_PORT));
     lenient().when(playerService.getCurrentPlayer()).thenReturn(junitPlayer);
+    lenient().when(process.pid()).thenReturn(10L);
 
     lenient().doAnswer(invocation -> {
       try {
@@ -173,54 +182,161 @@ public class GameRunnerTest extends ServiceTest {
     testNoticePublisher.assertSubscribers(1);
   }
 
-  private GameParameters mockStartGameProcess(GameLaunchResponse gameLaunchResponse) throws IOException {
-    GameParameters gameParameters = gameMapper.map(gameLaunchResponse);
-    gameParameters.setLocalGpgPort(GPG_PORT);
-    gameParameters.setLocalReplayPort(LOCAL_REPLAY_PORT);
-
+  private void mockStartGameProcess(GameLaunchResponse gameLaunchResponse) throws IOException {
     String mapName = gameLaunchResponse.getMapName();
     if (mapName != null) {
       lenient().when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
     }
-    String leaderboard = gameLaunchResponse.getLeaderboard();
-    if (leaderboard != null && !"global".equals(leaderboard)) {
-      lenient().when(leaderboardService.getActiveLeagueEntryForPlayer(any(), any())).thenReturn(
-          completedFuture(Optional.empty()));
-      gameParameters.setDivision("unlisted");
-    }
-    lenient().when(forgedAllianceLaunchService.startGameOnline(any())).thenReturn(process);
+    lenient().when(forgedAllianceLaunchService.launchOnlineGame(any(), anyInt(), anyInt())).thenReturn(process);
     lenient().when(replayServer.start(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     lenient().when(iceAdapter.start(anyInt())).thenReturn(completedFuture(GPG_PORT));
     lenient().when(coturnService.getSelectedCoturns(anyInt())).thenReturn(completedFuture(List.of()));
-    lenient().when(process.onExit()).thenReturn(completedFuture(process));
+    lenient().when(process.onExit()).thenReturn(new CompletableFuture<>());
+    lenient().when(process.exitValue()).thenReturn(0);
+    lenient().when(process.isAlive()).thenReturn(true);
     lenient().when(gameService.getByUid(anyInt()))
-             .thenReturn(Optional.of(GameBeanBuilder.create().defaultValues().get()));
-    return gameParameters;
+             .thenAnswer(invocation -> Optional.of(
+                 GameBeanBuilder.create().id(invocation.getArgument(0, Integer.class)).get()));
   }
 
-  private GameParameters mockJoinGame(GameLaunchResponse gameLaunchResponse) throws IOException {
+  @Test
+  public void testStartOnlineGlobalGame() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    mockStartGameProcess(gameLaunchResponse);
+
+    CompletableFuture<Process> exitFuture = new CompletableFuture<>();
+
+    when(process.onExit()).thenReturn(exitFuture);
+
+    instance.startOnlineGame(gameLaunchResponse);
+
+    ArgumentCaptor<GameParameters> captor = ArgumentCaptor.forClass(GameParameters.class);
+    verify(forgedAllianceLaunchService).launchOnlineGame(captor.capture(), eq(GPG_PORT), eq(LOCAL_REPLAY_PORT));
+    GameParameters gameParameters = captor.getValue();
+    Integer uid = gameParameters.uid();
+
+    verify(fafServerAccessor).setPingIntervalSeconds(5);
+    verify(leaderboardService, never()).getActiveLeagueEntryForPlayer(any(), any());
+    verify(mapService, never()).downloadIfNecessary(any());
+    verify(replayServer).start(uid);
+    verify(iceAdapter).start(uid);
+    verify(coturnService).getSelectedCoturns(uid);
+    verify(iceAdapter).setIceServers(anyCollection());
+    assertTrue(instance.isRunning());
+    assertEquals(uid, instance.getRunningGame().getId());
+    assertEquals(10L, instance.getRunningProcessId());
+    assertNotNull(instance.getRunningGame());
+
+    assertNull(gameParameters.league());
+
+    exitFuture.complete(process);
+
+    verify(iceAdapter).stop();
+    verify(replayServer).stop();
+    verify(fafServerAccessor).notifyGameEnded();
+    verify(fafServerAccessor).setPingIntervalSeconds(25);
+    verify(notificationService).addNotification(any(PersistentNotification.class));
+    assertFalse(instance.isRunning());
+    assertNull(instance.getRunningProcessId());
+    assertNull(instance.getRunningGame());
+  }
+
+  @Test
+  public void testStartOnlineMatchmakerGameNoLeaderboardEntry() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create()
+                                                                    .defaultValues()
+                                                                    .mapName("test")
+                                                                    .ratingType("ladder_1v1")
+                                                                    .get();
+    mockStartGameProcess(gameLaunchResponse);
+    when(leaderboardService.getActiveLeagueEntryForPlayer(any(), any())).thenReturn(completedFuture(Optional.empty()));
+
+    instance.startOnlineGame(gameLaunchResponse);
+
+    ArgumentCaptor<GameParameters> captor = ArgumentCaptor.forClass(GameParameters.class);
+    verify(forgedAllianceLaunchService).launchOnlineGame(captor.capture(), eq(GPG_PORT), eq(LOCAL_REPLAY_PORT));
+    GameParameters gameParameters = captor.getValue();
+
+    verify(leaderboardService).getActiveLeagueEntryForPlayer(any(), eq(gameParameters.leaderboard()));
+    verify(mapService).downloadIfNecessary(gameParameters.mapName());
+
+    assertNotNull(gameParameters.league());
+    assertEquals("unlisted", gameParameters.league().division());
+    assertNull(gameParameters.league().subDivision());
+  }
+
+  @Test
+  public void testStartOnlineMatchmakerGameWithLeaderboardEntry() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create()
+                                                                    .defaultValues()
+                                                                    .mapName("test")
+                                                                    .ratingType("ladder_1v1")
+                                                                    .get();
+    mockStartGameProcess(gameLaunchResponse);
+    LeagueEntryBean leagueEntry = LeagueEntryBeanBuilder.create().defaultValues().get();
+    when(leaderboardService.getActiveLeagueEntryForPlayer(any(), any())).thenReturn(
+        completedFuture(Optional.of(leagueEntry)));
+
+    instance.startOnlineGame(gameLaunchResponse);
+
+    ArgumentCaptor<GameParameters> captor = ArgumentCaptor.forClass(GameParameters.class);
+    verify(forgedAllianceLaunchService).launchOnlineGame(captor.capture(), eq(GPG_PORT), eq(LOCAL_REPLAY_PORT));
+    GameParameters gameParameters = captor.getValue();
+
+    verify(leaderboardService).getActiveLeagueEntryForPlayer(any(), eq(gameParameters.leaderboard()));
+    verify(mapService).downloadIfNecessary(gameParameters.mapName());
+
+    assertNotNull(gameParameters.league());
+    assertEquals(leagueEntry.getSubdivision().getDivision().getNameKey(), gameParameters.league().division());
+    assertEquals(leagueEntry.getSubdivision().getNameKey(), gameParameters.league().subDivision());
+  }
+
+  private void mockJoinGame(GameLaunchResponse gameLaunchResponse) throws IOException {
     lenient().when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     lenient().when(fafServerAccessor.requestJoinGame(anyInt(), any())).thenReturn(completedFuture(gameLaunchResponse));
     lenient().when(modService.installAndEnableMods(anySet())).thenReturn(completedFuture(null));
     lenient().when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
-    return mockStartGameProcess(gameLaunchResponse);
+    mockStartGameProcess(gameLaunchResponse);
   }
 
-  private GameParameters mockHostGame(GameLaunchResponse gameLaunchResponse) throws IOException {
+  private void mockHostGame(GameLaunchResponse gameLaunchResponse) throws IOException {
     lenient().when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     lenient().when(fafServerAccessor.requestHostGame(any())).thenReturn(completedFuture(gameLaunchResponse));
     lenient().when(modService.installAndEnableMods(anySet())).thenReturn(completedFuture(null));
     lenient().when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
     lenient().when(gameService.getByUid(anyInt()))
              .thenReturn(Optional.of(GameBeanBuilder.create().defaultValues().get()));
-    return mockStartGameProcess(gameLaunchResponse);
+    mockStartGameProcess(gameLaunchResponse);
   }
 
-  private GameParameters mockMatchmakerGame(GameLaunchResponse gameLaunchResponse) throws IOException {
+  private void mockMatchmakerGame(GameLaunchResponse gameLaunchResponse) throws IOException {
     lenient().when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     lenient().when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchResponse));
     lenient().when(modService.installAndEnableMods(anySet())).thenReturn(completedFuture(null));
-    return mockStartGameProcess(gameLaunchResponse);
+    mockStartGameProcess(gameLaunchResponse);
+  }
+
+  @Test
+  public void testHostGame() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    mockHostGame(gameLaunchResponse);
+
+    NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
+    instance.host(newGameInfo);
+
+    int uid = gameLaunchResponse.getUid();
+    GameParameters gameParameters = gameMapper.map(gameLaunchResponse, null);
+
+    verify(modService).installAndEnableMods(newGameInfo.simMods());
+    verify(mapService).downloadIfNecessary(newGameInfo.map());
+    verify(fafServerAccessor).requestHostGame(newGameInfo);
+    verify(featuredModService).updateFeaturedModToLatest(newGameInfo.featuredModName(), false);
+    verify(replayServer).start(uid);
+    verify(iceAdapter).start(uid);
+    verify(coturnService).getSelectedCoturns(uid);
+    verify(iceAdapter).setIceServers(anyCollection());
+    verify(forgedAllianceLaunchService).launchOnlineGame(gameParameters, GPG_PORT, LOCAL_REPLAY_PORT);
+    assertEquals(uid, instance.getRunningGame().getId());
   }
 
   @Test
@@ -234,55 +350,55 @@ public class GameRunnerTest extends ServiceTest {
 
     GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
 
-    GameParameters gameParameters = mockJoinGame(gameLaunchMessage);
-
-    instance.join(game);
-    verify(mapService).downloadIfNecessary(any());
-    verify(replayServer).start(eq(game.getId()));
-    verify(modService).installAndEnableMods(simMods.keySet());
-
-    verify(forgedAllianceLaunchService).startGameOnline(gameParameters);
-  }
-
-  @Test
-  public void testModEnabling() throws Exception {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
-
-    ObservableMap<String, String> simMods = FXCollections.observableHashMap();
-    simMods.put("123-456-789", "Fake mod name");
-
-    game.setSimMods(simMods);
-    game.setMapFolderName("map");
-
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
-
     mockJoinGame(gameLaunchMessage);
 
     instance.join(game);
 
-    verify(modService).installAndEnableMods(simModsCaptor.capture());
-    assertEquals(simModsCaptor.getValue().iterator().next(), "123-456-789");
+    verify(modService).installAndEnableMods(simMods.keySet());
   }
 
   @Test
   public void testAddOnGameStartedListener() throws Exception {
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
 
-    GameParameters gameParameters = mockHostGame(gameLaunchMessage);
+    mockHostGame(gameLaunchResponse);
 
     instance.host(newGameInfo);
 
-    verify(forgedAllianceLaunchService).startGameOnline(gameParameters);
-    verify(replayServer).start(eq(gameLaunchMessage.getUid()));
+    GameParameters gameParameters = gameMapper.map(gameLaunchResponse, null);
+
+    verify(forgedAllianceLaunchService).launchOnlineGame(gameParameters, GPG_PORT, LOCAL_REPLAY_PORT);
+    verify(replayServer).start(eq(gameLaunchResponse.getUid()));
+  }
+
+  @Test
+  public void testRestoreGameSessionListener() throws Exception {
+    NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
+    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+
+    mockHostGame(gameLaunchMessage);
+
+    SimpleObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();
+    when(fafServerAccessor.connectionStateProperty()).thenReturn(connectionState);
+
+    instance.afterPropertiesSet();
+    instance.host(newGameInfo);
+
+    connectionState.set(ConnectionState.DISCONNECTED);
+    connectionState.set(ConnectionState.CONNECTED);
+
+    verify(fafServerAccessor).restoreGameSession(anyInt());
   }
 
   @Test
   public void testStartSearchLadder1v1() throws Exception {
     int uid = 123;
     String map = "scmp_037";
-    GameLaunchResponse gameLaunchMessage = new GameLaunchMessageBuilder().defaultValues()
-                                                                         .uid(uid).mod("FAF").mapname(map)
+    GameLaunchResponse gameLaunchResponse = new GameLaunchMessageBuilder().defaultValues()
+                                                                          .uid(uid)
+                                                                          .mod("FAF")
+                                                                          .mapName(map)
                                                                          .expectedPlayers(2)
                                                                          .faction(
                                                                              com.faforever.commons.lobby.Faction.CYBRAN)
@@ -292,24 +408,26 @@ public class GameRunnerTest extends ServiceTest {
                                                                          .ratingType(LADDER_1v1_RATING_TYPE)
                                                                          .get();
 
-    GameParameters gameParameters = mockMatchmakerGame(gameLaunchMessage);
+    mockMatchmakerGame(gameLaunchResponse);
 
     instance.startSearchMatchmaker();
 
-    gameParameters.setDivision("unlisted");
+    GameParameters gameParameters = gameMapper.map(gameLaunchResponse, null);
 
     verify(fafServerAccessor).startSearchMatchmaker();
     verify(mapService).downloadIfNecessary(map);
     verify(replayServer).start(eq(uid));
-    verify(forgedAllianceLaunchService).startGameOnline(gameParameters);
+    verify(forgedAllianceLaunchService).launchOnlineGame(gameParameters, GPG_PORT, LOCAL_REPLAY_PORT);
   }
 
   @Test
   public void testStartSearchLadder1v1WithLeagueEntry() throws Exception {
     int uid = 123;
     String map = "scmp_037";
-    GameLaunchResponse gameLaunchMessage = new GameLaunchMessageBuilder().defaultValues()
-                                                                         .uid(uid).mod("FAF").mapname(map)
+    GameLaunchResponse gameLaunchResponse = new GameLaunchMessageBuilder().defaultValues()
+                                                                          .uid(uid)
+                                                                          .mod("FAF")
+                                                                          .mapName(map)
                                                                          .expectedPlayers(2)
                                                                          .faction(
                                                                              com.faforever.commons.lobby.Faction.CYBRAN)
@@ -319,14 +437,16 @@ public class GameRunnerTest extends ServiceTest {
                                                                          .ratingType(LADDER_1v1_RATING_TYPE)
                                                                          .get();
 
-    GameParameters gameParameters = mockMatchmakerGame(gameLaunchMessage);
+    mockMatchmakerGame(gameLaunchResponse);
 
     instance.startSearchMatchmaker();
+
+    GameParameters gameParameters = gameMapper.map(gameLaunchResponse, null);
 
     verify(fafServerAccessor).startSearchMatchmaker();
     verify(mapService).downloadIfNecessary(map);
     verify(replayServer).start(eq(uid));
-    verify(forgedAllianceLaunchService).startGameOnline(gameParameters);
+    verify(forgedAllianceLaunchService).launchOnlineGame(gameParameters, GPG_PORT, LOCAL_REPLAY_PORT);
   }
 
   @Test
@@ -334,7 +454,9 @@ public class GameRunnerTest extends ServiceTest {
     int uid = 123;
     String map = "scmp_037";
     GameLaunchResponse gameLaunchMessage = new GameLaunchMessageBuilder().defaultValues()
-                                                                         .uid(uid).mod("FAF").mapname(map)
+                                                                         .uid(uid)
+                                                                         .mod("FAF")
+                                                                         .mapName(map)
                                                                          .expectedPlayers(2)
                                                                          .faction(
                                                                              com.faforever.commons.lobby.Faction.CYBRAN)
@@ -344,7 +466,7 @@ public class GameRunnerTest extends ServiceTest {
                                                                          .ratingType(LADDER_1v1_RATING_TYPE)
                                                                          .get();
 
-    GameParameters gameParameters = mockMatchmakerGame(gameLaunchMessage);
+    mockMatchmakerGame(gameLaunchMessage);
 
     instance.startSearchMatchmaker();
 
@@ -363,9 +485,6 @@ public class GameRunnerTest extends ServiceTest {
         gameRunningLatch.countDown();
       }
     });
-
-    when(process.isAlive()).thenReturn(true);
-    when(process.onExit()).thenReturn(new CompletableFuture<>());
 
     instance.host(newGameInfo);
     gameRunningLatch.await(TIMEOUT, TIME_UNIT);
@@ -422,28 +541,30 @@ public class GameRunnerTest extends ServiceTest {
   public void testGameHost() throws IOException {
     when(preferencesService.isValidGamePath()).thenReturn(true);
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
-    GameParameters gameParameters = mockHostGame(gameLaunchMessage);
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    mockHostGame(gameLaunchResponse);
 
     instance.host(newGameInfo);
 
-    verify(forgedAllianceLaunchService).startGameOnline(gameParameters);
+    GameParameters gameParameters = gameMapper.map(gameLaunchResponse, null);
+
+    verify(forgedAllianceLaunchService).launchOnlineGame(gameParameters, GPG_PORT, LOCAL_REPLAY_PORT);
   }
 
   @Test
   public void testOfflineGame() throws IOException {
     when(preferencesService.isValidGamePath()).thenReturn(true);
-    when(forgedAllianceLaunchService.startGameOffline(any())).thenReturn(process);
+    when(forgedAllianceLaunchService.launchOfflineGame(any())).thenReturn(process);
     when(process.onExit()).thenReturn(completedFuture(process));
-    instance.startGameOffline();
-    verify(forgedAllianceLaunchService).startGameOffline(any());
+    instance.startOffline();
+    verify(forgedAllianceLaunchService).launchOfflineGame(any());
   }
 
   @Test
   public void testOfflineGameInvalidPath() throws IOException {
     when(preferencesService.isValidGamePath()).thenReturn(false);
     when(gamePathHandler.chooseAndValidateGameDirectory()).thenReturn(new CompletableFuture<>());
-    instance.startGameOffline();
+    instance.startOffline();
     verify(gamePathHandler).chooseAndValidateGameDirectory();
   }
 
@@ -461,7 +582,7 @@ public class GameRunnerTest extends ServiceTest {
     Map<String, String> gameOptions = new LinkedHashMap<>();
     gameOptions.put("Share", "ShareUntilDeath");
     gameOptions.put("UnitCap", "500");
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create()
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create()
                                                                    .defaultValues()
                                                                    .team(1)
                                                                    .expectedPlayers(4)
@@ -469,11 +590,13 @@ public class GameRunnerTest extends ServiceTest {
                                                                    .gameOptions(gameOptions)
                                                                    .get();
 
-    GameParameters gameParameters = mockMatchmakerGame(gameLaunchMessage);
+    mockMatchmakerGame(gameLaunchResponse);
 
     instance.startSearchMatchmaker();
 
-    verify(forgedAllianceLaunchService).startGameOnline(gameParameters);
+    GameParameters gameParameters = gameMapper.map(gameLaunchResponse, null);
+
+    verify(forgedAllianceLaunchService).launchOnlineGame(gameParameters, GPG_PORT, LOCAL_REPLAY_PORT);
   }
 
   @Test
@@ -490,9 +613,6 @@ public class GameRunnerTest extends ServiceTest {
                                                                    .get();
 
     mockMatchmakerGame(gameLaunchMessage);
-
-    when(process.onExit()).thenReturn(new CompletableFuture<>());
-    when(process.isAlive()).thenReturn(true);
 
     instance.startSearchMatchmaker();
 
@@ -562,7 +682,6 @@ public class GameRunnerTest extends ServiceTest {
     when(process.isAlive()).thenReturn(true);
 
     mockJoinGame(GameLaunchMessageBuilder.create().defaultValues().get());
-    when(process.onExit()).thenReturn(new CompletableFuture<>());
 
     instance.join(GameBeanBuilder.create().defaultValues().get());
 

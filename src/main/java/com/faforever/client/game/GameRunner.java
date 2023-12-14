@@ -10,12 +10,12 @@ import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameParameters;
+import com.faforever.client.fa.GameParameters.League;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.error.GameLaunchException;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.logging.LoggingService;
@@ -44,6 +44,7 @@ import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.NoticeInfo;
+import com.google.common.annotations.VisibleForTesting;
 import jakarta.annotation.Nullable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -165,7 +166,46 @@ public class GameRunner implements InitializingBean {
     return running.getReadOnlyProperty();
   }
 
-  private CompletableFuture<Void> prepareAndLaunchGameWhenReady(String featuredModName, Set<String> simModUids,
+  @VisibleForTesting
+  CompletableFuture<Void> startOnlineGame(GameLaunchResponse gameLaunchResponse) {
+    int uid = gameLaunchResponse.getUid();
+    String leaderboard = gameLaunchResponse.getLeaderboard();
+    boolean hasLeague = leaderboard == null || "global".equals(leaderboard);
+
+    fxApplicationThreadExecutor.execute(() -> runningGameId.set(uid));
+    String mapFolderName = gameLaunchResponse.getMapName();
+    CompletableFuture<Void> downloadMapFuture = mapFolderName == null ? completedFuture(
+        null) : mapService.downloadIfNecessary(mapFolderName);
+    CompletableFuture<League> leagueFuture = hasLeague ? completedFuture(null) : getDivisionInfo(leaderboard);
+    CompletableFuture<Integer> startReplayServerFuture = replayServer.start(uid);
+    CompletableFuture<Integer> startIceAdapterFuture = startIceAdapter(uid);
+
+    return CompletableFuture.allOf(downloadMapFuture, leagueFuture, startIceAdapterFuture, startReplayServerFuture)
+                            .thenApply(ignored -> gameMapper.map(gameLaunchResponse, leagueFuture.join()))
+                            .thenApply(parameters -> launchOnlineGame(parameters, startIceAdapterFuture.join(),
+                                                                      startReplayServerFuture.join()))
+                            .whenCompleteAsync((process, throwable) -> {
+                              if (process != null) {
+                                this.process.set(process);
+                              }
+                            }, fxApplicationThreadExecutor)
+                            .thenCompose(Process::onExit)
+                            .thenAccept(this::handleTermination)
+                            .whenComplete((result, throwable) -> {
+                              iceAdapter.stop();
+                              replayServer.stop();
+                              fafServerAccessor.notifyGameEnded();
+                            })
+                            .whenCompleteAsync((result, throwable) -> runningGameId.set(null),
+                                               fxApplicationThreadExecutor)
+                            .exceptionally(throwable -> {
+                              log.error("Something went wrong during game launch", throwable);
+                              return null;
+                            });
+  }
+
+  @VisibleForTesting
+  CompletableFuture<Void> prepareAndLaunchGameWhenReady(String featuredModName, Set<String> simModUids,
                                                                 @Nullable String mapFolderName,
                                                                 Supplier<CompletableFuture<GameLaunchResponse>> gameLaunchSupplier) {
     CompletableFuture<Void> updateFeaturedModFuture = featuredModService.updateFeaturedModToLatest(featuredModName,
@@ -176,8 +216,7 @@ public class GameRunner implements InitializingBean {
         null) : mapService.downloadIfNecessary(mapFolderName);
     return CompletableFuture.allOf(updateFeaturedModFuture, installSimModsFuture, downloadMapFuture)
                             .thenCompose(ignored -> gameLaunchSupplier.get())
-                            .thenApply(gameMapper::map)
-                            .thenCompose(this::startGame);
+                            .thenCompose(this::startOnlineGame);
   }
 
   public void host(NewGameInfo newGameInfo) {
@@ -193,7 +232,7 @@ public class GameRunner implements InitializingBean {
     }
 
     if (waitingForMatchMakerGame()) {
-      addAlreadyInQueueNotification();
+      notificationService.addImmediateWarnNotification("teammatchmaking.notification.customAlreadyInQueue.message");
       return;
     }
 
@@ -208,10 +247,6 @@ public class GameRunner implements InitializingBean {
       }
       return null;
     });
-  }
-
-  private void addAlreadyInQueueNotification() {
-    notificationService.addImmediateWarnNotification("teammatchmaking.notification.customAlreadyInQueue.message");
   }
 
   public void join(GameBean gameBean) {
@@ -231,7 +266,7 @@ public class GameRunner implements InitializingBean {
     }
 
     if (waitingForMatchMakerGame()) {
-      addAlreadyInQueueNotification();
+      notificationService.addImmediateWarnNotification("teammatchmaking.notification.customAlreadyInQueue.message");
       return;
     }
 
@@ -336,45 +371,10 @@ public class GameRunner implements InitializingBean {
     return matchmakerFuture != null && !matchmakerFuture.isDone();
   }
 
-  private CompletableFuture<Void> startGame(GameParameters gameParameters) {
-    int uid = gameParameters.getUid();
-    fxApplicationThreadExecutor.execute(() -> runningGameId.set(uid));
-    String mapFolderName = gameParameters.getMapName();
-    CompletableFuture<Void> downloadMapFuture = mapFolderName == null ? completedFuture(
-        null) : mapService.downloadIfNecessary(mapFolderName);
-    CompletableFuture<Void> populateDivisionInfoFuture = populateDivisionInfo(gameParameters);
-    CompletableFuture<Integer> startReplayServerFuture = replayServer.start(uid);
-    CompletableFuture<Integer> startIceAdapterFuture = startIceAdapter(uid);
-
-    return CompletableFuture.allOf(downloadMapFuture, populateDivisionInfoFuture, startIceAdapterFuture,
-                                   startReplayServerFuture)
-                            .thenApply(ignored -> launchProcess(gameParameters, startIceAdapterFuture.join(),
-                                                                startReplayServerFuture.join()))
-                            .whenCompleteAsync((process, throwable) -> {
-                              if (process != null) {
-                                this.process.set(process);
-                              }
-                            }, fxApplicationThreadExecutor)
-                            .thenCompose(Process::onExit)
-                            .thenAccept(this::handleTermination)
-                            .whenComplete((result, throwable) -> {
-                              iceAdapter.stop();
-                              replayServer.stop();
-                              fafServerAccessor.notifyGameEnded();
-                            });
-  }
-
-  private Process launchProcess(GameParameters gameParameters, Integer gpgPort, Integer replayPort) {
+  private Process launchOnlineGame(GameParameters gameParameters, Integer gpgPort, Integer replayPort) {
     fafServerAccessor.setPingIntervalSeconds(5);
     gameKilled = false;
-    gameParameters.setLocalGpgPort(gpgPort);
-    gameParameters.setLocalReplayPort(replayPort);
-    try {
-
-      return forgedAllianceLaunchService.startGameOnline(gameParameters);
-    } catch (IOException e) {
-      throw new GameLaunchException("Could not start game", e, "game.start.couldNotStart");
-    }
+    return forgedAllianceLaunchService.launchOnlineGame(gameParameters, gpgPort, replayPort);
   }
 
   private CompletableFuture<Integer> startIceAdapter(int uid) {
@@ -384,21 +384,21 @@ public class GameRunner implements InitializingBean {
                                                           .thenApply(ignored -> icePort));
   }
 
-  private CompletableFuture<Void> populateDivisionInfo(GameParameters gameParameters) {
-    String leaderboard = gameParameters.getLeaderboard();
+  private CompletableFuture<League> getDivisionInfo(String leaderboard) {
     if (leaderboard == null || "global".equals(leaderboard)) {
       return completedFuture(null);
     }
 
     return leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), leaderboard)
-                             .thenAccept(leagueEntryOptional -> {
+                             .thenApply(leagueEntryOptional -> {
                                Optional<SubdivisionBean> subdivisionBeanOptional = leagueEntryOptional.map(
                                    LeagueEntryBean::getSubdivision);
-                               gameParameters.setDivision(subdivisionBeanOptional.map(SubdivisionBean::getDivision)
-                                                                                 .map(DivisionBean::getNameKey)
-                                                                                 .orElse("unlisted"));
-                               gameParameters.setSubdivision(
-                                   subdivisionBeanOptional.map(SubdivisionBean::getNameKey).orElse(null));
+                               String division = subdivisionBeanOptional.map(SubdivisionBean::getDivision)
+                                                                        .map(DivisionBean::getNameKey)
+                                                                        .orElse("unlisted");
+                               String subDivision = subdivisionBeanOptional.map(SubdivisionBean::getNameKey)
+                                                                           .orElse(null);
+                               return new League(division, subDivision);
                              });
   }
 
@@ -417,24 +417,33 @@ public class GameRunner implements InitializingBean {
 
     if (!gameKilled) {
       if (exitCode != 0) {
-        if (exitCode == -1073741515) {
-          notificationService.addImmediateWarnNotification("game.crash.notInitialized");
-        } else {
-          notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
-                                                                        i18n.get("game.crash", exitCode,
-                                                                                 logFile.map(Path::toString)
-                                                                                        .orElse("")), WARN, List.of(
-              new Action(i18n.get("game.open.log"),
-                         event -> platformService.reveal(logFile.orElse(operatingSystem.getLoggingDirectory()))),
-              new DismissAction(i18n))));
-        }
+        alertOnBadExit(exitCode, logFile);
       } else if (notificationPrefs.isAfterGameReviewEnabled()) {
-        GameBean game = getRunningGame();
-        notificationService.addNotification(
-            new PersistentNotification(i18n.get("game.ended", game.getTitle()), Severity.INFO, List.of(
-                new Action(i18n.get("game.rate"),
-                           actionEvent -> navigationHandler.navigateTo(new ShowReplayEvent(game.getId()))))));
+        askForGameRate();
       }
+    }
+  }
+
+  private void askForGameRate() {
+    GameBean game = getRunningGame();
+    notificationService.addNotification(
+        new PersistentNotification(i18n.get("game.ended", game.getTitle()), Severity.INFO, List.of(
+            new Action(i18n.get("game.rate"),
+                       actionEvent -> navigationHandler.navigateTo(new ShowReplayEvent(game.getId()))))));
+  }
+
+  private void alertOnBadExit(int exitCode, Optional<Path> logFile) {
+    if (exitCode == -1073741515) {
+      notificationService.addImmediateWarnNotification("game.crash.notInitialized");
+    } else {
+      notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
+                                                                    i18n.get("game.crash", exitCode,
+                                                                             logFile.map(Path::toString).orElse("")),
+                                                                    WARN, List.of(new Action(i18n.get("game.open.log"),
+                                                                                             event -> platformService.reveal(
+                                                                                                 logFile.orElse(
+                                                                                                     operatingSystem.getLoggingDirectory()))),
+                                                                                  new DismissAction(i18n))));
     }
   }
 
@@ -466,25 +475,23 @@ public class GameRunner implements InitializingBean {
     CompletableFuture<Void> updateTutorialFuture = featuredModService.updateFeaturedModToLatest(
         TUTORIALS.getTechnicalName(), false);
 
-    CompletableFuture.allOf(updateTutorialFuture, downloadMapFuture).thenApply(ignored -> {
-      try {
-        return forgedAllianceLaunchService.startGameOffline(technicalMapName);
-      } catch (IOException e) {
-        throw new CompletionException(e);
-      }
-    }).thenCompose(Process::onExit).thenAccept(this::handleTermination).exceptionally(throwable -> {
-      throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-      log.error("Launching tutorials failed", throwable);
-      if (throwable instanceof NotifiableException notifiableException) {
-        notificationService.addErrorNotification(notifiableException);
-      } else {
-        notificationService.addImmediateErrorNotification(throwable, "tutorial.launchFailed");
-      }
-      return null;
-    });
+    CompletableFuture.allOf(updateTutorialFuture, downloadMapFuture)
+                     .thenApply(ignored -> forgedAllianceLaunchService.launchOfflineGame(technicalMapName))
+                     .thenCompose(Process::onExit)
+                     .thenAccept(this::handleTermination)
+                     .exceptionally(throwable -> {
+                       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+                       log.error("Launching tutorials failed", throwable);
+                       if (throwable instanceof NotifiableException notifiableException) {
+                         notificationService.addErrorNotification(notifiableException);
+                       } else {
+                         notificationService.addImmediateErrorNotification(throwable, "tutorial.launchFailed");
+                       }
+                       return null;
+                     });
   }
 
-  public void startGameOffline() throws IOException {
+  public void startOffline() throws IOException {
     if (isRunning()) {
       log.info("Game is running, ignoring start offline request");
       notificationService.addImmediateWarnNotification("game.gameRunning");
@@ -496,7 +503,7 @@ public class GameRunner implements InitializingBean {
     if (!preferencesService.isValidGamePath()) {
       gamePathHandler.chooseAndValidateGameDirectory().thenAccept(path -> {
         try {
-          startGameOffline();
+          startOffline();
         } catch (IOException e) {
           throw new CompletionException(e);
         }
@@ -504,8 +511,19 @@ public class GameRunner implements InitializingBean {
       return;
     }
 
-    Process process = forgedAllianceLaunchService.startGameOffline(null);
-    process.onExit().thenAccept(this::handleTermination);
+    CompletableFuture.supplyAsync(() -> forgedAllianceLaunchService.launchOfflineGame(null))
+                     .thenCompose(Process::onExit)
+                     .thenAccept(this::handleTermination)
+                     .exceptionally(throwable -> {
+                       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+                       log.error("Launching offline game failed", throwable);
+                       if (throwable instanceof NotifiableException notifiableException) {
+                         notificationService.addErrorNotification(notifiableException);
+                       } else {
+                         notificationService.addImmediateErrorNotification(throwable, "tutorial.launchFailed");
+                       }
+                       return null;
+                     });
   }
 
   public Long getRunningProcessId() {

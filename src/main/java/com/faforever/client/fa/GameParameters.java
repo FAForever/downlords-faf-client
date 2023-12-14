@@ -2,28 +2,26 @@ package com.faforever.client.fa;
 
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameType;
-import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
 
-@Data
-public class GameParameters {
-  private Integer uid;
-  private String name;
-  private String featuredMod;
-  private GameType gameType;
-  private String leaderboard;
-  private List<String> additionalArgs;
-  private String mapName;
-  private Integer expectedPlayers;
-  private Integer mapPosition;
-  private Map<String, String> gameOptions;
-  private Integer team;
-  private Faction faction;
+public record GameParameters(
+    Integer uid,
+    String name,
+    String featuredMod,
+    GameType gameType,
+    String leaderboard,
+    List<String> additionalArgs,
+    String mapName,
+    Integer expectedPlayers,
+    Integer mapPosition,
+    Map<String, String> gameOptions,
+    Integer team,
+    Faction faction,
+    League league
+) {
 
-  private String division;
-  private String subdivision;
-  private Integer localGpgPort;
-  private Integer localReplayPort;
+  public record League(String division, String subDivision) {}
+
 }

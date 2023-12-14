@@ -391,16 +391,16 @@ public class LoginControllerTest extends PlatformTest {
     instance.onPlayOfflineButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(gameRunner).startGameOffline();
+    verify(gameRunner).startOffline();
   }
 
   @Test
   public void testOnPlayOfflineButtonClickedNoExe() throws Exception {
-    doThrow(new IOException()).when(gameRunner).startGameOffline();
+    doThrow(new IOException()).when(gameRunner).startOffline();
     instance.onPlayOfflineButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(gameRunner).startGameOffline();
+    verify(gameRunner).startOffline();
     verify(notificationService).addImmediateWarnNotification(eq("offline.noExe"));
   }
 }

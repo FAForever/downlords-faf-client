@@ -95,13 +95,7 @@ public class ReplayRunner {
     CompletableFuture<Void> installAndActivateSimModsFuture = modService.installAndEnableMods(simMods);
     CompletableFuture<Void> downloadMapFuture = downloadMapIfNecessary(mapFolderName);
     return CompletableFuture.allOf(updateFeaturedModFuture, installAndActivateSimModsFuture, downloadMapFuture)
-                            .thenRun(() -> {
-                              try {
-                                this.process = forgedAllianceLaunchService.startReplay(path, replayId);
-                              } catch (IOException e) {
-                                throw new CompletionException(e);
-                              }
-                            });
+                            .thenRun(() -> this.process = forgedAllianceLaunchService.startReplay(path, replayId));
   }
 
   private boolean canStartReplay() {

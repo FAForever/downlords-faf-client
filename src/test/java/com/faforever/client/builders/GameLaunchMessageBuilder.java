@@ -102,7 +102,7 @@ public class GameLaunchMessageBuilder {
     return this;
   }
 
-  public GameLaunchMessageBuilder mapname(String mapname) {
+  public GameLaunchMessageBuilder mapName(String mapname) {
     this.mapname = mapname;
     return this;
   }
