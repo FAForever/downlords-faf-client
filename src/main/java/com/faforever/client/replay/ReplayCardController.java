@@ -22,7 +22,7 @@ import com.faforever.client.vault.review.StarsController;
 import com.faforever.client.domain.GamePlayerStatsBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.commons.api.dto.Faction;
-import com.faforever.client.game.TeamCardController;
+import com.faforever.client.game.PlayerCardController;
 import com.faforever.client.game.RatingPrecision;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.theme.UiService;
@@ -153,37 +153,32 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
   private void onTeamsChanged(Map<String, List<GamePlayerStatsBean>> teams) {
     teamsContainer.getChildren().clear();
     teams.forEach((team, playerStats) -> {
-      TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
+      VBox teamBox = new VBox();
 
-      Map<PlayerBean, GamePlayerStatsBean> statsByPlayer = playerStats.stream()
-                                                                      .collect(Collectors.toMap(
-                                                                          GamePlayerStatsBean::getPlayer,
-                                                                          Function.identity()));
-      controller.setRatingPrecision(RatingPrecision.EXACT);
-      controller.setRatingProvider(player -> getPlayerRating(player, statsByPlayer));
-      controller.setFactionProvider(player -> getPlayerFaction(player, statsByPlayer));
-      controller.setTeamId(Integer.parseInt(team));
-      controller.setPlayers(statsByPlayer.keySet());
+      String teamLabelText = team.equals("1") ? i18n.get("replay.noTeam") : i18n.get("replay.team", Integer.parseInt(team) - 1);
+      Label teamLabel = new Label(teamLabelText);
+      teamLabel.getStyleClass().add("replay-card-team-label");
+      teamLabel.setPadding(new Insets(0, 0, 5, 0));
+      teamBox.getChildren().add(teamLabel);
 
-      teamsContainer.getChildren().add(controller.getRoot());
-    });
-  }
-
-  private Faction getPlayerFaction(PlayerBean player, Map<PlayerBean, GamePlayerStatsBean> statsByPlayerId) {
-    GamePlayerStatsBean playerStats = statsByPlayerId.get(player);
-    return playerStats == null ? null : playerStats.getFaction();
-  }
-
-  private Integer getPlayerRating(PlayerBean player, Map<PlayerBean, GamePlayerStatsBean> statsByPlayerId) {
-    GamePlayerStatsBean playerStats = statsByPlayerId.get(player);
-    return playerStats == null ? null : playerStats.getLeaderboardRatingJournals()
+      playerStats.forEach(player -> {
+        PlayerCardController controller = uiService.loadFxml("theme/player_card.fxml");
+        controller.setPlayer(player.getPlayer());
+        controller.setFaction(player.getFaction());
+        controller.setRating(player.getLeaderboardRatingJournals()
                                                    .stream()
                                                    .findFirst()
                                                    .filter(ratingJournal -> ratingJournal.getMeanBefore() != null)
                                                    .filter(ratingJournal -> ratingJournal.getDeviationBefore() != null)
                                                    .map(RatingUtil::getRating)
-                                                   .orElse(null);
+                                                   .orElse(null));
+        teamBox.getChildren().add(controller.getRoot());
+      });
+
+      teamsContainer.getChildren().add(teamBox);
+    });
   }
+
   @Override
   public Node getRoot() {
     return replayTileRoot;
