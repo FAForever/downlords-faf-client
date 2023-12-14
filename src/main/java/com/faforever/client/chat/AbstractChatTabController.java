@@ -141,7 +141,7 @@ public abstract class AbstractChatTabController extends TabController {
    * Messages that arrived before the web view was ready. Those are appended as soon as it is ready.
    */
   private final List<ChatMessage> waitingMessages = new ArrayList<>();
-  private final List<ChatMessage> userMessageHistory = new ArrayList<>();
+  private final List<String> userMessageHistory = new ArrayList<>();
   private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
   protected final ObjectProperty<ChatChannel> chatChannel = new SimpleObjectProperty<>();
   protected final ObservableValue<String> channelName = chatChannel.map(ChatChannel::getName);
@@ -222,22 +222,24 @@ public abstract class AbstractChatTabController extends TabController {
   }
 
   private void onUpOrDownArrowKeyClick(KeyEvent event){
-    if(event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.UP){
-      if(curMessageHistoryIndex == 0){
+    if(event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.UP) {
+      if(curMessageHistoryIndex == 0) {
         currentUserMessage = messageTextField().getText();
       }
-      if(event.getCode() == KeyCode.DOWN)
+      if(event.getCode() == KeyCode.DOWN) {
         curMessageHistoryIndex--;
-      if(event.getCode() == KeyCode.UP)
+      }
+      if(event.getCode() == KeyCode.UP) {
         curMessageHistoryIndex++;
+      }
 
-     if(curMessageHistoryIndex > 0 && curMessageHistoryIndex <= userMessageHistory.size()){
-        messageTextField().setText(userMessageHistory.get(userMessageHistory.size() - curMessageHistoryIndex).message());
+     if(curMessageHistoryIndex > 0 && curMessageHistoryIndex <= userMessageHistory.size()) {
+        messageTextField().setText(userMessageHistory.get(userMessageHistory.size() - curMessageHistoryIndex));
      }
-     if (curMessageHistoryIndex > userMessageHistory.size()){
+     if (curMessageHistoryIndex > userMessageHistory.size()) {
        curMessageHistoryIndex =  userMessageHistory.size();
      }
-     if (curMessageHistoryIndex <= 0){
+     if (curMessageHistoryIndex <= 0) {
        curMessageHistoryIndex =  0;
        messageTextField().setText(currentUserMessage);
      }
@@ -402,6 +404,13 @@ public abstract class AbstractChatTabController extends TabController {
       return;
     }
 
+    if(userMessageHistory.size() >= 50) {
+      userMessageHistory.remove(0);
+      userMessageHistory.add(text);
+    } else {
+      userMessageHistory.add(text);
+    }
+
     if (text.startsWith(ACTION_PREFIX)) {
       sendAction(messageTextField, text);
     } else if (text.startsWith(JOIN_PREFIX)) {
@@ -466,14 +475,6 @@ public abstract class AbstractChatTabController extends TabController {
   }
 
   protected void onChatMessage(ChatMessage chatMessage) {
-    if(chatMessage.username().equals(playerService.getCurrentPlayer().getUsername())) {
-      if(userMessageHistory.size() >= 50){
-        userMessageHistory.remove(0);
-        userMessageHistory.add(chatMessage);
-      } else {
-        userMessageHistory.add(chatMessage);
-      }
-    }
     synchronized (waitingMessages) {
       if (!isChatReady) {
         waitingMessages.add(chatMessage);
