@@ -165,13 +165,9 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
         PlayerCardController controller = uiService.loadFxml("theme/player_card.fxml");
         controller.setPlayer(player.getPlayer());
         controller.setFaction(player.getFaction());
-        controller.setRating(player.getLeaderboardRatingJournals()
-                                                   .stream()
-                                                   .findFirst()
-                                                   .filter(ratingJournal -> ratingJournal.getMeanBefore() != null)
-                                                   .filter(ratingJournal -> ratingJournal.getDeviationBefore() != null)
-                                                   .map(RatingUtil::getRating)
-                                                   .orElse(null));
+        controller.avatarStackPane.setVisible(false);
+        controller.avatarStackPane.setManaged(false);
+        controller.avatarImageView.setManaged(false);
         teamBox.getChildren().add(controller.getRoot());
       });
 

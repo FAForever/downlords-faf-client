@@ -36,6 +36,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -64,6 +65,7 @@ public class PlayerCardController extends NodeController<Node> {
   private final I18n i18n;
 
   public Label playerInfo;
+  public StackPane avatarStackPane;
   public ImageView countryImageView;
   public ImageView avatarImageView;
   public Label foeIconText;
