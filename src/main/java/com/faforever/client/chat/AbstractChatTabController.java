@@ -41,6 +41,8 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.skin.TabPaneSkin;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -139,12 +141,12 @@ public abstract class AbstractChatTabController extends TabController {
    * Messages that arrived before the web view was ready. Those are appended as soon as it is ready.
    */
   private final List<ChatMessage> waitingMessages = new ArrayList<>();
+  private final List<String> userMessageHistory = new ArrayList<>();
   private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
   protected final ObjectProperty<ChatChannel> chatChannel = new SimpleObjectProperty<>();
   protected final ObservableValue<String> channelName = chatChannel.map(ChatChannel::getName);
 
   private final Consumer<ChatMessage> messageListener = this::onChatMessage;
-
   private int lastEntryId;
   private boolean isChatReady;
 
@@ -154,6 +156,8 @@ public abstract class AbstractChatTabController extends TabController {
 
   private ChatMessage lastMessage;
   private WebEngine engine;
+  private String currentUserMessage = "";
+  private int curMessageHistoryIndex = 0;
 
   @VisibleForTesting
   Pattern mentionPattern;
@@ -165,7 +169,12 @@ public abstract class AbstractChatTabController extends TabController {
 
     initChatView();
 
+    messageTextField().setOnKeyPressed(this::onUpOrDownArrowKeyClick);
+    currentUserMessage = "";
+    curMessageHistoryIndex = 0;
+
     chatChannel.when(attached).subscribe(((oldValue, newValue) -> {
+      userMessageHistory.clear();
       if (oldValue != null) {
         oldValue.openProperty().unbind();
         oldValue.removeMessageListener(messageListener);
@@ -209,6 +218,34 @@ public abstract class AbstractChatTabController extends TabController {
   private void clearUnreadIfFocused() {
     if (hasFocus()) {
       setUnread(false);
+    }
+  }
+
+  private void onUpOrDownArrowKeyClick(KeyEvent event){
+    if(event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.UP) {
+      if(curMessageHistoryIndex == 0) {
+        currentUserMessage = messageTextField().getText();
+      }
+      if(event.getCode() == KeyCode.DOWN) {
+        curMessageHistoryIndex--;
+      }
+      if(event.getCode() == KeyCode.UP) {
+        curMessageHistoryIndex++;
+      }
+
+     if(curMessageHistoryIndex > 0 && curMessageHistoryIndex <= userMessageHistory.size()) {
+        messageTextField().setText(userMessageHistory.get(userMessageHistory.size() - curMessageHistoryIndex));
+     }
+     if (curMessageHistoryIndex > userMessageHistory.size()) {
+       curMessageHistoryIndex =  userMessageHistory.size();
+     }
+     if (curMessageHistoryIndex <= 0) {
+       curMessageHistoryIndex =  0;
+       messageTextField().setText(currentUserMessage);
+     }
+     messageTextField().positionCaret(messageTextField().getText().length());
+    } else {
+      curMessageHistoryIndex = 0;
     }
   }
 
@@ -365,6 +402,13 @@ public abstract class AbstractChatTabController extends TabController {
     String text = messageTextField.getText();
     if (StringUtils.isEmpty(text)) {
       return;
+    }
+
+    if(userMessageHistory.size() >= 50) {
+      userMessageHistory.remove(0);
+      userMessageHistory.add(text);
+    } else {
+      userMessageHistory.add(text);
     }
 
     if (text.startsWith(ACTION_PREFIX)) {
