@@ -1,44 +1,31 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.PlayerService;
-import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.NotificationPrefs;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.uploader.ImageUploadService;
-import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
-import java.time.Instant;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
-import static com.faforever.client.chat.AbstractChatTabController.CSS_CLASS_CHAT_ONLY;
-import static com.faforever.client.player.SocialStatus.FOE;
-import static com.faforever.client.player.SocialStatus.FRIEND;
-import static com.faforever.client.player.SocialStatus.SELF;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyString;
@@ -48,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -56,13 +44,7 @@ public class AbstractChatTabControllerTest extends PlatformTest {
   @Mock
   private ChatService chatService;
   @Mock
-  private LoginService loginService;
-  @Mock
-  private PlayerService playerService;
-  @Mock
   private TimeService timeService;
-  @Mock
-  private ImageUploadService imageUploadService;
   @Mock
   private I18n i18n;
   @Mock
@@ -74,17 +56,14 @@ public class AbstractChatTabControllerTest extends PlatformTest {
   @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
-  private ReportingService reportingService;
-  @Mock
-  private NavigationHandler navigationHandler;
-  @Mock
   private CountryFlagService countryFlagService;
   @Mock
   private EmoticonService emoticonService;
   @Spy
   private ChatPrefs chatPrefs;
-  @Spy
-  private NotificationPrefs notificationPrefs;
+
+  @Mock
+  private EmoticonsWindowController emoticonsWindowController;
 
   private AbstractChatTabController instance;
 
@@ -92,14 +71,16 @@ public class AbstractChatTabControllerTest extends PlatformTest {
   public void setup() throws Exception {
     when(themeService.getThemeFileUrl(any())).thenReturn(
         getClass().getResource("/" + ThemeService.CHAT_SECTION_EXTENDED));
-    when(loginService.getUsername()).thenReturn("junit");
+    when(chatService.getCurrentUsername()).thenReturn("junit");
+    lenient().when(uiService.loadFxml("theme/chat/emoticons/emoticons_window.fxml"))
+             .thenReturn(emoticonsWindowController);
+    lenient().when(emoticonsWindowController.getRoot()).thenReturn(new VBox());
 
     fxApplicationThreadExecutor.executeAndWait(() -> {
-      instance = new AbstractChatTabController(loginService, chatService, playerService, timeService, i18n,
+      instance = new AbstractChatTabController(chatService, timeService, i18n,
                                                notificationService, uiService, themeService, webViewConfigurer,
-                                               emoticonService,
-                                               countryFlagService, chatPrefs, notificationPrefs,
-                                               fxApplicationThreadExecutor, navigationHandler) {
+                                               emoticonService, countryFlagService, chatPrefs,
+                                               fxApplicationThreadExecutor) {
         private final Tab root = new Tab();
         private final WebView webView = new WebView();
         private final TextInputControl messageTextField = new TextField();
@@ -191,56 +172,6 @@ public class AbstractChatTabControllerTest extends PlatformTest {
     assertThat(instance.messageTextField().isDisable(), is(false));
   }
 
-
-  @Test
-  public void testOnChatMessage() {
-    // TODO assert something, maybe we can spy on engine
-    runOnFxThreadAndWait(() -> instance.onChatMessage(new ChatMessage(Instant.now(), "junit", "Test message")));
-  }
-
-  @Test
-  public void testOnChatMessageAction() {
-    // TODO assert something, maybe we can spy on engine
-    runOnFxThreadAndWait(() -> instance.onChatMessage(new ChatMessage(Instant.now(), "junit", "Test action", true)));
-  }
-
-  @Test
-  public void getMessageCssClassFriend() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
-    player.setSocialStatus(FRIEND);
-    when(playerService.getPlayerByNameIfOnline(player.getUsername())).thenReturn(Optional.of(player));
-    assertEquals(instance.getMessageCssClass(player.getUsername()), SocialStatus.FRIEND.getCssClass());
-  }
-
-  @Test
-  public void getMessageCssClassFoe() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
-    player.setSocialStatus(FOE);
-    when(playerService.getPlayerByNameIfOnline(player.getUsername())).thenReturn(Optional.of(player));
-    assertEquals(instance.getMessageCssClass(player.getUsername()), SocialStatus.FOE.getCssClass());
-  }
-
-  @Test
-  public void getMessageCssClassChatOnly() {
-    String playerName = "somePlayer";
-    when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.empty());
-    assertEquals(instance.getMessageCssClass(playerName), CSS_CLASS_CHAT_ONLY);
-  }
-
-  @Test
-  public void getMessageCssClassSelf() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
-    player.setSocialStatus(SELF);
-    when(playerService.getPlayerByNameIfOnline(player.getUsername())).thenReturn(Optional.of(player));
-    assertEquals(instance.getMessageCssClass(player.getUsername()), SocialStatus.SELF.getCssClass());
-  }
-
-  @Test
-  public void getMessageCssClassChatOnlyNullPlayerInfoBean() {
-    String playerName = "somePlayer";
-    assertEquals(instance.getMessageCssClass(playerName), CSS_CLASS_CHAT_ONLY);
-  }
-
   @Test
   public void testChannelNamesTransformedToHyperlinks() {
     String output = instance.replaceChannelNamesWithHyperlinks("Go to #moderation and report a user");
@@ -280,7 +211,8 @@ public class AbstractChatTabControllerTest extends PlatformTest {
 
   @Test
   public void testMentionPattern() {
-    when(loginService.getUsername()).thenReturn("-Box-");
+    when(chatService.getCurrentUsername()).thenReturn("-Box-");
+
     runOnFxThreadAndWait(() -> reinitialize(instance));
     assertTrue(instance.mentionPattern.matcher("-Box-").find());
     assertTrue(instance.mentionPattern.matcher("-Box-!").find());

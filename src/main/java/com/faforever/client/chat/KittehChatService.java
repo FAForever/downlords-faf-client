@@ -82,7 +82,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
-import static com.faforever.client.player.SocialStatus.FOE;
 import static java.util.Locale.US;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static javafx.collections.FXCollections.observableHashMap;
@@ -270,7 +269,9 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                          .map(name -> name.replaceFirst("!.*", ""))
                          .orElse("");
     String content = event.getNewTopic().getValue().orElse("");
-    getOrCreateChannel(event.getChannel().getName()).setTopic(new ChannelTopic(author, content));
+    ChatChannel channel = getOrCreateChannel(event.getChannel().getName());
+    ChatChannelUser chatChannelUser = getOrCreateChatUser(author, channel.getName());
+    channel.setTopic(new ChannelTopic(chatChannelUser, content));
   }
 
   @Handler
@@ -280,24 +281,21 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     String channelName = event.getChannel().getName();
 
     String text = event.getMessage();
-    String sender = user.getNick();
     ChatChannel chatChannel = getOrCreateChannel(channelName);
+    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), chatChannel.getName());
     notifyIfMentioned(text, chatChannel, sender);
 
     chatChannel.addMessage(new ChatMessage(Instant.now(), sender, text, false));
   }
 
-  private void notifyIfMentioned(String text, ChatChannel chatChannel, String sender) {
+  private void notifyIfMentioned(String text, ChatChannel chatChannel, ChatChannelUser sender) {
     Matcher matcher = Pattern.compile(
         "(^|[^A-Za-z0-9-])" + Pattern.quote(loginService.getUsername()) + "([^A-Za-z0-9-]|$)",
         CASE_INSENSITIVE).matcher(text);
     boolean mentioned = matcher.find();
     if (mentioned) {
-      boolean fromFoe = playerService.getPlayerByNameIfOnline(sender)
-                                     .map(PlayerBean::getSocialStatus)
-                                     .map(FOE::equals)
-                                     .orElse(false);
-      if (fromFoe || (notificationPrefs.getNotifyOnAtMentionOnlyEnabled() && !text.contains(
+      boolean fromFoe = sender.getCategories().contains(ChatUserCategory.FOE);
+      if (fromFoe || (notificationPrefs.isNotifyOnAtMentionOnlyEnabled() && !text.contains(
           "@" + loginService.getUsername()))) {
         log.debug("Ignored ping {} from {}", text, sender);
         return;
@@ -305,14 +303,15 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
       audioService.playChatMentionSound();
 
-      String identIconSource = playerService.getPlayerByNameIfOnline(sender)
-                                            .map(PlayerBean::getId)
-                                            .map(String::valueOf)
-                                            .orElse(sender);
+      String identIconSource = sender.getPlayer()
+                                     .map(PlayerBean::getId)
+                                     .map(String::valueOf)
+                                     .orElse(sender.getUsername());
 
       if (!chatChannel.isOpen() && notificationPrefs.isPrivateMessageToastEnabled()) {
         notificationService.addNotification(
-            new TransientNotification(sender, text, IdenticonUtil.createIdenticon(identIconSource), evt -> {
+            new TransientNotification(sender.getUsername(), text, IdenticonUtil.createIdenticon(identIconSource),
+                                      evt -> {
               navigationHandler.navigateTo(new NavigateEvent(NavigationItem.CHAT));
             }));
       }
@@ -342,8 +341,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String channelName = event.getChannel().getName();
 
-    String message = event.getMessage().replace("ACTION", user.getNick());
-    getOrCreateChannel(channelName).addMessage(new ChatMessage(Instant.now(), user.getNick(), message, true));
+    String senderNick = user.getNick();
+    String message = event.getMessage().replace("ACTION", senderNick);
+    ChatChannel chatChannel = getOrCreateChannel(channelName);
+    ChatChannelUser sender = getOrCreateChatUser(senderNick, chatChannel.getName());
+    chatChannel.addMessage(new ChatMessage(Instant.now(), sender, message, true));
   }
 
   @Handler
@@ -381,9 +383,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String text = event.getMessage();
     ChatChannel chatChannel = getOrCreateChannel(senderNick);
+    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), chatChannel.getName());
     notifyOnPrivateMessage(text, chatChannel, senderNick);
 
-    chatChannel.addMessage(new ChatMessage(Instant.now(), senderNick, text));
+    chatChannel.addMessage(new ChatMessage(Instant.now(), sender, text));
   }
 
   private void joinAutoChannels() {
@@ -478,7 +481,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     Irc irc = clientProperties.getIrc();
     this.defaultChannelName = irc.getDefaultChannel();
 
-    username = loginService.getUsername();
+    String username = loginService.getUsername();
 
     client = (DefaultClient) Client.builder()
                                    .realName(username)
@@ -520,9 +523,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public CompletableFuture<Void> sendMessageInBackground(ChatChannel chatChannel, String message) {
+    ChatChannelUser sender = getOrCreateChatUser(getCurrentUsername(), chatChannel.getName());
     return CompletableFuture.runAsync(() -> {
       client.sendMessage(chatChannel.getName(), message);
-      chatChannel.addMessage(new ChatMessage(Instant.now(), client.getNick(), message));
+      chatChannel.addMessage(new ChatMessage(Instant.now(), sender, message));
     });
   }
 
@@ -560,9 +564,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public CompletableFuture<Void> sendActionInBackground(ChatChannel chatChannel, String action) {
+    ChatChannelUser sender = getOrCreateChatUser(client.getName(), chatChannel.getName());
     return CompletableFuture.runAsync(() -> {
       client.sendCtcpMessage(chatChannel.getName(), "ACTION " + action);
-      chatChannel.addMessage(new ChatMessage(Instant.now(), client.getNick(), action, true));
+      chatChannel.addMessage(new ChatMessage(Instant.now(), sender, action, true));
     });
   }
 
@@ -636,5 +641,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Override
   public Set<ChatChannel> getChannels() {
     return Set.copyOf(channels.values());
+  }
+
+  @Override
+  public String getCurrentUsername() {
+    return loginService.getUsername();
   }
 }

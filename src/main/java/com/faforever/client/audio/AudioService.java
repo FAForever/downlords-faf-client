@@ -27,7 +27,6 @@ public class AudioService implements InitializingBean {
   private static final String FRIEND_OFFLINE_SOUND = "theme/sounds/friendOfflineSound.mp3";
   private static final String FRIEND_JOINS_GAME_SOUND = "theme/sounds/friendJoinsGameSound.mp3";
   private static final String FRIEND_PLAYS_GAME_SOUND = "theme/sounds/friendPlaysGameSound.mp3";
-  private static final long MILLISECONDS_SILENT_AFTER_SOUND = 30000;
 
   private final AudioClipPlayer audioClipPlayer;
   private final ThemeService themeService;
@@ -155,7 +154,7 @@ public class AudioService implements InitializingBean {
     }
 
     long currentTimeMillis = System.currentTimeMillis();
-    if (currentTimeMillis - lastPlayedSoundTime < MILLISECONDS_SILENT_AFTER_SOUND) {
+    if (currentTimeMillis - lastPlayedSoundTime < notificationPrefs.getSilenceBetweenSounds()) {
       return;
     }
     lastPlayedSoundTime = currentTimeMillis;

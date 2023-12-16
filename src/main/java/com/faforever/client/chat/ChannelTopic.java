@@ -1,3 +1,3 @@
 package com.faforever.client.chat;
 
-public record ChannelTopic(String author, String content) {}
+public record ChannelTopic(ChatChannelUser author, String content) {}

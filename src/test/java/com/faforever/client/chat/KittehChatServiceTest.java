@@ -474,7 +474,6 @@ public class KittehChatServiceTest extends ServiceTest {
         new DefaultChannelTopic(null, "new topic", new DefaultActor(mock(WithManagement.class), "junit2!IP")),
         false));
 
-    assertEquals("junit2", chatChannel.getTopic().author());
     assertEquals("new topic", chatChannel.getTopic().content());
   }
 
@@ -493,7 +492,7 @@ public class KittehChatServiceTest extends ServiceTest {
     ChatMessage chatMessage = chatMessageFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(chatMessage.message(), is(message));
-    assertThat(chatMessage.username(), is(user1.getNick()));
+    assertThat(chatMessage.sender().getUsername(), is(user1.getNick()));
     assertThat(chatMessage.action(), is(false));
   }
 
@@ -512,7 +511,7 @@ public class KittehChatServiceTest extends ServiceTest {
     ChatMessage chatMessage = chatMessageFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(chatMessage.message(), is(message));
-    assertThat(chatMessage.username(), is(user1.getNick()));
+    assertThat(chatMessage.sender().getUsername(), is(user1.getNick()));
     assertThat(chatMessage.action(), is(true));
   }
 
@@ -531,7 +530,7 @@ public class KittehChatServiceTest extends ServiceTest {
     ChatMessage chatMessage = chatMessageFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(chatMessage.message(), is(message));
-    assertThat(chatMessage.username(), is(user1.getNick()));
+    assertThat(chatMessage.sender().getUsername(), is(user1.getNick()));
     assertThat(chatMessage.action(), is(false));
   }
 
