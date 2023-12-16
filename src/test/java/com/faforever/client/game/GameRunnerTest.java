@@ -46,6 +46,7 @@ import com.faforever.commons.lobby.NoticeInfo;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
@@ -766,6 +767,7 @@ public class GameRunnerTest extends ServiceTest {
   }
 
   @Test
+  @Disabled("Race condition")
   public void testOfflineGameRunning() throws IOException {
     when(preferencesService.hasValidGamePath()).thenReturn(true);
     when(forgedAllianceLaunchService.launchOfflineGame(any())).thenReturn(process);

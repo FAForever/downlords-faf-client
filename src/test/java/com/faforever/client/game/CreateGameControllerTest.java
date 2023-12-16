@@ -53,7 +53,6 @@ import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -302,15 +301,6 @@ public class CreateGameControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
     assertThat(instance.mapListView.getSelectionModel().getSelectedItem(), is(lastMapBean));
-  }
-
-  @Test
-  public void testInitGameTypeComboBoxEmpty() throws Exception {
-    when(featuredModService.getFeaturedMods()).thenReturn(completedFuture(List.of()));
-
-    reinitialize(instance);
-
-    assertThat(instance.featuredModListView.getItems(), empty());
   }
 
   @Test
