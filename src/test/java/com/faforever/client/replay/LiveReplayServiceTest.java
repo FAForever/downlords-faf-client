@@ -1,10 +1,8 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -23,11 +21,8 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.scheduling.TaskScheduler;
 
-import java.net.URI;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,8 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -97,16 +90,6 @@ public class LiveReplayServiceTest extends PlatformTest {
   }
 
   @Test
-  public void testRunLiveReplay() throws Exception {
-    when(replayRunner.runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString()))
-        .thenReturn(CompletableFuture.completedFuture(null));
-
-    instance.runLiveReplay(new URI("faflive://example.com/123/456.scfareplay?mod=faf&map=map%20name"));
-
-    verify(replayRunner).runWithLiveReplay(new URI("gpgnet://example.com/123/456.scfareplay"), 123, "faf", "map name");
-  }
-
-  @Test
   public void testNotifyMeWhenReplayIsAvailable() {
     ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
     GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
@@ -124,12 +107,7 @@ public class LiveReplayServiceTest extends PlatformTest {
   public void testRunReplayWhenIsAvailable() {
     ArgumentCaptor<Runnable> runReplayCaptor = ArgumentCaptor.forClass(Runnable.class);
     GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
 
-    when(replayRunner.runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString()))
-        .thenReturn(CompletableFuture.completedFuture(null));
-    when(gameService.getByUid(game.getId())).thenReturn(Optional.of(game));
-    when(playerService.getCurrentPlayer()).thenReturn(player);
     instance.performActionWhenAvailable(game, TrackingLiveReplayAction.RUN_REPLAY);
 
     assertEquals(new TrackingLiveReplay(game.getId(), TrackingLiveReplayAction.RUN_REPLAY), instance.trackingLiveReplayProperty().getValue());
@@ -137,7 +115,7 @@ public class LiveReplayServiceTest extends PlatformTest {
     runReplayCaptor.getValue().run();
 
     verify(notificationService).addNotification(any(TransientNotification.class));
-    verify(replayRunner).runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString());
+    verify(replayRunner).runWithLiveReplay(any());
     assertNull(instance.trackingLiveReplayProperty().getValue());
   }
 

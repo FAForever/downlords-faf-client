@@ -99,7 +99,7 @@ public class ForgedAllianceLaunchService {
   }
 
 
-  public Process startReplay(URI replayUri, Integer replayId) throws IOException {
+  public Process startReplay(URI replayUri, Integer replayId) {
     List<String> launchCommand = replayLaunchCommand().replayUri(replayUri)
         .replayId(replayId)
         .logFile(loggingService.getNewGameLogFile(replayId))

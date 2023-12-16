@@ -39,7 +39,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
 
-import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.List;
@@ -54,7 +53,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -392,15 +390,5 @@ public class LoginControllerTest extends PlatformTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(gameRunner).startOffline();
-  }
-
-  @Test
-  public void testOnPlayOfflineButtonClickedNoExe() throws Exception {
-    doThrow(new IOException()).when(gameRunner).startOffline();
-    instance.onPlayOfflineButtonClicked();
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(gameRunner).startOffline();
-    verify(notificationService).addImmediateWarnNotification(eq("offline.noExe"));
   }
 }

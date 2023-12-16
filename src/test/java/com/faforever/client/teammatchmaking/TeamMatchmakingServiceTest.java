@@ -167,7 +167,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
              .thenReturn(gameLaunchResponseTestPublisher.flux());
     lenient().when(fafServerAccessor.connectionStateProperty()).thenReturn(connectionState);
 
-    lenient().when(preferencesService.isValidGamePath()).thenReturn(true);
+    lenient().when(preferencesService.hasValidGamePath()).thenReturn(true);
     lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
     lenient().doAnswer(invocation -> {
       Runnable runnable = invocation.getArgument(0);

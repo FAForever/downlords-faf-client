@@ -5,7 +5,7 @@ import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.GameService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.replay.LiveReplayService;
+import com.faforever.client.replay.ReplayRunner;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.arikia.dev.drpc.DiscordEventHandlers;
@@ -17,19 +17,20 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class DiscordEventHandler extends DiscordEventHandlers {
-  private final LiveReplayService liveReplayService;
   private final NotificationService notificationService;
   private final GameRunner gameRunner;
+  private final ReplayRunner replayRunner;
   private final GameService gameService;
   private final ObjectMapper objectMapper;
   private final Preferences preferences;
 
-  public DiscordEventHandler(LiveReplayService liveReplayService, NotificationService notificationService,
-                             GameRunner gameRunner, GameService gameService, ObjectMapper objectMapper,
+  public DiscordEventHandler(NotificationService notificationService,
+                             GameRunner gameRunner, ReplayRunner replayRunner, GameService gameService,
+                             ObjectMapper objectMapper,
                              Preferences preferences) {
-    this.liveReplayService = liveReplayService;
     this.notificationService = notificationService;
     this.gameRunner = gameRunner;
+    this.replayRunner = replayRunner;
     this.gameService = gameService;
     this.objectMapper = objectMapper;
     this.preferences = preferences;
@@ -65,7 +66,8 @@ public class DiscordEventHandler extends DiscordEventHandlers {
   private void onSpectate(String spectateSecret) {
     try {
       DiscordSpectateSecret discordSpectateSecret = objectMapper.readValue(spectateSecret, DiscordSpectateSecret.class);
-      liveReplayService.runLiveReplay(discordSpectateSecret.gameId());
+      GameBean game = gameService.getByUid(discordSpectateSecret.gameId()).orElseThrow();
+      replayRunner.runWithLiveReplay(game);
     } catch (Exception e) {
       log.error("Could not join game from discord rich presence", e);
       notificationService.addImmediateErrorNotification(e, "discord.couldNotOpen");

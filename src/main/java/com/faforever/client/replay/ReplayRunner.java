@@ -1,12 +1,12 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.featuredmod.FeaturedModService;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.game.GamePathHandler;
-import com.faforever.client.game.GameService;
-import com.faforever.client.game.error.GameLaunchException;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
@@ -14,14 +14,21 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
+import com.google.common.annotations.VisibleForTesting;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -29,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -42,7 +48,9 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class ReplayRunner {
+public class ReplayRunner implements InitializingBean {
+
+  private static final String GPGNET_SCHEME = "gpgnet";
 
   private final ForgedAllianceLaunchService forgedAllianceLaunchService;
   private final MapService mapService;
@@ -51,115 +59,143 @@ public class ReplayRunner {
   private final I18n i18n;
   private final ModService modService;
   private final FeaturedModService featuredModService;
-  private final GameService gameService;
+  private final PlayerService playerService;
   private final GamePathHandler gamePathHandler;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final ClientProperties clientProperties;
 
-  private Process process;
+  private final ReadOnlyObjectWrapper<Process> process = new ReadOnlyObjectWrapper<>();
+  private final ReadOnlyBooleanWrapper running = new ReadOnlyBooleanWrapper();
 
-  private CompletableFuture<Void> downloadMapIfNecessary(String mapFolderName) {
-    return mapService.downloadIfNecessary(mapFolderName).handle((ignored, throwable) -> {
-      if (throwable == null) {
-        return null;
-      }
+  @Override
+  public void afterPropertiesSet() {
+    running.bind(process.flatMap(process -> {
+      BooleanProperty isAlive = new SimpleBooleanProperty(process.isAlive());
+      process.onExit().thenRunAsync(() -> isAlive.set(false), fxApplicationThreadExecutor);
+      return isAlive;
+    }));
+  }
 
-      try {
-        askWhetherToStartWithOutMap(throwable);
-      } catch (Throwable e) {
-        throw new CompletionException(e);
-      }
-
-      return null;
-    });
+  @VisibleForTesting
+  CompletableFuture<Void> downloadMapAskIfError(String mapFolderName) {
+    return mapService.downloadIfNecessary(mapFolderName)
+                     .exceptionallyCompose(throwable -> shouldStartWithOutMap(throwable));
   }
 
   /**
    * @param path a replay file that is readable by the preferences without any further conversion
    */
-  public CompletableFuture<Void> runWithReplay(Path path, @Nullable Integer replayId, String featuredModName,
-                                               Integer baseFafVersion, Map<String, Integer> featuredModFileVersions,
-                                               Set<String> simMods, String mapFolderName) {
-    if (!canStartReplay()) {
-      return completedFuture(null);
+  public void runWithReplay(Path path, @Nullable Integer replayId, String featuredModName, Integer baseFafVersion,
+                            Map<String, Integer> featuredModFileVersions, Set<String> simMods, String mapFolderName) {
+    if (isRunning()) {
+      log.info("Another replay is already running, not starting replay");
+      notificationService.addImmediateWarnNotification("replay.replayRunning");
+      return;
     }
 
-    if (!preferencesService.isValidGamePath()) {
+    if (!preferencesService.hasValidGamePath()) {
       gamePathHandler.chooseAndValidateGameDirectory().thenAccept(
           pathSet -> runWithReplay(path, replayId, featuredModName, baseFafVersion, featuredModFileVersions, simMods,
                                    mapFolderName));
-      return completedFuture(null);
+      return;
     }
 
     CompletableFuture<Void> updateFeaturedModFuture = featuredModService.updateFeaturedMod(featuredModName,
                                                                                            featuredModFileVersions,
                                                                                            baseFafVersion, true);
-    CompletableFuture<Void> installAndActivateSimModsFuture = modService.installAndEnableMods(simMods);
-    CompletableFuture<Void> downloadMapFuture = downloadMapIfNecessary(mapFolderName);
-    return CompletableFuture.allOf(updateFeaturedModFuture, installAndActivateSimModsFuture, downloadMapFuture)
-                            .thenRun(() -> this.process = forgedAllianceLaunchService.startReplay(path, replayId));
+    boolean hasSimMods = simMods == null || simMods.isEmpty();
+    CompletableFuture<Void> installAndActivateSimModsFuture = hasSimMods ? completedFuture(
+        null) : modService.downloadAndEnableMods(simMods);
+    CompletableFuture<Void> downloadMapFuture = downloadMapAskIfError(mapFolderName);
+    CompletableFuture.allOf(updateFeaturedModFuture, installAndActivateSimModsFuture, downloadMapFuture)
+                     .thenApply(ignored -> forgedAllianceLaunchService.startReplay(path, replayId))
+                     .thenAcceptAsync(process::set, fxApplicationThreadExecutor);
   }
 
-  private boolean canStartReplay() {
-    if (process != null && process.isAlive()) {
-      log.info("Another replay is already running, not starting replay");
-      notificationService.addImmediateWarnNotification("replay.replayRunning");
-      return false;
-    }
-    return true;
-  }
-
-  private void askWhetherToStartWithOutMap(Throwable throwable) throws Throwable {
-    JavaFxUtil.assertBackgroundThread();
-    log.error("Error loading map for replay", throwable);
+  private CompletableFuture<Void> shouldStartWithOutMap(Throwable throwable) {
+    CompletableFuture<Void> future = new CompletableFuture<>();
 
     CountDownLatch userAnswered = new CountDownLatch(1);
-    AtomicReference<Boolean> proceed = new AtomicReference<>(false);
+    AtomicReference<Boolean> shouldStart = new AtomicReference<>(false);
     List<Action> actions = Arrays.asList(new Action(i18n.get("replay.ignoreMapNotFound"), event -> {
-      proceed.set(true);
+      shouldStart.set(true);
       userAnswered.countDown();
     }), new Action(i18n.get("replay.abortAfterMapNotFound"), event -> userAnswered.countDown()));
     notificationService.addNotification(new ImmediateNotification(i18n.get("replay.mapDownloadFailed"),
                                                                   i18n.get("replay.mapDownloadFailed.wannaContinue"),
+
                                                                   Severity.WARN, actions));
-    userAnswered.await();
-    if (!proceed.get()) {
-      throw throwable;
-    }
+
+    CompletableFuture.runAsync(() -> {
+      try {
+        userAnswered.await();
+        if (shouldStart.get()) {
+          future.complete(null);
+        } else {
+          future.completeExceptionally(throwable);
+        }
+      } catch (InterruptedException exception) {
+        future.completeExceptionally(throwable);
+      }
+    });
+
+    return future;
   }
 
-  public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) {
-    if (!canStartReplay()) {
-      return completedFuture(null);
+  public void runWithLiveReplay(GameBean game) {
+    if (isRunning()) {
+      log.info("Another replay is already running, not starting replay");
+      notificationService.addImmediateWarnNotification("replay.replayRunning");
+      return;
     }
 
-    if (!preferencesService.isValidGamePath()) {
-      return gamePathHandler.chooseAndValidateGameDirectory()
-                            .thenCompose(path -> runWithLiveReplay(replayUrl, gameId, gameType, mapName));
+    if (!preferencesService.hasValidGamePath()) {
+      gamePathHandler.chooseAndValidateGameDirectory().thenRun(() -> runWithLiveReplay(game));
+      return;
     }
 
-    Set<String> simModUids = gameService.getByUid(gameId).map(GameBean::getSimMods).map(Map::keySet).orElse(Set.of());
+    /* A courtesy towards the replay server so we can see in logs who we're dealing with. */
+    String playerName = playerService.getCurrentPlayer().getUsername();
 
-    CompletableFuture<Void> updateFeaturedModFuture = featuredModService.updateFeaturedModToLatest(gameType, true);
-    CompletableFuture<Void> installAndActivateSimModsFuture = modService.installAndEnableMods(simModUids);
-    CompletableFuture<Void> downloadMapFuture = downloadMapIfNecessary(mapName);
-    return CompletableFuture.allOf(updateFeaturedModFuture, installAndActivateSimModsFuture, downloadMapFuture)
-                            .thenRun(() -> {
-                              try {
-                                this.process = forgedAllianceLaunchService.startReplay(replayUrl, gameId);
-                              } catch (IOException e) {
-                                throw new GameLaunchException("Live replay could not be started", e,
-                                                              "replay.live.startError");
-                              }
-                            });
+    String featuredModName = game.getFeaturedMod();
+    String mapName = game.getMapFolderName();
+    URI replayUrl = UriComponentsBuilder.newInstance()
+                                        .scheme(GPGNET_SCHEME)
+                                        .host(clientProperties.getReplay().getRemoteHost())
+                                        .port(clientProperties.getReplay().getRemotePort())
+                                        .path(
+                                            "/" + game.getId() + "/" + playerName + ReplayService.SUP_COM_REPLAY_FILE_ENDING)
+                                        .build()
+                                        .toUri();
+
+    Set<String> simModUids = game.getSimMods().keySet();
+
+    CompletableFuture<Void> updateFeaturedModFuture = featuredModService.updateFeaturedModToLatest(featuredModName,
+                                                                                                   true);
+    CompletableFuture<Void> installAndActivateSimModsFuture = simModUids.isEmpty() ? completedFuture(
+        null) : modService.downloadAndEnableMods(simModUids);
+    CompletableFuture<Void> downloadMapFuture = downloadMapAskIfError(mapName);
+    CompletableFuture.allOf(updateFeaturedModFuture, installAndActivateSimModsFuture, downloadMapFuture)
+                     .thenApply(ignored -> forgedAllianceLaunchService.startReplay(replayUrl, game.getId()))
+                     .thenAcceptAsync(process::set, fxApplicationThreadExecutor)
+                     .exceptionally(throwable -> {
+                       if (throwable instanceof NotifiableException notifiableException) {
+                         notificationService.addErrorNotification(notifiableException);
+                       } else {
+                         notificationService.addImmediateErrorNotification(throwable, "liveReplayCouldNotBeStarted");
+                       }
+                       return null;
+                     });
   }
 
-  private boolean isRunning() {
-    return process != null && process.isAlive();
+  public boolean isRunning() {
+    return running.get();
   }
 
   public void killReplay() {
     if (isRunning()) {
       log.info("Forged Alliance replay still running, destroying process");
-      process.destroy();
+      process.get().destroy();
     }
   }
 }

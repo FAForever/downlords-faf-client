@@ -74,7 +74,6 @@ import java.util.stream.StreamSupport;
 
 import static com.faforever.client.notification.Severity.WARN;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
@@ -381,7 +380,7 @@ public class ReplayService {
     String gameType = guessModByFileName(fileName);
     Set<String> simMods = parseModUIDs(replayData);
 
-    replayRunner.runWithReplay(path, null, gameType, version, emptyMap(), simMods, mapName);
+    replayRunner.runWithReplay(path, null, gameType, version, Map.of(), simMods, mapName);
   }
 
   @Cacheable(value = CacheNames.REPLAYS_RECENT, sync = true)

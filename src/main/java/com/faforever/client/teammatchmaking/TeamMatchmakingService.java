@@ -391,7 +391,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   public CompletableFuture<Boolean> joinQueues() {
-    if (!preferencesService.isValidGamePath()) {
+    if (!preferencesService.hasValidGamePath()) {
       gamePathHandler.notifyMissingGamePath(true);
       return CompletableFuture.completedFuture(false);
     }
@@ -475,7 +475,7 @@ public class TeamMatchmakingService implements InitializingBean {
       return;
     }
 
-    if (!preferencesService.isValidGamePath()) {
+    if (!preferencesService.hasValidGamePath()) {
       gamePathHandler.notifyMissingGamePath(true);
       return;
     }
@@ -490,7 +490,7 @@ public class TeamMatchmakingService implements InitializingBean {
       return;
     }
 
-    if (!preferencesService.isValidGamePath()) {
+    if (!preferencesService.hasValidGamePath()) {
       gamePathHandler.notifyMissingGamePath(true);
       return;
     }

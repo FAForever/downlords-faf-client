@@ -184,8 +184,8 @@ public class ModServiceTest extends PlatformTest {
     StringProperty stringProperty = new SimpleStringProperty();
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
-    instance.downloadAndInstallModIfNecessary(ModVersionBeanBuilder.create().defaultValues().get(), doubleProperty,
-                                              stringProperty)
+    instance.downloadIfNecessary(ModVersionBeanBuilder.create().defaultValues().get(), doubleProperty,
+                                 stringProperty)
             .toCompletableFuture()
             .get(TIMEOUT, TIMEOUT_UNIT);
 
@@ -210,7 +210,7 @@ public class ModServiceTest extends PlatformTest {
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
     ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().downloadUrl(modUrl).get();
-    instance.downloadAndInstallModIfNecessary(modVersion, doubleProperty, stringProperty)
+    instance.downloadIfNecessary(modVersion, doubleProperty, stringProperty)
             .toCompletableFuture()
             .get(TIMEOUT, TIMEOUT_UNIT);
 

@@ -69,7 +69,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
@@ -172,7 +171,6 @@ public class GameRunner implements InitializingBean {
     String leaderboard = gameLaunchResponse.getLeaderboard();
     boolean hasLeague = leaderboard == null || "global".equals(leaderboard);
 
-    fxApplicationThreadExecutor.execute(() -> runningGameId.set(uid));
     String mapFolderName = gameLaunchResponse.getMapName();
     CompletableFuture<Void> downloadMapFuture = mapFolderName == null ? completedFuture(
         null) : mapService.downloadIfNecessary(mapFolderName);
@@ -187,21 +185,20 @@ public class GameRunner implements InitializingBean {
                             .whenCompleteAsync((process, throwable) -> {
                               if (process != null) {
                                 this.process.set(process);
+                                runningGameId.set(uid);
                               }
                             }, fxApplicationThreadExecutor)
                             .thenCompose(Process::onExit)
                             .thenAccept(this::handleTermination)
-                            .whenComplete((result, throwable) -> {
+                            .whenComplete((ignored, throwable) -> {
                               iceAdapter.stop();
                               replayServer.stop();
                               fafServerAccessor.notifyGameEnded();
                             })
-                            .whenCompleteAsync((result, throwable) -> runningGameId.set(null),
-                                               fxApplicationThreadExecutor)
-                            .exceptionally(throwable -> {
-                              log.error("Something went wrong during game launch", throwable);
-                              return null;
-                            });
+                            .whenCompleteAsync((ignored, throwable) -> {
+                              process.set(null);
+                              runningGameId.set(null);
+                            }, fxApplicationThreadExecutor);
   }
 
   @VisibleForTesting
@@ -211,8 +208,9 @@ public class GameRunner implements InitializingBean {
     CompletableFuture<Void> updateFeaturedModFuture = featuredModService.updateFeaturedModToLatest(featuredModName,
                                                                                                    false);
 
-    CompletableFuture<Void> installSimModsFuture = modService.installAndEnableMods(simModUids);
-    CompletableFuture<Void> downloadMapFuture = mapFolderName == null ? completedFuture(
+    CompletableFuture<Void> installSimModsFuture = simModUids.isEmpty() ? completedFuture(
+        null) : modService.downloadAndEnableMods(simModUids);
+    CompletableFuture<Void> downloadMapFuture = mapFolderName == null || mapFolderName.isBlank() ? completedFuture(
         null) : mapService.downloadIfNecessary(mapFolderName);
     return CompletableFuture.allOf(updateFeaturedModFuture, installSimModsFuture, downloadMapFuture)
                             .thenCompose(ignored -> gameLaunchSupplier.get())
@@ -226,8 +224,8 @@ public class GameRunner implements InitializingBean {
       return;
     }
 
-    if (!preferencesService.isValidGamePath()) {
-      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(ignored -> host(newGameInfo));
+    if (!preferencesService.hasValidGamePath()) {
+      gamePathHandler.chooseAndValidateGameDirectory().thenRun(() -> host(newGameInfo));
       return;
     }
 
@@ -260,8 +258,8 @@ public class GameRunner implements InitializingBean {
       return;
     }
 
-    if (!preferencesService.isValidGamePath()) {
-      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(ignored -> join(game, password, ignoreRating));
+    if (!preferencesService.hasValidGamePath()) {
+      gamePathHandler.chooseAndValidateGameDirectory().thenRun(() -> join(game, password, ignoreRating));
       return;
     }
 
@@ -300,7 +298,7 @@ public class GameRunner implements InitializingBean {
 
   private void showEnterPasswordDialog(GameBean game, boolean ignoreRating) {
     EnterPasswordController enterPasswordController = uiService.loadFxml("theme/enter_password.fxml");
-    enterPasswordController.setOnPasswordEnteredListener(this::join);
+    enterPasswordController.setPasswordEnteredListener(this::join);
     enterPasswordController.setGame(game);
     enterPasswordController.setIgnoreRating(ignoreRating);
     enterPasswordController.showPasswordDialog(StageHolder.getStage());
@@ -326,7 +324,7 @@ public class GameRunner implements InitializingBean {
       return;
     }
 
-    if (!preferencesService.isValidGamePath()) {
+    if (!preferencesService.hasValidGamePath()) {
       gamePathHandler.chooseAndValidateGameDirectory().thenRun(this::startSearchMatchmaker);
       return;
     }
@@ -336,7 +334,7 @@ public class GameRunner implements InitializingBean {
     matchmakerFuture = prepareAndLaunchGameWhenReady(FAF.getTechnicalName(), Set.of(), null,
                                                      fafServerAccessor::startSearchMatchmaker);
 
-    matchmakerFuture.whenComplete((aVoid, throwable) -> {
+    matchmakerFuture.whenComplete((ignored, throwable) -> {
       if (throwable != null) {
         throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
         if (throwable instanceof CancellationException) {
@@ -385,10 +383,6 @@ public class GameRunner implements InitializingBean {
   }
 
   private CompletableFuture<League> getDivisionInfo(String leaderboard) {
-    if (leaderboard == null || "global".equals(leaderboard)) {
-      return completedFuture(null);
-    }
-
     return leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), leaderboard)
                              .thenApply(leagueEntryOptional -> {
                                Optional<SubdivisionBean> subdivisionBeanOptional = leagueEntryOptional.map(
@@ -451,7 +445,6 @@ public class GameRunner implements InitializingBean {
     if (isRunning()) {
       gameKilled = true;
       log.info("ForgedAlliance still running, destroying process");
-      iceAdapter.onGameCloseRequested();
       process.get().destroy();
     }
   }
@@ -463,9 +456,7 @@ public class GameRunner implements InitializingBean {
       return;
     }
 
-    fxApplicationThreadExecutor.execute(() -> runningGameId.set(null));
-
-    if (!preferencesService.isValidGamePath()) {
+    if (!preferencesService.hasValidGamePath()) {
       gamePathHandler.chooseAndValidateGameDirectory().thenAccept(path -> launchTutorial(mapVersion, technicalMapName));
       return;
     }
@@ -477,6 +468,11 @@ public class GameRunner implements InitializingBean {
 
     CompletableFuture.allOf(updateTutorialFuture, downloadMapFuture)
                      .thenApply(ignored -> forgedAllianceLaunchService.launchOfflineGame(technicalMapName))
+                     .whenCompleteAsync((process, throwable) -> {
+                       if (process != null) {
+                         this.process.set(process);
+                       }
+                     }, fxApplicationThreadExecutor)
                      .thenCompose(Process::onExit)
                      .thenAccept(this::handleTermination)
                      .exceptionally(throwable -> {
@@ -491,27 +487,24 @@ public class GameRunner implements InitializingBean {
                      });
   }
 
-  public void startOffline() throws IOException {
+  public void startOffline() {
     if (isRunning()) {
       log.info("Game is running, ignoring start offline request");
       notificationService.addImmediateWarnNotification("game.gameRunning");
       return;
     }
 
-    fxApplicationThreadExecutor.execute(() -> runningGameId.set(null));
-
-    if (!preferencesService.isValidGamePath()) {
-      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(path -> {
-        try {
-          startOffline();
-        } catch (IOException e) {
-          throw new CompletionException(e);
-        }
-      });
+    if (!preferencesService.hasValidGamePath()) {
+      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(path -> startOffline());
       return;
     }
 
     CompletableFuture.supplyAsync(() -> forgedAllianceLaunchService.launchOfflineGame(null))
+                     .whenCompleteAsync((process, throwable) -> {
+                       if (process != null) {
+                         this.process.set(process);
+                       }
+                     }, fxApplicationThreadExecutor)
                      .thenCompose(Process::onExit)
                      .thenAccept(this::handleTermination)
                      .exceptionally(throwable -> {

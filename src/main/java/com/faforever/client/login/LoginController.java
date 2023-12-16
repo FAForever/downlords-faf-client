@@ -41,7 +41,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -358,12 +357,7 @@ public class LoginController extends NodeController<Pane> {
   }
 
   public void onPlayOfflineButtonClicked() {
-    try {
-      gameRunner.startOffline();
-    } catch (IOException e) {
-      notificationService.addImmediateWarnNotification("offline.noExe");
-    }
-
+    gameRunner.startOffline();
   }
 
   @Override

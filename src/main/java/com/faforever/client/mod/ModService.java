@@ -215,7 +215,7 @@ public class ModService implements InitializingBean, DisposableBean {
     });
   }
 
-  public CompletableFuture<Void> downloadAndInstallModIfNecessary(String uid) {
+  public CompletableFuture<Void> downloadIfNecessary(String uid) {
     if (isInstalled(uid)) {
       return CompletableFuture.completedFuture(null);
     }
@@ -224,26 +224,26 @@ public class ModService implements InitializingBean, DisposableBean {
       if (modVersion == null) {
         throw new IllegalArgumentException("Mod with uid %s could not be found".formatted(uid));
       }
-      return downloadAndInstallMod(modVersion.getDownloadUrl(), null, null);
+      return downloadMod(modVersion.getDownloadUrl(), null, null);
     });
   }
 
-  public CompletableFuture<Void> downloadAndInstallModIfNecessary(ModVersionBean modVersion) {
-    return downloadAndInstallModIfNecessary(modVersion, null, null);
+  public CompletableFuture<Void> downloadIfNecessary(ModVersionBean modVersion) {
+    return downloadIfNecessary(modVersion, null, null);
   }
 
-  public CompletableFuture<Void> downloadAndInstallModIfNecessary(ModVersionBean modVersion,
-                                                                  @Nullable DoubleProperty progressProperty,
-                                                                  @Nullable StringProperty titleProperty) {
+  public CompletableFuture<Void> downloadIfNecessary(ModVersionBean modVersion,
+                                                     @Nullable DoubleProperty progressProperty,
+                                                     @Nullable StringProperty titleProperty) {
     if (isInstalled(modVersion)) {
       return CompletableFuture.completedFuture(null);
     }
 
-    return downloadAndInstallMod(modVersion.getDownloadUrl(), progressProperty, titleProperty);
+    return downloadMod(modVersion.getDownloadUrl(), progressProperty, titleProperty);
   }
 
-  private CompletableFuture<Void> downloadAndInstallMod(URL url, @Nullable DoubleProperty progressProperty,
-                                                        @Nullable StringProperty titleProperty) {
+  private CompletableFuture<Void> downloadMod(URL url, @Nullable DoubleProperty progressProperty,
+                                              @Nullable StringProperty titleProperty) {
     DownloadModTask task = downloadModTaskFactory.getObject();
     task.setUrl(url);
     if (progressProperty != null) {
@@ -256,9 +256,9 @@ public class ModService implements InitializingBean, DisposableBean {
     return taskService.submitTask(task).getFuture();
   }
 
-  public CompletableFuture<Void> installAndEnableMods(Set<String> modUids) {
+  public CompletableFuture<Void> downloadAndEnableMods(Set<String> modUids) {
     return CompletableFuture.allOf(
-        modUids.stream().map(uid -> downloadAndInstallModIfNecessary(uid).exceptionally(throwable -> {
+        modUids.stream().map(uid -> downloadIfNecessary(uid).exceptionally(throwable -> {
           log.warn("Unable to install mod with uid {}", uid);
           return null;
         })).toArray(CompletableFuture[]::new)).thenRun(() -> tryEnableMods(modUids));
@@ -419,7 +419,7 @@ public class ModService implements InitializingBean, DisposableBean {
                                                            .filter(latestModVersion -> !Objects.equals(latestModVersion,
                                                                                                        installedModVersion))
                                                            .flatMap(latestModVersion -> Mono.fromFuture(
-                                                                                                downloadAndInstallModIfNecessary(latestModVersion))
+                                                                                                downloadIfNecessary(latestModVersion))
                                                                                             .thenReturn(
                                                                                                 latestModVersion))
                                                            .doOnError(throwable -> log.info(

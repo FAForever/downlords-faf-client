@@ -260,16 +260,15 @@ public class PlatformService {
   }
 
   public CompletableFuture<Optional<Path>> askForPath(String title, Path initialDirectory) {
-    CompletableFuture<File> result = new CompletableFuture<>();
     DirectoryChooser directoryChooser = new DirectoryChooser();
     directoryChooser.setTitle(title);
     if (initialDirectory != null) {
       directoryChooser.setInitialDirectory(initialDirectory.toFile());
     }
 
-    fxApplicationThreadExecutor.execute(
-        () -> result.complete(directoryChooser.showDialog(StageHolder.getStage().getScene().getWindow())));
-    return result.thenApply(file -> Optional.ofNullable(file).map(File::toPath));
+    return CompletableFuture.supplyAsync(
+                                () -> directoryChooser.showDialog(StageHolder.getStage().getScene().getWindow()), fxApplicationThreadExecutor)
+                            .thenApply(file -> Optional.ofNullable(file).map(File::toPath));
   }
 
   public Optional<Path> askForFile(String title, @Nullable Path initialDirectoryOrFile,

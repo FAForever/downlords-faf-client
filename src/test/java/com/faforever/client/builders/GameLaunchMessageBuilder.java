@@ -14,7 +14,7 @@ public class GameLaunchMessageBuilder {
 
   private List<String> args;
   private int uid;
-  private String mod;
+  private String featuredMod;
   private String mapname;
   private String name;
   private Integer expectedPlayers;
@@ -34,7 +34,7 @@ public class GameLaunchMessageBuilder {
   public GameLaunchMessageBuilder defaultValues() {
     name("test");
     uid(1);
-    mod(KnownFeaturedMod.DEFAULT.getTechnicalName());
+    featuredMod(KnownFeaturedMod.DEFAULT.getTechnicalName());
     args();
     gameType(GameType.CUSTOM);
     ratingType("global");
@@ -43,7 +43,8 @@ public class GameLaunchMessageBuilder {
   }
 
   public GameLaunchResponse get() {
-    return new GameLaunchResponse(uid, name, mod, initMode, gameType, ratingType, args, mapname, expectedPlayers, mapPosition, gameOptions, team, faction);
+    return new GameLaunchResponse(uid, name, featuredMod, initMode, gameType, ratingType, args, mapname,
+                                  expectedPlayers, mapPosition, gameOptions, team, faction);
   }
 
   public GameLaunchMessageBuilder name(String name) {
@@ -56,8 +57,8 @@ public class GameLaunchMessageBuilder {
     return this;
   }
 
-  public GameLaunchMessageBuilder mod(String mod) {
-    this.mod = mod;
+  public GameLaunchMessageBuilder featuredMod(String featuredMod) {
+    this.featuredMod = featuredMod;
     return this;
   }
 
