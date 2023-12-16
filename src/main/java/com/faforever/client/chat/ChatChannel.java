@@ -32,7 +32,7 @@ public class ChatChannel {
       FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
           item -> new Observable[]{item.categoriesProperty(), item.colorProperty(), item.moderatorProperty()})),
       usernameToChatUser);
-  private final ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic("", ""));
+  private final ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic(null, ""));
   private final Set<Consumer<ChatMessage>> messageListeners = new HashSet<>();
   private final List<ChatMessage> messages = new ArrayList<>();
   private final BooleanProperty open = new SimpleBooleanProperty();

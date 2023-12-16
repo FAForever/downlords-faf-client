@@ -1,21 +1,17 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.emoticons.EmoticonService;
-import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.value.ObservableValue;
@@ -44,13 +40,11 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.fx.PlatformService.URL_REGEX_PATTERN;
-import static com.faforever.client.player.SocialStatus.FOE;
 import static java.util.Locale.US;
 
 @Slf4j
@@ -64,6 +58,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private static final int TOPIC_CHARACTERS_LIMIT = 350;
 
   private final PlatformService platformService;
+  private final NotificationPrefs notificationPrefs;
 
   public Tab root;
   public SplitPane splitPane;
@@ -89,19 +84,17 @@ public class ChannelTabController extends AbstractChatTabController {
   private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = this::updateChangedUsersStyles;
 
 
-  public ChannelTabController(WebViewConfigurer webViewConfigurer, LoginService loginService, ChatService chatService,
-                              PlayerService playerService,
-                              TimeService timeService, I18n i18n,
+  public ChannelTabController(WebViewConfigurer webViewConfigurer, ChatService chatService, TimeService timeService,
+                              I18n i18n,
                               NotificationService notificationService, UiService uiService, ThemeService themeService,
-                              NavigationHandler navigationHandler,
                               CountryFlagService countryFlagService, EmoticonService emoticonService,
                               PlatformService platformService, ChatPrefs chatPrefs,
                               NotificationPrefs notificationPrefs,
                               FxApplicationThreadExecutor fxApplicationThreadExecutor) {
-    super(loginService, chatService, playerService, timeService, i18n, notificationService, uiService, themeService,
-          webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs,
-          fxApplicationThreadExecutor, navigationHandler);
+    super(chatService, timeService, i18n, notificationService, uiService, themeService, webViewConfigurer,
+          emoticonService, countryFlagService, chatPrefs, fxApplicationThreadExecutor);
     this.platformService = platformService;
+    this.notificationPrefs = notificationPrefs;
   }
 
   @Override
@@ -136,8 +129,8 @@ public class ChannelTabController extends AbstractChatTabController {
 
     chatUserListController.chatChannelProperty().bind(chatChannel.when(showing));
 
-    ObservableValue<Boolean> isModerator = chatChannel.map(channel -> channel.getUser(loginService.getUsername())
-                                                                             .orElse(null))
+    ObservableValue<Boolean> isModerator = chatChannel.map(
+                                                          channel -> channel.getUser(chatService.getCurrentUsername()).orElse(null))
                                                       .flatMap(ChatChannelUser::moderatorProperty)
                                                       .orElse(false)
                                                       .when(showing);
@@ -242,23 +235,14 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void updateChannelTopic(ChannelTopic oldTopic, ChannelTopic newTopic) {
-    String newTopicContent = newTopic.content();
-
     fxApplicationThreadExecutor.execute(() -> {
-      setChannelTopic(newTopicContent);
+      setChannelTopic(newTopic.content());
 
       if (topicPane.isDisable()) {
         topicTextField.setVisible(false);
         topicPane.setDisable(false);
       }
     });
-
-
-    if (oldTopic != null) {
-      String oldTopicContent = oldTopic.content();
-      onChatMessage(new ChatMessage(Instant.now(), newTopic.author(),
-                                    i18n.get("chat.topicUpdated", oldTopicContent, newTopicContent)));
-    }
   }
 
   public void onChatChannelKeyReleased(KeyEvent keyEvent) {
@@ -321,24 +305,15 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @Override
-  protected String getMessageCssClass(String login) {
-    return chatService.getOrCreateChatUser(login, channelName.getValue())
-                      .isModerator() ? MODERATOR_STYLE_CLASS : super.getMessageCssClass(login);
-  }
-
-  @Override
   protected void onMention(ChatMessage chatMessage) {
-    if (notificationPrefs.getNotifyOnAtMentionOnlyEnabled() && !chatMessage.message()
-                                                                           .contains(
-                                                                               "@" + loginService.getUsername())) {
+    if (notificationPrefs.isNotifyOnAtMentionOnlyEnabled() && !chatMessage.message()
+                                                                          .contains(
+                                                                              "@" + chatService.getCurrentUsername())) {
       return;
     }
 
-    if (playerService.getPlayerByNameIfOnline(chatMessage.username())
-                     .map(PlayerBean::getSocialStatus)
-                     .map(FOE::equals)
-                     .orElse(false)) {
-      log.debug("Ignored ping from {}", chatMessage.username());
+    if (chatMessage.sender().getCategories().contains(ChatUserCategory.FOE)) {
+      log.debug("Ignored ping from {}", chatMessage.sender().getUsername());
     } else if (!hasFocus()) {
       incrementUnreadMessagesCount();
       setUnread(true);
@@ -346,18 +321,15 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @Override
-  protected String getInlineStyle(String username) {
-    ChatChannelUser user = chatChannel.map(channel -> channel.getUser(username).orElse(null)).getValue();
-    if (user == null) {
-      return "";
-    }
-
-    if (chatPrefs.isHideFoeMessages() && user.getCategories()
+  protected String getInlineStyle(ChatChannelUser chatChannelUser) {
+    if (chatPrefs.isHideFoeMessages() && chatChannelUser.getCategories()
                                              .stream()
                                              .anyMatch(category -> category == ChatUserCategory.FOE)) {
       return "display: none;";
     } else {
-      return user.getColor().map(color -> String.format("color: %s;", JavaFxUtil.toRgbCode(color))).orElse("");
+      return chatChannelUser.getColor()
+                            .map(color -> String.format("color: %s;", JavaFxUtil.toRgbCode(color)))
+                            .orElse("");
     }
   }
 

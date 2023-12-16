@@ -5,6 +5,7 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.AvatarBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
+import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -13,30 +14,27 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PrivatePlayerInfoController;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.replay.WatchButtonController;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.uploader.ImageUploadService;
-import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.image.Image;
+import javafx.scene.layout.VBox;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,21 +43,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PrivateChatTabControllerTest extends PlatformTest {
 
   @Mock
-  private LoginService loginService;
-  @Mock
-  private PlayerService playerService;
-  @Mock
   private TimeService timeService;
   @Mock
   private AudioService audioService;
-  @Mock
-  private ImageUploadService imageUploadService;
   @Mock
   private I18n i18n;
   @Mock
@@ -90,9 +83,11 @@ public class PrivateChatTabControllerTest extends PlatformTest {
   private ChatService chatService;
   @Spy
   private ChatPrefs chatPrefs;
-  @Spy
-  private NotificationPrefs notificationPrefs;
 
+  @Mock
+  private EmoticonsWindowController emoticonsWindowController;
+
+  @InjectMocks
   private PrivateChatTabController instance;
 
   private String playerName;
@@ -100,20 +95,21 @@ public class PrivateChatTabControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new PrivateChatTabController(loginService, playerService, timeService, i18n, notificationService,
-                                            uiService, themeService, navigationHandler, chatService, webViewConfigurer,
-                                            countryFlagService,
-                                            emoticonService, avatarService, chatPrefs, notificationPrefs,
-                                            fxApplicationThreadExecutor);
-
     player = PlayerBeanBuilder.create().defaultValues().get();
     playerName = player.getUsername();
 
-    when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(player));
-    when(loginService.getUsername()).thenReturn(playerName);
-    when(themeService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
-    when(privatePlayerInfoController.chatUserProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(avatarService.loadAvatar(player.getAvatar())).thenReturn(new Image(InputStream.nullInputStream()));
+    lenient().when(uiService.loadFxml("theme/chat/emoticons/emoticons_window.fxml"))
+             .thenReturn(emoticonsWindowController);
+    lenient().when(emoticonsWindowController.getRoot()).thenReturn(new VBox());
+    lenient().when(chatService.getCurrentUsername()).thenReturn(playerName);
+    lenient().when(themeService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
+    lenient().when(privatePlayerInfoController.chatUserProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(avatarService.loadAvatar(player.getAvatar())).thenReturn(new Image(InputStream.nullInputStream()));
+
+    ChatChannel chatChannel = new ChatChannel(playerName);
+    ChatChannelUser chatChannelUser = new ChatChannelUser(playerName, playerName);
+    chatChannelUser.setPlayer(player);
+    chatChannel.addUser(chatChannelUser);
 
     loadFxml("theme/chat/private_chat_tab.fxml", clazz -> {
       if (clazz == PrivatePlayerInfoController.class) {
@@ -132,7 +128,7 @@ public class PrivateChatTabControllerTest extends PlatformTest {
       TabPane tabPane = new TabPane();
       tabPane.setSkin(new TabPaneSkin(tabPane));
       tabPane.getTabs().add(instance.getRoot());
-      instance.setChatChannel(new ChatChannel(playerName));
+      instance.setChatChannel(chatChannel);
     });
     verify(webViewConfigurer).configureWebView(eq(instance.messagesWebView));
   }
@@ -180,9 +176,5 @@ public class PrivateChatTabControllerTest extends PlatformTest {
     when(avatarService.loadAvatar(avatarBean)).thenReturn(newAvatar);
     runOnFxThreadAndWait(() -> player.setAvatar(avatarBean));
     assertEquals(newAvatar, instance.avatarImageView.getImage());
-  }
-
-  @Test
-  public void testOnClosedTab() {
   }
 }

@@ -10,16 +10,12 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.TabController;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
-import com.faforever.client.user.LoginService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
@@ -28,6 +24,7 @@ import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -43,11 +40,9 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
-import javafx.stage.PopupWindow;
 import javafx.stage.PopupWindow.AnchorLocation;
 import javafx.stage.Window;
 import lombok.RequiredArgsConstructor;
@@ -60,7 +55,6 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -121,9 +115,7 @@ public abstract class AbstractChatTabController extends TabController {
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
 
-  protected final LoginService loginService;
   protected final ChatService chatService;
-  protected final PlayerService playerService;
   protected final TimeService timeService;
   protected final I18n i18n;
   protected final NotificationService notificationService;
@@ -133,9 +125,7 @@ public abstract class AbstractChatTabController extends TabController {
   protected final EmoticonService emoticonService;
   protected final CountryFlagService countryFlagService;
   protected final ChatPrefs chatPrefs;
-  protected final NotificationPrefs notificationPrefs;
   protected final FxApplicationThreadExecutor fxApplicationThreadExecutor;
-  protected final NavigationHandler navigationHandler;
 
   /**
    * Messages that arrived before the web view was ready. Those are appended as soon as it is ready.
@@ -145,17 +135,19 @@ public abstract class AbstractChatTabController extends TabController {
   private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
   protected final ObjectProperty<ChatChannel> chatChannel = new SimpleObjectProperty<>();
   protected final ObservableValue<String> channelName = chatChannel.map(ChatChannel::getName);
+  private final ReadOnlyStringWrapper chatMessageTextHtml = new ReadOnlyStringWrapper();
+  private final ReadOnlyStringWrapper chatMessageSectionHtml = new ReadOnlyStringWrapper();
 
   private final Consumer<ChatMessage> messageListener = this::onChatMessage;
   private int lastEntryId;
   private boolean isChatReady;
 
   public Button emoticonsButton;
-  @VisibleForTesting
-  protected WeakReference<Popup> emoticonsPopupWindowWeakReference;
 
   private ChatMessage lastMessage;
   private WebEngine engine;
+  private Popup emoticonsPopup;
+
   private String currentUserMessage = "";
   private int curMessageHistoryIndex = 0;
 
@@ -165,7 +157,41 @@ public abstract class AbstractChatTabController extends TabController {
   @Override
   protected void onInitialize() {
     mentionPattern = Pattern.compile(
-        "(^|[^A-Za-z0-9-])" + Pattern.quote(loginService.getUsername()) + "([^A-Za-z0-9-]|$)", CASE_INSENSITIVE);
+        "(^|[^A-Za-z0-9-])" + Pattern.quote(chatService.getCurrentUsername()) + "([^A-Za-z0-9-]|$)", CASE_INSENSITIVE);
+
+    chatMessageTextHtml.bind(chatPrefs.chatFormatProperty().map(chatFormat -> switch (chatFormat) {
+      case COMPACT -> CHAT_TEXT_COMPACT;
+      case EXTENDED -> CHAT_TEXT_EXTENDED;
+    }).map(themeFile -> {
+      try {
+        return themeService.getThemeFileUrl(themeFile);
+      } catch (IOException e) {
+        return null;
+      }
+    }).map(url -> {
+      try (Reader reader = new InputStreamReader(url.openStream())) {
+        return CharStreams.toString(reader);
+      } catch (IOException e) {
+        return null;
+      }
+    }).orElse(""));
+
+    chatMessageSectionHtml.bind(chatPrefs.chatFormatProperty().map(chatFormat -> switch (chatFormat) {
+      case COMPACT -> CHAT_SECTION_COMPACT;
+      case EXTENDED -> CHAT_SECTION_EXTENDED;
+    }).map(themeFile -> {
+      try {
+        return themeService.getThemeFileUrl(themeFile);
+      } catch (IOException e) {
+        return null;
+      }
+    }).map(url -> {
+      try (Reader reader = new InputStreamReader(url.openStream())) {
+        return CharStreams.toString(reader);
+      } catch (IOException e) {
+        return null;
+      }
+    }).orElse(""));
 
     initChatView();
 
@@ -196,6 +222,11 @@ public abstract class AbstractChatTabController extends TabController {
     unreadMessagesCount.subscribe(
         (oldValue, newValue) -> incrementUnreadMessageCount(newValue.intValue() - oldValue.intValue()));
     getRoot().setOnClosed(this::onClosed);
+
+    EmoticonsWindowController controller = uiService.loadFxml("theme/chat/emoticons/emoticons_window.fxml");
+    controller.setTextInputControl(messageTextField());
+    emoticonsPopup = PopupUtil.createPopup(AnchorLocation.WINDOW_BOTTOM_RIGHT, controller.getRoot());
+    emoticonsPopup.setConsumeAutoHidingEvents(false);
   }
 
   @Override
@@ -405,7 +436,7 @@ public abstract class AbstractChatTabController extends TabController {
     }
 
     if(userMessageHistory.size() >= 50) {
-      userMessageHistory.remove(0);
+      userMessageHistory.removeFirst();
       userMessageHistory.add(text);
     } else {
       userMessageHistory.add(text);
@@ -427,12 +458,7 @@ public abstract class AbstractChatTabController extends TabController {
   }
 
   private void hideEmoticonsWindow() {
-    if (emoticonsPopupWindowWeakReference != null) {
-      PopupWindow window = emoticonsPopupWindowWeakReference.get();
-      if (window != null && window.isShowing()) {
-        window.hide();
-      }
-    }
+    emoticonsPopup.hide();
   }
 
   private void sendMessage() {
@@ -510,6 +536,10 @@ public abstract class AbstractChatTabController extends TabController {
    * entry.
    */
   private void addMessage(ChatMessage chatMessage) {
+    if (mentionPattern.matcher(chatMessage.message()).find()) {
+      onMention(chatMessage);
+    }
+
     JavaFxUtil.assertApplicationThread();
     try {
       if (requiresNewChatSection(chatMessage)) {
@@ -527,7 +557,7 @@ public abstract class AbstractChatTabController extends TabController {
     if (lastMessage == null) {
       return true;
     }
-    if (!lastMessage.username().equals(chatMessage.username())) {
+    if (!lastMessage.sender().getUsername().equals(chatMessage.sender().getUsername())) {
       return true;
     }
     if (lastMessage.time().isBefore(chatMessage.time().minus(1, MINUTES))) {
@@ -537,40 +567,23 @@ public abstract class AbstractChatTabController extends TabController {
   }
 
   private void appendMessage(ChatMessage chatMessage) throws IOException {
-    URL themeFileUrl;
-    if (chatPrefs.getChatFormat() == ChatFormat.COMPACT) {
-      themeFileUrl = themeService.getThemeFileUrl(CHAT_TEXT_COMPACT);
-    } else {
-      themeFileUrl = themeService.getThemeFileUrl(CHAT_TEXT_EXTENDED);
-    }
-
-    String html = renderHtml(chatMessage, themeFileUrl, null);
+    String html = fillTemplateHtml(chatMessage, chatMessageTextHtml.get(), null);
 
     insertIntoContainer(html, "chat-section-" + lastEntryId);
   }
 
   private void appendChatMessageSection(ChatMessage chatMessage) throws IOException {
-    URL themeFileURL;
-    if (chatPrefs.getChatFormat() == ChatFormat.COMPACT) {
-      themeFileURL = themeService.getThemeFileUrl(CHAT_SECTION_COMPACT);
-    } else {
-      themeFileURL = themeService.getThemeFileUrl(CHAT_SECTION_EXTENDED);
-    }
-
-    String html = renderHtml(chatMessage, themeFileURL, ++lastEntryId);
+    String html = fillTemplateHtml(chatMessage, chatMessageSectionHtml.get(), ++lastEntryId);
     insertIntoContainer(html, MESSAGE_CONTAINER_ID);
     appendMessage(chatMessage);
   }
 
-  private String renderHtml(ChatMessage chatMessage, URL themeFileUrl, @Nullable Integer sectionId) throws IOException {
-    String html;
-    try (Reader reader = new InputStreamReader(themeFileUrl.openStream())) {
-      html = CharStreams.toString(reader);
-    }
+  private String fillTemplateHtml(ChatMessage chatMessage, String htmlTemplate,
+                                  @Nullable Integer sectionId) throws IOException {
+    ChatChannelUser sender = chatMessage.sender();
+    String username = sender.getUsername();
 
-    String username = chatMessage.username();
-
-    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.username());
+    Optional<PlayerBean> playerOptional = sender.getPlayer();
     Optional<String> clanOptional = playerOptional.map(PlayerBean::getClan);
 
     String avatarUrl = playerOptional.map(PlayerBean::getAvatar).map(AvatarBean::getUrl).map(URL::toString).orElse("");
@@ -582,7 +595,7 @@ public abstract class AbstractChatTabController extends TabController {
     String decoratedClanTag = clanOptional.map(tag -> i18n.get("chat.clanTagFormat", tag)).orElse("");
 
     String timeString = timeService.asShortTime(chatMessage.time());
-    html = html.replace("{time}", timeString)
+    String html = htmlTemplate.replace("{time}", timeString)
                .replace("{avatar}", avatarUrl)
                .replace("{username}", username)
                .replace("{clan-tag}", clanTag)
@@ -591,16 +604,15 @@ public abstract class AbstractChatTabController extends TabController {
                .replace("{section-id}", String.valueOf(sectionId));
 
     Collection<String> cssClasses = new ArrayList<>();
-    cssClasses.add(String.format("user-%s", chatMessage.username()));
+    cssClasses.add(String.format("user-%s", username));
     if (chatMessage.action()) {
       cssClasses.add(ACTION_CSS_CLASS);
     } else {
       cssClasses.add(MESSAGE_CSS_CLASS);
     }
+    sender.getCategories().stream().sorted().map(ChatUserCategory::getCssClass).findFirst().ifPresent(cssClasses::add);
 
     html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
-
-    Optional.ofNullable(getMessageCssClass(username)).ifPresent(cssClasses::add);
 
     String text = htmlEscaper().escape(chatMessage.message()).replace("\\", "\\\\");
     text = convertUrlsToHyperlinks(text);
@@ -610,11 +622,9 @@ public abstract class AbstractChatTabController extends TabController {
     Matcher matcher = mentionPattern.matcher(text);
     if (matcher.find()) {
       text = matcher.replaceAll("<span class='self'>" + matcher.group() + "</span>");
-      onMention(chatMessage);
     }
 
-    return html.replace("{css-classes}", Joiner.on(' ').join(cssClasses))
-               .replace("{inline-style}", getInlineStyle(username))
+    return html.replace("{inline-style}", getInlineStyle(sender))
                // Always replace text last in case the message contains one of the placeholders.
                .replace("{text}", text);
   }
@@ -645,23 +655,9 @@ public abstract class AbstractChatTabController extends TabController {
     // Default implementation does nothing
   }
 
-  protected String getMessageCssClass(String login) {
-    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(login);
-    if (playerOptional.isEmpty()) {
-      return CSS_CLASS_CHAT_ONLY;
-    }
-
-    return playerOptional.get().getSocialStatus().getCssClass();
-  }
-
-  protected String getInlineStyle(String username) {
+  protected String getInlineStyle(ChatChannelUser chatChannelUser) {
     // To be overridden by subclasses
     return "";
-  }
-
-  @VisibleForTesting
-  String createInlineStyleFromColor(Color messageColor) {
-    return String.format("color: %s;", JavaFxUtil.toRgbCode(messageColor));
   }
 
   protected String convertUrlsToHyperlinks(String text) {
@@ -686,22 +682,8 @@ public abstract class AbstractChatTabController extends TabController {
     double anchorX = screenBounds.getMaxX() - 5;
     double anchorY = screenBounds.getMinY() - 5;
 
-    if (emoticonsPopupWindowWeakReference != null) {
-      PopupWindow window = emoticonsPopupWindowWeakReference.get();
-      if (window != null) {
-        window.show(emoticonsButton.getScene().getWindow(), anchorX, anchorY);
-        messageTextField().requestFocus();
-        return;
-      }
-    }
-
-    EmoticonsWindowController controller = uiService.loadFxml("theme/chat/emoticons/emoticons_window.fxml");
-    controller.setTextInputControl(messageTextField());
     messageTextField().requestFocus();
-    Popup window = PopupUtil.createPopup(AnchorLocation.WINDOW_BOTTOM_RIGHT, controller.getRoot());
-    window.setConsumeAutoHidingEvents(false);
-    window.show(emoticonsButton.getScene().getWindow(), anchorX, anchorY);
-    emoticonsPopupWindowWeakReference = new WeakReference<>(window);
+    emoticonsPopup.show(emoticonsButton.getScene().getWindow(), anchorX, anchorY);
   }
 
   @VisibleForTesting

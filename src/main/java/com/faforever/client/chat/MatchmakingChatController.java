@@ -5,15 +5,11 @@ import com.faforever.client.discord.JoinDiscordEventHandler;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.collections.ListChangeListener;
@@ -54,21 +50,15 @@ public class MatchmakingChatController extends AbstractChatTabController {
     }
   };
 
-  // TODO cut dependencies
-  public MatchmakingChatController(LoginService loginService,
-                                   PlayerService playerService, TimeService timeService, I18n i18n,
+  public MatchmakingChatController(TimeService timeService, I18n i18n,
                                    NotificationService notificationService, UiService uiService,
-                                   ThemeService themeService,
-                                   NavigationHandler navigationHandler,
-                                   ChatService chatService,
+                                   ThemeService themeService, ChatService chatService,
                                    WebViewConfigurer webViewConfigurer, CountryFlagService countryFlagService,
                                    EmoticonService emoticonService, ChatPrefs chatPrefs,
-                                   NotificationPrefs notificationPrefs,
                                    FxApplicationThreadExecutor fxApplicationThreadExecutor,
                                    JoinDiscordEventHandler joinDiscordEventHandler) {
-    super(loginService, chatService, playerService, timeService, i18n, notificationService, uiService, themeService,
-          webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs,
-          fxApplicationThreadExecutor, navigationHandler);
+    super(chatService, timeService, i18n, notificationService, uiService, themeService, webViewConfigurer,
+          emoticonService, countryFlagService, chatPrefs, fxApplicationThreadExecutor);
     this.joinDiscordEventHandler = joinDiscordEventHandler;
   }
 
@@ -133,11 +123,15 @@ public class MatchmakingChatController extends AbstractChatTabController {
 
   @VisibleForTesting
   void onPlayerDisconnected(String userName) {
-    fxApplicationThreadExecutor.execute(() -> onChatMessage(new ChatMessage(Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerDisconnect", userName), true)));
+    fxApplicationThreadExecutor.execute(() -> onChatMessage(
+        new ChatMessage(Instant.now(), new ChatChannelUser(i18n.get("chat.operator") + ":", channelName.getValue()),
+                        i18n.get("chat.groupChat.playerDisconnect", userName), true)));
   }
 
   @VisibleForTesting
   void onPlayerConnected(String userName) {
-    fxApplicationThreadExecutor.execute(() -> onChatMessage(new ChatMessage(Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerConnect", userName), true)));
+    fxApplicationThreadExecutor.execute(() -> onChatMessage(
+        new ChatMessage(Instant.now(), new ChatChannelUser(i18n.get("chat.operator") + ":", channelName.getValue()),
+                        i18n.get("chat.groupChat.playerConnect", userName), true)));
   }
 }

@@ -47,7 +47,6 @@ public class PlayerBean extends AbstractEntityBean {
   ObservableValue<Integer> numberOfGames = leaderboardRatings.map(
       ratings -> ratings.values().stream().mapToInt(LeaderboardRatingBean::getNumberOfGames).sum()).orElse(0);
 
-
   public SocialStatus getSocialStatus() {
     return socialStatus.get();
   }

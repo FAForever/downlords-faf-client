@@ -61,4 +61,6 @@ public interface ChatService {
   void onInitiatePrivateChat(String username);
 
   Set<ChatChannel> getChannels();
+
+  String getCurrentUsername();
 }
