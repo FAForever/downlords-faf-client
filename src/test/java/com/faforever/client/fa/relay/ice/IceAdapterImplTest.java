@@ -163,12 +163,6 @@ public class IceAdapterImplTest extends ServiceTest {
   }
 
   @Test
-  public void testGameClosey() throws Exception {
-    instance.onGameCloseRequested();
-    verify(iceAdapterApi).quit();
-  }
-
-  @Test
   public void testSetIceAdapters() throws Exception {
     CoturnServer coturnServer = new CoturnServer();
     coturnServer.setCredential("test");

@@ -2,7 +2,7 @@ package com.faforever.client.discord;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.game.GameService;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.commons.lobby.GameStatus;
@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.arikia.dev.drpc.DiscordRPC;
 import net.arikia.dev.drpc.DiscordRichPresence;
+import net.arikia.dev.drpc.DiscordRichPresence.Builder;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
@@ -40,10 +41,9 @@ public class DiscordRichPresenceService implements DisposableBean, InitializingB
   private final ObjectMapper objectMapper;
   private final Preferences preferences;
   private final DiscordEventHandler discordEventHandler;
-  private final GameService gameService;
+  private final GameRunner gameRunner;
 
   private final Timer timer = new Timer("Discord RPC", true);
-
 
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -65,14 +65,14 @@ public class DiscordRichPresenceService implements DisposableBean, InitializingB
 
     // This need to be change and not invalidation listeners but not quite sure why since they don't get triggered more than
     // once as invalidation listeners
-    gameService.currentGameProperty().flatMap(GameBean::statusProperty).subscribe(ignored -> updatePlayedGame());
-    gameService.currentGameProperty()
+    gameRunner.runningGameProperty().flatMap(GameBean::statusProperty).subscribe(ignored -> updatePlayedGame());
+    gameRunner.runningGameProperty()
                .flatMap(GameBean::allPlayersInGameProperty)
                .subscribe(ignored -> updatePlayedGame());
   }
 
   private void updatePlayedGame() {
-    GameBean game = gameService.getCurrentGame();
+    GameBean game = gameRunner.getRunningGame();
     String applicationId = clientProperties.getDiscord().getApplicationId();
     if (applicationId == null) {
       return;
@@ -85,7 +85,7 @@ public class DiscordRichPresenceService implements DisposableBean, InitializingB
       }
 
       log.debug("Updating discord rich presence game info with {}", game);
-      DiscordRichPresence.Builder discordRichPresence = new DiscordRichPresence.Builder(getDiscordState(game));
+      Builder discordRichPresence = new Builder(getDiscordState(game));
       discordRichPresence.setDetails(MessageFormat.format("{0} | {1}", game.getFeaturedMod(), game.getTitle()));
       discordRichPresence.setParty(String.valueOf(game.getId()), game.getNumActivePlayers(), game.getMaxPlayers());
       discordRichPresence.setSmallImage(clientProperties.getDiscord().getSmallImageKey(), "");
@@ -117,7 +117,7 @@ public class DiscordRichPresenceService implements DisposableBean, InitializingB
   private String getDiscordState(GameBean game) {
     return switch (game.getStatus()) {
       case OPEN -> game.getHost().equals(playerService.getCurrentPlayer().getUsername()) ? HOSTING : WAITING;
-      default -> PLAYING;
+      case PLAYING, UNKNOWN, CLOSED -> PLAYING;
     };
   }
 

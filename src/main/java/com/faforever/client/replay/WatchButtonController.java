@@ -40,6 +40,7 @@ public class WatchButtonController extends NodeController<Node> {
   public static final PseudoClass TRACKABLE_PSEUDO_CLASS = PseudoClass.getPseudoClass("trackable");
 
   private final LiveReplayService liveReplayService;
+  private final ReplayRunner replayRunner;
   private final TimeService timeService;
   private final I18n i18n;
   private final ContextMenuBuilder contextMenuBuilder;
@@ -71,7 +72,9 @@ public class WatchButtonController extends NodeController<Node> {
         .bind(game.flatMap(game -> game.startTimeProperty()
                 .map(startTime -> liveReplayService.canWatchReplay(game))
                 .orElse(false)
-                .map(canWatch -> canWatch ? (EventHandler<ActionEvent>) event -> liveReplayService.runLiveReplay(game.getId()) : (EventHandler<ActionEvent>) event -> showContextMenu()))
+                                       .map(
+                                           canWatch -> canWatch ? (EventHandler<ActionEvent>) event -> replayRunner.runWithLiveReplay(
+                                               game) : (EventHandler<ActionEvent>) event -> showContextMenu()))
             .when(showing));
   }
 

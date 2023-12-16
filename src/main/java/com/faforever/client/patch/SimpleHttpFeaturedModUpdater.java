@@ -1,6 +1,5 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.task.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Nullable;
@@ -20,11 +19,11 @@ public class SimpleHttpFeaturedModUpdater implements FeaturedModUpdater {
   private final ObjectFactory<SimpleHttpFeaturedModUpdaterTask> simpleHttpFeaturedModUpdaterTaskFactory;
 
   @Override
-  public CompletableFuture<PatchResult> updateMod(FeaturedModBean featuredMod, @Nullable Integer version,
+  public CompletableFuture<PatchResult> updateMod(String featuredModName, @Nullable Integer version,
                                                   boolean useReplayFolder) {
     SimpleHttpFeaturedModUpdaterTask task = simpleHttpFeaturedModUpdaterTaskFactory.getObject();
     task.setVersion(version);
-    task.setFeaturedMod(featuredMod);
+    task.setFeaturedModName(featuredModName);
     task.setUseReplayFolder(useReplayFolder);
 
     return taskService.submitTask(task).getFuture();

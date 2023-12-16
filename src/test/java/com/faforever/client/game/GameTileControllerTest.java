@@ -47,7 +47,7 @@ public class GameTileControllerTest extends PlatformTest {
   @Mock
   private FeaturedModService featuredModService;
   @Mock
-  private JoinGameHelper joinGameHelper;
+  private GameRunner gameRunner;
   @Mock
   private ImageViewHelper imageViewHelper;
   @Mock
@@ -70,7 +70,7 @@ public class GameTileControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new GameTileController(mapService, i18n, joinGameHelper, featuredModService, playerService,
+    instance = new GameTileController(mapService, i18n, gameRunner, featuredModService, playerService,
                                       avatarService,
                                       socialService, imageViewHelper, fxApplicationThreadExecutor);
 
@@ -92,7 +92,7 @@ public class GameTileControllerTest extends PlatformTest {
   public void testOnLeftDoubleClick() {
     runOnFxThreadAndWait(() -> instance.setGame(game));
     runOnFxThreadAndWait(() -> instance.onClick(MouseEvents.generateClick(MouseButton.PRIMARY, 2)));
-    verify(joinGameHelper).join(any());
+    verify(gameRunner).join(any());
     verify(onSelectedConsumer).accept(game);
   }
 
@@ -100,7 +100,7 @@ public class GameTileControllerTest extends PlatformTest {
   public void testOnLeftSingleClick() {
     runOnFxThreadAndWait(() -> instance.setGame(game));
     runOnFxThreadAndWait(() -> instance.onClick(MouseEvents.generateClick(MouseButton.PRIMARY, 1)));
-    verify(joinGameHelper, never()).join(any());
+    verify(gameRunner, never()).join(any());
     verify(onSelectedConsumer).accept(game);
   }
 

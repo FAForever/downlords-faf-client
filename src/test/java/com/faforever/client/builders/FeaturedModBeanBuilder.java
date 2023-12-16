@@ -1,6 +1,7 @@
 package com.faforever.client.builders;
 
 import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.game.KnownFeaturedMod;
 
 
 public class FeaturedModBeanBuilder {
@@ -11,7 +12,7 @@ public class FeaturedModBeanBuilder {
   private final FeaturedModBean featuredModBean = new FeaturedModBean();
 
   public FeaturedModBeanBuilder defaultValues() {
-    technicalName("faf");
+    technicalName(KnownFeaturedMod.FAF.getTechnicalName());
     visible(true);
     description("Standard mod");
     displayName("Forged Alliance Forever");

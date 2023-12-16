@@ -5,6 +5,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.VaultPathHandler;
 import com.faforever.client.i18n.I18n;
@@ -26,7 +27,6 @@ import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.LoginService;
 import javafx.beans.property.ReadOnlySetWrapper;
@@ -109,7 +109,7 @@ public class SettingsControllerTest extends PlatformTest {
   @Mock
   private ObjectFactory<DownloadFAFDebuggerTask> downloadFAFDebuggerTaskFactory;
   @Mock
-  private GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
+  private GamePathHandler gamePathHandler;
   @Spy
   private IceServerMapper iceServerMapper = Mappers.getMapper(IceServerMapper.class);
   @Spy
@@ -128,8 +128,6 @@ public class SettingsControllerTest extends PlatformTest {
     IceServer coturnServer = new IceServer("0", "Test");
     lenient().when(coturnService.getActiveCoturns())
              .thenReturn(CompletableFuture.completedFuture(List.of(coturnServer)));
-    lenient().when(gameService.isGamePrefsPatchedToAllowMultiInstances())
-             .thenReturn(CompletableFuture.completedFuture(true));
 
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     lenient().when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
@@ -251,9 +249,8 @@ public class SettingsControllerTest extends PlatformTest {
   @Test
   public void testOnSelectVaultLocation() throws Exception {
     Optional<Path> path = Optional.of(mock(Path.class));
-    when(platformService.askForPath(any())).thenReturn(path);
     instance.onSelectVaultLocation();
-    verify(vaultPathHandler).onVaultPathUpdated(path.get());
+    verify(vaultPathHandler).askForPathAndUpdate();
   }
 
   @Test
@@ -261,7 +258,7 @@ public class SettingsControllerTest extends PlatformTest {
   public void testSetDataLocation() throws Exception {
     MoveDirectoryTask moveDirectoryTask = mock(MoveDirectoryTask.class);
     Path newDataLocation = Path.of(".");
-    when(platformService.askForPath(any())).thenReturn(Optional.of(newDataLocation));
+    when(platformService.askForPath(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(newDataLocation)));
     when(moveDirectoryTaskFactory.getObject()).thenReturn(moveDirectoryTask);
 
     instance.onSelectDataLocation();
@@ -276,7 +273,7 @@ public class SettingsControllerTest extends PlatformTest {
   public void testSetGameLocation() throws Exception {
     instance.onSelectGameLocation();
 
-    verify(gameDirectoryRequiredHandler).onChooseGameDirectory(any());
+    verify(gamePathHandler).chooseAndValidateGameDirectory();
   }
 
   @Test

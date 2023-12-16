@@ -2,6 +2,8 @@ package com.faforever.client.fa;
 
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fa.GameParameters.League;
+import com.faforever.client.game.error.GameLaunchException;
 import com.faforever.client.logging.LoggingService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.DataPrefs;
@@ -25,14 +27,14 @@ import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANC
 
 /**
  * Knows how to start/stop Forged Alliance with proper parameters. Downloading maps, mods and updates as well as
- * notifying the server about whether the preferences is running or not is <strong>not</strong> this service's
+ * notifying the server about whether the preferences are running or not is <strong>not</strong> this service's
  * responsibility.
  */
 @Lazy
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ForgedAllianceService {
+public class ForgedAllianceLaunchService {
 
   public static final String DEBUGGER_EXE = "FAFDebugger.exe";
 
@@ -41,48 +43,51 @@ public class ForgedAllianceService {
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final DataPrefs dataPrefs;
 
-  public Process startGameOffline(String map) throws IOException {
+  public Process launchOfflineGame(String map) {
     List<String> launchCommand = defaultLaunchCommand().map(map).logFile(loggingService.getNewGameLogFile(0)).build();
 
     return launch(launchCommand);
   }
 
-  public Process startGameOnline(GameParameters gameParameters) throws IOException {
+  public Process launchOnlineGame(GameParameters gameParameters, int gpgPort, int replayPort) {
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
 
     Optional<LeaderboardRatingBean> leaderboardRating = Optional.of(currentPlayer.getLeaderboardRatings())
-        .map(rating -> rating.get(gameParameters.getLeaderboard()));
+                                                                .map(
+                                                                    rating -> rating.get(gameParameters.leaderboard()));
 
     float mean = leaderboardRating.map(LeaderboardRatingBean::getMean).orElse(0f);
     float deviation = leaderboardRating.map(LeaderboardRatingBean::getDeviation).orElse(0f);
 
-    int uid = gameParameters.getUid();
+    int uid = gameParameters.uid();
 
-    List<String> launchCommand = defaultLaunchCommand().uid(uid)
-        .faction(gameParameters.getFaction())
-        .mapPosition(gameParameters.getMapPosition())
-        .expectedPlayers(gameParameters.getExpectedPlayers())
-        .team(gameParameters.getTeam())
-        .gameOptions(gameParameters.getGameOptions())
-        .clan(currentPlayer.getClan())
-        .country(currentPlayer.getCountry())
-        .username(currentPlayer.getUsername())
-        .numberOfGames(currentPlayer.getNumberOfGames())
-        .mean(mean)
-        .deviation(deviation)
-        .division(gameParameters.getDivision())
-        .subdivision(gameParameters.getSubdivision())
-        .additionalArgs(gameParameters.getAdditionalArgs())
-        .logFile(loggingService.getNewGameLogFile(uid))
-        .localGpgPort(gameParameters.getLocalGpgPort())
-        .localReplayPort(gameParameters.getLocalReplayPort())
-        .build();
+    LaunchCommandBuilder commandBuilder = defaultLaunchCommand().uid(uid)
+                                                                .faction(gameParameters.faction())
+                                                                .mapPosition(gameParameters.mapPosition())
+                                                                .expectedPlayers(gameParameters.expectedPlayers())
+                                                                .team(gameParameters.team())
+                                                                .gameOptions(gameParameters.gameOptions())
+                                                                .additionalArgs(gameParameters.additionalArgs())
+                                                                .clan(currentPlayer.getClan())
+                                                                .country(currentPlayer.getCountry())
+                                                                .username(currentPlayer.getUsername())
+                                                                .numberOfGames(currentPlayer.getNumberOfGames())
+                                                                .mean(mean)
+                                                                .localGpgPort(gpgPort)
+                                                                .localReplayPort(replayPort)
+                                                                .deviation(deviation)
+                                                                .logFile(loggingService.getNewGameLogFile(uid));
 
-    return launch(launchCommand);
+    League league = gameParameters.league();
+    if (league != null) {
+      commandBuilder.division(league.division()).subdivision(league.subDivision());
+    }
+
+    return launch(commandBuilder.build());
   }
 
 
-  public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
+  public Process startReplay(Path path, @Nullable Integer replayId) {
     int checkedReplayId = Objects.requireNonNullElse(replayId, -1);
 
     List<String> launchCommand = replayLaunchCommand().replayFile(path)
@@ -94,7 +99,7 @@ public class ForgedAllianceService {
   }
 
 
-  public Process startReplay(URI replayUri, Integer replayId) throws IOException {
+  public Process startReplay(URI replayUri, Integer replayId) {
     List<String> launchCommand = replayLaunchCommand().replayUri(replayUri)
         .replayId(replayId)
         .logFile(loggingService.getNewGameLogFile(replayId))
@@ -140,7 +145,7 @@ public class ForgedAllianceService {
   }
 
   @NotNull
-  private Process launch(List<String> launchCommand) throws IOException {
+  private Process launch(List<String> launchCommand) {
     Path executeDirectory = forgedAlliancePrefs.getExecutionDirectory();
     if (executeDirectory == null) {
       executeDirectory = getExecutablePath().getParent();
@@ -153,6 +158,10 @@ public class ForgedAllianceService {
 
     log.info("Starting Forged Alliance with command: {} in directory: {}", processBuilder.command(), executeDirectory);
 
-    return processBuilder.start();
+    try {
+      return processBuilder.start();
+    } catch (IOException exception) {
+      throw new GameLaunchException("Error launching game process", exception, "game.start.couldNotStart");
+    }
   }
 }

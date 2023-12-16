@@ -8,7 +8,7 @@ import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.GameService;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.os.OperatingSystem;
@@ -41,7 +41,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -55,7 +54,7 @@ import java.util.concurrent.CompletableFuture;
 public class LoginController extends NodeController<Pane> {
 
   private final OperatingSystem operatingSystem;
-  private final GameService gameService;
+  private final GameRunner gameRunner;
   private final LoginService loginService;
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
@@ -358,12 +357,7 @@ public class LoginController extends NodeController<Pane> {
   }
 
   public void onPlayOfflineButtonClicked() {
-    try {
-      gameService.startGameOffline();
-    } catch (IOException e) {
-      notificationService.addImmediateWarnNotification("offline.noExe");
-    }
-
+    gameRunner.startOffline();
   }
 
   @Override

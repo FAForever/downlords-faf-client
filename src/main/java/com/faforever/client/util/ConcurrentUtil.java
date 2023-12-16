@@ -7,6 +7,12 @@ import java.util.concurrent.CompletionException;
 @Slf4j
 public final class ConcurrentUtil {
   public static Throwable unwrapIfCompletionException(Throwable throwable) {
-    return throwable instanceof CompletionException ? unwrapIfCompletionException(throwable.getCause()) : throwable;
+    return throwable instanceof CompletionException completionException ? unwrapIfCompletionException(
+        completionException.getCause()) : throwable;
+  }
+
+  public static CompletionException wrapInCompletionExceptionIfNecessary(Throwable throwable) {
+    return throwable instanceof CompletionException completionException ? completionException : new CompletionException(
+        throwable);
   }
 }

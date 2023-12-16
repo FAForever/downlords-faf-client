@@ -17,6 +17,8 @@ import org.mockito.Spy;
 import org.springframework.beans.factory.ObjectFactory;
 
 import java.nio.file.Path;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -49,8 +51,10 @@ public class VaultPathHandlerTest extends PlatformTest {
     MoveDirectoryTask moveDirectoryTask = mock(MoveDirectoryTask.class);
     Path newVaultLocation = Path.of(".");
     when(moveDirectoryTaskFactory.getObject()).thenReturn(moveDirectoryTask);
+    when(platformService.askForPath(any())).thenReturn(
+        CompletableFuture.completedFuture(Optional.of(newVaultLocation)));
 
-    instance.onVaultPathUpdated(newVaultLocation);
+    instance.askForPathAndUpdate();
 
     verify(moveDirectoryTask).setOldDirectory(forgedAlliancePrefs.getVaultBaseDirectory());
     verify(moveDirectoryTask).setNewDirectory(newVaultLocation);

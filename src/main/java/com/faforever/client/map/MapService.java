@@ -394,7 +394,10 @@ public class MapService implements InitializingBean, DisposableBean {
     return mapGeneratorService.generateMap(mapName);
   }
 
-  public CompletableFuture<Void> download(String technicalMapName) {
+  public CompletableFuture<Void> downloadIfNecessary(String technicalMapName) {
+    if (isInstalled(technicalMapName)) {
+      return CompletableFuture.completedFuture(null);
+    }
     try {
       URL mapUrl = getDownloadUrl(technicalMapName, mapDownloadUrlFormat);
       return downloadAndInstallMap(technicalMapName, mapUrl, null, null);

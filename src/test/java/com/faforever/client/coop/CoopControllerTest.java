@@ -1,13 +1,13 @@
 package com.faforever.client.coop;
 
 import com.faforever.client.builders.CoopResultBeanBuilder;
-import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.domain.CoopMissionBean;
 import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.WebViewConfigurer;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.game.GamesTableController;
@@ -25,13 +25,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.faforever.client.game.KnownFeaturedMod.COOP;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -70,6 +68,8 @@ public class CoopControllerTest extends PlatformTest {
   private NotificationService notificationService;
   @Mock
   private TimeService timeService;
+  @Mock
+  private GameRunner gameRunner;
 
   @InjectMocks
   private CoopController instance;
@@ -98,11 +98,6 @@ public class CoopControllerTest extends PlatformTest {
 
   @Test
   public void onPlayButtonClicked() {
-    when(featuredModService.getFeaturedMod(COOP.getTechnicalName())).thenReturn(
-        Mono.just(FeaturedModBeanBuilder.create()
-                                        .defaultValues()
-                                        .technicalName("coop")
-                                        .get()));
     when(coopService.getMissions()).thenReturn(completedFuture(singletonList(new CoopMissionBean())));
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
@@ -112,10 +107,10 @@ public class CoopControllerTest extends PlatformTest {
     instance.onPlayButtonClicked();
 
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
-    verify(gameService).hostGame(captor.capture());
+    verify(gameRunner).host(captor.capture());
 
     NewGameInfo newGameInfo = captor.getValue();
-    assertEquals("coop", newGameInfo.getFeaturedMod().getTechnicalName());
+    assertEquals("coop", newGameInfo.featuredModName());
   }
 
   @Test

@@ -30,7 +30,8 @@ public class CustomGamesControllerTest extends PlatformTest {
   private CustomGamesController instance;
   @Mock
   private GameService gameService;
-
+  @Mock
+  private GameRunner gameRunner;
   @Mock
   private UiService uiService;
   @Mock
@@ -60,7 +61,7 @@ public class CustomGamesControllerTest extends PlatformTest {
     preferences.setShowGameDetailsSidePane(true);
 
     lenient().when(gameService.getGames()).thenReturn(games);
-    lenient().when(gameService.gameRunningProperty()).thenReturn(new SimpleBooleanProperty());
+    lenient().when(gameRunner.runningProperty()).thenReturn(new SimpleBooleanProperty());
     lenient().when(gameDetailController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(gamesTilesContainerController.getRoot()).thenReturn(new Pane());
     lenient().when(gamesTableController.getRoot()).thenReturn(new Pane());

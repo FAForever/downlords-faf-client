@@ -1,8 +1,8 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.notification.Action.ActionCallback;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.test.PlatformTest;
+import javafx.event.Event;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -10,6 +10,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
+
+import java.util.function.Consumer;
 
 import static com.faforever.client.fx.MouseEvents.generateClick;
 import static org.hamcrest.CoreMatchers.is;
@@ -60,11 +62,11 @@ public class TransientNotificationControllerTest extends PlatformTest {
   @Test
   public void testOnLeftClick() throws Exception {
     TransientNotification notificationMock = mock(TransientNotification.class);
-    ActionCallback actionMock = mock(ActionCallback.class);
-    when(notificationMock.getActionCallback()).thenReturn(actionMock);
+    Consumer<Event> actionMock = mock(Consumer.class);
+    when(notificationMock.getCallback()).thenReturn(actionMock);
     instance.setNotification(notificationMock);
     MouseEvent mouseEvent = generateClick(MouseButton.PRIMARY, 1);
     instance.onClicked(mouseEvent);
-    verify(actionMock).call(mouseEvent);
+    verify(actionMock).accept(mouseEvent);
   }
 }

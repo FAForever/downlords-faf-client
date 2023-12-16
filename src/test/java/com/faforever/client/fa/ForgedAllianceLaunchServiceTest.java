@@ -1,6 +1,8 @@
 package com.faforever.client.fa;
 
+import com.faforever.client.builders.GameParametersBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.game.error.GameLaunchException;
 import com.faforever.client.logging.LoggingService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.DataPrefs;
@@ -12,7 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 
@@ -22,10 +23,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ForgedAllianceServiceTest extends ServiceTest {
+public class ForgedAllianceLaunchServiceTest extends ServiceTest {
   @InjectMocks
   @Spy
-  private ForgedAllianceService instance;
+  private ForgedAllianceLaunchService instance;
   @Mock
   private PlayerService playerService ;
   @Mock
@@ -43,7 +44,7 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
   @Test
   public void testStartGameOffline() throws Exception {
-    IOException throwable = assertThrows(IOException.class, () -> instance.startGameOffline("test"));
+    GameLaunchException throwable = assertThrows(GameLaunchException.class, () -> instance.launchOfflineGame("test"));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(loggingService).getNewGameLogFile(0);
@@ -52,21 +53,19 @@ public class ForgedAllianceServiceTest extends ServiceTest {
   @Test
   public void testStartGameOnline() throws Exception {
     when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
-    GameParameters gameParameters = new GameParameters();
-    gameParameters.setUid(1);
-    gameParameters.setLocalGpgPort(0);
-    gameParameters.setLocalReplayPort(0);
-    gameParameters.setLeaderboard("test");
-    IOException throwable = assertThrows(IOException.class, () -> instance.startGameOnline(gameParameters));
+    GameParameters gameParameters = GameParametersBuilder.create().defaultValues().get();
+    GameLaunchException throwable = assertThrows(GameLaunchException.class,
+                                                 () -> instance.launchOnlineGame(gameParameters, 0, 0));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(playerService).getCurrentPlayer();
-    verify(loggingService).getNewGameLogFile(gameParameters.getUid());
+    verify(loggingService).getNewGameLogFile(gameParameters.uid());
   }
 
   @Test
   public void testStartReplay() throws Exception {
-    IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(Path.of("."), 0));
+    GameLaunchException throwable = assertThrows(GameLaunchException.class,
+                                                 () -> instance.startReplay(Path.of("."), 0));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(loggingService).getNewGameLogFile(0);
@@ -76,7 +75,8 @@ public class ForgedAllianceServiceTest extends ServiceTest {
   @Test
   public void testStartOnlineReplay() throws Exception {
     when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
-    IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(URI.create("google.com"), 0));
+    GameLaunchException throwable = assertThrows(GameLaunchException.class,
+                                                 () -> instance.startReplay(URI.create("google.com"), 0));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(playerService).getCurrentPlayer();

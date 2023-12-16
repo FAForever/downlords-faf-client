@@ -124,6 +124,8 @@ public class ReplayServiceTest extends ServiceTest {
   private I18n i18n;
 
   @Mock
+  private ReplayRunner replayRunner;
+  @Mock
   private ReplayFileReader replayFileReader;
   @Mock
   private NotificationService notificationService;
@@ -282,7 +284,8 @@ public class ReplayServiceTest extends ServiceTest {
 
     instance.runReplay(replay);
 
-    verify(gameService).runWithReplay(any(), eq(123), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME));
+    verify(replayRunner).runWithReplay(any(), eq(123), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()),
+                                       eq(TEST_MAP_NAME));
     verifyNoInteractions(notificationService);
   }
 
@@ -297,7 +300,8 @@ public class ReplayServiceTest extends ServiceTest {
 
     instance.runReplay(replay);
 
-    verify(gameService).runWithReplay(any(), eq(123), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME_GENERATED));
+    verify(replayRunner).runWithReplay(any(), eq(123), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()),
+                                       eq(TEST_MAP_NAME_GENERATED));
     verifyNoInteractions(notificationService);
   }
 
@@ -312,7 +316,8 @@ public class ReplayServiceTest extends ServiceTest {
 
     instance.runReplay(replay);
 
-    verify(gameService).runWithReplay(any(), eq(null), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME));
+    verify(replayRunner).runWithReplay(any(), eq(null), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()),
+                                       eq(TEST_MAP_NAME));
     verifyNoInteractions(notificationService);
   }
 
@@ -377,7 +382,8 @@ public class ReplayServiceTest extends ServiceTest {
     instance.runReplay(replay);
 
     verify(taskService).submitTask(replayDownloadTask);
-    verify(gameService).runWithReplay(any(), eq(123), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME));
+    verify(replayRunner).runWithReplay(any(), eq(123), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()),
+                                       eq(TEST_MAP_NAME));
     verifyNoInteractions(notificationService);
   }
 
@@ -396,7 +402,7 @@ public class ReplayServiceTest extends ServiceTest {
     instance.runReplay(replay);
 
     verify(taskService).submitTask(replayDownloadTask);
-    verify(gameService).runWithReplay(replayFile, null, "faf", 3599, emptyMap(), emptySet(), TEST_MAP_NAME);
+    verify(replayRunner).runWithReplay(replayFile, null, "faf", 3599, emptyMap(), emptySet(), TEST_MAP_NAME);
     verifyNoInteractions(notificationService);
   }
 

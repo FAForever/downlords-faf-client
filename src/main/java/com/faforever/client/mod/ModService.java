@@ -2,11 +2,12 @@ package com.faforever.client.mod;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
-import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.game.GamePrefsService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.ModMapper;
@@ -58,12 +59,6 @@ import reactor.util.retry.Retry;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CodingErrorAction;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.WatchKey;
@@ -72,15 +67,13 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -89,7 +82,6 @@ import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.list;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 
@@ -100,10 +92,8 @@ import static java.util.stream.Collectors.toList;
 // TODO divide and conquer
 public class ModService implements InitializingBean, DisposableBean {
 
-  private static final Pattern ACTIVE_MODS_PATTERN = Pattern.compile("active_mods\\s*=\\s*\\{.*?}", Pattern.DOTALL);
-  private static final Pattern ACTIVE_MOD_PATTERN = Pattern.compile("\\['(.*?)']\\s*=\\s*(true|false)", Pattern.DOTALL);
-
   private final FafApiAccessor fafApiAccessor;
+  private final GamePrefsService gamePrefsService;
   private final TaskService taskService;
   private final NotificationService notificationService;
   private final I18n i18n;
@@ -225,23 +215,35 @@ public class ModService implements InitializingBean, DisposableBean {
     });
   }
 
-  public CompletableFuture<Void> downloadAndInstallMod(String uid) {
-    return getModVersionByUid(uid).thenCompose(potentialModVersion -> {
-      ModVersionBean modVersion = potentialModVersion.orElseThrow(
-          () -> new IllegalArgumentException("Mod could not be found"));
-      return downloadAndInstallMod(modVersion, null, null);
-    }).exceptionally(throwable -> {
-      log.error("Mod could not be installed", throwable);
-      return null;
+  public CompletableFuture<Void> downloadIfNecessary(String uid) {
+    if (isInstalled(uid)) {
+      return CompletableFuture.completedFuture(null);
+    }
+
+    return getModVersionByUid(uid).toFuture().thenCompose(modVersion -> {
+      if (modVersion == null) {
+        throw new IllegalArgumentException("Mod with uid %s could not be found".formatted(uid));
+      }
+      return downloadMod(modVersion.getDownloadUrl(), null, null);
     });
   }
 
-  public CompletableFuture<Void> downloadAndInstallMod(URL url) {
-    return downloadAndInstallMod(url, null, null);
+  public CompletableFuture<Void> downloadIfNecessary(ModVersionBean modVersion) {
+    return downloadIfNecessary(modVersion, null, null);
   }
 
-  public CompletableFuture<Void> downloadAndInstallMod(URL url, @Nullable DoubleProperty progressProperty,
-                                                       @Nullable StringProperty titleProperty) {
+  public CompletableFuture<Void> downloadIfNecessary(ModVersionBean modVersion,
+                                                     @Nullable DoubleProperty progressProperty,
+                                                     @Nullable StringProperty titleProperty) {
+    if (isInstalled(modVersion)) {
+      return CompletableFuture.completedFuture(null);
+    }
+
+    return downloadMod(modVersion.getDownloadUrl(), progressProperty, titleProperty);
+  }
+
+  private CompletableFuture<Void> downloadMod(URL url, @Nullable DoubleProperty progressProperty,
+                                              @Nullable StringProperty titleProperty) {
     DownloadModTask task = downloadModTaskFactory.getObject();
     task.setUrl(url);
     if (progressProperty != null) {
@@ -254,20 +256,38 @@ public class ModService implements InitializingBean, DisposableBean {
     return taskService.submitTask(task).getFuture();
   }
 
-  public CompletableFuture<Void> downloadAndInstallMod(ModVersionBean modVersion,
-                                                       @Nullable DoubleProperty progressProperty,
-                                                       StringProperty titleProperty) {
-    return downloadAndInstallMod(modVersion.getDownloadUrl(), progressProperty, titleProperty);
+  public CompletableFuture<Void> downloadAndEnableMods(Set<String> modUids) {
+    return CompletableFuture.allOf(
+        modUids.stream().map(uid -> downloadIfNecessary(uid).exceptionally(throwable -> {
+          log.warn("Unable to install mod with uid {}", uid);
+          return null;
+        })).toArray(CompletableFuture[]::new)).thenRun(() -> tryEnableMods(modUids));
   }
 
-  public void enableSimMods(Set<String> simMods) throws IOException {
+  private void tryEnableMods(Set<String> modUids) {
+    if (modUids.isEmpty()) {
+      return;
+    }
+
     Set<String> installedUiMods = modsByUid.keySet();
 
-    Set<String> activeMods = readActiveMods().stream().filter(installedUiMods::contains).collect(Collectors.toSet());
+    Set<String> activeMods = gamePrefsService.readActiveModUIDs()
+                                             .stream()
+                                             .filter(installedUiMods::contains)
+                                             .collect(Collectors.toSet());
 
-    activeMods.addAll(simMods);
+    if (activeMods.containsAll(modUids)) {
+      return;
+    }
 
-    writeActiveMods(activeMods);
+    activeMods.addAll(modUids);
+
+    try {
+      gamePrefsService.writeActiveModUIDs(activeMods);
+    } catch (IOException e) {
+      log.error("Mods could not be enabled", e);
+      notificationService.addPersistentWarnNotification(List.of(), "mod.errorUpdatingMods");
+    }
   }
 
   public boolean isInstalled(ModVersionBean modVersion) {
@@ -339,85 +359,16 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   public Collection<ModVersionBean> getActivatedSimAndUIMods() throws IOException {
-    Set<String> activeMods = readActiveMods();
+    Set<String> activeMods = gamePrefsService.readActiveModUIDs();
     return installedMods.stream().filter(mod -> activeMods.contains(mod.getUid())).collect(Collectors.toSet());
   }
 
   public void overrideActivatedMods(Collection<ModVersionBean> modVersions) {
     Set<String> modStates = modVersions.stream().map(ModVersionBean::getUid).collect(Collectors.toSet());
-    writeActiveMods(modStates);
-  }
-
-  private String readPreferencesFile(Path preferencesFile) throws IOException {
-    Map<String, Charset> availableCharsets = Charset.availableCharsets();
-    String preferencesContent = null;
-    for (Charset charset : availableCharsets.values()) {
-      CharsetDecoder decoder = charset.newDecoder();
-      decoder.onMalformedInput(CodingErrorAction.REPORT);
-      decoder.onUnmappableCharacter(CodingErrorAction.REPORT);
-      log.info("Trying to read preferences file with charset: " + charset.displayName());
-      try {
-        ByteBuffer buffer = ByteBuffer.wrap(Files.readAllBytes(preferencesFile));
-        CharBuffer charBuffer = decoder.decode(buffer);
-        preferencesContent = charBuffer.toString();
-        log.info("Successfully read preferences file with charset: " + charset.displayName());
-        break;
-      } catch (CharacterCodingException e) {
-        log.info("Failed to read preferences file with charset: " + charset.displayName());
-        // Continue and try a different character set
-      } catch (IOException e) {
-        log.error("An IOException was thrown while trying to read the preferences file", e);
-      } catch (Exception e) {
-        // Handle all other exceptions
-        log.error("An unexpected error occurred while reading the preferences file", e);
-        throw new RuntimeException(e);
-      }
-    }
-    if (preferencesContent == null) {
-      throw new AssetLoadException("Could not read preferences file", null, "file.errorReadingPreferences");
-    }
-    return preferencesContent;
-  }
-
-  private Set<String> readActiveMods() throws IOException {
-    Path preferencesFile = forgedAlliancePrefs.getPreferencesFile();
-    Set<String> activeMods = new HashSet<>();
-    String preferencesContent = readPreferencesFile(preferencesFile);
-    Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
-    if (matcher.find()) {
-      Matcher activeModMatcher = ACTIVE_MOD_PATTERN.matcher(matcher.group(0));
-      while (activeModMatcher.find()) {
-        String modUid = activeModMatcher.group(1);
-        if (Boolean.parseBoolean(activeModMatcher.group(2))) {
-          activeMods.add(modUid);
-        }
-      }
-    }
-    return activeMods;
-  }
-
-  private void writeActiveMods(Set<String> activeMods) {
-    Path preferencesFile = forgedAlliancePrefs.getPreferencesFile();
     try {
-      String preferencesContent = readPreferencesFile(preferencesFile);
-      String currentActiveModsContent = null;
-      Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
-      if (matcher.find()) {
-        currentActiveModsContent = matcher.group(0);
-      }
-
-      String newActiveModsContent = "active_mods = {\n%s\n}".formatted(
-          activeMods.stream().map("    ['%s'] = true"::formatted).collect(Collectors.joining(",\n")));
-
-      if (currentActiveModsContent != null) {
-        preferencesContent = preferencesContent.replace(currentActiveModsContent, newActiveModsContent);
-      } else {
-        preferencesContent += newActiveModsContent;
-      }
-
-      Files.writeString(preferencesFile, preferencesContent);
-    } catch (IOException e) {
-      throw new AssetLoadException("Could not update mod state", e, "mod.errorUpdatingMods");
+      gamePrefsService.writeActiveModUIDs(modStates);
+    } catch (IOException exception) {
+      throw new IllegalStateException("Unable to write active mods to game.prefs file");
     }
   }
 
@@ -450,39 +401,43 @@ public class ModService implements InitializingBean, DisposableBean {
       return CompletableFuture.completedFuture(selectedModVersions);
     }
 
-    final List<ModVersionBean> newlySelectedMods = new ArrayList<>(selectedModVersions);
-    selectedModVersions.forEach(installedModVersion -> {
-      try {
-        Optional<ModVersionBean> modVersionFromApi = getModVersionByUid(installedModVersion.getUid()).get();
-        modVersionFromApi.ifPresentOrElse(modVersion -> {
-          ModVersionBean latestVersion = modVersion.getMod().getLatestVersion();
-          boolean isLatest = latestVersion.getUid().equals(installedModVersion.getUid());
-          if (!isLatest) {
-            downloadAndInstallMod(latestVersion.getDownloadUrl()).join();
-            newlySelectedMods.remove(installedModVersion);
-            newlySelectedMods.add(latestVersion);
-          }
-        }, () -> log.info("Could not find mod `{}` `{}`", installedModVersion.getMod().getDisplayName(),
-                          installedModVersion.getUid()));
-      } catch (Exception e) {
-        log.info("Failed fetching info about mod from the api.", e);
-      }
+    List<CompletableFuture<ModVersionBean>> completableFutures = selectedModVersions.stream()
+                                                                                    .map(this::updateModIfNecessary)
+                                                                                    .toList();
+
+
+    return CompletableFuture.allOf(completableFutures.toArray(CompletableFuture[]::new)).thenApply(ignored -> {
+      List<ModVersionBean> newlySelectedMods = completableFutures.stream().map(CompletableFuture::join).toList();
+      overrideActivatedMods(newlySelectedMods);
+      return newlySelectedMods;
     });
-    overrideActivatedMods(newlySelectedMods);
-    return completedFuture(newlySelectedMods);
   }
 
-  private CompletableFuture<Optional<ModVersionBean>> getModVersionByUid(String uid) {
+  private CompletableFuture<ModVersionBean> updateModIfNecessary(ModVersionBean installedModVersion) {
+    return getModVersionByUid(installedModVersion.getUid()).map(ModVersionBean::getMod)
+                                                           .map(ModBean::getLatestVersion)
+                                                           .filter(latestModVersion -> !Objects.equals(latestModVersion,
+                                                                                                       installedModVersion))
+                                                           .flatMap(latestModVersion -> Mono.fromFuture(
+                                                                                                downloadIfNecessary(latestModVersion))
+                                                                                            .thenReturn(
+                                                                                                latestModVersion))
+                                                           .doOnError(throwable -> log.info(
+                                                               "Failed fetching info about mod `{}` from the api.",
+                                                               installedModVersion.getMod().getDisplayName(),
+                                                               throwable))
+                                                           .onErrorReturn(installedModVersion)
+                                                           .defaultIfEmpty(installedModVersion)
+                                                           .toFuture();
+  }
+
+  private Mono<ModVersionBean> getModVersionByUid(String uid) {
     ElideNavigatorOnCollection<ModVersion> navigator = ElideNavigator.of(ModVersion.class)
                                                                      .collection()
                                                                      .setFilter(qBuilder().string("uid").eq(uid))
                                                                      .pageSize(1)
                                                                      .pageNumber(1);
-    return fafApiAccessor.getMany(navigator)
-                         .next()
-                         .map(dto -> modMapper.map(dto, new CycleAvoidingMappingContext()))
-                         .toFuture()
-                         .thenApply(Optional::ofNullable);
+    return fafApiAccessor.getMany(navigator).next().map(dto -> modMapper.map(dto, new CycleAvoidingMappingContext()));
   }
 
   @Cacheable(value = CacheNames.MODS, sync = true)

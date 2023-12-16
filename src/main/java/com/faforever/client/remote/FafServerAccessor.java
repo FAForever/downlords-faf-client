@@ -166,11 +166,11 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<GameLaunchResponse> requestHostGame(NewGameInfo newGameInfo) {
-    return lobbyClient.requestHostGame(newGameInfo.getTitle(), newGameInfo.getMap(),
-                                       newGameInfo.getFeaturedMod().getTechnicalName(),
-                                       GameVisibility.valueOf(newGameInfo.getGameVisibility().name()),
-                                       newGameInfo.getPassword(), newGameInfo.getRatingMin(),
-                                       newGameInfo.getRatingMax(), newGameInfo.getEnforceRatingRange()).toFuture();
+    return lobbyClient.requestHostGame(newGameInfo.title(), newGameInfo.map(),
+                                       newGameInfo.featuredModName(),
+                                       GameVisibility.valueOf(newGameInfo.gameVisibility().name()),
+                                       newGameInfo.password(), newGameInfo.ratingMin(),
+                                       newGameInfo.ratingMax(), newGameInfo.enforceRatingRange()).toFuture();
   }
 
   public CompletableFuture<GameLaunchResponse> requestJoinGame(int gameId, String password) {
@@ -206,9 +206,8 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   public CompletableFuture<GameLaunchResponse> startSearchMatchmaker() {
     return lobbyClient.getEvents()
-                      .filter(event -> event instanceof GameLaunchResponse)
+                      .ofType(GameLaunchResponse.class)
                       .next()
-                      .cast(GameLaunchResponse.class)
                       .toFuture();
   }
 

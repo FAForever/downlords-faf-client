@@ -20,6 +20,4 @@ public interface IceAdapter {
   void stop();
 
   void setIceServers(Collection<CoturnServer> coturnServers);
-
-  void onGameCloseRequested();
 }

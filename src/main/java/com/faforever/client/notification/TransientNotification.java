@@ -1,10 +1,11 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.notification.Action.ActionCallback;
+import javafx.event.Event;
 import javafx.scene.image.Image;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * A notification that is displayed for a short amount of time, or until the user the user performs a suggested actionCallback
@@ -16,17 +17,17 @@ public class TransientNotification implements Comparable<TransientNotification> 
   private final String title;
   private final String text;
   private final Image image;
-  private final ActionCallback actionCallback;
+  private final Consumer<Event> callback;
 
   public TransientNotification(String title, String text) {
     this(title, text, null, null);
   }
 
-  public TransientNotification(String title, String text, Image image, ActionCallback actionCallback) {
+  public TransientNotification(String title, String text, Image image, Consumer<Event> callback) {
     this.title = title;
     this.text = text;
     this.image = image;
-    this.actionCallback = actionCallback;
+    this.callback = callback;
   }
 
   public TransientNotification(String title, String text, Image image) {
@@ -45,8 +46,8 @@ public class TransientNotification implements Comparable<TransientNotification> 
     return image;
   }
 
-  public ActionCallback getActionCallback() {
-    return actionCallback;
+  public Consumer<Event> getCallback() {
+    return callback;
   }
 
   @Override
@@ -56,7 +57,7 @@ public class TransientNotification implements Comparable<TransientNotification> 
 
   @Override
   public int hashCode() {
-    return Objects.hash(title, text, image, actionCallback);
+    return Objects.hash(title, text, image, callback);
   }
 
   @Override
@@ -71,6 +72,6 @@ public class TransientNotification implements Comparable<TransientNotification> 
     return Objects.equals(title, that.title) &&
         Objects.equals(text, that.text) &&
         Objects.equals(image, that.image) &&
-        Objects.equals(actionCallback, that.actionCallback);
+        Objects.equals(callback, that.callback);
   }
 }

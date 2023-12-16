@@ -3,6 +3,7 @@ package com.faforever.client.login;
 import com.faforever.client.builders.ClientConfigurationBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.OAuthValuesReceiver.Values;
@@ -38,7 +39,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
 
-import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.List;
@@ -53,7 +53,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -69,6 +68,8 @@ public class LoginControllerTest extends PlatformTest {
   private LoginController instance;
   @Spy
   private OperatingSystem operatingSystem = new OsPosix();
+  @Mock
+  private GameRunner gameRunner;
   @Mock
   private GameService gameService;
   @Mock
@@ -388,16 +389,6 @@ public class LoginControllerTest extends PlatformTest {
     instance.onPlayOfflineButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(gameService).startGameOffline();
-  }
-
-  @Test
-  public void testOnPlayOfflineButtonClickedNoExe() throws Exception {
-    doThrow(new IOException()).when(gameService).startGameOffline();
-    instance.onPlayOfflineButtonClicked();
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(gameService).startGameOffline();
-    verify(notificationService).addImmediateWarnNotification(eq("offline.noExe"));
+    verify(gameRunner).startOffline();
   }
 }

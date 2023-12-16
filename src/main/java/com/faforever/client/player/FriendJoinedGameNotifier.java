@@ -3,7 +3,7 @@ package com.faforever.client.player;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.game.JoinGameHelper;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
@@ -21,7 +21,7 @@ public class FriendJoinedGameNotifier {
 
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final JoinGameHelper joinGameHelper;
+  private final GameRunner gameRunner;
   private final AudioService audioService;
   private final NotificationPrefs notificationPrefs;
 
@@ -35,7 +35,7 @@ public class FriendJoinedGameNotifier {
           i18n.get("friend.joinedGameNotification.title", player.getUsername(), game.getTitle()),
           i18n.get("friend.joinedGameNotification.action"),
           IdenticonUtil.createIdenticon(player.getId()),
-          event -> joinGameHelper.join(game)
+          event -> gameRunner.join(game)
       ));
     }
   }
