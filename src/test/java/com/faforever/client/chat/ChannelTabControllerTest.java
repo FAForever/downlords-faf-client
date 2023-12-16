@@ -481,8 +481,8 @@ public class ChannelTabControllerTest extends PlatformTest {
 
   @Test
   public void testOnChatOnlyUserStyleClassUpdate() throws Exception {
-    String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
-    String after = "<span class=\"text user-junit message chat_only\" style=\"\">Hello world!</span>";
+    String before = "<span class=\"text user-junit message other\" style=\"\">Hello world!</span>";
+    String after = "<span class=\"text user-junit message other chat_only\" style=\"\">Hello world!</span>";
     String otherBefore = "<span class=\"text user-other message chat_only\" style=\"\">Hello man!</span>";
 
     user.setPlayer(PlayerBeanBuilder.create().defaultValues().get());
