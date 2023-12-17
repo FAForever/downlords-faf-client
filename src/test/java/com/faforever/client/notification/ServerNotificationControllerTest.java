@@ -11,7 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.util.Collections;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -35,7 +35,7 @@ public class ServerNotificationControllerTest extends PlatformTest {
 
   @Test
   public void testSetNotificationWithoutActions() {
-    ImmediateNotification notification = new ImmediateNotification("title", "text", Severity.INFO);
+    ServerNotification notification = new ServerNotification("title", "text", Severity.INFO);
     instance.setNotification(notification);
 
     WaitForAsyncUtils.waitForFxEvents();
@@ -47,10 +47,8 @@ public class ServerNotificationControllerTest extends PlatformTest {
 
   @Test
   public void testSetNotificationWithActions() {
-    ImmediateNotification notification = new ImmediateNotification("title", "text", Severity.INFO,
-        Collections.singletonList(
-            new Action("actionTitle")
-        ));
+    ServerNotification notification = new ServerNotification("title", "text", Severity.INFO,
+                                                             List.of(new Action("actionTitle")));
     instance.setNotification(notification);
 
     WaitForAsyncUtils.waitForFxEvents();

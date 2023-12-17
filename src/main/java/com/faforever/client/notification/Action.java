@@ -45,7 +45,7 @@ public class Action {
   /**
    * Calls the specified callback, if any. Subclasses may override.
    */
-  public void call() {
+  public void run() {
     if (onAction != null) {
       onAction.run();
     }

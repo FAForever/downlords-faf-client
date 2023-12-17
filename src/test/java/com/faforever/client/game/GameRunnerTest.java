@@ -499,7 +499,7 @@ public class GameRunnerTest extends ServiceTest {
 
     ImmediateNotification value = captor.getValue();
 
-    value.getActions().getFirst().call(null);
+    value.actions().getFirst().run();
 
     verify(fafServerAccessor).requestJoinGame(anyInt(), any());
   }
@@ -520,7 +520,7 @@ public class GameRunnerTest extends ServiceTest {
 
     ImmediateNotification value = captor.getValue();
 
-    value.getActions().getFirst().call(null);
+    value.actions().getFirst().run();
 
     verify(fafServerAccessor).requestJoinGame(anyInt(), any());
   }

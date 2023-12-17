@@ -28,6 +28,8 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -55,6 +57,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@Execution(ExecutionMode.SAME_THREAD)
 public class ChannelTabControllerTest extends PlatformTest {
 
   private static final String CHANNEL_NAME = "#testChannel";

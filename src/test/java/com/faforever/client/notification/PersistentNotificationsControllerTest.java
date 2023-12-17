@@ -3,12 +3,11 @@ package com.faforever.client.notification;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import javafx.collections.SetChangeListener;
-import javafx.collections.SetChangeListener.Change;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
@@ -16,7 +15,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -34,18 +32,16 @@ public class PersistentNotificationsControllerTest extends PlatformTest {
   @Mock
   private UiService uiService;
 
+  private ObservableSet<PersistentNotification> persistentNotifications;
+
   @BeforeEach
   public void setUp() throws Exception {
+    persistentNotifications = FXCollections.observableSet();
+    when(notificationService.getPersistentNotifications()).thenReturn(persistentNotifications);
+
     instance.persistentNotificationsRoot = new Pane();
 
     loadFxml("theme/persistent_notifications.fxml", clazz -> instance);
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testPostConstruct() throws Exception {
-    verify(notificationService).getPersistentNotifications();
-    verify(notificationService).addPersistentNotificationListener(any(SetChangeListener.class));
   }
 
   @Test
@@ -72,19 +68,9 @@ public class PersistentNotificationsControllerTest extends PlatformTest {
 
     when(uiService.loadFxml("theme/persistent_notification.fxml")).thenReturn(notificationController);
 
-    ArgumentCaptor<SetChangeListener> argument = ArgumentCaptor.forClass(SetChangeListener.class);
-    verify(notificationService).addPersistentNotificationListener(argument.capture());
+    PersistentNotification notification = new PersistentNotification("", severity);
 
-    SetChangeListener listener = argument.getValue();
-
-    PersistentNotification notification = mock(PersistentNotification.class);
-    when(notification.severity()).thenReturn(severity);
-
-    Change change = mock(Change.class);
-    when(change.wasAdded()).thenReturn(true);
-    when(change.getElementAdded()).thenReturn(notification);
-
-    listener.onChanged(change);
+    persistentNotifications.add(notification);
 
     verify(notificationController).setNotification(notification);
   }

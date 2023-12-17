@@ -76,7 +76,7 @@ public class ImmediateNotificationController extends NodeController<Node> {
   private Button createButton(Action action) {
     Button button = new Button(action.getTitle());
     button.setOnAction(event -> {
-      action.call();
+      action.run();
       if (action.getType() == Action.Type.OK_DONE) {
         dismiss();
       }

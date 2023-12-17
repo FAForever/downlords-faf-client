@@ -1,5 +1,6 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.ServiceTest;
@@ -30,6 +31,8 @@ public class NotificationServiceTest extends ServiceTest {
   private ToastDisplayer toastDisplayer;
   @Mock
   private UiService uiService;
+  @Mock
+  private FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   @Test
   public void testAddTransientNotification() throws Exception {
@@ -53,7 +56,7 @@ public class NotificationServiceTest extends ServiceTest {
     ServerNotificationController notificationController = mock(ServerNotificationController.class);
     when(uiService.loadFxml("theme/server_notification.fxml")).thenReturn(notificationController);
 
-    instance.addNotification(new ImmediateNotification("", "", Severity.INFO));
+    instance.addNotification(new ServerNotification("", "", Severity.INFO));
 
     verify(notificationController).setNotification(any());
   }

@@ -86,7 +86,7 @@ public class PersistentNotificationController extends NodeController<Node> {
       Button button = new Button(action.getTitle());
       button.setFocusTraversable(false);
       button.setOnAction(event -> {
-        action.call();
+        action.run();
         if (action.getType() == Action.Type.OK_DONE) {
           dismiss();
         }

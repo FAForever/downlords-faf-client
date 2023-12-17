@@ -78,8 +78,7 @@ public class ReplayRunner implements InitializingBean {
 
   @VisibleForTesting
   CompletableFuture<Void> downloadMapAskIfError(String mapFolderName) {
-    return mapService.downloadIfNecessary(mapFolderName)
-                     .exceptionallyCompose(throwable -> shouldStartWithOutMap(throwable));
+    return mapService.downloadIfNecessary(mapFolderName).exceptionallyCompose(this::shouldStartWithOutMap);
   }
 
   /**

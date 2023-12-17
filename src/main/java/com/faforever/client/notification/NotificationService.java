@@ -4,7 +4,6 @@ import com.faforever.client.exception.MajorNotifiableException;
 import com.faforever.client.exception.MinorNotifiableException;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
@@ -13,7 +12,6 @@ import com.faforever.client.ui.alert.Alert;
 import com.faforever.client.ui.alert.animation.AlertAnimation;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
-import javafx.collections.SetChangeListener;
 import javafx.scene.Parent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
@@ -65,14 +63,6 @@ public class NotificationService {
     }
   }
 
-  /**
-   * Adds a listener to be notified about added/removed {@link PersistentNotification}s
-   */
-
-  public void addPersistentNotificationListener(SetChangeListener<PersistentNotification> listener) {
-    JavaFxUtil.addListener(persistentNotifications, listener);
-  }
-
   public void addPersistentErrorNotification(String messageKey, Object... args) {
     addNotification(new PersistentNotification(i18n.get(messageKey, args), ERROR, singletonList(new GetHelpAction(i18n, reportingService))));
   }
@@ -109,12 +99,13 @@ public class NotificationService {
   }
 
   private void displayImmediateNotification(ImmediateNotification notification) {
+    ImmediateNotificationController controller = uiService.loadFxml("theme/immediate_notification.fxml");
+
+    controller.setNotification(notification);
+
     fxApplicationThreadExecutor.execute(() -> {
       Alert<?> dialog = new Alert<>(StageHolder.getStage());
 
-      ImmediateNotificationController controller = uiService.loadFxml("theme/immediate_notification.fxml");
-
-      controller.setNotification(notification);
       controller.setCloseListener(dialog::close);
 
       dialog.setContent(controller.getDialogLayout());
@@ -124,11 +115,12 @@ public class NotificationService {
   }
 
   private void displayServerNotification(ServerNotification notification) {
+    ServerNotificationController controller = uiService.loadFxml("theme/server_notification.fxml");
+    controller.setNotification(notification);
+
     fxApplicationThreadExecutor.execute(() -> {
       Alert<?> dialog = new Alert<>(StageHolder.getStage());
 
-      ServerNotificationController controller = uiService.loadFxml("theme/server_notification.fxml");
-      controller.setNotification(notification);
       controller.setCloseListener(dialog::close);
 
       dialog.setContent(controller.getDialogLayout());
