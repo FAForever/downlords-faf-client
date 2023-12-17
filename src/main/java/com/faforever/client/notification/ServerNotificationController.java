@@ -48,9 +48,9 @@ public class ServerNotificationController extends NodeController<Node> {
     dialogLayout.setBody(serverNotificationRoot);
   }
 
-  public ServerNotificationController setNotification(ImmediateNotification notification) {
+  public void setNotification(ServerNotification notification) {
     StringWriter writer = new StringWriter();
-    Throwable throwable = notification.getThrowable();
+    Throwable throwable = notification.throwable();
     if (throwable != null) {
       throwable.printStackTrace(new PrintWriter(writer));
       exceptionTextArea.setVisible(true);
@@ -59,22 +59,21 @@ public class ServerNotificationController extends NodeController<Node> {
       exceptionTextArea.setVisible(false);
     }
 
-    dialogLayout.setHeading(new Label(notification.getTitle()));
-    fxApplicationThreadExecutor.execute(() -> errorMessageView.getEngine().loadContent(notification.getText()));
+    dialogLayout.setHeading(new Label(notification.title()));
+    fxApplicationThreadExecutor.execute(() -> errorMessageView.getEngine().loadContent(notification.text()));
 
-    Optional.ofNullable(notification.getActions())
+    Optional.ofNullable(notification.actions())
         .map(actions -> actions.stream().map(this::createButton).collect(Collectors.toList()))
         .ifPresent(dialogLayout::setActions);
-    if (notification.getCustomUI() != null) {
-      serverNotificationRoot.getChildren().add(notification.getCustomUI());
+    if (notification.customUI() != null) {
+      serverNotificationRoot.getChildren().add(notification.customUI());
     }
-    return this;
   }
 
   private Button createButton(Action action) {
     Button button = new Button(action.getTitle());
     button.setOnAction(event -> {
-      action.call(event);
+      action.call();
       if (action.getType() == Action.Type.OK_DONE) {
         dismiss();
       }
@@ -99,9 +98,8 @@ public class ServerNotificationController extends NodeController<Node> {
     return serverNotificationRoot;
   }
 
-  public ServerNotificationController setCloseListener(Runnable closeListener) {
+  public void setCloseListener(Runnable closeListener) {
     this.closeListener = closeListener;
-    return this;
   }
 
   public DialogLayout getDialogLayout() {

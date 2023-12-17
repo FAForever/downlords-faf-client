@@ -210,7 +210,7 @@ public class CoopController extends NodeController<Node> {
         selectionModel.selectFirst();
       }
     }, fxApplicationThreadExecutor).exceptionally(throwable -> {
-      notificationService.addPersistentErrorNotification(throwable, "coop.couldNotLoad",
+      notificationService.addPersistentErrorNotification("coop.couldNotLoad",
                                                          throwable.getLocalizedMessage());
       return null;
     });

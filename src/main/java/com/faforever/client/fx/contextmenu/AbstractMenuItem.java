@@ -2,12 +2,7 @@ package com.faforever.client.fx.contextmenu;
 
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.Region;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
-@Component
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public abstract class AbstractMenuItem<T> extends MenuItem {
 
   protected T object;

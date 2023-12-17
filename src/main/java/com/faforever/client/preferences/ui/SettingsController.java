@@ -246,8 +246,9 @@ public class SettingsController extends NodeController<Node> {
     themeService.setTheme(newValue);
     if (themeService.doesThemeNeedRestart(newValue)) {
       notificationService.addNotification(new PersistentNotification(i18n.get("theme.needsRestart.message", newValue.getDisplayName()), Severity.WARN,
-          Collections.singletonList(new Action(i18n.get("theme.needsRestart.quit"), event -> Platform.exit()))));
-      // FIXME reload application (stage & application context) https://github.com/FAForever/downlords-faf-client/issues/1794
+                                                                     Collections.singletonList(
+                                                                         new Action(i18n.get("theme.needsRestart.quit"),
+                                                                                    Platform::exit))));
     }
   }
 
@@ -533,14 +534,10 @@ public class SettingsController extends NodeController<Node> {
 
     availableLanguagesListener.invalidated(i18n.getAvailableLanguages());
 
+    // FIXME reload application (stage & application context)
     notificationService.addNotification(new PersistentNotification(
         i18n.get(locale, "settings.languages.restart.message"),
-        Severity.WARN,
-        Collections.singletonList(new Action(i18n.get(locale, "settings.languages.restart"),
-            event -> {
-              Platform.exit();
-              // FIXME reload application (stage & application context)
-            })
+        Severity.WARN, List.of(new Action(i18n.get(locale, "settings.languages.restart"), Platform::exit)
         )));
   }
 

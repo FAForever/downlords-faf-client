@@ -240,7 +240,11 @@ public class ReplayService {
       return;
     }
 
-    notificationService.addNotification(new PersistentNotification(i18n.get("corruptedReplayFiles.notification"), WARN, singletonList(new Action(i18n.get("corruptedReplayFiles.show"), event -> platformService.reveal(replayFile)))));
+    notificationService.addNotification(new PersistentNotification(i18n.get("corruptedReplayFiles.notification"), WARN,
+                                                                   singletonList(
+                                                                       new Action(i18n.get("corruptedReplayFiles.show"),
+                                                                                  () -> platformService.reveal(
+                                                                                      replayFile)))));
   }
 
   public boolean deleteReplayFile(Path replayFile) {

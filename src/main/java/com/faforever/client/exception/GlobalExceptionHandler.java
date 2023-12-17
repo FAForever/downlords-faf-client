@@ -38,9 +38,9 @@ public class GlobalExceptionHandler implements UncaughtExceptionHandler, AsyncUn
 
   @Override
   public void handleUncaughtException(@NotNull Throwable ex, @NotNull Method method, Object @NotNull ... params) {
-    if (ex instanceof NotifiableException) {
+    if (ex instanceof NotifiableException notifiableException) {
       log.error("Exception on Method {} with parameters {}: ", method.getName(), params, ex);
-      notificationService.addErrorNotification((NotifiableException) ex);
+      notificationService.addErrorNotification(notifiableException);
     } else {
       log.error("Uncaught Exception on Method {} with parameters {}: ", method.getName(), params, ex);
     }

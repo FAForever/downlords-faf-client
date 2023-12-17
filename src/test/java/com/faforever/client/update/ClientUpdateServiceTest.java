@@ -115,7 +115,7 @@ public class ClientUpdateServiceTest extends ServiceTest {
     PersistentNotification persistentNotification = captor.getValue();
 
     verify(i18n).get("clientUpdateAvailable.notification", "v0.4.9.0-RC1", Bytes.formatSize(56079360L, i18n.getUserSpecificLocale()));
-    assertThat(persistentNotification.getSeverity(), is(INFO));
+    assertThat(persistentNotification.severity(), is(INFO));
   }
 
   /**
@@ -144,7 +144,7 @@ public class ClientUpdateServiceTest extends ServiceTest {
     PersistentNotification persistentNotification = captor.getValue();
 
     verify(i18n).get("clientUpdateAvailable.prereleaseNotification", "v0.4.9.1-alpha", Bytes.formatSize(56079360L, i18n.getUserSpecificLocale()));
-    assertThat(persistentNotification.getSeverity(), is(INFO));
+    assertThat(persistentNotification.severity(), is(INFO));
   }
 
   @Test

@@ -54,9 +54,9 @@ public class FriendJoinedGameNotifierTest extends ServiceTest {
     verify(notificationService).addNotification(captor.capture());
 
     TransientNotification notification = captor.getValue();
-    assertThat(notification.getTitle(), is("junit joined My Game"));
-    assertThat(notification.getText(), is("Click to join"));
-    assertThat(notification.getImage(), notNullValue());
+    assertThat(notification.title(), is("junit joined My Game"));
+    assertThat(notification.text(), is("Click to join"));
+    assertThat(notification.image(), notNullValue());
   }
 
   @Test

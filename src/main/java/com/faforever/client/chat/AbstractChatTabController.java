@@ -110,9 +110,9 @@ public abstract class AbstractChatTabController extends TabController {
   private static final String JOIN_PREFIX = "/join ";
   private static final String WHOIS_PREFIX = "/whois ";
   /**
-   * Added if a message is what IRC calls an "action".
+   * Added if a message is what IRC calls an "onAction".
    */
-  private static final String ACTION_CSS_CLASS = "action";
+  private static final String ACTION_CSS_CLASS = "onAction";
   private static final String MESSAGE_CSS_CLASS = "message";
 
   protected final ChatService chatService;

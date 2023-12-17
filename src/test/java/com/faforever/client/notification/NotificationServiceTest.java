@@ -3,8 +3,7 @@ package com.faforever.client.notification;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.ServiceTest;
-import javafx.collections.SetChangeListener;
-import javafx.collections.SetChangeListener.Change;
+import com.faforever.client.theme.UiService;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -16,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class NotificationServiceTest extends ServiceTest {
 
@@ -26,61 +26,40 @@ public class NotificationServiceTest extends ServiceTest {
   private ReportingService reportingService;
   @Mock
   private I18n i18n;
+  @Mock
+  private ToastDisplayer toastDisplayer;
+  @Mock
+  private UiService uiService;
 
   @Test
-  public void testAddNotificationPersistent() throws Exception {
-    instance.addNotification(new PersistentNotification("text", Severity.INFO));
-  }
-
-  @Test
-  public void testAddNotificationImmediate() throws Exception {
-    instance.addNotification(new ImmediateNotification("title", "text", Severity.INFO));
-  }
-
-  @Test
-  public void testAddNotificationTransient() throws Exception {
+  public void testAddTransientNotification() throws Exception {
     instance.addNotification(new TransientNotification("title", "text"));
+
+    verify(toastDisplayer).addNotification(any());
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void testAddPersistentNotificationListener() throws Exception {
-    SetChangeListener<PersistentNotification> listener = mock(SetChangeListener.class);
+  public void testAddImmediateNotification() throws Exception {
+    ImmediateNotificationController notificationController = mock(ImmediateNotificationController.class);
+    when(uiService.loadFxml("theme/immediate_notification.fxml")).thenReturn(notificationController);
 
-    instance.addPersistentNotificationListener(listener);
-    instance.addNotification(mock(PersistentNotification.class));
+    instance.addNotification(new ImmediateNotification("", "", Severity.INFO));
 
-    verify(listener).onChanged(any(Change.class));
+    verify(notificationController).setNotification(any());
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void testAddTransientNotificationListener() throws Exception {
-    OnTransientNotificationListener listener = mock(OnTransientNotificationListener.class);
+  public void testAddServerNotification() throws Exception {
+    ServerNotificationController notificationController = mock(ServerNotificationController.class);
+    when(uiService.loadFxml("theme/server_notification.fxml")).thenReturn(notificationController);
 
-    instance.addTransientNotificationListener(listener);
+    instance.addNotification(new ImmediateNotification("", "", Severity.INFO));
 
-    TransientNotification notification = mock(TransientNotification.class);
-    instance.addNotification(notification);
-
-    verify(listener).onTransientNotification(notification);
+    verify(notificationController).setNotification(any());
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void testAddImmediateNotificationListener() throws Exception {
-    OnImmediateNotificationListener listener = mock(OnImmediateNotificationListener.class);
-
-    instance.addImmediateNotificationListener(listener);
-
-    ImmediateNotification notification = mock(ImmediateNotification.class);
-    instance.addNotification(notification);
-
-    verify(listener).onImmediateNotification(notification);
-  }
-
-  @Test
-  public void testGetPersistentNotifications() throws Exception {
+  public void testPersistentNotification() throws Exception {
     assertThat(instance.getPersistentNotifications(), empty());
 
     PersistentNotification notification = mock(PersistentNotification.class);

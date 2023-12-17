@@ -78,7 +78,7 @@ public class PersistentNotificationsControllerTest extends PlatformTest {
     SetChangeListener listener = argument.getValue();
 
     PersistentNotification notification = mock(PersistentNotification.class);
-    when(notification.getSeverity()).thenReturn(severity);
+    when(notification.severity()).thenReturn(severity);
 
     Change change = mock(Change.class);
     when(change.wasAdded()).thenReturn(true);

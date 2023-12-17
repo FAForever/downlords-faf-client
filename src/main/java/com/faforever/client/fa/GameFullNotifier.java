@@ -62,8 +62,7 @@ public class GameFullNotifier {
 
     notificationService.addNotification(new TransientNotification(i18n.get("game.full"), i18n.get("game.full.action"),
                                                                   mapService.loadPreview(runningGame.getMapFolderName(),
-                                                                                         PreviewSize.SMALL),
-                                                                  ignored -> {
+                                                                                         PreviewSize.SMALL), () -> {
           if (platformService.isWindowFocused(faWindowTitle)) {
             // Switching to the game lobby window from replay window may not work correctly (no interaction) for reasons:
             // 1) The game has full screen mode

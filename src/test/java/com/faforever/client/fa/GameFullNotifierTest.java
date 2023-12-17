@@ -78,7 +78,7 @@ public class GameFullNotifierTest extends ServiceTest {
     ArgumentCaptor<TransientNotification> argumentCaptor = ArgumentCaptor.forClass(TransientNotification.class);
     verify(notificationService).addNotification(argumentCaptor.capture());
 
-    argumentCaptor.getValue().getCallback().accept(any(Event.class));
+    argumentCaptor.getValue().onAction().accept(any(Event.class));
     verify(platformService).focusWindow(clientProperties.getForgedAlliance().getWindowTitle(), 1L);
     verify(platformService, never()).minimizeFocusedWindow();
   }
@@ -95,7 +95,7 @@ public class GameFullNotifierTest extends ServiceTest {
     ArgumentCaptor<TransientNotification> argumentCaptor = ArgumentCaptor.forClass(TransientNotification.class);
     verify(notificationService).addNotification(argumentCaptor.capture());
 
-    argumentCaptor.getValue().getCallback().accept(any(Event.class));
+    argumentCaptor.getValue().onAction().accept(any(Event.class));
     verify(platformService).minimizeFocusedWindow();
     verify(platformService).focusWindow(clientProperties.getForgedAlliance().getWindowTitle(), 1L);
   }

@@ -111,11 +111,12 @@ public class ClientUpdateService implements InitializingBean {
       List<Action> actions = new ArrayList<>();
 
       if (operatingSystem.supportsUpdateInstall()) {
-        actions.add(new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> downloadAndInstallInBackground(updateInfo)));
+        actions.add(new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"),
+                               () -> downloadAndInstallInBackground(updateInfo)));
       }
 
       actions.add(new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
-                             event -> platformService.showDocument(updateInfo.releaseNotesUrl().toExternalForm())
+                             () -> platformService.showDocument(updateInfo.releaseNotesUrl().toExternalForm())
       ));
 
       notificationService.addNotification(new PersistentNotification(
@@ -156,7 +157,8 @@ public class ClientUpdateService implements InitializingBean {
           log.error("Error while downloading client update", throwable);
           notificationService.addNotification(
               new PersistentNotification(i18n.get("clientUpdateDownloadFailed.notification"), WARN, singletonList(
-                  new Action(i18n.get("clientUpdateDownloadFailed.retry"), event -> downloadAndInstallInBackground(updateInfo))
+                  new Action(i18n.get("clientUpdateDownloadFailed.retry"),
+                             () -> downloadAndInstallInBackground(updateInfo))
               ))
           );
           return null;

@@ -59,11 +59,12 @@ public class TransientNotificationControllerTest extends PlatformTest {
     assertEquals("timeline has not been set", assertThrows(Exception.class, () -> instance.onClicked(generateClick(MouseButton.SECONDARY, 1))).getMessage());
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void testOnLeftClick() throws Exception {
     TransientNotification notificationMock = mock(TransientNotification.class);
     Consumer<Event> actionMock = mock(Consumer.class);
-    when(notificationMock.getCallback()).thenReturn(actionMock);
+    when(notificationMock.onAction()).thenReturn(actionMock);
     instance.setNotification(notificationMock);
     MouseEvent mouseEvent = generateClick(MouseButton.PRIMARY, 1);
     instance.onClicked(mouseEvent);

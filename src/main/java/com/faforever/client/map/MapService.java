@@ -621,7 +621,7 @@ public class MapService implements InitializingBean, DisposableBean {
         .flatMap(mapVersion -> Mono.fromCompletionStage(() -> downloadAndInstallMap(mapVersion, null, null))
             .onErrorResume(throwable -> {
               log.warn("Unable to download map `{}`", mapVersion.getFolderName(), throwable);
-              notificationService.addPersistentErrorNotification(throwable, "map.download.error", mapVersion.getFolderName());
+              notificationService.addPersistentErrorNotification("map.download.error", mapVersion.getFolderName());
               return Mono.empty();
             }))
         .then()

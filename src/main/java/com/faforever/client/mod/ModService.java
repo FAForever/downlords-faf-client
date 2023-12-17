@@ -166,7 +166,7 @@ public class ModService implements InitializingBean, DisposableBean {
                      .subscribe(null, throwable -> {
                        log.error("Mod could not be read: `{}`", modPath, throwable);
                        notificationService.addPersistentWarnNotification(
-                           List.of(new Action(i18n.get("corruptedMods.show"), evt -> platformService.reveal(modPath))),
+                           List.of(new Action(i18n.get("corruptedMods.show"), () -> platformService.reveal(modPath))),
                            "corruptedModsError.notification", modPath.getFileName());
                      });
                }
@@ -203,7 +203,7 @@ public class ModService implements InitializingBean, DisposableBean {
               log.warn("Corrupt mod: `{}`", modPath, e);
 
               notificationService.addPersistentWarnNotification(
-                  List.of(new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(modPath))),
+                  List.of(new Action(i18n.get("corruptedMods.show"), () -> platformService.reveal(modPath))),
                   "corruptedModsError.notification", modPath.getFileName());
             }
           }

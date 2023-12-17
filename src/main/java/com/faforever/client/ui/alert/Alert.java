@@ -1,7 +1,5 @@
 package com.faforever.client.ui.alert;
 
-import com.faforever.client.fx.FxApplicationThreadExecutor;
-import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.ui.alert.animation.AlertAnimation;
 import com.faforever.client.ui.effects.DepthManager;
 import com.sun.javafx.event.EventHandlerManager;
@@ -16,6 +14,7 @@ import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogEvent;
@@ -27,14 +26,15 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
+import javafx.util.Subscription;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /** Ported from JFoenix since we wanted to get rid of the JFoenix dependency */
 public class Alert<R> extends Dialog<R> {
 
-  private final StackPane contentContainer;
-  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final StackPane contentContainer = new StackPane();
 
   private final EventHandlerManager eventHandlerManager = new EventHandlerManager(this);
 
@@ -51,17 +51,12 @@ public class Alert<R> extends Dialog<R> {
       (AlertAnimation.CENTER_ANIMATION);
   private final BooleanProperty hideOnEscape = new SimpleBooleanProperty(this, "hideOnEscape", true);
 
-  private final SimpleInvalidationListener widthListener = this::updateWidth;
-  private final SimpleInvalidationListener heightListener = this::updateHeight;
-  private final SimpleInvalidationListener xListener = this::updateX;
-  private final SimpleInvalidationListener yListener = this::updateY;
+  private final List<Subscription> layoutSubscriptions = new ArrayList<>();
 
   private boolean animateClosing = true;
   private Animation transition = null;
 
-  public Alert(Window window, FxApplicationThreadExecutor fxApplicationThreadExecutor) {
-    this.fxApplicationThreadExecutor = fxApplicationThreadExecutor;
-    contentContainer = new StackPane();
+  public Alert(Window window) {
     contentContainer.getStyleClass().add("alert-content-container");
     // add depth effect
     final Node materialNode = DepthManager.createMaterialNode(contentContainer, 2);
@@ -69,71 +64,7 @@ public class Alert<R> extends Dialog<R> {
     materialNode.addEventHandler(MouseEvent.MOUSE_CLICKED, Event::consume);
 
     // create custom dialog pane (will layout children in center)
-    final DialogPane dialogPane = new DialogPane() {
-      private boolean performingLayout = false;
-
-      {
-        getButtonTypes().add(ButtonType.CLOSE);
-        Node closeButton = this.lookupButton(ButtonType.CLOSE);
-        closeButton.managedProperty().bind(closeButton.visibleProperty());
-        closeButton.setVisible(false);
-      }
-
-      @Override
-      protected double computePrefHeight(double width) {
-        Window owner = getOwner();
-        if (owner != null) {
-          return owner.getHeight();
-        }
-        return super.computePrefHeight(width);
-      }
-
-      @Override
-      protected double computePrefWidth(double height) {
-        Window owner = getOwner();
-        if (owner != null) {
-          return owner.getWidth();
-        }
-        return super.computePrefWidth(height);
-      }
-
-      @Override
-      public void requestLayout() {
-        if (performingLayout) {
-          return;
-        }
-        super.requestLayout();
-      }
-
-      @Override
-      protected void layoutChildren() {
-        performingLayout = true;
-        List<Node> managed = getManagedChildren();
-        final double width = getWidth();
-        double height = getHeight();
-        double top = getInsets().getTop();
-        double right = getInsets().getRight();
-        double left = getInsets().getLeft();
-        double bottom = getInsets().getBottom();
-        double contentWidth = width - left - right;
-        double contentHeight = height - top - bottom;
-        for (Node child : managed) {
-          layoutInArea(child, left, top, contentWidth, contentHeight,
-              0, Insets.EMPTY, HPos.CENTER, VPos.CENTER);
-        }
-        performingLayout = false;
-      }
-
-      @Override
-      public String getUserAgentStylesheet() {
-        return getClass().getResource("/css/controls/alert.css").toExternalForm();
-      }
-
-      @Override
-      protected Node createButtonBar() {
-        return null;
-      }
-    };
+    final DialogPane dialogPane = new AlertDialogPane();
     dialogPane.getStyleClass().add("alert-overlay");
     dialogPane.setContent(materialNode);
     setDialogPane(dialogPane);
@@ -152,6 +83,18 @@ public class Alert<R> extends Dialog<R> {
       });
     }
 
+    addEventHandlers(dialogPane);
+
+    getDialogPane().getScene().getWindow().addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
+      if (keyEvent.getCode() == KeyCode.ESCAPE) {
+        if (!isHideOnEscape()) {
+          keyEvent.consume();
+        }
+      }
+    });
+  }
+
+  private void addEventHandlers(DialogPane dialogPane) {
     // handle animation / owner window layout changes
     eventHandlerManager.addEventHandler(DialogEvent.DIALOG_SHOWING, event -> {
       addLayoutListeners();
@@ -177,14 +120,6 @@ public class Alert<R> extends Dialog<R> {
       }
     });
     eventHandlerManager.addEventHandler(DialogEvent.DIALOG_HIDDEN, event -> removeLayoutListeners());
-
-    getDialogPane().getScene().getWindow().addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
-      if (keyEvent.getCode() == KeyCode.ESCAPE) {
-        if (!isHideOnEscape()) {
-          keyEvent.consume();
-        }
-      }
-    });
   }
 
   // this method ensure not null value for current animation
@@ -195,25 +130,18 @@ public class Alert<R> extends Dialog<R> {
   }
 
   private void removeLayoutListeners() {
-    Window stage = getOwner();
-    if (stage != null) {
-      stage.getScene().widthProperty().removeListener(widthListener);
-      stage.getScene().heightProperty().removeListener(heightListener);
-      stage.xProperty().removeListener(xListener);
-      stage.yProperty().removeListener(yListener);
-    }
+    layoutSubscriptions.forEach(Subscription::unsubscribe);
+    layoutSubscriptions.clear();
   }
 
   private void addLayoutListeners() {
     Window stage = getOwner();
     if (stage != null) {
-      if (widthListener == null) {
-        throw new RuntimeException("Owner can only be set using the constructor");
-      }
-      stage.getScene().widthProperty().addListener(widthListener);
-      stage.getScene().heightProperty().addListener(heightListener);
-      stage.xProperty().addListener(xListener);
-      stage.yProperty().addListener(yListener);
+      Scene scene = stage.getScene();
+      layoutSubscriptions.add(scene.widthProperty().subscribe(this::updateWidth));
+      layoutSubscriptions.add(scene.heightProperty().subscribe(this::updateHeight));
+      layoutSubscriptions.add(stage.xProperty().subscribe(this::updateX));
+      layoutSubscriptions.add(stage.yProperty().subscribe(this::updateY));
     }
   }
 
@@ -262,7 +190,7 @@ public class Alert<R> extends Dialog<R> {
       } else {
         animateClosing = false;
         transition = null;
-        fxApplicationThreadExecutor.execute(this::hide);
+        hide();
       }
     }
   }
@@ -316,4 +244,68 @@ public class Alert<R> extends Dialog<R> {
     return hideOnEscape;
   }
 
+  private class AlertDialogPane extends DialogPane {
+    private boolean performingLayout = false;
+
+    public AlertDialogPane() {
+      getButtonTypes().add(ButtonType.CLOSE);
+      Node closeButton = this.lookupButton(ButtonType.CLOSE);
+      closeButton.managedProperty().bind(closeButton.visibleProperty());
+      closeButton.setVisible(false);
+    }
+
+    @Override
+    protected double computePrefHeight(double width) {
+      Window owner = getOwner();
+      if (owner != null) {
+        return owner.getHeight();
+      }
+      return super.computePrefHeight(width);
+    }
+
+    @Override
+    protected double computePrefWidth(double height) {
+      Window owner = getOwner();
+      if (owner != null) {
+        return owner.getWidth();
+      }
+      return super.computePrefWidth(height);
+    }
+
+    @Override
+    public void requestLayout() {
+      if (performingLayout) {
+        return;
+      }
+      super.requestLayout();
+    }
+
+    @Override
+    protected void layoutChildren() {
+      performingLayout = true;
+      List<Node> managed = getManagedChildren();
+      final double width = getWidth();
+      double height = getHeight();
+      double top = getInsets().getTop();
+      double right = getInsets().getRight();
+      double left = getInsets().getLeft();
+      double bottom = getInsets().getBottom();
+      double contentWidth = width - left - right;
+      double contentHeight = height - top - bottom;
+      for (Node child : managed) {
+        layoutInArea(child, left, top, contentWidth, contentHeight, 0, Insets.EMPTY, HPos.CENTER, VPos.CENTER);
+      }
+      performingLayout = false;
+    }
+
+    @Override
+    public String getUserAgentStylesheet() {
+      return getClass().getResource("/css/controls/alert.css").toExternalForm();
+    }
+
+    @Override
+    protected Node createButtonBar() {
+      return null;
+    }
+  }
 }

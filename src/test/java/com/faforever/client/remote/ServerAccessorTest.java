@@ -323,9 +323,9 @@ public class ServerAccessorTest extends ServiceTest {
     verify(notificationService, timeout(1000)).addServerNotification(captor.capture());
 
     ImmediateNotification notification = captor.getValue();
-    assertThat(notification.getSeverity(), is(Severity.WARN));
-    assertThat(notification.getText(), is("foo bar"));
-    assertThat(notification.getTitle(), is("Message from Server"));
+    assertThat(notification.severity(), is(Severity.WARN));
+    assertThat(notification.text(), is("foo bar"));
+    assertThat(notification.title(), is("Message from Server"));
     verify(i18n).get("messageFromServer");
   }
 
@@ -463,8 +463,7 @@ public class ServerAccessorTest extends ServiceTest {
 
     assertMessageContainsComponents(
         "admin",
-        "user_id",
-        "action",
+        "user_id", "onAction",
         String.valueOf(1));
   }
 
@@ -475,8 +474,7 @@ public class ServerAccessorTest extends ServiceTest {
 
     assertMessageContainsComponents(
         "admin",
-        "user_id",
-        "action",
+        "user_id", "onAction",
         String.valueOf(1));
   }
 
@@ -487,8 +485,7 @@ public class ServerAccessorTest extends ServiceTest {
 
     assertMessageContainsComponents(
         "admin",
-        "message",
-        "action",
+        "message", "onAction",
         "Test");
   }
 
@@ -499,8 +496,7 @@ public class ServerAccessorTest extends ServiceTest {
 
     assertMessageContainsComponents(
         "avatar",
-        "list_avatar",
-        "action"
+        "list_avatar", "onAction"
     );
 
     AvatarListInfo avatarList = new AvatarListInfo(
@@ -614,8 +610,7 @@ public class ServerAccessorTest extends ServiceTest {
     instance.selectAvatar(url);
 
     assertMessageContainsComponents(
-        "avatar",
-        "action",
+        "avatar", "onAction",
         url.toString()
     );
   }

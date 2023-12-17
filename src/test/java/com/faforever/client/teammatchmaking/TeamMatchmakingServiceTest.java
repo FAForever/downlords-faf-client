@@ -214,7 +214,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     ArgumentCaptor<PersistentNotification> captorPersistent = ArgumentCaptor.forClass(PersistentNotification.class);
     verify(notificationService).addNotification(captorPersistent.capture());
     PersistentNotification persistentNotification = captorPersistent.getValue();
-    assertThat(persistentNotification.getSeverity(), is(INFO));
+    assertThat(persistentNotification.severity(), is(INFO));
     verify(i18n, times(2)).get("teammatchmaking.notification.invite.message", player.getUsername());
   }
 

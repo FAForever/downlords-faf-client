@@ -30,6 +30,7 @@ import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.ServerNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.player.PlayerService;
@@ -309,7 +310,7 @@ public class GameRunner implements InitializingBean {
                                                                   i18n.get("game.joinGameRatingConfirmation.text",
                                                                            game.getRatingMin(), game.getRatingMax(),
                                                                            playerRating), Severity.INFO, List.of(
-        new Action(i18n.get("game.join"), event -> join(game, password, true)), new Action(i18n.get("game.cancel")))));
+        new Action(i18n.get("game.join"), () -> join(game, password, true)), new Action(i18n.get("game.cancel")))));
   }
 
   public void startSearchMatchmaker() {
@@ -340,9 +341,9 @@ public class GameRunner implements InitializingBean {
         if (throwable instanceof CancellationException) {
           log.info("Matchmaking search has been cancelled");
           if (isRunning()) {
-            notificationService.addServerNotification(
-                new ImmediateNotification(i18n.get("matchmaker.cancelled.title"), i18n.get("matchmaker.cancelled"),
-                                          Severity.INFO));
+            notificationService.addNotification(
+                new ServerNotification(i18n.get("matchmaker.cancelled.title"), i18n.get("matchmaker.cancelled"),
+                                       Severity.INFO));
             killGame();
           }
         } else {
@@ -422,8 +423,7 @@ public class GameRunner implements InitializingBean {
     GameBean game = getRunningGame();
     notificationService.addNotification(
         new PersistentNotification(i18n.get("game.ended", game.getTitle()), Severity.INFO, List.of(
-            new Action(i18n.get("game.rate"),
-                       actionEvent -> navigationHandler.navigateTo(new ShowReplayEvent(game.getId()))))));
+            new Action(i18n.get("game.rate"), () -> navigationHandler.navigateTo(new ShowReplayEvent(game.getId()))))));
   }
 
   private void alertOnBadExit(int exitCode, Optional<Path> logFile) {
@@ -434,7 +434,7 @@ public class GameRunner implements InitializingBean {
                                                                     i18n.get("game.crash", exitCode,
                                                                              logFile.map(Path::toString).orElse("")),
                                                                     WARN, List.of(new Action(i18n.get("game.open.log"),
-                                                                                             event -> platformService.reveal(
+                                                                                             () -> platformService.reveal(
                                                                                                  logFile.orElse(
                                                                                                      operatingSystem.getLoggingDirectory()))),
                                                                                   new DismissAction(i18n))));

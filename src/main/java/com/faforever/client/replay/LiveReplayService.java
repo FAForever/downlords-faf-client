@@ -90,8 +90,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
       clearTrackingLiveReplayProperty();
       notificationService.addNotification(new PersistentNotification(
           i18n.get("vault.liveReplays.replayAvailable", game.getTitle()),
-          Severity.INFO,
-          List.of(new Action(i18n.get("game.watch"), (event) -> replayRunner.runWithLiveReplay(game)))));
+          Severity.INFO, List.of(new Action(i18n.get("game.watch"), () -> replayRunner.runWithLiveReplay(game)))));
     }, Instant.from(game.getStartTime().plusSeconds(getWatchDelaySeconds())));
   }
 

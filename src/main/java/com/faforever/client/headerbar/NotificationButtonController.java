@@ -1,6 +1,7 @@
 package com.faforever.client.headerbar;
 
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -38,21 +39,20 @@ public class NotificationButtonController extends NodeController<Node> {
 
   @Override
   protected void onInitialize() {
+    JavaFxUtil.bindManagedToVisible(notificationButton);
     updateNotificationsButton(notificationService.getPersistentNotifications());
-    notificationService.addPersistentNotificationListener(change -> fxApplicationThreadExecutor.execute(() -> updateNotificationsButton(change.getSet())));
-
-    notificationButton.managedProperty().bind(notificationButton.visibleProperty());
+    notificationService.getPersistentNotifications()
+                       .subscribe(() -> updateNotificationsButton(notificationService.getPersistentNotifications()));
   }
 
   /**
    * Updates the number displayed in the notifications button and sets its CSS pseudo class based on the highest
    * notification {@code Severity} of all current notifications.
    */
-  private void updateNotificationsButton(Collection<? extends PersistentNotification> notifications) {
+  private void updateNotificationsButton(Collection<PersistentNotification> notifications) {
     int size = notifications.size();
 
-    Severity highestSeverity = notifications.stream()
-        .map(PersistentNotification::getSeverity)
+    Severity highestSeverity = notifications.stream().map(PersistentNotification::severity)
         .max(Enum::compareTo)
         .orElse(null);
 

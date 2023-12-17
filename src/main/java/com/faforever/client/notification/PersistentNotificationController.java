@@ -50,9 +50,9 @@ public class PersistentNotificationController extends NodeController<Node> {
    */
   public void setNotification(PersistentNotification notification) {
     this.notification = notification;
-    messageLabel.setText(notification.getText());
-    setImageBasedOnSeverity(notification.getSeverity());
-    setActions(notification.getActions());
+    messageLabel.setText(notification.text());
+    setImageBasedOnSeverity(notification.severity());
+    setActions(notification.actions());
   }
 
   private void setImageBasedOnSeverity(Severity severity) {
@@ -86,7 +86,7 @@ public class PersistentNotificationController extends NodeController<Node> {
       Button button = new Button(action.getTitle());
       button.setFocusTraversable(false);
       button.setOnAction(event -> {
-        action.call(event);
+        action.call();
         if (action.getType() == Action.Type.OK_DONE) {
           dismiss();
         }
