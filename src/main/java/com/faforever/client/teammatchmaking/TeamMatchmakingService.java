@@ -66,7 +66,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
 import javafx.collections.transformation.FilteredList;
-import javafx.event.Event;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -84,7 +83,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatService.PARTY_CHANNEL_SUFFIX;
@@ -319,7 +317,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void sendInviteNotifications(PlayerBean player) {
-    Consumer<Event> callback = event -> this.acceptPartyInvite(player);
+    Runnable callback = () -> this.acceptPartyInvite(player);
 
     notificationService.addNotification(new TransientNotification(i18n.get("teammatchmaking.notification.invite.title"),
                                                                   i18n.get(

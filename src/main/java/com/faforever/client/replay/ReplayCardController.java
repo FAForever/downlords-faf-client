@@ -179,7 +179,12 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
 
   public void onDeleteButtonClicked() {
     notificationService.addNotification(new ImmediateNotification(i18n.get("replay.deleteNotification.heading", entity.get()
-        .getTitle()), i18n.get("replay.deleteNotification.info"), Severity.INFO, Arrays.asList(new Action(i18n.get("cancel")), new Action(i18n.get("delete"), event -> deleteReplay()))));
+                                                                                                                      .getTitle()),
+                                                                  i18n.get("replay.deleteNotification.info"),
+                                                                  Severity.INFO,
+                                                                  Arrays.asList(new Action(i18n.get("cancel")),
+                                                                                new Action(i18n.get("delete"),
+                                                                                           this::deleteReplay))));
   }
 
   private void deleteReplay() {

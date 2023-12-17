@@ -5,6 +5,7 @@ import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.theme.UiService;
 import javafx.collections.ObservableList;
+import javafx.collections.SetChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
@@ -35,7 +36,7 @@ public class PersistentNotificationsController extends NodeController<Node> {
 
   @Override
   protected void onInitialize() {
-    notificationService.addPersistentNotificationListener(change -> {
+    notificationService.getPersistentNotifications().addListener((SetChangeListener<PersistentNotification>) change -> {
       if (change.wasAdded()) {
         PersistentNotification addedNotifications = change.getElementAdded();
         addNotification(addedNotifications);
@@ -71,7 +72,7 @@ public class PersistentNotificationsController extends NodeController<Node> {
   }
 
   private void playNotificationSound(PersistentNotification notification) {
-    switch (notification.getSeverity()) {
+    switch (notification.severity()) {
       case INFO -> audioService.playInfoNotificationSound();
       case WARN -> audioService.playWarnNotificationSound();
       case ERROR -> audioService.playErrorNotificationSound();

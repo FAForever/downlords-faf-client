@@ -63,7 +63,7 @@ public class VaultPathHandler implements InitializingBean {
 
     notificationService.addImmediateWarnNotification(i18n.get("vaultBasePath.nonAscii.warning.title"),
                                                      i18n.get("vaultBasePath.nonAscii.warning.text"), List.of(
-            new Action(i18n.get("vaultBasePath.nonAscii.warning.changePath"), event -> askForPathAndUpdate()),
+            new Action(i18n.get("vaultBasePath.nonAscii.warning.changePath"), this::askForPathAndUpdate),
             new OkAction(i18n)), ignoreCheckbox);
   }
 
@@ -79,10 +79,12 @@ public class VaultPathHandler implements InitializingBean {
     moveDirectoryTask.setOldDirectory(forgedAlliancePrefs.getVaultBaseDirectory());
     moveDirectoryTask.setNewDirectory(newPath);
     moveDirectoryTask.setAfterCopyAction(() -> forgedAlliancePrefs.setVaultBaseDirectory(newPath));
-    notificationService.addNotification(new ImmediateNotification(i18n.get("settings.vault.change"), i18n.get("settings.vault.change.message"), Severity.INFO, List.of(new Action(i18n.get("no"), event -> {
+    notificationService.addNotification(
+        new ImmediateNotification(i18n.get("settings.vault.change"), i18n.get("settings.vault.change.message"),
+                                  Severity.INFO, List.of(new Action(i18n.get("no"), () -> {
       moveDirectoryTask.setPreserveOldDirectory(false);
       taskService.submitTask(moveDirectoryTask);
-    }), new Action(i18n.get("yes"), event -> {
+        }), new Action(i18n.get("yes"), () -> {
       moveDirectoryTask.setPreserveOldDirectory(true);
       taskService.submitTask(moveDirectoryTask);
     }), new CancelAction(i18n))));

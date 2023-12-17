@@ -14,27 +14,17 @@ import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.notification.ImmediateNotificationController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.ServerNotificationController;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.notification.TransientNotificationsController;
-import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
-import com.faforever.client.ui.alert.Alert;
-import com.faforever.client.ui.alert.animation.AlertAnimation;
 import com.faforever.client.ui.tray.TrayIconManager;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.LoginService;
-import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.collections.ObservableList;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
@@ -45,8 +35,6 @@ import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.stage.Popup;
-import javafx.stage.PopupWindow.AnchorLocation;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
@@ -77,7 +65,6 @@ public class MainController extends NodeController<Node> implements Initializing
   private final NotificationService notificationService;
   private final UiService uiService;
   private final LoginService loginService;
-  private final NotificationPrefs notificationPrefs;
   private final WindowPrefs windowPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final TrayIconManager trayIconManager;
@@ -89,8 +76,6 @@ public class MainController extends NodeController<Node> implements Initializing
   public HBox headerBar;
   public HeaderBarController headerBarController;
 
-  @VisibleForTesting
-  protected Popup transientNotificationsPopup;
   private FxStage fxStage;
 
   @Override
@@ -124,18 +109,6 @@ public class MainController extends NodeController<Node> implements Initializing
 
   @Override
   protected void onInitialize() {
-    TransientNotificationsController transientNotificationsController = uiService.loadFxml("theme/transient_notifications.fxml");
-    transientNotificationsPopup = PopupUtil.createPopup(transientNotificationsController.getRoot());
-    transientNotificationsPopup.getScene().getRoot().getStyleClass().add("transient-notification");
-
-    transientNotificationsController.getRoot()
-        .getChildren()
-        .addListener(new ToastDisplayer(transientNotificationsController));
-
-    notificationService.addImmediateNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> displayImmediateNotification(notification)));
-    notificationService.addServerNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> displayServerNotification(notification)));
-    notificationService.addTransientNotificationListener(notification -> fxApplicationThreadExecutor.execute(() -> transientNotificationsController.addNotification(notification)));
-
     navigationHandler.navigationEventProperty().subscribe(this::onNavigateEvent);
   }
 
@@ -144,19 +117,6 @@ public class MainController extends NodeController<Node> implements Initializing
     Node node = controller.getRoot();
     contentPane.getChildren().setAll(node);
     JavaFxUtil.setAnchors(node, 0d);
-  }
-
-  private Rectangle2D getTransientNotificationAreaBounds() {
-    ObservableList<Screen> screens = Screen.getScreens();
-
-    int toastScreenIndex = notificationPrefs.getToastScreen();
-    Screen screen;
-    if (toastScreenIndex < screens.size()) {
-      screen = screens.get(Math.max(0, toastScreenIndex));
-    } else {
-      screen = Screen.getPrimary();
-    }
-    return screen.getVisualBounds();
   }
 
   public void display() {
@@ -291,14 +251,14 @@ public class MainController extends NodeController<Node> implements Initializing
 
   private void askUserForPreferenceOverStartTab() {
     windowPrefs.setNavigationItem(NavigationItem.NEWS);
-    List<Action> actions = Collections.singletonList(new Action(i18n.get("startTab.configure"), event ->
-        makePopUpAskingForPreferenceInStartTab()));
+    List<Action> actions = Collections.singletonList(
+        new Action(i18n.get("startTab.configure"), this::makePopUpAskingForPreferenceInStartTab));
     notificationService.addNotification(new PersistentNotification(i18n.get("startTab.wantToConfigure"), Severity.INFO, actions));
   }
 
   private void makePopUpAskingForPreferenceInStartTab() {
     StartTabChooseController startTabChooseController = uiService.loadFxml("theme/start_tab_choose.fxml");
-    Action saveAction = new Action(i18n.get("startTab.save"), event -> {
+    Action saveAction = new Action(i18n.get("startTab.save"), () -> {
       NavigationItem newSelection = startTabChooseController.getSelected();
       windowPrefs.setNavigationItem(newSelection);
       navigationHandler.navigateTo(new NavigateEvent(newSelection));
@@ -325,70 +285,8 @@ public class MainController extends NodeController<Node> implements Initializing
     displayView(controller, navigateEvent);
   }
 
-  private void displayImmediateNotification(ImmediateNotification notification) {
-    Alert<?> dialog = new Alert<>(fxStage.getStage(), fxApplicationThreadExecutor);
-
-    ImmediateNotificationController controller = ((ImmediateNotificationController) uiService.loadFxml("theme/immediate_notification.fxml"))
-        .setNotification(notification)
-        .setCloseListener(dialog::close);
-
-    dialog.setContent(controller.getDialogLayout());
-    dialog.setAnimation(AlertAnimation.TOP_ANIMATION);
-    dialog.show();
-  }
-
-  private void displayServerNotification(ImmediateNotification notification) {
-    Alert<?> dialog = new Alert<>(fxStage.getStage(), fxApplicationThreadExecutor);
-
-    ServerNotificationController controller = ((ServerNotificationController) uiService.loadFxml("theme/server_notification.fxml"))
-        .setNotification(notification)
-        .setCloseListener(dialog::close);
-
-    dialog.setContent(controller.getDialogLayout());
-    dialog.setAnimation(AlertAnimation.TOP_ANIMATION);
-    dialog.show();
-  }
-
   public void setFxStage(FxStage fxWindow) {
     this.fxStage = fxWindow;
   }
 
-  public class ToastDisplayer implements InvalidationListener {
-    private final TransientNotificationsController transientNotificationsController;
-
-    public ToastDisplayer(TransientNotificationsController transientNotificationsController) {
-      this.transientNotificationsController = transientNotificationsController;
-    }
-
-    @Override
-    public void invalidated(Observable observable) {
-      boolean enabled = notificationPrefs.isTransientNotificationsEnabled();
-      if (transientNotificationsController.getRoot().getChildren().isEmpty() || !enabled) {
-        transientNotificationsPopup.hide();
-        return;
-      }
-
-      Rectangle2D visualBounds = getTransientNotificationAreaBounds();
-      double anchorX = visualBounds.getMaxX() - 1;
-      double anchorY = visualBounds.getMaxY() - 1;
-      AnchorLocation location = switch (notificationPrefs.getToastPosition()) {
-        case BOTTOM_RIGHT -> AnchorLocation.CONTENT_BOTTOM_RIGHT;
-        case TOP_RIGHT -> {
-          anchorY = visualBounds.getMinY();
-          yield AnchorLocation.CONTENT_TOP_RIGHT;
-        }
-        case BOTTOM_LEFT -> {
-          anchorX = visualBounds.getMinX();
-          yield AnchorLocation.CONTENT_BOTTOM_LEFT;
-        }
-        case TOP_LEFT -> {
-          anchorX = visualBounds.getMinX();
-          anchorY = visualBounds.getMinY();
-          yield AnchorLocation.CONTENT_TOP_LEFT;
-        }
-      };
-      transientNotificationsPopup.setAnchorLocation(location);
-      transientNotificationsPopup.show(mainRoot.getScene().getWindow(), anchorX, anchorY);
-    }
-  }
 }

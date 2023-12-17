@@ -1,5 +1,6 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.ToastPosition;
@@ -21,6 +22,7 @@ public class TransientNotificationsController extends NodeController<Node> {
 
   private final UiService uiService;
   private final NotificationPrefs notificationPrefs;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public VBox transientNotificationsRoot;
 
@@ -46,6 +48,6 @@ public class TransientNotificationsController extends NodeController<Node> {
     TransientNotificationController controller = uiService.loadFxml("theme/transient_notification.fxml");
     controller.setNotification(notification);
     Region controllerRoot = controller.getRoot();
-    transientNotificationsRoot.getChildren().add(0, controllerRoot);
+    fxApplicationThreadExecutor.execute(() -> transientNotificationsRoot.getChildren().addFirst(controllerRoot));
   }
 }

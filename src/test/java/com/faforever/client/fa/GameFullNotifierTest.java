@@ -10,7 +10,6 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.test.ServiceTest;
-import javafx.event.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -78,7 +77,7 @@ public class GameFullNotifierTest extends ServiceTest {
     ArgumentCaptor<TransientNotification> argumentCaptor = ArgumentCaptor.forClass(TransientNotification.class);
     verify(notificationService).addNotification(argumentCaptor.capture());
 
-    argumentCaptor.getValue().getCallback().accept(any(Event.class));
+    argumentCaptor.getValue().onAction().run();
     verify(platformService).focusWindow(clientProperties.getForgedAlliance().getWindowTitle(), 1L);
     verify(platformService, never()).minimizeFocusedWindow();
   }
@@ -95,7 +94,7 @@ public class GameFullNotifierTest extends ServiceTest {
     ArgumentCaptor<TransientNotification> argumentCaptor = ArgumentCaptor.forClass(TransientNotification.class);
     verify(notificationService).addNotification(argumentCaptor.capture());
 
-    argumentCaptor.getValue().getCallback().accept(any(Event.class));
+    argumentCaptor.getValue().onAction().run();
     verify(platformService).minimizeFocusedWindow();
     verify(platformService).focusWindow(clientProperties.getForgedAlliance().getWindowTitle(), 1L);
   }

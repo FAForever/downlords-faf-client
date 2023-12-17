@@ -119,8 +119,8 @@ public class ReplayServer {
         future.completeExceptionally(e);
         log.warn("Error in replay server", e);
         notificationService.addNotification(new PersistentNotification(
-            i18n.get("replayServer.listeningFailed"),
-            Severity.WARN, Collections.singletonList(new Action(i18n.get("replayServer.retry"), event -> start(gameId)))
+            i18n.get("replayServer.listeningFailed"), Severity.WARN,
+            Collections.singletonList(new Action(i18n.get("replayServer.retry"), () -> start(gameId)))
         ));
       }
     }).start();

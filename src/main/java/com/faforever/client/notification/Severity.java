@@ -13,7 +13,7 @@ public enum Severity {
 
   /**
    * Use this severity to inform the user about recoverable errors (something that went wrong but can be fixed) that
-   * requires his action to fix.
+   * requires his onAction to fix.
    */
   WARN,
 

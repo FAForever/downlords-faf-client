@@ -31,7 +31,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -112,7 +111,6 @@ public class ThemeService implements InitializingBean, DisposableBean {
   private static final String METADATA_FILE_NAME = "theme.properties";
 
   private final ExecutorService executorService;
-  private final ApplicationContext applicationContext;
   private final DataPrefs dataPrefs;
   private final Preferences preferences;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;

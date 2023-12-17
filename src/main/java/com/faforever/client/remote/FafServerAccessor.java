@@ -13,6 +13,7 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ServerNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.update.Version;
 import com.faforever.commons.lobby.ConnectionStatus;
@@ -271,9 +272,9 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
         default -> Severity.INFO;
       };
     }
-    notificationService.addServerNotification(
-        new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), severity,
-                                  Collections.singletonList(new DismissAction(i18n))));
+    notificationService.addNotification(
+        new ServerNotification(i18n.get("messageFromServer"), noticeMessage.getText(), severity,
+                               Collections.singletonList(new DismissAction(i18n))));
   }
 
   public void restoreGameSession(int id) {

@@ -105,7 +105,7 @@ public class ReplayRunnerTest extends ServiceTest {
     verify(notificationService).addNotification(captor.capture());
 
     ImmediateNotification notification = captor.getValue();
-    notification.getActions().getFirst().call(null);
+    notification.actions().getFirst().run();
 
     assertDoesNotThrow(() -> future.get(1, TimeUnit.SECONDS));
   }
@@ -123,7 +123,7 @@ public class ReplayRunnerTest extends ServiceTest {
     verify(notificationService).addNotification(captor.capture());
 
     ImmediateNotification notification = captor.getValue();
-    notification.getActions().get(1).call(null);
+    notification.actions().get(1).run();
 
     assertThrows(ExecutionException.class, () -> future.get(1, TimeUnit.SECONDS));
   }

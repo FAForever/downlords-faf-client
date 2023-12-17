@@ -500,7 +500,7 @@ public class KittehChatServiceTest extends ServiceTest {
   public void testChatMessageEventTriggeredByChannelAction() throws Exception {
     CompletableFuture<ChatMessage> chatMessageFuture = new CompletableFuture<>();
 
-    String message = "chat action";
+    String message = "chat onAction";
 
     connect();
 
@@ -692,7 +692,7 @@ public class KittehChatServiceTest extends ServiceTest {
   public void testSendActionInBackground() throws Exception {
     connect();
 
-    String action = "test action";
+    String action = "test onAction";
 
     CompletableFuture<String> future = new CompletableFuture<>();
     ChatChannel chatChannel = new ChatChannel(DEFAULT_CHANNEL_NAME);

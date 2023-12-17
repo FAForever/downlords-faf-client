@@ -311,9 +311,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       if (!chatChannel.isOpen() && notificationPrefs.isPrivateMessageToastEnabled()) {
         notificationService.addNotification(
             new TransientNotification(sender.getUsername(), text, IdenticonUtil.createIdenticon(identIconSource),
-                                      evt -> {
-              navigationHandler.navigateTo(new NavigateEvent(NavigationItem.CHAT));
-            }));
+                                      () -> navigationHandler.navigateTo(new NavigateEvent(NavigationItem.CHAT))));
       }
     }
   }
@@ -328,9 +326,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                               .map(String::valueOf)
                                               .orElse(sender);
         notificationService.addNotification(
-            new TransientNotification(sender, text, IdenticonUtil.createIdenticon(identIconSource), evt -> {
-              navigationHandler.navigateTo(new NavigateEvent(NavigationItem.CHAT));
-            }));
+            new TransientNotification(sender, text, IdenticonUtil.createIdenticon(identIconSource),
+                                      () -> navigationHandler.navigateTo(new NavigateEvent(NavigationItem.CHAT))));
       }
     }
   }

@@ -95,12 +95,7 @@ public class FafClientApplication extends Application {
       notificationService.addNotification(new ImmediateNotification(i18n.get("exitWarning.title"),
           i18n.get("exitWarning.message"),
           Severity.WARN,
-          List.of(
-              new Action(i18n.get("yes"), ev -> {
-                Platform.exit();
-              }),
-              new Action(i18n.get("no"), ev -> {
-              })
+          List.of(new Action(i18n.get("yes"), Platform::exit), new Action(i18n.get("no"), () -> {})
           )));
       event.consume();
     } else {

@@ -34,8 +34,7 @@ public class FriendJoinedGameNotifier {
       notificationService.addNotification(new TransientNotification(
           i18n.get("friend.joinedGameNotification.title", player.getUsername(), game.getTitle()),
           i18n.get("friend.joinedGameNotification.action"),
-          IdenticonUtil.createIdenticon(player.getId()),
-          event -> gameRunner.join(game)
+          IdenticonUtil.createIdenticon(player.getId()), () -> gameRunner.join(game)
       ));
     }
   }

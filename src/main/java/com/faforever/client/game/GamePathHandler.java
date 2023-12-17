@@ -54,8 +54,7 @@ public class GamePathHandler implements InitializingBean {
 
   public void notifyMissingGamePath(boolean immediateUserActionRequired) {
     List<Action> actions = Collections.singletonList(
-        new Action(i18n.get("missingGamePath.locate"),
-                   chooseEvent -> chooseAndValidateGameDirectory())
+        new Action(i18n.get("missingGamePath.locate"), this::chooseAndValidateGameDirectory)
     );
     String notificationText = i18n.get("missingGamePath.notification");
 

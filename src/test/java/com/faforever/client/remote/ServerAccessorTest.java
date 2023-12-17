@@ -14,8 +14,8 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.UidService;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ServerNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.update.Version;
@@ -319,13 +319,13 @@ public class ServerAccessorTest extends ServiceTest {
 
     sendFromServer(noticeMessage);
 
-    ArgumentCaptor<ImmediateNotification> captor = ArgumentCaptor.forClass(ImmediateNotification.class);
-    verify(notificationService, timeout(1000)).addServerNotification(captor.capture());
+    ArgumentCaptor<ServerNotification> captor = ArgumentCaptor.forClass(ServerNotification.class);
+    verify(notificationService, timeout(1000)).addNotification(captor.capture());
 
-    ImmediateNotification notification = captor.getValue();
-    assertThat(notification.getSeverity(), is(Severity.WARN));
-    assertThat(notification.getText(), is("foo bar"));
-    assertThat(notification.getTitle(), is("Message from Server"));
+    ServerNotification notification = captor.getValue();
+    assertThat(notification.severity(), is(Severity.WARN));
+    assertThat(notification.text(), is("foo bar"));
+    assertThat(notification.title(), is("Message from Server"));
     verify(i18n).get("messageFromServer");
   }
 
@@ -462,9 +462,7 @@ public class ServerAccessorTest extends ServiceTest {
     instance.closePlayersGame(1);
 
     assertMessageContainsComponents(
-        "admin",
-        "user_id",
-        "action",
+        "admin", "user_id", "action",
         String.valueOf(1));
   }
 
@@ -474,9 +472,7 @@ public class ServerAccessorTest extends ServiceTest {
     instance.closePlayersLobby(1);
 
     assertMessageContainsComponents(
-        "admin",
-        "user_id",
-        "action",
+        "admin", "user_id", "action",
         String.valueOf(1));
   }
 
@@ -486,9 +482,7 @@ public class ServerAccessorTest extends ServiceTest {
     instance.broadcastMessage("Test");
 
     assertMessageContainsComponents(
-        "admin",
-        "message",
-        "action",
+        "admin", "message", "action",
         "Test");
   }
 
@@ -498,9 +492,7 @@ public class ServerAccessorTest extends ServiceTest {
     instance.getAvailableAvatars();
 
     assertMessageContainsComponents(
-        "avatar",
-        "list_avatar",
-        "action"
+        "avatar", "list_avatar", "action"
     );
 
     AvatarListInfo avatarList = new AvatarListInfo(
@@ -613,9 +605,7 @@ public class ServerAccessorTest extends ServiceTest {
 
     instance.selectAvatar(url);
 
-    assertMessageContainsComponents(
-        "avatar",
-        "action",
+    assertMessageContainsComponents("avatar", "action",
         url.toString()
     );
   }

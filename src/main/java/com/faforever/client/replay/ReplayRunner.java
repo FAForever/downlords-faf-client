@@ -78,8 +78,7 @@ public class ReplayRunner implements InitializingBean {
 
   @VisibleForTesting
   CompletableFuture<Void> downloadMapAskIfError(String mapFolderName) {
-    return mapService.downloadIfNecessary(mapFolderName)
-                     .exceptionallyCompose(throwable -> shouldStartWithOutMap(throwable));
+    return mapService.downloadIfNecessary(mapFolderName).exceptionallyCompose(this::shouldStartWithOutMap);
   }
 
   /**
@@ -117,10 +116,10 @@ public class ReplayRunner implements InitializingBean {
 
     CountDownLatch userAnswered = new CountDownLatch(1);
     AtomicReference<Boolean> shouldStart = new AtomicReference<>(false);
-    List<Action> actions = Arrays.asList(new Action(i18n.get("replay.ignoreMapNotFound"), event -> {
+    List<Action> actions = Arrays.asList(new Action(i18n.get("replay.ignoreMapNotFound"), () -> {
       shouldStart.set(true);
       userAnswered.countDown();
-    }), new Action(i18n.get("replay.abortAfterMapNotFound"), event -> userAnswered.countDown()));
+    }), new Action(i18n.get("replay.abortAfterMapNotFound"), userAnswered::countDown));
     notificationService.addNotification(new ImmediateNotification(i18n.get("replay.mapDownloadFailed"),
                                                                   i18n.get("replay.mapDownloadFailed.wannaContinue"),
 
