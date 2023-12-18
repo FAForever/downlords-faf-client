@@ -343,7 +343,7 @@ dependencies {
   }
   implementation("org.fxmisc.flowless:flowless:0.7.2")
 
-  implementation("org.javassist:javassist:3.29.2-GA")
+  implementation("org.javassist:javassist:3.30.1-GA")
 
   implementation("io.github.sheikah45.fx2j:fx2j-api:0.0.0")
   implementation("com.install4j:install4j-runtime:10.0.6")
