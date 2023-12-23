@@ -81,8 +81,6 @@ public class CreateGameControllerTest extends PlatformTest {
   @Mock
   private FeaturedModService featuredModService;
   @Mock
-  private GameService gameService;
-  @Mock
   private NotificationService notificationService;
   @Mock
   private I18n i18n;
@@ -108,7 +106,7 @@ public class CreateGameControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new CreateGameController(gameRunner, mapService, featuredModService, modService, gameService, i18n,
+    instance = new CreateGameController(gameRunner, mapService, featuredModService, modService, i18n,
                                         notificationService, loginService, mapGeneratorService, uiService,
                                         contextMenuBuilder, lastGamePrefs, fxApplicationThreadExecutor);
 
