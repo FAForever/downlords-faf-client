@@ -4,7 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.DataPrefs;
-import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.commons.io.ByteCopier;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ import java.nio.file.Path;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class ReplayDownloadTask extends CompletableTask<Path> {
+public class ReplayDownloadTask extends PrioritizedCompletableTask<Path> {
 
   private static final String TEMP_FAF_REPLAY_FILE_NAME = "temp.fafreplay";
 

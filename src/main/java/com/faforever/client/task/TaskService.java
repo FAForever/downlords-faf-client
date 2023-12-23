@@ -35,18 +35,16 @@ public class TaskService {
    * @param <T> the task's result type
    * @param task the task to execute
    */
-  public <T extends PrioritizedCompletableTask<?>> T submitTask(T task) {
+  public <T extends CompletableTask<?>> T submitTask(T task) {
     task.getFuture().whenComplete((o, throwable) -> {
       activeTasks.remove(task);
       if (throwable != null) {
         log.error("Task failed", throwable);
       }
     });
-    fxApplicationThreadExecutor.execute(() -> {
-      activeTasks.add(task);
-      taskExecutor.execute(task);
-    });
+    fxApplicationThreadExecutor.execute(() -> activeTasks.add(task));
 
+    taskExecutor.execute(task);
     return task;
   }
 

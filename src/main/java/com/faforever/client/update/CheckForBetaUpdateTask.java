@@ -3,7 +3,7 @@ package com.faforever.client.update;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -19,7 +19,7 @@ import java.util.Comparator;
 @Component
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class CheckForBetaUpdateTask extends CompletableTask<UpdateInfo> {
+public class CheckForBetaUpdateTask extends PrioritizedCompletableTask<UpdateInfo> {
 
   public static final String PATH_FOR_RELEASE = "/releases";
   private final OperatingSystem operatingSystem;

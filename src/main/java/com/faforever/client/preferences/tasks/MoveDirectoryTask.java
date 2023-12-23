@@ -2,7 +2,7 @@ package com.faforever.client.preferences.tasks;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ import java.util.Objects;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class MoveDirectoryTask extends CompletableTask<Void> {
+public class MoveDirectoryTask extends PrioritizedCompletableTask<Void> {
 
   private final I18n i18n;
   private final NotificationService notificationService;

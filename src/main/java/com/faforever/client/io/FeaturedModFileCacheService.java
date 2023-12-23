@@ -2,7 +2,6 @@ package com.faforever.client.io;
 
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.UpdaterUtil;
 import com.faforever.commons.api.dto.FeaturedModFile;
 import com.google.common.hash.Hashing;
@@ -56,18 +55,13 @@ public class FeaturedModFileCacheService implements InitializingBean {
 
   public void copyFeaturedModFileFromCache(FeaturedModFile featuredModFile, Path targetPath) throws IOException {
     Files.createDirectories(targetPath.getParent());
-    ResourceLocks.acquireDiskLock();
 
-    try {
-      if (Files.exists(targetPath) && preferences.isGameDataCacheActivated()) {
-        //We want to keep the old file for now in case it is needed again for example for old replays
-        moveFeaturedModFileToCache(targetPath);
-      }
-      Files.copy(getCachedFilePath(featuredModFile), targetPath, StandardCopyOption.REPLACE_EXISTING);
-      UpdaterUtil.extractMoviesAndSoundsIfPresent(targetPath, dataPrefs.getBaseDataDirectory());
-    } finally {
-      ResourceLocks.freeDiskLock();
+    if (Files.exists(targetPath) && preferences.isGameDataCacheActivated()) {
+      //We want to keep the old file for now in case it is needed again for example for old replays
+      moveFeaturedModFileToCache(targetPath);
     }
+    Files.copy(getCachedFilePath(featuredModFile), targetPath, StandardCopyOption.REPLACE_EXISTING);
+    UpdaterUtil.extractMoviesAndSoundsIfPresent(targetPath, dataPrefs.getBaseDataDirectory());
   }
 
   private void moveFeaturedModFileToCache(Path targetPath) throws IOException {
@@ -107,8 +101,6 @@ public class FeaturedModFileCacheService implements InitializingBean {
    */
   private void deleteCachedFileIfNeeded(Path filePath) {
     try {
-      ResourceLocks.acquireDiskLock();
-
       FileTime lastAccessTime = Files.readAttributes(filePath, BasicFileAttributes.class).lastAccessTime();
       OffsetDateTime comparableLastAccessTime = OffsetDateTime.ofInstant(lastAccessTime.toInstant(), ZoneId.systemDefault());
       final boolean olderThanCacheTime = comparableLastAccessTime.plusDays(preferences.getCacheLifeTimeInDays()).isBefore(OffsetDateTime.now());
@@ -119,8 +111,6 @@ public class FeaturedModFileCacheService implements InitializingBean {
       }
     } catch (Exception e) {
       log.error("Exception during deleting the cache files", e);
-    } finally {
-      ResourceLocks.freeDiskLock();
     }
   }
 }

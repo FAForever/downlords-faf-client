@@ -14,7 +14,7 @@ import com.faforever.client.notification.GetHelpAction;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ServerNotification;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.commons.api.dto.ApiException;
 import com.faforever.commons.map.PreviewGenerator;
@@ -78,7 +78,7 @@ public class MapUploadController extends NodeController<Node> {
   public CheckBox rulesCheckBox;
   public Label rulesLabel;
   private Path mapPath;
-  private CompletableTask<Void> uploadMapTask;
+  private PrioritizedCompletableTask<Void> uploadMapTask;
   private Runnable cancelButtonClickedListener;
   private Runnable uploadListener;
 

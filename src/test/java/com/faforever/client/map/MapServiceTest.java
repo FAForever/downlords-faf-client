@@ -23,7 +23,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.remote.AssetService;
-import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ApiTestUtil;
 import com.faforever.client.test.ElideMatchers;
@@ -148,7 +148,7 @@ public class MapServiceTest extends PlatformTest {
     forgedAlliancePrefs.setVaultBaseDirectory(tempDirectory);
 
     doAnswer(invocation -> {
-      CompletableTask<?> task = invocation.getArgument(0);
+      PrioritizedCompletableTask<?> task = invocation.getArgument(0);
       WaitForAsyncUtils.asyncFx(task);
       task.getFuture().join();
       return task;

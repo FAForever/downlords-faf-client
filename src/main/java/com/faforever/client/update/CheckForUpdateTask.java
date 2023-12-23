@@ -6,7 +6,7 @@ import com.faforever.client.os.OsPosix;
 import com.faforever.client.os.OsUnknown;
 import com.faforever.client.os.OsWindows;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.client.update.ClientConfiguration.ReleaseInfo;
 import com.faforever.client.util.FileSizeReader;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ import java.net.URL;
 @Component
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
+public class CheckForUpdateTask extends PrioritizedCompletableTask<UpdateInfo> {
 
   private final I18n i18n;
   private final PreferencesService preferencesService;

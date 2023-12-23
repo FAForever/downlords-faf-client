@@ -4,8 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.task.CompletableTask;
-import com.faforever.client.task.ResourceLocks;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.client.update.GitHubRelease;
 import com.faforever.commons.io.ByteCopier;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +28,7 @@ import java.nio.file.StandardCopyOption;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class DownloadFAFDebuggerTask extends CompletableTask<Void> {
+public class DownloadFAFDebuggerTask extends PrioritizedCompletableTask<Void> {
 
   private final ClientProperties clientProperties;
   private final I18n i18n;
@@ -70,7 +69,6 @@ public class DownloadFAFDebuggerTask extends CompletableTask<Void> {
     Path targetFile = forgedAllianceLaunchService.getDebuggerExecutablePath();
     Path tempFile = Files.createTempFile(targetFile.getParent(), "debugger", null);
 
-    ResourceLocks.acquireDownloadLock();
     try (InputStream inputStream = url.openStream(); OutputStream outputStream = Files.newOutputStream(tempFile)) {
       ByteCopier.from(inputStream)
           .to(outputStream)
@@ -80,7 +78,6 @@ public class DownloadFAFDebuggerTask extends CompletableTask<Void> {
 
       Files.move(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
     } finally {
-      ResourceLocks.freeDownloadLock();
       try {
         Files.deleteIfExists(tempFile);
       } catch (IOException e) {

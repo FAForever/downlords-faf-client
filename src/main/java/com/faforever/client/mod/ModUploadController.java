@@ -14,7 +14,7 @@ import com.faforever.client.notification.GetHelpAction;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ServerNotification;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.commons.api.dto.ApiException;
 import javafx.beans.binding.Bindings;
@@ -70,7 +70,7 @@ public class ModUploadController extends NodeController<Node> {
   public CheckBox rulesCheckBox;
   public Label rulesLabel;
   private Path modPath;
-  private CompletableTask<Void> modUploadTask;
+  private PrioritizedCompletableTask<Void> modUploadTask;
   private ModVersionBean modVersionInfo;
   private Runnable cancelButtonClickedListener;
   private Runnable uploadListener;

@@ -5,7 +5,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsUtils;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -26,7 +26,7 @@ import java.util.regex.Matcher;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Setter
-public class GenerateMapTask extends CompletableTask<String> {
+public class GenerateMapTask extends PrioritizedCompletableTask<String> {
   private static final Logger generatorLogger = LoggerFactory.getLogger("faf-map-generator");
 
   private final NotificationService notificationService;

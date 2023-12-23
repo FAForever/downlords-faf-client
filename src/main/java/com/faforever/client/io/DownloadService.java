@@ -1,6 +1,5 @@
 package com.faforever.client.io;
 
-import com.faforever.client.task.ResourceLocks;
 import com.faforever.commons.io.ByteCopier;
 import com.faforever.commons.io.ByteCountListener;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +41,6 @@ public class DownloadService {
 
     log.info("Downloading file from `{}` to `{}`", url, tempFile);
 
-    ResourceLocks.acquireDownloadLock();
     MessageDigest messageDigest = MessageDigest.getInstance("MD5");
     try (InputStream inputStream = urlConnection.getInputStream();
          DigestInputStream digestInputStream = new DigestInputStream(inputStream, messageDigest);
@@ -63,7 +61,6 @@ public class DownloadService {
 
       Files.move(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
     } finally {
-      ResourceLocks.freeDownloadLock();
       try {
         Files.deleteIfExists(tempFile);
       } catch (IOException e) {

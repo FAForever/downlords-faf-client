@@ -16,8 +16,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.remote.AssetService;
-import com.faforever.client.task.CompletableTask;
-import com.faforever.client.task.CompletableTask.Priority;
+import com.faforever.client.task.PrioritizedCompletableTask;
+import com.faforever.client.task.PrioritizedCompletableTask.Priority;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.util.FileSizeReader;
@@ -183,7 +183,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   private void loadInstalledMods() {
-    taskService.submitTask(new CompletableTask<Void>(Priority.LOW) {
+    taskService.submitTask(new PrioritizedCompletableTask<Void>(Priority.LOW) {
 
       @Override
       protected Void call() {
@@ -339,7 +339,7 @@ public class ModService implements InitializingBean, DisposableBean {
     return modMapper.map(modReader.readModInfo(inputStream, basePath), basePath);
   }
 
-  public CompletableTask<Void> uploadMod(Path modPath) {
+  public PrioritizedCompletableTask<Void> uploadMod(Path modPath) {
     ModUploadTask modUploadTask = modUploadTaskFactory.getObject();
     modUploadTask.setModPath(modPath);
 

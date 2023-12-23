@@ -3,8 +3,7 @@ package com.faforever.client.map;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.DataPrefs;
-import com.faforever.client.task.CompletableTask;
-import com.faforever.client.task.ResourceLocks;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.client.util.Validator;
 import com.faforever.commons.io.ByteCountListener;
 import com.faforever.commons.io.Zipper;
@@ -28,7 +27,7 @@ import static java.nio.file.Files.newOutputStream;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class MapUploadTask extends CompletableTask<Void> implements InitializingBean {
+public class MapUploadTask extends PrioritizedCompletableTask<Void> implements InitializingBean {
 
   private final FafApiAccessor fafApiAccessor;
   private final I18n i18n;
@@ -55,7 +54,6 @@ public class MapUploadTask extends CompletableTask<Void> implements Initializing
     Validator.notNull(mapPath, "mapPath must not be null");
     Validator.notNull(isRanked, "isRanked must not be null");
 
-    ResourceLocks.acquireUploadLock();
     Path cacheDirectory = dataPrefs.getCacheDirectory();
     Files.createDirectories(cacheDirectory);
     Path tmpFile = createTempFile(cacheDirectory, "map", ".zip");
@@ -83,7 +81,6 @@ public class MapUploadTask extends CompletableTask<Void> implements Initializing
       return fafApiAccessor.uploadFile("/maps/upload", tmpFile, byteListener, Map.of("metadata", Map.of("isRanked", isRanked))).block();
     } finally {
       Files.delete(tmpFile);
-      ResourceLocks.freeUploadLock();
     }
   }
 

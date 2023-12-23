@@ -4,7 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.MapGenerator;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -105,7 +105,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
     lenient().when(generatorOptionsTask.getFuture())
              .thenReturn(CompletableFuture.completedFuture(new ArrayList<>(List.of("TEST"))));
     lenient().doAnswer(invocation -> {
-      CompletableTask<Void> task = invocation.getArgument(0);
+      PrioritizedCompletableTask<Void> task = invocation.getArgument(0);
       task.getFuture().get();
       return task;
     }).when(taskService).submitTask(any());

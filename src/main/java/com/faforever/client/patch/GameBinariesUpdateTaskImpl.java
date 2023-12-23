@@ -9,8 +9,7 @@ import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsWindows;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.task.CompletableTask;
-import com.faforever.client.task.ResourceLocks;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.Validator;
 import com.faforever.commons.fa.ForgedAllianceExePatcher;
@@ -41,7 +40,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements GameBinariesUpdateTask {
+public class GameBinariesUpdateTaskImpl extends PrioritizedCompletableTask<Void> implements GameBinariesUpdateTask {
 
   @VisibleForTesting
   static final Collection<String> BINARIES_TO_COPY = Arrays.asList(
@@ -114,22 +113,18 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
       platformService.setUnixExecutableAndWritableBits(exePath);
       return;
     }
-    ResourceLocks.acquireDownloadLock();
-    try {
-      log.debug("Downloading `{}` to `{}`", fafExeUrl, exePath);
-      URLConnection urlConnection = new URL(fafExeUrl).openConnection();
-      try (InputStream inputStream = urlConnection.getInputStream();
-           OutputStream outputStream = Files.newOutputStream(exePath)) {
-        ByteCopier.from(inputStream)
-            .to(outputStream)
-            .totalBytes(urlConnection.getContentLength())
-            .listener(this::updateProgress)
-            .copy();
-      }
-      platformService.setUnixExecutableAndWritableBits(exePath);
-    } finally {
-      ResourceLocks.freeDownloadLock();
+
+    log.debug("Downloading `{}` to `{}`", fafExeUrl, exePath);
+    URLConnection urlConnection = new URL(fafExeUrl).openConnection();
+    try (InputStream inputStream = urlConnection.getInputStream(); OutputStream outputStream = Files.newOutputStream(
+        exePath)) {
+      ByteCopier.from(inputStream)
+                .to(outputStream)
+                .totalBytes(urlConnection.getContentLength())
+                .listener(this::updateProgress)
+                .copy();
     }
+    platformService.setUnixExecutableAndWritableBits(exePath);
   }
 
   @VisibleForTesting

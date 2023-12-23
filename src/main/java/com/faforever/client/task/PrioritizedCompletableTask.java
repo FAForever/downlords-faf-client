@@ -1,23 +1,46 @@
 package com.faforever.client.task;
 
-import javafx.concurrent.Worker;
+import com.faforever.client.util.Assert;
+import javafx.concurrent.Task;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.RunnableFuture;
 
-public interface PrioritizedCompletableTask<V> extends Comparable<CompletableTask<V>>, Worker<V>, RunnableFuture<V> {
+public abstract class PrioritizedCompletableTask<V> extends Task<V> implements Comparable<PrioritizedCompletableTask<V>>, CompletableTask<V> {
+
+  private final CompletableFuture<V> future;
+  private Priority priority;
+
+  public PrioritizedCompletableTask(Priority priority) {
+    this.priority = priority;
+    this.future = new CompletableFuture<>();
+    setOnCancelled(event -> future.cancel(true));
+    setOnFailed(event -> future.completeExceptionally(getException()));
+    setOnSucceeded(event -> future.complete(getValue()));
+  }
 
   @Override
-  V getValue();
+  public CompletableFuture<V> getFuture() {
+    return future;
+  }
 
   @Override
-  Throwable getException();
+  public int compareTo(@NotNull PrioritizedCompletableTask other) {
+    return priority.compareTo(other.priority);
+  }
+
+  public void setPriority(Priority priority) {
+    Assert.checkNotNullIllegalState(this.priority, "Priority has already been set");
+    this.priority = priority;
+  }
 
   @Override
-  String getTitle();
+  public boolean cancel(boolean mayInterruptIfRunning) {
+    future.cancel(mayInterruptIfRunning);
+    return super.cancel(mayInterruptIfRunning);
+  }
 
-  @Override
-  boolean cancel(boolean mayInterruptIfRunning);
-
-  CompletableFuture<V> getFuture();
+  public enum Priority {
+    LOW, MEDIUM, HIGH
+  }
 }

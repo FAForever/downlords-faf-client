@@ -2,8 +2,7 @@ package com.faforever.client.update;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.DataPrefs;
-import com.faforever.client.task.CompletableTask;
-import com.faforever.client.task.ResourceLocks;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.commons.io.ByteCopier;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +21,7 @@ import java.nio.file.StandardCopyOption;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class DownloadUpdateTask extends CompletableTask<Path> {
+public class DownloadUpdateTask extends PrioritizedCompletableTask<Path> {
 
   private final I18n i18n;
   private final DataPrefs dataPrefs;
@@ -48,7 +47,6 @@ public class DownloadUpdateTask extends CompletableTask<Path> {
 
     Path tempFile = Files.createTempFile(targetFile.getParent(), "update", null);
 
-      ResourceLocks.acquireDownloadLock();
     try (InputStream inputStream = url.openStream(); OutputStream outputStream = Files.newOutputStream(tempFile)) {
       ByteCopier.from(inputStream)
           .to(outputStream)
@@ -58,7 +56,6 @@ public class DownloadUpdateTask extends CompletableTask<Path> {
 
       Files.move(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
     } finally {
-      ResourceLocks.freeDownloadLock();
       try {
         Files.deleteIfExists(tempFile);
       } catch (IOException e) {

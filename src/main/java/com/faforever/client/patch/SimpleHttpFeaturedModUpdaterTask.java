@@ -8,7 +8,7 @@ import com.faforever.client.io.DownloadService;
 import com.faforever.client.io.FeaturedModFileCacheService;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.commons.api.dto.FeaturedModFile;
 import com.faforever.commons.fa.ForgedAllianceExePatcher;
 import lombok.Setter;
@@ -32,7 +32,7 @@ import java.util.Objects;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @Setter
-public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResult> {
+public class SimpleHttpFeaturedModUpdaterTask extends PrioritizedCompletableTask<PatchResult> {
   private final FeaturedModService featuredModService;
   private final DownloadService downloadService;
   private final I18n i18n;

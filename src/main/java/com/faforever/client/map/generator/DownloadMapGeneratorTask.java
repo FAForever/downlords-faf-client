@@ -3,8 +3,7 @@ package com.faforever.client.map.generator;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.task.CompletableTask;
-import com.faforever.client.task.ResourceLocks;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.commons.io.ByteCopier;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
@@ -29,7 +28,7 @@ import java.util.Objects;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class DownloadMapGeneratorTask extends CompletableTask<Void> {
+public class DownloadMapGeneratorTask extends PrioritizedCompletableTask<Void> {
 
   private final MapGeneratorService mapGeneratorService;
   private final ClientProperties clientProperties;
@@ -65,7 +64,6 @@ public class DownloadMapGeneratorTask extends CompletableTask<Void> {
     Files.createDirectories(targetFile.getParent());
     Path tempFile = Files.createTempFile(targetFile.getParent(), "generator", null);
 
-    ResourceLocks.acquireDownloadLock();
     try (InputStream inputStream = url.openStream(); OutputStream outputStream = Files.newOutputStream(tempFile)) {
       ByteCopier.from(inputStream)
           .to(outputStream)
@@ -75,7 +73,6 @@ public class DownloadMapGeneratorTask extends CompletableTask<Void> {
 
       Files.move(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
     } finally {
-      ResourceLocks.freeDownloadLock();
       try {
         Files.deleteIfExists(tempFile);
       } catch (IOException e) {

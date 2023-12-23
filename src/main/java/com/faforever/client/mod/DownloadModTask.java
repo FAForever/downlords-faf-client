@@ -3,8 +3,7 @@ package com.faforever.client.mod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.task.CompletableTask;
-import com.faforever.client.task.ResourceLocks;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.commons.io.ByteCopier;
 import com.faforever.commons.io.Unzipper;
 import lombok.extern.slf4j.Slf4j;
@@ -26,12 +25,12 @@ import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static com.faforever.client.task.CompletableTask.Priority.HIGH;
+import static com.faforever.client.task.PrioritizedCompletableTask.Priority.HIGH;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class DownloadModTask extends CompletableTask<Void> {
+public class DownloadModTask extends PrioritizedCompletableTask<Void> {
 
   private final I18n i18n;
   private final DataPrefs dataPrefs;
@@ -62,7 +61,6 @@ public class DownloadModTask extends CompletableTask<Void> {
     URLConnection urlConnection = url.openConnection();
     int contentLength = urlConnection.getContentLength();
 
-    ResourceLocks.acquireDownloadLock();
     try (InputStream inputStream = urlConnection.getInputStream();
          OutputStream outputStream = Files.newOutputStream(tempFile)) {
 
@@ -74,7 +72,6 @@ public class DownloadModTask extends CompletableTask<Void> {
 
       extractMod(tempFile);
     } finally {
-      ResourceLocks.freeDownloadLock();
       try {
         Files.deleteIfExists(tempFile);
       } catch (IOException e) {
@@ -93,8 +90,6 @@ public class DownloadModTask extends CompletableTask<Void> {
 
     log.info("Unzipping `{}` to `{}`", tempFile, modsDirectory);
     try (InputStream inputStream = Files.newInputStream(tempFile)) {
-      ResourceLocks.acquireDiskLock();
-
       Unzipper.from(inputStream)
           .to(modsDirectory)
           .zipBombByteCountThreshold(100_000_000)
@@ -102,8 +97,6 @@ public class DownloadModTask extends CompletableTask<Void> {
           .totalBytes(Files.size(tempFile))
           .unzip();
 
-    } finally {
-      ResourceLocks.freeDiskLock();
     }
   }
 

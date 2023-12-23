@@ -3,7 +3,7 @@ package com.faforever.client.map.generator;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsUtils;
-import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Setter
-public class GeneratorOptionsTask extends CompletableTask<List<String>> {
+public class GeneratorOptionsTask extends PrioritizedCompletableTask<List<String>> {
   private static final Logger generatorLogger = LoggerFactory.getLogger("faf-map-generator");
 
   private final I18n i18n;

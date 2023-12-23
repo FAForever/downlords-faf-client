@@ -3,8 +3,7 @@ package com.faforever.client.uploader.imgur;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Imgur.Upload;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.task.CompletableTask;
-import com.faforever.client.task.ResourceLocks;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.commons.io.ByteCopier;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
@@ -34,7 +33,7 @@ import static com.faforever.commons.io.Bytes.formatSize;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ImgurUploadTask extends CompletableTask<String> implements InitializingBean {
+public class ImgurUploadTask extends PrioritizedCompletableTask<String> implements InitializingBean {
 
   private final ObjectMapper objectMapper;
 
@@ -90,7 +89,6 @@ public class ImgurUploadTask extends CompletableTask<String> implements Initiali
     urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
     urlConnection.connect();
 
-    ResourceLocks.acquireUploadLock();
     try (OutputStream outputStream = urlConnection.getOutputStream()) {
       byte[] bytes = data.getBytes(StandardCharsets.UTF_8);
       ByteCopier.from(new ByteArrayInputStream(bytes))
@@ -98,8 +96,6 @@ public class ImgurUploadTask extends CompletableTask<String> implements Initiali
           .totalBytes(bytes.length)
           .listener(this::updateProgress)
           .copy();
-    } finally {
-      ResourceLocks.freeUploadLock();
     }
 
     StringBuilder stringBuilder = new StringBuilder();

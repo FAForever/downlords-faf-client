@@ -3,8 +3,7 @@ package com.faforever.client.mod;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.DataPrefs;
-import com.faforever.client.task.CompletableTask;
-import com.faforever.client.task.ResourceLocks;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.client.util.Validator;
 import com.faforever.commons.io.ByteCountListener;
 import com.faforever.commons.io.Zipper;
@@ -27,7 +26,7 @@ import static java.nio.file.Files.newOutputStream;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class ModUploadTask extends CompletableTask<Void> {
+public class ModUploadTask extends PrioritizedCompletableTask<Void> {
 
   private final FafApiAccessor fafApiAccessor;
   private final I18n i18n;
@@ -47,7 +46,6 @@ public class ModUploadTask extends CompletableTask<Void> {
   protected Void call() throws Exception {
     Validator.notNull(modPath, "modPath must not be null");
 
-    ResourceLocks.acquireUploadLock();
     Path cacheDirectory = dataPrefs.getCacheDirectory();
     Files.createDirectories(cacheDirectory);
     Path tmpFile = createTempFile(cacheDirectory, "mod", ".zip");
@@ -75,7 +73,6 @@ public class ModUploadTask extends CompletableTask<Void> {
       return fafApiAccessor.uploadFile("/mods/upload", tmpFile, byteListener, Map.of()).block();
     } finally {
       Files.delete(tmpFile);
-      ResourceLocks.freeUploadLock();
     }
   }
 

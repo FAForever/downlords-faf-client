@@ -2,7 +2,7 @@ package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import com.faforever.commons.io.Unzipper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ import java.util.Objects;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class DownloadMapTask extends CompletableTask<Void> {
+public class DownloadMapTask extends PrioritizedCompletableTask<Void> {
 
   private final I18n i18n;
   private final ForgedAlliancePrefs forgedAlliancePrefs;

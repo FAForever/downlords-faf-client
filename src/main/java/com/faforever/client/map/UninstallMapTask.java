@@ -1,7 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.PrioritizedCompletableTask;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -15,7 +15,7 @@ import java.util.Objects;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class UninstallMapTask extends CompletableTask<Void> {
+public class UninstallMapTask extends PrioritizedCompletableTask<Void> {
 
   private final MapService mapService;
 

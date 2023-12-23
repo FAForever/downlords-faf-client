@@ -22,8 +22,8 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.remote.AssetService;
-import com.faforever.client.task.CompletableTask;
-import com.faforever.client.task.CompletableTask.Priority;
+import com.faforever.client.task.PrioritizedCompletableTask;
+import com.faforever.client.task.PrioritizedCompletableTask.Priority;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.util.FileSizeReader;
@@ -224,7 +224,7 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   private void loadInstalledMaps() {
-    taskService.submitTask(new CompletableTask<Void>(Priority.LOW) {
+    taskService.submitTask(new PrioritizedCompletableTask<Void>(Priority.LOW) {
 
       @Override
       protected Void call() {
@@ -470,7 +470,7 @@ public class MapService implements InitializingBean, DisposableBean {
     return null;
   }
 
-  public CompletableTask<Void> uploadMap(Path mapPath, boolean ranked) {
+  public PrioritizedCompletableTask<Void> uploadMap(Path mapPath, boolean ranked) {
     MapUploadTask mapUploadTask = mapUploadTaskFactory.getObject();
     mapUploadTask.setMapPath(mapPath);
     mapUploadTask.setRanked(ranked);
