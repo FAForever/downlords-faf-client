@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -88,7 +87,6 @@ public class GamePrefsService implements InitializingBean {
     Files.writeString(preferencesFile, preferencesContent);
   }
 
-  @Async
   public CompletableFuture<Void> patchGamePrefsForMultiInstances() {
     return CompletableFuture.runAsync(() -> {
       String prefsContent = readPreferencesFile();

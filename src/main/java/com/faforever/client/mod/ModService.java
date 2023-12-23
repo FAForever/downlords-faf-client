@@ -50,7 +50,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -353,7 +352,6 @@ public class ModService implements InitializingBean, DisposableBean {
                                           () -> themeService.getThemeImage(ThemeService.NO_IMAGE_AVAILABLE));
   }
 
-  @Async
   public CompletableFuture<Integer> getFileSize(ModVersionBean modVersion) {
     return fileSizeReader.getFileSize(modVersion.getDownloadUrl());
   }
@@ -394,7 +392,6 @@ public class ModService implements InitializingBean, DisposableBean {
     Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
   }
 
-  @Async
   public CompletableFuture<Collection<ModVersionBean>> updateAndActivateModVersions(
       final Collection<ModVersionBean> selectedModVersions) {
     if (!preferences.isMapAndModAutoUpdate()) {

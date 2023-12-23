@@ -2,7 +2,6 @@ package com.faforever.client.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -13,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
 @Component
 @Slf4j
 public class FileSizeReader {
-  @Async
+
   public CompletableFuture<Integer> getFileSize(URL url) {
     return CompletableFuture.supplyAsync(() -> {
       HttpURLConnection connection = null;
