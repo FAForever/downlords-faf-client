@@ -43,6 +43,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -120,7 +121,7 @@ public class ReplayRunnerTest extends ServiceTest {
     verify(mapService).downloadIfNecessary("test");
 
     ArgumentCaptor<ImmediateNotification> captor = ArgumentCaptor.forClass(ImmediateNotification.class);
-    verify(notificationService).addNotification(captor.capture());
+    verify(notificationService, timeout(100)).addNotification(captor.capture());
 
     ImmediateNotification notification = captor.getValue();
     notification.actions().get(1).run();

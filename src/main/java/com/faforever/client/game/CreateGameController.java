@@ -36,6 +36,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.css.PseudoClass;
 import javafx.geometry.Bounds;
@@ -96,7 +97,6 @@ public class CreateGameController extends NodeController<Pane> {
   private final MapService mapService;
   private final FeaturedModService featuredModService;
   private final ModService modService;
-  private final GameService gameService;
   private final I18n i18n;
   private final NotificationService notificationService;
   private final LoginService loginService;
@@ -149,15 +149,14 @@ public class CreateGameController extends NodeController<Pane> {
         if (filteredMaps.size() > currentMapIndex + 1) {
           newMapIndex++;
         }
-        event.consume();
       } else if (KeyCode.UP == event.getCode()) {
         if (currentMapIndex > 0) {
           newMapIndex--;
         }
-        event.consume();
       }
       selectionModel.select(newMapIndex);
       mapListView.scrollTo(newMapIndex);
+      event.consume();
     });
 
     Function<FeaturedModBean, String> isDefaultModString = mod -> Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ? " " + i18n.get("game.create.defaultGameTypeMarker") : null;
@@ -275,12 +274,23 @@ public class CreateGameController extends NodeController<Pane> {
 
     FilteredList<MapVersionBean> skirmishMaps = mapService.getInstalledMaps()
         .filtered(mapVersion -> mapVersion.getMap().getMapType() == MapType.SKIRMISH);
-    filteredMaps = new FilteredList<>(skirmishMaps
-        .sorted(Comparator.comparing(mapVersion -> mapVersion.getMap().getDisplayName().toLowerCase())));
+    filteredMaps = new FilteredList<>(skirmishMaps.sorted(
+        Comparator.comparing(mapVersion -> mapVersion.getMap().getDisplayName(), String.CASE_INSENSITIVE_ORDER)));
     filteredMaps.predicateProperty().when(showing).subscribe(() -> {
       MultipleSelectionModel<MapVersionBean> selectionModel = mapListView.getSelectionModel();
       if (!filteredMaps.isEmpty() && !filteredMaps.contains(selectionModel.getSelectedItem())) {
         selectionModel.select(0);
+      }
+    });
+    skirmishMaps.addListener((ListChangeListener<MapVersionBean>) change -> {
+      while (change.next()) {
+        if (change.wasAdded()) {
+          MapVersionBean map = change.getAddedSubList().getFirst();
+          fxApplicationThreadExecutor.execute(() -> {
+            mapListView.getSelectionModel().select(map);
+            mapListView.scrollTo(map);
+          });
+        }
       }
     });
 

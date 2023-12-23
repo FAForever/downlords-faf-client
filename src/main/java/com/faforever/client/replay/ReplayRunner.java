@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -125,20 +126,18 @@ public class ReplayRunner implements InitializingBean {
 
                                                                   Severity.WARN, actions));
 
-    CompletableFuture.runAsync(() -> {
+    return CompletableFuture.runAsync(() -> {
       try {
         userAnswered.await();
         if (shouldStart.get()) {
           future.complete(null);
         } else {
-          future.completeExceptionally(throwable);
+          throw new CompletionException(throwable);
         }
       } catch (InterruptedException exception) {
-        future.completeExceptionally(throwable);
+        throw new CompletionException(throwable);
       }
     });
-
-    return future;
   }
 
   public void runWithLiveReplay(GameBean game) {
