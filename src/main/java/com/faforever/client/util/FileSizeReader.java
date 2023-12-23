@@ -19,7 +19,7 @@ public class FileSizeReader {
       HttpURLConnection connection = null;
       try {
         connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod(HttpMethod.HEAD.name());
+        connection.setRequestMethod(HttpMethod.GET.name());
         return connection.getContentLength();
       } catch (IOException e) {
         log.error("Could not open connection to file download", e);
