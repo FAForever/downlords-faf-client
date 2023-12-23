@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -36,13 +35,11 @@ public class FeaturedModService {
   private final FeaturedModMapper featuredModMapper;
   private final GameUpdater gameUpdater;
 
-  @Async
   public CompletableFuture<Void> updateFeaturedMod(String featuredModName, Map<String, Integer> featuredModFileVersions,
                                                    Integer baseVersion, boolean forReplays) {
     return gameUpdater.update(featuredModName, featuredModFileVersions, baseVersion, forReplays);
   }
 
-  @Async
   public CompletableFuture<Void> updateFeaturedModToLatest(String featuredModName, boolean forReplays) {
     return updateFeaturedMod(featuredModName, null, null, forReplays);
   }

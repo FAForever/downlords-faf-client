@@ -9,7 +9,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.update.ClientConfiguration.ReleaseInfo;
 import com.faforever.client.util.FileSizeReader;
-import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -35,11 +34,6 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
     this.operatingSystem = operatingSystem;
   }
 
-  @VisibleForTesting
-  int getFileSize(URL url) {
-    return fileSizeReader.getFileSize(url).join();
-  }
-
   @Override
   protected UpdateInfo call() throws Exception {
     updateTitle(i18n.get("clientUpdateCheckTask.title"));
@@ -59,7 +53,7 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
         return null;
       }
 
-      int fileSize = getFileSize(downloadUrl);
+      int fileSize = fileSizeReader.getFileSize(downloadUrl).join();
 
       return new UpdateInfo(
           version,

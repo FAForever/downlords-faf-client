@@ -66,7 +66,6 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -511,7 +510,6 @@ public class MapService implements InitializingBean, DisposableBean {
     });
   }
 
-  @Async
   public CompletableFuture<Integer> getFileSize(MapVersionBean mapVersion) {
     return fileSizeReader.getFileSize(mapVersion.getDownloadUrl());
   }
