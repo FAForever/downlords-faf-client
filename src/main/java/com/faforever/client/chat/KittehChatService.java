@@ -225,10 +225,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private ChatChannelUser initializeUserForChannel(String username, ChatChannel chatChannel) {
     ChatChannelUser chatChannelUser = new ChatChannelUser(username, chatChannel.getName());
     playerService.getPlayerByNameIfOnline(username).ifPresent(chatChannelUser::setPlayer);
-    Runnable updateColor = () -> populateColor(chatChannelUser);
-    chatChannelUser.categoryProperty().subscribe(updateColor);
-    chatChannelUser.moderatorProperty().subscribe(updateColor);
-    chatChannelUser.awayProperty().subscribe(updateColor);
+    chatChannelUser.categoryProperty().subscribe(() -> populateColor(chatChannelUser));
     populateColor(chatChannelUser);
     chatChannel.addUser(chatChannelUser);
     return chatChannelUser;
