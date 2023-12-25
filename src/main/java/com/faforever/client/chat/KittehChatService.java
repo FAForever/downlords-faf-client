@@ -185,7 +185,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private ChatChannelUser getOrCreateChatUser(User user, Channel channel) {
-    String username = getUsername(user);
+    String username = user.getNick();
     String channelName = channel.getName();
 
     ChatChannel chatChannel = getOrCreateChannel(channelName);
@@ -194,7 +194,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   private ChatChannelUser initializeUserForChannel(User user, Channel channel) {
     ChatChannel chatChannel = getOrCreateChannel(channel.getName());
-    ChatChannelUser chatChannelUser = initializeUserForChannel(getUsername(user), chatChannel);
+    ChatChannelUser chatChannelUser = initializeUserForChannel(user.getNick(), chatChannel);
 
     boolean isModerator = channel.getUserModes(user)
                                  .stream()
@@ -207,7 +207,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private void updateChatUser(User user, Channel channel) {
-    String username = getUsername(user);
+    String username = user.getNick();
     String channelName = channel.getName();
 
     ChatChannel chatChannel = getOrCreateChannel(channelName);
@@ -243,7 +243,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Handler
   public void onUserAway(UserAwayMessageEvent event) {
     User user = event.getActor();
-    String username = getUsername(user);
+    String username = user.getNick();
     channels.values()
             .forEach(chatChannel -> chatChannel.getUser(username)
                                                .ifPresent(chatUser -> fxApplicationThreadExecutor.execute(
@@ -306,13 +306,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private void onPartEvent(ChannelPartEvent event) {
     User user = event.getActor();
     ircLog.debug("User left channel: {}", user);
-    onChatUserLeftChannel(event.getChannel().getName(), getUsername(user));
+    onChatUserLeftChannel(event.getChannel().getName(), user.getNick());
   }
 
   @Handler
   private void onChatUserQuit(UserQuitEvent event) {
     User user = event.getUser();
-    String username = getUsername(user);
+    String username = user.getNick();
     channels.values().forEach(channel -> onChatUserLeftChannel(channel.getName(), username));
     playerService.removePlayerIfOnline(username);
   }
@@ -338,7 +338,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String text = event.getMessage();
     ChatChannel chatChannel = getOrCreateChannel(channelName);
-    ChatChannelUser sender = getOrCreateChatUser(getUsername(user), chatChannel.getName());
+    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), chatChannel.getName());
     notifyIfMentioned(text, chatChannel, sender);
 
     Instant messageTime = event.getTags()
@@ -402,7 +402,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String channelName = event.getChannel().getName();
 
-    String senderNick = getUsername(user);
+    String senderNick = user.getNick();
     String message = event.getMessage().replace("ACTION", senderNick);
     ChatChannel chatChannel = getOrCreateChannel(channelName);
     ChatChannelUser sender = getOrCreateChatUser(senderNick, chatChannel.getName());
@@ -440,7 +440,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     User user = event.getActor();
     ircLog.debug("Received private message: {}", event);
 
-    String senderNick = getUsername(user);
+    String senderNick = user.getNick();
 
     if (playerService.getPlayerByNameIfOnline(senderNick)
               .map(PlayerBean::getSocialStatus)
@@ -452,7 +452,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String text = event.getMessage();
     ChatChannel chatChannel = getOrCreateChannel(senderNick);
-    ChatChannelUser sender = getOrCreateChatUser(getUsername(user), chatChannel.getName());
+    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), chatChannel.getName());
     notifyOnPrivateMessage(text, chatChannel, senderNick);
 
     Instant messageTime = event.getTags()
@@ -464,10 +464,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                .orElse(Instant.now());
 
     chatChannel.addMessage(new ChatMessage(messageTime, sender, text));
-  }
-
-  private String getUsername(User user) {
-    return user.getAccount().orElse(user.getNick());
   }
 
   private void joinAutoChannels() {
