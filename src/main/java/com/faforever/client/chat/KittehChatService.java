@@ -548,10 +548,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       color = ColorGeneratorUtil.generateRandomColor(lowercaseUsername.hashCode());
     } else if (userToColor.containsKey(lowercaseUsername)) {
       color = userToColor.get(lowercaseUsername);
-    } else if (chatChannelUser.isAway()) {
-      color = groupToColor.get(ChatUserCategory.AWAY);
-    } else if (chatChannelUser.isModerator()) {
-      color = groupToColor.get(ChatUserCategory.MODERATOR);
     } else {
       color = groupToColor.get(chatChannelUser.getCategory());
     }
