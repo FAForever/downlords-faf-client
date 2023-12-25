@@ -257,7 +257,7 @@ public class ChatUserListControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
-    assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
+    assertContainUsersInCategory(ChatUserCategory.AWAY, user);
   }
 
   @Test
@@ -268,7 +268,7 @@ public class ChatUserListControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
-    assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
+    assertContainUsersInCategory(ChatUserCategory.AWAY, user);
   }
 
   @Test
@@ -279,7 +279,7 @@ public class ChatUserListControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
-    assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
+    assertContainUsersInCategory(ChatUserCategory.AWAY, user);
   }
 
   @Test
@@ -290,7 +290,7 @@ public class ChatUserListControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
-    assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
+    assertContainUsersInCategory(ChatUserCategory.AWAY, user);
   }
 
   @Test
@@ -428,7 +428,7 @@ public class ChatUserListControllerTest extends PlatformTest {
   }
 
   private void addUsersToChannel(ChatChannelUser... users) {
-    addUsersToChannel(Arrays.asList(users));
+    addUsersToChannel(List.of(users));
   }
 
   private void addUsersToChannel(Collection<ChatChannelUser> users) {
@@ -436,7 +436,7 @@ public class ChatUserListControllerTest extends PlatformTest {
   }
 
   private void removeUsersFromChannel(ChatChannelUser... users) {
-    removeUsersFromChannel(Arrays.stream(users).toList());
+    removeUsersFromChannel(List.of(users));
   }
 
   private void removeUsersFromChannel(Collection<ChatChannelUser> users) {

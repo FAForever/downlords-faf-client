@@ -86,9 +86,7 @@ public class ChatUserListController extends NodeController<VBox> {
   private Popup filterPopup;
 
   private final ObjectProperty<ChatChannel> chatChannel = new SimpleObjectProperty<>();
-  private final ObservableValue<ObservableList<ChatChannelUser>> users = chatChannel.map(ChatChannel::getUsers)
-                                                                                    .orElse(
-                                                                                        FXCollections.emptyObservableList());
+  private final ObservableValue<ObservableList<ChatChannelUser>> users = chatChannel.map(ChatChannel::getUsers);
   private final ObservableValue<String> channelName = chatChannel.map(ChatChannel::getName);
   private final ObservableMap<ChatChannelUser, ChatListItem> userChatListItemMap = FXCollections.synchronizedObservableMap(
       FXCollections.observableHashMap());

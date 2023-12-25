@@ -15,7 +15,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
@@ -75,9 +74,7 @@ public class ChannelTabController extends AbstractChatTabController {
   public ChatUserListController chatUserListController;
 
   private final ObservableValue<ChannelTopic> channelTopic = chatChannel.flatMap(ChatChannel::topicProperty);
-  private final ObservableValue<ObservableList<ChatChannelUser>> users = chatChannel.map(ChatChannel::getUsers)
-                                                                                    .orElse(
-                                                                                        FXCollections.emptyObservableList());
+  private final ObservableValue<ObservableList<ChatChannelUser>> users = chatChannel.map(ChatChannel::getUsers);
   private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = this::updateChangedUsersStyles;
 
 
@@ -140,9 +137,12 @@ public class ChannelTabController extends AbstractChatTabController {
     chatPrefs.hideFoeMessagesProperty()
              .when(showing)
              .subscribe(this::hideFoeMessages);
-    chatPrefs.chatColorModeProperty()
-             .when(showing)
-             .subscribe(() -> users.getValue().forEach(this::updateUserMessageColor));
+    chatPrefs.chatColorModeProperty().when(showing).subscribe(() -> {
+      ObservableList<ChatChannelUser> users = this.users.getValue();
+      if (users != null) {
+        users.forEach(this::updateUserMessageColor);
+      }
+    });
     channelTopic.when(showing).subscribe(this::updateChannelTopic);
     userListVisibilityToggleButton.selectedProperty().when(showing).subscribe(this::updateDividerPosition);
 
@@ -169,14 +169,15 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   public AutoCompletionHelper getAutoCompletionHelper() {
-    return new AutoCompletionHelper(currentWord -> users.getValue()
-                                                        .stream()
-                                                        .map(ChatChannelUser::getUsername)
-                                                        .filter(username -> username.toLowerCase(US)
-                                                                                    .startsWith(
-                                                                                        currentWord.toLowerCase()))
-                                                        .sorted()
-                                                        .collect(Collectors.toList()));
+    return new AutoCompletionHelper(currentWord -> {
+      ObservableList<ChatChannelUser> users = this.users.getValue();
+      return users == null ? List.of() : users.stream()
+                                              .map(ChatChannelUser::getUsername)
+                                              .filter(username -> username.toLowerCase(US)
+                                                                          .startsWith(currentWord.toLowerCase()))
+                                              .sorted()
+                                              .collect(Collectors.toList());
+    });
   }
 
   private void highlightText(String newValue) {
@@ -188,9 +189,12 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void hideFoeMessages(boolean shouldHide) {
-    users.getValue()
-         .stream().filter(user -> user.getCategory() == ChatUserCategory.FOE)
-         .forEach(user -> updateUserMessageVisibility(user, shouldHide));
+    ObservableList<ChatChannelUser> users = this.users.getValue();
+    if (users != null) {
+      users.stream()
+           .filter(user -> user.getCategory() == ChatUserCategory.FOE)
+           .forEach(user -> updateUserMessageVisibility(user, shouldHide));
+    }
   }
 
   private void updateChangedUsersStyles(Change<? extends ChatChannelUser> change) {
