@@ -113,10 +113,10 @@ public class LoginService implements InitializingBean {
 
   private void resetLoginState() {
     loginPrefs.setRememberMe(false);
-    ownUser.set(null);
-    ownPlayer.set(null);
     fafApiAccessor.reset();
     fafServerAccessor.disconnect();
+    ownUser.set(null);
+    ownPlayer.set(null);
     loggedIn.set(false);
     tokenRetriever.invalidateToken();
   }

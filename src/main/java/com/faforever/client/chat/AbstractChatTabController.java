@@ -84,7 +84,6 @@ import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
 @RequiredArgsConstructor
 public abstract class AbstractChatTabController extends TabController {
 
-  static final String CSS_CLASS_CHAT_ONLY = "chat_only";
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-section";
   private static final PseudoClass UNREAD_PSEUDO_STATE = PseudoClass.getPseudoClass("unread");
@@ -610,7 +609,6 @@ public abstract class AbstractChatTabController extends TabController {
     } else {
       cssClasses.add(MESSAGE_CSS_CLASS);
     }
-    sender.getCategories().stream().sorted().map(ChatUserCategory::getCssClass).findFirst().ifPresent(cssClasses::add);
 
     html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
 

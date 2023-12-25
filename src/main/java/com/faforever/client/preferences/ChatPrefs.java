@@ -4,17 +4,14 @@ import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatFormat;
 import com.faforever.client.chat.ChatUserCategory;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -36,16 +33,10 @@ import static com.faforever.client.preferences.LanguageChannel.RUSSIAN;
 public class ChatPrefs {
 
   @VisibleForTesting
-  public static final ImmutableMap<Locale, LanguageChannel> LOCALE_LANGUAGES_TO_CHANNELS = ImmutableMap.<Locale, LanguageChannel>builder()
-      .put(Locale.FRENCH, FRENCH)
-      .put(Locale.GERMAN, GERMAN)
-                                                                                                       .put(Locale.of(
-                                                                                                                "ru"),
-                                                                                                            RUSSIAN)
-                                                                                                       .put(Locale.of(
-                                                                                                                "be"),
-                                                                                                            RUSSIAN)
-      .build();
+  public static final Map<Locale, LanguageChannel> LOCALE_LANGUAGES_TO_CHANNELS = Map.of(Locale.FRENCH, FRENCH,
+                                                                                         Locale.GERMAN, GERMAN,
+                                                                                         Locale.of("ru"), RUSSIAN,
+                                                                                         Locale.of("be"), RUSSIAN);
 
   private final DoubleProperty zoom = new SimpleDoubleProperty(1);
   private final BooleanProperty previewImageUrls = new SimpleBooleanProperty(true);
@@ -58,14 +49,15 @@ public class ChatPrefs {
   private final BooleanProperty playerListShown = new SimpleBooleanProperty(true);
   private final ObjectProperty<TimeInfo> timeFormat = new SimpleObjectProperty<>(TimeInfo.AUTO);
   private final ObjectProperty<ChatFormat> chatFormat = new SimpleObjectProperty<>(ChatFormat.COMPACT);
-  private final ListProperty<String> autoJoinChannels = new SimpleListProperty<>(FXCollections.observableArrayList());
+  private final ObservableList<String> autoJoinChannels = FXCollections.observableArrayList();
   private final BooleanProperty showMapName = new SimpleBooleanProperty(false);
   private final BooleanProperty showMapPreview = new SimpleBooleanProperty(false);
-  ObservableMap<String, ObservableSet<ChatUserCategory>> channelNameToHiddenCategories = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
+  private final ObservableMap<String, ObservableSet<ChatUserCategory>> channelNameToHiddenCategories = FXCollections.synchronizedObservableMap(
+      FXCollections.observableHashMap());
 
   public ChatPrefs() {
     Optional.ofNullable(LOCALE_LANGUAGES_TO_CHANNELS.get(Locale.of(Locale.getDefault().getLanguage())))
-        .ifPresent(channel -> autoJoinChannels.get().add(channel.getChannelName()));
+            .ifPresent(channel -> autoJoinChannels.add(channel.getChannelName()));
   }
 
   public ChatColorMode getChatColorMode() {
@@ -82,6 +74,10 @@ public class ChatPrefs {
 
   public void setTimeFormat(TimeInfo time) {
     this.timeFormat.set(time);
+  }
+
+  public ObjectProperty<TimeInfo> timeFormatProperty() {
+    return timeFormat;
   }
 
   public ChatFormat getChatFormat() {
@@ -173,7 +169,7 @@ public class ChatPrefs {
   }
 
   public ObservableList<String> getAutoJoinChannels() {
-    return autoJoinChannels.get();
+    return autoJoinChannels;
   }
 
   public boolean isPlayerListShown() {

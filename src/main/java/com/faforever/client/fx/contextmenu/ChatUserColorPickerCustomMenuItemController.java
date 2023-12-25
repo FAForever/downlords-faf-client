@@ -1,7 +1,6 @@
 package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.chat.ChatChannelUser;
-import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.util.Assert;
@@ -46,20 +45,10 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractColorPi
   }
 
   private void updateUserColor() {
-    ChatUserCategory userCategory;
-    if (object.isModerator()) {
-      userCategory = ChatUserCategory.MODERATOR;
-    } else {
-      userCategory = object.getCategories()
-          .stream()
-          .filter(category -> category != ChatUserCategory.MODERATOR)
-          .findFirst()
-          .orElse(ChatUserCategory.OTHER);
-    }
     Color newColor = colorPicker.getValue();
     if (newColor == null) {
       chatPrefs.getUserToColor().remove(getLowerUsername(object));
-      object.setColor(chatPrefs.getGroupToColor().getOrDefault(userCategory, null));
+      object.setColor(chatPrefs.getGroupToColor().getOrDefault(object.getCategory(), null));
     } else {
       chatPrefs.getUserToColor().put(getLowerUsername(object), newColor);
       object.setColor(newColor);

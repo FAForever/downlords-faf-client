@@ -11,7 +11,6 @@ import com.faforever.client.fx.NodeController;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.AchievementState;
@@ -40,7 +39,6 @@ import java.util.Objects;
 public class PrivatePlayerInfoController extends NodeController<Node> {
 
   private final I18n i18n;
-  private final UiService uiService;
   private final AchievementService achievementService;
   private final LeaderboardService leaderboardService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;

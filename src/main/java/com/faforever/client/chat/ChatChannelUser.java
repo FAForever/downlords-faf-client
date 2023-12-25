@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.player.SocialStatus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -13,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Represents a chat user within a channel. If a user is in multiple channels, one instance per channel needs to be
@@ -24,6 +24,10 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class ChatChannelUser {
 
+  public static final SimpleObjectProperty<ChatUserCategory> AWAY_PROPERTY = new SimpleObjectProperty<>(
+      ChatUserCategory.AWAY);
+  public static final SimpleObjectProperty<ChatUserCategory> MODERATOR_PROPERTY = new SimpleObjectProperty<>(
+      ChatUserCategory.MODERATOR);
   @Getter
   @EqualsAndHashCode.Include
   @ToString.Include
@@ -33,18 +37,21 @@ public class ChatChannelUser {
   @ToString.Include
   private final String channel;
 
+  private final BooleanProperty away = new SimpleBooleanProperty();
   private final BooleanProperty moderator = new SimpleBooleanProperty();
   private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
   private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
-  private final ObservableValue<Set<ChatUserCategory>> categories = player.flatMap(PlayerBean::socialStatusProperty)
-      .map(socialStatus -> switch (socialStatus) {
-        case FRIEND -> ChatUserCategory.FRIEND;
-        case FOE -> ChatUserCategory.FOE;
-        case SELF -> ChatUserCategory.SELF;
-        default -> ChatUserCategory.OTHER;
-      })
-      .orElse(ChatUserCategory.CHAT_ONLY)
-      .flatMap(category -> moderator.map(isMod -> isMod ? Set.of(ChatUserCategory.MODERATOR, category) : Set.of(category)));
+  private final ObservableValue<SocialStatus> playerSocialStatus = player.flatMap(PlayerBean::socialStatusProperty);
+  private final ObservableValue<ChatUserCategory> category = away.flatMap(
+      away -> away ? AWAY_PROPERTY : moderator.flatMap(
+          moderator -> moderator ? MODERATOR_PROPERTY : player.flatMap(PlayerBean::socialStatusProperty)
+                                                              .map(socialStatus -> switch (socialStatus) {
+                                                                case FRIEND -> ChatUserCategory.FRIEND;
+                                                                case FOE -> ChatUserCategory.FOE;
+                                                                case SELF -> ChatUserCategory.SELF;
+                                                                case OTHER -> ChatUserCategory.OTHER;
+                                                              })
+                                                              .orElse(ChatUserCategory.CHAT_ONLY)));
 
   public Optional<PlayerBean> getPlayer() {
     return Optional.ofNullable(player.get());
@@ -82,11 +89,23 @@ public class ChatChannelUser {
     return moderator;
   }
 
-  public Set<ChatUserCategory> getCategories() {
-    return categories.getValue();
+  public ChatUserCategory getCategory() {
+    return category.getValue();
   }
 
-  public ObservableValue<Set<ChatUserCategory>> categoriesProperty() {
-    return categories;
+  public ObservableValue<ChatUserCategory> categoryProperty() {
+    return category;
+  }
+
+  public boolean isAway() {
+    return away.get();
+  }
+
+  public BooleanProperty awayProperty() {
+    return away;
+  }
+
+  public void setAway(boolean away) {
+    this.away.set(away);
   }
 }
