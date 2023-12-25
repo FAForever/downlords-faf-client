@@ -47,14 +47,12 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractColorPi
 
   private void updateUserColor() {
     ChatUserCategory userCategory;
-    if (object.isModerator()) {
+    if (object.isAway()) {
+      userCategory = ChatUserCategory.AWAY;
+    } else if (object.isModerator()) {
       userCategory = ChatUserCategory.MODERATOR;
     } else {
-      userCategory = object.getCategories()
-          .stream()
-          .filter(category -> category != ChatUserCategory.MODERATOR)
-          .findFirst()
-          .orElse(ChatUserCategory.OTHER);
+      userCategory = object.getCategory();
     }
     Color newColor = colorPicker.getValue();
     if (newColor == null) {

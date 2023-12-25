@@ -297,11 +297,13 @@ public class KittehChatServiceTest extends ServiceTest {
     chatPrefs.getGroupToColor().put(ChatUserCategory.FRIEND, Color.ALICEBLUE);
 
     assertEquals(Color.ALICEBLUE, instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
-        .getUser(user1.getNick())
-        .get()
-        .getColor()
-        .get());
-    assertTrue(instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUser(user2.getNick()).get().getColor().isEmpty());
+                                          .getUser(user1.getNick())
+                                          .flatMap(ChatChannelUser::getColor)
+                                          .orElse(null));
+    assertTrue(instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
+                       .getUser(user2.getNick())
+                       .flatMap(ChatChannelUser::getColor)
+                       .isEmpty());
   }
 
   @Test
@@ -324,11 +326,13 @@ public class KittehChatServiceTest extends ServiceTest {
     chatPrefs.getGroupToColor().put(ChatUserCategory.FOE, Color.ALICEBLUE);
 
     assertEquals(Color.ALICEBLUE, instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
-        .getUser(user1.getNick())
-        .get()
-        .getColor()
-        .get());
-    assertTrue(instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUser(user2.getNick()).get().getColor().isEmpty());
+                                          .getUser(user1.getNick())
+                                          .flatMap(ChatChannelUser::getColor)
+                                          .orElse(null));
+    assertTrue(instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
+                       .getUser(user2.getNick())
+                       .flatMap(ChatChannelUser::getColor)
+                       .isEmpty());
   }
 
   @Test

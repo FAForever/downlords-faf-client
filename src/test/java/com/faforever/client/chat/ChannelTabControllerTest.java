@@ -42,6 +42,8 @@ import static com.faforever.client.theme.ThemeService.CHAT_CONTAINER;
 import static com.faforever.client.theme.ThemeService.CHAT_SECTION_COMPACT;
 import static com.faforever.client.theme.ThemeService.CHAT_TEXT_COMPACT;
 import static com.faforever.client.theme.ThemeService.CHAT_TEXT_EXTENDED;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -263,10 +265,10 @@ public class ChannelTabControllerTest extends PlatformTest {
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> instance.onChangeTopicTextButtonClicked());
     int length = "topic: https://faforever.com".length();
-    assertTrue(instance.topicCharactersLimitLabel.getText().contains(Integer.toString(length)));
+    assertThat(instance.topicCharactersLimitLabel.getText(), containsString(Integer.toString(length)));
 
     runOnFxThreadAndWait(() -> instance.topicTextField.appendText("123"));
-    assertTrue(instance.topicCharactersLimitLabel.getText().contains(Integer.toString(length + +3)));
+    assertThat(instance.topicCharactersLimitLabel.getText(), containsString(Integer.toString(length + +3)));
   }
 
   @Test
@@ -281,7 +283,7 @@ public class ChannelTabControllerTest extends PlatformTest {
     assertTrue(instance.chatMessageSearchContainer.isVisible());
 
     runOnFxThreadAndWait(() -> instance.chatMessageSearchTextField.setText("world"));
-    assertTrue(instance.getHtmlBodyContent().contains(highlighted));
+    assertThat(instance.getHtmlBodyContent(), containsString(highlighted));
 
     runOnFxThreadAndWait(() -> instance.chatMessageSearchTextField.setText(""));
     assertFalse(instance.getHtmlBodyContent().contains(highlighted));
@@ -303,7 +305,7 @@ public class ChannelTabControllerTest extends PlatformTest {
     assertTrue(instance.chatMessageSearchContainer.isVisible());
 
     runOnFxThreadAndWait(() -> instance.chatMessageSearchTextField.setText("world"));
-    assertTrue(instance.getHtmlBodyContent().contains(highlighted));
+    assertThat(instance.getHtmlBodyContent(), containsString(highlighted));
 
     runOnFxThreadAndWait(() -> instance.onChatChannelKeyReleased(new KeyEvent(null, null, KeyEvent.KEY_PRESSED,
         null, null, KeyCode.ESCAPE, false, false, false, false)));
@@ -436,9 +438,9 @@ public class ChannelTabControllerTest extends PlatformTest {
 
   @Test
   public void userColorChangeTest() throws Exception {
-    String before = "<span class=\"text user-junit message chat_only\" style=\"\">Hello world!</span>";
-    String otherBefore = "<span class=\"text user-other message chat_only\" style=\"\">Hello man!</span>";
-    String after = "<span class=\"text user-junit message chat_only\" style=\"color: rgb(0, 255, 255);\">Hello world!</span>";
+    String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
+    String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
+    String after = "<span class=\"text user-junit message\" style=\"color: rgb(0, 255, 255);\">Hello world!</span>";
     defaultChatChannel.addUser(user);
 
     initializeDefaultChatChannel();
@@ -446,20 +448,20 @@ public class ChannelTabControllerTest extends PlatformTest {
     sendMessage(other, "Hello man!");
 
     String content = instance.getHtmlBodyContent();
-    assertTrue(content.contains(before));
-    assertTrue(content.contains(otherBefore));
+    assertThat(content, containsString(before));
+    assertThat(content, containsString(otherBefore));
 
     runOnFxThreadAndWait(() -> user.setColor(Color.AQUA));
     content = instance.getHtmlBodyContent();
-    assertTrue(content.contains(after));
-    assertTrue(content.contains(otherBefore));
+    assertThat(content, containsString(after));
+    assertThat(content, containsString(otherBefore));
   }
 
   @Test
   public void testOnUserMessageVisibility() throws Exception {
-    String before = "<span class=\"text user-junit message other\" style=\"\">Hello world!</span>";
-    String after = "<span class=\"text user-junit message other\" style=\"display: none;\">Hello world!</span>";
-    String otherBefore = "<span class=\"text user-other message chat_only\" style=\"\">Hello man!</span>";
+    String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
+    String after = "<span class=\"text user-junit message\" style=\"display: none;\">Hello world!</span>";
+    String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
 
     PlayerBean player = PlayerBeanBuilder.create().socialStatus(OTHER).get();
     user.setPlayer(player);
@@ -470,20 +472,20 @@ public class ChannelTabControllerTest extends PlatformTest {
     sendMessage(other, "Hello man!");
 
     String content = instance.getHtmlBodyContent();
-    assertTrue(content.contains(before));
-    assertTrue(content.contains(otherBefore));
+    assertThat(content, containsString(before));
+    assertThat(content, containsString(otherBefore));
 
     runOnFxThreadAndWait(() -> player.setSocialStatus(FOE));
     content = instance.getHtmlBodyContent();
-    assertTrue(content.contains(after));
-    assertTrue(content.contains(otherBefore));
+    assertThat(content, containsString(after));
+    assertThat(content, containsString(otherBefore));
   }
 
   @Test
   public void testOnChatOnlyUserStyleClassUpdate() throws Exception {
-    String before = "<span class=\"text user-junit message other\" style=\"\">Hello world!</span>";
-    String after = "<span class=\"text user-junit message other chat_only\" style=\"\">Hello world!</span>";
-    String otherBefore = "<span class=\"text user-other message chat_only\" style=\"\">Hello man!</span>";
+    String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
+    String after = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
+    String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
 
     user.setPlayer(PlayerBeanBuilder.create().defaultValues().get());
     defaultChatChannel.addUser(user);
@@ -493,20 +495,20 @@ public class ChannelTabControllerTest extends PlatformTest {
     sendMessage(other, "Hello man!");
 
     String content = instance.getHtmlBodyContent();
-    assertTrue(content.contains(before));
-    assertTrue(content.contains(otherBefore));
+    assertThat(content, containsString(before));
+    assertThat(content, containsString(otherBefore));
 
     runOnFxThreadAndWait(() -> user.setPlayer(null));
     content = instance.getHtmlBodyContent();
-    assertTrue(content.contains(after));
-    assertTrue(content.contains(otherBefore));
+    assertThat(content, containsString(after));
+    assertThat(content, containsString(otherBefore));
   }
 
   @Test
   public void testOnModeratorUserStyleClassUpdate() throws Exception {
-    String before = "<span class=\"text user-junit message chat_only\" style=\"\">Hello world!</span>";
-    String after = "<span class=\"text user-junit message chat_only moderator\" style=\"\">Hello world!</span>";
-    String otherBefore = "<span class=\"text user-other message chat_only\" style=\"\">Hello man!</span>";
+    String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
+    String after = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
+    String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
 
     defaultChatChannel.addUser(user);
 
@@ -515,13 +517,13 @@ public class ChannelTabControllerTest extends PlatformTest {
     sendMessage(other, "Hello man!");
 
     String content = instance.getHtmlBodyContent();
-    assertTrue(content.contains(before));
-    assertTrue(content.contains(otherBefore));
+    assertThat(content, containsString(before));
+    assertThat(content, containsString(otherBefore));
 
     runOnFxThreadAndWait(() -> user.setModerator(true));
     content = instance.getHtmlBodyContent();
-    assertTrue(content.contains(after));
-    assertTrue(content.contains(otherBefore));
+    assertThat(content, containsString(after));
+    assertThat(content, containsString(otherBefore));
   }
 
   private void sendMessage(ChatChannelUser sender, String message) {

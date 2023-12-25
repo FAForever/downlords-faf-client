@@ -30,7 +30,7 @@ public class ChatChannel {
       FXCollections.observableHashMap());
   private final ObservableList<ChatChannelUser> users = JavaFxUtil.attachListToMap(
       FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
-          item -> new Observable[]{item.categoriesProperty(), item.colorProperty(), item.moderatorProperty()})),
+          item -> new Observable[]{item.categoryProperty(), item.colorProperty()})),
       usernameToChatUser);
   private final ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic(null, ""));
   private final Set<Consumer<ChatMessage>> messageListeners = new HashSet<>();

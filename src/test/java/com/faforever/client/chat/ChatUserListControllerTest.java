@@ -192,22 +192,31 @@ public class ChatUserListControllerTest extends PlatformTest {
   @Test
   public void testOnChangeUserCategory() throws Exception {
     ChatChannelUser user = generateUser(SocialStatus.OTHER);
-    ChatChannelUser updatedUser = ChatChannelUserBuilder.create(user.getUsername(), CHANNEL_NAME)
-        .player(PlayerBeanBuilder.create().socialStatus(FRIEND).get())
-        .get();
     addUsersToChannel(user);
 
     runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     assertContainUsersInCategory(ChatUserCategory.OTHER, user);
-    assertNotContainUsersInCategory(ChatUserCategory.FRIEND, updatedUser);
+    assertNotContainUsersInCategory(ChatUserCategory.FRIEND, user);
     assertContainUsersInSource(user);
 
     runOnFxThreadAndWait(() -> user.getPlayer().ifPresent(playerBean -> playerBean.setSocialStatus(FRIEND)));
 
     assertNotContainUsersInCategory(ChatUserCategory.OTHER, user);
-    assertContainUsersInCategory(ChatUserCategory.FRIEND, updatedUser);
-    assertContainUsersInSource(updatedUser);
+    assertContainUsersInCategory(ChatUserCategory.FRIEND, user);
+    assertContainUsersInSource(user);
+
+    runOnFxThreadAndWait(() -> user.setModerator(true));
+
+    assertNotContainUsersInCategory(ChatUserCategory.FRIEND, user);
+    assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
+    assertContainUsersInSource(user);
+
+    runOnFxThreadAndWait(() -> user.setAway(true));
+
+    assertNotContainUsersInCategory(ChatUserCategory.MODERATOR, user);
+    assertContainUsersInCategory(ChatUserCategory.AWAY, user);
+    assertContainUsersInSource(user);
   }
 
   @Test
@@ -217,7 +226,6 @@ public class ChatUserListControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
-    assertContainUsersInCategory(ChatUserCategory.FRIEND, user);
     assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
   }
 
@@ -228,7 +236,6 @@ public class ChatUserListControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
-    assertContainUsersInCategory(ChatUserCategory.FOE, user);
     assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
   }
 
@@ -239,7 +246,50 @@ public class ChatUserListControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
-    assertContainUsersInCategory(ChatUserCategory.CHAT_ONLY, user);
+    assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
+  }
+
+  @Test
+  public void testFriendlyUserIsAway() throws Exception {
+    ChatChannelUser user = generateUser(SocialStatus.FRIEND, false);
+    user.setAway(true);
+    addUsersToChannel(user);
+
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
+
+    assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
+  }
+
+  @Test
+  public void testEnemyUserIsAway() throws Exception {
+    ChatChannelUser user = generateUser(SocialStatus.FOE, false);
+    user.setAway(true);
+    addUsersToChannel(user);
+
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
+
+    assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
+  }
+
+  @Test
+  public void testChatOnlyUserIsAway() throws Exception {
+    ChatChannelUser user = generateUser(null, false);
+    user.setAway(true);
+    addUsersToChannel(user);
+
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
+
+    assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
+  }
+
+  @Test
+  public void testModeratorUserIsAway() throws Exception {
+    ChatChannelUser user = generateUser(null, true);
+    user.setAway(true);
+    addUsersToChannel(user);
+
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
+
     assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
   }
 
@@ -258,7 +308,6 @@ public class ChatUserListControllerTest extends PlatformTest {
     assertContainUsersInCategory(ChatUserCategory.SELF, selfUser);
     assertContainUsersInCategory(ChatUserCategory.MODERATOR, moderatorUser);
     assertContainUsersInCategory(ChatUserCategory.FRIEND, friendUser);
-    assertContainUsersInCategory(ChatUserCategory.OTHER, moderatorUser);
     assertContainUsersInCategory(ChatUserCategory.OTHER, otherUser);
     assertContainUsersInCategory(ChatUserCategory.FOE, foeUser);
     assertContainUsersInCategory(ChatUserCategory.CHAT_ONLY, chatOnlyUser);

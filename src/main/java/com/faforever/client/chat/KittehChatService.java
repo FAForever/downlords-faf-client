@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.chat.kitteh.FixedWhoListener;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
@@ -37,11 +38,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.engio.mbassy.listener.Handler;
 import org.kitteh.irc.client.library.Client;
 import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType;
+import org.kitteh.irc.client.library.command.WhoisCommand;
 import org.kitteh.irc.client.library.defaults.DefaultClient;
+import org.kitteh.irc.client.library.defaults.listener.DefaultListeners;
 import org.kitteh.irc.client.library.element.Actor;
 import org.kitteh.irc.client.library.element.Channel;
 import org.kitteh.irc.client.library.element.MessageTag.Time;
 import org.kitteh.irc.client.library.element.User;
+import org.kitteh.irc.client.library.element.WhoisData;
 import org.kitteh.irc.client.library.element.mode.ChannelUserMode;
 import org.kitteh.irc.client.library.element.mode.Mode;
 import org.kitteh.irc.client.library.element.mode.ModeStatus.Action;
@@ -52,12 +56,15 @@ import org.kitteh.irc.client.library.event.channel.ChannelModeEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelNamesUpdatedEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelPartEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelTopicEvent;
+import org.kitteh.irc.client.library.event.channel.ChannelUsersUpdatedEvent;
 import org.kitteh.irc.client.library.event.client.ClientNegotiationCompleteEvent;
 import org.kitteh.irc.client.library.event.connection.ClientConnectionEndedEvent;
 import org.kitteh.irc.client.library.event.connection.ClientConnectionFailedEvent;
 import org.kitteh.irc.client.library.event.user.PrivateMessageEvent;
 import org.kitteh.irc.client.library.event.user.UserAwayMessageEvent;
 import org.kitteh.irc.client.library.event.user.UserQuitEvent;
+import org.kitteh.irc.client.library.event.user.WhoisEvent;
+import org.kitteh.irc.client.library.feature.EventListenerSupplier;
 import org.kitteh.irc.client.library.feature.auth.SaslPlain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,16 +79,15 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static java.util.Locale.US;
@@ -129,7 +135,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   String defaultChannelName;
   @VisibleForTesting
   DefaultClient client;
-  private String username;
 
   private boolean autoReconnect;
 
@@ -180,27 +185,50 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private ChatChannelUser getOrCreateChatUser(User user, Channel channel) {
-    String username = user.getNick();
+    String username = getUsername(user);
     String channelName = channel.getName();
 
     ChatChannel chatChannel = getOrCreateChannel(channelName);
-    return chatChannel.getUser(username).orElseGet(() -> {
-      ChatChannelUser chatChannelUser = initializeUserForChannel(username, chatChannel);
+    return chatChannel.getUser(username).orElseGet(() -> initializeUserForChannel(user, channel));
+  }
 
+  private ChatChannelUser initializeUserForChannel(User user, Channel channel) {
+    ChatChannel chatChannel = getOrCreateChannel(channel.getName());
+    ChatChannelUser chatChannelUser = initializeUserForChannel(getUsername(user), chatChannel);
+
+    boolean isModerator = channel.getUserModes(user)
+                                 .stream()
+                                 .flatMap(Collection::stream)
+                                 .map(ChannelUserMode::getNickPrefix)
+                                 .anyMatch(MODERATOR_PREFIXES::contains);
+    chatChannelUser.setModerator(isModerator);
+    chatChannelUser.setAway(user.isAway());
+    return chatChannelUser;
+  }
+
+  private void updateChatUser(User user, Channel channel) {
+    String username = getUsername(user);
+    String channelName = channel.getName();
+
+    ChatChannel chatChannel = getOrCreateChannel(channelName);
+    chatChannel.getUser(username).ifPresentOrElse(chatChannelUser -> {
       boolean isModerator = channel.getUserModes(user)
                                    .stream()
                                    .flatMap(Collection::stream)
                                    .map(ChannelUserMode::getNickPrefix)
                                    .anyMatch(MODERATOR_PREFIXES::contains);
       chatChannelUser.setModerator(isModerator);
-      return chatChannelUser;
-    });
+      chatChannelUser.setAway(user.isAway());
+    }, () -> initializeUserForChannel(user, channel));
   }
 
   private ChatChannelUser initializeUserForChannel(String username, ChatChannel chatChannel) {
     ChatChannelUser chatChannelUser = new ChatChannelUser(username, chatChannel.getName());
     playerService.getPlayerByNameIfOnline(username).ifPresent(chatChannelUser::setPlayer);
-    chatChannelUser.categoriesProperty().subscribe(() -> populateColor(chatChannelUser));
+    Runnable updateColor = () -> populateColor(chatChannelUser);
+    chatChannelUser.categoryProperty().subscribe(updateColor);
+    chatChannelUser.moderatorProperty().subscribe(updateColor);
+    chatChannelUser.awayProperty().subscribe(updateColor);
     populateColor(chatChannelUser);
     chatChannel.addUser(chatChannelUser);
     return chatChannelUser;
@@ -217,8 +245,28 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Handler
   public void onUserAway(UserAwayMessageEvent event) {
-    String nick = event.getActor().getNick();
-    channels.values().forEach(chatChannel -> chatChannel.getUser(nick).ifPresent(chatUser -> chatUser.setAway(true)));
+    User user = event.getActor();
+    String username = getUsername(user);
+    channels.values()
+            .forEach(chatChannel -> chatChannel.getUser(username)
+                                               .ifPresent(chatUser -> fxApplicationThreadExecutor.execute(
+                                                   () -> chatUser.setAway(event.isAway()))));
+    if (event.isAway()) {
+      playerService.removePlayerIfOnline(username);
+    }
+  }
+
+  @Handler
+  public void onWhoIs(WhoisEvent event) {
+    WhoisData whoisData = event.getWhoisData();
+    whoisData.getAccount()
+             .ifPresent(nick -> channels.values()
+                                        .forEach(chatChannel -> chatChannel.getUser(nick)
+                                                                           .ifPresent(
+                                                                               chatUser -> fxApplicationThreadExecutor.execute(
+                                                                                   () -> chatUser.setAway(
+                                                                                       whoisData.isAway())))));
+
   }
 
   @Handler
@@ -248,23 +296,26 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Handler
   public void onChatUserList(ChannelNamesUpdatedEvent event) {
     Channel channel = event.getChannel();
-    List<ChatChannelUser> users = channel.getUsers()
-                                         .stream()
-                                         .map(user -> getOrCreateChatUser(user, channel))
-                                         .collect(Collectors.toList());
-    getOrCreateChannel(channel.getName()).addUsers(users);
+    channel.getUsers().forEach(user -> updateChatUser(user, channel));
+  }
+
+  @Handler
+  public void onWhoCompleted(ChannelUsersUpdatedEvent event) {
+    Channel channel = event.getChannel();
+    channel.getUsers().forEach(user -> updateChatUser(user, channel));
   }
 
   @Handler
   private void onPartEvent(ChannelPartEvent event) {
     User user = event.getActor();
     ircLog.debug("User left channel: {}", user);
-    onChatUserLeftChannel(event.getChannel().getName(), user.getNick());
+    onChatUserLeftChannel(event.getChannel().getName(), getUsername(user));
   }
 
   @Handler
   private void onChatUserQuit(UserQuitEvent event) {
-    String username = event.getUser().getNick();
+    User user = event.getUser();
+    String username = getUsername(user);
     channels.values().forEach(channel -> onChatUserLeftChannel(channel.getName(), username));
     playerService.removePlayerIfOnline(username);
   }
@@ -290,7 +341,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String text = event.getMessage();
     ChatChannel chatChannel = getOrCreateChannel(channelName);
-    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), chatChannel.getName());
+    ChatChannelUser sender = getOrCreateChatUser(getUsername(user), chatChannel.getName());
     notifyIfMentioned(text, chatChannel, sender);
 
     Instant messageTime = event.getTags()
@@ -310,7 +361,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
         CASE_INSENSITIVE).matcher(text);
     boolean mentioned = matcher.find();
     if (mentioned) {
-      boolean fromFoe = sender.getCategories().contains(ChatUserCategory.FOE);
+      boolean fromFoe = sender.getCategory() == ChatUserCategory.FOE;
       if (fromFoe || (notificationPrefs.isNotifyOnAtMentionOnlyEnabled() && !text.contains(
           "@" + loginService.getUsername()))) {
         log.debug("Ignored ping {} from {}", text, sender);
@@ -354,7 +405,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String channelName = event.getChannel().getName();
 
-    String senderNick = user.getNick();
+    String senderNick = getUsername(user);
     String message = event.getMessage().replace("ACTION", senderNick);
     ChatChannel chatChannel = getOrCreateChannel(channelName);
     ChatChannelUser sender = getOrCreateChatUser(senderNick, chatChannel.getName());
@@ -392,7 +443,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     User user = event.getActor();
     ircLog.debug("Received private message: {}", event);
 
-    String senderNick = user.getNick();
+    String senderNick = getUsername(user);
 
     if (playerService.getPlayerByNameIfOnline(senderNick)
               .map(PlayerBean::getSocialStatus)
@@ -404,7 +455,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String text = event.getMessage();
     ChatChannel chatChannel = getOrCreateChannel(senderNick);
-    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), chatChannel.getName());
+    ChatChannelUser sender = getOrCreateChatUser(getUsername(user), chatChannel.getName());
     notifyOnPrivateMessage(text, chatChannel, senderNick);
 
     Instant messageTime = event.getTags()
@@ -416,6 +467,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                .orElse(Instant.now());
 
     chatChannel.addMessage(new ChatMessage(messageTime, sender, text));
+  }
+
+  private String getUsername(User user) {
+    return user.getAccount().orElse(user.getNick());
   }
 
   private void joinAutoChannels() {
@@ -493,14 +548,12 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       color = ColorGeneratorUtil.generateRandomColor(lowercaseUsername.hashCode());
     } else if (userToColor.containsKey(lowercaseUsername)) {
       color = userToColor.get(lowercaseUsername);
+    } else if (chatChannelUser.isAway()) {
+      color = groupToColor.get(ChatUserCategory.AWAY);
+    } else if (chatChannelUser.isModerator()) {
+      color = groupToColor.get(ChatUserCategory.MODERATOR);
     } else {
-      color = chatChannelUser.getCategories()
-                             .stream()
-                             .sorted()
-                             .map(groupToColor::get)
-                             .filter(Objects::nonNull)
-                             .findFirst()
-                             .orElse(null);
+      color = groupToColor.get(chatChannelUser.getCategory());
     }
     chatChannelUser.setColor(color);
   }
@@ -514,6 +567,12 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String username = loginService.getUsername();
 
+    List<EventListenerSupplier> eventListenerSuppliers = new ArrayList<>();
+    Arrays.stream(DefaultListeners.values())
+          .filter(listener -> listener != DefaultListeners.WHO)
+          .forEach(eventListenerSuppliers::add);
+    eventListenerSuppliers.add(() -> FixedWhoListener::new);
+
     client = (DefaultClient) Client.builder()
                                    .realName(username)
                                    .nick(username)
@@ -525,7 +584,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                    .listeners()
                                    .input(this::onMessage)
                                    .output(this::onMessage)
-                                   .then()
+                                   .then().management().eventListeners(eventListenerSuppliers).then()
                                    .build();
 
     userWebClientFactory.getObject()
@@ -656,7 +715,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void whois(String username) {
-    client.sendRawLine("WHOIS " + username);
+    new WhoisCommand(client).target(username).execute();
   }
 
   @Override

@@ -10,7 +10,6 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -19,6 +18,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
 import javafx.collections.WeakListChangeListener;
 import javafx.collections.transformation.FilteredList;
@@ -51,10 +51,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -89,16 +86,18 @@ public class ChatUserListController extends NodeController<VBox> {
   private Popup filterPopup;
 
   private final ObjectProperty<ChatChannel> chatChannel = new SimpleObjectProperty<>();
-  private final ObservableValue<ObservableList<ChatChannelUser>> users = chatChannel.map(ChatChannel::getUsers);
+  private final ObservableValue<ObservableList<ChatChannelUser>> users = chatChannel.map(ChatChannel::getUsers)
+                                                                                    .orElse(
+                                                                                        FXCollections.emptyObservableList());
   private final ObservableValue<String> channelName = chatChannel.map(ChatChannel::getName);
-  private final ObservableList<ChatListItem> unfilteredSource = FXCollections.synchronizedObservableList(
-      FXCollections.observableArrayList(
-          item -> item.user() == null ? new Observable[0] : new Observable[]{item.user().awayProperty()}));
+  private final ObservableMap<ChatChannelUser, ChatListItem> userChatListItemMap = FXCollections.synchronizedObservableMap(
+      FXCollections.observableHashMap());
+  private final ObservableList<ChatListItem> unfilteredItems = FXCollections.synchronizedObservableList(
+      FXCollections.observableArrayList());
   private final FilteredList<ChatListItem> items = new FilteredList<>(
-      new SortedList<>(unfilteredSource, CHAT_LIST_ITEM_COMPARATOR));
+      new SortedList<>(unfilteredItems, CHAT_LIST_ITEM_COMPARATOR));
   private final ObjectProperty<ObservableSet<ChatUserCategory>> hiddenCategories = new SimpleObjectProperty<>(
       FXCollections.emptyObservableSet());
-  private final Map<ChatChannelUser, Set<ChatListItem>> userChatListItemMap = new ConcurrentHashMap<>();
   private final ObservableValue<Predicate<ChatListItem>> hiddenCategoryPredicate = hiddenCategories.flatMap(
                                                                                                        categories -> Bindings.createObjectBinding(() -> categories.stream()
                                                                                                                                                                   .map(
@@ -126,7 +125,7 @@ public class ChatUserListController extends NodeController<VBox> {
                                       .when(showing));
 
     users.when(showing).subscribe((oldValue, newValue) -> {
-      unfilteredSource.removeIf(item -> item.user() != null);
+      unfilteredItems.removeIf(item -> item.user() != null);
 
       if (oldValue != null) {
         oldValue.removeListener(weakUserListChangeListener);
@@ -145,13 +144,13 @@ public class ChatUserListController extends NodeController<VBox> {
     initializeGameTooltip();
 
     for (ChatUserCategory category : ChatUserCategory.values()) {
-      FilteredList<ChatListItem> categoryFilteredList = new FilteredList<>(unfilteredSource);
+      FilteredList<ChatListItem> categoryFilteredList = new FilteredList<>(unfilteredItems);
       categoryFilteredList.predicateProperty()
                           .bind(chatUserFilterController.predicateProperty()
                                                         .map(filterPredicate -> filterPredicate.and(
                                                             item -> item.user() != null && item.category() == category)));
       ChatListItem item = new ChatListItem(null, category, channelName, Bindings.size(categoryFilteredList).asObject());
-      fxApplicationThreadExecutor.execute(() -> unfilteredSource.add(item));
+      fxApplicationThreadExecutor.execute(() -> unfilteredItems.add(item));
     }
   }
 
@@ -196,24 +195,21 @@ public class ChatUserListController extends NodeController<VBox> {
 
     items.predicateProperty()
          .bind(chatUserFilterController.predicateProperty()
-                                       .flatMap(filterPredicate -> hiddenCategoryPredicate.map(filterPredicate::and))
-                                       .map(predicate -> predicate.and(
-                                           item -> item.user() == null || !item.user().isAway())));
+                                       .flatMap(filterPredicate -> hiddenCategoryPredicate.map(filterPredicate::and)));
   }
 
   private void onUserJoined(ChatChannelUser user) {
-    for (ChatUserCategory category : user.getCategories()) {
-      ChatListItem item = new ChatListItem(user, category, null, null);
-      userChatListItemMap.computeIfAbsent(user, newUser -> ConcurrentHashMap.newKeySet()).add(item);
-      fxApplicationThreadExecutor.execute(() -> unfilteredSource.add(item));
-    }
+    ChatListItem item = new ChatListItem(user, user.getCategory(), null, null);
+    ChatListItem oldItem = userChatListItemMap.put(user, item);
+    fxApplicationThreadExecutor.execute(() -> {
+      unfilteredItems.remove(oldItem);
+      unfilteredItems.add(item);
+    });
   }
 
   private void onUserLeft(ChatChannelUser user) {
-    Set<ChatListItem> userItems = userChatListItemMap.remove(user);
-    if (userItems != null) {
-      fxApplicationThreadExecutor.execute(() -> userItems.forEach(unfilteredSource::remove));
-    }
+    ChatListItem item = userChatListItemMap.remove(user);
+    fxApplicationThreadExecutor.execute(() -> unfilteredItems.remove(item));
   }
 
   private void onUserChange(Change<? extends ChatChannelUser> change) {
@@ -269,11 +265,11 @@ public class ChatUserListController extends NodeController<VBox> {
 
   @VisibleForTesting
   List<ChatChannelUser> getUserListByCategory(ChatUserCategory category) {
-    return unfilteredSource.stream()
-                           .filter(item -> item.category() == category)
-                           .map(ChatListItem::user)
-                           .filter(Objects::nonNull)
-                           .collect(Collectors.toList());
+    return unfilteredItems.stream()
+                          .filter(item -> item.category() == category)
+                          .map(ChatListItem::user)
+                          .filter(Objects::nonNull)
+                          .collect(Collectors.toList());
   }
 
   @VisibleForTesting
@@ -287,6 +283,6 @@ public class ChatUserListController extends NodeController<VBox> {
 
   @VisibleForTesting
   List<ChatChannelUser> getUserList() {
-    return unfilteredSource.stream().map(ChatListItem::user).filter(Objects::nonNull).collect(Collectors.toList());
+    return unfilteredItems.stream().map(ChatListItem::user).filter(Objects::nonNull).collect(Collectors.toList());
   }
 }

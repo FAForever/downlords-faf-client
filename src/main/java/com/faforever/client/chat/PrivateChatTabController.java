@@ -132,7 +132,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   @Override
   public void onChatMessage(ChatMessage chatMessage) {
-    if (chatMessage.sender().getCategories().contains(ChatUserCategory.FOE) && chatPrefs.isHideFoeMessages()) {
+    if (chatMessage.sender().getCategory() == ChatUserCategory.FOE && chatPrefs.isHideFoeMessages()) {
       return;
     }
 
