@@ -84,7 +84,6 @@ public class ModDetailController extends NodeController<Node> {
 
   @Override
   protected void onInitialize() {
-    imageViewHelper.setDefaultPlaceholderImage(thumbnailImageView);
     JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, getRoot());
     JavaFxUtil.fixScrollSpeed(scrollPane);
 

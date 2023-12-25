@@ -154,8 +154,7 @@ public class ReplayDetailController extends NodeController<Node> {
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(downloadMoreInfoButton, moreInformationPane, teamsInfoBox, reviewsContainer,
                                     ratingSeparator, reviewSeparator, deleteButton, getRoot());
-
-    imageViewHelper.setDefaultPlaceholderImage(mapThumbnailImageView);
+    
     JavaFxUtil.bindManagedToVisible(notRatedReasonLabel, showRatingChangeButton);
     contextMenuBuilder.addCopyLabelContextMenu(onMapLabel, titleLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
@@ -222,7 +221,6 @@ public class ReplayDetailController extends NodeController<Node> {
                                                        () -> mapService.loadPreview(mapVersion, PreviewSize.SMALL),
                                                        mapService.isInstalledBinding(mapVersion)))
                                                    .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
-                                                   .orElse(imageViewHelper.getDefaultPlaceholderImage())
                                                    .when(showing));
     onMapLabel.textProperty()
               .bind(mapVersionObservable.flatMap(MapVersionBean::mapProperty)
