@@ -9,6 +9,7 @@ import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.WebViewConfigurer;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
@@ -60,7 +61,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -123,6 +123,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
   private final ChatService chatService;
   private final ChatPrefs chatPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final I18n i18n;
 
   public Button emoticonsButton;
   public TextField messageTextField;
@@ -141,7 +142,13 @@ public class ChatMessageViewController extends NodeController<VBox> {
   private final ObservableValue<ObservableList<ChatChannelUser>> users = chatChannel.map(ChatChannel::getUsers);
   private final ReadOnlyStringWrapper chatMessageTextHtml = new ReadOnlyStringWrapper();
   private final ReadOnlyStringWrapper chatMessageSectionHtml = new ReadOnlyStringWrapper();
-  private final Consumer<ChatMessage> messageListener = this::onChatMessage;
+  private final ListChangeListener<ChatMessage> messageListener = change -> {
+    while (change.next()) {
+      if (change.wasAdded()) {
+        List.copyOf(change.getAddedSubList()).forEach(this::onChatMessage);
+      }
+    }
+  };
   private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = this::updateChangedUsersStyles;
   private final ListChangeListener<ChatChannelUser> typingUserListChangeListener = this::updateTypingUsersLabel;
 
@@ -162,8 +169,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(typingLabel);
 
-    mentionPattern = Pattern.compile(
-        "(^|[^A-Za-z0-9-])" + Pattern.quote(chatService.getCurrentUsername()) + "([^A-Za-z0-9-]|$)", CASE_INSENSITIVE);
+    mentionPattern = chatService.getMentionPattern();
     engine = messagesWebView.getEngine();
 
     chatMessageTextHtml.bind(chatPrefs.chatFormatProperty().map(chatFormat -> switch (chatFormat) {
@@ -219,14 +225,18 @@ public class ChatMessageViewController extends NodeController<VBox> {
     chatChannel.when(attached).subscribe(((oldValue, newValue) -> {
       userMessageHistory.clear();
       if (oldValue != null) {
-        oldValue.removeMessageListener(messageListener);
-        oldValue.removeUserListener(channelUserListChangeListener);
-        oldValue.removeTypingUserListener(typingUserListChangeListener);
+        oldValue.getMessages().removeListener(messageListener);
+        oldValue.getUsers().removeListener(channelUserListChangeListener);
+        oldValue.getTypingUsers().removeListener(typingUserListChangeListener);
       }
       if (newValue != null) {
-        newValue.addMessageListener(messageListener);
-        newValue.addUsersListeners(channelUserListChangeListener);
-        newValue.addTypingUsersListener(typingUserListChangeListener);
+        ObservableList<ChatMessage> messages = newValue.getMessages();
+        messages.addListener(messageListener);
+        messages.forEach(this::onChatMessage);
+        newValue.getUsers().addListener(channelUserListChangeListener);
+        ObservableList<ChatChannelUser> typingUsers = newValue.getTypingUsers();
+        typingUsers.addListener(typingUserListChangeListener);
+        setTypingLabel(typingUsers);
       }
     }));
 
@@ -267,8 +277,9 @@ public class ChatMessageViewController extends NodeController<VBox> {
   public void onDetached() {
     ChatChannel channel = chatChannel.get();
     if (channel != null) {
-      channel.removeUserListener(channelUserListChangeListener);
-      channel.removeMessageListener(messageListener);
+      channel.getUsers().removeListener(channelUserListChangeListener);
+      channel.getTypingUsers().removeListener(typingUserListChangeListener);
+      channel.getMessages().removeListener(messageListener);
     }
   }
 
@@ -285,6 +296,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
       switch (event.getCode()) {
         case DOWN -> curMessageHistoryIndex--;
         case UP -> curMessageHistoryIndex++;
+        default -> {}
       }
 
       int userMessageCount = userMessageHistory.size();
@@ -341,7 +353,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
 
       engine.loadContent(chatContainerHtml);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new AssetLoadException("Unable to load chat container", e, "chat.loadError");
     }
   }
 
@@ -614,9 +626,26 @@ public class ChatMessageViewController extends NodeController<VBox> {
 
   private void updateTypingUsersLabel(Change<? extends ChatChannelUser> change) {
     List<ChatChannelUser> typingUsers = List.copyOf(change.getList());
-    typingLabel.setVisible(!typingUsers.isEmpty());
-    typingLabel.setText(
-        String.join(", ", typingUsers.stream().map(ChatChannelUser::getUsername).toList()) + " is typing");
+    setTypingLabel(typingUsers);
+  }
+
+  private void setTypingLabel(List<ChatChannelUser> typingUsers) {
+    List<String> typingNames = typingUsers.stream().map(ChatChannelUser::getUsername).toList();
+    String typingText;
+    if (typingNames.isEmpty()) {
+      typingText = "";
+    } else if (typingNames.size() == 1) {
+      typingText = i18n.get("chat.typing.single", typingNames.getFirst());
+    } else if (typingNames.size() == 2) {
+      typingText = i18n.get("chat.typing.double", typingNames.getFirst(), typingNames.getLast());
+    } else {
+      typingText = i18n.get("chat.typing.many");
+    }
+
+    fxApplicationThreadExecutor.execute(() -> {
+      typingLabel.setVisible(!typingUsers.isEmpty());
+      typingLabel.setText(typingText);
+    });
   }
 
   private void hideFoeMessages(boolean shouldHide) {

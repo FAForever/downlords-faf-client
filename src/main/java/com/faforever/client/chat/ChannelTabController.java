@@ -4,7 +4,6 @@ import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.NotificationPrefs;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
@@ -37,7 +36,6 @@ public class ChannelTabController extends AbstractChatTabController {
   private static final int TOPIC_CHARACTERS_LIMIT = 350;
 
   private final PlatformService platformService;
-  private final NotificationPrefs notificationPrefs;
   private final ChatPrefs chatPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
@@ -56,11 +54,9 @@ public class ChannelTabController extends AbstractChatTabController {
   private final ObservableValue<ChannelTopic> channelTopic = chatChannel.flatMap(ChatChannel::topicProperty);
 
   public ChannelTabController(ChatService chatService, PlatformService platformService, ChatPrefs chatPrefs,
-                              NotificationPrefs notificationPrefs,
                               FxApplicationThreadExecutor fxApplicationThreadExecutor) {
     super(chatService);
     this.platformService = platformService;
-    this.notificationPrefs = notificationPrefs;
     this.chatPrefs = chatPrefs;
     this.fxApplicationThreadExecutor = fxApplicationThreadExecutor;
   }
@@ -141,22 +137,6 @@ public class ChannelTabController extends AbstractChatTabController {
         topicPane.setDisable(false);
       }
     });
-  }
-
-  @Override
-  protected void onChatMessage(ChatMessage chatMessage) {
-    if (notificationPrefs.isNotifyOnAtMentionOnlyEnabled() && !chatMessage.message()
-                                                                          .contains(
-                                                                              "@" + chatService.getCurrentUsername())) {
-      return;
-    }
-
-    if (chatMessage.sender().getCategory() == ChatUserCategory.FOE) {
-      log.debug("Ignored ping from {}", chatMessage.sender().getUsername());
-    } else if (!hasFocus()) {
-      incrementUnreadMessagesCount();
-      setUnread(true);
-    }
   }
 
   public void onChangeTopicTextButtonClicked() {

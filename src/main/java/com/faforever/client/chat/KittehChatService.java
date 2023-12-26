@@ -14,7 +14,6 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.remote.FafServerAccessor;
@@ -32,6 +31,7 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.paint.Color;
+import javafx.util.Subscription;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.engio.mbassy.listener.Handler;
@@ -48,7 +48,6 @@ import org.kitteh.irc.client.library.element.MessageReceiver;
 import org.kitteh.irc.client.library.element.MessageTag.Time;
 import org.kitteh.irc.client.library.element.MessageTag.Typing;
 import org.kitteh.irc.client.library.element.User;
-import org.kitteh.irc.client.library.element.WhoisData;
 import org.kitteh.irc.client.library.element.mode.ChannelUserMode;
 import org.kitteh.irc.client.library.element.mode.Mode;
 import org.kitteh.irc.client.library.element.mode.ModeStatus.Action;
@@ -68,7 +67,6 @@ import org.kitteh.irc.client.library.event.user.PrivateMessageEvent;
 import org.kitteh.irc.client.library.event.user.PrivateTagMessageEvent;
 import org.kitteh.irc.client.library.event.user.UserAwayMessageEvent;
 import org.kitteh.irc.client.library.event.user.UserQuitEvent;
-import org.kitteh.irc.client.library.event.user.WhoisEvent;
 import org.kitteh.irc.client.library.feature.EventListenerSupplier;
 import org.kitteh.irc.client.library.feature.auth.SaslPlain;
 import org.slf4j.Logger;
@@ -96,7 +94,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
@@ -136,9 +133,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
    * Maps channels by name.
    */
   private final ObservableMap<String, ChatChannel> channels = synchronizedObservableMap(observableHashMap());
+  private final Map<ChatChannel, Set<Subscription>> channelSubscriptions = new ConcurrentHashMap<>();
 
   private final Map<ChatChannel, Instant> lastSentActiveMap = new ConcurrentHashMap<>();
   private final Map<ChatChannelUser, Future<?>> stopTypingFutureMap = new ConcurrentHashMap<>();
+
   /**
    * A list of channels the server wants us to join.
    */
@@ -164,11 +163,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     });
 
     fafServerAccessor.addEventListener(SocialInfo.class, this::onSocialMessage);
-    connectionState.addListener((observable, oldValue, newValue) -> {
-      switch (newValue) {
-        case DISCONNECTED, CONNECTING -> onDisconnected();
-      }
-    });
 
     playerService.addPlayerOnlineListener(this::onPlayerOnline);
     chatPrefs.groupToColorProperty().subscribe(this::updateUserColors);
@@ -253,7 +247,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     });
   }
 
-  private void updateUserTypingState(Typing.State state, ChatChannelUser chatChannelUser) {
+  @VisibleForTesting
+  void updateUserTypingState(Typing.State state, ChatChannelUser chatChannelUser) {
     Future<?> stopTypingFuture = stopTypingFutureMap.remove(chatChannelUser);
     if (stopTypingFuture != null) {
       stopTypingFuture.cancel(true);
@@ -262,22 +257,21 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     switch (state) {
       case ACTIVE -> {
         fxApplicationThreadExecutor.execute(() -> chatChannelUser.setTyping(true));
-        Future<?> future = taskScheduler.schedule(() -> {
-          stopTypingFutureMap.remove(chatChannelUser);
-          fxApplicationThreadExecutor.execute(() -> chatChannelUser.setTyping(false));
-        }, Instant.now().plusSeconds(6));
+        Future<?> future = taskScheduler.schedule(() -> removeTyping(chatChannelUser), Instant.now().plusSeconds(6));
         stopTypingFutureMap.put(chatChannelUser, future);
       }
       case PAUSED -> {
         fxApplicationThreadExecutor.execute(() -> chatChannelUser.setTyping(true));
-        Future<?> future = taskScheduler.schedule(() -> {
-          stopTypingFutureMap.remove(chatChannelUser);
-          fxApplicationThreadExecutor.execute(() -> chatChannelUser.setTyping(false));
-        }, Instant.now().plusSeconds(30));
+        Future<?> future = taskScheduler.schedule(() -> removeTyping(chatChannelUser), Instant.now().plusSeconds(30));
         stopTypingFutureMap.put(chatChannelUser, future);
       }
       case DONE -> fxApplicationThreadExecutor.execute(() -> chatChannelUser.setTyping(false));
     }
+  }
+
+  private void removeTyping(ChatChannelUser chatChannelUser) {
+    stopTypingFutureMap.remove(chatChannelUser);
+    fxApplicationThreadExecutor.execute(() -> chatChannelUser.setTyping(false));
   }
 
   @Override
@@ -307,19 +301,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     if (event.isAway()) {
       playerService.removePlayerIfOnline(username);
     }
-  }
-
-  @Handler
-  public void onWhoIs(WhoisEvent event) {
-    WhoisData whoisData = event.getWhoisData();
-    whoisData.getAccount()
-             .ifPresent(nick -> channels.values()
-                                        .forEach(chatChannel -> chatChannel.getUser(nick)
-                                                                           .ifPresent(
-                                                                               chatUser -> fxApplicationThreadExecutor.execute(
-                                                                                   () -> chatUser.setAway(
-                                                                                       whoisData.isAway())))));
-
   }
 
   @Handler
@@ -406,26 +387,26 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private void notifyIfMentioned(ChatMessage chatMessage) {
     String text = chatMessage.message();
     ChatChannelUser sender = chatMessage.sender();
-    Matcher matcher = Pattern.compile(
-        "(^|[^A-Za-z0-9-])" + Pattern.quote(loginService.getUsername()) + "([^A-Za-z0-9-]|$)",
-        CASE_INSENSITIVE).matcher(text);
-    boolean mentioned = matcher.find();
-    if (mentioned) {
-      boolean fromFoe = sender.getCategory() == ChatUserCategory.FOE;
-      if (fromFoe || (notificationPrefs.isNotifyOnAtMentionOnlyEnabled() && !text.contains(
-          "@" + loginService.getUsername()))) {
-        log.debug("Ignored ping {} from {}", text, sender);
-        return;
-      }
+    if (sender.getCategory() == ChatUserCategory.FOE) {
+      log.debug("Ignored ping from foe {}", sender);
+      return;
+    }
 
+    if (!hasMention(text)) {
+      return;
+    }
+
+
+    ChatChannel channel = sender.getChannel();
+    if (!channel.isOpen()) {
       audioService.playChatMentionSound();
+      channel.setNumUnreadMessages(channel.getNumUnreadMessages() + 1);
 
-      String identIconSource = sender.getPlayer()
-                                     .map(PlayerBean::getId)
-                                     .map(String::valueOf)
-                                     .orElse(sender.getUsername());
-
-      if (!sender.getChannel().isOpen() && notificationPrefs.isPrivateMessageToastEnabled()) {
+      if (notificationPrefs.isPrivateMessageToastEnabled()) {
+        String identIconSource = sender.getPlayer()
+                                       .map(PlayerBean::getId)
+                                       .map(String::valueOf)
+                                       .orElse(sender.getUsername());
         notificationService.addNotification(
             new TransientNotification(sender.getUsername(), text, IdenticonUtil.createIdenticon(identIconSource),
                                       () -> navigationHandler.navigateTo(new NavigateEvent(NavigationItem.CHAT))));
@@ -435,11 +416,12 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   private void notifyOnPrivateMessage(ChatMessage chatMessage) {
     ChatChannelUser sender = chatMessage.sender();
-    ChatChannel chatChannel = sender.getChannel();
-    if (chatChannel.isPrivateChannel() && !chatChannel.isOpen()) {
+    ChatChannel channel = sender.getChannel();
+    if (channel.isPrivateChannel() && !channel.isOpen()) {
       audioService.playPrivateMessageSound();
+      channel.setNumUnreadMessages(channel.getNumUnreadMessages() + 1);
 
-      if (!chatChannel.isOpen() && notificationPrefs.isPrivateMessageToastEnabled()) {
+      if (notificationPrefs.isPrivateMessageToastEnabled()) {
         String identIconSource = sender.getPlayer()
                                        .map(PlayerBean::getId)
                                        .map(String::valueOf)
@@ -495,18 +477,14 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String senderNick = user.getNick();
 
-    if (playerService.getPlayerByNameIfOnline(senderNick)
-              .map(PlayerBean::getSocialStatus)
-              .map(status -> status == SocialStatus.FOE)
-              .orElse(false) && chatPrefs.isHideFoeMessages()) {
+    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), senderNick);
+    sender.setTyping(false);
+    if (sender.getCategory() == ChatUserCategory.FOE && chatPrefs.isHideFoeMessages()) {
       log.debug("Suppressing chat message from foe '{}'", senderNick);
       return;
     }
 
     String text = event.getMessage();
-    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), senderNick);
-    sender.setTyping(false);
-
     Instant messageTime = event.getTags()
                                .stream()
                                .filter(Time.class::isInstance)
@@ -541,14 +519,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     }
   }
 
-  private void onDisconnected() {
-    channels.values().forEach(ChatChannel::clearUsers);
-    channels.clear();
-    if (autoReconnect) {
-      connect();
-    }
-  }
-
   private void onChatUserLeftChannel(String channelName, String username) {
     ChatChannel chatChannel = channels.get(channelName);
     if (chatChannel == null) {
@@ -558,7 +528,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     chatChannel.removeUser(username);
 
     if (client.getNick().equalsIgnoreCase(username)) {
-      channels.remove(channelName);
+      removeChannel(channelName);
     }
   }
 
@@ -569,7 +539,12 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Handler
   private void onDisconnect(ClientConnectionEndedEvent event) {
     client.getEventManager().unregisterEventListener(this);
+    channels.values().forEach(ChatChannel::clearUsers);
+    channels.clear();
     connectionState.set(ConnectionState.DISCONNECTED);
+    if (autoReconnect) {
+      connect();
+    }
   }
 
   @Handler
@@ -630,7 +605,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                    .listeners()
                                    .input(this::onMessage)
                                    .output(this::onMessage)
-                                   .then().management().eventListeners(eventListenerSuppliers).then()
+                                   .then()
+                                   .management()
+                                   .eventListeners(eventListenerSuppliers)
+                                   .then()
                                    .build();
 
     client.getMessageTagManager().registerTagCreator(MESSAGE_TAGS, "+typing", DefaultMessageTagTyping.FUNCTION);
@@ -672,7 +650,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   public ChatChannel getOrCreateChannel(String channelName) {
     return channels.computeIfAbsent(channelName, name -> {
       ChatChannel chatChannel = new ChatChannel(name);
-      chatChannel.setMaxNumMessages(chatPrefs.getMaxMessages());
+      chatChannel.maxNumMessagesProperty().bind(chatPrefs.maxMessagesProperty());
+      Subscription unreadMessagesSubscription = chatChannel.numUnreadMessagesProperty()
+                                                           .subscribe(this::incrementUnreadMessagesCount);
+      channelSubscriptions.computeIfAbsent(chatChannel, ignored -> ConcurrentHashMap.newKeySet())
+                          .add(unreadMessagesSubscription);
       return chatChannel;
     });
   }
@@ -692,8 +674,14 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     if (!channel.isPrivateChannel()) {
       client.removeChannel(channel.getName());
     } else {
-      channels.remove(channel.getName());
+      removeChannel(channel.getName());
     }
+  }
+
+  private void removeChannel(String channelName) {
+    ChatChannel removedChannel = channels.remove(channelName);
+    lastSentActiveMap.remove(removedChannel);
+    channelSubscriptions.getOrDefault(removedChannel, Set.of()).forEach(Subscription::unsubscribe);
   }
 
   @Override
@@ -771,14 +759,9 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     connect();
   }
 
-  @Override
-  public void whois(String username) {
-    client.commands().whois().target(username).execute();
-  }
-
-  @Override
-  public void incrementUnreadMessagesCount(int delta) {
-    trayIconManager.onSetApplicationBadgeEvent(UpdateApplicationBadgeEvent.ofDelta(delta));
+  private void incrementUnreadMessagesCount(Number oldValue, Number newValue) {
+    trayIconManager.onSetApplicationBadgeEvent(
+        UpdateApplicationBadgeEvent.ofDelta(newValue.intValue() - oldValue.intValue()));
   }
 
   @Override
@@ -794,5 +777,20 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Override
   public String getCurrentUsername() {
     return loginService.getUsername();
+  }
+
+  @Override
+  public Pattern getMentionPattern() {
+    return Pattern.compile("(^|[^A-Za-z0-9-])" + Pattern.quote(loginService.getUsername()) + "([^A-Za-z0-9-]|$)",
+                           CASE_INSENSITIVE);
+  }
+
+  @VisibleForTesting
+  boolean hasMention(String text) {
+    if (!getMentionPattern().matcher(text).find()) {
+      return false;
+    }
+
+    return !notificationPrefs.isNotifyOnAtMentionOnlyEnabled() || text.contains("@" + loginService.getUsername());
   }
 }

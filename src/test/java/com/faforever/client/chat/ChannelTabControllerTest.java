@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.fx.PlatformService;
@@ -27,10 +26,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
-import java.time.Instant;
 import java.util.regex.Pattern;
 
-import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.theme.ThemeService.CHAT_CONTAINER;
 import static com.faforever.client.theme.ThemeService.CHAT_SECTION_COMPACT;
 import static com.faforever.client.theme.ThemeService.CHAT_TEXT_COMPACT;
@@ -42,11 +39,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -275,42 +270,6 @@ public class ChannelTabControllerTest extends PlatformTest {
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> instance.getRoot().getOnClosed().handle(null));
     verify(chatService).leaveChannel(defaultChatChannel);
-  }
-
-  @Test
-  public void testAtMentionTriggersNotification() {
-    notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
-    instance.onChatMessage(new ChatMessage(Instant.now(), user, "hello @" + user + "!!"));
-    verify(chatService).incrementUnreadMessagesCount(1);
-  }
-
-  @Test
-  public void testAtMentionTriggersNotificationWhenFlagIsEnabled() {
-    notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
-    instance.onChatMessage(new ChatMessage(Instant.now(), user, "hello @" + user.getUsername() + "!!"));
-    verify(chatService).incrementUnreadMessagesCount(1);
-  }
-
-  @Test
-  public void testNormalMentionTriggersNotification() {
-    notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
-    instance.onChatMessage(new ChatMessage(Instant.now(), user, "hello " + user + "!!"));
-    verify(chatService).incrementUnreadMessagesCount(1);
-  }
-
-  @Test
-  public void testNormalMentionDoesNotTriggerNotificationWhenFlagIsEnabled() {
-    notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
-    instance.onChatMessage(new ChatMessage(Instant.now(), user, "hello " + user + "!!"));
-    verify(chatService, never()).incrementUnreadMessagesCount(anyInt());
-  }
-
-  @Test
-  public void testNormalMentionDoesNotTriggerNotificationFromFoe() {
-    notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
-    user.setPlayer(PlayerBeanBuilder.create().defaultValues().socialStatus(FOE).get());
-    instance.onChatMessage(new ChatMessage(Instant.now(), user, "hello " + user + "!!"));
-    verify(chatService, never()).incrementUnreadMessagesCount(anyInt());
   }
 
   private void initializeDefaultChatChannel() {

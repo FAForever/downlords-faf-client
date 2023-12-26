@@ -8,6 +8,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
@@ -32,11 +33,14 @@ import org.kitteh.irc.client.library.defaults.DefaultClient;
 import org.kitteh.irc.client.library.defaults.element.DefaultActor;
 import org.kitteh.irc.client.library.defaults.element.DefaultChannelTopic;
 import org.kitteh.irc.client.library.defaults.element.DefaultServerMessage.StringCommand;
+import org.kitteh.irc.client.library.defaults.element.messagetag.DefaultMessageTagTyping;
 import org.kitteh.irc.client.library.defaults.element.mode.DefaultChannelUserMode;
 import org.kitteh.irc.client.library.defaults.element.mode.DefaultModeStatus;
 import org.kitteh.irc.client.library.defaults.element.mode.DefaultModeStatusList;
 import org.kitteh.irc.client.library.defaults.feature.DefaultEventManager;
 import org.kitteh.irc.client.library.element.Channel;
+import org.kitteh.irc.client.library.element.MessageTag.Typing;
+import org.kitteh.irc.client.library.element.MessageTag.Typing.State;
 import org.kitteh.irc.client.library.element.User;
 import org.kitteh.irc.client.library.element.mode.ChannelUserMode;
 import org.kitteh.irc.client.library.element.mode.ModeStatus.Action;
@@ -46,10 +50,13 @@ import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelModeEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelNamesUpdatedEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelPartEvent;
+import org.kitteh.irc.client.library.event.channel.ChannelTagMessageEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelTopicEvent;
 import org.kitteh.irc.client.library.event.client.ClientNegotiationCompleteEvent;
 import org.kitteh.irc.client.library.event.connection.ClientConnectionClosedEvent;
 import org.kitteh.irc.client.library.event.user.PrivateMessageEvent;
+import org.kitteh.irc.client.library.event.user.PrivateTagMessageEvent;
+import org.kitteh.irc.client.library.event.user.UserAwayMessageEvent;
 import org.kitteh.irc.client.library.event.user.UserQuitEvent;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -61,6 +68,7 @@ import org.springframework.scheduling.TaskScheduler;
 import java.net.InetAddress;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -82,12 +90,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -96,7 +105,6 @@ import static org.mockito.Mockito.when;
 public class KittehChatServiceTest extends ServiceTest {
 
   private static final String CHAT_USER_NAME = "junit";
-  private static final String CHAT_PASSWORD = "123";
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
   private static final long TIMEOUT = 30000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
@@ -173,7 +181,6 @@ public class KittehChatServiceTest extends ServiceTest {
                                        .host(irc.getHost())
                                        .port(irc.getPort(), SecurityType.SECURE)
                                        .secureTrustManagerFactory(new TrustEveryoneFactory())
-                                       .password(CHAT_PASSWORD)
                                        .then()
                                        .build();
 
@@ -217,6 +224,12 @@ public class KittehChatServiceTest extends ServiceTest {
 
     lenient().when(spyClient.getChannel(DEFAULT_CHANNEL_NAME)).thenReturn(Optional.of(defaultChannel));
     lenient().when(defaultChannel.getUser(user1.getNick())).thenReturn(Optional.of(user1));
+
+    lenient().doAnswer(invocation -> {
+      Runnable runnable = invocation.getArgument(0);
+      runnable.run();
+      return null;
+    }).when(fxApplicationThreadExecutor).execute(any());
 
     instance.afterPropertiesSet();
 
@@ -366,12 +379,6 @@ public class KittehChatServiceTest extends ServiceTest {
 
   @Test
   public void testOnPlayerOnline() {
-    doAnswer(invocation -> {
-      Runnable runnable = invocation.getArgument(0);
-      runnable.run();
-      return null;
-    }).when(fxApplicationThreadExecutor).execute(any());
-
     connect();
 
     join(defaultChannel, user2);
@@ -471,17 +478,15 @@ public class KittehChatServiceTest extends ServiceTest {
 
   @Test
   public void testChatMessageEventTriggeredByChannelMessage() throws Exception {
-    CompletableFuture<ChatMessage> chatMessageFuture = new CompletableFuture<>();
-
     String message = "chat message";
 
     connect();
 
-    instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).addMessageListener(chatMessageFuture::complete);
+    ChatChannel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
 
     messageChannel(defaultChannel, user1, message);
 
-    ChatMessage chatMessage = chatMessageFuture.get(TIMEOUT, TIMEOUT_UNIT);
+    ChatMessage chatMessage = channel.getMessages().getLast();
 
     assertThat(chatMessage.message(), is(message));
     assertThat(chatMessage.sender().getUsername(), is(user1.getNick()));
@@ -490,17 +495,15 @@ public class KittehChatServiceTest extends ServiceTest {
 
   @Test
   public void testChatMessageEventTriggeredByChannelAction() throws Exception {
-    CompletableFuture<ChatMessage> chatMessageFuture = new CompletableFuture<>();
-
     String message = "chat onAction";
 
     connect();
 
-    instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).addMessageListener(chatMessageFuture::complete);
+    ChatChannel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
 
     actionChannel(defaultChannel, user1, message);
 
-    ChatMessage chatMessage = chatMessageFuture.get(TIMEOUT, TIMEOUT_UNIT);
+    ChatMessage chatMessage = channel.getMessages().getLast();
 
     assertThat(chatMessage.message(), is(message));
     assertThat(chatMessage.sender().getUsername(), is(user1.getNick()));
@@ -509,17 +512,15 @@ public class KittehChatServiceTest extends ServiceTest {
 
   @Test
   public void testChatMessageEventTriggeredByPrivateMessage() throws Exception {
-    CompletableFuture<ChatMessage> chatMessageFuture = new CompletableFuture<>();
-
     String message = "private message";
 
     connect();
 
-    instance.getOrCreateChannel(user1.getNick()).addMessageListener(chatMessageFuture::complete);
+    ChatChannel channel = instance.getOrCreateChannel(user1.getNick());
 
     sendPrivateMessage(user1, message);
 
-    ChatMessage chatMessage = chatMessageFuture.get(TIMEOUT, TIMEOUT_UNIT);
+    ChatMessage chatMessage = channel.getMessages().getLast();
 
     assertThat(chatMessage.message(), is(message));
     assertThat(chatMessage.sender().getUsername(), is(user1.getNick()));
@@ -536,9 +537,11 @@ public class KittehChatServiceTest extends ServiceTest {
 
     connect();
 
-    instance.getOrCreateChannel(user1.getNick()).addMessageListener(ignored -> fail());
+    ChatChannel channel = instance.getOrCreateChannel(user1.getNick());
 
     sendPrivateMessage(user1, message);
+
+    assertThat(channel.getMessages(), empty());
   }
 
   @Test
@@ -604,13 +607,11 @@ public class KittehChatServiceTest extends ServiceTest {
 
     String message = "test message";
 
-    CompletableFuture<String> future = new CompletableFuture<>();
     ChatChannel chatChannel = new ChatChannel(DEFAULT_CHANNEL_NAME);
-    chatChannel.addMessageListener(msg -> future.complete(msg.message()));
 
-    instance.sendMessageInBackground(chatChannel, message);
+    instance.sendMessageInBackground(chatChannel, message).get(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(message));
+    assertThat(chatChannel.getMessages().getLast().message(), is(message));
   }
 
   @Test
@@ -658,13 +659,11 @@ public class KittehChatServiceTest extends ServiceTest {
 
     String action = "test onAction";
 
-    CompletableFuture<String> future = new CompletableFuture<>();
     ChatChannel chatChannel = new ChatChannel(DEFAULT_CHANNEL_NAME);
-    chatChannel.addMessageListener(msg -> future.complete(msg.message()));
 
-    instance.sendActionInBackground(chatChannel, action);
+    instance.sendActionInBackground(chatChannel, action).get(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(action));
+    assertThat(chatChannel.getMessages().getLast().message(), is(action));
   }
 
   @Test
@@ -704,16 +703,6 @@ public class KittehChatServiceTest extends ServiceTest {
     ChatChannelUser returnedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME);
 
     assertThat(returnedUser, is(addedUser));
-    assertEquals(returnedUser, addedUser);
-  }
-
-  @Test
-  public void testCreateOrGetChatUserUserObjectPopulatedMap() {
-    ChatChannelUser addedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME);
-    ChatChannelUser returnedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME);
-
-    assertThat(returnedUser, is(addedUser));
-    assertEquals(returnedUser, addedUser);
   }
 
   @Test
@@ -763,5 +752,228 @@ public class KittehChatServiceTest extends ServiceTest {
 
     assertThat(sentLines.get(1), containsString(DEFAULT_CHANNEL_NAME));
     assertThat(sentLines.get(1), containsString("+typing=done"));
+  }
+
+  @Test
+  public void testUserAway() {
+    connect();
+
+    join(defaultChannel, user1);
+    ChatChannelUser chatUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME);
+
+    eventManager.callEvent(new UserAwayMessageEvent(realClient, new StringCommand("", "", List.of()), user1, "away"));
+
+    assertTrue(chatUser.isAway());
+    verify(playerService).removePlayerIfOnline(anyString());
+
+    eventManager.callEvent(new UserAwayMessageEvent(realClient, new StringCommand("", "", List.of()), user1, null));
+
+    assertFalse(chatUser.isAway());
+  }
+
+  @Test
+  public void testUpdateUserTypingState() {
+    ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
+    ArgumentCaptor<Instant> instantCaptor = ArgumentCaptor.forClass(Instant.class);
+    Instant now = Instant.now();
+
+    ChatChannelUser chatUser = instance.getOrCreateChatUser(user1.getNick(), user1.getNick());
+
+    instance.updateUserTypingState(State.ACTIVE, chatUser);
+
+    assertTrue(chatUser.isTyping());
+    assertThat(chatUser.getChannel().getTypingUsers(), hasSize(1));
+    verify(taskScheduler).schedule(runnableCaptor.capture(), instantCaptor.capture());
+
+    assertTrue(ChronoUnit.SECONDS.between(now, instantCaptor.getValue()) >= 6);
+
+    runnableCaptor.getValue().run();
+    assertFalse(chatUser.isTyping());
+    assertThat(chatUser.getChannel().getTypingUsers(), empty());
+
+    instance.updateUserTypingState(State.PAUSED, chatUser);
+
+    assertTrue(chatUser.isTyping());
+    assertThat(chatUser.getChannel().getTypingUsers(), hasSize(1));
+    verify(taskScheduler, times(2)).schedule(runnableCaptor.capture(), instantCaptor.capture());
+
+    assertTrue(ChronoUnit.SECONDS.between(now, instantCaptor.getValue()) >= 30);
+
+    instance.updateUserTypingState(State.DONE, chatUser);
+
+    assertFalse(chatUser.isTyping());
+    assertThat(chatUser.getChannel().getTypingUsers(), empty());
+    verify(future).cancel(anyBoolean());
+  }
+
+  @Test
+  public void testPrivateTypingTagMessageDoesNotCreateChannel() {
+    connect();
+
+    Typing tag = DefaultMessageTagTyping.FUNCTION.apply(realClient, "+typing", "active");
+    eventManager.callEvent(
+        new PrivateTagMessageEvent(realClient, new StringCommand("TAGMSG", "", List.of(tag)), user1, "me"));
+
+    assertThat(instance.getChannels(), empty());
+  }
+
+  @Test
+  public void testPrivateTypingTagMessage() {
+    connect();
+
+    ChatChannelUser chatUser = instance.getOrCreateChatUser(user1.getNick(), user1.getNick());
+
+    Typing tag = DefaultMessageTagTyping.FUNCTION.apply(realClient, "+typing", "active");
+    eventManager.callEvent(
+        new PrivateTagMessageEvent(realClient, new StringCommand("TAGMSG", "", List.of(tag)), user1, "me"));
+
+    assertTrue(chatUser.isTyping());
+  }
+
+  @Test
+  public void testChannelTypingTagMessage() {
+    connect();
+
+    ChatChannelUser chatUser = instance.getOrCreateChatUser(user1.getNick(), defaultChannel.getName());
+
+    Typing tag = DefaultMessageTagTyping.FUNCTION.apply(realClient, "+typing", "active");
+    eventManager.callEvent(
+        new ChannelTagMessageEvent(realClient, new StringCommand("TAGMSG", "", List.of(tag)), user1, defaultChannel));
+
+    assertTrue(chatUser.isTyping());
+  }
+
+  @Test
+  public void testChannelMessageRemovesTyping() {
+    connect();
+
+    join(defaultChannel, user1);
+
+    ChatChannelUser chatUser = instance.getOrCreateChatUser(user1.getNick(), defaultChannel.getName());
+    chatUser.setTyping(true);
+
+    messageChannel(defaultChannel, user1, "");
+
+    assertFalse(chatUser.isTyping());
+  }
+
+  @Test
+  public void testChannelActionRemovesTyping() {
+    connect();
+
+    join(defaultChannel, user1);
+
+    ChatChannelUser chatUser = instance.getOrCreateChatUser(user1.getNick(), defaultChannel.getName());
+    chatUser.setTyping(true);
+
+    actionChannel(defaultChannel, user1, "");
+
+    assertFalse(chatUser.isTyping());
+  }
+
+  @Test
+  public void testPrivateMessageRemovesTyping() {
+    connect();
+
+    ChatChannelUser chatUser = instance.getOrCreateChatUser(user1.getNick(), user1.getNick());
+    chatUser.setTyping(true);
+
+    sendPrivateMessage(user1, "");
+
+    assertFalse(chatUser.isTyping());
+  }
+
+  @Test
+  public void testPrivateMessageUnread() {
+    connect();
+
+    join(defaultChannel, user1);
+
+    sendPrivateMessage(user1, "CHAT_USER_NAME");
+
+    ChatChannel channel = instance.getOrCreateChannel(user1.getNick());
+    verify(audioService).playPrivateMessageSound();
+    verify(notificationService).addNotification(any(TransientNotification.class));
+    assertEquals(1, channel.getNumUnreadMessages());
+  }
+
+  @Test
+  public void testPrivateMessageChannelOpen() {
+    connect();
+
+    join(defaultChannel, user1);
+    ChatChannel channel = instance.getOrCreateChannel(user1.getNick());
+    channel.setOpen(true);
+    sendPrivateMessage(user1, "CHAT_USER_NAME");
+
+    verify(audioService, never()).playPrivateMessageSound();
+    verify(notificationService, never()).addNotification(any(TransientNotification.class));
+    assertEquals(0, channel.getNumUnreadMessages());
+  }
+
+  @Test
+  public void testMention() {
+    connect();
+
+    join(defaultChannel, user1);
+
+    messageChannel(defaultChannel, user1, CHAT_USER_NAME);
+
+    ChatChannel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    verify(audioService).playChatMentionSound();
+    verify(notificationService).addNotification(any(TransientNotification.class));
+    assertEquals(1, channel.getNumUnreadMessages());
+  }
+
+  @Test
+  public void testMentionChannelOpen() {
+    connect();
+
+    join(defaultChannel, user1);
+    ChatChannel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    channel.setOpen(true);
+    messageChannel(defaultChannel, user1, CHAT_USER_NAME);
+
+    verify(audioService, never()).playChatMentionSound();
+    verify(notificationService, never()).addNotification(any(TransientNotification.class));
+    assertEquals(0, channel.getNumUnreadMessages());
+  }
+
+  @Test
+  public void testAtMention() {
+    notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
+    assertTrue(instance.hasMention("hello @" + CHAT_USER_NAME + "!!"));
+  }
+
+  @Test
+  public void testAtMentionWhenFlagIsEnabled() {
+    notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
+    assertTrue(instance.hasMention("hello @" + CHAT_USER_NAME + "!!"));
+  }
+
+  @Test
+  public void testNormalMention() {
+    notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
+    assertTrue(instance.hasMention("hello " + CHAT_USER_NAME + "!!"));
+  }
+
+  @Test
+  public void testNormalMentionDoesNotTriggerNotificationWhenFlagIsEnabled() {
+    notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
+    assertFalse(instance.hasMention("hello " + CHAT_USER_NAME + "!!"));
+  }
+
+  @Test
+  public void testMentionDetection() {
+    when(loginService.getUsername()).thenReturn("-Box-");
+
+    assertTrue(instance.hasMention("-Box-"));
+    assertTrue(instance.hasMention("-Box-!"));
+    assertTrue(instance.hasMention("!-Box-"));
+    assertTrue(instance.hasMention("Goodbye -Box-"));
+    assertFalse(instance.hasMention(" "));
+    assertFalse(instance.hasMention(""));
+    assertFalse(instance.hasMention("-Box-h"));
+    assertFalse(instance.hasMention("h-Box-"));
   }
 }

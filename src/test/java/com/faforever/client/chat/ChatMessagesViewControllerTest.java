@@ -6,6 +6,7 @@ import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
@@ -15,8 +16,6 @@ import com.faforever.client.theme.ThemeService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.util.TimeService;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -28,7 +27,6 @@ import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
-import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
@@ -40,6 +38,7 @@ import static com.faforever.client.theme.ThemeService.CHAT_SECTION_EXTENDED;
 import static com.faforever.client.theme.ThemeService.CHAT_TEXT_COMPACT;
 import static com.faforever.client.theme.ThemeService.CHAT_TEXT_EXTENDED;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.emptyString;
@@ -71,6 +70,8 @@ public class ChatMessagesViewControllerTest extends PlatformTest {
   private CountryFlagService countryFlagService;
   @Mock
   private EmoticonService emoticonService;
+  @Mock
+  private I18n i18n;
   @Spy
   private ChatPrefs chatPrefs;
 
@@ -101,6 +102,9 @@ public class ChatMessagesViewControllerTest extends PlatformTest {
     lenient().when(chatService.getCurrentUsername()).thenReturn("junit");
     lenient().when(timeService.asShortTime(any())).thenReturn("now");
     lenient().when(emoticonsWindowController.getRoot()).thenReturn(new VBox());
+    lenient().when(chatService.getMentionPattern())
+             .thenReturn(Pattern.compile("(^|[^A-Za-z0-9-])" + Pattern.quote(user.getUsername()) + "([^A-Za-z0-9-]|$)",
+                                         CASE_INSENSITIVE));
 
     Stage stage = mock(Stage.class);
     lenient().when(stage.focusedProperty()).thenReturn(new SimpleBooleanProperty());
@@ -136,6 +140,24 @@ public class ChatMessagesViewControllerTest extends PlatformTest {
 
     fxApplicationThreadExecutor.executeAndWait(() -> instance.onSendMessage());
     verify(chatService, never()).setDoneTypingState(any());
+  }
+
+  @Test
+  public void testTypingLabel() {
+    assertFalse(instance.typingLabel.isVisible());
+
+    runOnFxThreadAndWait(() -> chatChannel.createUserIfNecessary("test1", chatUser -> chatUser.setTyping(true)));
+
+    verify(i18n).get("chat.typing.single", "test1");
+    assertTrue(instance.typingLabel.isVisible());
+
+    runOnFxThreadAndWait(() -> chatChannel.createUserIfNecessary("test2", chatUser -> chatUser.setTyping(true)));
+    verify(i18n).get("chat.typing.double", "test1", "test2");
+    assertTrue(instance.typingLabel.isVisible());
+
+    runOnFxThreadAndWait(() -> chatChannel.createUserIfNecessary("test3", chatUser -> chatUser.setTyping(true)));
+    verify(i18n).get("chat.typing.many");
+    assertTrue(instance.typingLabel.isVisible());
   }
 
   @Test
@@ -231,21 +253,6 @@ public class ChatMessagesViewControllerTest extends PlatformTest {
     assertEquals(
         "<img src=\"data:image/svg+xml;base64,uefBase64Content\" width=\"24\" height=\"24\" /> " + "Hello, world <img src=\"data:image/svg+xml;base64,aeonBase64Content\" width=\"24\" height=\"24\" />",
         instance.transformEmoticonShortcodesToImages(text));
-  }
-
-  @Test
-  public void testMentionPattern() {
-    when(chatService.getCurrentUsername()).thenReturn("-Box-");
-
-    runOnFxThreadAndWait(() -> reinitialize(instance));
-    assertTrue(instance.mentionPattern.matcher("-Box-").find());
-    assertTrue(instance.mentionPattern.matcher("-Box-!").find());
-    assertTrue(instance.mentionPattern.matcher("!-Box-").find());
-    assertTrue(instance.mentionPattern.matcher("Goodbye -Box-").find());
-    assertFalse(instance.mentionPattern.matcher(" ").find());
-    assertFalse(instance.mentionPattern.matcher("").find());
-    assertFalse(instance.mentionPattern.matcher("-Box-h").find());
-    assertFalse(instance.mentionPattern.matcher("h-Box-").find());
   }
 
   @Test
@@ -397,11 +404,5 @@ public class ChatMessagesViewControllerTest extends PlatformTest {
 
   private void sendMessage(ChatChannelUser sender, String message) {
     runOnFxThreadAndWait(() -> instance.onChatMessage(new ChatMessage(Instant.now(), sender, message)));
-  }
-
-  private KeyEvent keyEvent(KeyCode keyCode, Collection<KeyCode> modifiers) {
-    return new KeyEvent(null, null, KeyEvent.KEY_PRESSED, keyCode.getChar(), keyCode.getName(), keyCode,
-                        modifiers.contains(KeyCode.SHIFT), modifiers.contains(KeyCode.CONTROL),
-                        modifiers.contains(KeyCode.ALT), modifiers.contains(KeyCode.META));
   }
 }

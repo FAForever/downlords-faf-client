@@ -4,27 +4,22 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.transformation.FilteredList;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 
-@RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 public class ChatChannel {
@@ -42,17 +37,54 @@ public class ChatChannel {
       usernameToChatUser);
   private final ObservableList<ChatChannelUser> typingUsers = new FilteredList<>(users, ChatChannelUser::isTyping);
   private final ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic(null, ""));
-  private final Set<Consumer<ChatMessage>> messageListeners = new HashSet<>();
-  private final List<ChatMessage> messages = new ArrayList<>();
+  private final ObservableList<ChatMessage> messages = FXCollections.synchronizedObservableList(
+      FXCollections.observableArrayList());
   private final BooleanProperty open = new SimpleBooleanProperty();
+  private final IntegerProperty maxNumMessages = new SimpleIntegerProperty(Integer.MAX_VALUE);
+  private final IntegerProperty numUnreadMessages = new SimpleIntegerProperty();
 
-  private int maxNumMessages = Integer.MAX_VALUE;
+  public ChatChannel(String name) {
+    this.name = name;
+    maxNumMessages.subscribe(this::pruneMessages);
+    messages.subscribe(this::pruneMessages);
+    open.subscribe(open -> {
+      if (open) {
+        setNumUnreadMessages(0);
+      }
+    });
+  }
+
+  private void pruneMessages() {
+    int maxNumMessages = getMaxNumMessages();
+    int numMessages = messages.size();
+    if (numMessages > maxNumMessages) {
+      messages.subList(0, numMessages - maxNumMessages).clear();
+    }
+  }
+
+  public int getNumUnreadMessages() {
+    return numUnreadMessages.get();
+  }
+
+  public IntegerProperty numUnreadMessagesProperty() {
+    return numUnreadMessages;
+  }
+
+  public void setNumUnreadMessages(int numUnreadMessages) {
+    this.numUnreadMessages.set(numUnreadMessages);
+  }
 
   public void setMaxNumMessages(int maxNumMessages) {
-    this.maxNumMessages = maxNumMessages;
-    if (messages.size() > maxNumMessages) {
-      messages.subList(0, messages.size() - maxNumMessages).clear();
-    }
+    this.maxNumMessages.set(Math.max(maxNumMessages, 0));
+    pruneMessages();
+  }
+
+  public int getMaxNumMessages() {
+    return maxNumMessages.get();
+  }
+
+  public IntegerProperty maxNumMessagesProperty() {
+    return maxNumMessages;
   }
 
   public ChannelTopic getTopic() {
@@ -88,28 +120,12 @@ public class ChatChannel {
     usernameToChatUser.clear();
   }
 
-  public void addUsersListeners(ListChangeListener<ChatChannelUser> listener) {
-    users.addListener(listener);
-  }
-
-  public void removeUserListener(ListChangeListener<ChatChannelUser> listener) {
-    users.removeListener(listener);
-  }
-
-  public void addTypingUsersListener(ListChangeListener<ChatChannelUser> listener) {
-    typingUsers.addListener(listener);
-  }
-
-  public void removeTypingUserListener(ListChangeListener<ChatChannelUser> listener) {
-    typingUsers.removeListener(listener);
-  }
-
   public ObservableList<ChatChannelUser> getTypingUsers() {
-    return FXCollections.unmodifiableObservableList(typingUsers);
+    return typingUsers;
   }
 
   public ObservableList<ChatChannelUser> getUsers() {
-    return FXCollections.unmodifiableObservableList(users);
+    return users;
   }
 
   public Optional<ChatChannelUser> getUser(String username) {
@@ -118,19 +134,10 @@ public class ChatChannel {
 
   public void addMessage(ChatMessage message) {
     messages.add(message);
-    messageListeners.forEach(chatMessageConsumer -> chatMessageConsumer.accept(message));
-    if (messages.size() > maxNumMessages) {
-      messages.remove(0);
-    }
   }
 
-  public void addMessageListener(Consumer<ChatMessage> messageListener) {
-    messageListeners.add(messageListener);
-    messages.forEach(messageListener);
-  }
-
-  public void removeMessageListener(Consumer<ChatMessage> messageListener) {
-    messageListeners.remove(messageListener);
+  public ObservableList<ChatMessage> getMessages() {
+    return messages;
   }
 
   public boolean isPrivateChannel() {
@@ -138,7 +145,7 @@ public class ChatChannel {
   }
 
   public boolean isPartyChannel() {
-    return name.endsWith(ChatService.PARTY_CHANNEL_SUFFIX);
+    return !isPrivateChannel() && name.endsWith(ChatService.PARTY_CHANNEL_SUFFIX);
   }
 
   public boolean isOpen() {

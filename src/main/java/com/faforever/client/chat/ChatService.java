@@ -6,6 +6,7 @@ import javafx.collections.MapChangeListener;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
 
 public interface ChatService {
 
@@ -51,20 +52,13 @@ public interface ChatService {
 
   void reconnect();
 
-  void whois(String username);
-
   void setChannelTopic(ChatChannel chatChannel, String text);
-
-  /**
-   * Increase or decrease the number of unread messages.
-   *
-   * @param delta a positive or negative number
-   */
-  void incrementUnreadMessagesCount(int delta);
 
   void onInitiatePrivateChat(String username);
 
   Set<ChatChannel> getChannels();
 
   String getCurrentUsername();
+
+  Pattern getMentionPattern();
 }

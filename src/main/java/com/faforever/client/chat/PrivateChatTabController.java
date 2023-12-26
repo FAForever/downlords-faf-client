@@ -64,16 +64,4 @@ public class PrivateChatTabController extends AbstractChatTabController {
   public Tab getRoot() {
     return privateChatTabRoot;
   }
-
-  @Override
-  public void onChatMessage(ChatMessage chatMessage) {
-    if (chatMessage.sender().getCategory() == ChatUserCategory.FOE && chatPrefs.isHideFoeMessages()) {
-      return;
-    }
-
-    if (!hasFocus()) {
-      setUnread(true);
-      incrementUnreadMessagesCount();
-    }
-  }
 }
