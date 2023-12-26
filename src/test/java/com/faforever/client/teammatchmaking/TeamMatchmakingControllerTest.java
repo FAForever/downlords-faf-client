@@ -7,8 +7,10 @@ import com.faforever.client.builders.PartyBuilder;
 import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.SubdivisionBeanBuilder;
+import com.faforever.client.chat.ChatMessageViewController;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.MatchmakingChatController;
+import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PartyBean;
 import com.faforever.client.domain.PlayerBean;
@@ -78,6 +80,10 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
   private ChatService chatService;
   @Mock
   private MatchmakingChatController matchmakingChatController;
+  @Mock
+  private ChatMessageViewController chatMessageViewController;
+  @Mock
+  private EmoticonsWindowController emoticonsWindowController;
   @Spy
   private MatchmakerPrefs matchmakerPrefs;
   @InjectMocks
@@ -113,12 +119,16 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
     lenient().when(i18n.get("teammatchmaking.inPlacement")).thenReturn("In Placement");
     lenient().when(i18n.get(eq("leaderboard.divisionName"), anyString(), anyString())).thenReturn("division V");
     lenient().when(matchmakingChatController.getRoot()).thenReturn(new Tab());
-    lenient().when(uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml"))
-             .thenAnswer(invocation -> matchmakingChatController);
 
     loadFxml("theme/play/team_matchmaking.fxml", clazz -> {
       if (clazz == MatchmakingChatController.class) {
         return matchmakingChatController;
+      }
+      if (clazz == ChatMessageViewController.class) {
+        return chatMessageViewController;
+      }
+      if (clazz == EmoticonsWindowController.class) {
+        return emoticonsWindowController;
       }
 
       return instance;

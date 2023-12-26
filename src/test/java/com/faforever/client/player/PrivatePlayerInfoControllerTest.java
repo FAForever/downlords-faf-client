@@ -7,6 +7,7 @@ import com.faforever.client.builders.LeaderboardBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingMapBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.chat.ChatChannel;
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.PlayerBean;
@@ -38,7 +39,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
 public class PrivatePlayerInfoControllerTest extends PlatformTest {
-  private static final String CHANNEL_NAME = "testChannel";
   private static final String USERNAME = "junit";
 
   @Mock
@@ -65,7 +65,10 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
   public void setUp() throws Exception {
     leaderboard = LeaderboardBeanBuilder.create().defaultValues().technicalName("global").get();
     player = PlayerBeanBuilder.create().defaultValues().game(null).get();
-    chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).defaultValues().player(player).get();
+    chatChannelUser = ChatChannelUserBuilder.create(USERNAME, new ChatChannel("testChannel"))
+                                            .defaultValues()
+                                            .player(player)
+                                            .get();
 
     lenient().when(gameDetailController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(achievementService.getPlayerAchievements(player.getId()))

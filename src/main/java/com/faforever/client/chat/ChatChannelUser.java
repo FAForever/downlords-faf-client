@@ -35,8 +35,9 @@ public class ChatChannelUser {
   @Getter
   @EqualsAndHashCode.Include
   @ToString.Include
-  private final String channel;
+  private final ChatChannel channel;
 
+  private final BooleanProperty typing = new SimpleBooleanProperty();
   private final BooleanProperty away = new SimpleBooleanProperty();
   private final BooleanProperty moderator = new SimpleBooleanProperty();
   private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
@@ -107,5 +108,17 @@ public class ChatChannelUser {
 
   public void setAway(boolean away) {
     this.away.set(away);
+  }
+
+  public boolean isTyping() {
+    return typing.get();
+  }
+
+  public BooleanProperty typingProperty() {
+    return typing;
+  }
+
+  public void setTyping(boolean typing) {
+    this.typing.set(typing);
   }
 }

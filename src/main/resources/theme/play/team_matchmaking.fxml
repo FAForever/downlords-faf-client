@@ -149,7 +149,7 @@
         </ScrollPane>
         <TabPane fx:id="chatTabPane" styleClass="chat-tab-pane" tabClosingPolicy="UNAVAILABLE"
                  GridPane.columnIndex="1" GridPane.rowSpan="2">
-            <fx:include fx:id="matchmakingChat" source="teammatchmaking/matchmaking_chat.fxml"/>
+            <fx:include fx:id="matchmakingChat" source="../chat/matchmaking_chat.fxml"/>
         </TabPane>
     </GridPane>
 </StackPane>
