@@ -38,9 +38,10 @@ public class ChatChannel {
       FXCollections.observableHashMap());
   private final ObservableList<ChatChannelUser> users = JavaFxUtil.attachListToMap(
       FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
-          item -> new Observable[]{item.categoryProperty(), item.colorProperty()})),
+          item -> new Observable[]{item.categoryProperty(), item.colorProperty(), item.typingProperty()})),
       usernameToChatUser);
-  private final ObservableList<ChatChannelUser> typingUsers = new FilteredList<>(users, ChatChannelUser::isTyping);
+  private final ObservableList<ChatChannelUser> typingUsers = new FilteredList<>(
+      FXCollections.observableList(users, item -> new Observable[]{item.typingProperty()}), ChatChannelUser::isTyping);
   private final ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic(null, ""));
   private final Set<Consumer<ChatMessage>> messageListeners = new HashSet<>();
   private final List<ChatMessage> messages = new ArrayList<>();
@@ -94,6 +95,14 @@ public class ChatChannel {
 
   public void removeUserListener(ListChangeListener<ChatChannelUser> listener) {
     users.removeListener(listener);
+  }
+
+  public void addTypingUsersListener(ListChangeListener<ChatChannelUser> listener) {
+    typingUsers.addListener(listener);
+  }
+
+  public void removeTypingUserListener(ListChangeListener<ChatChannelUser> listener) {
+    typingUsers.removeListener(listener);
   }
 
   public ObservableList<ChatChannelUser> getTypingUsers() {

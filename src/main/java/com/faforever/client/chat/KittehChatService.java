@@ -235,8 +235,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Handler
   public void onTagMessage(PrivateTagMessageEvent event) {
     event.getTag("+typing", Typing.class).ifPresent(typing -> {
-      String typer = event.getActor().getName();
-      updateUserTypingState(typing.getState(), getOrCreateChatUser(typer, typer));
+      if (event.getActor() instanceof User user) {
+        String typer = user.getNick();
+        updateUserTypingState(typing.getState(), getOrCreateChatUser(typer, typer));
+      }
     });
   }
 
@@ -403,6 +405,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String text = event.getMessage();
     ChatChannelUser sender = getOrCreateChatUser(user.getNick(), channelName);
+    sender.setTyping(false);
     ChatChannel chatChannel = sender.getChannel();
 
     Instant messageTime = event.getTag("time", Time.class)
@@ -471,6 +474,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     String senderNick = user.getNick();
     String message = event.getMessage().replace("ACTION", senderNick);
     ChatChannelUser sender = getOrCreateChatUser(senderNick, channelName);
+    sender.setTyping(false);
     Instant messageTime = event.getTags()
                                .stream()
                                .filter(Time.class::isInstance)
@@ -515,6 +519,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String text = event.getMessage();
     ChatChannelUser sender = getOrCreateChatUser(user.getNick(), senderNick);
+    sender.setTyping(false);
 
     Instant messageTime = event.getTags()
                                .stream()

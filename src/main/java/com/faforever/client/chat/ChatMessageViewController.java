@@ -31,6 +31,7 @@ import javafx.concurrent.Worker.State;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -128,6 +129,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
   public WebView messagesWebView;
   public VBox root;
   public Node emoticonsWindow;
+  public Label typingLabel;
   public EmoticonsWindowController emoticonsWindowController;
 
   /**
@@ -141,6 +143,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
   private final ReadOnlyStringWrapper chatMessageSectionHtml = new ReadOnlyStringWrapper();
   private final Consumer<ChatMessage> messageListener = this::onChatMessage;
   private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = this::updateChangedUsersStyles;
+  private final ListChangeListener<ChatChannelUser> typingUserListChangeListener = this::updateTypingUsersLabel;
 
   private int lastEntryId;
   private boolean isChatReady;
@@ -157,6 +160,8 @@ public class ChatMessageViewController extends NodeController<VBox> {
 
   @Override
   protected void onInitialize() {
+    JavaFxUtil.bindManagedToVisible(typingLabel);
+
     mentionPattern = Pattern.compile(
         "(^|[^A-Za-z0-9-])" + Pattern.quote(chatService.getCurrentUsername()) + "([^A-Za-z0-9-]|$)", CASE_INSENSITIVE);
     engine = messagesWebView.getEngine();
@@ -216,10 +221,12 @@ public class ChatMessageViewController extends NodeController<VBox> {
       if (oldValue != null) {
         oldValue.removeMessageListener(messageListener);
         oldValue.removeUserListener(channelUserListChangeListener);
+        oldValue.removeTypingUserListener(typingUserListChangeListener);
       }
       if (newValue != null) {
         newValue.addMessageListener(messageListener);
         newValue.addUsersListeners(channelUserListChangeListener);
+        newValue.addTypingUsersListener(typingUserListChangeListener);
       }
     }));
 
@@ -603,6 +610,13 @@ public class ChatMessageViewController extends NodeController<VBox> {
         }
       }
     }
+  }
+
+  private void updateTypingUsersLabel(Change<? extends ChatChannelUser> change) {
+    List<ChatChannelUser> typingUsers = List.copyOf(change.getList());
+    typingLabel.setVisible(!typingUsers.isEmpty());
+    typingLabel.setText(
+        String.join(", ", typingUsers.stream().map(ChatChannelUser::getUsername).toList()) + " is typing");
   }
 
   private void hideFoeMessages(boolean shouldHide) {
