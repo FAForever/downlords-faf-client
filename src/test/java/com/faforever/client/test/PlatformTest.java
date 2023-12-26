@@ -119,11 +119,13 @@ public abstract class PlatformTest {
   }
 
   protected void reinitialize(Controller<?> controller) {
-    try (MockedStatic<AttachedUtil> mockedStatic = mockStatic(AttachedUtil.class)) {
-      mockedStatic.when(() -> AttachedUtil.attachedProperty(any(MenuItem.class))).thenReturn(attached);
-      mockedStatic.when(() -> AttachedUtil.attachedProperty(any(Node.class))).thenReturn(attached);
-      mockedStatic.when(() -> AttachedUtil.attachedProperty(any(Tab.class))).thenReturn(attached);
-      controller.initialize();
-    }
+    fxApplicationThreadExecutor.executeAndWait(() -> {
+      try (MockedStatic<AttachedUtil> mockedStatic = mockStatic(AttachedUtil.class)) {
+        mockedStatic.when(() -> AttachedUtil.attachedProperty(any(MenuItem.class))).thenReturn(attached);
+        mockedStatic.when(() -> AttachedUtil.attachedProperty(any(Node.class))).thenReturn(attached);
+        mockedStatic.when(() -> AttachedUtil.attachedProperty(any(Tab.class))).thenReturn(attached);
+        controller.initialize();
+      }
+    });
   }
 }

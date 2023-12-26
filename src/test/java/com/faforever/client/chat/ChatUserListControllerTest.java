@@ -496,7 +496,7 @@ public class ChatUserListControllerTest extends PlatformTest {
   }
 
   private ChatChannelUser generateUser(SocialStatus socialStatus, boolean isModerator) {
-    return ChatChannelUserBuilder.create(RandomStringUtils.randomAlphanumeric(15), CHANNEL_NAME)
+    return ChatChannelUserBuilder.create(RandomStringUtils.randomAlphanumeric(15), new ChatChannel(CHANNEL_NAME))
         .moderator(isModerator).player(PlayerBeanBuilder.create().socialStatus(socialStatus).get()).get();
   }
 }

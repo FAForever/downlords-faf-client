@@ -6,15 +6,12 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Tooltip?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.TextFlow?>
-<?import javafx.scene.web.WebView?>
 <Tab xmlns="http://javafx.com/javafx"
      xmlns:fx="http://javafx.com/fxml" fx:id="matchmakingChatTabRoot"
      fx:controller="com.faforever.client.chat.MatchmakingChatController">
@@ -40,24 +37,7 @@
                 </padding>
             </HBox>
             <Separator maxWidth="1.7976931348623157E308" />
-            <WebView fx:id="messagesWebView" VBox.vgrow="ALWAYS" minHeight="100.0" minWidth="100.0" prefHeight="-1.0"
-                     prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                     AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
-            <HBox alignment="CENTER_LEFT" styleClass="channel-chat-container">
-                <children>
-                    <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308"
-                               onAction="#onSendMessage" promptText="%chat.messagePrompt"
-                               styleClass="channel-chat-text-field" HBox.hgrow="ALWAYS">
-                    </TextField>
-                    <Button fx:id="emoticonsButton" mnemonicParsing="false"
-                            onAction="#openEmoticonsPopupWindow"
-                            styleClass="open-emoticons-window">
-                        <graphic>
-                            <Region styleClass="icon, icon24x24, interacting-icon, friend-icon"/>
-                        </graphic>
-                    </Button>
-                </children>
-            </HBox>
+            <fx:include fx:id="chatMessagesView" source="chat_message_view.fxml" VBox.vgrow="ALWAYS"/>
         </children>
     </VBox>
 </Tab>

@@ -53,7 +53,6 @@ import static org.mockito.Mockito.when;
 
 public class ChatUserItemControllerTest extends PlatformTest {
 
-  private static final String CHANNEL_NAME = "#testChannel";
   private static final String USER_NAME = "junit";
 
 
@@ -87,7 +86,7 @@ public class ChatUserItemControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    defaultUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
+    defaultUser = ChatChannelUserBuilder.create(USER_NAME, new ChatChannel("#testChannel")).defaultValues().get();
 
     lenient().when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
     lenient().when(i18n.get(eq("clan.messageLeader"))).thenReturn("Message clan leader");

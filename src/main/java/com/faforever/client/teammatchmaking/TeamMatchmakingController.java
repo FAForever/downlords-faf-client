@@ -1,8 +1,6 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.chat.ChatService;
-import com.faforever.client.chat.MatchmakingChatController;
 import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
@@ -55,8 +53,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.chat.ChatService.PARTY_CHANNEL_SUFFIX;
-
 @Component
 @RequiredArgsConstructor
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -74,7 +70,6 @@ public class TeamMatchmakingController extends NodeController<Node> {
   private final UiService uiService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final MatchmakerPrefs matchmakerPrefs;
-  private final ChatService chatService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public StackPane teamMatchmakingRoot;
@@ -105,7 +100,6 @@ public class TeamMatchmakingController extends NodeController<Node> {
   public GridPane contentPane;
   public ColumnConstraints column2;
   public RowConstraints row2;
-  public MatchmakingChatController matchmakingChatController;
 
   private Map<Faction, ToggleButton> factionsToButtons;
 
@@ -184,14 +178,6 @@ public class TeamMatchmakingController extends NodeController<Node> {
     teamMatchmakingService.partyMembersNotReadyProperty().when(showing).subscribe(this::setSearchButtonText);
     teamMatchmakingService.anyQueueSelectedProperty().when(showing).subscribe(this::setSearchButtonText);
     currentPlayerProperty.when(showing).subscribe(this::setSearchButtonText);
-    teamMatchmakingService.getParty()
-                          .ownerProperty()
-                          .flatMap(PlayerBean::usernameProperty)
-                          .when(showing)
-                          .subscribe(newValue -> {
-                            setChannel("#" + newValue + PARTY_CHANNEL_SUFFIX);
-                          });
-
     currentPlayerProperty.when(showing).subscribe(this::setLeagueInfo);
 
     selectFactions(matchmakerPrefs.getFactions());
@@ -347,10 +333,6 @@ public class TeamMatchmakingController extends NodeController<Node> {
 
   private void selectFactions(List<Faction> factions) {
     factionsToButtons.forEach((faction, toggleButton) -> toggleButton.setSelected(factions.contains(faction)));
-  }
-
-  private void setChannel(String channelName) {
-    matchmakingChatController.setChatChannel(chatService.getOrCreateChannel(channelName));
   }
 
   private void renderQueues() {

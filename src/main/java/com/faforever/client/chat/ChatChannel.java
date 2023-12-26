@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.fx.JavaFxUtil;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -10,8 +11,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.transformation.FilteredList;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -21,9 +25,13 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 @RequiredArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 public class ChatChannel {
 
   @Getter
+  @EqualsAndHashCode.Include
+  @ToString.Include
   private final String name;
 
   private final ObservableMap<String, ChatChannelUser> usernameToChatUser = FXCollections.synchronizedObservableMap(
@@ -32,6 +40,7 @@ public class ChatChannel {
       FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
           item -> new Observable[]{item.categoryProperty(), item.colorProperty()})),
       usernameToChatUser);
+  private final ObservableList<ChatChannelUser> typingUsers = new FilteredList<>(users, ChatChannelUser::isTyping);
   private final ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic(null, ""));
   private final Set<Consumer<ChatMessage>> messageListeners = new HashSet<>();
   private final List<ChatMessage> messages = new ArrayList<>();
@@ -62,12 +71,17 @@ public class ChatChannel {
     return usernameToChatUser.remove(username);
   }
 
-  public void addUsers(List<ChatChannelUser> users) {
-    users.forEach(this::addUser);
+  @VisibleForTesting
+  void addUser(ChatChannelUser user) {
+    usernameToChatUser.put(user.getUsername(), user);
   }
 
-  public void addUser(ChatChannelUser user) {
-    usernameToChatUser.put(user.getUsername(), user);
+  public ChatChannelUser createUserIfNecessary(String username, Consumer<ChatChannelUser> userInitializer) {
+    return usernameToChatUser.computeIfAbsent(username, name -> {
+      ChatChannelUser chatChannelUser = new ChatChannelUser(name, this);
+      userInitializer.accept(chatChannelUser);
+      return chatChannelUser;
+    });
   }
 
   public void clearUsers() {
@@ -75,15 +89,19 @@ public class ChatChannel {
   }
 
   public void addUsersListeners(ListChangeListener<ChatChannelUser> listener) {
-    JavaFxUtil.addListener(users, listener);
+    users.addListener(listener);
   }
 
   public void removeUserListener(ListChangeListener<ChatChannelUser> listener) {
-    JavaFxUtil.removeListener(users, listener);
+    users.removeListener(listener);
+  }
+
+  public ObservableList<ChatChannelUser> getTypingUsers() {
+    return FXCollections.unmodifiableObservableList(typingUsers);
   }
 
   public ObservableList<ChatChannelUser> getUsers() {
-    return users;
+    return FXCollections.unmodifiableObservableList(users);
   }
 
   public Optional<ChatChannelUser> getUser(String username) {

@@ -3,8 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
@@ -21,23 +19,18 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TabPane;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
 import java.util.regex.Pattern;
 
 import static com.faforever.client.player.SocialStatus.FOE;
-import static com.faforever.client.player.SocialStatus.OTHER;
 import static com.faforever.client.theme.ThemeService.CHAT_CONTAINER;
 import static com.faforever.client.theme.ThemeService.CHAT_SECTION_COMPACT;
 import static com.faforever.client.theme.ThemeService.CHAT_TEXT_COMPACT;
@@ -58,8 +51,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ChannelTabControllerTest extends PlatformTest {
-
-  private static final String CHANNEL_NAME = "#testChannel";
 
   @InjectMocks
   private ChannelTabController instance;
@@ -92,19 +83,16 @@ public class ChannelTabControllerTest extends PlatformTest {
   private NotificationPrefs notificationPrefs;
 
   @Mock
+  private ChatMessageViewController chatMessageViewController;
+  @Mock
   private EmoticonsWindowController emoticonsWindowController;
 
-  private ChatChannelUser user;
-  private ChatChannelUser other;
-  private ChatChannel defaultChatChannel;
+  private final ChatChannel defaultChatChannel = new ChatChannel("#testChannel");
+  private final ChatChannelUser user = new ChatChannelUser("junit", defaultChatChannel);
 
   @BeforeEach
   public void setUp() throws Exception {
-    user = new ChatChannelUser("junit", CHANNEL_NAME);
-    other = new ChatChannelUser("other", CHANNEL_NAME);
-    defaultChatChannel = new ChatChannel(CHANNEL_NAME);
-    lenient().when(uiService.loadFxml("theme/chat/emoticons/emoticons_window.fxml"))
-             .thenReturn(emoticonsWindowController);
+    lenient().when(chatMessageViewController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(emoticonsWindowController.getRoot()).thenReturn(new VBox());
     lenient().when(chatService.getCurrentUsername()).thenReturn(user.getUsername());
     lenient().when(themeService.getThemeFileUrl(CHAT_CONTAINER))
@@ -117,8 +105,8 @@ public class ChannelTabControllerTest extends PlatformTest {
         getClass().getResource("/theme/chat/extended/chat_text.html"));
     lenient().when(timeService.asShortTime(any())).thenReturn("now");
     lenient().when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile("-----"));
-    lenient().when(chatService.getOrCreateChatUser(any(String.class), eq(CHANNEL_NAME)))
-        .thenReturn(new ChatChannelUser("junit", "test"));
+    lenient().when(chatService.getOrCreateChatUser(any(String.class), eq(defaultChatChannel.getName())))
+             .thenReturn(new ChatChannelUser("junit", defaultChatChannel));
     when(chatUserListController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
 
     Stage stage = mock(Stage.class);
@@ -130,6 +118,12 @@ public class ChannelTabControllerTest extends PlatformTest {
       if (clazz == ChatUserListController.class) {
         return chatUserListController;
       }
+      if (clazz == ChatMessageViewController.class) {
+        return chatMessageViewController;
+      }
+      if (clazz == EmoticonsWindowController.class) {
+        return emoticonsWindowController;
+      }
       return instance;
     });
 
@@ -139,16 +133,6 @@ public class ChannelTabControllerTest extends PlatformTest {
   @Test
   public void testGetRoot() {
     assertNotNull(instance.getRoot());
-  }
-
-  @Test
-  public void testGetMessagesWebView() {
-    assertNotNull(instance.getMessagesWebView());
-  }
-
-  @Test
-  public void testGetMessageTextField() {
-    assertNotNull(instance.messageTextField());
   }
 
   @Test
@@ -268,49 +252,7 @@ public class ChannelTabControllerTest extends PlatformTest {
     assertThat(instance.topicCharactersLimitLabel.getText(), containsString(Integer.toString(length)));
 
     runOnFxThreadAndWait(() -> instance.topicTextField.appendText("123"));
-    assertThat(instance.topicCharactersLimitLabel.getText(), containsString(Integer.toString(length + +3)));
-  }
-
-  @Test
-  public void testSearchChatMessage() throws Exception {
-    String highlighted = "<span class=\"highlight\">world</span>";
-
-    initializeDefaultChatChannel();
-    sendMessage(user, "Hello, world!");
-
-    runOnFxThreadAndWait(() -> instance.onChatChannelKeyReleased(new KeyEvent(null, null, KeyEvent.KEY_PRESSED,
-        null, null, KeyCode.F, false, true, false, false)));
-    assertTrue(instance.chatMessageSearchContainer.isVisible());
-
-    runOnFxThreadAndWait(() -> instance.chatMessageSearchTextField.setText("world"));
-    assertThat(instance.getHtmlBodyContent(), containsString(highlighted));
-
-    runOnFxThreadAndWait(() -> instance.chatMessageSearchTextField.setText(""));
-    assertFalse(instance.getHtmlBodyContent().contains(highlighted));
-
-    runOnFxThreadAndWait(() -> instance.onChatChannelKeyReleased(new KeyEvent(null, null, KeyEvent.KEY_PRESSED,
-        null, null, KeyCode.F, false, true, false, false)));
-    assertFalse(instance.chatMessageSearchContainer.isVisible());
-  }
-
-  @Test
-  public void testSearchChatMessageAndCloseViaEscape() throws Exception {
-    String highlighted = "<span class=\"highlight\">world</span>";
-
-    initializeDefaultChatChannel();
-    sendMessage(user, "Hello, world!");
-
-    runOnFxThreadAndWait(() -> instance.onChatChannelKeyReleased(new KeyEvent(null, null, KeyEvent.KEY_PRESSED,
-        null, null, KeyCode.F, false, true, false, false)));
-    assertTrue(instance.chatMessageSearchContainer.isVisible());
-
-    runOnFxThreadAndWait(() -> instance.chatMessageSearchTextField.setText("world"));
-    assertThat(instance.getHtmlBodyContent(), containsString(highlighted));
-
-    runOnFxThreadAndWait(() -> instance.onChatChannelKeyReleased(new KeyEvent(null, null, KeyEvent.KEY_PRESSED,
-        null, null, KeyCode.ESCAPE, false, false, false, false)));
-    assertFalse(instance.chatMessageSearchContainer.isVisible());
-    assertFalse(instance.getHtmlBodyContent().contains(highlighted));
+    assertThat(instance.topicCharactersLimitLabel.getText(), containsString(Integer.toString(length + 3)));
   }
 
   @Test
@@ -338,28 +280,28 @@ public class ChannelTabControllerTest extends PlatformTest {
   @Test
   public void testAtMentionTriggersNotification() {
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
-    instance.onMention(new ChatMessage(Instant.now(), user, "hello @" + user + "!!"));
+    instance.onChatMessage(new ChatMessage(Instant.now(), user, "hello @" + user + "!!"));
     verify(chatService).incrementUnreadMessagesCount(1);
   }
 
   @Test
   public void testAtMentionTriggersNotificationWhenFlagIsEnabled() {
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
-    instance.onMention(new ChatMessage(Instant.now(), user, "hello @" + user.getUsername() + "!!"));
+    instance.onChatMessage(new ChatMessage(Instant.now(), user, "hello @" + user.getUsername() + "!!"));
     verify(chatService).incrementUnreadMessagesCount(1);
   }
 
   @Test
   public void testNormalMentionTriggersNotification() {
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
-    instance.onMention(new ChatMessage(Instant.now(), user, "hello " + user + "!!"));
+    instance.onChatMessage(new ChatMessage(Instant.now(), user, "hello " + user + "!!"));
     verify(chatService).incrementUnreadMessagesCount(1);
   }
 
   @Test
   public void testNormalMentionDoesNotTriggerNotificationWhenFlagIsEnabled() {
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
-    instance.onMention(new ChatMessage(Instant.now(), user, "hello " + user + "!!"));
+    instance.onChatMessage(new ChatMessage(Instant.now(), user, "hello " + user + "!!"));
     verify(chatService, never()).incrementUnreadMessagesCount(anyInt());
   }
 
@@ -367,167 +309,8 @@ public class ChannelTabControllerTest extends PlatformTest {
   public void testNormalMentionDoesNotTriggerNotificationFromFoe() {
     notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     user.setPlayer(PlayerBeanBuilder.create().defaultValues().socialStatus(FOE).get());
-    instance.onMention(new ChatMessage(Instant.now(), user, "hello " + user + "!!"));
+    instance.onChatMessage(new ChatMessage(Instant.now(), user, "hello " + user + "!!"));
     verify(chatService, never()).incrementUnreadMessagesCount(anyInt());
-  }
-
-  @Test
-  public void getInlineStyleChangeToRandom() {
-    initializeDefaultChatChannel();
-    runOnFxThreadAndWait(() -> {
-      chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
-      chatPrefs.setHideFoeMessages(false);
-    });
-
-    defaultChatChannel.addUser(user);
-
-    Color color = ColorGeneratorUtil.generateRandomColor();
-    user.setColor(color);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    String expected = String.format("color: %s;", JavaFxUtil.toRgbCode(color));
-    String result = instance.getInlineStyle(user);
-    assertEquals(expected, result);
-  }
-
-  @Test
-  public void getInlineStyleRandom() {
-    Color color = ColorGeneratorUtil.generateRandomColor();
-    user.setColor(color);
-
-    initializeDefaultChatChannel();
-    runOnFxThreadAndWait(() -> {
-      chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
-      chatPrefs.setHideFoeMessages(false);
-    });
-
-    defaultChatChannel.addUser(user);
-
-    String expected = String.format("color: %s;", JavaFxUtil.toRgbCode(color));
-    String result = instance.getInlineStyle(user);
-    assertEquals(expected, result);
-  }
-
-  @Test
-  public void getInlineStyleRandomFoeHide() {
-    initializeDefaultChatChannel();
-    runOnFxThreadAndWait(() -> {
-      chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
-      chatPrefs.setHideFoeMessages(true);
-    });
-
-    user.setPlayer(PlayerBeanBuilder.create().defaultValues().socialStatus(FOE).get());
-
-    String result = instance.getInlineStyle(user);
-    assertEquals("display: none;", result);
-  }
-
-  @Test
-  public void getInlineStyleRandomFoeShow() {
-    initializeDefaultChatChannel();
-    runOnFxThreadAndWait(() -> {
-      chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
-      chatPrefs.setHideFoeMessages(false);
-    });
-
-    user.setPlayer(PlayerBeanBuilder.create().defaultValues().socialStatus(FOE).get());
-
-    String result = instance.getInlineStyle(user);
-    assertEquals("", result);
-  }
-
-  @Test
-  public void userColorChangeTest() throws Exception {
-    String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
-    String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
-    String after = "<span class=\"text user-junit message\" style=\"color: rgb(0, 255, 255);\">Hello world!</span>";
-    defaultChatChannel.addUser(user);
-
-    initializeDefaultChatChannel();
-    sendMessage(user, "Hello world!");
-    sendMessage(other, "Hello man!");
-
-    String content = instance.getHtmlBodyContent();
-    assertThat(content, containsString(before));
-    assertThat(content, containsString(otherBefore));
-
-    runOnFxThreadAndWait(() -> user.setColor(Color.AQUA));
-    content = instance.getHtmlBodyContent();
-    assertThat(content, containsString(after));
-    assertThat(content, containsString(otherBefore));
-  }
-
-  @Test
-  public void testOnUserMessageVisibility() throws Exception {
-    String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
-    String after = "<span class=\"text user-junit message\" style=\"display: none;\">Hello world!</span>";
-    String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
-
-    PlayerBean player = PlayerBeanBuilder.create().socialStatus(OTHER).get();
-    user.setPlayer(player);
-    defaultChatChannel.addUser(user);
-
-    initializeDefaultChatChannel();
-    sendMessage(user, "Hello world!");
-    sendMessage(other, "Hello man!");
-
-    String content = instance.getHtmlBodyContent();
-    assertThat(content, containsString(before));
-    assertThat(content, containsString(otherBefore));
-
-    runOnFxThreadAndWait(() -> player.setSocialStatus(FOE));
-    content = instance.getHtmlBodyContent();
-    assertThat(content, containsString(after));
-    assertThat(content, containsString(otherBefore));
-  }
-
-  @Test
-  public void testOnChatOnlyUserStyleClassUpdate() throws Exception {
-    String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
-    String after = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
-    String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
-
-    user.setPlayer(PlayerBeanBuilder.create().defaultValues().get());
-    defaultChatChannel.addUser(user);
-
-    initializeDefaultChatChannel();
-    sendMessage(user, "Hello world!");
-    sendMessage(other, "Hello man!");
-
-    String content = instance.getHtmlBodyContent();
-    assertThat(content, containsString(before));
-    assertThat(content, containsString(otherBefore));
-
-    runOnFxThreadAndWait(() -> user.setPlayer(null));
-    content = instance.getHtmlBodyContent();
-    assertThat(content, containsString(after));
-    assertThat(content, containsString(otherBefore));
-  }
-
-  @Test
-  public void testOnModeratorUserStyleClassUpdate() throws Exception {
-    String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
-    String after = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
-    String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
-
-    defaultChatChannel.addUser(user);
-
-    initializeDefaultChatChannel();
-    sendMessage(user, "Hello world!");
-    sendMessage(other, "Hello man!");
-
-    String content = instance.getHtmlBodyContent();
-    assertThat(content, containsString(before));
-    assertThat(content, containsString(otherBefore));
-
-    runOnFxThreadAndWait(() -> user.setModerator(true));
-    content = instance.getHtmlBodyContent();
-    assertThat(content, containsString(after));
-    assertThat(content, containsString(otherBefore));
-  }
-
-  private void sendMessage(ChatChannelUser sender, String message) {
-    runOnFxThreadAndWait(() -> instance.onChatMessage(new ChatMessage(Instant.now(), sender, message)));
   }
 
   private void initializeDefaultChatChannel() {

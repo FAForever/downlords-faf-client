@@ -28,7 +28,6 @@ import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -38,12 +37,16 @@ import lombok.extern.slf4j.Slf4j;
 import net.engio.mbassy.listener.Handler;
 import org.kitteh.irc.client.library.Client;
 import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType;
-import org.kitteh.irc.client.library.command.WhoisCommand;
+import org.kitteh.irc.client.library.command.TagMessageCommand;
 import org.kitteh.irc.client.library.defaults.DefaultClient;
+import org.kitteh.irc.client.library.defaults.element.messagetag.DefaultMessageTagTyping;
 import org.kitteh.irc.client.library.defaults.listener.DefaultListeners;
+import org.kitteh.irc.client.library.defaults.listener.DefaultTagmsgListener;
 import org.kitteh.irc.client.library.element.Actor;
 import org.kitteh.irc.client.library.element.Channel;
+import org.kitteh.irc.client.library.element.MessageReceiver;
 import org.kitteh.irc.client.library.element.MessageTag.Time;
+import org.kitteh.irc.client.library.element.MessageTag.Typing;
 import org.kitteh.irc.client.library.element.User;
 import org.kitteh.irc.client.library.element.WhoisData;
 import org.kitteh.irc.client.library.element.mode.ChannelUserMode;
@@ -55,12 +58,14 @@ import org.kitteh.irc.client.library.event.channel.ChannelMessageEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelModeEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelNamesUpdatedEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelPartEvent;
+import org.kitteh.irc.client.library.event.channel.ChannelTagMessageEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelTopicEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelUsersUpdatedEvent;
 import org.kitteh.irc.client.library.event.client.ClientNegotiationCompleteEvent;
 import org.kitteh.irc.client.library.event.connection.ClientConnectionEndedEvent;
 import org.kitteh.irc.client.library.event.connection.ClientConnectionFailedEvent;
 import org.kitteh.irc.client.library.event.user.PrivateMessageEvent;
+import org.kitteh.irc.client.library.event.user.PrivateTagMessageEvent;
 import org.kitteh.irc.client.library.event.user.UserAwayMessageEvent;
 import org.kitteh.irc.client.library.event.user.UserQuitEvent;
 import org.kitteh.irc.client.library.event.user.WhoisEvent;
@@ -73,19 +78,24 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -94,6 +104,7 @@ import static java.util.Locale.US;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.synchronizedObservableMap;
+import static org.kitteh.irc.client.library.feature.CapabilityManager.Defaults.MESSAGE_TAGS;
 
 @Lazy
 @Service
@@ -117,6 +128,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private final AudioService audioService;
   private final NotificationService notificationService;
   private final NavigationHandler navigationHandler;
+  private final TaskScheduler taskScheduler;
   @Qualifier("userWebClient")
   private final ObjectFactory<WebClient> userWebClientFactory;
 
@@ -124,6 +136,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
    * Maps channels by name.
    */
   private final ObservableMap<String, ChatChannel> channels = synchronizedObservableMap(observableHashMap());
+
+  private final Map<ChatChannel, Instant> lastSentActiveMap = new ConcurrentHashMap<>();
+  private final Map<ChatChannel, Future<?>> pauseTypingFutureMap = new ConcurrentHashMap<>();
+  private final Map<ChatChannelUser, Future<?>> stopTypingFutureMap = new ConcurrentHashMap<>();
   /**
    * A list of channels the server wants us to join.
    */
@@ -174,44 +190,12 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public ChatChannelUser getOrCreateChatUser(String username, String channelName) {
-    Optional<Channel> channel = client.getChannel(channelName);
-
-    return channel.flatMap(chan -> chan.getUser(username).map(user -> getOrCreateChatUser(user, chan)))
-                  .orElseGet(() -> {
-                    ChatChannel chatChannel = getOrCreateChannel(channelName);
-                    return chatChannel.getUser(username)
-                                      .orElseGet(() -> initializeUserForChannel(username, chatChannel));
-                  });
+    return getOrCreateChannel(channelName).createUserIfNecessary(username, this::initializeChatChannelUser);
   }
 
   private ChatChannelUser getOrCreateChatUser(User user, Channel channel) {
-    String username = user.getNick();
-    String channelName = channel.getName();
-
-    ChatChannel chatChannel = getOrCreateChannel(channelName);
-    return chatChannel.getUser(username).orElseGet(() -> initializeUserForChannel(user, channel));
-  }
-
-  private ChatChannelUser initializeUserForChannel(User user, Channel channel) {
-    ChatChannel chatChannel = getOrCreateChannel(channel.getName());
-    ChatChannelUser chatChannelUser = initializeUserForChannel(user.getNick(), chatChannel);
-
-    boolean isModerator = channel.getUserModes(user)
-                                 .stream()
-                                 .flatMap(Collection::stream)
-                                 .map(ChannelUserMode::getNickPrefix)
-                                 .anyMatch(MODERATOR_PREFIXES::contains);
-    chatChannelUser.setModerator(isModerator);
-    chatChannelUser.setAway(user.isAway());
-    return chatChannelUser;
-  }
-
-  private void updateChatUser(User user, Channel channel) {
-    String username = user.getNick();
-    String channelName = channel.getName();
-
-    ChatChannel chatChannel = getOrCreateChannel(channelName);
-    chatChannel.getUser(username).ifPresentOrElse(chatChannelUser -> {
+    return getOrCreateChannel(channel.getName()).createUserIfNecessary(user.getNick(), chatChannelUser -> {
+      initializeChatChannelUser(chatChannelUser);
       boolean isModerator = channel.getUserModes(user)
                                    .stream()
                                    .flatMap(Collection::stream)
@@ -219,16 +203,24 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                    .anyMatch(MODERATOR_PREFIXES::contains);
       chatChannelUser.setModerator(isModerator);
       chatChannelUser.setAway(user.isAway());
-    }, () -> initializeUserForChannel(user, channel));
+    });
   }
 
-  private ChatChannelUser initializeUserForChannel(String username, ChatChannel chatChannel) {
-    ChatChannelUser chatChannelUser = new ChatChannelUser(username, chatChannel.getName());
-    playerService.getPlayerByNameIfOnline(username).ifPresent(chatChannelUser::setPlayer);
+  private void updateChatUser(User user, Channel channel) {
+    ChatChannelUser chatChannelUser = getOrCreateChatUser(user, channel);
+    boolean isModerator = channel.getUserModes(user)
+                                 .stream()
+                                 .flatMap(Collection::stream)
+                                 .map(ChannelUserMode::getNickPrefix)
+                                 .anyMatch(MODERATOR_PREFIXES::contains);
+    chatChannelUser.setModerator(isModerator);
+    chatChannelUser.setAway(user.isAway());
+  }
+
+  private void initializeChatChannelUser(ChatChannelUser chatChannelUser) {
+    playerService.getPlayerByNameIfOnline(chatChannelUser.getUsername()).ifPresent(chatChannelUser::setPlayer);
     chatChannelUser.categoryProperty().subscribe(() -> populateColor(chatChannelUser));
     populateColor(chatChannelUser);
-    chatChannel.addUser(chatChannelUser);
-    return chatChannelUser;
   }
 
   @VisibleForTesting
@@ -238,6 +230,82 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
             .map(channel -> channel.getUser(player.getUsername()))
             .flatMap(Optional::stream)
             .forEach(chatChannelUser -> fxApplicationThreadExecutor.execute(() -> chatChannelUser.setPlayer(player)));
+  }
+
+  @Handler
+  public void onTagMessage(PrivateTagMessageEvent event) {
+    event.getTag("+typing", Typing.class).ifPresent(typing -> {
+      String typer = event.getActor().getName();
+      updateUserTypingState(typing.getState(), getOrCreateChatUser(typer, typer));
+    });
+  }
+
+  @Handler
+  public void onTagMessage(ChannelTagMessageEvent event) {
+    event.getTag("+typing", Typing.class).ifPresent(typing -> {
+      if (event.getActor() instanceof User user) {
+        updateUserTypingState(typing.getState(), getOrCreateChatUser(user, event.getChannel()));
+      }
+    });
+  }
+
+  private void updateUserTypingState(Typing.State state, ChatChannelUser chatChannelUser) {
+    Future<?> stopTypingFuture = stopTypingFutureMap.remove(chatChannelUser);
+    if (stopTypingFuture != null) {
+      stopTypingFuture.cancel(true);
+    }
+
+    switch (state) {
+      case ACTIVE -> {
+        fxApplicationThreadExecutor.execute(() -> chatChannelUser.setTyping(true));
+        Future<?> future = taskScheduler.schedule(() -> {
+          stopTypingFutureMap.remove(chatChannelUser);
+          fxApplicationThreadExecutor.execute(() -> chatChannelUser.setTyping(false));
+        }, Instant.now().plusSeconds(6));
+        stopTypingFutureMap.put(chatChannelUser, future);
+      }
+      case PAUSED -> {
+        fxApplicationThreadExecutor.execute(() -> chatChannelUser.setTyping(true));
+        Future<?> future = taskScheduler.schedule(() -> {
+          stopTypingFutureMap.remove(chatChannelUser);
+          fxApplicationThreadExecutor.execute(() -> chatChannelUser.setTyping(false));
+        }, Instant.now().plusSeconds(30));
+        stopTypingFutureMap.put(chatChannelUser, future);
+      }
+      case DONE -> fxApplicationThreadExecutor.execute(() -> chatChannelUser.setTyping(false));
+    }
+  }
+
+  @Override
+  public void setActiveTypingState(ChatChannel channel) {
+    cancelScheduledPauseTyping(channel);
+
+    Instant now = Instant.now();
+    Future<?> pausedTypingFuture = taskScheduler.schedule(() -> {
+      setTypingState(channel, TypingState.PAUSED);
+      pauseTypingFutureMap.remove(channel);
+    }, now.plusSeconds(4));
+    pauseTypingFutureMap.put(channel, pausedTypingFuture);
+
+    Instant lastActiveTypingSent = lastSentActiveMap.get(channel);
+    if (lastActiveTypingSent == null || ChronoUnit.SECONDS.between(lastActiveTypingSent, now) > 3) {
+      setTypingState(channel, TypingState.ACTIVE);
+      lastSentActiveMap.put(channel, now);
+    }
+  }
+
+  @Override
+  public void setDoneTypingState(ChatChannel channel) {
+    cancelScheduledPauseTyping(channel);
+
+    setTypingState(channel, TypingState.DONE);
+  }
+
+  private void cancelScheduledPauseTyping(ChatChannel channel) {
+    Future<?> pausedTypingFuture = pauseTypingFutureMap.remove(channel);
+    if (pausedTypingFuture != null) {
+      pausedTypingFuture.cancel(true);
+    }
   }
 
   @Handler
@@ -286,7 +354,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Handler
   private void onJoinEvent(ChannelJoinEvent event) {
     User user = event.getActor();
-    ircLog.debug("User joined channel: {}", user);
     getOrCreateChatUser(user, event.getChannel());
   }
 
@@ -305,7 +372,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Handler
   private void onPartEvent(ChannelPartEvent event) {
     User user = event.getActor();
-    ircLog.debug("User left channel: {}", user);
     onChatUserLeftChannel(event.getChannel().getName(), user.getNick());
   }
 
@@ -325,9 +391,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                          .map(name -> name.replaceFirst("!.*", ""))
                          .orElse("");
     String content = event.getNewTopic().getValue().orElse("");
-    ChatChannel channel = getOrCreateChannel(event.getChannel().getName());
-    ChatChannelUser chatChannelUser = getOrCreateChatUser(author, channel.getName());
-    channel.setTopic(new ChannelTopic(chatChannelUser, content));
+    ChatChannelUser chatChannelUser = getOrCreateChatUser(author, event.getChannel().getName());
+    chatChannelUser.getChannel().setTopic(new ChannelTopic(chatChannelUser, content));
   }
 
   @Handler
@@ -337,22 +402,21 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     String channelName = event.getChannel().getName();
 
     String text = event.getMessage();
-    ChatChannel chatChannel = getOrCreateChannel(channelName);
-    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), chatChannel.getName());
-    notifyIfMentioned(text, chatChannel, sender);
+    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), channelName);
+    ChatChannel chatChannel = sender.getChannel();
 
-    Instant messageTime = event.getTags()
-                               .stream()
-                               .filter(Time.class::isInstance)
-                               .map(Time.class::cast)
+    Instant messageTime = event.getTag("time", Time.class)
                                .map(Time::getTime)
-                               .findFirst()
                                .orElse(Instant.now());
 
-    chatChannel.addMessage(new ChatMessage(messageTime, sender, text, false));
+    ChatMessage message = new ChatMessage(messageTime, sender, text, false);
+    chatChannel.addMessage(message);
+    notifyIfMentioned(message);
   }
 
-  private void notifyIfMentioned(String text, ChatChannel chatChannel, ChatChannelUser sender) {
+  private void notifyIfMentioned(ChatMessage chatMessage) {
+    String text = chatMessage.message();
+    ChatChannelUser sender = chatMessage.sender();
     Matcher matcher = Pattern.compile(
         "(^|[^A-Za-z0-9-])" + Pattern.quote(loginService.getUsername()) + "([^A-Za-z0-9-]|$)",
         CASE_INSENSITIVE).matcher(text);
@@ -372,7 +436,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                      .map(String::valueOf)
                                      .orElse(sender.getUsername());
 
-      if (!chatChannel.isOpen() && notificationPrefs.isPrivateMessageToastEnabled()) {
+      if (!sender.getChannel().isOpen() && notificationPrefs.isPrivateMessageToastEnabled()) {
         notificationService.addNotification(
             new TransientNotification(sender.getUsername(), text, IdenticonUtil.createIdenticon(identIconSource),
                                       () -> navigationHandler.navigateTo(new NavigateEvent(NavigationItem.CHAT))));
@@ -380,17 +444,19 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     }
   }
 
-  private void notifyOnPrivateMessage(String text, ChatChannel chatChannel, String sender) {
+  private void notifyOnPrivateMessage(ChatMessage chatMessage) {
+    ChatChannelUser sender = chatMessage.sender();
+    ChatChannel chatChannel = sender.getChannel();
     if (chatChannel.isPrivateChannel() && !chatChannel.isOpen()) {
       audioService.playPrivateMessageSound();
 
       if (!chatChannel.isOpen() && notificationPrefs.isPrivateMessageToastEnabled()) {
-        String identIconSource = playerService.getPlayerByNameIfOnline(sender)
-                                              .map(PlayerBean::getId)
-                                              .map(String::valueOf)
-                                              .orElse(sender);
-        notificationService.addNotification(
-            new TransientNotification(sender, text, IdenticonUtil.createIdenticon(identIconSource),
+        String identIconSource = sender.getPlayer()
+                                       .map(PlayerBean::getId)
+                                       .map(String::valueOf)
+                                       .orElse(sender.getUsername());
+        notificationService.addNotification(new TransientNotification(sender.getUsername(), chatMessage.message(),
+                                                                      IdenticonUtil.createIdenticon(identIconSource),
                                       () -> navigationHandler.navigateTo(new NavigateEvent(NavigationItem.CHAT))));
       }
     }
@@ -404,8 +470,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String senderNick = user.getNick();
     String message = event.getMessage().replace("ACTION", senderNick);
-    ChatChannel chatChannel = getOrCreateChannel(channelName);
-    ChatChannelUser sender = getOrCreateChatUser(senderNick, chatChannel.getName());
+    ChatChannelUser sender = getOrCreateChatUser(senderNick, channelName);
     Instant messageTime = event.getTags()
                                .stream()
                                .filter(Time.class::isInstance)
@@ -414,18 +479,17 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                .findFirst()
                                .orElse(Instant.now());
 
-    getOrCreateChannel(channelName).addMessage(new ChatMessage(messageTime, sender, message, true));
+    sender.getChannel().addMessage(new ChatMessage(messageTime, sender, message, true));
   }
 
   @Handler
   private void onChannelModeChanged(ChannelModeEvent event) {
-    ChatChannel channel = getOrCreateChannel(event.getChannel().getName());
     event.getStatusList().getAll().forEach(channelModeStatus -> channelModeStatus.getParameter().ifPresent(username -> {
       Mode changedMode = channelModeStatus.getMode();
       Action modeAction = channelModeStatus.getAction();
       if (changedMode instanceof ChannelUserMode channelUserMode && MODERATOR_PREFIXES.contains(
           channelUserMode.getNickPrefix())) {
-        ChatChannelUser chatChannelUser = getOrCreateChatUser(username, channel.getName());
+        ChatChannelUser chatChannelUser = getOrCreateChatUser(username, event.getChannel().getName());
         if (modeAction == Action.ADD) {
           chatChannelUser.setModerator(true);
         } else if (modeAction == Action.REMOVE) {
@@ -438,7 +502,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Handler
   private void onPrivateMessage(PrivateMessageEvent event) {
     User user = event.getActor();
-    ircLog.debug("Received private message: {}", event);
 
     String senderNick = user.getNick();
 
@@ -446,14 +509,12 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
               .map(PlayerBean::getSocialStatus)
               .map(status -> status == SocialStatus.FOE)
               .orElse(false) && chatPrefs.isHideFoeMessages()) {
-      ircLog.debug("Suppressing chat message from foe '{}'", senderNick);
+      log.debug("Suppressing chat message from foe '{}'", senderNick);
       return;
     }
 
     String text = event.getMessage();
-    ChatChannel chatChannel = getOrCreateChannel(senderNick);
-    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), chatChannel.getName());
-    notifyOnPrivateMessage(text, chatChannel, senderNick);
+    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), senderNick);
 
     Instant messageTime = event.getTags()
                                .stream()
@@ -463,7 +524,9 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                .findFirst()
                                .orElse(Instant.now());
 
-    chatChannel.addMessage(new ChatMessage(messageTime, sender, text));
+    ChatMessage message = new ChatMessage(messageTime, sender, text);
+    sender.getChannel().addMessage(message);
+    notifyOnPrivateMessage(message);
   }
 
   private void joinAutoChannels() {
@@ -496,11 +559,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private void onChatUserLeftChannel(String channelName, String username) {
-    ChatChannelUser oldChatUser = getOrCreateChannel(channelName).removeUser(username);
-    if (oldChatUser == null) {
+    ChatChannel chatChannel = channels.get(channelName);
+    if (chatChannel == null) {
       return;
     }
-    ircLog.debug("User '{}' left channel: {}", username, channelName);
+
+    chatChannel.removeUser(username);
+
     if (client.getNick().equalsIgnoreCase(username)) {
       channels.remove(channelName);
     }
@@ -561,6 +626,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
           .filter(listener -> listener != DefaultListeners.WHO)
           .forEach(eventListenerSuppliers::add);
     eventListenerSuppliers.add(() -> FixedWhoListener::new);
+    eventListenerSuppliers.add(() -> DefaultTagmsgListener::new);
 
     client = (DefaultClient) Client.builder()
                                    .realName(username)
@@ -575,6 +641,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                    .output(this::onMessage)
                                    .then().management().eventListeners(eventListenerSuppliers).then()
                                    .build();
+
+    client.getMessageTagManager().registerTagCreator(MESSAGE_TAGS, "+typing", DefaultMessageTagTyping.FUNCTION);
 
     userWebClientFactory.getObject()
                         .get()
@@ -602,6 +670,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public CompletableFuture<Void> sendMessageInBackground(ChatChannel chatChannel, String message) {
+    cancelScheduledPauseTyping(chatChannel);
+
     ChatChannelUser sender = getOrCreateChatUser(getCurrentUsername(), chatChannel.getName());
     return CompletableFuture.runAsync(() -> {
       client.sendMessage(chatChannel.getName(), message);
@@ -616,10 +686,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       chatChannel.setMaxNumMessages(chatPrefs.getMaxMessages());
       return chatChannel;
     });
-  }
-
-  public void addUsersListener(String channelName, ListChangeListener<ChatChannelUser> listener) {
-    getOrCreateChannel(channelName).addUsersListeners(listener);
   }
 
   @Override
@@ -643,7 +709,9 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public CompletableFuture<Void> sendActionInBackground(ChatChannel chatChannel, String action) {
-    ChatChannelUser sender = getOrCreateChatUser(client.getName(), chatChannel.getName());
+    cancelScheduledPauseTyping(chatChannel);
+
+    ChatChannelUser sender = getOrCreateChatUser(getCurrentUsername(), chatChannel.getName());
     return CompletableFuture.runAsync(() -> {
       client.sendCtcpMessage(chatChannel.getName(), "ACTION " + action);
       chatChannel.addMessage(new ChatMessage(Instant.now(), sender, action, true));
@@ -666,6 +734,20 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
           .orElseThrow(
               () -> new IllegalArgumentException(String.format("No channel with `%s` name", chatChannel.getName())))
           .setTopic(text);
+  }
+
+  private void setTypingState(ChatChannel chatChannel, TypingState state) {
+    Optional<MessageReceiver> receiver;
+    if (chatChannel.isPrivateChannel()) {
+      receiver = client.getActorTracker().getTrackedUser(chatChannel.getName()).map(MessageReceiver.class::cast);
+    } else {
+      receiver = client.getChannel(chatChannel.getName()).map(MessageReceiver.class::cast);
+    }
+    receiver.ifPresent(target -> new TagMessageCommand(client).target(target)
+                                                              .tags()
+                                                              .add("+typing", state.getValue())
+                                                              .then()
+                                                              .execute());
   }
 
   @Override
@@ -704,7 +786,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void whois(String username) {
-    new WhoisCommand(client).target(username).execute();
+    client.commands().whois().target(username).execute();
   }
 
   @Override

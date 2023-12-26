@@ -11,6 +11,10 @@ public interface ChatService {
 
   String PARTY_CHANNEL_SUFFIX = "'sParty";
 
+  void setActiveTypingState(ChatChannel channel);
+
+  void setDoneTypingState(ChatChannel channel);
+
   void connect();
 
   void disconnect();

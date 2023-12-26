@@ -1,5 +1,6 @@
 package com.faforever.client.builders;
 
+import com.faforever.client.chat.ChatChannel;
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.domain.PlayerBean;
 import javafx.scene.paint.Color;
@@ -7,11 +8,11 @@ import javafx.scene.paint.Color;
 public final class ChatChannelUserBuilder {
   private final ChatChannelUser chatChannelUser;
 
-  private ChatChannelUserBuilder(String username, String channel) {
+  private ChatChannelUserBuilder(String username, ChatChannel channel) {
     chatChannelUser = new ChatChannelUser(username, channel);
   }
 
-  public static ChatChannelUserBuilder create(String username, String channel) {
+  public static ChatChannelUserBuilder create(String username, ChatChannel channel) {
     return new ChatChannelUserBuilder(username, channel);
   }
 

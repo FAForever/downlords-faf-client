@@ -4,7 +4,6 @@ import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
-import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.theme.UiService;
 import javafx.collections.ListChangeListener;
@@ -25,7 +24,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 @Component
@@ -134,14 +132,12 @@ public class ChatController extends NodeController<AnchorPane> {
         if (chatService.isDefaultChannel(chatChannel)) {
           tabPane.getTabs().add(0, tab);
           tabPane.getSelectionModel().select(tab);
-          tabController.onDisplay();
         } else {
           tabPane.getTabs().add(tabPane.getTabs().size() - 1, tab);
 
           if (chatChannel.isPrivateChannel() || tabPane.getSelectionModel().getSelectedIndex() == tabPane.getTabs()
                                                                                                          .size() - 1) {
             tabPane.getSelectionModel().select(tab);
-            tabController.onDisplay();
           }
         }
       });
@@ -170,14 +166,5 @@ public class ChatController extends NodeController<AnchorPane> {
 
     chatService.joinChannel(channelName);
     channelNameTextField.clear();
-  }
-
-  @Override
-  protected void onNavigate(NavigateEvent navigateEvent) {
-    if (tabPane.getTabs().size() > 1) {
-      Tab tab = tabPane.getSelectionModel().getSelectedItem();
-      Optional.ofNullable(channelToChatTabController.get((ChatChannel) tab.getUserData()))
-              .ifPresent(AbstractChatTabController::onDisplay);
-    }
   }
 }

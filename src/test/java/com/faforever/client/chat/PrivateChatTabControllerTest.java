@@ -26,7 +26,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.image.Image;
-import javafx.scene.layout.VBox;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -42,9 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PrivateChatTabControllerTest extends PlatformTest {
@@ -85,6 +82,8 @@ public class PrivateChatTabControllerTest extends PlatformTest {
   private ChatPrefs chatPrefs;
 
   @Mock
+  private ChatMessageViewController chatMessageViewController;
+  @Mock
   private EmoticonsWindowController emoticonsWindowController;
 
   @InjectMocks
@@ -98,16 +97,14 @@ public class PrivateChatTabControllerTest extends PlatformTest {
     player = PlayerBeanBuilder.create().defaultValues().get();
     playerName = player.getUsername();
 
-    lenient().when(uiService.loadFxml("theme/chat/emoticons/emoticons_window.fxml"))
-             .thenReturn(emoticonsWindowController);
-    lenient().when(emoticonsWindowController.getRoot()).thenReturn(new VBox());
+    lenient().when(chatMessageViewController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(chatService.getCurrentUsername()).thenReturn(playerName);
     lenient().when(themeService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
     lenient().when(privatePlayerInfoController.chatUserProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(avatarService.loadAvatar(player.getAvatar())).thenReturn(new Image(InputStream.nullInputStream()));
 
     ChatChannel chatChannel = new ChatChannel(playerName);
-    ChatChannelUser chatChannelUser = new ChatChannelUser(playerName, playerName);
+    ChatChannelUser chatChannelUser = new ChatChannelUser(playerName, new ChatChannel(playerName));
     chatChannelUser.setPlayer(player);
     chatChannel.addUser(chatChannelUser);
 
@@ -121,6 +118,12 @@ public class PrivateChatTabControllerTest extends PlatformTest {
       if (clazz == WatchButtonController.class) {
         return watchButtonController;
       }
+      if (clazz == ChatMessageViewController.class) {
+        return chatMessageViewController;
+      }
+      if (clazz == EmoticonsWindowController.class) {
+        return emoticonsWindowController;
+      }
       return instance;
     });
 
@@ -130,26 +133,6 @@ public class PrivateChatTabControllerTest extends PlatformTest {
       tabPane.getTabs().add(instance.getRoot());
       instance.setChatChannel(chatChannel);
     });
-    verify(webViewConfigurer).configureWebView(eq(instance.messagesWebView));
-  }
-
-  @Test
-  public void onPlayerConnectedTest() {
-    assertFalse(instance.isUserOffline());
-
-    instance.onPlayerDisconnected(playerName);
-    instance.onPlayerConnected(playerName);
-
-    assertFalse(instance.isUserOffline());
-  }
-
-  @Test
-  public void onPlayerDisconnected() {
-    assertFalse(instance.isUserOffline());
-
-    instance.onPlayerDisconnected(playerName);
-
-    assertTrue(instance.isUserOffline());
   }
 
   @Test
