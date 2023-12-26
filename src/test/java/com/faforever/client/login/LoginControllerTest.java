@@ -41,7 +41,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.SocketTimeoutException;
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -62,7 +61,6 @@ public class LoginControllerTest extends PlatformTest {
 
   public static final String CODE = "asda";
   private static final URI REDIRECT_URI = URI.create("http://localhost");
-  private static final URI EXPLICIT_REDIRECT_URI = URI.create("http://localhost/fallback");
 
   @InjectMocks
   private LoginController instance;
@@ -99,8 +97,6 @@ public class LoginControllerTest extends PlatformTest {
     loadFxml("theme/login/login.fxml", param -> instance);
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
-
-    instance.oauthRedirectUriField.setText(EXPLICIT_REDIRECT_URI.toASCIIString());
   }
 
   @Test
@@ -118,14 +114,14 @@ public class LoginControllerTest extends PlatformTest {
 
   @Test
   public void testLoginSucceeds() throws Exception {
-    when(loginService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(Mono.empty());
-    when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
-        .thenAnswer(invocation -> CompletableFuture.completedFuture(new Values(CODE, invocation.getArgument(1), REDIRECT_URI)));
+    when(loginService.login(anyString(), anyString(), any())).thenReturn(Mono.empty());
+    when(oAuthValuesReceiver.receiveValues(anyString(), anyString())).thenAnswer(
+        invocation -> CompletableFuture.completedFuture(new Values(CODE, invocation.getArgument(0), REDIRECT_URI)));
 
-    instance.onLoginButtonClicked().get();
+    instance.onLoginButtonClicked().join();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(oAuthValuesReceiver).receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString());
+    verify(oAuthValuesReceiver).receiveValues(anyString(), anyString());
     verify(loginService).login(eq(CODE), anyString(), eq(REDIRECT_URI));
     assertTrue(instance.loginProgressPane.isVisible());
     assertFalse(instance.loginFormPane.isVisible());
@@ -135,13 +131,13 @@ public class LoginControllerTest extends PlatformTest {
   public void testLoginFailsWrongState() throws Exception {
     String wrongState = "a";
 
-    when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
+    when(oAuthValuesReceiver.receiveValues(anyString(), anyString()))
         .thenReturn(CompletableFuture.completedFuture(new Values(CODE, wrongState, REDIRECT_URI)));
 
-    instance.onLoginButtonClicked().get();
+    instance.onLoginButtonClicked().join();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(oAuthValuesReceiver).receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString());
+    verify(oAuthValuesReceiver).receiveValues(anyString(), anyString());
     verify(loginService, never()).login(anyString(), anyString(), any());
     verify(notificationService).addImmediateErrorNotification(any(IllegalStateException.class), eq("login.failed"));
   }
@@ -149,10 +145,10 @@ public class LoginControllerTest extends PlatformTest {
   @Test
   public void testLoginFails() throws Exception {
     when(loginService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(Mono.error(new FakeTestException()));
-    when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
-        .thenAnswer(invocation -> CompletableFuture.completedFuture(new Values(CODE, invocation.getArgument(1), REDIRECT_URI)));
+    when(oAuthValuesReceiver.receiveValues(anyString(), anyString())).thenAnswer(
+        invocation -> CompletableFuture.completedFuture(new Values(CODE, invocation.getArgument(0), REDIRECT_URI)));
 
-    instance.onLoginButtonClicked().get();
+    instance.onLoginButtonClicked().join();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(loginService).login(eq(CODE), anyString(), eq(REDIRECT_URI));
@@ -163,10 +159,10 @@ public class LoginControllerTest extends PlatformTest {
 
   @Test
   public void testLoginFailsNoPorts() throws Exception {
-    when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
+    when(oAuthValuesReceiver.receiveValues(anyString(), anyString()))
         .thenReturn(CompletableFuture.failedFuture(new IllegalStateException()));
 
-    instance.onLoginButtonClicked().get();
+    instance.onLoginButtonClicked().join();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(notificationService).addImmediateErrorNotification(any(), eq("login.failed"));
@@ -176,10 +172,10 @@ public class LoginControllerTest extends PlatformTest {
 
   @Test
   public void testLoginFailsTimeout() throws Exception {
-    when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
+    when(oAuthValuesReceiver.receiveValues(anyString(), anyString()))
         .thenReturn(CompletableFuture.failedFuture(new SocketTimeoutException()));
 
-    instance.onLoginButtonClicked().get();
+    instance.onLoginButtonClicked().join();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(notificationService).addImmediateWarnNotification(eq("login.timeout"));
@@ -189,12 +185,12 @@ public class LoginControllerTest extends PlatformTest {
 
   @Test
   public void testLoginFailsTimeoutAlreadyLoggedIn() throws Exception {
-    when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
+    when(oAuthValuesReceiver.receiveValues(anyString(), anyString()))
         .thenReturn(CompletableFuture.failedFuture(new SocketTimeoutException()));
     when(loginService.getOwnUser()).thenReturn(new MeResult());
     when(loginService.getOwnPlayer()).thenReturn(new Player(0, "junit", null, null, "US", Map.of(), Map.of()));
 
-    instance.onLoginButtonClicked().get();
+    instance.onLoginButtonClicked().join();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(notificationService, never()).addImmediateWarnNotification(eq("login.timeout"));

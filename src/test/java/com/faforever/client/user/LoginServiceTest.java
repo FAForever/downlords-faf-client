@@ -72,7 +72,6 @@ public class LoginServiceTest extends ServiceTest {
     Oauth oauth = clientProperties.getOauth();
     oauth.setBaseUrl(BASE_URL);
     oauth.setClientId(CLIENT_ID);
-    oauth.setRedirectUri(REDIRECT_URI);
     oauth.setScopes(SCOPES);
 
     when(tokenRetriever.invalidationFlux()).thenReturn(invalidationTestPublisher.flux());

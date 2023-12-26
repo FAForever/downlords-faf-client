@@ -49,7 +49,6 @@ public class TokenRetrieverTest extends ServiceTest {
     oauth = clientProperties.getOauth();
     oauth.setBaseUrl(String.format("http://localhost:%s", mockApi.getPort()));
     oauth.setClientId("test-client");
-    oauth.setRedirectUri(URI.create("http://localhost"));
     loginPrefs = new LoginPrefs();
     loginPrefs.setRefreshToken("abc");
 
