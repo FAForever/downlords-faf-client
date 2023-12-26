@@ -138,7 +138,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private final ObservableMap<String, ChatChannel> channels = synchronizedObservableMap(observableHashMap());
 
   private final Map<ChatChannel, Instant> lastSentActiveMap = new ConcurrentHashMap<>();
-  private final Map<ChatChannel, Future<?>> pauseTypingFutureMap = new ConcurrentHashMap<>();
   private final Map<ChatChannelUser, Future<?>> stopTypingFutureMap = new ConcurrentHashMap<>();
   /**
    * A list of channels the server wants us to join.
@@ -236,8 +235,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   public void onTagMessage(PrivateTagMessageEvent event) {
     event.getTag("+typing", Typing.class).ifPresent(typing -> {
       if (event.getActor() instanceof User user) {
-        String typer = user.getNick();
-        updateUserTypingState(typing.getState(), getOrCreateChatUser(typer, typer));
+        String username = user.getNick();
+        ChatChannel chatChannel = channels.get(username);
+        if (chatChannel != null) {
+          chatChannel.getUser(username).ifPresent(chatUser -> updateUserTypingState(typing.getState(), chatUser));
+        }
       }
     });
   }
@@ -280,14 +282,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void setActiveTypingState(ChatChannel channel) {
-    cancelScheduledPauseTyping(channel);
-
     Instant now = Instant.now();
-    Future<?> pausedTypingFuture = taskScheduler.schedule(() -> {
-      setTypingState(channel, TypingState.PAUSED);
-      pauseTypingFutureMap.remove(channel);
-    }, now.plusSeconds(4));
-    pauseTypingFutureMap.put(channel, pausedTypingFuture);
 
     Instant lastActiveTypingSent = lastSentActiveMap.get(channel);
     if (lastActiveTypingSent == null || ChronoUnit.SECONDS.between(lastActiveTypingSent, now) > 3) {
@@ -298,16 +293,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void setDoneTypingState(ChatChannel channel) {
-    cancelScheduledPauseTyping(channel);
-
     setTypingState(channel, TypingState.DONE);
-  }
-
-  private void cancelScheduledPauseTyping(ChatChannel channel) {
-    Future<?> pausedTypingFuture = pauseTypingFutureMap.remove(channel);
-    if (pausedTypingFuture != null) {
-      pausedTypingFuture.cancel(true);
-    }
   }
 
   @Handler
@@ -675,8 +661,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public CompletableFuture<Void> sendMessageInBackground(ChatChannel chatChannel, String message) {
-    cancelScheduledPauseTyping(chatChannel);
-
     ChatChannelUser sender = getOrCreateChatUser(getCurrentUsername(), chatChannel.getName());
     return CompletableFuture.runAsync(() -> {
       client.sendMessage(chatChannel.getName(), message);
@@ -714,8 +698,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public CompletableFuture<Void> sendActionInBackground(ChatChannel chatChannel, String action) {
-    cancelScheduledPauseTyping(chatChannel);
-
     ChatChannelUser sender = getOrCreateChatUser(getCurrentUsername(), chatChannel.getName());
     return CompletableFuture.runAsync(() -> {
       client.sendCtcpMessage(chatChannel.getName(), "ACTION " + action);

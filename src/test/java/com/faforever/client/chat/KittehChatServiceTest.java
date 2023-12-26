@@ -61,7 +61,6 @@ import org.springframework.scheduling.TaskScheduler;
 import java.net.InetAddress;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -85,7 +84,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
@@ -721,25 +719,14 @@ public class KittehChatServiceTest extends ServiceTest {
   @Test
   public void testActiveTypingNotification() {
     ChatChannel chatChannel = new ChatChannel(DEFAULT_CHANNEL_NAME);
-    Instant now = Instant.now();
     instance.setActiveTypingState(chatChannel);
 
-    ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
-    ArgumentCaptor<Instant> instantCaptor = ArgumentCaptor.forClass(Instant.class);
     ArgumentCaptor<String> lineCaptor = ArgumentCaptor.forClass(String.class);
 
-    verify(taskScheduler).schedule(runnableCaptor.capture(), instantCaptor.capture());
-    assertTrue(ChronoUnit.SECONDS.between(now, instantCaptor.getValue()) >= 4);
-
-    runnableCaptor.getValue().run();
-
-    verify(spyClient, times(2)).sendRawLine(lineCaptor.capture());
-    List<String> sentLines = lineCaptor.getAllValues();
-    assertThat(sentLines.getFirst(), containsString(DEFAULT_CHANNEL_NAME));
-    assertThat(sentLines.getFirst(), containsString("+typing=active"));
-
-    assertThat(sentLines.get(1), containsString(DEFAULT_CHANNEL_NAME));
-    assertThat(sentLines.get(1), containsString("+typing=paused"));
+    verify(spyClient).sendRawLine(lineCaptor.capture());
+    String sentLine = lineCaptor.getValue();
+    assertThat(sentLine, containsString(DEFAULT_CHANNEL_NAME));
+    assertThat(sentLine, containsString("+typing=active"));
   }
 
   @Test
@@ -748,8 +735,6 @@ public class KittehChatServiceTest extends ServiceTest {
     instance.setActiveTypingState(chatChannel);
     instance.setActiveTypingState(chatChannel);
 
-    verify(future).cancel(anyBoolean());
-    verify(taskScheduler, times(2)).schedule(any(), any(Instant.class));
     verify(spyClient, times(1)).sendRawLine(any());
   }
 
@@ -760,8 +745,6 @@ public class KittehChatServiceTest extends ServiceTest {
     Thread.sleep(Duration.ofSeconds(4));
     instance.setActiveTypingState(chatChannel);
 
-    verify(future).cancel(anyBoolean());
-    verify(taskScheduler, times(2)).schedule(any(), any(Instant.class));
     verify(spyClient, times(2)).sendRawLine(any());
   }
 
@@ -770,9 +753,6 @@ public class KittehChatServiceTest extends ServiceTest {
     ChatChannel chatChannel = new ChatChannel(DEFAULT_CHANNEL_NAME);
     instance.setActiveTypingState(chatChannel);
     instance.setDoneTypingState(chatChannel);
-
-    verify(future).cancel(anyBoolean());
-    verify(taskScheduler).schedule(any(), any(Instant.class));
 
     ArgumentCaptor<String> lineCaptor = ArgumentCaptor.forClass(String.class);
 

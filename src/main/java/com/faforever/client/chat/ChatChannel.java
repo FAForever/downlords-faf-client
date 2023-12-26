@@ -40,8 +40,7 @@ public class ChatChannel {
       FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
           item -> new Observable[]{item.categoryProperty(), item.colorProperty(), item.typingProperty()})),
       usernameToChatUser);
-  private final ObservableList<ChatChannelUser> typingUsers = new FilteredList<>(
-      FXCollections.observableList(users, item -> new Observable[]{item.typingProperty()}), ChatChannelUser::isTyping);
+  private final ObservableList<ChatChannelUser> typingUsers = new FilteredList<>(users, ChatChannelUser::isTyping);
   private final ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic(null, ""));
   private final Set<Consumer<ChatMessage>> messageListeners = new HashSet<>();
   private final List<ChatMessage> messages = new ArrayList<>();
