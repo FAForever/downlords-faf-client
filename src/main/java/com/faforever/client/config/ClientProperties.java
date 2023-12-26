@@ -7,7 +7,6 @@ import com.faforever.client.update.ClientConfiguration.UrlEndpoint;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -223,8 +222,6 @@ public class ClientProperties {
   @Data
   public static class Oauth {
     private String baseUrl;
-    /** The redirect URI to use instead of the ones provided by remote preferences. */
-    private URI redirectUri = URI.create("");
     private String clientId;
     private String scopes;
   }

@@ -100,9 +100,6 @@
                         <TextField fx:id="ircServerHostField" promptText="%login.ircServerHost" GridPane.rowIndex="2"/>
                         <TextField fx:id="ircServerPortField" promptText="%port" GridPane.columnIndex="1"
                                    GridPane.rowIndex="2"/>
-                        <TextField fx:id="oauthRedirectUriField" prefColumnCount="6"
-                                   promptText="%login.oauthRedirectUri" GridPane.columnSpan="2147483647"
-                                   GridPane.rowIndex="5"/>
                     </children>
                 </GridPane>
             </children>

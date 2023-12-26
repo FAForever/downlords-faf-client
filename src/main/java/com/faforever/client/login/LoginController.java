@@ -43,7 +43,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.SocketTimeoutException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -84,13 +83,10 @@ public class LoginController extends NodeController<Pane> {
   public TextField ircServerPortField;
   public TextField apiBaseUrlField;
   public TextField oauthBaseUrlField;
-  public TextField oauthRedirectUriField;
   public CheckBox rememberMeCheckBox;
   @VisibleForTesting
   CompletableFuture<UpdateInfo> updateInfoFuture;
   private CompletableFuture<Void> initializeFuture;
-  private String state;
-  private String verifier;
 
   @Override
   protected void onInitialize() {
@@ -139,10 +135,6 @@ public class LoginController extends NodeController<Pane> {
     JavaFxUtil.addListener(
         oauthBaseUrlField.textProperty(),
         observable -> clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText())
-    );
-    JavaFxUtil.addListener(
-        oauthRedirectUriField.textProperty(),
-        observable -> clientProperties.getOauth().setRedirectUri(URI.create(oauthRedirectUriField.getText()))
     );
 
     if (clientProperties.isUseRemotePreferences()) {
@@ -222,7 +214,6 @@ public class LoginController extends NodeController<Pane> {
       ircServerPortField.setText(String.valueOf(irc.getPort()));
       apiBaseUrlField.setText(clientProperties.getApi().getBaseUrl());
       oauthBaseUrlField.setText(clientProperties.getOauth().getBaseUrl());
-      oauthRedirectUriField.setText(clientProperties.getOauth().getRedirectUri().toASCIIString());
     });
   }
 
@@ -260,49 +251,23 @@ public class LoginController extends NodeController<Pane> {
     clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
     clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText());
 
-    List<URI> redirectUriCandidates = new ArrayList<>();
+    String state = RandomStringUtils.randomAlphanumeric(64, 128);
+    String verifier = RandomStringUtils.randomAlphanumeric(64, 128);
 
-    if (!oauthRedirectUriField.getText().isBlank()) {
-      redirectUriCandidates.add(URI.create(oauthRedirectUriField.getText()));
-    }
-
-    ServerEndpoints endpoint = environmentComboBox.getValue();
-
-    if (endpoint != null) {
-      redirectUriCandidates.addAll(endpoint.getOauth().getRedirectUris());
-    }
-
-    if (state == null) {
-      state = RandomStringUtils.randomAlphanumeric(64, 128);
-    }
-
-    if (verifier == null) {
-      verifier = RandomStringUtils.randomAlphanumeric(64, 128);
-    }
-
-    return oAuthValuesReceiver.receiveValues(redirectUriCandidates, state, verifier)
+    return oAuthValuesReceiver.receiveValues(state, verifier)
         .thenCompose(values -> {
           platformService.focusWindow(i18n.get("login.title"));
           String actualState = values.state();
           if (!state.equals(actualState)) {
-            handleInvalidSate(actualState, state);
+            showLoginForm();
+            log.warn("Reported state does not match. Expected `{}` but got `{}`", state, actualState);
+            notificationService.addImmediateErrorNotification(
+                new IllegalStateException("State returned by the server does not match expected state"),
+                "login.failed");
             return CompletableFuture.completedFuture(null);
           }
           return loginWithCode(values.code(), values.redirectUri(), verifier).toFuture();
-        }).thenAccept(aVoid -> {
-          state = null;
-          verifier = null;
-        })
-        .exceptionally(throwable -> onLoginFailed(ConcurrentUtil.unwrapIfCompletionException(throwable)));
-  }
-
-  private void handleInvalidSate(String actualState, String expectedState) {
-    showLoginForm();
-    log.warn("Reported state does not match. Expected `{}` but got `{}`", expectedState, actualState);
-    notificationService.addImmediateErrorNotification(
-        new IllegalStateException("State returned by the server does not match expected state"),
-        "login.failed"
-    );
+        }).exceptionally(throwable -> onLoginFailed(ConcurrentUtil.unwrapIfCompletionException(throwable)));
   }
 
   private Mono<Void> loginWithCode(String code, URI redirectUri, String codeVerifier) {
