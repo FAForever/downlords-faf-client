@@ -164,6 +164,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     fafServerAccessor.addEventListener(SocialInfo.class, this::onSocialMessage);
 
     playerService.addPlayerOnlineListener(this::onPlayerOnline);
+    playerService.addPlayerOfflineListener(this::onPlayerOffline);
     chatPrefs.groupToColorProperty().subscribe(this::updateUserColors);
     chatPrefs.chatColorModeProperty().subscribe(this::updateUserColors);
     chatPrefs.maxMessagesProperty()
@@ -222,6 +223,15 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
             .map(channel -> channel.getUser(player.getUsername()))
             .flatMap(Optional::stream)
             .forEach(chatChannelUser -> fxApplicationThreadExecutor.execute(() -> chatChannelUser.setPlayer(player)));
+  }
+
+  @VisibleForTesting
+  void onPlayerOffline(PlayerBean player) {
+    channels.values()
+            .stream()
+            .map(channel -> channel.getUser(player.getUsername()))
+            .flatMap(Optional::stream)
+            .forEach(chatChannelUser -> fxApplicationThreadExecutor.execute(() -> chatChannelUser.setPlayer(null)));
   }
 
   @Handler
