@@ -33,12 +33,15 @@ import com.faforever.commons.lobby.ServerMessage;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.Lifecycle;
+import org.springframework.context.Phased;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
@@ -63,7 +66,7 @@ import java.util.function.Consumer;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class FafServerAccessor implements InitializingBean, DisposableBean {
+public class FafServerAccessor implements InitializingBean, DisposableBean, Lifecycle, Phased {
 
   private final ReadOnlyObjectWrapper<ConnectionState> connectionState = new ReadOnlyObjectWrapper<>(
       ConnectionState.DISCONNECTED);
@@ -78,29 +81,59 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   @Qualifier("userWebClient")
   private final ObjectFactory<WebClient> userWebClientFactory;
 
-  private boolean autoReconnect = false;
+  private boolean autoReconnect;
+  @Getter
+  private boolean running;
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    getEvents(NoticeInfo.class)
-        .doOnNext(this::onNotice)
-        .doOnError(throwable -> log.error("Error processing notice", throwable))
-        .retry()
-        .subscribe();
+    start();
+  }
 
-    setPingIntervalSeconds(25);
+  @Override
+  public void start() {
+    if (!isRunning()) {
+      getEvents(NoticeInfo.class).doOnNext(this::onNotice)
+                                 .doOnError(throwable -> log.error("Error processing notice", throwable))
+                                 .retry()
+                                 .subscribe();
 
-    lobbyClient.getConnectionStatus().retry().map(connectionStatus -> switch (connectionStatus) {
-      case DISCONNECTED -> ConnectionState.DISCONNECTED;
-      case CONNECTING -> ConnectionState.CONNECTING;
-      case CONNECTED -> ConnectionState.CONNECTED;
-    }).subscribe(connectionState::set, throwable -> log.error("Error processing connection status", throwable));
+      setPingIntervalSeconds(25);
 
-    connectionState.subscribe((oldValue, newValue) -> {
-      if (autoReconnect && oldValue == ConnectionState.CONNECTED && newValue == ConnectionState.DISCONNECTED) {
-        connectAndLogIn().subscribe();
-      }
-    });
+      lobbyClient.getConnectionStatus()
+                 .map(connectionStatus -> switch (connectionStatus) {
+                   case DISCONNECTED -> ConnectionState.DISCONNECTED;
+                   case CONNECTING -> ConnectionState.CONNECTING;
+                   case CONNECTED -> ConnectionState.CONNECTED;
+                 })
+                 .doOnNext(connectionState::set)
+                 .doOnError(throwable -> log.error("Error processing connection status", throwable))
+                 .retry()
+                 .subscribe();
+
+      connectionState.subscribe((oldValue, newValue) -> {
+        if (autoReconnect && oldValue == ConnectionState.CONNECTED && newValue == ConnectionState.DISCONNECTED) {
+          connectAndLogIn().subscribe();
+        }
+      });
+      running = true;
+    }
+  }
+
+  @Override
+  public void destroy() {
+    stop();
+  }
+
+  @Override
+  public void stop() {
+    disconnect();
+    running = false;
+  }
+
+  @Override
+  public int getPhase() {
+    return Integer.MAX_VALUE;
   }
 
   public <T extends ServerMessage> Flux<T> getEvents(Class<T> type) {
@@ -323,10 +356,5 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   public void setPingIntervalSeconds(int pingIntervalSeconds) {
     lobbyClient.setMinPingIntervalSeconds(pingIntervalSeconds);
-  }
-
-  @Override
-  public void destroy() {
-    disconnect();
   }
 }

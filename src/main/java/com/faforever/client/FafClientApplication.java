@@ -36,7 +36,6 @@ public class FafClientApplication extends Application {
    * Does always reload root tabs in the MainController. This is useful if you do hot swap and you want to see your
    * changes.
    */
-  public static final String PROFILE_RELOAD = "reload";
   public static final String PROFILE_WINDOWS = "windows";
   public static final String PROFILE_LINUX = "linux";
   public static final String PROFILE_MAC = "mac";
@@ -106,7 +105,6 @@ public class FafClientApplication extends Application {
   @Override
   public void stop() throws Exception {
     log.info("Stopping application");
-    applicationContext.getBean(GlobalExceptionHandler.class).setShuttingDown(true);
     applicationContext.close();
     super.stop();
 
