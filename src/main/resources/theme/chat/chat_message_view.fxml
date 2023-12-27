@@ -12,7 +12,7 @@
       fx:controller="com.faforever.client.chat.ChatMessageViewController"
       fx:id="root">
     <WebView fx:id="messagesWebView" VBox.vgrow="ALWAYS"/>
-    <Label fx:id="typingLabel" visible="false"/>
+    <Label fx:id="typingLabel" visible="false" styleClass="typing"/>
     <HBox alignment="CENTER_LEFT" styleClass="channel-chat-container">
         <children>
             <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308"
