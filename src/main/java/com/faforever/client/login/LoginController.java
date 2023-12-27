@@ -11,6 +11,8 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameRunner;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ServerNotification;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -21,6 +23,7 @@ import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.ConcurrentUtil;
+import com.faforever.commons.lobby.LoginException;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.scene.control.Button;
@@ -284,8 +287,11 @@ public class LoginController extends NodeController<Pane> {
     if (throwable instanceof SocketTimeoutException) {
       log.info("Login request timed out", throwable);
       notificationService.addImmediateWarnNotification("login.timeout");
+    } else if (throwable instanceof LoginException loginException) {
+      notificationService.addNotification(
+          new ServerNotification(i18n.get("login.failed"), loginException.getMessage(), Severity.ERROR));
     } else {
-      log.error("Could not log in with code", throwable);
+      log.error("Could not log in", throwable);
       notificationService.addImmediateErrorNotification(throwable, "login.failed");
     }
 
@@ -298,6 +304,7 @@ public class LoginController extends NodeController<Pane> {
     loginService.loginWithRefreshToken().toFuture()
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+          onLoginFailed(throwable);
           showLoginForm();
 
           log.error("Could not log in with refresh token", throwable);
