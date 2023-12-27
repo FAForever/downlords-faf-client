@@ -10,6 +10,7 @@ import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameRunner;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ServerNotification;
 import com.faforever.client.notification.Severity;
@@ -289,7 +290,8 @@ public class LoginController extends NodeController<Pane> {
       notificationService.addImmediateWarnNotification("login.timeout");
     } else if (throwable instanceof LoginException loginException) {
       notificationService.addNotification(
-          new ServerNotification(i18n.get("login.failed"), loginException.getMessage(), Severity.ERROR));
+          new ServerNotification(i18n.get("login.failed"), loginException.getMessage(), Severity.ERROR,
+                                 List.of(new DismissAction(i18n))));
     } else {
       log.error("Could not log in", throwable);
       notificationService.addImmediateErrorNotification(throwable, "login.failed");
