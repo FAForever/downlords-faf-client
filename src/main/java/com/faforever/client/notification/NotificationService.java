@@ -57,9 +57,9 @@ public class NotificationService {
   public void removeNotification(Notification notification) {
     switch (notification) {
       case PersistentNotification persistentNotification -> persistentNotifications.remove(persistentNotification);
-      case ImmediateNotification immediateNotification -> {}
-      case ServerNotification serverNotification -> {}
-      case TransientNotification transientNotification -> {}
+      case ImmediateNotification ignored -> {}
+      case ServerNotification ignored -> {}
+      case TransientNotification ignored -> {}
     }
   }
 
@@ -115,10 +115,10 @@ public class NotificationService {
   }
 
   private void displayServerNotification(ServerNotification notification) {
-    ServerNotificationController controller = uiService.loadFxml("theme/server_notification.fxml");
-    controller.setNotification(notification);
-
     fxApplicationThreadExecutor.execute(() -> {
+      ServerNotificationController controller = uiService.loadFxml("theme/server_notification.fxml");
+      controller.setNotification(notification);
+
       Alert<?> dialog = new Alert<>(StageHolder.getStage());
 
       controller.setCloseListener(dialog::close);
