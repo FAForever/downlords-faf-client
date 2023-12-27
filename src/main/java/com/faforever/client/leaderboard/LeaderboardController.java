@@ -159,7 +159,8 @@ public class LeaderboardController extends NodeController<StackPane> {
           return null;
         });
 
-    JavaFxUtil.addAndTriggerListener(playerService.getCurrentPlayer().getLeaderboardRatings(), new WeakInvalidationListener(playerRatingListener));
+    JavaFxUtil.addAndTriggerListener(playerService.getCurrentPlayer().leaderboardRatingsProperty(),
+                                     new WeakInvalidationListener(playerRatingListener));
   }
 
   private void setUsernamesAutoCompletion(List<SubdivisionBean> subdivisions) {

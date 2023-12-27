@@ -250,7 +250,8 @@ public class ServerAccessorTest extends ServiceTest {
 
     int playerUid = 123;
     com.faforever.commons.lobby.Player me = new com.faforever.commons.lobby.Player(playerUid, "Junit", null, null, "",
-                                                                                   new HashMap<>(), new HashMap<>());
+                                                                                   new HashMap<>(), new HashMap<>(),
+                                                                                   null);
     LoginSuccessResponse loginServerMessage = new LoginSuccessResponse(me);
 
     StepVerifier stepVerifier = StepVerifier.create(instance.connectAndLogIn())

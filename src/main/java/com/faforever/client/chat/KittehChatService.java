@@ -297,9 +297,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
             .forEach(chatChannel -> chatChannel.getUser(username)
                                                .ifPresent(chatUser -> fxApplicationThreadExecutor.execute(
                                                    () -> chatUser.setAway(event.isAway()))));
-    if (event.isAway()) {
-      playerService.removePlayerIfOnline(username);
-    }
   }
 
   @Handler
@@ -350,7 +347,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     User user = event.getUser();
     String username = user.getNick();
     channels.values().forEach(channel -> onChatUserLeftChannel(channel.getName(), username));
-    playerService.removePlayerIfOnline(username);
   }
 
   @Handler
@@ -683,7 +679,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private void removeChannel(String channelName) {
     ChatChannel removedChannel = channels.remove(channelName);
     lastSentActiveMap.remove(removedChannel);
-    channelSubscriptions.getOrDefault(removedChannel, Set.of()).forEach(Subscription::unsubscribe);
+    Set<Subscription> subscriptions = channelSubscriptions.remove(removedChannel);
+    if (subscriptions != null) {
+      subscriptions.forEach(Subscription::unsubscribe);
+    }
   }
 
   @Override

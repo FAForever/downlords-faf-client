@@ -92,7 +92,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -195,7 +194,7 @@ public class KittehChatServiceTest extends ServiceTest {
     lenient().when(taskScheduler.schedule(any(), any(Instant.class))).thenAnswer(invocation -> future);
     lenient().when(loginService.getUsername()).thenReturn(CHAT_USER_NAME);
     lenient().when(loginService.getOwnPlayer())
-             .thenReturn(new Player(0, CHAT_USER_NAME, null, null, "", Map.of(), Map.of()));
+             .thenReturn(new Player(0, CHAT_USER_NAME, null, null, "", Map.of(), Map.of(), null));
     lenient().when(loginService.loggedInProperty()).thenReturn(loggedIn);
     lenient().when(defaultChannel.getClient()).thenReturn(realClient);
     lenient().when(defaultChannel.getName()).thenReturn(DEFAULT_CHANNEL_NAME);
@@ -453,7 +452,6 @@ public class KittehChatServiceTest extends ServiceTest {
 
     quit(user1);
 
-    verify(playerService).removePlayerIfOnline(user1.getNick());
     assertThat(chatChannel1.getUsers(), empty());
     assertThat(chatChannel2.getUsers(), empty());
   }
@@ -764,7 +762,6 @@ public class KittehChatServiceTest extends ServiceTest {
     eventManager.callEvent(new UserAwayMessageEvent(realClient, new StringCommand("", "", List.of()), user1, "away"));
 
     assertTrue(chatUser.isAway());
-    verify(playerService).removePlayerIfOnline(anyString());
 
     eventManager.callEvent(new UserAwayMessageEvent(realClient, new StringCommand("", "", List.of()), user1, null));
 

@@ -15,7 +15,7 @@ import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.GameService;
-import com.faforever.client.game.PlayerStatus;
+import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
 import com.faforever.client.map.MapService;
@@ -524,7 +524,7 @@ public class TeamMatchmakingService implements InitializingBean {
       party.getMembers().forEach(partyMember -> partyMember.setGameStatusChangeListener(null));
       party.setMembers(List.of(newPartyMember));
       playersInGame.clear();
-      if (currentPlayer != null && currentPlayer.getStatus() != PlayerStatus.IDLE) {
+      if (currentPlayer != null && currentPlayer.getGameStatus() != PlayerGameStatus.IDLE) {
         playersInGame.add(currentPlayer);
       }
     });
@@ -574,7 +574,7 @@ public class TeamMatchmakingService implements InitializingBean {
 
   private void checkMemberGameStatus(PartyMember partyMember) {
     PlayerBean memberPlayer = partyMember.getPlayer();
-    if (memberPlayer.getStatus() != PlayerStatus.IDLE) {
+    if (memberPlayer.getGameStatus() != PlayerGameStatus.IDLE) {
       playersInGame.add(memberPlayer);
     } else {
       playersInGame.remove(memberPlayer);

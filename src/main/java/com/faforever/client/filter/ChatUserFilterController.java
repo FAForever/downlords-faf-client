@@ -4,7 +4,7 @@ import com.faforever.client.chat.ChatListItem;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
-import com.faforever.client.game.PlayerStatus;
+import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.Country;
@@ -29,14 +29,14 @@ public class ChatUserFilterController extends AbstractFilterController<ChatListI
   private final CountryFlagService countryFlagService;
   private final LeaderboardService leaderboardService;
 
-  private final StringConverter<PlayerStatus> playerStatusConverter = new StringConverter<>() {
+  private final StringConverter<PlayerGameStatus> playerStatusConverter = new StringConverter<>() {
     @Override
-    public String toString(PlayerStatus object) {
+    public String toString(PlayerGameStatus object) {
       return i18n.get(object.getI18nKey());
     }
 
     @Override
-    public PlayerStatus fromString(String string) {
+    public PlayerGameStatus fromString(String string) {
       throw new UnsupportedOperationException("Not supported");
     }
   };
@@ -84,10 +84,16 @@ public class ChatUserFilterController extends AbstractFilterController<ChatListI
             .map(clan -> StringUtils.containsIgnoreCase(clan, text))
             .orElse(false));
 
-    filterBuilder.multiCheckbox(i18n.get("game.gameStatus"), Arrays.stream(PlayerStatus.values())
+    filterBuilder.multiCheckbox(i18n.get("game.gameStatus"), Arrays.stream(PlayerGameStatus.values())
             .toList(),
-        playerStatusConverter, (selectedStatus, item) -> selectedStatus.isEmpty() || item.user() == null ||
-            item.user().getPlayer().map(PlayerBean::getStatus).map(selectedStatus::contains).orElse(false));
+        playerStatusConverter, (selectedStatus, item) -> selectedStatus.isEmpty() || item.user() == null || item.user()
+                                                                                                                .getPlayer()
+                                                                                                                .map(
+                                                                                                                    PlayerBean::getGameStatus)
+                                                                                                                .map(
+                                                                                                                    selectedStatus::contains)
+                                                                                                                .orElse(
+                                                                                                                    false));
 
     filterBuilder.rangeSliderWithCombobox(i18n.get("game.rating"), leaderboardService.getLeaderboards(), leaderboardConverter, MIN_RATING, MAX_RATING,
         (ratingWithRange, item) -> ratingWithRange.range() == AbstractRangeSliderFilterController.NO_CHANGE || item.user() == null ||

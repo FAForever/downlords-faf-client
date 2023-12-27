@@ -62,11 +62,11 @@ public class PartyBean {
 
     public void setGameStatusChangeListener(InvalidationListener listener) {
       if (gameStatusChangeListener != null) {
-        JavaFxUtil.removeListener(player.statusProperty(), gameStatusChangeListener);
+        JavaFxUtil.removeListener(player.gameStatusProperty(), gameStatusChangeListener);
       }
       gameStatusChangeListener = listener;
       if (gameStatusChangeListener != null) {
-        JavaFxUtil.addAndTriggerListener(player.statusProperty(), gameStatusChangeListener);
+        JavaFxUtil.addAndTriggerListener(player.gameStatusProperty(), gameStatusChangeListener);
       }
     }
   }
