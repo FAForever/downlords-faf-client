@@ -224,7 +224,7 @@ public class LoginControllerTest extends PlatformTest {
         WebClientResponseException.create(HttpStatus.UNAUTHORIZED.value(), "", HttpHeaders.EMPTY, new byte[]{}, null)));
     runOnFxThreadAndWait(() -> reinitialize(instance));
     verify(loginService).loginWithRefreshToken();
-    verify(notificationService, never()).addImmediateErrorNotification(any(), anyString());
+    verify(notificationService).addImmediateErrorNotification(any(), anyString());
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
   }
