@@ -38,34 +38,36 @@ public class OAuthValuesReceiver {
   private final I18n i18n;
 
   private CountDownLatch redirectUriLatch;
-  private CompletableFuture<Values> valuesFuture;
   private URI redirectUri;
   private String state;
   private String codeVerifier;
+  private CompletableFuture<Values> valuesFuture;
 
   public CompletableFuture<Values> receiveValues(String state, String codeVerifier) {
-    if (valuesFuture == null || valuesFuture.isDone()) {
-      redirectUriLatch = new CountDownLatch(1);
-      valuesFuture = CompletableFuture.supplyAsync(() -> {
-          try {
-            return readValues(state, codeVerifier);
-          } catch (IOException e) {
-            throw new IllegalStateException("Could not get code", e);
-          }
-      });
-    } else {
-      CompletableFuture.runAsync(() -> {
-        try {
-          redirectUriLatch.await();
-        } catch (InterruptedException ignored) {}
-        platformService.showDocument(loginService.getHydraUrl(this.state, this.codeVerifier, redirectUri));
-      });
+    if (valuesFuture != null && !valuesFuture.isDone()) {
+      return valuesFuture;
     }
 
+    redirectUriLatch = new CountDownLatch(1);
+    valuesFuture = CompletableFuture.supplyAsync(() -> readValues(state, codeVerifier));
     return valuesFuture;
+
   }
 
-  private Values readValues(String state, String codeVerifier) throws IOException {
+  public CompletableFuture<Void> openBrowserToLogin() {
+    if (redirectUriLatch == null) {
+      throw new IllegalStateException("Redirect socket is not open");
+    }
+
+    return CompletableFuture.runAsync(() -> {
+      try {
+        redirectUriLatch.await();
+      } catch (InterruptedException ignored) {}
+      platformService.showDocument(loginService.getHydraUrl(this.state, this.codeVerifier, redirectUri));
+    });
+  }
+
+  private Values readValues(String state, String codeVerifier) {
     this.state = state;
     this.codeVerifier = codeVerifier;
     try (ServerSocket serverSocket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
@@ -93,6 +95,10 @@ public class OAuthValuesReceiver {
         writeResponse(socket, success);
         reader.close();
       }
+    } catch (IOException e) {
+      throw new IllegalStateException("Could not get code", e);
+    } finally {
+      redirectUriLatch = null;
     }
   }
 

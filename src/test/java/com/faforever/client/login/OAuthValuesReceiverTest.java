@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.verification.Timeout;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.InputStream;
@@ -25,11 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class OAuthEndpointValuesReceiverTest extends ServiceTest {
+class OAuthValuesReceiverTest extends ServiceTest {
 
   public static final String STATE = "abc";
   public static final String VERIFIER = "def";
@@ -86,7 +84,7 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
 
     ArgumentCaptor<URI> captor = ArgumentCaptor.forClass(URI.class);
 
-    verify(loginService, new Timeout(2000, times(2))).getHydraUrl(eq(STATE), eq(VERIFIER), captor.capture());
+    verify(loginService, timeout(2000)).getHydraUrl(eq(STATE), eq(VERIFIER), captor.capture());
 
     UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(captor.getValue())
         .queryParam("code", "1234")

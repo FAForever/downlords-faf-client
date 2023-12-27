@@ -118,7 +118,7 @@ public class LoginControllerTest extends PlatformTest {
     when(oAuthValuesReceiver.receiveValues(anyString(), anyString())).thenAnswer(
         invocation -> CompletableFuture.completedFuture(new Values(CODE, invocation.getArgument(0), REDIRECT_URI)));
 
-    instance.onLoginButtonClicked().join();
+    instance.onLoginButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(oAuthValuesReceiver).receiveValues(anyString(), anyString());
@@ -134,7 +134,7 @@ public class LoginControllerTest extends PlatformTest {
     when(oAuthValuesReceiver.receiveValues(anyString(), anyString()))
         .thenReturn(CompletableFuture.completedFuture(new Values(CODE, wrongState, REDIRECT_URI)));
 
-    instance.onLoginButtonClicked().join();
+    instance.onLoginButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(oAuthValuesReceiver).receiveValues(anyString(), anyString());
@@ -148,7 +148,7 @@ public class LoginControllerTest extends PlatformTest {
     when(oAuthValuesReceiver.receiveValues(anyString(), anyString())).thenAnswer(
         invocation -> CompletableFuture.completedFuture(new Values(CODE, invocation.getArgument(0), REDIRECT_URI)));
 
-    instance.onLoginButtonClicked().join();
+    instance.onLoginButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(loginService).login(eq(CODE), anyString(), eq(REDIRECT_URI));
@@ -162,7 +162,7 @@ public class LoginControllerTest extends PlatformTest {
     when(oAuthValuesReceiver.receiveValues(anyString(), anyString()))
         .thenReturn(CompletableFuture.failedFuture(new IllegalStateException()));
 
-    instance.onLoginButtonClicked().join();
+    instance.onLoginButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(notificationService).addImmediateErrorNotification(any(), eq("login.failed"));
@@ -175,7 +175,7 @@ public class LoginControllerTest extends PlatformTest {
     when(oAuthValuesReceiver.receiveValues(anyString(), anyString()))
         .thenReturn(CompletableFuture.failedFuture(new SocketTimeoutException()));
 
-    instance.onLoginButtonClicked().join();
+    instance.onLoginButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(notificationService).addImmediateWarnNotification(eq("login.timeout"));
@@ -190,7 +190,7 @@ public class LoginControllerTest extends PlatformTest {
     when(loginService.getOwnUser()).thenReturn(new MeResult());
     when(loginService.getOwnPlayer()).thenReturn(new Player(0, "junit", null, null, "US", Map.of(), Map.of()));
 
-    instance.onLoginButtonClicked().join();
+    instance.onLoginButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(notificationService, never()).addImmediateWarnNotification(eq("login.timeout"));

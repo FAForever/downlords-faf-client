@@ -91,6 +91,7 @@ public class LoginController extends NodeController<Pane> {
   @VisibleForTesting
   CompletableFuture<UpdateInfo> updateInfoFuture;
   private CompletableFuture<Void> initializeFuture;
+  private CompletableFuture<Void> loginFuture;
 
   @Override
   protected void onInitialize() {
@@ -238,7 +239,12 @@ public class LoginController extends NodeController<Pane> {
         });
   }
 
-  public CompletableFuture<Void> onLoginButtonClicked() {
+  public void onLoginButtonClicked() {
+    if (loginFuture != null && !loginFuture.isDone()) {
+      oAuthValuesReceiver.openBrowserToLogin();
+      return;
+    }
+
     initializeFuture.join();
 
     clientProperties.getUser()
@@ -258,20 +264,14 @@ public class LoginController extends NodeController<Pane> {
     String state = RandomStringUtils.randomAlphanumeric(64, 128);
     String verifier = RandomStringUtils.randomAlphanumeric(64, 128);
 
-    return oAuthValuesReceiver.receiveValues(state, verifier)
-        .thenCompose(values -> {
-          platformService.focusWindow(i18n.get("login.title"));
-          String actualState = values.state();
-          if (!state.equals(actualState)) {
-            showLoginForm();
-            log.warn("Reported state does not match. Expected `{}` but got `{}`", state, actualState);
-            notificationService.addImmediateErrorNotification(
-                new IllegalStateException("State returned by the server does not match expected state"),
-                "login.failed");
-            return CompletableFuture.completedFuture(null);
-          }
-          return loginWithCode(values.code(), values.redirectUri(), verifier).toFuture();
-        }).exceptionally(throwable -> onLoginFailed(ConcurrentUtil.unwrapIfCompletionException(throwable)));
+    loginFuture = oAuthValuesReceiver.receiveValues(state, verifier).thenCompose(values -> {
+      platformService.focusWindow(i18n.get("login.title"));
+      String actualState = values.state();
+      if (!state.equals(actualState)) {
+        throw new IllegalStateException("State returned by the server does not match expected state");
+      }
+      return loginWithCode(values.code(), values.redirectUri(), verifier).toFuture();
+    }).exceptionally(throwable -> onLoginFailed(ConcurrentUtil.unwrapIfCompletionException(throwable)));
   }
 
   private Mono<Void> loginWithCode(String code, URI redirectUri, String codeVerifier) {
