@@ -5,6 +5,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.theme.UiService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -52,6 +53,7 @@ public class NotificationServiceTest extends ServiceTest {
   }
 
   @Test
+  @Disabled("Requires Fx application thread")
   public void testAddServerNotification() throws Exception {
     ServerNotificationController notificationController = mock(ServerNotificationController.class);
     when(uiService.loadFxml("theme/server_notification.fxml")).thenReturn(notificationController);
