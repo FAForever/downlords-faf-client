@@ -1,6 +1,5 @@
 package com.faforever.client.builders;
 
-import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.commons.lobby.GameVisibility;
 
@@ -9,11 +8,15 @@ import java.util.Set;
 
 public class NewGameInfoBuilder {
 
-  private final NewGameInfo newGameInfo;
-
-  private NewGameInfoBuilder() {
-    newGameInfo = new NewGameInfo();
-  }
+  private String title;
+  private String password;
+  private String featuredModName;
+  private String map;
+  private Set<String> simMods;
+  private GameVisibility gameVisibility;
+  private Integer ratingMin;
+  private Integer ratingMax;
+  private Boolean enforceRatingRange;
 
   public static NewGameInfoBuilder create() {
     return new NewGameInfoBuilder();
@@ -21,7 +24,7 @@ public class NewGameInfoBuilder {
 
   public NewGameInfoBuilder defaultValues() {
     map("map");
-    featuredMod(FeaturedModBeanBuilder.create().defaultValues().get());
+    featuredModName("FAF");
     password("password");
     title("title");
     simMods(new HashSet<>() {{
@@ -34,52 +37,53 @@ public class NewGameInfoBuilder {
   }
 
   public NewGameInfoBuilder title(String title) {
-    newGameInfo.setTitle(title);
+    this.title = title;
     return this;
   }
 
   public NewGameInfoBuilder password(String password) {
-    newGameInfo.setPassword(password);
+    this.password = password;
     return this;
   }
 
-  public NewGameInfoBuilder featuredMod(FeaturedModBean featuredMod) {
-    newGameInfo.setFeaturedMod(featuredMod);
+  public NewGameInfoBuilder featuredModName(String featuredModName) {
+    this.featuredModName = featuredModName;
     return this;
   }
 
   public NewGameInfoBuilder map(String map) {
-    newGameInfo.setMap(map);
+    this.map = map;
     return this;
   }
 
   public NewGameInfoBuilder simMods(Set<String> simMods) {
-    newGameInfo.setSimMods(simMods);
+    this.simMods = simMods;
     return this;
   }
 
   public NewGameInfoBuilder gameVisibility(GameVisibility gameVisibility) {
-    newGameInfo.setGameVisibility(gameVisibility);
+    this.gameVisibility = gameVisibility;
     return this;
   }
 
   public NewGameInfoBuilder ratingMin(Integer ratingMin) {
-    newGameInfo.setRatingMin(ratingMin);
+    this.ratingMin = ratingMin;
     return this;
   }
 
   public NewGameInfoBuilder ratingMax(Integer ratingMax) {
-    newGameInfo.setRatingMax(ratingMax);
+    this.ratingMax = ratingMax;
     return this;
   }
 
   public NewGameInfoBuilder enforceRatingRange(Boolean enforceRatingRange) {
-    newGameInfo.setEnforceRatingRange(enforceRatingRange);
+    this.enforceRatingRange = enforceRatingRange;
     return this;
   }
 
   public NewGameInfo get() {
-    return newGameInfo;
+    return new NewGameInfo(title, password, featuredModName, map, simMods, gameVisibility, ratingMin, ratingMax,
+                           enforceRatingRange);
   }
 
 

@@ -34,7 +34,7 @@ public class EnterPasswordController extends NodeController<Node> {
   public Parent enterPasswordRoot;
   public Button joinButton;
   public Button cancelButton;
-  private OnPasswordEnteredListener listener;
+  private PasswordEnteredListener listener;
   private GameBean game;
   private boolean ignoreRating;
 
@@ -45,7 +45,7 @@ public class EnterPasswordController extends NodeController<Node> {
     joinButton.disableProperty().bind(passwordField.textProperty().isEmpty());
   }
 
-  void setOnPasswordEnteredListener(OnPasswordEnteredListener listener) {
+  void setPasswordEnteredListener(PasswordEnteredListener listener) {
     Assert.checkNotNullIllegalState(this.listener, "Listener has already been set");
     this.listener = listener;
   }
@@ -83,7 +83,8 @@ public class EnterPasswordController extends NodeController<Node> {
     userInfoWindow.show();
   }
 
-  interface OnPasswordEnteredListener {
+  @FunctionalInterface
+  interface PasswordEnteredListener {
 
     void onPasswordEntered(GameBean game, String password, boolean ignoreRating);
   }

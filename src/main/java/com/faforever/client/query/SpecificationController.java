@@ -227,7 +227,6 @@ public class SpecificationController extends NodeController<Node> {
     return Arrays.stream(value.split(",")).map(Integer::parseInt).collect(Collectors.toList());
   }
 
-  @SuppressWarnings("unchecked")
   public Optional<Condition> appendTo(QBuilder qBuilder) {
     String propertyName = propertyField.getValue();
     if (propertyName == null) {
@@ -315,7 +314,7 @@ public class SpecificationController extends NodeController<Node> {
     return prop;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked", "RedundantCast"})
   private <T extends EquitableProperty & ListableProperty> Condition getEquitableCondition(ComparisonOperator comparisonOperator, String value, Class<?> fieldType, T prop) {
 
     if (comparisonOperator == EQ) {
@@ -325,16 +324,16 @@ public class SpecificationController extends NodeController<Node> {
       return prop.ne(value);
     }
     if (comparisonOperator == IN) {
-      return prop.in(value.split(","));
+      return prop.in((Object[]) value.split(","));
     }
     if (comparisonOperator == NIN) {
-      return prop.nin(value.split(","));
+      return prop.nin((Object[]) value.split(","));
     }
     throw new ProgrammingError("Operator '" + comparisonOperator + "' should not have been allowed for type: " + fieldType);
   }
 
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked", "RedundantCast"})
   private Condition getStringCondition(ComparisonOperator comparisonOperator, String value, Class<?> propertyClass, StringProperty prop) {
 
     if (comparisonOperator == EQ) {
@@ -344,10 +343,10 @@ public class SpecificationController extends NodeController<Node> {
       return prop.ne(value);
     }
     if (comparisonOperator == IN) {
-      return prop.in(value.split(","));
+      return prop.in((Object[]) value.split(","));
     }
     if (comparisonOperator == NIN) {
-      return prop.nin(value.split(","));
+      return prop.nin((Object[]) value.split(","));
     }
     if (comparisonOperator == RE) {
       return prop.eq("*" + value + "*");

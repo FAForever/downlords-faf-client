@@ -1,7 +1,6 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.fx.NodeController;
-import com.faforever.client.notification.Action.ActionCallback;
 import com.faforever.client.preferences.NotificationPrefs;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -38,7 +37,7 @@ public class TransientNotificationController extends NodeController<Node> {
   public Label titleLabel;
   public ImageView imageView;
   private ChangeListener<Number> animationListener;
-  private ActionCallback action;
+  private Runnable action;
   private Timeline timeline;
   private int toastDisplayTime;
 
@@ -92,10 +91,10 @@ public class TransientNotificationController extends NodeController<Node> {
   }
 
   public void setNotification(TransientNotification notification) {
-    titleLabel.setText(notification.getTitle());
-    messageLabel.setText(notification.getText());
-    imageView.setImage(notification.getImage());
-    action = notification.getActionCallback();
+    titleLabel.setText(notification.title());
+    messageLabel.setText(notification.text());
+    imageView.setImage(notification.image());
+    action = notification.onAction();
   }
 
   public void onCloseButtonClicked() {
@@ -111,7 +110,7 @@ public class TransientNotificationController extends NodeController<Node> {
     if (event.getButton().equals(MouseButton.SECONDARY)) {
       dismiss();
     } else if (action != null) {
-      action.call(event);
+      action.run();
     }
   }
 }

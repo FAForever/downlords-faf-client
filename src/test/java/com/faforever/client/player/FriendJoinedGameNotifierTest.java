@@ -5,7 +5,7 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.game.JoinGameHelper;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
@@ -33,7 +33,7 @@ public class FriendJoinedGameNotifierTest extends ServiceTest {
   @Mock
   private I18n i18n;
   @Mock
-  private JoinGameHelper joinGameHelper;
+  private GameRunner gameRunner;
 
   @Mock
   private AudioService audioService;
@@ -54,9 +54,9 @@ public class FriendJoinedGameNotifierTest extends ServiceTest {
     verify(notificationService).addNotification(captor.capture());
 
     TransientNotification notification = captor.getValue();
-    assertThat(notification.getTitle(), is("junit joined My Game"));
-    assertThat(notification.getText(), is("Click to join"));
-    assertThat(notification.getImage(), notNullValue());
+    assertThat(notification.title(), is("junit joined My Game"));
+    assertThat(notification.text(), is("Click to join"));
+    assertThat(notification.image(), notNullValue());
   }
 
   @Test

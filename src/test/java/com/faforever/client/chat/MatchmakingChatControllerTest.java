@@ -1,29 +1,26 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.emoticons.EmoticonService;
+import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.discord.JoinDiscordEventHandler;
+import com.faforever.client.domain.PartyBean;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.teammatchmaking.TeamMatchmakingService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.StageHolder;
-import com.faforever.client.uploader.ImageUploadService;
-import com.faforever.client.user.LoginService;
 import com.faforever.client.util.TimeService;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.stage.Stage;
+import javafx.beans.property.SimpleObjectProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.testfx.util.WaitForAsyncUtils;
 
 import static com.faforever.client.theme.ThemeService.CHAT_CONTAINER;
 import static com.faforever.client.theme.ThemeService.CHAT_SECTION_COMPACT;
@@ -31,8 +28,6 @@ import static com.faforever.client.theme.ThemeService.CHAT_TEXT_COMPACT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 public class MatchmakingChatControllerTest extends PlatformTest {
@@ -40,13 +35,7 @@ public class MatchmakingChatControllerTest extends PlatformTest {
   @Mock
   private ChatService chatService;
   @Mock
-  private LoginService loginService;
-  @Mock
-  private PlayerService playerService;
-  @Mock
   private TimeService timeService;
-  @Mock
-  private ImageUploadService imageUploadService;
   @Mock
   private I18n i18n;
   @Mock
@@ -65,17 +54,26 @@ public class MatchmakingChatControllerTest extends PlatformTest {
   private EmoticonService emoticonService;
   @Mock
   private JoinDiscordEventHandler joinDiscordEventHandler;
+  @Mock
+  private TeamMatchmakingService teamMatchmakingService;
   @Spy
   private ChatPrefs chatPrefs;
+
+  @Mock
+  private ChatMessageViewController chatMessageViewController;
+  @Mock
+  private EmoticonsWindowController emoticonsWindowController;
 
   @InjectMocks
   private MatchmakingChatController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
+    lenient().when(teamMatchmakingService.getParty()).thenReturn(new PartyBean());
+    lenient().when(chatMessageViewController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(chatService.getCurrentUsername()).thenReturn("junit");
     lenient().when(i18n.get(anyString())).thenReturn("");
     lenient().when(chatService.getOrCreateChannel("partyName")).thenReturn(new ChatChannel("partyName"));
-    lenient().when(loginService.getUsername()).thenReturn("junit");
     lenient().when(themeService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(
         getClass().getResource("/theme/chat/chat_container.html"));
     lenient().when(themeService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(
@@ -84,35 +82,21 @@ public class MatchmakingChatControllerTest extends PlatformTest {
         getClass().getResource("/theme/chat/compact/chat_text.html"));
     lenient().when(timeService.asShortTime(any())).thenReturn("");
 
-    Stage stage = mock(Stage.class);
-    lenient().when(stage.focusedProperty()).thenReturn(new SimpleBooleanProperty());
+    loadFxml("theme/chat/matchmaking_chat.fxml", clazz -> {
+      if (clazz == ChatMessageViewController.class) {
+        return chatMessageViewController;
+      }
+      if (clazz == EmoticonsWindowController.class) {
+        return emoticonsWindowController;
+      }
 
-    StageHolder.setStage(stage);
-
-    loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml", clazz -> instance);
-
-    instance = spy(instance);
+      return instance;
+    });
   }
 
   @Test
   public void testOnJoinDiscordButtonClicked() throws Exception {
     instance.onDiscordButtonClicked();
     verify(joinDiscordEventHandler).onJoin(any());
-  }
-
-  @Test
-  public void onPlayerConnectedTest() {
-    instance.onPlayerConnected("mock");
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(instance).onChatMessage(any(ChatMessage.class));
-  }
-
-  @Test
-  public void onPlayerDisconnected() {
-    instance.onPlayerDisconnected("mock");
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(instance).onChatMessage(any(ChatMessage.class));
   }
 }

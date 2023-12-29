@@ -6,6 +6,6 @@ import com.faforever.client.reporting.ReportingService;
 public class CopyErrorAction extends Action {
 
   public CopyErrorAction(I18n i18n, ReportingService reportingService, Throwable throwable) {
-    super(i18n.get("copyError"), Type.OK_STAY, event -> reportingService.copyError(throwable));
+    super(i18n.get("copyError"), Type.OK_STAY, () -> reportingService.copyError(throwable));
   }
 }

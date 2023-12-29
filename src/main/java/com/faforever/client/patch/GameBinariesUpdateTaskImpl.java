@@ -1,7 +1,7 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.fa.ForgedAllianceService;
+import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.error.GameUpdateException;
 import com.faforever.client.i18n.I18n;
@@ -60,7 +60,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
       "zlibwapi.dll"
   );
 
-  private final ForgedAllianceService forgedAllianceService;
+  private final ForgedAllianceLaunchService forgedAllianceLaunchService;
   private final I18n i18n;
   private final PlatformService platformService;
   private final OperatingSystem operatingSystem;
@@ -72,10 +72,13 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
   private Integer version;
   private boolean forReplays;
 
-  public GameBinariesUpdateTaskImpl(ForgedAllianceService forgedAllianceService, I18n i18n, PlatformService platformService, OperatingSystem operatingSystem, DataPrefs dataPrefs, ForgedAlliancePrefs forgedAlliancePrefs, ClientProperties clientProperties) {
+  public GameBinariesUpdateTaskImpl(ForgedAllianceLaunchService forgedAllianceLaunchService, I18n i18n,
+                                    PlatformService platformService, OperatingSystem operatingSystem,
+                                    DataPrefs dataPrefs, ForgedAlliancePrefs forgedAlliancePrefs,
+                                    ClientProperties clientProperties) {
     super(Priority.HIGH);
 
-    this.forgedAllianceService = forgedAllianceService;
+    this.forgedAllianceLaunchService = forgedAllianceLaunchService;
     this.i18n = i18n;
     this.platformService = platformService;
     this.operatingSystem = operatingSystem;
@@ -93,9 +96,9 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
 
     Path exePath;
     if (forReplays) {
-      exePath = forgedAllianceService.getReplayExecutablePath();
+      exePath = forgedAllianceLaunchService.getReplayExecutablePath();
     } else {
-      exePath = forgedAllianceService.getExecutablePath();
+      exePath = forgedAllianceLaunchService.getExecutablePath();
     }
 
     copyGameFilesToFafBinDirectory();

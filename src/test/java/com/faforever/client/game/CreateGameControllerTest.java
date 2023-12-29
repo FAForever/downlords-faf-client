@@ -48,13 +48,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -75,13 +73,13 @@ public class CreateGameControllerTest extends PlatformTest {
   private static final KeyEvent keyDownReleased = new KeyEvent(KeyEvent.KEY_RELEASED, "0", "", KeyCode.DOWN, false, false, false, false);
 
   @Mock
+  private GameRunner gameRunner;
+  @Mock
   private MapService mapService;
   @Mock
   private ModService modService;
   @Mock
   private FeaturedModService featuredModService;
-  @Mock
-  private GameService gameService;
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -108,18 +106,20 @@ public class CreateGameControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new CreateGameController(mapService, featuredModService, modService, gameService, i18n,
+    instance = new CreateGameController(gameRunner, mapService, featuredModService, modService, i18n,
                                         notificationService, loginService, mapGeneratorService, uiService,
                                         contextMenuBuilder, lastGamePrefs, fxApplicationThreadExecutor);
 
     mapList = FXCollections.observableArrayList();
+
+    when(featuredModService.getFeaturedMods()).thenReturn(
+        completedFuture(List.of(FeaturedModBeanBuilder.create().defaultValues().get())));
 
     lenient().when(mapGeneratorService.downloadGeneratorIfNecessary(any())).thenReturn(completedFuture(null));
     lenient().when(mapGeneratorService.getGeneratorStyles()).thenReturn(completedFuture(List.of()));
     lenient().when(uiService.showInDialog(any(), any(), any())).thenReturn(new Dialog());
     lenient().when(uiService.loadFxml("theme/play/generate_map.fxml")).thenReturn(generateMapController);
     lenient().when(mapService.getInstalledMaps()).thenReturn(mapList);
-    lenient().when(featuredModService.getFeaturedMods()).thenReturn(completedFuture(emptyList()));
     lenient().when(mapService.loadPreview(anyString(), any()))
              .thenReturn(new Image("/theme/images/default_achievement.png"));
     lenient().when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
@@ -223,17 +223,6 @@ public class CreateGameControllerTest extends PlatformTest {
     assertThat(instance.titleTextField.getText(), is("testGame"));
   }
 
-
-  @Test
-  public void testButtonBindingIfFeaturedModNotSet() {
-    lastGamePrefs.setLastGameTitle("123");
-    when(i18n.get("game.create.featuredModMissing")).thenReturn("Mod missing");
-    runOnFxThreadAndWait(() -> reinitialize(instance));
-
-    assertThat(instance.titleTextField.getText(), is("123"));
-    assertThat(instance.createGameButton.getText(), is("Mod missing"));
-  }
-
   @Test
   public void testButtonBindingIfTitleNotSet() {
     String message = "title missing";
@@ -313,18 +302,6 @@ public class CreateGameControllerTest extends PlatformTest {
   }
 
   @Test
-  public void testInitGameTypeComboBoxEmpty() throws Exception {
-    loadFxml("theme/play/create_game.fxml", clazz -> {
-      if (clazz.equals(ModManagerController.class)) {
-        return modManagerController;
-      }
-      return instance;
-    });
-
-    assertThat(instance.featuredModListView.getItems(), empty());
-  }
-
-  @Test
   public void testCloseButtonTriggeredAfterCreatingGame() {
     Runnable closeAction = mock(Runnable.class);
     instance.setOnCloseButtonClickedListener(closeAction);
@@ -355,7 +332,6 @@ public class CreateGameControllerTest extends PlatformTest {
         .map(MapBeanBuilder.create().defaultValues().get())
         .get();
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
-    when(gameService.hostGame(newGameInfoArgumentCaptor.capture())).thenReturn(completedFuture(null));
 
     mapList.add(map);
     runOnFxThreadAndWait(() -> {
@@ -365,8 +341,10 @@ public class CreateGameControllerTest extends PlatformTest {
     });
 
     verify(modManagerController).getSelectedModVersions();
-    assertThat(newGameInfoArgumentCaptor.getValue().getSimMods(), contains("junit-mod"));
-    assertThat(newGameInfoArgumentCaptor.getValue().getMap(), is(map.getFolderName()));
+    verify(gameRunner).host(newGameInfoArgumentCaptor.capture());
+    NewGameInfo gameInfo = newGameInfoArgumentCaptor.getValue();
+    assertThat(gameInfo.simMods(), contains("junit-mod"));
+    assertThat(gameInfo.map(), is(map.getFolderName()));
   }
 
   @Test
@@ -392,8 +370,6 @@ public class CreateGameControllerTest extends PlatformTest {
     when(modService.updateAndActivateModVersions(eq(selectedMods)))
         .thenAnswer(invocation -> completedFuture(List.of(newModVersion)));
 
-    when(gameService.hostGame(any())).thenReturn(completedFuture(null));
-
     runOnFxThreadAndWait(() -> {
       mapList.add(map);
       instance.mapListView.getSelectionModel().select(0);
@@ -403,9 +379,9 @@ public class CreateGameControllerTest extends PlatformTest {
     instance.onCreateButtonClicked();
 
     verify(modManagerController).getSelectedModVersions();
-    verify(gameService).hostGame(newGameInfoArgumentCaptor.capture());
-    assertThat(newGameInfoArgumentCaptor.getValue().getSimMods(), contains(newModUid));
-    assertThat(newGameInfoArgumentCaptor.getValue().getMap(), is(map.getFolderName()));
+    verify(gameRunner).host(newGameInfoArgumentCaptor.capture());
+    assertThat(newGameInfoArgumentCaptor.getValue().simMods(), contains(newModUid));
+    assertThat(newGameInfoArgumentCaptor.getValue().map(), is(map.getFolderName()));
   }
 
   @Test
@@ -417,7 +393,6 @@ public class CreateGameControllerTest extends PlatformTest {
         .get();
 
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
-    when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
 
     mapList.add(map);
     runOnFxThreadAndWait(() -> {
@@ -426,7 +401,8 @@ public class CreateGameControllerTest extends PlatformTest {
       instance.onCreateButtonClicked();
     });
 
-    assertThat(captor.getValue().getMap(), is(map.getFolderName()));
+    verify(gameRunner).host(captor.capture());
+    assertThat(captor.getValue().map(), is(map.getFolderName()));
   }
 
   @Test
@@ -444,7 +420,6 @@ public class CreateGameControllerTest extends PlatformTest {
         .map(MapBeanBuilder.create().defaultValues().get())
         .get();
     when(mapService.updateLatestVersionIfNecessary(outdatedMap)).thenReturn(completedFuture(updatedMap));
-    when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
 
     mapList.add(outdatedMap);
     runOnFxThreadAndWait(() -> {
@@ -453,7 +428,8 @@ public class CreateGameControllerTest extends PlatformTest {
       instance.onCreateButtonClicked();
     });
 
-    assertThat(captor.getValue().getMap(), is(updatedMap.getFolderName()));
+    verify(gameRunner).host(captor.capture());
+    assertThat(captor.getValue().map(), is(updatedMap.getFolderName()));
   }
 
   @Test
@@ -466,7 +442,6 @@ public class CreateGameControllerTest extends PlatformTest {
         .get();
     when(mapService.updateLatestVersionIfNecessary(map))
         .thenReturn(CompletableFuture.failedFuture(new RuntimeException("error when checking for update or updating map")));
-    when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
 
     mapList.add(map);
     runOnFxThreadAndWait(() -> {
@@ -475,7 +450,8 @@ public class CreateGameControllerTest extends PlatformTest {
       instance.onCreateButtonClicked();
     });
 
-    assertThat(captor.getValue().getMap(), is(map.getFolderName()));
+    verify(gameRunner).host(captor.capture());
+    assertThat(captor.getValue().map(), is(map.getFolderName()));
   }
 
   @Test

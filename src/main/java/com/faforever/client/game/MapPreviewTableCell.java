@@ -8,18 +8,17 @@ import javafx.scene.image.ImageView;
 
 public class MapPreviewTableCell extends TableCell<GameBean, Image> {
 
-  private final ImageView imageVew;
+  private final ImageView imageView;
   private final ImageViewHelper imageViewHelper;
 
   public MapPreviewTableCell(ImageViewHelper imageViewHelper) {
     this.imageViewHelper = imageViewHelper;
 
-    imageVew = new ImageView();
-    imageVew.setFitWidth(36.0);
-    imageVew.setFitHeight(36.0);
-    imageVew.setSmooth(true);
-    imageVew.setPreserveRatio(true);
-    imageViewHelper.setDefaultPlaceholderImage(imageVew, true);
+    imageView = new ImageView();
+    imageView.setFitWidth(36.0);
+    imageView.setFitHeight(36.0);
+    imageView.setSmooth(true);
+    imageView.setPreserveRatio(true);
   }
 
   @Override
@@ -30,8 +29,8 @@ public class MapPreviewTableCell extends TableCell<GameBean, Image> {
       setText(null);
       setGraphic(null);
     } else {
-      imageVew.setImage(!item.isError() ? item : imageViewHelper.getDefaultPlaceholderImage());
-      setGraphic(imageVew);
+      imageView.imageProperty().bind(imageViewHelper.createPlaceholderImageOnErrorObservable(item));
+      setGraphic(imageView);
     }
   }
 }

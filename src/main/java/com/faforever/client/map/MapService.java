@@ -66,7 +66,6 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -394,7 +393,10 @@ public class MapService implements InitializingBean, DisposableBean {
     return mapGeneratorService.generateMap(mapName);
   }
 
-  public CompletableFuture<Void> download(String technicalMapName) {
+  public CompletableFuture<Void> downloadIfNecessary(String technicalMapName) {
+    if (isInstalled(technicalMapName)) {
+      return CompletableFuture.completedFuture(null);
+    }
     try {
       URL mapUrl = getDownloadUrl(technicalMapName, mapDownloadUrlFormat);
       return downloadAndInstallMap(technicalMapName, mapUrl, null, null);
@@ -508,7 +510,6 @@ public class MapService implements InitializingBean, DisposableBean {
     });
   }
 
-  @Async
   public CompletableFuture<Integer> getFileSize(MapVersionBean mapVersion) {
     return fileSizeReader.getFileSize(mapVersion.getDownloadUrl());
   }
@@ -618,7 +619,7 @@ public class MapService implements InitializingBean, DisposableBean {
         .flatMap(mapVersion -> Mono.fromCompletionStage(() -> downloadAndInstallMap(mapVersion, null, null))
             .onErrorResume(throwable -> {
               log.warn("Unable to download map `{}`", mapVersion.getFolderName(), throwable);
-              notificationService.addPersistentErrorNotification(throwable, "map.download.error", mapVersion.getFolderName());
+              notificationService.addPersistentErrorNotification("map.download.error", mapVersion.getFolderName());
               return Mono.empty();
             }))
         .then()

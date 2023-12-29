@@ -36,6 +36,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.css.PseudoClass;
 import javafx.geometry.Bounds;
@@ -75,6 +76,7 @@ import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -91,10 +93,10 @@ public class CreateGameController extends NodeController<Pane> {
   public static final PseudoClass PSEUDO_CLASS_INVALID = PseudoClass.getPseudoClass("invalid");
   private static final int MAX_RATING_LENGTH = 4;
 
+  private final GameRunner gameRunner;
   private final MapService mapService;
   private final FeaturedModService featuredModService;
   private final ModService modService;
-  private final GameService gameService;
   private final I18n i18n;
   private final NotificationService notificationService;
   private final LoginService loginService;
@@ -147,15 +149,14 @@ public class CreateGameController extends NodeController<Pane> {
         if (filteredMaps.size() > currentMapIndex + 1) {
           newMapIndex++;
         }
-        event.consume();
       } else if (KeyCode.UP == event.getCode()) {
         if (currentMapIndex > 0) {
           newMapIndex--;
         }
-        event.consume();
       }
       selectionModel.select(newMapIndex);
       mapListView.scrollTo(newMapIndex);
+      event.consume();
     });
 
     Function<FeaturedModBean, String> isDefaultModString = mod -> Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ? " " + i18n.get("game.create.defaultGameTypeMarker") : null;
@@ -273,12 +274,23 @@ public class CreateGameController extends NodeController<Pane> {
 
     FilteredList<MapVersionBean> skirmishMaps = mapService.getInstalledMaps()
         .filtered(mapVersion -> mapVersion.getMap().getMapType() == MapType.SKIRMISH);
-    filteredMaps = new FilteredList<>(skirmishMaps
-        .sorted(Comparator.comparing(mapVersion -> mapVersion.getMap().getDisplayName().toLowerCase())));
+    filteredMaps = new FilteredList<>(skirmishMaps.sorted(
+        Comparator.comparing(mapVersion -> mapVersion.getMap().getDisplayName(), String.CASE_INSENSITIVE_ORDER)));
     filteredMaps.predicateProperty().when(showing).subscribe(() -> {
       MultipleSelectionModel<MapVersionBean> selectionModel = mapListView.getSelectionModel();
       if (!filteredMaps.isEmpty() && !filteredMaps.contains(selectionModel.getSelectedItem())) {
         selectionModel.select(0);
+      }
+    });
+    skirmishMaps.addListener((ListChangeListener<MapVersionBean>) change -> {
+      while (change.next()) {
+        if (change.wasAdded()) {
+          MapVersionBean map = change.getAddedSubList().getFirst();
+          fxApplicationThreadExecutor.execute(() -> {
+            mapListView.getSelectionModel().select(map);
+            mapListView.scrollTo(map);
+          });
+        }
       }
     });
 
@@ -423,17 +435,19 @@ public class CreateGameController extends NodeController<Pane> {
     MapVersionBean selectedMap = mapListView.getSelectionModel().getSelectedItem();
     Collection<ModVersionBean> selectedModVersions = modManagerController.getSelectedModVersions();
 
-    mapService.updateLatestVersionIfNecessary(selectedMap).exceptionally(throwable -> {
-      log.error("Error when updating the map", throwable);
-      return selectedMap;
-    }).thenCombine(modService.updateAndActivateModVersions(selectedModVersions).exceptionally(throwable -> {
+    CompletableFuture<MapVersionBean> mapUpdateFuture = mapService.updateLatestVersionIfNecessary(selectedMap)
+                                                                  .exceptionally(throwable -> {
+                                                                    log.error("Error when updating the map", throwable);
+                                                                    return selectedMap;
+                                                                  });
+    CompletableFuture<Collection<ModVersionBean>> modUpdateFuture = modService.updateAndActivateModVersions(
+        selectedModVersions).exceptionally(throwable -> {
       log.error("Error when updating selected mods", throwable);
       notificationService.addImmediateErrorNotification(throwable, "game.create.errorUpdatingMods");
       return selectedModVersions;
-    }), (mapBean, mods) -> {
-      hostGame(mapBean, getUUIDsFromModVersions(mods));
-      return null;
-    }).exceptionally(throwable -> {
+    });
+
+    mapUpdateFuture.thenAcceptBoth(modUpdateFuture, this::hostGame).exceptionally(throwable -> {
       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
       log.error("Game could not be hosted", throwable);
       if (throwable instanceof NotifiableException notifiableException) {
@@ -451,7 +465,7 @@ public class CreateGameController extends NodeController<Pane> {
     return modVersions.stream().map(ModVersionBean::getUid).collect(Collectors.toSet());
   }
 
-  private void hostGame(MapVersionBean mapVersion, Set<String> mods) {
+  private void hostGame(MapVersionBean mapVersion, Collection<ModVersionBean> mods) {
     Integer minRating = null;
     Integer maxRating = null;
     boolean enforceRating;
@@ -466,20 +480,14 @@ public class CreateGameController extends NodeController<Pane> {
 
     enforceRating = enforceRankingCheckBox.isSelected();
 
-    NewGameInfo newGameInfo = new NewGameInfo(titleTextField.getText()
-        .trim(), Strings.emptyToNull(passwordTextField.getText()), featuredModListView.getSelectionModel()
-        .getSelectedItem(), mapVersion.getFolderName(), mods, onlyForFriendsCheckBox.isSelected() ? GameVisibility.PRIVATE : GameVisibility.PUBLIC, minRating, maxRating, enforceRating);
+    String featuredModName = featuredModListView.getSelectionModel().getSelectedItem().getTechnicalName();
+    NewGameInfo newGameInfo = new NewGameInfo(titleTextField.getText().trim(),
+                                              Strings.emptyToNull(passwordTextField.getText()), featuredModName,
+                                              mapVersion.getFolderName(), getUUIDsFromModVersions(mods),
+                                              onlyForFriendsCheckBox.isSelected() ? GameVisibility.PRIVATE : GameVisibility.PUBLIC,
+                                              minRating, maxRating, enforceRating);
 
-    gameService.hostGame(newGameInfo).exceptionally(throwable -> {
-      throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-      log.error("Game could not be hosted", throwable);
-      if (throwable instanceof NotifiableException notifiableException) {
-        notificationService.addErrorNotification(notifiableException);
-      } else {
-        notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
-      }
-      return null;
-    });
+    gameRunner.host(newGameInfo);
   }
 
   @Override

@@ -74,7 +74,6 @@ import java.util.stream.StreamSupport;
 
 import static com.faforever.client.notification.Severity.WARN;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
@@ -94,6 +93,7 @@ public class ReplayService {
   private final ReplayFileReader replayFileReader;
   private final NotificationService notificationService;
   private final GameService gameService;
+  private final ReplayRunner replayRunner;
   private final TaskService taskService;
   private final I18n i18n;
   private final PlatformService platformService;
@@ -240,7 +240,11 @@ public class ReplayService {
       return;
     }
 
-    notificationService.addNotification(new PersistentNotification(i18n.get("corruptedReplayFiles.notification"), WARN, singletonList(new Action(i18n.get("corruptedReplayFiles.show"), event -> platformService.reveal(replayFile)))));
+    notificationService.addNotification(new PersistentNotification(i18n.get("corruptedReplayFiles.notification"), WARN,
+                                                                   singletonList(
+                                                                       new Action(i18n.get("corruptedReplayFiles.show"),
+                                                                                  () -> platformService.reveal(
+                                                                                      replayFile)))));
   }
 
   public boolean deleteReplayFile(Path replayFile) {
@@ -368,7 +372,7 @@ public class ReplayService {
 
     Integer version = parseSupComVersion(replayData);
 
-    gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods, mapName);
+    replayRunner.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods, mapName);
   }
 
   private void runSupComReplayFile(Path path) throws IOException, CompressorException {
@@ -380,7 +384,7 @@ public class ReplayService {
     String gameType = guessModByFileName(fileName);
     Set<String> simMods = parseModUIDs(replayData);
 
-    gameService.runWithReplay(path, null, gameType, version, emptyMap(), simMods, mapName);
+    replayRunner.runWithReplay(path, null, gameType, version, Map.of(), simMods, mapName);
   }
 
   @Cacheable(value = CacheNames.REPLAYS_RECENT, sync = true)

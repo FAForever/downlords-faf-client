@@ -33,6 +33,8 @@ public class WatchButtonControllerTest extends PlatformTest {
   @Mock
   private LiveReplayService liveReplayService;
   @Mock
+  private ReplayRunner replayRunner;
+  @Mock
   private I18n i18n;
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
@@ -61,7 +63,7 @@ public class WatchButtonControllerTest extends PlatformTest {
 
     setGame(game);
     clickWatchButton();
-    verify(liveReplayService).runLiveReplay(game.getId());
+    verify(replayRunner).runWithLiveReplay(game);
     assertEquals("watch", instance.watchButton.getText());
   }
 

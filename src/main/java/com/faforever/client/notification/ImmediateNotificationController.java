@@ -47,9 +47,9 @@ public class ImmediateNotificationController extends NodeController<Node> {
     dialogLayout.setBody(immediateNotificationRoot);
   }
 
-  public ImmediateNotificationController setNotification(ImmediateNotification notification) {
+  public void setNotification(ImmediateNotification notification) {
     StringWriter writer = new StringWriter();
-    Throwable throwable = notification.getThrowable();
+    Throwable throwable = notification.throwable();
     if (throwable != null) {
       throwable.printStackTrace(new PrintWriter(writer));
       exceptionTextArea.setVisible(true);
@@ -62,22 +62,21 @@ public class ImmediateNotificationController extends NodeController<Node> {
       versionText.setVisible(false);
     }
 
-    dialogLayout.setHeading(new Label(notification.getTitle()));
-    notificationText.setText(notification.getText());
+    dialogLayout.setHeading(new Label(notification.title()));
+    notificationText.setText(notification.text());
 
-    Optional.ofNullable(notification.getActions())
+    Optional.ofNullable(notification.actions())
         .map(actions -> actions.stream().map(this::createButton).collect(Collectors.toList()))
         .ifPresent(dialogLayout::setActions);
-    if (notification.getCustomUI() != null) {
-      immediateNotificationRoot.getChildren().add(notification.getCustomUI());
+    if (notification.customUI() != null) {
+      immediateNotificationRoot.getChildren().add(notification.customUI());
     }
-    return this;
   }
 
   private Button createButton(Action action) {
     Button button = new Button(action.getTitle());
     button.setOnAction(event -> {
-      action.call(event);
+      action.run();
       if (action.getType() == Action.Type.OK_DONE) {
         dismiss();
       }
@@ -100,9 +99,8 @@ public class ImmediateNotificationController extends NodeController<Node> {
     return immediateNotificationRoot;
   }
 
-  public ImmediateNotificationController setCloseListener(Runnable closeListener) {
+  public void setCloseListener(Runnable closeListener) {
     this.closeListener = closeListener;
-    return this;
   }
 
   public DialogLayout getDialogLayout() {

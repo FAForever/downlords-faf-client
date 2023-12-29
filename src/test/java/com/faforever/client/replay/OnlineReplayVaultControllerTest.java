@@ -19,10 +19,7 @@ import com.faforever.client.vault.VaultEntityShowRoomController;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -40,6 +37,7 @@ import java.util.function.Consumer;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,6 +66,8 @@ public class OnlineReplayVaultControllerTest extends PlatformTest {
   private I18n i18n;
   @Mock
   private SearchController searchController;
+  @Mock
+  private ReplayCardController replayCardController;
 
   @Mock
   private ReportingService reportingService;
@@ -86,21 +86,22 @@ public class OnlineReplayVaultControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(replayDetailController.getRoot()).thenReturn(new Pane());
+    lenient().when(replayDetailController.getRoot()).thenReturn(new Pane());
 
-    when(uiService.loadFxml("theme/vault/replay/replay_detail.fxml")).thenReturn(replayDetailController);
-
-    when(featuredModService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(List.of()));
-    when(leaderboardService.getLeaderboards()).thenReturn(CompletableFuture.completedFuture(List.of()));
-    when(replayService.getNewestReplaysWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
-    when(replayService.getHighestRatedReplaysWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
-    when(replayService.findById(anyInt())).thenReturn(CompletableFuture.completedFuture(Optional.of(testReplay)));
-    when(replayService.getOwnReplaysWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
-    when(uiService.loadFxml("theme/vault/vault_entity_show_room.fxml")).thenReturn(vaultEntityShowRoomController);
-    when(vaultEntityShowRoomController.getRoot()).thenReturn(new VBox(), new VBox(), new VBox());
-    when(vaultEntityShowRoomController.getLabel()).thenReturn(new Label());
-    when(vaultEntityShowRoomController.getMoreButton()).thenReturn(new Button());
-    when(i18n.get(anyString())).thenReturn("test");
+    lenient().when(featuredModService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(List.of()));
+    lenient().when(leaderboardService.getLeaderboards()).thenReturn(CompletableFuture.completedFuture(List.of()));
+    lenient().when(replayService.getNewestReplaysWithPageCount(anyInt(), anyInt()))
+             .thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
+    lenient().when(replayService.getHighestRatedReplaysWithPageCount(anyInt(), anyInt()))
+             .thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
+    lenient().when(replayService.findById(anyInt()))
+             .thenReturn(CompletableFuture.completedFuture(Optional.of(testReplay)));
+    lenient().when(replayService.getOwnReplaysWithPageCount(anyInt(), anyInt()))
+             .thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
+    lenient().when(uiService.loadFxml("theme/vault/replay/replay_detail.fxml")).thenReturn(replayDetailController);
+    lenient().when(uiService.loadFxml("theme/vault/vault_entity_show_room.fxml"))
+             .thenReturn(vaultEntityShowRoomController);
+    lenient().when(i18n.get(anyString())).thenReturn("test");
 
     sortOrder = new VaultPrefs().getOnlineReplaySortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");

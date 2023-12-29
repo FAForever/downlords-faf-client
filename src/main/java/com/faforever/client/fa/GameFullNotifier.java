@@ -4,7 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.GameService;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -12,12 +12,10 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.ExecutorService;
-
-import static java.lang.Thread.sleep;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Starts flashing the Forged Alliance window whenever a {@link com.faforever.client.fa.relay.event.GameFullEvent} is
@@ -27,52 +25,44 @@ import static java.lang.Thread.sleep;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class GameFullNotifier implements InitializingBean {
+public class GameFullNotifier {
 
   private final PlatformService platformService;
-  private final ExecutorService executorService;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final MapService mapService;
-  private final GameService gameService;
+  private final GameRunner gameRunner;
   private final ClientProperties clientProperties;
 
-  private String faWindowTitle;
-  private long processId;
-
-  @Override
-  public void afterPropertiesSet() {
-    faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
-  }
+  private final Timer flashingWindowTimer = new Timer("Flashing Window", true);
 
   public void onGameFull() {
-    GameBean currentGame = gameService.getCurrentGame();
-    if (currentGame == null) {
+    if (!gameRunner.isRunning()) {
       throw new ProgrammingError("Got a GameFull notification but player is not in a game");
     }
-
-    processId = gameService.getRunningProcessId();
+    Long processId = gameRunner.getRunningProcessId();
+    GameBean runningGame = gameRunner.getRunningGame();
 
     if (platformService.getFocusedWindowProcessId() == processId) {
       log.debug("Game lobby window is focused. No need notify the user");
       return;
     }
 
-    executorService.execute(() -> {
-      platformService.startFlashingWindow(faWindowTitle, processId);
-      while (gameService.isGameRunning() && !platformService.isWindowFocused(faWindowTitle, processId)) {
-        try {
-          sleep(500);
-        } catch (InterruptedException e) {
-          throw new RuntimeException(e);
+    String faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
+    platformService.startFlashingWindow(faWindowTitle, processId);
+    flashingWindowTimer.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        if (!gameRunner.isRunning() || platformService.isWindowFocused(faWindowTitle, processId)) {
+          platformService.stopFlashingWindow(faWindowTitle, processId);
+          cancel();
         }
       }
-      platformService.stopFlashingWindow(faWindowTitle, processId);
-    });
+    }, 500, 500);
 
     notificationService.addNotification(new TransientNotification(i18n.get("game.full"), i18n.get("game.full.action"),
-        mapService.loadPreview(currentGame.getMapFolderName(), PreviewSize.SMALL),
-        v -> {
+                                                                  mapService.loadPreview(runningGame.getMapFolderName(),
+                                                                                         PreviewSize.SMALL), () -> {
           if (platformService.isWindowFocused(faWindowTitle)) {
             // Switching to the game lobby window from replay window may not work correctly (no interaction) for reasons:
             // 1) The game has full screen mode

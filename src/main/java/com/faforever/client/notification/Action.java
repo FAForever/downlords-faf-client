@@ -1,69 +1,58 @@
 package com.faforever.client.notification;
 
-import javafx.event.Event;
+import lombok.Getter;
 
 /**
- * Notifications have actions associated with it. This class represents such an action, which is usually displayed to
+ * Notifications have actions associated with it. This class represents such an onAction, which is usually displayed to
  * the user as a button.
  */
 public class Action {
 
-  public interface ActionCallback {
-
-    void call(Event event);
-  }
-
-  public enum Type {
-    OK_DONE,
-    OK_STAY
-  }
-
+  @Getter
   private final String title;
-  private final ActionCallback callback;
+  private final Runnable onAction;
+  @Getter
   private final Type type;
 
-  public Action(ActionCallback callback) {
-    this(null, Type.OK_DONE, callback);
+  public Action(Runnable onAction) {
+    this(null, Type.OK_DONE, onAction);
   }
 
   /**
-   * Creates an action that calls the specified callback when executed. Also, a type is specified that
+   * Creates an onAction that calls the specified callback when executed. Also, a type is specified that
    */
-  public Action(String title, Type type, ActionCallback callback) {
+  public Action(String title, Type type, Runnable onAction) {
     this.title = title;
     this.type = type;
-    this.callback = callback;
+    this.onAction = onAction;
   }
 
   /**
-   * Creates an action that does nothing.
+   * Creates an onAction that does nothing.
    */
   public Action(String title) {
     this(title, Type.OK_DONE, null);
   }
 
   /**
-   * Creates an action that calls the specified callback when executed. The action will have the default action type
+   * Creates an onAction that calls the specified callback when executed. The onAction will have the default onAction type
    * {@link com.faforever.client.notification.Action.Type#OK_DONE}.
    */
-  public Action(String title, ActionCallback callback) {
-    this(title, Type.OK_DONE, callback);
+  public Action(String title, Runnable onAction) {
+    this(title, Type.OK_DONE, onAction);
   }
 
   /**
    * Calls the specified callback, if any. Subclasses may override.
    */
-  public void call(Event event) {
-    if (callback != null) {
-      callback.call(event);
+  public void run() {
+    if (onAction != null) {
+      onAction.run();
     }
   }
 
-  public String getTitle() {
-    return title;
-  }
-
-  public Type getType() {
-    return type;
+  public enum Type {
+    OK_DONE,
+    OK_STAY
   }
 }

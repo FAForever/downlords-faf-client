@@ -2,6 +2,7 @@ package com.faforever.client.mapstruct;
 
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fa.GameParameters;
+import com.faforever.client.fa.GameParameters.League;
 import com.faforever.client.util.TimeUtil;
 import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameInfo.TeamIds;
@@ -19,8 +20,10 @@ import java.util.stream.Collectors;
 @Mapper(collectionMappingStrategy = CollectionMappingStrategy.TARGET_IMMUTABLE, config = MapperConfiguration.class)
 public abstract class GameMapper {
 
-  @Mapping(target = "additionalArgs", source = "args")
-  public abstract GameParameters map(GameLaunchResponse dto);
+  @Mapping(target = "additionalArgs", source = "dto.args")
+  @Mapping(target = "featuredMod", source = "dto.featureMod")
+  @Mapping(target = ".", source = "dto")
+  public abstract GameParameters map(GameLaunchResponse dto, League league);
   
   @Mapping(target = "status", source = "state")
   @Mapping(target = "mapFolderName", source = "mapName")

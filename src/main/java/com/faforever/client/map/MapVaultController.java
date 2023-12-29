@@ -148,7 +148,7 @@ return List.of(
   @Override
   public void onUploadButtonClicked() {
     platformService.askForPath(i18n.get("mapVault.upload.chooseDirectory"), forgedAlliancePrefs.getMapsDirectory())
-        .ifPresent(this::openUploadWindow);
+                   .thenAccept(possiblePath -> possiblePath.ifPresent(this::openUploadWindow));
   }
 
   @Override

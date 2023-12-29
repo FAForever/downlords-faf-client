@@ -64,7 +64,7 @@ public class GameDetailControllerTest extends PlatformTest {
   @Mock
   private PlayerService playerService;
   @Mock
-  private JoinGameHelper joinGameHelper;
+  private GameRunner gameRunner;
   @Mock
   private TimeService timeService;
   @Mock
@@ -206,7 +206,7 @@ public class GameDetailControllerTest extends PlatformTest {
   @Test
   public void testJoinGame() {
     instance.onJoinButtonClicked();
-    verify(joinGameHelper).join(game);
+    verify(gameRunner).join(game);
   }
 
   @Test

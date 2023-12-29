@@ -1,7 +1,7 @@
 package com.faforever.client.fa.debugger;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.fa.ForgedAllianceService;
+import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.task.CompletableTask;
@@ -34,19 +34,19 @@ public class DownloadFAFDebuggerTask extends CompletableTask<Void> {
   private final ClientProperties clientProperties;
   private final I18n i18n;
   private final PlatformService platformService;
-  private final ForgedAllianceService forgedAllianceService;
+  private final ForgedAllianceLaunchService forgedAllianceLaunchService;
   private final WebClient defaultWebClient;
 
   @Autowired
   public DownloadFAFDebuggerTask(ClientProperties clientProperties, I18n i18n, PlatformService platformService,
-                                 ForgedAllianceService forgedAllianceService,
+                                 ForgedAllianceLaunchService forgedAllianceLaunchService,
                                  WebClient defaultWebClient) {
     super(Priority.HIGH);
 
     this.clientProperties = clientProperties;
     this.i18n = i18n;
     this.platformService = platformService;
-    this.forgedAllianceService = forgedAllianceService;
+    this.forgedAllianceLaunchService = forgedAllianceLaunchService;
     this.defaultWebClient = defaultWebClient;
   }
 
@@ -67,7 +67,7 @@ public class DownloadFAFDebuggerTask extends CompletableTask<Void> {
 
     URLConnection urlConnection = url.openConnection();
 
-    Path targetFile = forgedAllianceService.getDebuggerExecutablePath();
+    Path targetFile = forgedAllianceLaunchService.getDebuggerExecutablePath();
     Path tempFile = Files.createTempFile(targetFile.getParent(), "debugger", null);
 
     ResourceLocks.acquireDownloadLock();

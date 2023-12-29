@@ -173,27 +173,9 @@ img.country-flag {
   font-style: italic;
 }
 
-.username.friend {
-  color: #16B7EB;
-}
+/* Mentions */
 
-.username.foe {
-  /* Same as -bad */
-  color: #f44336;
-}
-
-.username.moderator {
-  color: #FFFFFF;
-}
-
-.username.chat_only {
-  color: #808080;
-}
-
-/* Username and mentions */
-
-.self,
-.username.self {
+.self {
   color: #FFA500;
 }
 

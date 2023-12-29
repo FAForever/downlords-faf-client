@@ -61,7 +61,7 @@ public class PreferencesService implements InitializingBean {
     }
   }
 
-  public boolean isValidGamePath() {
+  public boolean hasValidGamePath() {
     Path installationPath = preferences.getForgedAlliance().getInstallationPath();
     try {
       return isGamePathValidWithErrorMessage(installationPath) == null;

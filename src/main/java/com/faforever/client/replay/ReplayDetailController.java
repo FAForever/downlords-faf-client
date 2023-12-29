@@ -154,8 +154,7 @@ public class ReplayDetailController extends NodeController<Node> {
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(downloadMoreInfoButton, moreInformationPane, teamsInfoBox, reviewsContainer,
                                     ratingSeparator, reviewSeparator, deleteButton, getRoot());
-
-    imageViewHelper.setDefaultPlaceholderImage(mapThumbnailImageView);
+    
     JavaFxUtil.bindManagedToVisible(notRatedReasonLabel, showRatingChangeButton);
     contextMenuBuilder.addCopyLabelContextMenu(onMapLabel, titleLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
@@ -222,7 +221,6 @@ public class ReplayDetailController extends NodeController<Node> {
                                                        () -> mapService.loadPreview(mapVersion, PreviewSize.SMALL),
                                                        mapService.isInstalledBinding(mapVersion)))
                                                    .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
-                                                   .orElse(imageViewHelper.getDefaultPlaceholderImage())
                                                    .when(showing));
     onMapLabel.textProperty()
               .bind(mapVersionObservable.flatMap(MapVersionBean::mapProperty)
@@ -505,7 +503,7 @@ public class ReplayDetailController extends NodeController<Node> {
         new ImmediateNotification(i18n.get("replay.deleteNotification.heading", replay.get().getTitle()),
                                   i18n.get("replay.deleteNotification.info"), Severity.INFO,
                                   Arrays.asList(new Action(i18n.get("cancel")),
-                                                new Action(i18n.get("delete"), event -> deleteReplay()))));
+                                                new Action(i18n.get("delete"), this::deleteReplay))));
   }
 
   public void setOnDeleteListener(Runnable onDeleteListener) {

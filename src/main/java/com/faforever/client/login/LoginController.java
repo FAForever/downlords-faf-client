@@ -8,9 +8,12 @@ import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.GameService;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ServerNotification;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -21,6 +24,7 @@ import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.ConcurrentUtil;
+import com.faforever.commons.lobby.LoginException;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.scene.control.Button;
@@ -41,10 +45,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -55,7 +57,7 @@ import java.util.concurrent.CompletableFuture;
 public class LoginController extends NodeController<Pane> {
 
   private final OperatingSystem operatingSystem;
-  private final GameService gameService;
+  private final GameRunner gameRunner;
   private final LoginService loginService;
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
@@ -85,13 +87,11 @@ public class LoginController extends NodeController<Pane> {
   public TextField ircServerPortField;
   public TextField apiBaseUrlField;
   public TextField oauthBaseUrlField;
-  public TextField oauthRedirectUriField;
   public CheckBox rememberMeCheckBox;
   @VisibleForTesting
   CompletableFuture<UpdateInfo> updateInfoFuture;
   private CompletableFuture<Void> initializeFuture;
-  private String state;
-  private String verifier;
+  private CompletableFuture<Void> loginFuture;
 
   @Override
   protected void onInitialize() {
@@ -140,10 +140,6 @@ public class LoginController extends NodeController<Pane> {
     JavaFxUtil.addListener(
         oauthBaseUrlField.textProperty(),
         observable -> clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText())
-    );
-    JavaFxUtil.addListener(
-        oauthRedirectUriField.textProperty(),
-        observable -> clientProperties.getOauth().setRedirectUri(URI.create(oauthRedirectUriField.getText()))
     );
 
     if (clientProperties.isUseRemotePreferences()) {
@@ -223,7 +219,6 @@ public class LoginController extends NodeController<Pane> {
       ircServerPortField.setText(String.valueOf(irc.getPort()));
       apiBaseUrlField.setText(clientProperties.getApi().getBaseUrl());
       oauthBaseUrlField.setText(clientProperties.getOauth().getBaseUrl());
-      oauthRedirectUriField.setText(clientProperties.getOauth().getRedirectUri().toASCIIString());
     });
   }
 
@@ -244,7 +239,12 @@ public class LoginController extends NodeController<Pane> {
         });
   }
 
-  public CompletableFuture<Void> onLoginButtonClicked() {
+  public void onLoginButtonClicked() {
+    if (loginFuture != null && !loginFuture.isDone()) {
+      oAuthValuesReceiver.openBrowserToLogin();
+      return;
+    }
+
     initializeFuture.join();
 
     clientProperties.getUser()
@@ -261,49 +261,17 @@ public class LoginController extends NodeController<Pane> {
     clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
     clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText());
 
-    List<URI> redirectUriCandidates = new ArrayList<>();
+    String state = RandomStringUtils.randomAlphanumeric(64, 128);
+    String verifier = RandomStringUtils.randomAlphanumeric(64, 128);
 
-    if (!oauthRedirectUriField.getText().isBlank()) {
-      redirectUriCandidates.add(URI.create(oauthRedirectUriField.getText()));
-    }
-
-    ServerEndpoints endpoint = environmentComboBox.getValue();
-
-    if (endpoint != null) {
-      redirectUriCandidates.addAll(endpoint.getOauth().getRedirectUris());
-    }
-
-    if (state == null) {
-      state = RandomStringUtils.randomAlphanumeric(64, 128);
-    }
-
-    if (verifier == null) {
-      verifier = RandomStringUtils.randomAlphanumeric(64, 128);
-    }
-
-    return oAuthValuesReceiver.receiveValues(redirectUriCandidates, state, verifier)
-        .thenCompose(values -> {
-          platformService.focusWindow(i18n.get("login.title"));
-          String actualState = values.state();
-          if (!state.equals(actualState)) {
-            handleInvalidSate(actualState, state);
-            return CompletableFuture.completedFuture(null);
-          }
-          return loginWithCode(values.code(), values.redirectUri(), verifier).toFuture();
-        }).thenAccept(aVoid -> {
-          state = null;
-          verifier = null;
-        })
-        .exceptionally(throwable -> onLoginFailed(ConcurrentUtil.unwrapIfCompletionException(throwable)));
-  }
-
-  private void handleInvalidSate(String actualState, String expectedState) {
-    showLoginForm();
-    log.warn("Reported state does not match. Expected `{}` but got `{}`", expectedState, actualState);
-    notificationService.addImmediateErrorNotification(
-        new IllegalStateException("State returned by the server does not match expected state"),
-        "login.failed"
-    );
+    loginFuture = oAuthValuesReceiver.receiveValues(state, verifier).thenCompose(values -> {
+      platformService.focusWindow(i18n.get("login.title"));
+      String actualState = values.state();
+      if (!state.equals(actualState)) {
+        throw new IllegalStateException("State returned by the server does not match expected state");
+      }
+      return loginWithCode(values.code(), values.redirectUri(), verifier).toFuture();
+    }).exceptionally(throwable -> onLoginFailed(ConcurrentUtil.unwrapIfCompletionException(throwable)));
   }
 
   private Mono<Void> loginWithCode(String code, URI redirectUri, String codeVerifier) {
@@ -320,8 +288,12 @@ public class LoginController extends NodeController<Pane> {
     if (throwable instanceof SocketTimeoutException) {
       log.info("Login request timed out", throwable);
       notificationService.addImmediateWarnNotification("login.timeout");
+    } else if (throwable instanceof LoginException loginException) {
+      notificationService.addNotification(
+          new ServerNotification(i18n.get("login.failed"), loginException.getMessage(), Severity.ERROR,
+                                 List.of(new DismissAction(i18n))));
     } else {
-      log.error("Could not log in with code", throwable);
+      log.error("Could not log in", throwable);
       notificationService.addImmediateErrorNotification(throwable, "login.failed");
     }
 
@@ -334,6 +306,7 @@ public class LoginController extends NodeController<Pane> {
     loginService.loginWithRefreshToken().toFuture()
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+          onLoginFailed(throwable);
           showLoginForm();
 
           log.error("Could not log in with refresh token", throwable);
@@ -358,12 +331,7 @@ public class LoginController extends NodeController<Pane> {
   }
 
   public void onPlayOfflineButtonClicked() {
-    try {
-      gameService.startGameOffline();
-    } catch (IOException e) {
-      notificationService.addImmediateWarnNotification("offline.noExe");
-    }
-
+    gameRunner.startOffline();
   }
 
   @Override

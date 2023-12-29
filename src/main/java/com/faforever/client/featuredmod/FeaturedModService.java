@@ -5,6 +5,7 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.FeaturedModMapper;
+import com.faforever.client.patch.GameUpdater;
 import com.faforever.commons.api.dto.FeaturedMod;
 import com.faforever.commons.api.dto.FeaturedModFile;
 import com.faforever.commons.api.elide.ElideNavigator;
@@ -32,6 +33,16 @@ public class FeaturedModService {
 
   private final FafApiAccessor fafApiAccessor;
   private final FeaturedModMapper featuredModMapper;
+  private final GameUpdater gameUpdater;
+
+  public CompletableFuture<Void> updateFeaturedMod(String featuredModName, Map<String, Integer> featuredModFileVersions,
+                                                   Integer baseVersion, boolean forReplays) {
+    return gameUpdater.update(featuredModName, featuredModFileVersions, baseVersion, forReplays);
+  }
+
+  public CompletableFuture<Void> updateFeaturedModToLatest(String featuredModName, boolean forReplays) {
+    return updateFeaturedMod(featuredModName, null, null, forReplays);
+  }
 
   @Cacheable(value = CacheNames.FEATURED_MOD_FILES, sync = true)
   public CompletableFuture<List<FeaturedModFile>> getFeaturedModFiles(FeaturedModBean featuredMod, Integer version) {

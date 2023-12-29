@@ -76,10 +76,11 @@ public class TransientNotificationsControllerTest extends PlatformTest {
     when(uiService.loadFxml("theme/transient_notification.fxml")).thenReturn(controller);
 
     TransientNotification notification1 = new TransientNotification("title1", "text1");
-    instance.addNotification(notification1);
+    runOnFxThreadAndWait(() -> instance.addNotification(notification1));
 
     TransientNotification notification2 = new TransientNotification("title2", "text2");
-    instance.addNotification(notification2);
+    runOnFxThreadAndWait(() -> instance.addNotification(notification2));
+
 
     assertThat(instance.transientNotificationsRoot.getChildren(), hasSize(2));
     verify(controller).setNotification(notification1);

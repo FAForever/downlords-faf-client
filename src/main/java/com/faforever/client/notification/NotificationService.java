@@ -3,20 +3,21 @@ package com.faforever.client.notification;
 import com.faforever.client.exception.MajorNotifiableException;
 import com.faforever.client.exception.MinorNotifiableException;
 import com.faforever.client.exception.NotifiableException;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.StageHolder;
+import com.faforever.client.ui.alert.Alert;
+import com.faforever.client.ui.alert.animation.AlertAnimation;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
-import javafx.collections.SetChangeListener;
 import javafx.scene.Parent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeSet;
 
 import static com.faforever.client.notification.Severity.ERROR;
@@ -32,81 +33,37 @@ import static javafx.collections.FXCollections.synchronizedObservableSet;
 @RequiredArgsConstructor
 public class NotificationService {
 
-  private final ObservableSet<PersistentNotification> persistentNotifications = synchronizedObservableSet(observableSet(new TreeSet<>()));
-  private final List<OnTransientNotificationListener> onTransientNotificationListeners = new ArrayList<>();
-  private final List<OnImmediateNotificationListener> onImmediateNotificationListeners = new ArrayList<>();
-  private final List<OnImmediateNotificationListener> onServerNotificationListeners = new ArrayList<>();
+  private final UiService uiService;
   private final ReportingService reportingService;
   private final I18n i18n;
+  private final ToastDisplayer toastDisplayer;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  /**
-   * Adds a {@link PersistentNotification} to be displayed.
-   */
-  
-  public void addNotification(PersistentNotification notification) {
-    persistentNotifications.add(notification);
+  private final ObservableSet<PersistentNotification> persistentNotifications = synchronizedObservableSet(observableSet(new TreeSet<>()));
+
+  public ObservableSet<PersistentNotification> getPersistentNotifications() {
+    return FXCollections.unmodifiableObservableSet(persistentNotifications);
   }
 
-  /**
-   * Adds a {@link TransientNotification} to be displayed.
-   */
-  
-  public void addNotification(TransientNotification notification) {
-    onTransientNotificationListeners.forEach(listener -> listener.onTransientNotification(notification));
+  public void addNotification(Notification notification) {
+    switch (notification) {
+      case ImmediateNotification immediateNotification -> displayImmediateNotification(immediateNotification);
+      case ServerNotification serverNotification -> displayServerNotification(serverNotification);
+      case PersistentNotification persistentNotification -> persistentNotifications.add(persistentNotification);
+      case TransientNotification transientNotification -> toastDisplayer.addNotification(transientNotification);
+    }
   }
 
-  /**
-   * Adds a {@link ImmediateNotification} to be displayed.
-   */
-
-  public void addNotification(ImmediateNotification notification) {
-    onImmediateNotificationListeners.forEach(listener -> listener.onImmediateNotification(notification));
+  public void removeNotification(Notification notification) {
+    switch (notification) {
+      case PersistentNotification persistentNotification -> persistentNotifications.remove(persistentNotification);
+      case ImmediateNotification ignored -> {}
+      case ServerNotification ignored -> {}
+      case TransientNotification ignored -> {}
+    }
   }
 
-  /**
-   * Adds a {@link ImmediateNotification} to be displayed.
-   */
-
-  public void addServerNotification(ImmediateNotification notification) {
-    onServerNotificationListeners.forEach(listener -> listener.onImmediateNotification(notification));
-  }
-
-  /**
-   * Adds a listener to be notified about added/removed {@link PersistentNotification}s
-   */
-
-  public void addPersistentNotificationListener(SetChangeListener<PersistentNotification> listener) {
-    JavaFxUtil.addListener(persistentNotifications, listener);
-  }
-
-  /**
-   * Adds a listener to be notified whenever a {@link TransientNotification} has been fired.
-   */
-  
-  public void addTransientNotificationListener(OnTransientNotificationListener listener) {
-    onTransientNotificationListeners.add(listener);
-  }
-
-  
-  public Set<PersistentNotification> getPersistentNotifications() {
-    return Collections.unmodifiableSet(persistentNotifications);
-  }
-
-
-  public void removeNotification(PersistentNotification notification) {
-    persistentNotifications.remove(notification);
-  }
-
-
-  public void addImmediateNotificationListener(OnImmediateNotificationListener listener) {
-    onImmediateNotificationListeners.add(listener);
-  }
-
-  public void addServerNotificationListener(OnImmediateNotificationListener listener) {
-    onServerNotificationListeners.add(listener);
-  }
-
-  public void addPersistentErrorNotification(Throwable throwable, String messageKey, Object... args) {
+  public void addPersistentErrorNotification(String messageKey, Object... args) {
     addNotification(new PersistentNotification(i18n.get(messageKey, args), ERROR, singletonList(new GetHelpAction(i18n, reportingService))));
   }
 
@@ -122,9 +79,10 @@ public class NotificationService {
   public void addErrorNotification(NotifiableException throwable) {
     switch (throwable) {
       case MajorNotifiableException majorNotifiableException ->
-          addImmediateErrorNotification(throwable.getCause(), throwable.getI18nKey(), throwable.getI18nArgs());
+          addImmediateErrorNotification(majorNotifiableException.getCause(), majorNotifiableException.getI18nKey(),
+                                        majorNotifiableException.getI18nArgs());
       case MinorNotifiableException minorNotifiableException ->
-          addPersistentErrorNotification(throwable.getCause(), throwable.getI18nKey(), throwable.getI18nArgs());
+          addPersistentErrorNotification(minorNotifiableException.getI18nKey(), minorNotifiableException.getI18nArgs());
     }
   }
 
@@ -138,5 +96,36 @@ public class NotificationService {
 
   public void addImmediateInfoNotification(String messageKey, Object... args) {
     addNotification(new ImmediateNotification("", i18n.get(messageKey, args), INFO, List.of(new OkAction(i18n))));
+  }
+
+  private void displayImmediateNotification(ImmediateNotification notification) {
+    ImmediateNotificationController controller = uiService.loadFxml("theme/immediate_notification.fxml");
+
+    controller.setNotification(notification);
+
+    fxApplicationThreadExecutor.execute(() -> {
+      Alert<?> dialog = new Alert<>(StageHolder.getStage());
+
+      controller.setCloseListener(dialog::close);
+
+      dialog.setContent(controller.getDialogLayout());
+      dialog.setAnimation(AlertAnimation.TOP_ANIMATION);
+      dialog.show();
+    });
+  }
+
+  private void displayServerNotification(ServerNotification notification) {
+    fxApplicationThreadExecutor.execute(() -> {
+      ServerNotificationController controller = uiService.loadFxml("theme/server_notification.fxml");
+      controller.setNotification(notification);
+
+      Alert<?> dialog = new Alert<>(StageHolder.getStage());
+
+      controller.setCloseListener(dialog::close);
+
+      dialog.setContent(controller.getDialogLayout());
+      dialog.setAnimation(AlertAnimation.TOP_ANIMATION);
+      dialog.show();
+    });
   }
 }

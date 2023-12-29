@@ -70,7 +70,7 @@ public class AchievementService {
           null, ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE);
     } catch (MalformedURLException e) {
       log.warn("Could not load achievement image bad url for achievement: {}", achievementDefinition.getName(), e);
-      notificationService.addPersistentErrorNotification(e, "achievements.load.badUrl", achievementDefinition.getName());
+      notificationService.addPersistentErrorNotification("achievements.load.badUrl", achievementDefinition.getName());
       return null;
     }
   }

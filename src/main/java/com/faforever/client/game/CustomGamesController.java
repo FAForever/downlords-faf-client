@@ -12,7 +12,6 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
-import com.faforever.client.ui.preferences.GameDirectoryRequiredHandler;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
@@ -39,9 +38,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Path;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 @Component
@@ -51,10 +47,11 @@ import java.util.function.Predicate;
 public class CustomGamesController extends NodeController<Node> {
 
   private final UiService uiService;
+  private final GameRunner gameRunner;
   private final GameService gameService;
   private final I18n i18n;
   private final Preferences preferences;
-  private final GameDirectoryRequiredHandler gameDirectoryRequiredHandler;
+  private final GamePathHandler gamePathHandler;
 
   public GameDetailController gameDetailController;
 
@@ -82,7 +79,7 @@ public class CustomGamesController extends NodeController<Node> {
 
     initializeFilterController();
 
-    createGameButton.disableProperty().bind(gameService.gameRunningProperty().when(showing));
+    createGameButton.disableProperty().bind(gameRunner.runningProperty().when(showing));
 
     chooseSortingTypeChoiceBox.getItems().addAll(TilesSortingOrder.values());
     chooseSortingTypeChoiceBox.setConverter(new ToStringOnlyConverter<>(tilesSortingOrder -> tilesSortingOrder == null ? "null" : i18n.get(tilesSortingOrder.getDisplayNameKey())));
@@ -153,9 +150,7 @@ public class CustomGamesController extends NodeController<Node> {
 
   private void onCreateGame(@Nullable String mapFolderName) {
     if (preferences.getForgedAlliance().getInstallationPath() == null) {
-      CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
-      gameDirectoryRequiredHandler.onChooseGameDirectory(gameDirectoryFuture);
-      gameDirectoryFuture.thenAccept(path -> Optional.ofNullable(path).ifPresent(path1 -> onCreateGame(null)));
+      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(ignored -> onCreateGame(null));
       return;
     }
 

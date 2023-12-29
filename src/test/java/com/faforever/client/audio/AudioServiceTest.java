@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 public class AudioServiceTest extends ServiceTest {
 
+  public static final int SILENCE_BETWEEN_SOUNDS = 100;
   @InjectMocks
   private AudioService instance;
 
@@ -48,6 +49,7 @@ public class AudioServiceTest extends ServiceTest {
     notificationPrefs.setFriendOnlineSoundEnabled(true);
     notificationPrefs.setFriendPlaysGameSoundEnabled(true);
     notificationPrefs.setFriendOfflineSoundEnabled(true);
+    notificationPrefs.setSilenceBetweenSounds(SILENCE_BETWEEN_SOUNDS);
 
     instance.afterPropertiesSet();
   }
@@ -105,7 +107,7 @@ public class AudioServiceTest extends ServiceTest {
   public void testSoundTurnedBackOn() {
     instance.playChatMentionSound();
 
-    WaitForAsyncUtils.sleep(35, TimeUnit.SECONDS);
+    WaitForAsyncUtils.sleep(SILENCE_BETWEEN_SOUNDS + 1, TimeUnit.MILLISECONDS);
 
     instance.playChatMentionSound();
 

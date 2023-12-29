@@ -7,6 +7,7 @@ import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.game.GamePrefsService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
@@ -59,10 +60,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -88,8 +87,6 @@ import static org.mockito.Mockito.when;
 public class ModServiceTest extends PlatformTest {
 
   public static final String BLACK_OPS_UNLEASHED_DIRECTORY_NAME = "BlackOpsUnleashed";
-  private static final ClassPathResource BLACKOPS_SUPPORT_MOD_INFO = new ClassPathResource(
-      "/mods/blackops_support_mod_info.lua");
   private static final ClassPathResource BLACKOPS_UNLEASHED_MOD_INFO = new ClassPathResource(
       "/mods/blackops_unleashed_mod_info.lua");
   private static final long TIMEOUT = 5000;
@@ -98,6 +95,8 @@ public class ModServiceTest extends PlatformTest {
   @TempDir
   public Path tempDirectory;
 
+  @Mock
+  private GamePrefsService gamePrefsService;
   @Mock
   private ThemeService themeService;
   @Mock
@@ -132,20 +131,17 @@ public class ModServiceTest extends PlatformTest {
   private ModService instance;
 
   private Path modsDirectory;
-  private Path gamePrefsPath;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new ModService(fafApiAccessor, taskService, notificationService, i18n, platformService, assetService,
+    instance = new ModService(fafApiAccessor, gamePrefsService, taskService, notificationService, i18n, platformService,
+                              assetService,
                               themeService, fileSizeReader, modMapper, forgedAlliancePrefs, preferences,
                               modUploadTaskFactory, downloadModTaskFactory, uninstallModTaskFactory,
                               fxApplicationThreadExecutor);
     MapperSetup.injectMappers(modMapper);
     modsDirectory = tempDirectory.resolve("mods");
     Files.createDirectories(modsDirectory);
-    gamePrefsPath = tempDirectory.resolve("game.prefs");
-
-    forgedAlliancePrefs.setPreferencesFile(gamePrefsPath);
     forgedAlliancePrefs.setVaultBaseDirectory(tempDirectory);
 
     doAnswer(invocation -> {
@@ -185,12 +181,11 @@ public class ModServiceTest extends PlatformTest {
 
     when(downloadModTaskFactory.getObject()).thenReturn(task);
 
-    URL modUrl = URI.create("http://example.com/some/mod.zip").toURL();
-
     StringProperty stringProperty = new SimpleStringProperty();
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
-    instance.downloadAndInstallMod(modUrl, doubleProperty, stringProperty)
+    instance.downloadIfNecessary(ModVersionBeanBuilder.create().defaultValues().get(), doubleProperty,
+                                 stringProperty)
             .toCompletableFuture()
             .get(TIMEOUT, TIMEOUT_UNIT);
 
@@ -215,43 +210,12 @@ public class ModServiceTest extends PlatformTest {
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
     ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().downloadUrl(modUrl).get();
-    instance.downloadAndInstallMod(modVersion, doubleProperty, stringProperty)
+    instance.downloadIfNecessary(modVersion, doubleProperty, stringProperty)
             .toCompletableFuture()
             .get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
-  }
-
-  @Test
-  public void testEnableSimModsClean() throws Exception {
-    Files.createFile(gamePrefsPath);
-
-    HashSet<String> simMods = new HashSet<>();
-    simMods.add("9e8ea941-c306-4751-b367-f00000000005");
-    simMods.add("9e8ea941-c306-4751-b367-a11000000502");
-    instance.enableSimMods(simMods);
-
-    List<String> lines = Files.readAllLines(gamePrefsPath);
-
-    assertThat(lines, contains("active_mods = {", "    ['9e8ea941-c306-4751-b367-f00000000005'] = true,",
-                               "    ['9e8ea941-c306-4751-b367-a11000000502'] = true", "}"));
-  }
-
-  @Test
-  public void testEnableSimModsModDisableUnselectedMods() throws Exception {
-    Iterable<? extends CharSequence> lines = Arrays.asList("active_mods = {",
-                                                           "    ['9e8ea941-c306-4751-b367-f00000000005'] = true,",
-                                                           "    ['9e8ea941-c306-4751-b367-a11000000502'] = true", "}");
-    Files.write(gamePrefsPath, lines);
-
-    HashSet<String> simMods = new HashSet<>();
-    simMods.add("9e8ea941-c306-4751-b367-a11000000502");
-    instance.enableSimMods(simMods);
-
-    lines = Files.readAllLines(gamePrefsPath);
-
-    assertThat(lines, contains("active_mods = {", "    ['9e8ea941-c306-4751-b367-a11000000502'] = true", "}"));
   }
 
   @Test
@@ -355,9 +319,6 @@ public class ModServiceTest extends PlatformTest {
 
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(dto));
 
-    Files.createFile(gamePrefsPath);
-
-
     Collection<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
 
     verify(taskService, times(0)).submitTask(any(DownloadModTask.class));
@@ -387,8 +348,6 @@ public class ModServiceTest extends PlatformTest {
     ModVersion dto = modMapper.map(modVersion, new CycleAvoidingMappingContext());
 
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(dto));
-
-    Files.createFile(gamePrefsPath);
 
     when(downloadModTaskFactory.getObject()).thenReturn(stubDownloadModTask());
 

@@ -18,9 +18,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableIntegerValue;
 import javafx.beans.value.ObservableValue;
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.ToString;
 
 import java.time.OffsetDateTime;
@@ -53,7 +51,6 @@ public class GameBean {
   private final ObjectProperty<Integer> ratingMin = new SimpleObjectProperty<>();
   private final ObjectProperty<Integer> ratingMax = new SimpleObjectProperty<>();
   private final BooleanProperty passwordProtected = new SimpleBooleanProperty();
-  private final StringProperty password = new SimpleStringProperty();
   @ToString.Include
   private final ObjectProperty<GameStatus> status = new SimpleObjectProperty<>();
   private final ObjectProperty<VictoryCondition> victoryCondition = new SimpleObjectProperty<>();
@@ -65,14 +62,13 @@ public class GameBean {
    */
   private final ReadOnlyObjectWrapper<Map<String, String>> simMods = new ReadOnlyObjectWrapper<>(Map.of());
   private final ReadOnlyObjectWrapper<Map<Integer, List<Integer>>> teams = new ReadOnlyObjectWrapper<>(Map.of());
-  ObservableValue<Set<Integer>> allPlayersInGame = teams.map(team -> team.values()
+  private final ObservableValue<Set<Integer>> allPlayersInGame = teams.map(team -> team.values()
       .stream()
       .flatMap(Collection::stream)
       .collect(Collectors.toSet()))
       .orElse(Collections.emptySet());
 
-  @Getter(AccessLevel.NONE)
-  ObservableValue<Set<Integer>> activePlayersInGame = teams.map(team -> team.entrySet()
+  private final ObservableValue<Set<Integer>> activePlayersInGame = teams.map(team -> team.entrySet()
       .stream()
       .filter(entry -> OBSERVERS_TEAM != entry.getKey())
       .map(Entry::getValue)
@@ -284,18 +280,6 @@ public class GameBean {
 
   public void setPasswordProtected(Boolean passwordProtected) {
     this.passwordProtected.setValue(passwordProtected);
-  }
-
-  public String getPassword() {
-    return password.get();
-  }
-
-  public void setPassword(String password) {
-    this.password.set(password);
-  }
-
-  public StringProperty passwordProperty() {
-    return password;
   }
 
   public OffsetDateTime getStartTime() {

@@ -30,6 +30,7 @@ public class NotificationPrefs {
   private final BooleanProperty notifyOnAtMentionOnlyEnabled = new SimpleBooleanProperty(false);
   private final IntegerProperty toastScreen = new SimpleIntegerProperty(0);
   private final IntegerProperty toastDisplayTime = new SimpleIntegerProperty(5000);
+  private final IntegerProperty silenceBetweenSounds = new SimpleIntegerProperty(30000);
   private final BooleanProperty afterGameReviewEnabled = new SimpleBooleanProperty(true);
 
   public boolean isSoundsEnabled() {
@@ -260,7 +261,7 @@ public class NotificationPrefs {
     return toastDisplayTime;
   }
 
-  public boolean getNotifyOnAtMentionOnlyEnabled() {
+  public boolean isNotifyOnAtMentionOnlyEnabled() {
     return notifyOnAtMentionOnlyEnabled.get();
   }
 
@@ -282,5 +283,17 @@ public class NotificationPrefs {
 
   public BooleanProperty afterGameReviewEnabledProperty() {
     return afterGameReviewEnabled;
+  }
+
+  public int getSilenceBetweenSounds() {
+    return silenceBetweenSounds.get();
+  }
+
+  public IntegerProperty silenceBetweenSoundsProperty() {
+    return silenceBetweenSounds;
+  }
+
+  public void setSilenceBetweenSounds(int silenceBetweenSounds) {
+    this.silenceBetweenSounds.set(silenceBetweenSounds);
   }
 }

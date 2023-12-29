@@ -281,9 +281,4 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     iceAdapterProxy.quit();
     peer = null;
   }
-
-  @Override
-  public void onGameCloseRequested() {
-    stop();
-  }
 }

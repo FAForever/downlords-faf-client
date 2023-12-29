@@ -3,6 +3,7 @@ package com.faforever.client.theme;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.exception.FxmlLoadException;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.ui.dialog.Dialog;
@@ -41,6 +42,7 @@ public class UiService implements InitializingBean {
   private final MessageSource messageSource;
   private final ApplicationContext applicationContext;
   private final I18n i18n;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final ReentrantLock fxmlLoadLock = new ReentrantLock(true);
 
@@ -118,7 +120,7 @@ public class UiService implements InitializingBean {
       }
     });
 
-    dialog.show(parent);
+    fxApplicationThreadExecutor.execute(() -> dialog.show(parent));
     return dialog;
   }
 

@@ -5,6 +5,7 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.LeaderboardBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.chat.ChatChannel;
 import com.faforever.client.chat.ChatListItem;
 import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.domain.LeaderboardBean;
@@ -38,6 +39,8 @@ import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
 public class ChatUserFilterControllerTest extends PlatformTest {
+
+  private static final ChatChannel CHANNEL = new ChatChannel("channel");
 
   @Mock
   private UiService uiService;
@@ -79,10 +82,11 @@ public class ChatUserFilterControllerTest extends PlatformTest {
     verify(clanFilter).registerListener(argumentCaptor.capture());
 
     ChatListItem category = new ChatListItem(null, ChatUserCategory.FRIEND, null, null);
-    ChatListItem user1 = new ChatListItem(ChatChannelUserBuilder.create("user1", "channel")
+    ChatListItem user1 = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
         .player(PlayerBeanBuilder.create().clan("clan_lenta").get())
         .get(), ChatUserCategory.FRIEND, null, null);
-    ChatListItem user2 = new ChatListItem(ChatChannelUserBuilder.create("user2", "channel").get(), ChatUserCategory.FRIEND, null, null);
+    ChatListItem user2 = new ChatListItem(ChatChannelUserBuilder.create("user2", CHANNEL).get(),
+                                          ChatUserCategory.FRIEND, null, null);
     BiFunction<String, ChatListItem, Boolean> filter = argumentCaptor.getValue();
 
     assertTrue(filter.apply("", category));
@@ -104,10 +108,10 @@ public class ChatUserFilterControllerTest extends PlatformTest {
     verify(playerStatusFilter).registerListener(argumentCaptor.capture());
 
     ChatListItem category = new ChatListItem(null, ChatUserCategory.FRIEND, null, null);
-    ChatListItem idleUser = new ChatListItem(ChatChannelUserBuilder.create("user1", "channel").player(
+    ChatListItem idleUser = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL).player(
         PlayerBeanBuilder.create().defaultValues().game(null).get()
     ).get(), ChatUserCategory.FRIEND, null, null);
-    ChatListItem busyUser = new ChatListItem(ChatChannelUserBuilder.create("user2", "channel").player(
+    ChatListItem busyUser = new ChatListItem(ChatChannelUserBuilder.create("user2", CHANNEL).player(
         PlayerBeanBuilder.create()
             .defaultValues()
             .game(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get())
@@ -137,7 +141,7 @@ public class ChatUserFilterControllerTest extends PlatformTest {
     verify(playerRatingFilter).registerListener(argumentCaptor.capture());
 
     ChatListItem category = new ChatListItem(null, ChatUserCategory.FRIEND, null, null);
-    ChatListItem user1 = new ChatListItem(ChatChannelUserBuilder.create("user1", "channel")
+    ChatListItem user1 = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
         .player(PlayerBeanBuilder.create()
             .defaultValues()
             .leaderboardRatings(Map.of("ladder", LeaderboardRatingBeanBuilder.create()
@@ -147,7 +151,7 @@ public class ChatUserFilterControllerTest extends PlatformTest {
                     .get(),
                 "global", LeaderboardRatingBeanBuilder.create().defaultValues().mean(1000).deviation(0).get()))
             .get()).get(), ChatUserCategory.FRIEND, null, null);
-    ChatListItem user2 = new ChatListItem(ChatChannelUserBuilder.create("user1", "channel")
+    ChatListItem user2 = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
         .player(PlayerBeanBuilder.create()
             .defaultValues()
             .leaderboardRatings(Map.of("ladder", LeaderboardRatingBeanBuilder.create()
@@ -186,10 +190,10 @@ public class ChatUserFilterControllerTest extends PlatformTest {
     verify(countryFilter).registerListener(argumentCaptor.capture());
 
     ChatListItem category = new ChatListItem(null, ChatUserCategory.FRIEND, null, null);
-    ChatListItem russiaUser = new ChatListItem(ChatChannelUserBuilder.create("user1", "channel")
+    ChatListItem russiaUser = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
         .player(PlayerBeanBuilder.create().defaultValues().country("ru").get())
         .get(), ChatUserCategory.FRIEND, null, null);
-    ChatListItem americanUser = new ChatListItem(ChatChannelUserBuilder.create("user1", "channel")
+    ChatListItem americanUser = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
         .player(PlayerBeanBuilder.create().defaultValues().country("us").get())
         .get(), ChatUserCategory.FRIEND, null, null);
     BiFunction<List<Country>, ChatListItem, Boolean> filter = argumentCaptor.getValue();

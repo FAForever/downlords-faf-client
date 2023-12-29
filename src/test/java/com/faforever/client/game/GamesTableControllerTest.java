@@ -40,7 +40,7 @@ public class GamesTableControllerTest extends PlatformTest {
   @Mock
   private I18n i18n;
   @Mock
-  private JoinGameHelper joinGameHelper;
+  private GameRunner gameRunner;
   @Mock
   private UiService uiService;
   @Mock
@@ -88,7 +88,7 @@ public class GamesTableControllerTest extends PlatformTest {
       preferences.setHidePrivateGames(true);
       instance.initializeGameTable(FXCollections.observableArrayList(
           GameBeanBuilder.create().defaultValues().get(),
-          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
+          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).passwordProtected(true).get()
       ));
     });
     assertFalse(instance.passwordProtectionColumn.isVisible());
@@ -102,7 +102,7 @@ public class GamesTableControllerTest extends PlatformTest {
       preferences.setHideModdedGames(true);
       instance.initializeGameTable(FXCollections.observableArrayList(
           GameBeanBuilder.create().defaultValues().get(),
-          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
+          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).passwordProtected(true).get()
       ));
     });
     assertFalse(instance.modsColumn.isVisible());
@@ -116,7 +116,7 @@ public class GamesTableControllerTest extends PlatformTest {
       preferences.setHidePrivateGames(false);
       instance.initializeGameTable(FXCollections.observableArrayList(
           GameBeanBuilder.create().defaultValues().get(),
-          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
+          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).passwordProtected(true).get()
       ), string -> string, false);
     });
     assertTrue(instance.passwordProtectionColumn.isVisible());
@@ -128,7 +128,7 @@ public class GamesTableControllerTest extends PlatformTest {
       preferences.setHideModdedGames(false);
       instance.initializeGameTable(FXCollections.observableArrayList(
           GameBeanBuilder.create().defaultValues().get(),
-          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
+          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).passwordProtected(true).get()
       ), string -> string, false);
     });
     assertTrue(instance.modsColumn.isVisible());

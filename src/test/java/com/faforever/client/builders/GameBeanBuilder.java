@@ -21,7 +21,6 @@ public class GameBeanBuilder {
 
   public GameBeanBuilder defaultValues() {
     passwordProtected(false);
-    password("");
     featuredMod(KnownFeaturedMod.DEFAULT.getTechnicalName());
     victoryCondition(VictoryCondition.DEMORALIZATION);
     host("Host");
@@ -31,8 +30,6 @@ public class GameBeanBuilder {
     title("Title");
     teams(FXCollections.emptyObservableMap());
     id(1);
-    ratingMax(800);
-    ratingMin(1300);
     startTime(OffsetDateTime.now());
     gameType(GameType.CUSTOM);
     leaderboard("global");
@@ -86,11 +83,6 @@ public class GameBeanBuilder {
 
   public GameBeanBuilder passwordProtected(boolean passwordProtected) {
     gameBean.setPasswordProtected(passwordProtected);
-    return this;
-  }
-
-  public GameBeanBuilder password(String password) {
-    gameBean.setPassword(password);
     return this;
   }
 

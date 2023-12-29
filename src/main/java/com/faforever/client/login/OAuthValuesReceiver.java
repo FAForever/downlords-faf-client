@@ -17,10 +17,8 @@ import java.io.Writer;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
@@ -34,61 +32,52 @@ public class OAuthValuesReceiver {
 
   private static final Pattern CODE_PATTERN = Pattern.compile("code=([^ &]+)");
   private static final Pattern STATE_PATTERN = Pattern.compile("state=([^ &]+)");
-  private static final List<String> ALLOWED_HOSTS = List.of("localhost", "127.0.0.1");
 
   private final PlatformService platformService;
   private final LoginService loginService;
   private final I18n i18n;
 
   private CountDownLatch redirectUriLatch;
-  private CompletableFuture<Values> valuesFuture;
   private URI redirectUri;
   private String state;
   private String codeVerifier;
+  private CompletableFuture<Values> valuesFuture;
 
-  public CompletableFuture<Values> receiveValues(List<URI> redirectUriCandidates, String state, String codeVerifier) {
-    this.state = state;
-    this.codeVerifier = codeVerifier;
-    if (valuesFuture == null || valuesFuture.isDone()) {
-      if (redirectUriCandidates == null || redirectUriCandidates.isEmpty()) {
-        return CompletableFuture.failedFuture(new IllegalArgumentException("No redirect uris provided"));
-      }
-
-      redirectUriLatch = new CountDownLatch(1);
-      valuesFuture = CompletableFuture.supplyAsync(() -> {
-        List<URI> filteredRedirectUris = redirectUriCandidates.stream()
-            .filter(uri -> ALLOWED_HOSTS.contains(uri.getHost()))
-            .toList();
-        for (URI uri : filteredRedirectUris) {
-          try {
-            return readWithUri(uri);
-          } catch (SocketException e) {
-            log.info("Port `{}` is probably already in use", uri.getPort(), e);
-          } catch (IOException e) {
-            throw new IllegalStateException("Could not read from port once opened", e);
-          }
-        }
-        throw new IllegalStateException("Could not read from any redirect URI: " + redirectUriCandidates);
-      });
-    } else {
-      CompletableFuture.runAsync(() -> {
-        try {
-          redirectUriLatch.await();
-        } catch (InterruptedException ignored) {}
-        platformService.showDocument(loginService.getHydraUrl(this.state, this.codeVerifier, this.redirectUri));
-      });
+  public CompletableFuture<Values> receiveValues(String state, String codeVerifier) {
+    if (valuesFuture != null && !valuesFuture.isDone()) {
+      return valuesFuture;
     }
 
+    redirectUriLatch = new CountDownLatch(1);
+    valuesFuture = CompletableFuture.supplyAsync(() -> readValues(state, codeVerifier));
     return valuesFuture;
+
   }
 
-  private Values readWithUri(URI uri) throws IOException {
-    // Usually, a random port can't be used since the redirect URI, including port, must be registered on the server
-    try (ServerSocket serverSocket = new ServerSocket(Math.max(0, uri.getPort()), 1, InetAddress.getLoopbackAddress())) {
-      redirectUri = UriComponentsBuilder.fromUri(uri).port(serverSocket.getLocalPort()).build().toUri();
+  public CompletableFuture<Void> openBrowserToLogin() {
+    if (redirectUriLatch == null) {
+      throw new IllegalStateException("Redirect socket is not open");
+    }
+
+    return CompletableFuture.runAsync(() -> {
+      try {
+        redirectUriLatch.await();
+      } catch (InterruptedException ignored) {}
+      platformService.showDocument(loginService.getHydraUrl(this.state, this.codeVerifier, redirectUri));
+    });
+  }
+
+  private Values readValues(String state, String codeVerifier) {
+    this.state = state;
+    this.codeVerifier = codeVerifier;
+    try (ServerSocket serverSocket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
+      redirectUri = UriComponentsBuilder.fromUriString("http://127.0.0.1")
+                                        .port(serverSocket.getLocalPort())
+                                        .build()
+                                        .toUri();
+      redirectUriLatch.countDown();
 
       platformService.showDocument(loginService.getHydraUrl(this.state, this.codeVerifier, redirectUri));
-      redirectUriLatch.countDown();
 
       Socket socket = serverSocket.accept();
       BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
@@ -106,6 +95,10 @@ public class OAuthValuesReceiver {
         writeResponse(socket, success);
         reader.close();
       }
+    } catch (IOException e) {
+      throw new IllegalStateException("Could not get code", e);
+    } finally {
+      redirectUriLatch = null;
     }
   }
 

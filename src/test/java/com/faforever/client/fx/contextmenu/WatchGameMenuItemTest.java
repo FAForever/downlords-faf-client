@@ -5,11 +5,11 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.replay.LiveReplayService;
+import com.faforever.client.replay.ReplayRunner;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.commons.lobby.GameStatus;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -24,14 +24,10 @@ public class WatchGameMenuItemTest extends PlatformTest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private LiveReplayService liveReplayService;
+  private ReplayRunner replayRunner;
 
+  @InjectMocks
   private WatchGameMenuItem instance;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    instance = new WatchGameMenuItem(i18n, liveReplayService, notificationService);
-  }
 
   @Test
   public void testWatchGame() {
@@ -40,7 +36,7 @@ public class WatchGameMenuItemTest extends PlatformTest {
     instance.setObject(player);
     instance.onClicked();
 
-    verify(liveReplayService).runLiveReplay(player.getGame().getId());
+    verify(replayRunner).runWithLiveReplay(player.getGame());
   }
 
   @Test
@@ -48,7 +44,7 @@ public class WatchGameMenuItemTest extends PlatformTest {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues()
         .game(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get()).get();
     Exception e = new RuntimeException();
-    doThrow(e).when(liveReplayService).runLiveReplay(player.getGame().getId());
+    doThrow(e).when(replayRunner).runWithLiveReplay(player.getGame());
 
     instance.setObject(player);
     instance.onClicked();

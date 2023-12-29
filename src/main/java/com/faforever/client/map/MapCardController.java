@@ -56,7 +56,6 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
 
   @Override
   protected void onInitialize() {
-    imageViewHelper.setDefaultPlaceholderImage(thumbnailImageView);
     JavaFxUtil.bindManagedToVisible(installButton, uninstallButton);
 
     thumbnailImageView.imageProperty()

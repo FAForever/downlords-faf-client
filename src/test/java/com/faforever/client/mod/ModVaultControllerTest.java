@@ -32,8 +32,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -64,6 +62,7 @@ public class ModVaultControllerTest extends PlatformTest {
   @Spy
   private VaultPrefs vaultPrefs;
 
+  @Mock
   private ModDetailController modDetailController;
 
   @BeforeEach
@@ -72,12 +71,9 @@ public class ModVaultControllerTest extends PlatformTest {
     when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
     when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
     when(i18n.get(anyString())).thenReturn("test");
+    when(modDetailController.getRoot()).thenReturn(new Pane());
 
-    doAnswer(invocation -> {
-      modDetailController = mock(ModDetailController.class);
-      when(modDetailController.getRoot()).then(invocation1 -> new Pane());
-      return modDetailController;
-    }).when(uiService).loadFxml("theme/vault/mod/mod_detail.fxml");
+    when(uiService.loadFxml("theme/vault/mod/mod_detail.fxml")).thenReturn(modDetailController);
 
     when(modService.getRecommendedModPageCount(VaultEntityController.TOP_ELEMENT_COUNT)).thenReturn(CompletableFuture.completedFuture(0));
 

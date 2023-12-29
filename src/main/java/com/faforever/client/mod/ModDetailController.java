@@ -84,7 +84,6 @@ public class ModDetailController extends NodeController<Node> {
 
   @Override
   protected void onInitialize() {
-    imageViewHelper.setDefaultPlaceholderImage(thumbnailImageView);
     JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, getRoot());
     JavaFxUtil.fixScrollSpeed(scrollPane);
 
@@ -227,7 +226,8 @@ public class ModDetailController extends NodeController<Node> {
 
   public void onInstallButtonClicked() {
     ModVersionBean modVersion = this.modVersion.get();
-    modService.downloadAndInstallMod(modVersion, progressBar.progressProperty(), progressLabel.textProperty())
+    modService.downloadIfNecessary(modVersion, progressBar.progressProperty(),
+                                   progressLabel.textProperty())
         .exceptionally(throwable -> {
           log.error("Could not install mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed",

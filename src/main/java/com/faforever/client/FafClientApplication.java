@@ -2,7 +2,7 @@ package com.faforever.client;
 
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.exception.GlobalExceptionHandler;
-import com.faforever.client.game.GameService;
+import com.faforever.client.game.GameRunner;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.MainController;
 import com.faforever.client.notification.Action;
@@ -36,7 +36,6 @@ public class FafClientApplication extends Application {
    * Does always reload root tabs in the MainController. This is useful if you do hot swap and you want to see your
    * changes.
    */
-  public static final String PROFILE_RELOAD = "reload";
   public static final String PROFILE_WINDOWS = "windows";
   public static final String PROFILE_LINUX = "linux";
   public static final String PROFILE_MAC = "mac";
@@ -89,18 +88,13 @@ public class FafClientApplication extends Application {
   }
 
   private void closeMainWindow(WindowEvent event) {
-    if (applicationContext.getBean(GameService.class).isGameRunning()) {
+    if (applicationContext.getBean(GameRunner.class).isRunning()) {
       I18n i18n = applicationContext.getBean(I18n.class);
       NotificationService notificationService = applicationContext.getBean(NotificationService.class);
       notificationService.addNotification(new ImmediateNotification(i18n.get("exitWarning.title"),
           i18n.get("exitWarning.message"),
           Severity.WARN,
-          List.of(
-              new Action(i18n.get("yes"), ev -> {
-                Platform.exit();
-              }),
-              new Action(i18n.get("no"), ev -> {
-              })
+          List.of(new Action(i18n.get("yes"), Platform::exit), new Action(i18n.get("no"), () -> {})
           )));
       event.consume();
     } else {
@@ -111,7 +105,6 @@ public class FafClientApplication extends Application {
   @Override
   public void stop() throws Exception {
     log.info("Stopping application");
-    applicationContext.getBean(GlobalExceptionHandler.class).setShuttingDown(true);
     applicationContext.close();
     super.stop();
 

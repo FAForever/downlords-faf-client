@@ -10,17 +10,14 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.TextFlow?>
-<?import javafx.scene.web.WebView?>
 <Tab fx:id="root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
      fx:controller="com.faforever.client.chat.ChannelTabController">
     <graphic>
         <Region styleClass="icon, icon16x16, hashtag-icon" />
     </graphic>
-    <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
-          onKeyReleased="#onChatChannelKeyReleased">
+    <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0">
         <children>
             <SplitPane fx:id="splitPane" dividerPositions="0.8" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                 <VBox>
@@ -49,52 +46,17 @@
                         </HBox>
                         <Separator maxWidth="1.7976931348623157E308"/>
                         <AnchorPane VBox.vgrow="ALWAYS">
-                            <children>
-                                <WebView fx:id="messagesWebView" minHeight="100.0" minWidth="100.0" prefHeight="-1.0"
-                                         prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                                         AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
-                                <HBox fx:id="chatMessageSearchContainer" visible="false" AnchorPane.rightAnchor="0.0"
-                                      AnchorPane.topAnchor="0.0">
-                                    <children>
-                                        <Button fx:id="closeChatMessageSearchButton" focusTraversable="false"
-                                                minHeight="-Infinity"
-                                                minWidth="-Infinity"
-                                                styleClass="close-search-text-button"
-                                                onAction="#onChatMessageSearchButtonClicked">
-                                            <graphic>
-                                                <StackPane>
-                                                    <Region minHeight="-Infinity" minWidth="-Infinity"
-                                                            styleClass="icon,close-icon"/>
-                                                </StackPane>
-                                            </graphic>
-                                        </Button>
-                                        <TextField fx:id="chatMessageSearchTextField" promptText="%chat.filter.prompt"/>
-                                    </children>
-                                </HBox>
-                                <ToggleButton fx:id="userListVisibilityToggleButton" selected="true" mnemonicParsing="false"
-                                              styleClass="pane-toggler, right" AnchorPane.rightAnchor="0.0"
-                                              AnchorPane.topAnchor="40.0">
-                                    <graphic>
-                                        <Region styleClass="icon,toggle-icon"/>
-                                    </graphic>
-                                </ToggleButton>
-                            </children>
+                            <fx:include fx:id="chatMessagesView" source="chat_message_view.fxml"
+                                        AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                        AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                            <ToggleButton fx:id="userListVisibilityToggleButton" selected="true" mnemonicParsing="false"
+                                          styleClass="pane-toggler, right" AnchorPane.rightAnchor="0.0"
+                                          AnchorPane.topAnchor="40.0">
+                                <graphic>
+                                    <Region styleClass="icon,toggle-icon"/>
+                                </graphic>
+                            </ToggleButton>
                         </AnchorPane>
-                        <HBox alignment="CENTER_LEFT" styleClass="channel-chat-container">
-                            <children>
-                                <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308"
-                                           onAction="#onSendMessage" promptText="%chat.messagePrompt"
-                                           styleClass="channel-chat-text-field" HBox.hgrow="ALWAYS">
-                                </TextField>
-                                <Button fx:id="emoticonsButton" mnemonicParsing="false"
-                                        onAction="#openEmoticonsPopupWindow"
-                                        styleClass="open-emoticons-window">
-                                    <graphic>
-                                        <Region styleClass="icon, icon24x24, interacting-icon, friend-icon"/>
-                                    </graphic>
-                                </Button>
-                            </children>
-                        </HBox>
                     </children>
                 </VBox>
 

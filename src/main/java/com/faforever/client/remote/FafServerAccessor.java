@@ -13,6 +13,7 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.ServerNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.update.Version;
 import com.faforever.commons.lobby.ConnectionStatus;
@@ -32,12 +33,15 @@ import com.faforever.commons.lobby.ServerMessage;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.Lifecycle;
+import org.springframework.context.Phased;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
@@ -62,7 +66,7 @@ import java.util.function.Consumer;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class FafServerAccessor implements InitializingBean, DisposableBean {
+public class FafServerAccessor implements InitializingBean, DisposableBean, Lifecycle, Phased {
 
   private final ReadOnlyObjectWrapper<ConnectionState> connectionState = new ReadOnlyObjectWrapper<>(
       ConnectionState.DISCONNECTED);
@@ -77,29 +81,59 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   @Qualifier("userWebClient")
   private final ObjectFactory<WebClient> userWebClientFactory;
 
-  private boolean autoReconnect = false;
+  private boolean autoReconnect;
+  @Getter
+  private boolean running;
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    getEvents(NoticeInfo.class)
-        .doOnNext(this::onNotice)
-        .doOnError(throwable -> log.error("Error processing notice", throwable))
-        .retry()
-        .subscribe();
+    start();
+  }
 
-    setPingIntervalSeconds(25);
+  @Override
+  public void start() {
+    if (!isRunning()) {
+      getEvents(NoticeInfo.class).doOnNext(this::onNotice)
+                                 .doOnError(throwable -> log.error("Error processing notice", throwable))
+                                 .retry()
+                                 .subscribe();
 
-    lobbyClient.getConnectionStatus().retry().map(connectionStatus -> switch (connectionStatus) {
-      case DISCONNECTED -> ConnectionState.DISCONNECTED;
-      case CONNECTING -> ConnectionState.CONNECTING;
-      case CONNECTED -> ConnectionState.CONNECTED;
-    }).subscribe(connectionState::set, throwable -> log.error("Error processing connection status", throwable));
+      setPingIntervalSeconds(25);
 
-    connectionState.subscribe((oldValue, newValue) -> {
-      if (autoReconnect && oldValue == ConnectionState.CONNECTED && newValue == ConnectionState.DISCONNECTED) {
-        connectAndLogIn().subscribe();
-      }
-    });
+      lobbyClient.getConnectionStatus()
+                 .map(connectionStatus -> switch (connectionStatus) {
+                   case DISCONNECTED -> ConnectionState.DISCONNECTED;
+                   case CONNECTING -> ConnectionState.CONNECTING;
+                   case CONNECTED -> ConnectionState.CONNECTED;
+                 })
+                 .doOnNext(connectionState::set)
+                 .doOnError(throwable -> log.error("Error processing connection status", throwable))
+                 .retry()
+                 .subscribe();
+
+      connectionState.subscribe((oldValue, newValue) -> {
+        if (autoReconnect && oldValue == ConnectionState.CONNECTED && newValue == ConnectionState.DISCONNECTED) {
+          connectAndLogIn().subscribe();
+        }
+      });
+      running = true;
+    }
+  }
+
+  @Override
+  public void destroy() {
+    stop();
+  }
+
+  @Override
+  public void stop() {
+    disconnect();
+    running = false;
+  }
+
+  @Override
+  public int getPhase() {
+    return Integer.MAX_VALUE;
   }
 
   public <T extends ServerMessage> Flux<T> getEvents(Class<T> type) {
@@ -166,11 +200,11 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<GameLaunchResponse> requestHostGame(NewGameInfo newGameInfo) {
-    return lobbyClient.requestHostGame(newGameInfo.getTitle(), newGameInfo.getMap(),
-                                       newGameInfo.getFeaturedMod().getTechnicalName(),
-                                       GameVisibility.valueOf(newGameInfo.getGameVisibility().name()),
-                                       newGameInfo.getPassword(), newGameInfo.getRatingMin(),
-                                       newGameInfo.getRatingMax(), newGameInfo.getEnforceRatingRange()).toFuture();
+    return lobbyClient.requestHostGame(newGameInfo.title(), newGameInfo.map(),
+                                       newGameInfo.featuredModName(),
+                                       GameVisibility.valueOf(newGameInfo.gameVisibility().name()),
+                                       newGameInfo.password(), newGameInfo.ratingMin(),
+                                       newGameInfo.ratingMax(), newGameInfo.enforceRatingRange()).toFuture();
   }
 
   public CompletableFuture<GameLaunchResponse> requestJoinGame(int gameId, String password) {
@@ -206,9 +240,8 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   public CompletableFuture<GameLaunchResponse> startSearchMatchmaker() {
     return lobbyClient.getEvents()
-                      .filter(event -> event instanceof GameLaunchResponse)
+                      .ofType(GameLaunchResponse.class)
                       .next()
-                      .cast(GameLaunchResponse.class)
                       .toFuture();
   }
 
@@ -272,9 +305,9 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
         default -> Severity.INFO;
       };
     }
-    notificationService.addServerNotification(
-        new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), severity,
-                                  Collections.singletonList(new DismissAction(i18n))));
+    notificationService.addNotification(
+        new ServerNotification(i18n.get("messageFromServer"), noticeMessage.getText(), severity,
+                               Collections.singletonList(new DismissAction(i18n))));
   }
 
   public void restoreGameSession(int id) {
@@ -323,10 +356,5 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   public void setPingIntervalSeconds(int pingIntervalSeconds) {
     lobbyClient.setMinPingIntervalSeconds(pingIntervalSeconds);
-  }
-
-  @Override
-  public void destroy() {
-    disconnect();
   }
 }

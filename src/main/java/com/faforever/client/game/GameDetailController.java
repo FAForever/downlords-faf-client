@@ -67,7 +67,7 @@ public class GameDetailController extends NodeController<Pane> {
   private final FeaturedModService featuredModService;
   private final TimeService timeService;
   private final UiService uiService;
-  private final JoinGameHelper joinGameHelper;
+  private final GameRunner gameRunner;
   private final ContextMenuBuilder contextMenuBuilder;
   private final MapGeneratorService mapGeneratorService;
   private final NotificationService notificationService;
@@ -260,7 +260,7 @@ public class GameDetailController extends NodeController<Pane> {
   }
 
   public void onJoinButtonClicked() {
-    joinGameHelper.join(getGame());
+    gameRunner.join(getGame());
   }
 
   public void onMapPreviewImageClicked() {
