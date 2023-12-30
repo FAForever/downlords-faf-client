@@ -45,6 +45,7 @@ import org.kitteh.irc.client.library.defaults.listener.DefaultTagmsgListener;
 import org.kitteh.irc.client.library.element.Actor;
 import org.kitteh.irc.client.library.element.Channel;
 import org.kitteh.irc.client.library.element.MessageReceiver;
+import org.kitteh.irc.client.library.element.MessageTag.MsgId;
 import org.kitteh.irc.client.library.element.MessageTag.Time;
 import org.kitteh.irc.client.library.element.MessageTag.Typing;
 import org.kitteh.irc.client.library.element.User;
@@ -379,7 +380,9 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                .map(Time::getTime)
                                .orElse(Instant.now());
 
-    ChatMessage message = new ChatMessage(messageTime, sender, text, false);
+    String messageId = event.getTag("msgid", MsgId.class).map(MsgId::getId).orElse(null);
+
+    ChatMessage message = new ChatMessage(messageTime, sender, text, messageId, false);
     chatChannel.addMessage(message);
     notifyIfMentioned(message);
   }
@@ -443,15 +446,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     String message = event.getMessage().replace("ACTION", senderNick);
     ChatChannelUser sender = getOrCreateChatUser(senderNick, channelName);
     sender.setTyping(false);
-    Instant messageTime = event.getTags()
-                               .stream()
-                               .filter(Time.class::isInstance)
-                               .map(Time.class::cast)
+    Instant messageTime = event.getTag("time", Time.class)
                                .map(Time::getTime)
-                               .findFirst()
                                .orElse(Instant.now());
 
-    sender.getChannel().addMessage(new ChatMessage(messageTime, sender, message, true));
+    String messageId = event.getTag("msgid", MsgId.class).map(MsgId::getId).orElse(null);
+
+    sender.getChannel().addMessage(new ChatMessage(messageTime, sender, message, messageId, true));
   }
 
   @Handler
@@ -485,15 +486,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     }
 
     String text = event.getMessage();
-    Instant messageTime = event.getTags()
-                               .stream()
-                               .filter(Time.class::isInstance)
-                               .map(Time.class::cast)
+    Instant messageTime = event.getTag("time", Time.class)
                                .map(Time::getTime)
-                               .findFirst()
                                .orElse(Instant.now());
 
-    ChatMessage message = new ChatMessage(messageTime, sender, text);
+    String messageId = event.getTag("msgid", MsgId.class).map(MsgId::getId).orElse(null);
+
+    ChatMessage message = new ChatMessage(messageTime, sender, text, messageId);
     sender.getChannel().addMessage(message);
     notifyOnPrivateMessage(message);
   }
@@ -642,7 +641,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     ChatChannelUser sender = getOrCreateChatUser(getCurrentUsername(), chatChannel.getName());
     return CompletableFuture.runAsync(() -> {
       client.sendMessage(chatChannel.getName(), message);
-      chatChannel.addMessage(new ChatMessage(Instant.now(), sender, message));
+      chatChannel.addMessage(new ChatMessage(Instant.now(), sender, message, null));
     });
   }
 
@@ -689,7 +688,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     ChatChannelUser sender = getOrCreateChatUser(getCurrentUsername(), chatChannel.getName());
     return CompletableFuture.runAsync(() -> {
       client.sendCtcpMessage(chatChannel.getName(), "ACTION " + action);
-      chatChannel.addMessage(new ChatMessage(Instant.now(), sender, action, true));
+      chatChannel.addMessage(new ChatMessage(Instant.now(), sender, action, null, true));
     });
   }
 

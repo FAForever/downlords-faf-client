@@ -33,8 +33,8 @@ public class ChatChannelTest extends DomainTest {
   public void testMessageMax() {
     ChatChannel channel = new ChatChannel("#test");
     ChatChannelUser sender = ChatChannelUserBuilder.create("", channel).defaultValues().get();
-    channel.addMessage(new ChatMessage(Instant.now(), sender, "1"));
-    channel.addMessage(new ChatMessage(Instant.now(), sender, "2"));
+    channel.addMessage(new ChatMessage(Instant.now(), sender, "1", "1"));
+    channel.addMessage(new ChatMessage(Instant.now(), sender, "2", "2"));
 
     assertThat(channel.getMessages(), hasSize(2));
 
@@ -43,7 +43,7 @@ public class ChatChannelTest extends DomainTest {
     assertThat(channel.getMessages(), hasSize(1));
     assertEquals("2", channel.getMessages().getLast().message());
 
-    channel.addMessage(new ChatMessage(Instant.now(), sender, "3"));
+    channel.addMessage(new ChatMessage(Instant.now(), sender, "3", "3"));
 
     assertThat(channel.getMessages(), hasSize(1));
     assertEquals("3", channel.getMessages().getLast().message());

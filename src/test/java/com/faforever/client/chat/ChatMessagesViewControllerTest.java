@@ -403,6 +403,7 @@ public class ChatMessagesViewControllerTest extends PlatformTest {
   }
 
   private void sendMessage(ChatChannelUser sender, String message) {
-    runOnFxThreadAndWait(() -> instance.onChatMessage(new ChatMessage(Instant.now(), sender, message)));
+    runOnFxThreadAndWait(() -> instance.onChatMessage(
+        new ChatMessage(Instant.now(), sender, message, String.valueOf(message.hashCode()))));
   }
 }
