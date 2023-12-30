@@ -182,7 +182,7 @@ public class ChatUserListController extends NodeController<VBox> {
     VirtualizedScrollPane<VirtualFlow<ChatListItem, Cell<ChatListItem, Node>>> scrollPane = new VirtualizedScrollPane<>(
         chatItemListView);
 
-    scrollPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
+    scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
     VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
     userListContainer.getChildren().add(scrollPane);

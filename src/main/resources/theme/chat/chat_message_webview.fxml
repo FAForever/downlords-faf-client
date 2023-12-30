@@ -6,11 +6,12 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.web.WebView?>
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.faforever.client.chat.ChatMessageViewController"
+      fx:controller="com.faforever.client.chat.ChatMessageWebViewController"
       fx:id="root">
-    <VBox fx:id="messagesContainer" VBox.vgrow="ALWAYS"/>
+    <WebView fx:id="messagesWebView" VBox.vgrow="ALWAYS"/>
     <Label fx:id="typingLabel" visible="false" styleClass="typing"/>
     <HBox alignment="CENTER_LEFT" styleClass="channel-chat-container">
         <children>

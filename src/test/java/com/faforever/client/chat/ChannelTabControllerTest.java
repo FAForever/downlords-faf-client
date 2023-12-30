@@ -78,7 +78,7 @@ public class ChannelTabControllerTest extends PlatformTest {
   private NotificationPrefs notificationPrefs;
 
   @Mock
-  private ChatMessageViewController chatMessageViewController;
+  private ChatMessageWebViewController chatMessageWebViewController;
   @Mock
   private EmoticonsWindowController emoticonsWindowController;
 
@@ -87,7 +87,7 @@ public class ChannelTabControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    lenient().when(chatMessageViewController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(chatMessageWebViewController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(emoticonsWindowController.getRoot()).thenReturn(new VBox());
     lenient().when(chatService.getCurrentUsername()).thenReturn(user.getUsername());
     lenient().when(themeService.getThemeFileUrl(CHAT_CONTAINER))
@@ -113,8 +113,8 @@ public class ChannelTabControllerTest extends PlatformTest {
       if (clazz == ChatUserListController.class) {
         return chatUserListController;
       }
-      if (clazz == ChatMessageViewController.class) {
-        return chatMessageViewController;
+      if (clazz == ChatMessageWebViewController.class) {
+        return chatMessageWebViewController;
       }
       if (clazz == EmoticonsWindowController.class) {
         return emoticonsWindowController;

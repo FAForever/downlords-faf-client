@@ -184,8 +184,8 @@ public class SettingsController extends NodeController<Node> {
   @Override
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(vaultLocationWarningLabel);
-    themeComboBox.setButtonCell(new StringListCell<>(Theme::getDisplayName, fxApplicationThreadExecutor));
-    themeComboBox.setCellFactory(param -> new StringListCell<>(Theme::getDisplayName, fxApplicationThreadExecutor));
+    themeComboBox.setButtonCell(new StringListCell<>(Theme::displayName, fxApplicationThreadExecutor));
+    themeComboBox.setCellFactory(param -> new StringListCell<>(Theme::displayName, fxApplicationThreadExecutor));
 
     toastScreenComboBox.setButtonCell(screenListCell());
     toastScreenComboBox.setCellFactory(param -> screenListCell());
@@ -245,7 +245,8 @@ public class SettingsController extends NodeController<Node> {
   private void onThemeChanged(Theme newValue) {
     themeService.setTheme(newValue);
     if (themeService.doesThemeNeedRestart(newValue)) {
-      notificationService.addNotification(new PersistentNotification(i18n.get("theme.needsRestart.message", newValue.getDisplayName()), Severity.WARN,
+      notificationService.addNotification(
+          new PersistentNotification(i18n.get("theme.needsRestart.message", newValue.displayName()), Severity.WARN,
                                                                      Collections.singletonList(
                                                                          new Action(i18n.get("theme.needsRestart.quit"),
                                                                                     Platform::exit))));

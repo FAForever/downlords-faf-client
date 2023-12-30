@@ -23,6 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -47,9 +49,11 @@ public class FafClientApplication extends Application {
   }
 
   @Override
-  public void init() {
+  public void init() throws IOException {
     SvgImageLoaderFactory.install();
-    Font.loadFont(FafClientApplication.class.getResourceAsStream("/font/dfc-icons.ttf"), 10);
+    try (InputStream inputStream = FafClientApplication.class.getResourceAsStream("/font/dfc-icons.ttf")) {
+      Font.loadFont(inputStream, 10);
+    }
 
     applicationContext = new SpringApplicationBuilder(Main.class)
         .run(getParameters().getRaw().toArray(new String[0]));

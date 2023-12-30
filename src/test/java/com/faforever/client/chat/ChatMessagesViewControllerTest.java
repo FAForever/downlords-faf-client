@@ -79,7 +79,7 @@ public class ChatMessagesViewControllerTest extends PlatformTest {
   private EmoticonsWindowController emoticonsWindowController;
 
   @InjectMocks
-  private ChatMessageViewController instance;
+  private ChatMessageWebViewController instance;
 
   private final ChatChannel chatChannel = new ChatChannel("#testChannel");
   private final ChatChannelUser user = new ChatChannelUser("junit", chatChannel);
@@ -112,7 +112,7 @@ public class ChatMessagesViewControllerTest extends PlatformTest {
     StageHolder.setStage(stage);
 
 
-    loadFxml("theme/chat/chat_message_view.fxml", clazz -> {
+    loadFxml("theme/chat/chat_message_webview.fxml", clazz -> {
       if (clazz == EmoticonsWindowController.class) {
         return emoticonsWindowController;
       }

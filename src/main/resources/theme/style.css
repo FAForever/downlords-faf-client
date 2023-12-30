@@ -1410,6 +1410,24 @@
   -fx-padding: 4 0 4 0;
 }
 
+/***************** Chat Messages ***************************/
+
+.message-container Text {
+  -fx-fill: -fx-text-color;
+  -fx-font-size: 14px;
+}
+
+.message-container .time {
+  -fx-text-fill: -fx-mid-text-color;
+  -fx-font-size: 10px;
+}
+
+.message-container .author, .message-container .author {
+  -fx-text-fill: -fx-text-color;
+  -fx-font-size: 14px;
+  -fx-font-weight: bold;
+}
+
 /***************** Public Chat Channel ***************************/
 
 .topic-channel {

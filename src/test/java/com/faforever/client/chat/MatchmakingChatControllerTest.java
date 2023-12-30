@@ -60,7 +60,7 @@ public class MatchmakingChatControllerTest extends PlatformTest {
   private ChatPrefs chatPrefs;
 
   @Mock
-  private ChatMessageViewController chatMessageViewController;
+  private ChatMessageWebViewController chatMessageWebViewController;
   @Mock
   private EmoticonsWindowController emoticonsWindowController;
 
@@ -70,7 +70,7 @@ public class MatchmakingChatControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     lenient().when(teamMatchmakingService.getParty()).thenReturn(new PartyBean());
-    lenient().when(chatMessageViewController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(chatMessageWebViewController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(chatService.getCurrentUsername()).thenReturn("junit");
     lenient().when(i18n.get(anyString())).thenReturn("");
     lenient().when(chatService.getOrCreateChannel("partyName")).thenReturn(new ChatChannel("partyName"));
@@ -83,8 +83,8 @@ public class MatchmakingChatControllerTest extends PlatformTest {
     lenient().when(timeService.asShortTime(any())).thenReturn("");
 
     loadFxml("theme/chat/matchmaking_chat.fxml", clazz -> {
-      if (clazz == ChatMessageViewController.class) {
-        return chatMessageViewController;
+      if (clazz == ChatMessageWebViewController.class) {
+        return chatMessageWebViewController;
       }
       if (clazz == EmoticonsWindowController.class) {
         return emoticonsWindowController;

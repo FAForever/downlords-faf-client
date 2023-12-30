@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.DirectoryStream;
@@ -149,6 +150,16 @@ public class ThemeService implements InitializingBean, DisposableBean {
       setTheme(DEFAULT_THEME);
     }
 
+    preferences.themeNameProperty().bind(currentTheme.map(folderNamesByTheme::get));
+
+    currentTheme.subscribe(theme -> {
+      stopWatchingOldThemes();
+      reloadStylesheet();
+      if (theme != DEFAULT_THEME) {
+        watchTheme(theme);
+      }
+    });
+
     loadWebViewsStyleSheet(getWebViewStyleSheet());
   }
 
@@ -216,7 +227,7 @@ public class ThemeService implements InitializingBean, DisposableBean {
     Path themePath = getThemeDirectory(theme);
     log.info("Watching theme directory for changes: {}", themePath);
     try {
-      Files.walkFileTree(themePath, new DirectoryVisitor(path -> watchDirectory(themePath, watchService)));
+      Files.walkFileTree(themePath, new DirectoryVisitor(path -> watchDirectory(themePath)));
     } catch (IOException e) {
       throw new AssetLoadException("Unable to walk theme directory " + themePath, e, "theme.couldNotWatch");
     }
@@ -227,7 +238,7 @@ public class ThemeService implements InitializingBean, DisposableBean {
     for (WatchEvent<?> watchEvent : key.pollEvents()) {
       Path path = (Path) watchEvent.context();
       if (watchEvent.kind() == ENTRY_CREATE && Files.isDirectory(path)) {
-        watchDirectory(path, watchService);
+        watchDirectory(path);
       } else if (watchEvent.kind() == ENTRY_DELETE && Files.isDirectory(path)) {
         watchKeys.remove(path);
       }
@@ -241,7 +252,7 @@ public class ThemeService implements InitializingBean, DisposableBean {
     reloadStylesheet();
   }
 
-  private void watchDirectory(Path directory, WatchService watchService) {
+  private void watchDirectory(Path directory) {
     if (watchKeys.containsKey(directory)) {
       return;
     }
@@ -305,7 +316,7 @@ public class ThemeService implements InitializingBean, DisposableBean {
   public URL getThemeFileUrl(String relativeFile) throws IOException {
     String themeFile = getThemeFile(relativeFile);
     if (themeFile.startsWith("file:") || themeFile.startsWith("jar:")) {
-      return new URL(themeFile);
+      return URI.create(themeFile).toURL();
     }
     return new ClassPathResource(getThemeFile(relativeFile)).getURL();
   }
@@ -313,16 +324,7 @@ public class ThemeService implements InitializingBean, DisposableBean {
 
   @CacheEvict({CacheNames.THEME_URLS, CacheNames.THEME_IMAGES})
   public void setTheme(Theme theme) {
-    stopWatchingOldThemes();
-
-    if (theme == DEFAULT_THEME) {
-      preferences.setThemeName(DEFAULT_THEME_NAME);
-    } else {
-      watchTheme(theme);
-      preferences.setThemeName(getThemeDirectory(theme).getFileName().toString());
-    }
     currentTheme.set(theme);
-    reloadStylesheet();
   }
 
   /**
@@ -428,7 +430,7 @@ public class ThemeService implements InitializingBean, DisposableBean {
 
       Path newTempStyleSheet = Files.createTempFile(stylesheetsCacheDirectory, "style-webview", ".css");
 
-      try (InputStream inputStream = new URL(styleSheetUrl).openStream()) {
+      try (InputStream inputStream = URI.create(styleSheetUrl).toURL().openStream()) {
         Files.copy(inputStream, newTempStyleSheet, StandardCopyOption.REPLACE_EXISTING);
       }
       if (currentTempStyleSheet != null) {
@@ -491,8 +493,8 @@ public class ThemeService implements InitializingBean, DisposableBean {
       return stream.anyMatch(
           path -> Files.isRegularFile(path) && !path.endsWith(".css") && !path.endsWith(".properties"));
     } catch (IOException e) {
-      throw new AssetLoadException("Could not load theme from " + theme.getDisplayName(), e,
-                                   "theme.directory.readError", theme.getDisplayName());
+      throw new AssetLoadException("Could not load theme from " + theme.displayName(), e, "theme.directory.readError",
+                                   theme.displayName());
     }
   }
 }
