@@ -167,8 +167,6 @@ public class ChatMessageViewController extends NodeController<VBox> {
 
   @Override
   protected void onInitialize() {
-    JavaFxUtil.bindManagedToVisible(typingLabel);
-
     mentionPattern = chatService.getMentionPattern();
     engine = messagesWebView.getEngine();
 
