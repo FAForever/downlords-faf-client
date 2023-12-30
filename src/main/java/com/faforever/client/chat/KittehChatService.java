@@ -38,8 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.engio.mbassy.listener.Handler;
 import org.kitteh.irc.client.library.Client;
 import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType;
+import org.kitteh.irc.client.library.Client.WithManagement;
 import org.kitteh.irc.client.library.command.TagMessageCommand;
-import org.kitteh.irc.client.library.defaults.DefaultClient;
 import org.kitteh.irc.client.library.defaults.element.messagetag.DefaultMessageTagTyping;
 import org.kitteh.irc.client.library.defaults.listener.DefaultListeners;
 import org.kitteh.irc.client.library.defaults.listener.DefaultTagmsgListener;
@@ -102,6 +102,7 @@ import static java.util.Locale.US;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.synchronizedObservableMap;
+import static org.kitteh.irc.client.library.feature.CapabilityManager.Defaults.ECHO_MESSAGE;
 import static org.kitteh.irc.client.library.feature.CapabilityManager.Defaults.MESSAGE_TAGS;
 
 @Lazy
@@ -149,7 +150,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @VisibleForTesting
   String defaultChannelName;
   @VisibleForTesting
-  DefaultClient client;
+  Client.WithManagement client;
 
   @Override
   public void afterPropertiesSet() {
@@ -324,6 +325,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                     .sum() < MAX_GAMES_FOR_NEWBIE_CHANNEL) {
       joinChannel(NEWBIE_CHANNEL_NAME);
     }
+
+    client.commands().capabilityRequest().enable(ECHO_MESSAGE).execute();
   }
 
   @Handler
@@ -541,6 +544,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     ircLog.debug(message);
   }
 
+  private void onException(Throwable throwable) {
+    log.warn("Exception in message processing", throwable);
+  }
+
   @Handler
   private void onDisconnect(ClientConnectionEndedEvent event) {
     client.getEventManager().unregisterEventListener(this);
@@ -603,22 +610,24 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     eventListenerSuppliers.add(() -> WhoAwayListener::new);
     eventListenerSuppliers.add(() -> DefaultTagmsgListener::new);
 
-    client = (DefaultClient) Client.builder()
-                                   .realName(username)
-                                   .nick(username)
-                                   .server()
-                                   .host(irc.getHost())
-                                   .port(irc.getPort(), SecurityType.SECURE)
-                                   .secureTrustManagerFactory(new TrustEveryoneFactory())
-                                   .then()
-                                   .listeners()
-                                   .input(this::onMessage)
-                                   .output(this::onMessage)
-                                   .then()
-                                   .management()
-                                   .eventListeners(eventListenerSuppliers)
-                                   .then()
-                                   .build();
+    client = (WithManagement) Client.builder()
+                                    .realName(username)
+                                    .nick(username)
+                                    .server()
+                                    .host(irc.getHost())
+                                    .port(irc.getPort(), SecurityType.SECURE)
+                                    .secureTrustManagerFactory(new TrustEveryoneFactory())
+                                    .then()
+                                    .listeners()
+                                    .input(this::onMessage)
+                                    .output(this::onMessage)
+                                    .exception(this::onException)
+                                    .then()
+                                    .management()
+                                    .eventListeners(eventListenerSuppliers)
+                                    .then()
+
+                                    .build();
 
     client.getMessageTagManager().registerTagCreator(MESSAGE_TAGS, "+typing", DefaultMessageTagTyping.FUNCTION);
 
