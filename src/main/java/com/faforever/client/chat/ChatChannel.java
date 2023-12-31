@@ -17,6 +17,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -117,7 +118,7 @@ public class ChatChannel {
   }
 
   public void clearUsers() {
-    usernameToChatUser.clear();
+    List.copyOf(usernameToChatUser.keySet()).forEach(this::removeUser);
   }
 
   public ObservableList<ChatChannelUser> getTypingUsers() {

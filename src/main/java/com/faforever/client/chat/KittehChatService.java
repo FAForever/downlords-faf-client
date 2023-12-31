@@ -537,7 +537,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private void onDisconnect(ClientConnectionEndedEvent event) {
     client.getEventManager().unregisterEventListener(this);
     channels.values().forEach(ChatChannel::clearUsers);
-    channels.clear();
+    List.copyOf(channels.keySet()).forEach(this::removeChannel);
     connectionState.set(ConnectionState.DISCONNECTED);
     client.shutdown();
   }
