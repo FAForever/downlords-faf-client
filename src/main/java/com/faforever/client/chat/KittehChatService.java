@@ -151,8 +151,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @VisibleForTesting
   DefaultClient client;
 
-  private boolean autoReconnect;
-
   @Override
   public void afterPropertiesSet() {
     loginService.loggedInProperty().subscribe(loggedIn -> {
@@ -541,9 +539,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     channels.values().forEach(ChatChannel::clearUsers);
     channels.clear();
     connectionState.set(ConnectionState.DISCONNECTED);
-    if (autoReconnect) {
-      connect();
-    }
+    client.shutdown();
   }
 
   @Handler
@@ -579,8 +575,12 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void connect() {
+    if (connectionState.get() != ConnectionState.DISCONNECTED) {
+      return;
+    }
+
+    connectionState.set(ConnectionState.CONNECTING);
     log.info("Connecting to IRC");
-    autoReconnect = true;
     Irc irc = clientProperties.getIrc();
     this.defaultChannelName = irc.getDefaultChannel();
 
@@ -629,7 +629,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void disconnect() {
-    autoReconnect = false;
     if (client != null) {
       log.info("Disconnecting from IRC");
       client.shutdown("Goodbye");
@@ -731,7 +730,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void destroy() {
-    autoReconnect = false;
     close();
   }
 

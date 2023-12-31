@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.Tab?>
@@ -12,7 +13,7 @@
             fx:controller="com.faforever.client.chat.ChatController">
     <children>
         <TabPane fx:id="tabPane" tabClosingPolicy="ALL_TABS" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                 AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                 AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" visible="false">
             <Tab text="+" closable="false">
                 <VBox fx:id="noOpenTabsContainer" alignment="CENTER" fillWidth="false">
                     <children>
@@ -30,7 +31,7 @@
 
         <VBox fx:id="connectingProgressPane" alignment="CENTER" AnchorPane.bottomAnchor="0.0"
               AnchorPane.leftAnchor="0.0"
-              AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+              AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" visible="false">
             <children>
                 <ProgressIndicator prefHeight="80.0" prefWidth="80.0"/>
                 <Label text="%chat.connecting.message">
@@ -38,6 +39,14 @@
                         <Insets bottom="28.0" top="14.0"/>
                     </VBox.margin>
                 </Label>
+            </children>
+        </VBox>
+
+        <VBox fx:id="disconnectedPane" alignment="CENTER" AnchorPane.bottomAnchor="0.0"
+              AnchorPane.leftAnchor="0.0"
+              AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <Button text="%chat.connect.message" onAction="#onConnectButtonClicked"/>
             </children>
         </VBox>
     </children>
