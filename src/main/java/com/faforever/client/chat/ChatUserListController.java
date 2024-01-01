@@ -117,10 +117,7 @@ public class ChatUserListController extends NodeController<VBox> {
                 .orElse(FXCollections.observableSet())
                 .when(showing));
 
-    searchUsernameTextField.promptTextProperty()
-                           .bind(users.flatMap(Bindings::size)
-                                      .map(size -> i18n.get("chat.userCount", size))
-                                      .when(showing));
+    searchUsernameTextField.setPromptText(i18n.get("chat.search.prompt"));
 
     users.when(showing).subscribe((oldValue, newValue) -> {
       unfilteredItems.removeIf(item -> item.user() != null);

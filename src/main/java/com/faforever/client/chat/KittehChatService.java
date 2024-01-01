@@ -540,12 +540,14 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     List.copyOf(channels.keySet()).forEach(this::removeChannel);
     connectionState.set(ConnectionState.DISCONNECTED);
     client.shutdown();
+    event.getCause().ifPresent(throwable -> log.error("Chat disconnected with cause", throwable));
   }
 
   @Handler
   private void onFailedConnect(ClientConnectionFailedEvent event) {
     connectionState.set(ConnectionState.DISCONNECTED);
     client.shutdown();
+    event.getCause().ifPresent(throwable -> log.error("Chat disconnected with cause", throwable));
   }
 
   private void onSocialMessage(SocialInfo socialMessage) {
