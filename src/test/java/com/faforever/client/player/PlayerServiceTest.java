@@ -212,13 +212,15 @@ public class PlayerServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testRemovePlayerIfOnline() {
+  public void testRemovePlayer() {
     assertFalse(instance.getPlayerNames().isEmpty());
     assertTrue(instance.isOnline(playerInfo1.getId()));
     assertTrue(instance.isOnline(playerInfo2.getId()));
 
-    instance.removePlayerIfOnline(playerInfo1.getLogin());
-    instance.removePlayerIfOnline(playerInfo2.getLogin());
+    instance.getPlayerByNameIfOnline(playerInfo1.getLogin())
+            .ifPresent(player -> player.setServerStatus(ServerStatus.OFFLINE));
+    instance.getPlayerByNameIfOnline(playerInfo2.getLogin())
+            .ifPresent(player -> player.setServerStatus(ServerStatus.OFFLINE));
 
     assertFalse(instance.getPlayerNames().contains(playerInfo1.getLogin()));
     assertFalse(instance.getPlayerNames().contains(playerInfo2.getLogin()));
