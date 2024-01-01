@@ -2,7 +2,6 @@ package com.faforever.client.chat;
 
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
