@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
@@ -9,7 +10,10 @@
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.faforever.client.chat.ChatMessageController"
       fx:id="root" styleClass="message-container">
-    <HBox fx:id="detailsContainer" VBox.vgrow="NEVER" spacing="5">
+    <HBox fx:id="detailsContainer" spacing="5" alignment="CENTER_LEFT">
+        <padding>
+            <Insets top="10" bottom="2"/>
+        </padding>
         <ImageView fx:id="avatarImageView" fitWidth="40" fitHeight="20"/>
         <ImageView fx:id="countryImageView" fitHeight="20" fitWidth="20"/>
         <Label fx:id="clanLabel" styleClass="clan"/>

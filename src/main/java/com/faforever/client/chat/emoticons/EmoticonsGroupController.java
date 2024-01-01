@@ -42,14 +42,14 @@ public class EmoticonsGroupController extends NodeController<VBox> {
   }
 
   public void setGroup(EmoticonsGroup group, Consumer<String> onEmoticonAction) {
-    groupLabel.setText(group.getName());
-    String attribution = group.getAttribution();
+    groupLabel.setText(group.name());
+    String attribution = group.attribution();
     if (!StringUtils.isBlank(attribution)) {
       attributionHyperlink.setText(attribution);
       attributionHyperlink.setOnAction(event -> platformService.showDocument(attribution));
       attributionPane.setVisible(true);
     }
-    List<AnchorPane> emoticonViewList = group.getEmoticons().stream().map(emoticon -> {
+    List<AnchorPane> emoticonViewList = group.emoticons().stream().map(emoticon -> {
       EmoticonController controller = uiService.loadFxml("theme/chat/emoticons/emoticon.fxml");
       controller.setEmoticon(emoticon, onEmoticonAction);
       return controller.getRoot();

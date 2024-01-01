@@ -40,8 +40,10 @@ public class EmoticonServiceTest extends ServiceTest {
     String shortcodePattern = instance.getEmoticonShortcodeDetectorPattern().pattern();
     assertFalse(shortcodePattern.isBlank());
     assertFalse(instance.getEmoticonsGroups().isEmpty());
-    instance.getEmoticonsGroups().stream().flatMap(emoticonsGroup -> emoticonsGroup.getEmoticons().stream())
-        .flatMap(emoticon -> emoticon.getShortcodes().stream())
+    instance.getEmoticonsGroups()
+            .stream()
+            .flatMap(emoticonsGroup -> emoticonsGroup.emoticons().stream())
+            .flatMap(emoticon -> emoticon.shortcodes().stream())
         .forEach(shortcode -> {
           assertTrue(shortcodePattern.contains(shortcode));
           assertFalse(instance.getBase64SvgContentByShortcode(shortcode).isBlank());
@@ -52,7 +54,7 @@ public class EmoticonServiceTest extends ServiceTest {
   public void testAllProductionGroupsAreUnique() throws Exception {
     EmoticonsGroup[] groups = new ObjectMapper().readValue(EmoticonService.EMOTICONS_JSON_FILE_RESOURCE.getInputStream(), EmoticonsGroup[].class);
 
-    Set<String> groupNames = Arrays.stream(groups).map(EmoticonsGroup::getName).collect(Collectors.toSet());
+    Set<String> groupNames = Arrays.stream(groups).map(EmoticonsGroup::name).collect(Collectors.toSet());
     assertEquals(groupNames.size(), groups.length);
   }
 
@@ -95,14 +97,16 @@ public class EmoticonServiceTest extends ServiceTest {
   @Test
   public void testGetSvgContentByShortcode() throws Exception {
     EmoticonsGroup emoticonsGroup = EmoticonGroupBuilder.create().defaultValues().get();
-    Emoticon emoticon = emoticonsGroup.getEmoticons().getFirst();
+    Emoticon emoticon = emoticonsGroup.emoticons().getFirst();
     EmoticonsGroup[] emoticonsGroupsArray = new EmoticonsGroup[]{emoticonsGroup};
     when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
 
     instance.loadAndVerifyEmoticons();
-    assertEquals(emoticon.getBase64SvgContent(), instance.getBase64SvgContentByShortcode(emoticon.getShortcodes()
-                                                                                                 .getFirst()));
-    emoticon.getShortcodes().forEach(shortcode -> assertTrue(instance.getEmoticonShortcodeDetectorPattern().pattern().contains(shortcode)));
+    assertEquals(emoticon.base64SvgContent(),
+                 instance.getBase64SvgContentByShortcode(emoticon.shortcodes().getFirst()));
+    emoticon.shortcodes()
+            .forEach(
+                shortcode -> assertTrue(instance.getEmoticonShortcodeDetectorPattern().pattern().contains(shortcode)));
     assertTrue(instance.getEmoticonShortcodeDetectorPattern().pattern().contains("|"));
   }
 }

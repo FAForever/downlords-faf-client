@@ -46,7 +46,7 @@ public class EmoticonControllerTest extends PlatformTest {
       instance.setEmoticon(emoticon, onAction);
       instance.root.fireEvent(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
     });
-    verify(onAction).accept(emoticon.getShortcodes().getFirst());
+    verify(onAction).accept(emoticon.shortcodes().getFirst());
   }
 
   @Test

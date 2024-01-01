@@ -1,25 +1,38 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.avatar.AvatarService;
+import com.faforever.client.chat.emoticons.EmoticonService;
+import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.player.CountryFlagService;
+import com.faforever.client.player.SocialStatus;
+import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.util.TimeService;
+import javafx.beans.binding.BooleanExpression;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
+import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -44,7 +57,11 @@ public class ChatMessageController extends NodeController<VBox> {
   private final AvatarService avatarService;
   private final CountryFlagService countryFlagService;
   private final TimeService timeService;
+  private final PlatformService platformService;
+  private final ChatService chatService;
+  private final EmoticonService emoticonService;
   private final ImageViewHelper imageViewHelper;
+  private final ChatPrefs chatPrefs;
 
   public VBox root;
   public HBox detailsContainer;
@@ -55,11 +72,14 @@ public class ChatMessageController extends NodeController<VBox> {
   public Label timeLabel;
   public TextFlow message;
 
+  private final Tooltip avatarTooltip = new Tooltip();
   private final ObjectProperty<ChatMessage> chatMessage = new SimpleObjectProperty<>();
+  private final BooleanProperty showDetails = new SimpleBooleanProperty();
   private final StringProperty colorProperty = new SimpleStringProperty();
 
   @Override
   protected void onInitialize() {
+    JavaFxUtil.bindManagedToVisible(root, detailsContainer, message);
     ObservableValue<ChatChannelUser> sender = chatMessage.map(ChatMessage::sender);
     ObservableValue<PlayerBean> player = sender.flatMap(ChatChannelUser::playerProperty);
     avatarImageView.imageProperty()
@@ -75,33 +95,78 @@ public class ChatMessageController extends NodeController<VBox> {
                                 .when(showing));
     colorProperty.bind(sender.flatMap(ChatChannelUser::colorProperty).map(JavaFxUtil::toRgbCode).when(showing));
     clanLabel.textProperty().bind(player.flatMap(PlayerBean::clanProperty).map("[%s]"::formatted).when(showing));
-    authorLabel.textProperty().bind(sender.map(ChatChannelUser::getUsername).when(showing));
+    ObservableValue<String> usernameProperty = sender.map(ChatChannelUser::getUsername).when(showing);
+    authorLabel.textProperty().bind(usernameProperty);
+    authorLabel.setOnMouseClicked(event -> {
+      String username = usernameProperty.getValue();
+      if (username != null && event.getClickCount() == 2) {
+        chatService.onInitiatePrivateChat(username);
+      }
+    });
     timeLabel.textProperty().bind(chatMessage.map(ChatMessage::time).map(timeService::asShortTime));
     chatMessage.map(ChatMessage::message).map(this::convertMessageToNodes).when(showing).subscribe(messageNodes -> {
       Collection<? extends Node> children = messageNodes == null ? List.of() : messageNodes;
       message.getChildren().setAll(children);
     });
+    BooleanExpression isVisible = BooleanExpression.booleanExpression(player.flatMap(PlayerBean::socialStatusProperty)
+                                                                            .flatMap(
+                                                                                status -> chatPrefs.hideFoeMessagesProperty()
+                                                                                                   .map(
+                                                                                                       hideFoe -> !(hideFoe && status == SocialStatus.FOE)))
+                                                                            .orElse(true));
+    message.visibleProperty().bind(isVisible.when(showing));
+
+    detailsContainer.visibleProperty().bind(showDetails.and(isVisible).when(showing));
+
+    avatarTooltip.textProperty()
+                 .bind(
+                     player.flatMap(PlayerBean::avatarProperty).flatMap(AvatarBean::descriptionProperty).when(showing));
+    avatarTooltip.setShowDelay(Duration.ZERO);
+    avatarTooltip.setShowDuration(Duration.seconds(30));
+    Tooltip.install(avatarImageView, avatarTooltip);
   }
 
   private List<? extends Node> convertMessageToNodes(String message) {
-    return Arrays.stream(message.split("\\s"))
-                 .map(word -> word + " ")
+    return Arrays.stream(message.split("\\s+"))
                  .map(this::convertWordToNode)
                  .peek(this::styleMessageNode)
                  .toList();
   }
 
-  private Text convertWordToNode(String message) {
-    return new Text(message);
+  private Node convertWordToNode(String word) {
+    String paddedWord = word + " ";
+    if (PlatformService.URL_REGEX_PATTERN.matcher(word).matches()) {
+      Hyperlink hyperlink = new Hyperlink(paddedWord);
+      hyperlink.setOnAction(event -> platformService.showDocument(word));
+      return hyperlink;
+    }
+
+    if (word.startsWith("#")) {
+      Hyperlink hyperlink = new Hyperlink(paddedWord);
+      hyperlink.setOnAction(event -> chatService.joinChannel(word));
+      return hyperlink;
+    }
+
+    if (emoticonService.getEmoticonShortcodeDetectorPattern().matcher(word).matches()) {
+      ImageView imageView = new ImageView();
+      imageView.setImage(emoticonService.getImageByShortcode(word));
+      imageView.setFitHeight(24);
+      imageView.setFitWidth(24);
+      Pane pane = new Pane(imageView);
+      pane.setPadding(new Insets(0, 5, 0, 0));
+      return pane;
+    }
+
+    return new Text(paddedWord);
   }
 
   private void styleMessageNode(Node node) {
     switch (node) {
-      case Text text -> text.getStyleClass().add("text");
-      default -> {}
+      case ImageView imageView -> {}
+      case Hyperlink hyperlink -> {}
+      case Text text when text.getText().contains(chatService.getCurrentUsername()) -> text.getStyleClass().add("self");
+      default -> node.styleProperty().bind(colorProperty.map(rgb -> String.format("-fx-fill: %s", rgb)).when(showing));
     }
-
-    node.styleProperty().bind(colorProperty.map(rgb -> String.format("-fx-fill: %s", rgb)).when(showing));
   }
 
   @Override
@@ -119,5 +184,17 @@ public class ChatMessageController extends NodeController<VBox> {
 
   public void setChatMessage(ChatMessage chatMessage) {
     this.chatMessage.set(chatMessage);
+  }
+
+  public boolean isShowDetails() {
+    return showDetails.get();
+  }
+
+  public BooleanProperty showDetailsProperty() {
+    return showDetails;
+  }
+
+  public void setShowDetails(boolean showDetails) {
+    this.showDetails.set(showDetails);
   }
 }

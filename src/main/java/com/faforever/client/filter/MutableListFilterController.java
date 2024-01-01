@@ -6,7 +6,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ui.RemovableListCell;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.list.NoFocusModelListView;
-import com.faforever.client.ui.list.NoSelectionModelListView;
+import com.faforever.client.ui.list.NoSelectionModel;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
@@ -40,7 +40,7 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
   @Override
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(listView);
-    listView.setSelectionModel(new NoSelectionModelListView<>());
+    listView.setSelectionModel(new NoSelectionModel<>());
     listView.setFocusModel(new NoFocusModelListView<>());
 
     JavaFxUtil.addAndTriggerListener(itemListProperty, observable -> {

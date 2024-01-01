@@ -3,7 +3,7 @@ package com.faforever.client.filter;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.ui.list.NoFocusModelListView;
-import com.faforever.client.ui.list.NoSelectionModelListView;
+import com.faforever.client.ui.list.NoSelectionModel;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -48,7 +48,7 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
 
   @Override
   protected void onInitialize() {
-    listView.setSelectionModel(new NoSelectionModelListView<>());
+    listView.setSelectionModel(new NoSelectionModel<>());
     listView.setFocusModel(new NoFocusModelListView<>());
     addSearchBar();
   }
