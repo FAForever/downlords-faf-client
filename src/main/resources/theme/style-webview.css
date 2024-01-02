@@ -40,7 +40,7 @@ a {
 .chat-section.extended {
   padding: 1em;
   /* Same color as -divider-color */
-  border-bottom: 1px solid #424242;
+  border-top: 1px solid #424242;
 }
 
 img.avatar,

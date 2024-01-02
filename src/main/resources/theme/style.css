@@ -367,7 +367,7 @@
 
 /***************** Typing label *****************/
 .typing {
-  -fx-font-size: 16px;
+  -fx-font-size: 12px;
   -fx-font-style: italic;
   -fx-padding: 0 1em;
 }

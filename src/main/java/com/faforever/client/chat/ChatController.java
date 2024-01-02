@@ -55,6 +55,7 @@ public class ChatController extends NodeController<AnchorPane> {
   public Pane connectingProgressPane;
   public VBox noOpenTabsContainer;
   public TextField channelNameTextField;
+  public VBox disconnectedPane;
 
   @Override
   protected void onInitialize() {
@@ -86,7 +87,8 @@ public class ChatController extends NodeController<AnchorPane> {
 
   private void onDisconnected() {
     fxApplicationThreadExecutor.execute(() -> {
-      connectingProgressPane.setVisible(true);
+      disconnectedPane.setVisible(true);
+      connectingProgressPane.setVisible(false);
       tabPane.setVisible(false);
       tabPane.getTabs().removeIf(Tab::isClosable);
     });
@@ -95,6 +97,7 @@ public class ChatController extends NodeController<AnchorPane> {
   private void onConnected() {
     chatService.getChannels().forEach(this::onChannelJoined);
     fxApplicationThreadExecutor.execute(() -> {
+      disconnectedPane.setVisible(false);
       connectingProgressPane.setVisible(false);
       tabPane.setVisible(true);
     });
@@ -102,6 +105,7 @@ public class ChatController extends NodeController<AnchorPane> {
 
   private void onConnecting() {
     fxApplicationThreadExecutor.execute(() -> {
+      disconnectedPane.setVisible(false);
       connectingProgressPane.setVisible(true);
       tabPane.setVisible(false);
     });
@@ -166,5 +170,9 @@ public class ChatController extends NodeController<AnchorPane> {
 
     chatService.joinChannel(channelName);
     channelNameTextField.clear();
+  }
+
+  public void onConnectButtonClicked() {
+    chatService.connect();
   }
 }
