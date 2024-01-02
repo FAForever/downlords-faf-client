@@ -293,10 +293,6 @@ public class ChatMessageViewController extends NodeController<VBox> {
     fxApplicationThreadExecutor.execute(() -> messages.subList(from, to).clear());
   }
 
-  private ChatMessageItem createChatMessageItem(ChatMessage chatMessage) {
-    return new ChatMessageItem(chatMessage);
-  }
-
   private void updateTypingUsersLabel(Change<? extends ChatChannelUser> change) {
     List<ChatChannelUser> typingUsers = List.copyOf(change.getList());
     setTypingLabel(typingUsers);
