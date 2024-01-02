@@ -360,8 +360,9 @@ public class GenerateMapController extends NodeController<Pane> {
   }
 
   protected void setStyles(List<String> styles) {
-    styles.add(0, MapGeneratorService.GENERATOR_RANDOM_STYLE);
-    mapStyleComboBox.setItems(FXCollections.observableList(styles));
+    ObservableList<String> styleList = FXCollections.observableList(List.of(MapGeneratorService.GENERATOR_RANDOM_STYLE));
+    styleList.addAll(styles);
+    mapStyleComboBox.setItems(styleList);
     String mapStyle = generatorPrefs.getMapStyle();
     if (mapStyleComboBox.getItems().contains(mapStyle)) {
       mapStyleComboBox.getSelectionModel().select(mapStyle);
@@ -374,8 +375,9 @@ public class GenerateMapController extends NodeController<Pane> {
   }
 
   protected void setBiomes(List<String> biomes) {
-    biomes.add(0, MapGeneratorService.GENERATOR_RANDOM_BIOME);
-    biomeComboBox.setItems(FXCollections.observableList(biomes));
+    ObservableList<String> biomeList = FXCollections.observableList(List.of(MapGeneratorService.GENERATOR_RANDOM_BIOME));
+    biomeList.addAll(biomes);
+    biomeComboBox.setItems(biomeList);
     String biome = generatorPrefs.getBiome();
     if (biomeComboBox.getItems().contains(biome)) {
       biomeComboBox.getSelectionModel().select(biome);
