@@ -27,6 +27,9 @@ public class ChatMessageItemCell extends ListCell<ChatMessage> {
                          .bind(Bindings.createBooleanBinding(
                              () -> showDetails(previousMessageProperty.getValue(), getItem()), previousMessageProperty,
                              itemProperty()).when(emptyProperty().not()));
+    chatMessageController.getRoot()
+                         .prefWidthProperty()
+                         .bind(listViewProperty().flatMap(listView -> listView.widthProperty().subtract(25)));
   }
 
   @Override
@@ -51,10 +54,6 @@ public class ChatMessageItemCell extends ListCell<ChatMessage> {
       return true;
     }
 
-    if (!Objects.equals(previousMessage.sender(), currentMessage.sender())) {
-      return true;
-    }
-
-    return false;
+    return !Objects.equals(previousMessage.sender(), currentMessage.sender());
   }
 }

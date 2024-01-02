@@ -82,7 +82,7 @@ public class PrivateChatTabControllerTest extends PlatformTest {
   private ChatPrefs chatPrefs;
 
   @Mock
-  private ChatMessageWebViewController chatMessageWebViewController;
+  private ChatMessageViewController chatMessageViewController;
   @Mock
   private EmoticonsWindowController emoticonsWindowController;
 
@@ -97,7 +97,7 @@ public class PrivateChatTabControllerTest extends PlatformTest {
     player = PlayerBeanBuilder.create().defaultValues().get();
     playerName = player.getUsername();
 
-    lenient().when(chatMessageWebViewController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(chatMessageViewController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(chatService.getCurrentUsername()).thenReturn(playerName);
     lenient().when(themeService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
     lenient().when(privatePlayerInfoController.chatUserProperty()).thenReturn(new SimpleObjectProperty<>());
@@ -118,8 +118,8 @@ public class PrivateChatTabControllerTest extends PlatformTest {
       if (clazz == WatchButtonController.class) {
         return watchButtonController;
       }
-      if (clazz == ChatMessageWebViewController.class) {
-        return chatMessageWebViewController;
+      if (clazz == ChatMessageViewController.class) {
+        return chatMessageViewController;
       }
       if (clazz == EmoticonsWindowController.class) {
         return emoticonsWindowController;

@@ -3,11 +3,13 @@ package com.faforever.client.builders;
 import com.faforever.client.chat.emoticons.Emoticon;
 import com.faforever.client.chat.emoticons.EmoticonsGroup;
 
-import java.util.Arrays;
+import java.util.List;
 
 public class EmoticonGroupBuilder {
 
-  private final EmoticonsGroup emoticonsGroup = new EmoticonsGroup();
+  private String name;
+  private String attribution;
+  private List<Emoticon> emoticons;
 
   public static EmoticonGroupBuilder create() {
     return new EmoticonGroupBuilder();
@@ -24,21 +26,21 @@ public class EmoticonGroupBuilder {
   }
 
   public EmoticonGroupBuilder name(String name) {
-    emoticonsGroup.setName(name);
+    this.name = name;
     return this;
   }
 
   public EmoticonGroupBuilder attribution(String attribution) {
-    emoticonsGroup.setAttribution(attribution);
+    this.attribution = attribution;
     return this;
   }
 
   public EmoticonGroupBuilder emoticons(Emoticon... emoticons) {
-    emoticonsGroup.setEmoticons(Arrays.asList(emoticons));
+    this.emoticons = List.of(emoticons);
     return this;
   }
 
   public EmoticonsGroup get() {
-    return emoticonsGroup;
+    return new EmoticonsGroup(name, attribution, emoticons);
   }
 }

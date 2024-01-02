@@ -75,11 +75,11 @@ public class ChatMessageController extends NodeController<VBox> {
   private final Tooltip avatarTooltip = new Tooltip();
   private final ObjectProperty<ChatMessage> chatMessage = new SimpleObjectProperty<>();
   private final BooleanProperty showDetails = new SimpleBooleanProperty();
-  private final StringProperty colorProperty = new SimpleStringProperty();
+  private final StringProperty inlineColorStyleProperty = new SimpleStringProperty();
 
   @Override
   protected void onInitialize() {
-    JavaFxUtil.bindManagedToVisible(root, detailsContainer, message);
+    JavaFxUtil.bindManagedToVisible(detailsContainer, message);
     ObservableValue<ChatChannelUser> sender = chatMessage.map(ChatMessage::sender);
     ObservableValue<PlayerBean> player = sender.flatMap(ChatChannelUser::playerProperty);
     avatarImageView.imageProperty()
@@ -93,10 +93,15 @@ public class ChatMessageController extends NodeController<VBox> {
                                 .map(flagOptional -> flagOptional.orElse(null))
                                 .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
                                 .when(showing));
-    colorProperty.bind(sender.flatMap(ChatChannelUser::colorProperty).map(JavaFxUtil::toRgbCode).when(showing));
+    inlineColorStyleProperty.bind(sender.flatMap(ChatChannelUser::colorProperty)
+                                        .map(JavaFxUtil::toRgbCode)
+                                        .map(rgb -> String.format("-fx-fill: %s", rgb))
+                                        .when(showing));
     clanLabel.textProperty().bind(player.flatMap(PlayerBean::clanProperty).map("[%s]"::formatted).when(showing));
+    clanLabel.styleProperty().bind(inlineColorStyleProperty);
     ObservableValue<String> usernameProperty = sender.map(ChatChannelUser::getUsername).when(showing);
     authorLabel.textProperty().bind(usernameProperty);
+    authorLabel.styleProperty().bind(inlineColorStyleProperty);
     authorLabel.setOnMouseClicked(event -> {
       String username = usernameProperty.getValue();
       if (username != null && event.getClickCount() == 2) {
@@ -108,11 +113,11 @@ public class ChatMessageController extends NodeController<VBox> {
       Collection<? extends Node> children = messageNodes == null ? List.of() : messageNodes;
       message.getChildren().setAll(children);
     });
-    BooleanExpression isVisible = BooleanExpression.booleanExpression(player.flatMap(PlayerBean::socialStatusProperty)
-                                                                            .flatMap(
-                                                                                status -> chatPrefs.hideFoeMessagesProperty()
-                                                                                                   .map(
-                                                                                                       hideFoe -> !(hideFoe && status == SocialStatus.FOE)))
+    BooleanExpression isVisible = BooleanExpression.booleanExpression(player.flatMap(
+                                                                                playerBean -> playerBean.socialStatusProperty()
+                                                                                                        .isNotEqualTo(SocialStatus.FOE)
+                                                                                                        .and(chatPrefs.hideFoeMessagesProperty())
+                                                                                                        .not())
                                                                             .orElse(true));
     message.visibleProperty().bind(isVisible.when(showing));
 
@@ -134,38 +139,44 @@ public class ChatMessageController extends NodeController<VBox> {
   }
 
   private Node convertWordToNode(String word) {
-    String paddedWord = word + " ";
-    if (PlatformService.URL_REGEX_PATTERN.matcher(word).matches()) {
-      Hyperlink hyperlink = new Hyperlink(paddedWord);
-      hyperlink.setOnAction(event -> platformService.showDocument(word));
-      return hyperlink;
-    }
+    return switch (word) {
+      case String url when PlatformService.URL_REGEX_PATTERN.matcher(url).matches() -> createExternalHyperlink(url);
+      case String channel when channel.startsWith("#") -> createChannelLink(channel);
+      case String shortcode when emoticonService.getEmoticonShortcodeDetectorPattern().matcher(shortcode).matches() ->
+          createEmoticon(shortcode);
+      default -> new Text(word + " ");
+    };
+  }
 
-    if (word.startsWith("#")) {
-      Hyperlink hyperlink = new Hyperlink(paddedWord);
-      hyperlink.setOnAction(event -> chatService.joinChannel(word));
-      return hyperlink;
-    }
+  private Pane createEmoticon(String shortcode) {
+    ImageView imageView = new ImageView();
+    imageView.setImage(emoticonService.getImageByShortcode(shortcode));
+    imageView.setFitHeight(24);
+    imageView.setFitWidth(24);
+    Pane pane = new Pane(imageView);
+    pane.setPadding(new Insets(0, 5, 0, 0));
+    return pane;
+  }
 
-    if (emoticonService.getEmoticonShortcodeDetectorPattern().matcher(word).matches()) {
-      ImageView imageView = new ImageView();
-      imageView.setImage(emoticonService.getImageByShortcode(word));
-      imageView.setFitHeight(24);
-      imageView.setFitWidth(24);
-      Pane pane = new Pane(imageView);
-      pane.setPadding(new Insets(0, 5, 0, 0));
-      return pane;
-    }
+  private Hyperlink createChannelLink(String channelName) {
+    Hyperlink hyperlink = new Hyperlink(channelName + " ");
+    hyperlink.setOnAction(event -> chatService.joinChannel(channelName));
+    return hyperlink;
+  }
 
-    return new Text(paddedWord);
+  private Hyperlink createExternalHyperlink(String url) {
+    Hyperlink hyperlink = new Hyperlink(url + " ");
+    hyperlink.setOnAction(event -> platformService.showDocument(url));
+    return hyperlink;
   }
 
   private void styleMessageNode(Node node) {
     switch (node) {
-      case ImageView imageView -> {}
-      case Hyperlink hyperlink -> {}
-      case Text text when text.getText().contains(chatService.getCurrentUsername()) -> text.getStyleClass().add("self");
-      default -> node.styleProperty().bind(colorProperty.map(rgb -> String.format("-fx-fill: %s", rgb)).when(showing));
+      case ImageView ignored -> {}
+      case Hyperlink ignored -> {}
+      case Text text when chatService.getMentionPattern().matcher(text.getText()).matches() ->
+          text.getStyleClass().add("self");
+      default -> node.styleProperty().bind(inlineColorStyleProperty);
     }
   }
 

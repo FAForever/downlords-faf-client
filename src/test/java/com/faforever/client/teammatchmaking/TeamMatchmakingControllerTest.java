@@ -7,7 +7,7 @@ import com.faforever.client.builders.PartyBuilder;
 import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.SubdivisionBeanBuilder;
-import com.faforever.client.chat.ChatMessageWebViewController;
+import com.faforever.client.chat.ChatMessageViewController;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.MatchmakingChatController;
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
@@ -81,7 +81,7 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
   @Mock
   private MatchmakingChatController matchmakingChatController;
   @Mock
-  private ChatMessageWebViewController chatMessageWebViewController;
+  private ChatMessageViewController chatMessageWebViewController;
   @Mock
   private EmoticonsWindowController emoticonsWindowController;
   @Spy
@@ -124,7 +124,7 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
       if (clazz == MatchmakingChatController.class) {
         return matchmakingChatController;
       }
-      if (clazz == ChatMessageWebViewController.class) {
+      if (clazz == ChatMessageViewController.class) {
         return chatMessageWebViewController;
       }
       if (clazz == EmoticonsWindowController.class) {

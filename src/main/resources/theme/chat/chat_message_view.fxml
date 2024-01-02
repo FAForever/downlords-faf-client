@@ -11,7 +11,7 @@
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.faforever.client.chat.ChatMessageViewController"
       fx:id="root">
-    <ListView fx:id="messagesListView" VBox.vgrow="ALWAYS"/>
+    <ListView fx:id="messagesListView" styleClass="chat-list-view" VBox.vgrow="ALWAYS"/>
     <Label fx:id="typingLabel" visible="false" styleClass="typing"/>
     <HBox alignment="CENTER_LEFT" styleClass="channel-chat-container">
         <children>
