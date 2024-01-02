@@ -14,10 +14,14 @@ import org.springframework.core.io.ClassPathResource;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
 public class EmoticonControllerTest extends PlatformTest {
 
+  @Mock
+  private EmoticonService emoticonService;
   @Mock
   private Consumer<String> onAction;
 
@@ -26,6 +30,8 @@ public class EmoticonControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    lenient().when(emoticonService.getImageByShortcode(any())).thenReturn(new Image("http://localhost"));
+
     loadFxml("theme/chat/emoticons/emoticon.fxml", clazz -> instance);
   }
 

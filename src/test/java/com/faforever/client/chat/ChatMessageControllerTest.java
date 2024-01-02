@@ -5,6 +5,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.ImageViewHelper;
+import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
@@ -17,6 +18,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -85,6 +87,13 @@ public class ChatMessageControllerTest extends PlatformTest {
     user.setColor(new Color(0, 0, 0, 0));
 
     loadFxml("theme/chat/chat_message.fxml", clazz -> instance);
+  }
+
+  @Test
+  public void testClickAuthor() {
+    instance.setChatMessage(new ChatMessage(Instant.now(), user, "", ""));
+    runOnFxThreadAndWait(() -> instance.authorLabel.fireEvent(MouseEvents.generateClick(MouseButton.PRIMARY, 2)));
+    verify(chatService).onInitiatePrivateChat("junit");
   }
 
   @Test
