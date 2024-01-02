@@ -39,6 +39,7 @@ import org.springframework.stereotype.Component;
 import java.security.InvalidParameterException;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -360,9 +361,9 @@ public class GenerateMapController extends NodeController<Pane> {
   }
 
   protected void setStyles(List<String> styles) {
-    ObservableList<String> styleList = FXCollections.observableList(List.of(MapGeneratorService.GENERATOR_RANDOM_STYLE));
+    ArrayList<String> styleList = new ArrayList<>(List.of(MapGeneratorService.GENERATOR_RANDOM_STYLE));
     styleList.addAll(styles);
-    mapStyleComboBox.setItems(styleList);
+    mapStyleComboBox.setItems(FXCollections.observableList(styleList));
     String mapStyle = generatorPrefs.getMapStyle();
     if (mapStyleComboBox.getItems().contains(mapStyle)) {
       mapStyleComboBox.getSelectionModel().select(mapStyle);
@@ -375,9 +376,9 @@ public class GenerateMapController extends NodeController<Pane> {
   }
 
   protected void setBiomes(List<String> biomes) {
-    ObservableList<String> biomeList = FXCollections.observableList(List.of(MapGeneratorService.GENERATOR_RANDOM_BIOME));
+    ArrayList<String> biomeList = new ArrayList<>(List.of(MapGeneratorService.GENERATOR_RANDOM_BIOME));
     biomeList.addAll(biomes);
-    biomeComboBox.setItems(biomeList);
+    biomeComboBox.setItems(FXCollections.observableList(biomeList));
     String biome = generatorPrefs.getBiome();
     if (biomeComboBox.getItems().contains(biome)) {
       biomeComboBox.getSelectionModel().select(biome);
