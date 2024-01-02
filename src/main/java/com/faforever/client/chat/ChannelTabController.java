@@ -104,10 +104,6 @@ public class ChannelTabController extends AbstractChatTabController {
 
     channelTopic.when(showing).subscribe(this::updateChannelTopic);
     userListVisibilityToggleButton.selectedProperty().when(showing).subscribe(this::updateDividerPosition);
-    chatMessagesView.maxWidthProperty()
-                    .bind(splitPane.widthProperty()
-                                   .multiply(splitPane.getDividers().getFirst().positionProperty())
-                                   .when(showing));
   }
 
   private void updateDividerPosition(boolean selected) {
