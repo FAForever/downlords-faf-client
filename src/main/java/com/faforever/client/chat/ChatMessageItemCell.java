@@ -27,9 +27,6 @@ public class ChatMessageItemCell extends ListCell<ChatMessage> {
                          .bind(Bindings.createBooleanBinding(
                              () -> showDetails(previousMessageProperty.getValue(), getItem()), previousMessageProperty,
                              itemProperty()).when(emptyProperty().not()));
-    chatMessageController.getRoot()
-                         .prefWidthProperty()
-                         .bind(listViewProperty().flatMap(listView -> listView.widthProperty().subtract(25)));
   }
 
   @Override

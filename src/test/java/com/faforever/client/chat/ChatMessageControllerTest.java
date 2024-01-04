@@ -8,7 +8,6 @@ import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.util.TimeService;
 import javafx.beans.property.SimpleObjectProperty;
@@ -26,7 +25,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -58,8 +56,6 @@ public class ChatMessageControllerTest extends PlatformTest {
   private EmoticonService emoticonService;
   @Mock
   private ImageViewHelper imageViewHelper;
-  @Spy
-  private ChatPrefs chatPrefs;
 
   @InjectMocks
   private ChatMessageController instance;

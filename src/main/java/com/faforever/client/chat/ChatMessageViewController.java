@@ -5,11 +5,13 @@ import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.list.NoSelectionModel;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
+import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -17,6 +19,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Bounds;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -63,6 +66,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
   private final ChatService chatService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final I18n i18n;
+  private final ChatPrefs chatPrefs;
 
   public Button emoticonsButton;
   public TextField messageTextField;
@@ -78,7 +82,9 @@ public class ChatMessageViewController extends NodeController<VBox> {
   private final ListChangeListener<ChatChannelUser> typingUserListChangeListener = this::updateTypingUsersLabel;
   private final ListChangeListener<ChatMessage> messageSynchronizationListener = this::synchronizeChange;
 
-  private final ObservableList<ChatMessage> messages = FXCollections.observableArrayList();
+  private final ObservableList<ChatMessage> rawMessages = FXCollections.synchronizedObservableList(
+      FXCollections.observableArrayList(chatMessage -> new Observable[]{chatMessage.sender().categoryProperty()}));
+  private final FilteredList<ChatMessage> filteredMessages = new FilteredList<>(rawMessages);
 
   private Popup emoticonsPopup;
 
@@ -90,10 +96,18 @@ public class ChatMessageViewController extends NodeController<VBox> {
 
   @Override
   protected void onInitialize() {
-    messages.subscribe(() -> messagesListView.scrollTo(messages.getLast()));
+    filteredMessages.predicateProperty().bind(chatPrefs.hideFoeMessagesProperty().map(hideFoes -> {
+      if (!hideFoes) {
+        return message -> true;
+      } else {
+        return message -> message.sender().getCategory() != ChatUserCategory.FOE;
+      }
+    }));
+
+    filteredMessages.subscribe(() -> messagesListView.scrollTo(filteredMessages.getLast()));
 
     messagesListView.setSelectionModel(new NoSelectionModel<>());
-    messagesListView.setItems(messages);
+    messagesListView.setItems(filteredMessages);
     messagesListView.setOrientation(Orientation.VERTICAL);
     messagesListView.setCellFactory(ignored -> chatMessageItemCellFactory.getObject());
 
@@ -112,7 +126,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
         oldValue.getTypingUsers().removeListener(typingUserListChangeListener);
       }
 
-      messages.clear();
+      rawMessages.clear();
 
       if (newValue != null) {
         addMessagesAtIndex(0, newValue.getMessages());
@@ -286,11 +300,11 @@ public class ChatMessageViewController extends NodeController<VBox> {
   }
 
   private void addMessagesAtIndex(int from, List<? extends ChatMessage> newMessages) {
-    fxApplicationThreadExecutor.execute(() -> messages.addAll(from, newMessages));
+    fxApplicationThreadExecutor.execute(() -> rawMessages.addAll(from, newMessages));
   }
 
   private void removeMessagesInRange(int from, int to) {
-    fxApplicationThreadExecutor.execute(() -> messages.subList(from, to).clear());
+    fxApplicationThreadExecutor.execute(() -> rawMessages.subList(from, to).clear());
   }
 
   private void updateTypingUsersLabel(Change<? extends ChatChannelUser> change) {

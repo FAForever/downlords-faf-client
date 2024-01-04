@@ -9,10 +9,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.SocialStatus;
-import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.util.TimeService;
-import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -61,7 +58,6 @@ public class ChatMessageController extends NodeController<VBox> {
   private final ChatService chatService;
   private final EmoticonService emoticonService;
   private final ImageViewHelper imageViewHelper;
-  private final ChatPrefs chatPrefs;
 
   public VBox root;
   public HBox detailsContainer;
@@ -108,20 +104,13 @@ public class ChatMessageController extends NodeController<VBox> {
         chatService.onInitiatePrivateChat(username);
       }
     });
-    timeLabel.textProperty().bind(chatMessage.map(ChatMessage::time).map(timeService::asShortTime));
+    timeLabel.textProperty().bind(chatMessage.map(ChatMessage::time).map(timeService::asShortTime).when(showing));
     chatMessage.map(ChatMessage::message).map(this::convertMessageToNodes).when(showing).subscribe(messageNodes -> {
       Collection<? extends Node> children = messageNodes == null ? List.of() : messageNodes;
       message.getChildren().setAll(children);
     });
-    BooleanExpression isVisible = BooleanExpression.booleanExpression(player.flatMap(
-                                                                                playerBean -> playerBean.socialStatusProperty()
-                                                                                                        .isNotEqualTo(SocialStatus.FOE)
-                                                                                                        .and(chatPrefs.hideFoeMessagesProperty())
-                                                                                                        .not())
-                                                                            .orElse(true));
-    message.visibleProperty().bind(isVisible.when(showing));
 
-    detailsContainer.visibleProperty().bind(showDetails.and(isVisible).when(showing));
+    detailsContainer.visibleProperty().bind(showDetails.when(showing));
 
     avatarTooltip.textProperty()
                  .bind(
