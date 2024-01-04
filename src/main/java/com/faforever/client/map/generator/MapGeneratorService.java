@@ -48,6 +48,7 @@ public class MapGeneratorService implements DisposableBean {
   public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
   public static final int GENERATION_TIMEOUT_SECONDS = 60 * 3;
   public static final String GENERATOR_RANDOM_STYLE = "RANDOM";
+  public static final String GENERATOR_RANDOM_BIOME = "RANDOM";
   private static final Pattern VERSION_PATTERN = Pattern.compile("\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?");
   protected static final Pattern GENERATED_MAP_PATTERN = Pattern.compile("neroxis_map_generator_(" + VERSION_PATTERN + ")_(.*)");
 
@@ -185,6 +186,16 @@ public class MapGeneratorService implements DisposableBean {
     Path generatorExecutablePath = getGeneratorExecutablePath(defaultGeneratorVersion);
     generatorOptionsTask.setVersion(defaultGeneratorVersion);
     generatorOptionsTask.setQuery("--styles");
+    generatorOptionsTask.setGeneratorExecutableFile(generatorExecutablePath);
+    return taskService.submitTask(generatorOptionsTask).getFuture();
+  }
+
+  public CompletableFuture<List<String>> getGeneratorBiomes() {
+    Assert.checkNullIllegalState(defaultGeneratorVersion, "Generator version not set");
+    GeneratorOptionsTask generatorOptionsTask = generatorOptionsTaskFactory.getObject();
+    Path generatorExecutablePath = getGeneratorExecutablePath(defaultGeneratorVersion);
+    generatorOptionsTask.setVersion(defaultGeneratorVersion);
+    generatorOptionsTask.setQuery("--biomes");
     generatorOptionsTask.setGeneratorExecutableFile(generatorExecutablePath);
     return taskService.submitTask(generatorOptionsTask).getFuture();
   }

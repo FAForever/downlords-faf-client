@@ -128,6 +128,18 @@ public class GenerateMapControllerTest extends PlatformTest {
   }
 
   @Test
+  public void testSetLastBiome() {
+    generatorPrefs.setBiome("Test");
+
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
+    WaitForAsyncUtils.waitForFxEvents();
+
+    instance.setBiomes(new ArrayList<>(List.of("Test")));
+
+    assertEquals(instance.biomeComboBox.getValue(), "Test");
+  }
+
+  @Test
   public void testSetLastWaterRandom() {
     generatorPrefs.setWaterRandom(false);
 
@@ -304,6 +316,26 @@ public class GenerateMapControllerTest extends PlatformTest {
   }
 
   @Test
+  public void testBiomesVisibleWhenPopulated() {
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
+    WaitForAsyncUtils.waitForFxEvents();
+
+    instance.setBiomes(new ArrayList<>(List.of("Test")));
+
+    assertTrue(instance.biomeLabel.isVisible());
+    assertTrue(instance.biomeComboBox.isVisible());
+  }
+
+  @Test
+  public void testBiomesNotVisibleWhenNotPopulated() {
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertFalse(instance.biomeLabel.isVisible());
+    assertFalse(instance.biomeComboBox.isVisible());
+  }
+
+  @Test
   public void testWaterSliderVisibilityWhenRandom() {
     generatorPrefs.setWaterRandom(true);
 
@@ -444,6 +476,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertFalse(instance.mexRandomBox.isDisabled());
     assertFalse(instance.mexSliderBox.isDisabled());
     assertFalse(instance.mapStyleComboBox.isDisabled());
+    assertFalse(instance.biomeComboBox.isDisabled());
   }
 
   @Test
@@ -467,6 +500,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertTrue(instance.mexRandomBox.isDisabled());
     assertTrue(instance.mexSliderBox.isDisabled());
     assertTrue(instance.mapStyleComboBox.isDisabled());
+    assertTrue(instance.biomeComboBox.isDisabled());
   }
 
   @Test
@@ -489,6 +523,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertTrue(instance.mexRandomBox.isDisabled());
     assertTrue(instance.mexSliderBox.isDisabled());
     assertTrue(instance.mapStyleComboBox.isDisabled());
+    assertTrue(instance.biomeComboBox.isDisabled());
   }
 
   @Test
@@ -510,6 +545,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertTrue(instance.reclaimSliderBox.isDisabled());
     assertTrue(instance.mexRandomBox.isDisabled());
     assertTrue(instance.mexSliderBox.isDisabled());
+    assertTrue(instance.biomeComboBox.isDisabled());
   }
 
   @Test
@@ -530,6 +566,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertFalse(instance.reclaimSliderBox.isDisabled());
     assertFalse(instance.mexRandomBox.isDisabled());
     assertFalse(instance.mexSliderBox.isDisabled());
+    assertFalse(instance.biomeComboBox.isDisabled());
   }
 
   @Test
@@ -551,6 +588,73 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertFalse(instance.reclaimSliderBox.isDisabled());
     assertFalse(instance.mexRandomBox.isDisabled());
     assertFalse(instance.mexSliderBox.isDisabled());
+    assertFalse(instance.biomeComboBox.isDisabled());
+  }
+
+  @Test
+  public void testStyleDisabledWithBiome() {
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
+    WaitForAsyncUtils.waitForFxEvents();
+    instance.biomeComboBox.setItems(FXCollections.observableList(List.of("Test")));
+    instance.biomeComboBox.getSelectionModel().selectFirst();
+
+    assertFalse(instance.rampRandomBox.isDisabled());
+    assertFalse(instance.rampSliderBox.isDisabled());
+    assertFalse(instance.waterRandomBox.isDisabled());
+    assertFalse(instance.waterSliderBox.isDisabled());
+    assertFalse(instance.plateauRandomBox.isDisabled());
+    assertFalse(instance.plateauSliderBox.isDisabled());
+    assertFalse(instance.mountainRandomBox.isDisabled());
+    assertFalse(instance.mountainSliderBox.isDisabled());
+    assertFalse(instance.reclaimRandomBox.isDisabled());
+    assertFalse(instance.reclaimSliderBox.isDisabled());
+    assertFalse(instance.mexRandomBox.isDisabled());
+    assertFalse(instance.mexSliderBox.isDisabled());
+
+    assertTrue(instance.mapStyleComboBox.isDisabled());
+  }
+
+  @Test
+  public void testOptionsNotDisabledWithNoBiome() {
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
+    WaitForAsyncUtils.waitForFxEvents();
+    instance.biomeComboBox.getSelectionModel().clearSelection();
+
+    assertFalse(instance.rampRandomBox.isDisabled());
+    assertFalse(instance.rampSliderBox.isDisabled());
+    assertFalse(instance.waterRandomBox.isDisabled());
+    assertFalse(instance.waterSliderBox.isDisabled());
+    assertFalse(instance.plateauRandomBox.isDisabled());
+    assertFalse(instance.plateauSliderBox.isDisabled());
+    assertFalse(instance.mountainRandomBox.isDisabled());
+    assertFalse(instance.mountainSliderBox.isDisabled());
+    assertFalse(instance.reclaimRandomBox.isDisabled());
+    assertFalse(instance.reclaimSliderBox.isDisabled());
+    assertFalse(instance.mexRandomBox.isDisabled());
+    assertFalse(instance.mexSliderBox.isDisabled());
+    assertFalse(instance.mapStyleComboBox.isDisabled());
+  }
+
+  @Test
+  public void testOptionsNotDisabledWithRandomBiome() {
+    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
+    WaitForAsyncUtils.waitForFxEvents();
+    instance.biomeComboBox.setItems(FXCollections.observableList(List.of(MapGeneratorService.GENERATOR_RANDOM_BIOME)));
+    instance.biomeComboBox.getSelectionModel().selectFirst();
+
+    assertFalse(instance.rampRandomBox.isDisabled());
+    assertFalse(instance.rampSliderBox.isDisabled());
+    assertFalse(instance.waterRandomBox.isDisabled());
+    assertFalse(instance.waterSliderBox.isDisabled());
+    assertFalse(instance.plateauRandomBox.isDisabled());
+    assertFalse(instance.plateauSliderBox.isDisabled());
+    assertFalse(instance.mountainRandomBox.isDisabled());
+    assertFalse(instance.mountainSliderBox.isDisabled());
+    assertFalse(instance.reclaimRandomBox.isDisabled());
+    assertFalse(instance.reclaimSliderBox.isDisabled());
+    assertFalse(instance.mexRandomBox.isDisabled());
+    assertFalse(instance.mexSliderBox.isDisabled());
+    assertFalse(instance.mapStyleComboBox.isDisabled());
   }
 
   @Test
@@ -573,6 +677,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertFalse(instance.mexRandomBox.isDisabled());
     assertFalse(instance.mexSliderBox.isDisabled());
     assertFalse(instance.mapStyleComboBox.isDisabled());
+    assertFalse(instance.biomeComboBox.isDisabled());
   }
 
   @Test
@@ -595,6 +700,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertTrue(instance.mexRandomBox.isDisabled());
     assertTrue(instance.mexSliderBox.isDisabled());
     assertTrue(instance.mapStyleComboBox.isDisabled());
+    assertTrue(instance.biomeComboBox.isDisabled());
   }
 
   @Test
@@ -617,6 +723,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertTrue(instance.mexRandomBox.isDisabled());
     assertTrue(instance.mexSliderBox.isDisabled());
     assertTrue(instance.mapStyleComboBox.isDisabled());
+    assertTrue(instance.biomeComboBox.isDisabled());
   }
 
   @Test
@@ -639,6 +746,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertTrue(instance.mexRandomBox.isDisabled());
     assertTrue(instance.mexSliderBox.isDisabled());
     assertTrue(instance.mapStyleComboBox.isDisabled());
+    assertTrue(instance.biomeComboBox.isDisabled());
   }
 
   @Test
@@ -676,6 +784,8 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     instance.mapStyleComboBox.setItems(FXCollections.observableList(List.of("TEST")));
     instance.mapStyleComboBox.getSelectionModel().selectFirst();
+    instance.biomeComboBox.setItems(FXCollections.observableList(List.of("Test")));
+    instance.biomeComboBox.getSelectionModel().selectFirst();
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
@@ -699,6 +809,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertEquals(GenerationType.CASUAL, result.generationType());
     assertNull(result.commandLineArgs());
     assertEquals("TEST", result.style());
+    assertEquals("Test", result.biome());
   }
 
   @Test
