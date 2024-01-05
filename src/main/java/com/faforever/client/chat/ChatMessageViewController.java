@@ -273,37 +273,6 @@ public class ChatMessageViewController extends NodeController<VBox> {
     }, fxApplicationThreadExecutor);
   }
 
-  private void synchronizeChange(Change<? extends ChatMessage> change) {
-    List<ChatMessage> sourceList = List.copyOf(change.getList());
-    fxApplicationThreadExecutor.execute(() -> {
-      while (change.next()) {
-        int from = change.getFrom();
-        if (change.wasPermutated()) {
-          int to = change.getTo();
-          removeMessagesInRange(from, to);
-          List<? extends ChatMessage> newMessages = sourceList.subList(from, to);
-          addMessagesAtIndex(from, newMessages);
-        } else {
-          if (change.wasRemoved()) {
-            int to = from + change.getRemovedSize();
-            removeMessagesInRange(from, to);
-          }
-          if (change.wasAdded()) {
-            addMessagesAtIndex(from, change.getAddedSubList());
-          }
-        }
-      }
-    });
-  }
-
-  private void addMessagesAtIndex(int from, List<? extends ChatMessage> newMessages) {
-    rawMessages.addAll(from, newMessages);
-  }
-
-  private void removeMessagesInRange(int from, int to) {
-    rawMessages.subList(from, to).clear();
-  }
-
   private void updateTypingUsersLabel(Change<? extends ChatChannelUser> change) {
     List<ChatChannelUser> typingUsers = List.copyOf(change.getList());
     setTypingLabel(typingUsers);
