@@ -7,7 +7,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.ui.StageHolder;
-import com.faforever.client.ui.list.NoSelectionModel;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.PopupUtil;
 import javafx.beans.Observable;
@@ -103,7 +102,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
     filteredMessages.subscribe(
         () -> fxApplicationThreadExecutor.execute(() -> messagesListView.scrollTo(filteredMessages.size())));
 
-    messagesListView.setSelectionModel(new NoSelectionModel<>());
+    messagesListView.setSelectionModel(null);
     messagesListView.setItems(filteredMessages);
     messagesListView.setOrientation(Orientation.VERTICAL);
     messagesListView.setCellFactory(ignored -> chatMessageItemCellFactory.getObject());
