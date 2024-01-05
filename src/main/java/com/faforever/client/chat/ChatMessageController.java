@@ -28,7 +28,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
-import javafx.scene.web.WebView;
 import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,11 +40,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/**
- * A chat tab displays messages in a {@link WebView}. The WebView is used since text on a JavaFX canvas isn't
- * selectable, but text within a WebView is. This comes with some ugly implications; some logic has to be performed in
- * interaction with JavaScript, like when the user clicks a link.
- */
 @Slf4j
 @RequiredArgsConstructor
 @Component
