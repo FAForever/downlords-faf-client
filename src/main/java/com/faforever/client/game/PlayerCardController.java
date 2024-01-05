@@ -85,7 +85,7 @@ public class PlayerCardController extends NodeController<Node> {
 
   @Override
   protected void onInitialize() {
-    JavaFxUtil.bindManagedToVisible(factionIcon, foeIconText, factionImage, friendIconText, countryImageView, noteIcon);
+    JavaFxUtil.bindManagedToVisible(avatarStackPane, factionIcon, foeIconText, factionImage, friendIconText, countryImageView, noteIcon);
     countryImageView.visibleProperty().bind(countryImageView.imageProperty().isNotNull());
     avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
 
@@ -218,8 +218,7 @@ public class PlayerCardController extends NodeController<Node> {
 
   public void removeAvatar() {
     this.avatarImageView.managedProperty().set(false);
-    this.avatarStackPane.managedProperty().set(false);
-    this.avatarStackPane.visibleProperty().set(false);
+    this.avatarStackPane.setVisible(false);
   }
 
   public PlayerBean getPlayer() {
