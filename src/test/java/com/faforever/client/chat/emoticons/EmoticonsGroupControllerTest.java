@@ -44,7 +44,7 @@ public class EmoticonsGroupControllerTest extends PlatformTest {
     EmoticonsGroup emoticonsGroup = EmoticonGroupBuilder.create().defaultValues().attribution("").get();
     runOnFxThreadAndWait(() -> instance.setGroup(emoticonsGroup, any()));
 
-    assertEquals(emoticonsGroup.getName(), instance.groupLabel.getText());
+    assertEquals(emoticonsGroup.name(), instance.groupLabel.getText());
     assertFalse(instance.attributionPane.isVisible());
     assertEquals(2, instance.emoticonsPane.getChildren().size());
   }
@@ -54,8 +54,8 @@ public class EmoticonsGroupControllerTest extends PlatformTest {
     EmoticonsGroup emoticonsGroup = EmoticonGroupBuilder.create().defaultValues().get();
     runOnFxThreadAndWait(() -> instance.setGroup(emoticonsGroup, any()));
 
-    assertEquals(emoticonsGroup.getName(), instance.groupLabel.getText());
-    assertEquals(emoticonsGroup.getAttribution(), instance.attributionHyperlink.getText());
+    assertEquals(emoticonsGroup.name(), instance.groupLabel.getText());
+    assertEquals(emoticonsGroup.attribution(), instance.attributionHyperlink.getText());
     assertTrue(instance.attributionPane.isVisible());
     assertEquals(2, instance.emoticonsPane.getChildren().size());
   }
@@ -67,7 +67,7 @@ public class EmoticonsGroupControllerTest extends PlatformTest {
       instance.setGroup(emoticonsGroup, any());
       instance.attributionHyperlink.fire();
     });
-    verify(platformService).showDocument(emoticonsGroup.getAttribution());
+    verify(platformService).showDocument(emoticonsGroup.attribution());
   }
 
   @Test

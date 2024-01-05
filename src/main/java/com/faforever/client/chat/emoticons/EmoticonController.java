@@ -21,16 +21,18 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class EmoticonController extends NodeController<AnchorPane> {
 
+  private final EmoticonService emoticonService;
+
   private final Font shortcodesFont = new Font(14d);
 
   public AnchorPane root;
   public ImageView emoticonImageView;
 
   public void setEmoticon(Emoticon emoticon, Consumer<String> onAction) {
-    emoticonImageView.setImage(emoticon.getImage());
-    root.setOnMouseClicked(event -> onAction.accept(emoticon.getShortcodes().getFirst()));
+    emoticonImageView.setImage(emoticonService.getImageByShortcode(emoticon.shortcodes().getFirst()));
+    root.setOnMouseClicked(event -> onAction.accept(emoticon.shortcodes().getFirst()));
 
-    displayShortcodesOnHover(emoticon.getShortcodes());
+    displayShortcodesOnHover(emoticon.shortcodes());
   }
 
   private void displayShortcodesOnHover(List<String> shortcodes) {

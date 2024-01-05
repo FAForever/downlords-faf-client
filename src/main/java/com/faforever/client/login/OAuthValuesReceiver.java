@@ -11,6 +11,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -108,13 +109,16 @@ public class OAuthValuesReceiver {
       String html;
 
       if (success) {
-        html = new String(OAuthValuesReceiver.class.getResourceAsStream("/login_success.html").readAllBytes())
-            .replace("${title}", i18n.get("login.browser.success.title"))
-            .replace("${message}", i18n.get("login.browser.success.message"));
+        try (InputStream inputStream = OAuthValuesReceiver.class.getResourceAsStream("/login_success.html")) {
+          html = new String(inputStream.readAllBytes()).replace("${title}", i18n.get("login.browser.success.title"))
+                                                       .replace("${message}",
+                                                                i18n.get("login.browser.success.message"));
+        }
       } else {
-        html = new String(OAuthValuesReceiver.class.getResourceAsStream("/login_failed.html").readAllBytes())
-            .replace("${title}", i18n.get("login.browser.failed.title"))
-            .replace("${message}", i18n.get("login.browser.failed.message"));
+        try (InputStream inputStream = OAuthValuesReceiver.class.getResourceAsStream("/login_failed.html")) {
+          html = new String(inputStream.readAllBytes()).replace("${title}", i18n.get("login.browser.failed.title"))
+                                                       .replace("${message}", i18n.get("login.browser.failed.message"));
+        }
       }
 
       writer

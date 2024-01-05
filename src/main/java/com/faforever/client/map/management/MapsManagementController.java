@@ -6,7 +6,7 @@ import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.list.NoSelectionModelListView;
+import com.faforever.client.ui.list.NoSelectionModel;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.Node;
@@ -52,7 +52,7 @@ public class MapsManagementController extends NodeController<Node> {
 
   private void initializeListView() {
     listView.setCellFactory(param -> new RemovableMapCell(uiService, fxApplicationThreadExecutor));
-    listView.setSelectionModel(new NoSelectionModelListView<>());
+    listView.setSelectionModel(new NoSelectionModel<>());
     listView.setItems(filteredMaps);
   }
 

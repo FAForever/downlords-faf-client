@@ -36,10 +36,12 @@ public class ChatChannel {
       FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
           item -> new Observable[]{item.categoryProperty(), item.colorProperty(), item.typingProperty()})),
       usernameToChatUser);
+  private final ObservableList<ChatChannelUser> unmodifiableUsers = FXCollections.unmodifiableObservableList(users);
   private final ObservableList<ChatChannelUser> typingUsers = new FilteredList<>(users, ChatChannelUser::isTyping);
   private final ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic(null, ""));
   private final ObservableList<ChatMessage> messages = FXCollections.synchronizedObservableList(
       FXCollections.observableArrayList());
+  private final ObservableList<ChatMessage> unmodifiableMessages = FXCollections.unmodifiableObservableList(messages);
   private final BooleanProperty open = new SimpleBooleanProperty();
   private final IntegerProperty maxNumMessages = new SimpleIntegerProperty(Integer.MAX_VALUE);
   private final IntegerProperty numUnreadMessages = new SimpleIntegerProperty();
@@ -47,7 +49,6 @@ public class ChatChannel {
   public ChatChannel(String name) {
     this.name = name;
     maxNumMessages.subscribe(this::pruneMessages);
-    messages.subscribe(this::pruneMessages);
     open.subscribe(open -> {
       if (open) {
         setNumUnreadMessages(0);
@@ -126,7 +127,7 @@ public class ChatChannel {
   }
 
   public ObservableList<ChatChannelUser> getUsers() {
-    return users;
+    return unmodifiableUsers;
   }
 
   public Optional<ChatChannelUser> getUser(String username) {
@@ -135,10 +136,11 @@ public class ChatChannel {
 
   public void addMessage(ChatMessage message) {
     messages.add(message);
+    pruneMessages();
   }
 
   public ObservableList<ChatMessage> getMessages() {
-    return messages;
+    return unmodifiableMessages;
   }
 
   public boolean isPrivateChannel() {

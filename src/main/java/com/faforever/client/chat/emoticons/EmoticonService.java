@@ -19,6 +19,7 @@ import java.util.Base64;
 import java.util.Base64.Decoder;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -32,11 +33,13 @@ public class EmoticonService implements InitializingBean {
   static final ClassPathResource EMOTICONS_JSON_FILE_RESOURCE = new ClassPathResource("images/emoticons/emoticons.json");
 
   private final ObjectMapper objectMapper;
-  private final Decoder decoder = Base64.getDecoder();
 
   private List<EmoticonsGroup> emoticonsGroups;
-  private final HashMap<String, String> shortcodeToBase64SvgContent = new HashMap<>();
   private Pattern emoticonShortcodeDetectorPattern;
+
+  private final Decoder decoder = Base64.getDecoder();
+  private final Map<String, String> shortcodeToBase64SvgContent = new HashMap<>();
+  private final Map<String, Image> shortcodeToImage = new HashMap<>();
 
   @Override
   public void afterPropertiesSet() {
@@ -47,15 +50,17 @@ public class EmoticonService implements InitializingBean {
   void loadAndVerifyEmoticons() {
     try (InputStream emoticonsInputStream = EMOTICONS_JSON_FILE_RESOURCE.getInputStream()) {
       emoticonsGroups = Arrays.asList(objectMapper.readValue(emoticonsInputStream, EmoticonsGroup[].class));
-      emoticonsGroups.stream().flatMap(emoticonsGroup -> emoticonsGroup.getEmoticons().stream())
-          .forEach(emoticon -> emoticon.getShortcodes().forEach(shortcode -> {
-            if (shortcodeToBase64SvgContent.containsKey(shortcode)) {
-              throw new ProgrammingError("Shortcode `" + shortcode + "` is already taken");
-            }
-            String base64SvgContent = emoticon.getBase64SvgContent();
-            shortcodeToBase64SvgContent.put(shortcode, base64SvgContent);
-            emoticon.setImage(new Image(IOUtils.toInputStream(new String(decoder.decode(base64SvgContent)))));
-          }));
+      emoticonsGroups.stream().flatMap(emoticonsGroup -> emoticonsGroup.emoticons().stream()).forEach(emoticon -> {
+        String base64SvgContent = emoticon.base64SvgContent();
+        Image image = new Image(IOUtils.toInputStream(new String(decoder.decode(base64SvgContent))));
+        emoticon.shortcodes().forEach(shortcode -> {
+          if (shortcodeToBase64SvgContent.containsKey(shortcode)) {
+            throw new ProgrammingError("Shortcode `" + shortcode + "` is already taken");
+          }
+          shortcodeToBase64SvgContent.put(shortcode, base64SvgContent);
+          shortcodeToImage.put(shortcode, image);
+        });
+      });
       emoticonShortcodeDetectorPattern = Pattern.compile(shortcodeToBase64SvgContent.keySet()
           .stream()
           .map(Pattern::quote)
@@ -75,5 +80,9 @@ public class EmoticonService implements InitializingBean {
 
   public String getBase64SvgContentByShortcode(String shortcode) {
     return shortcodeToBase64SvgContent.get(shortcode);
+  }
+
+  public Image getImageByShortcode(String shortcode) {
+    return shortcodeToImage.get(shortcode);
   }
 }

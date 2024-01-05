@@ -81,7 +81,7 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
   @Mock
   private MatchmakingChatController matchmakingChatController;
   @Mock
-  private ChatMessageViewController chatMessageViewController;
+  private ChatMessageViewController chatMessageWebViewController;
   @Mock
   private EmoticonsWindowController emoticonsWindowController;
   @Spy
@@ -125,7 +125,7 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
         return matchmakingChatController;
       }
       if (clazz == ChatMessageViewController.class) {
-        return chatMessageViewController;
+        return chatMessageWebViewController;
       }
       if (clazz == EmoticonsWindowController.class) {
         return emoticonsWindowController;
