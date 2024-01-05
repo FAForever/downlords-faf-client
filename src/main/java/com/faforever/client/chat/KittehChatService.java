@@ -1,7 +1,8 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.chat.kitteh.FixedWhoListener;
+import com.faforever.client.chat.kitteh.WhoAwayListener;
+import com.faforever.client.chat.kitteh.WhoAwayListener.WhoAwayMessageEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
@@ -60,7 +61,6 @@ import org.kitteh.irc.client.library.event.channel.ChannelNamesUpdatedEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelPartEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelTagMessageEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelTopicEvent;
-import org.kitteh.irc.client.library.event.channel.ChannelUsersUpdatedEvent;
 import org.kitteh.irc.client.library.event.client.ClientNegotiationCompleteEvent;
 import org.kitteh.irc.client.library.event.connection.ClientConnectionEndedEvent;
 import org.kitteh.irc.client.library.event.connection.ClientConnectionFailedEvent;
@@ -332,9 +332,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Handler
-  public void onWhoCompleted(ChannelUsersUpdatedEvent event) {
-    Channel channel = event.getChannel();
-    channel.getUsers().forEach(user -> updateChatUser(user, channel));
+  public void onWhoAway(WhoAwayMessageEvent event) {
+    ChatChannel chatChannel = channels.get(event.channel());
+    if (chatChannel != null) {
+      chatChannel.getUser(event.userName()).ifPresent(chatUser -> chatUser.setAway(event.isAway()));
+    }
   }
 
   @Handler
@@ -592,7 +594,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     Arrays.stream(DefaultListeners.values())
           .filter(listener -> listener != DefaultListeners.WHO)
           .forEach(eventListenerSuppliers::add);
-    eventListenerSuppliers.add(() -> FixedWhoListener::new);
+    eventListenerSuppliers.add(() -> WhoAwayListener::new);
     eventListenerSuppliers.add(() -> DefaultTagmsgListener::new);
 
     client = (DefaultClient) Client.builder()

@@ -20,6 +20,7 @@ public class GeneratorPrefs {
   private final IntegerProperty numTeams = new SimpleIntegerProperty(2);
   private final DoubleProperty mapSizeInKm = new SimpleDoubleProperty(10);
   private final StringProperty mapStyle = new SimpleStringProperty("");
+  private final StringProperty biome = new SimpleStringProperty("");
   private final IntegerProperty waterDensity = new SimpleIntegerProperty(0);
   private final BooleanProperty waterRandom = new SimpleBooleanProperty(true);
   private final IntegerProperty plateauDensity = new SimpleIntegerProperty(0);
@@ -91,6 +92,18 @@ public class GeneratorPrefs {
 
   public StringProperty mapStyleProperty() {
     return mapStyle;
+  }
+
+  public String getBiome() {
+    return biome.get();
+  }
+
+  public void setBiome(String biome) {
+    this.biome.set(biome);
+  }
+
+  public StringProperty biomeProperty() {
+    return biome;
   }
 
   public GenerationType getGenerationType() {

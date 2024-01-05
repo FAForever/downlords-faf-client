@@ -409,8 +409,9 @@ public class CreateGameController extends NodeController<Pane> {
   public void onGenerateMapButtonClicked() {
     GenerateMapController generateMapController = uiService.loadFxml("theme/play/generate_map.fxml");
     mapGeneratorService.getNewestGenerator()
-        .thenCompose(aVoid -> mapGeneratorService.getGeneratorStyles())
-        .thenAccept(generateMapController::setStyles)
+        .thenCompose(aVoid -> CompletableFuture.allOf(
+            mapGeneratorService.getGeneratorStyles().thenAccept(generateMapController::setStyles), 
+            mapGeneratorService.getGeneratorBiomes().thenAccept(generateMapController::setBiomes)))
         .thenRunAsync(() -> {
           Pane root = generateMapController.getRoot();
           generateMapController.setCreateGameController(this);
