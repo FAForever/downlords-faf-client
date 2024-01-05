@@ -75,7 +75,7 @@ public class MatchmakingQueueItemControllerTest extends PlatformTest {
              .thenReturn(String.valueOf(queue.getActiveGames()));
     lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
     lenient().when(playerService.currentPlayerProperty()).thenReturn(new ReadOnlyObjectWrapper<>(player));
-    Player ownPlayer = new Player(0, "junit", null, null, "us", null, Map.of());
+    Player ownPlayer = new Player(0, "junit", null, null, "us", null, Map.of(), null);
     lenient().when(loginService.getOwnPlayer()).thenReturn(ownPlayer);
     lenient().when(loginService.ownPlayerProperty()).thenReturn(new SimpleObjectProperty<>(ownPlayer));
     lenient().when(loginService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);

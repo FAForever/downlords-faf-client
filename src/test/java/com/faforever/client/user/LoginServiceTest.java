@@ -64,7 +64,7 @@ public class LoginServiceTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    me = new Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>());
+    me = new Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>(), null);
     meResult = new MeResult();
     meResult.setUserName("junit");
     meResult.setUserId("1");
@@ -206,7 +206,7 @@ public class LoginServiceTest extends ServiceTest {
 
   @Test
   public void testLoginWrongUserFromServer() throws Exception {
-    Player notMe = new Player(100, "notMe", null, null, "", new HashMap<>(), new HashMap<>());
+    Player notMe = new Player(100, "notMe", null, null, "", new HashMap<>(), new HashMap<>(), null);
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(notMe));

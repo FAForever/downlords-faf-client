@@ -3,7 +3,7 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.GameRunner;
-import com.faforever.client.game.PlayerStatus;
+import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.util.Assert;
@@ -35,9 +35,9 @@ public class JoinGameMenuItem extends AbstractMenuItem<PlayerBean> {
       return false;
     }
     SocialStatus socialStatus = object.getSocialStatus();
-    PlayerStatus playerStatus = object.getStatus();
+    PlayerGameStatus playerGameStatus = object.getGameStatus();
     GameBean game = object.getGame();
-    return socialStatus != SELF && (playerStatus == PlayerStatus.LOBBYING || playerStatus == PlayerStatus.HOSTING)
+    return socialStatus != SELF && (playerGameStatus == PlayerGameStatus.LOBBYING || playerGameStatus == PlayerGameStatus.HOSTING)
         && game != null && game.getGameType() != GameType.MATCHMAKER;
   }
 

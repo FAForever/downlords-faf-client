@@ -29,7 +29,7 @@ import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
 import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
 import com.faforever.client.fx.contextmenu.WatchGameMenuItem;
 import com.faforever.client.game.GameTooltipController;
-import com.faforever.client.game.PlayerStatus;
+import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -240,7 +240,7 @@ public class ChatUserItemController extends NodeController<Node> {
             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
             .when(showing));
 
-    ObservableValue<PlayerStatus> statusProperty = playerProperty.flatMap(PlayerBean::statusProperty);
+    ObservableValue<PlayerGameStatus> statusProperty = playerProperty.flatMap(PlayerBean::gameStatusProperty);
     gameStatusImageView.imageProperty().bind(statusProperty.map(status -> switch (status) {
       case HOSTING -> themeService.getThemeImage(ThemeService.CHAT_LIST_STATUS_HOSTING);
       case LOBBYING -> themeService.getThemeImage(ThemeService.CHAT_LIST_STATUS_LOBBYING);
@@ -248,7 +248,7 @@ public class ChatUserItemController extends NodeController<Node> {
       default -> null;
     }).when(showing));
 
-    statusTooltip.textProperty().bind(statusProperty.map(PlayerStatus::getI18nKey).map(i18n::get).when(showing));
+    statusTooltip.textProperty().bind(statusProperty.map(PlayerGameStatus::getI18nKey).map(i18n::get).when(showing));
 
     noteTooltip.textProperty().bind(playerProperty.flatMap(PlayerBean::noteProperty).when(showing));
 

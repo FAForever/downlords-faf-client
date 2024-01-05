@@ -14,7 +14,7 @@ import com.faforever.client.fx.contextmenu.ReportPlayerMenuItem;
 import com.faforever.client.fx.contextmenu.SendPrivateMessageMenuItem;
 import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
 import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
-import com.faforever.client.game.PlayerStatus;
+import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
@@ -107,7 +107,7 @@ public class PartyMemberItemController extends NodeController<Node> {
   }
 
   private void setMemberGameStatus() {
-    boolean inGame = player.getStatus() != PlayerStatus.IDLE;
+    boolean inGame = player.getGameStatus() != PlayerGameStatus.IDLE;
     fxApplicationThreadExecutor.execute(() -> {
       playerStatusImageView.setVisible(inGame);
       playerCard.pseudoClassStateChanged(PLAYING_PSEUDO_CLASS, inGame);
@@ -160,9 +160,11 @@ public class PartyMemberItemController extends NodeController<Node> {
     JavaFxUtil.addAndTriggerListener(player.clanProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addListener(player.avatarProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addListener(player.countryProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
-    JavaFxUtil.addListener(player.getLeaderboardRatings(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.leaderboardRatingsProperty(),
+                           new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addListener(player.usernameProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
-    JavaFxUtil.addAndTriggerListener(player.statusProperty(), new WeakInvalidationListener(playerStatusInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(player.gameStatusProperty(),
+                                     new WeakInvalidationListener(playerStatusInvalidationListener));
     JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(partyOwnerInvalidationListener));
   }
 

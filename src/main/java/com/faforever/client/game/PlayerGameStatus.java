@@ -2,7 +2,7 @@ package com.faforever.client.game;
 
 import lombok.Getter;
 
-public enum PlayerStatus {
+public enum PlayerGameStatus {
 
   IDLE("game.gameStatus.idle"),
   HOSTING("game.gameStatus.hosting"),
@@ -12,7 +12,7 @@ public enum PlayerStatus {
   @Getter
   private final String i18nKey;
 
-  PlayerStatus(String i18nKey) {
+  PlayerGameStatus(String i18nKey) {
     this.i18nKey = i18nKey;
   }
 }

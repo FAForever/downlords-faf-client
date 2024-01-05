@@ -9,7 +9,7 @@ import com.faforever.client.chat.ChatChannel;
 import com.faforever.client.chat.ChatListItem;
 import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.domain.LeaderboardBean;
-import com.faforever.client.game.PlayerStatus;
+import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.Country;
@@ -54,7 +54,7 @@ public class ChatUserFilterControllerTest extends PlatformTest {
   @Mock
   private FilterTextFieldController<ChatListItem> clanFilter;
   @Mock
-  private FilterMultiCheckboxController<PlayerStatus, ChatListItem> playerStatusFilter;
+  private FilterMultiCheckboxController<PlayerGameStatus, ChatListItem> playerStatusFilter;
   @Mock
   private RangeSliderWithChoiceFilterController<LeaderboardBean, ChatListItem> playerRatingFilter;
   @Mock
@@ -104,7 +104,8 @@ public class ChatUserFilterControllerTest extends PlatformTest {
 
   @Test
   public void testGameStatusFilter() {
-    ArgumentCaptor<BiFunction<List<PlayerStatus>, ChatListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<List<PlayerGameStatus>, ChatListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(
+        BiFunction.class);
     verify(playerStatusFilter).registerListener(argumentCaptor.capture());
 
     ChatListItem category = new ChatListItem(null, ChatUserCategory.FRIEND, null, null);
@@ -117,19 +118,19 @@ public class ChatUserFilterControllerTest extends PlatformTest {
             .game(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get())
             .get()
     ).get(), ChatUserCategory.FRIEND, null, null);
-    BiFunction<List<PlayerStatus>, ChatListItem, Boolean> filter = argumentCaptor.getValue();
+    BiFunction<List<PlayerGameStatus>, ChatListItem, Boolean> filter = argumentCaptor.getValue();
 
-    List<PlayerStatus> emptyList = Collections.emptyList();
+    List<PlayerGameStatus> emptyList = Collections.emptyList();
     assertTrue(filter.apply(emptyList, category));
     assertTrue(filter.apply(emptyList, idleUser));
     assertTrue(filter.apply(emptyList, busyUser));
 
-    List<PlayerStatus> idle = List.of(PlayerStatus.IDLE);
+    List<PlayerGameStatus> idle = List.of(PlayerGameStatus.IDLE);
     assertTrue(filter.apply(idle, category));
     assertTrue(filter.apply(idle, idleUser));
     assertFalse(filter.apply(idle, busyUser));
 
-    List<PlayerStatus> playing = List.of(PlayerStatus.PLAYING, PlayerStatus.LOBBYING);
+    List<PlayerGameStatus> playing = List.of(PlayerGameStatus.PLAYING, PlayerGameStatus.LOBBYING);
     assertTrue(filter.apply(playing, category));
     assertFalse(filter.apply(playing, idleUser));
     assertTrue(filter.apply(playing, busyUser));

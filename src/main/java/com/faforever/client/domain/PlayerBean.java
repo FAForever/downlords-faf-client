@@ -1,16 +1,13 @@
 package com.faforever.client.domain;
 
-import com.faforever.client.game.PlayerStatus;
+import com.faforever.client.game.PlayerGameStatus;
+import com.faforever.client.player.ServerStatus;
 import com.faforever.client.player.SocialStatus;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyMapProperty;
-import javafx.beans.property.ReadOnlyMapWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -28,23 +25,25 @@ import static com.faforever.client.player.SocialStatus.OTHER;
 @Slf4j
 public class PlayerBean extends AbstractEntityBean {
 
-  private static final SimpleObjectProperty<PlayerStatus> PLAYING_STATUS_PROPERTY = new SimpleObjectProperty<>(
-      PlayerStatus.PLAYING);
-  private static final SimpleObjectProperty<PlayerStatus> IDLE_STATUS_PROPERTY = new SimpleObjectProperty<>(
-      PlayerStatus.IDLE);
+  private static final SimpleObjectProperty<PlayerGameStatus> PLAYING_STATUS_PROPERTY = new SimpleObjectProperty<>(
+      PlayerGameStatus.PLAYING);
+  private static final SimpleObjectProperty<PlayerGameStatus> IDLE_STATUS_PROPERTY = new SimpleObjectProperty<>(
+      PlayerGameStatus.IDLE);
 
   @ToString.Include
   private final StringProperty username = new SimpleStringProperty();
   private final StringProperty clan = new SimpleStringProperty();
   private final StringProperty country = new SimpleStringProperty();
   private final ObjectProperty<AvatarBean> avatar = new SimpleObjectProperty<>();
+  private final ObjectProperty<ServerStatus> serverStatus = new SimpleObjectProperty<>();
   private final ObjectProperty<SocialStatus> socialStatus = new SimpleObjectProperty<>(OTHER);
-  ReadOnlyMapWrapper<String, LeaderboardRatingBean> leaderboardRatings = new ReadOnlyMapWrapper<>(
-      FXCollections.unmodifiableObservableMap(FXCollections.observableHashMap()));
+  private final ObjectProperty<Map<String, LeaderboardRatingBean>> leaderboardRatings = new SimpleObjectProperty<>(
+      Map.of());
   private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
-  ObservableValue<PlayerStatus> status = game.flatMap(this::statusPropertyFromGame).orElse(PlayerStatus.IDLE);
+  private final ObservableValue<PlayerGameStatus> gameStatus = game.flatMap(this::statusPropertyFromGame)
+                                                                   .orElse(PlayerGameStatus.IDLE);
   private final StringProperty note = new SimpleStringProperty();
-  ObservableValue<Integer> numberOfGames = leaderboardRatings.map(
+  private final ObservableValue<Integer> numberOfGames = leaderboardRatings.map(
       ratings -> ratings.values().stream().mapToInt(LeaderboardRatingBean::getNumberOfGames).sum()).orElse(0);
 
   public SocialStatus getSocialStatus() {
@@ -115,26 +114,36 @@ public class PlayerBean extends AbstractEntityBean {
     return avatar;
   }
 
-  public ObservableMap<String, LeaderboardRatingBean> getLeaderboardRatings() {
+  public ServerStatus getServerStatus() {
+    return serverStatus.get();
+  }
+
+  public ObjectProperty<ServerStatus> serverStatusProperty() {
+    return serverStatus;
+  }
+
+  public void setServerStatus(ServerStatus serverStatus) {
+    this.serverStatus.set(serverStatus);
+  }
+
+  public Map<String, LeaderboardRatingBean> getLeaderboardRatings() {
     return leaderboardRatings.get();
   }
 
   public void setLeaderboardRatings(Map<String, LeaderboardRatingBean> leaderboardRatings) {
-    this.leaderboardRatings.setValue(
-        leaderboardRatings == null ? FXCollections.emptyObservableMap() : FXCollections.unmodifiableObservableMap(
-            FXCollections.observableMap(leaderboardRatings)));
+    this.leaderboardRatings.setValue(leaderboardRatings == null ? Map.of() : Map.copyOf(leaderboardRatings));
   }
 
-  public ReadOnlyMapProperty<String, LeaderboardRatingBean> leaderboardRatingsProperty() {
-    return leaderboardRatings.getReadOnlyProperty();
+  public ObjectProperty<Map<String, LeaderboardRatingBean>> leaderboardRatingsProperty() {
+    return leaderboardRatings;
   }
 
-  public PlayerStatus getStatus() {
-    return status.getValue();
+  public PlayerGameStatus getGameStatus() {
+    return gameStatus.getValue();
   }
 
-  public ObservableValue<PlayerStatus> statusProperty() {
-    return status;
+  public ObservableValue<PlayerGameStatus> gameStatusProperty() {
+    return gameStatus;
   }
 
   public GameBean getGame() {
@@ -162,18 +171,18 @@ public class PlayerBean extends AbstractEntityBean {
   }
 
   public int getNumberOfGamesForLeaderboard(final String leaderboardName) {
-    return Optional.ofNullable(leaderboardRatings.get(leaderboardName))
+    return Optional.ofNullable(leaderboardRatings.get()).map(ratings -> ratings.get(leaderboardName))
                    .map(LeaderboardRatingBean::getNumberOfGames)
                    .orElse(0);
   }
 
-  private ObservableValue<PlayerStatus> statusPropertyFromGame(GameBean game) {
+  private ObservableValue<PlayerGameStatus> statusPropertyFromGame(GameBean game) {
     return game.statusProperty().flatMap(status -> switch (status) {
       case OPEN -> game.hostProperty()
-                       .map(
-                           host -> host.equalsIgnoreCase(getUsername()) ? PlayerStatus.HOSTING : PlayerStatus.LOBBYING);
+                       .map(host -> host.equalsIgnoreCase(
+                           getUsername()) ? PlayerGameStatus.HOSTING : PlayerGameStatus.LOBBYING);
       case PLAYING -> PLAYING_STATUS_PROPERTY;
-      default -> IDLE_STATUS_PROPERTY;
+      case CLOSED, UNKNOWN -> IDLE_STATUS_PROPERTY;
     });
   }
 }

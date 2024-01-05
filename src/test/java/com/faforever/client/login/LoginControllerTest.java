@@ -188,7 +188,7 @@ public class LoginControllerTest extends PlatformTest {
     when(oAuthValuesReceiver.receiveValues(anyString(), anyString()))
         .thenReturn(CompletableFuture.failedFuture(new SocketTimeoutException()));
     when(loginService.getOwnUser()).thenReturn(new MeResult());
-    when(loginService.getOwnPlayer()).thenReturn(new Player(0, "junit", null, null, "US", Map.of(), Map.of()));
+    when(loginService.getOwnPlayer()).thenReturn(new Player(0, "junit", null, null, "US", Map.of(), Map.of(), null));
 
     instance.onLoginButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
