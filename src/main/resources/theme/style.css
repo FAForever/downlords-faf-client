@@ -1412,6 +1412,10 @@
 
 /***************** Chat Messages ***************************/
 
+.self {
+  -fx-fill: #FFA500;
+}
+
 .chat-list-view .list-cell {
   -fx-background-color: #212121;
 }
@@ -1419,10 +1423,6 @@
 .message-container Text {
   -fx-fill: -fx-text-color;
   -fx-font-size: 14px;
-}
-
-.message-container TextFlow {
-  -fx-padding: 0 60px
 }
 
 .message-container .time {

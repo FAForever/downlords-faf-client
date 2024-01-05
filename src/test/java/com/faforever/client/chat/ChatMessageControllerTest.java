@@ -31,7 +31,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -156,7 +155,7 @@ public class ChatMessageControllerTest extends PlatformTest {
     Text text = (Text) first;
     assertThat(text.getText(), equalTo("junit "));
 
-    assertThat(text.getStyleClass(), contains("self"));
+    assertThat(text.getStyle(), containsString("-fx-fill: #FFA500"));
   }
 
   @Test

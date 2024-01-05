@@ -18,7 +18,9 @@
         <ImageView fx:id="countryImageView" fitHeight="20" fitWidth="20"/>
         <Label fx:id="clanLabel" styleClass="clan"/>
         <Label fx:id="authorLabel" styleClass="author"/>
-        <Label fx:id="timeLabel" styleClass="time"/>
     </HBox>
-    <TextFlow fx:id="message"/>
+    <HBox alignment="CENTER_LEFT">
+        <Label fx:id="timeLabel" styleClass="time" minWidth="75"/>
+        <TextFlow fx:id="message"/>
+    </HBox>
 </VBox>

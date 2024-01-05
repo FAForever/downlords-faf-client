@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.theme.UiService;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
@@ -16,8 +17,10 @@ import java.util.Objects;
 public class ChatMessageItemCell extends ListCell<ChatMessage> {
 
   private final ChatMessageController chatMessageController;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  public ChatMessageItemCell(UiService uiService) {
+  public ChatMessageItemCell(UiService uiService, FxApplicationThreadExecutor fxApplicationThreadExecutor) {
+    this.fxApplicationThreadExecutor = fxApplicationThreadExecutor;
     chatMessageController = uiService.loadFxml("theme/chat/chat_message.fxml");
     ObservableValue<ChatMessage> previousMessageProperty = listViewProperty().flatMap(ListView::itemsProperty)
                                                                              .flatMap(items -> Bindings.valueAt(items,
@@ -27,19 +30,22 @@ public class ChatMessageItemCell extends ListCell<ChatMessage> {
                          .bind(Bindings.createBooleanBinding(
                              () -> showDetails(previousMessageProperty.getValue(), getItem()), previousMessageProperty,
                              itemProperty()).when(emptyProperty().not()));
+    chatMessageController.getRoot().maxWidthProperty().bind(widthProperty().subtract(20));
   }
 
   @Override
   protected void updateItem(ChatMessage item, boolean empty) {
-    super.updateItem(item, empty);
-    chatMessageController.setChatMessage(item);
-    if (empty || item == null) {
-      setText(null);
-      setGraphic(null);
-    } else {
-      setGraphic(chatMessageController.getRoot());
-      setText(null);
-    }
+    fxApplicationThreadExecutor.execute(() -> {
+      super.updateItem(item, empty);
+      chatMessageController.setChatMessage(item);
+      if (empty || item == null) {
+        setText(null);
+        setGraphic(null);
+      } else {
+        setGraphic(chatMessageController.getRoot());
+        setText(null);
+      }
+    });
   }
 
   private boolean showDetails(ChatMessage previousMessage, ChatMessage currentMessage) {

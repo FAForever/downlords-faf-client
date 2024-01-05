@@ -39,6 +39,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * A chat tab displays messages in a {@link WebView}. The WebView is used since text on a JavaFX canvas isn't
@@ -71,11 +72,16 @@ public class ChatMessageController extends NodeController<VBox> {
   private final Tooltip avatarTooltip = new Tooltip();
   private final ObjectProperty<ChatMessage> chatMessage = new SimpleObjectProperty<>();
   private final BooleanProperty showDetails = new SimpleBooleanProperty();
-  private final StringProperty inlineColorStyleProperty = new SimpleStringProperty();
+  private final StringProperty inlineTextColorStyleProperty = new SimpleStringProperty();
+
+  private Pattern mentionPattern;
 
   @Override
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(detailsContainer, message);
+
+    mentionPattern = chatService.getMentionPattern();
+
     ObservableValue<ChatChannelUser> sender = chatMessage.map(ChatMessage::sender);
     ObservableValue<PlayerBean> player = sender.flatMap(ChatChannelUser::playerProperty);
     avatarImageView.imageProperty()
@@ -89,15 +95,15 @@ public class ChatMessageController extends NodeController<VBox> {
                                 .map(flagOptional -> flagOptional.orElse(null))
                                 .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
                                 .when(showing));
-    inlineColorStyleProperty.bind(sender.flatMap(ChatChannelUser::colorProperty)
-                                        .map(JavaFxUtil::toRgbCode)
-                                        .map(rgb -> String.format("-fx-fill: %s", rgb))
-                                        .when(showing));
+    inlineTextColorStyleProperty.bind(sender.flatMap(ChatChannelUser::colorProperty)
+                                            .map(JavaFxUtil::toRgbCode)
+                                            .map(rgb -> String.format("-fx-fill: %s; -fx-text-fill: %s;", rgb, rgb))
+                                            .when(showing));
     clanLabel.textProperty().bind(player.flatMap(PlayerBean::clanProperty).map("[%s]"::formatted).when(showing));
-    clanLabel.styleProperty().bind(inlineColorStyleProperty);
+    clanLabel.styleProperty().bind(inlineTextColorStyleProperty);
     ObservableValue<String> usernameProperty = sender.map(ChatChannelUser::getUsername).when(showing);
     authorLabel.textProperty().bind(usernameProperty);
-    authorLabel.styleProperty().bind(inlineColorStyleProperty);
+    authorLabel.styleProperty().bind(inlineTextColorStyleProperty);
     authorLabel.setOnMouseClicked(event -> {
       String username = usernameProperty.getValue();
       if (username != null && event.getClickCount() == 2) {
@@ -163,9 +169,8 @@ public class ChatMessageController extends NodeController<VBox> {
     switch (node) {
       case ImageView ignored -> {}
       case Hyperlink ignored -> {}
-      case Text text when chatService.getMentionPattern().matcher(text.getText()).matches() ->
-          text.getStyleClass().add("self");
-      default -> node.styleProperty().bind(inlineColorStyleProperty);
+      case Text text when mentionPattern.matcher(text.getText()).matches() -> text.setStyle("-fx-fill: #FFA500");
+      default -> node.styleProperty().bind(inlineTextColorStyleProperty);
     }
   }
 
