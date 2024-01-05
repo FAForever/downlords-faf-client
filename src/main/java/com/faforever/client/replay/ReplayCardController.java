@@ -26,6 +26,9 @@ import com.faforever.client.game.PlayerCardController;
 import com.faforever.client.game.RatingPrecision;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -43,10 +46,12 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.function.Function;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -62,6 +67,7 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
   private final NotificationService notificationService;
   private final ImageViewHelper imageViewHelper;
   private final I18n i18n;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public Label dateLabel;
   public ImageView mapThumbnailImageView;
@@ -83,6 +89,8 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
 
   private Consumer<ReplayBean> onOpenDetailListener;
   private Runnable onDeleteListener;
+  private final ObjectProperty<Map<String, List<GamePlayerStatsBean>>> teams = new SimpleObjectProperty<>();
+  private final SimpleChangeListener<Map<String, List<GamePlayerStatsBean>>> teamsListener = this::populatePlayers;
 
   @Override
   protected void onInitialize() {
@@ -145,34 +153,46 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
             .flatMap(reviewsSummary -> reviewsSummary.scoreProperty().divide(reviewsSummary.numReviewsProperty()))
             .when(showing));
 
-    entity.flatMap(ReplayBean::teamPlayerStatsProperty)
-        .when(showing)
-        .addListener((SimpleChangeListener<Map<String, List<GamePlayerStatsBean>>>) this::onTeamsChanged);
+    teams.bind(entity.flatMap(ReplayBean::teamPlayerStatsProperty).when(showing));
+    teams.orElse(Map.of()).addListener(teamsListener);
   }
 
-  private void onTeamsChanged(Map<String, List<GamePlayerStatsBean>> teams) {
+  private void populatePlayers(Map<String, List<GamePlayerStatsBean>> newValue) {
     teamsContainer.getChildren().clear();
-    teams.forEach((team, playerStats) -> {
-      VBox teamBox = new VBox();
+    CompletableFuture.supplyAsync(() -> createTeams(newValue)).thenAcceptAsync(teamCards -> 
+      teamsContainer.getChildren().setAll(teamCards), fxApplicationThreadExecutor);
+  }
 
-      String teamLabelText = team.equals("1") ? i18n.get("replay.noTeam") : i18n.get("replay.team", Integer.parseInt(team) - 1);
-      Label teamLabel = new Label(teamLabelText);
-      teamLabel.getStyleClass().add("replay-card-team-label");
-      teamLabel.setPadding(new Insets(0, 0, 5, 0));
-      teamBox.getChildren().add(teamLabel);
+  private List<VBox> createTeams(Map<String, List<GamePlayerStatsBean>> teams) {
+    if (teams.size() < 3) {
+      return teams.entrySet().stream().map(entry -> {
+        String team = entry.getKey();
+        List<GamePlayerStatsBean> playerStats = entry.getValue();
 
-      playerStats.forEach(player -> {
-        PlayerCardController controller = uiService.loadFxml("theme/player_card.fxml");
-        controller.setPlayer(player.getPlayer());
-        controller.setFaction(player.getFaction());
-        controller.avatarStackPane.setVisible(false);
-        controller.avatarStackPane.setManaged(false);
-        controller.avatarImageView.setManaged(false);
-        teamBox.getChildren().add(controller.getRoot());
-      });
+        VBox teamCard = new VBox();
 
-      teamsContainer.getChildren().add(teamBox);
-    });
+        String teamLabelText = team.equals("1") ? i18n.get("replay.noTeam") : i18n.get("replay.team", Integer.parseInt(team) - 1);
+        Label teamLabel = new Label(teamLabelText);
+        teamLabel.getStyleClass().add("replay-card-team-label");
+        teamLabel.setPadding(new Insets(0, 0, 5, 0));
+        teamCard.getChildren().add(teamLabel);
+
+        playerStats.forEach(player -> {
+          PlayerCardController controller = uiService.loadFxml("theme/player_card.fxml");
+          controller.setPlayer(player.getPlayer());
+          controller.setFaction(player.getFaction());
+          controller.removeAvatar();
+          teamCard.getChildren().add(controller.getRoot());
+        });
+
+      return teamCard;
+    }).toList();
+    }
+    VBox helperLabel = new VBox(); 
+    helperLabel.getChildren().add(new Label("Click for teams"));
+    ArrayList<VBox> helpers = new ArrayList<VBox>();
+    helpers.add(helperLabel);
+    return helpers;
   }
 
   @Override

@@ -216,6 +216,12 @@ public class PlayerCardController extends NodeController<Node> {
     return null;
   }
 
+  public void removeAvatar() {
+    this.avatarImageView.managedProperty().set(false);
+    this.avatarStackPane.managedProperty().set(false);
+    this.avatarStackPane.visibleProperty().set(false);
+  }
+
   public PlayerBean getPlayer() {
     return player.get();
   }
