@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 
 import com.faforever.client.builders.ChatChannelUserBuilder;
+import com.faforever.client.chat.ChatMessage.Type;
 import com.faforever.client.test.DomainTest;
 import org.junit.jupiter.api.Test;
 
@@ -33,20 +34,20 @@ public class ChatChannelTest extends DomainTest {
   public void testMessageMax() {
     ChatChannel channel = new ChatChannel("#test");
     ChatChannelUser sender = ChatChannelUserBuilder.create("", channel).defaultValues().get();
-    channel.addMessage(new ChatMessage(Instant.now(), sender, "1", "1"));
-    channel.addMessage(new ChatMessage(Instant.now(), sender, "2", "2"));
+    channel.addMessage(new ChatMessage("1", Instant.now().minusSeconds(1), sender, "1", Type.MESSAGE));
+    channel.addMessage(new ChatMessage("2", Instant.now(), sender, "2", Type.MESSAGE));
 
     assertThat(channel.getMessages(), hasSize(2));
 
     channel.setMaxNumMessages(1);
 
     assertThat(channel.getMessages(), hasSize(1));
-    assertEquals("2", channel.getMessages().getLast().message());
+    assertEquals("2", channel.getMessages().getLast().getContent());
 
-    channel.addMessage(new ChatMessage(Instant.now(), sender, "3", "3"));
+    channel.addMessage(new ChatMessage("3", Instant.now(), sender, "3", Type.MESSAGE));
 
     assertThat(channel.getMessages(), hasSize(1));
-    assertEquals("3", channel.getMessages().getLast().message());
+    assertEquals("3", channel.getMessages().getLast().getContent());
   }
 
   @Test

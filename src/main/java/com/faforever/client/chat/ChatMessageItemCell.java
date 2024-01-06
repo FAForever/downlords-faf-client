@@ -57,6 +57,6 @@ public class ChatMessageItemCell extends ListCell<ChatMessage> {
       return true;
     }
 
-    return !Objects.equals(previousMessage.sender(), currentMessage.sender());
+    return !Objects.equals(previousMessage.getSender(), currentMessage.getSender());
   }
 }

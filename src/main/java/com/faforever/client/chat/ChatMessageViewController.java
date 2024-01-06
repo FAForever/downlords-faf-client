@@ -43,8 +43,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -81,7 +79,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
   private final ListChangeListener<ChatChannelUser> typingUserListChangeListener = this::updateTypingUsersLabel;
 
   private final ObservableList<ChatMessage> rawMessages = FXCollections.synchronizedObservableList(
-      FXCollections.observableArrayList(chatMessage -> new Observable[]{chatMessage.sender().categoryProperty()}));
+      FXCollections.observableArrayList(chatMessage -> new Observable[]{chatMessage.getSender().categoryProperty()}));
   private final FilteredList<ChatMessage> filteredMessages = new FilteredList<>(rawMessages);
 
   private Popup emoticonsPopup;
@@ -95,7 +93,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
       if (!hideFoes) {
         return message -> true;
       } else {
-        return message -> message.sender().getCategory() != ChatUserCategory.FOE;
+        return message -> message.getSender().getCategory() != ChatUserCategory.FOE;
       }
     }));
 
@@ -249,15 +247,8 @@ public class ChatMessageViewController extends NodeController<VBox> {
     messageTextField.setDisable(true);
 
     final String text = messageTextField.getText();
-    CompletableFuture<Void> sendFuture;
-    if (text.startsWith(ACTION_PREFIX)) {
-      sendFuture = chatService.sendActionInBackground(chatChannel.get(),
-                                                      text.replaceFirst(Pattern.quote(ACTION_PREFIX), ""));
-    } else {
-      sendFuture = chatService.sendMessageInBackground(chatChannel.get(), text);
-    }
 
-    sendFuture.whenComplete((result, throwable) -> {
+    chatService.sendMessageInBackground(chatChannel.get(), text).whenComplete((result, throwable) -> {
       if (throwable != null) {
         throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
         log.warn("Message could not be sent: {}", text, throwable);

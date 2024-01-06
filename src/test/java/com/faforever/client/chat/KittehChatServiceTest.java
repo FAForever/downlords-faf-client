@@ -33,6 +33,7 @@ import org.kitteh.irc.client.library.defaults.DefaultClient;
 import org.kitteh.irc.client.library.defaults.element.DefaultActor;
 import org.kitteh.irc.client.library.defaults.element.DefaultChannelTopic;
 import org.kitteh.irc.client.library.defaults.element.DefaultServerMessage.StringCommand;
+import org.kitteh.irc.client.library.defaults.element.messagetag.DefaultMessageTagMsgId;
 import org.kitteh.irc.client.library.defaults.element.messagetag.DefaultMessageTagTyping;
 import org.kitteh.irc.client.library.defaults.element.mode.DefaultChannelUserMode;
 import org.kitteh.irc.client.library.defaults.element.mode.DefaultModeStatus;
@@ -73,6 +74,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -255,18 +257,21 @@ public class KittehChatServiceTest extends ServiceTest {
   }
 
   private void messageChannel(Channel channel, User user, String message) {
-    eventManager.callEvent(
-        new ChannelMessageEvent(realClient, new StringCommand("", "", List.of()), user, channel, message));
+    eventManager.callEvent(new ChannelMessageEvent(realClient, new StringCommand("", "", List.of(
+        DefaultMessageTagMsgId.FUNCTION.apply(realClient, "msgid", String.valueOf(new Random().nextInt())))), user,
+                                                   channel, message));
   }
 
   private void actionChannel(Channel channel, User user, String message) {
-    eventManager.callEvent(
-        new ChannelCtcpEvent(realClient, new StringCommand("", "", List.of()), user, channel, message));
+    eventManager.callEvent(new ChannelCtcpEvent(realClient, new StringCommand("", "", List.of(
+        DefaultMessageTagMsgId.FUNCTION.apply(realClient, "msgid", String.valueOf(new Random().nextInt())))), user,
+                                                channel, message));
   }
 
   private void sendPrivateMessage(User user, String message) {
-    eventManager.callEvent(
-        new PrivateMessageEvent(realClient, new StringCommand("", "", List.of()), user, "me", message));
+    eventManager.callEvent(new PrivateMessageEvent(realClient, new StringCommand("", "", List.of(
+        DefaultMessageTagMsgId.FUNCTION.apply(realClient, "msgid", String.valueOf(new Random().nextInt())))), user,
+                                                   "me", message));
   }
 
   private void connect() {
@@ -486,9 +491,8 @@ public class KittehChatServiceTest extends ServiceTest {
 
     ChatMessage chatMessage = channel.getMessages().getLast();
 
-    assertThat(chatMessage.message(), is(message));
-    assertThat(chatMessage.sender().getUsername(), is(user1.getNick()));
-    assertThat(chatMessage.action(), is(false));
+    assertThat(chatMessage.getContent(), is(message));
+    assertThat(chatMessage.getSender().getUsername(), is(user1.getNick()));
   }
 
   @Test
@@ -503,9 +507,8 @@ public class KittehChatServiceTest extends ServiceTest {
 
     ChatMessage chatMessage = channel.getMessages().getLast();
 
-    assertThat(chatMessage.message(), is(message));
-    assertThat(chatMessage.sender().getUsername(), is(user1.getNick()));
-    assertThat(chatMessage.action(), is(true));
+    assertThat(chatMessage.getContent(), is(message));
+    assertThat(chatMessage.getSender().getUsername(), is(user1.getNick()));
   }
 
   @Test
@@ -520,9 +523,8 @@ public class KittehChatServiceTest extends ServiceTest {
 
     ChatMessage chatMessage = channel.getMessages().getLast();
 
-    assertThat(chatMessage.message(), is(message));
-    assertThat(chatMessage.sender().getUsername(), is(user1.getNick()));
-    assertThat(chatMessage.action(), is(false));
+    assertThat(chatMessage.getContent(), is(message));
+    assertThat(chatMessage.getSender().getUsername(), is(user1.getNick()));
   }
 
   @Test
@@ -609,7 +611,8 @@ public class KittehChatServiceTest extends ServiceTest {
 
     instance.sendMessageInBackground(chatChannel, message).get(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(chatChannel.getMessages().getLast().message(), is(message));
+    ChatMessage chatMessage = chatChannel.getMessages().getLast();
+    assertThat(chatMessage.getContent(), is(message));
   }
 
   @Test
@@ -649,19 +652,6 @@ public class KittehChatServiceTest extends ServiceTest {
 
     ObservableList<ChatChannelUser> users = chatChannel.getUsers();
     assertThat(users, hasSize(2));
-  }
-
-  @Test
-  public void testSendActionInBackground() throws Exception {
-    connect();
-
-    String action = "test onAction";
-
-    ChatChannel chatChannel = new ChatChannel(DEFAULT_CHANNEL_NAME);
-
-    instance.sendActionInBackground(chatChannel, action).get(TIMEOUT, TIMEOUT_UNIT);
-
-    assertThat(chatChannel.getMessages().getLast().message(), is(action));
   }
 
   @Test

@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.chat.ChatMessage.Type;
 import com.faforever.client.chat.kitteh.WhoAwayListener;
 import com.faforever.client.chat.kitteh.WhoAwayListener.WhoAwayMessageEvent;
 import com.faforever.client.config.ClientProperties;
@@ -39,13 +40,14 @@ import net.engio.mbassy.listener.Handler;
 import org.kitteh.irc.client.library.Client;
 import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType;
 import org.kitteh.irc.client.library.Client.WithManagement;
+import org.kitteh.irc.client.library.command.MessageCommand;
 import org.kitteh.irc.client.library.command.TagMessageCommand;
 import org.kitteh.irc.client.library.defaults.element.messagetag.DefaultMessageTagTyping;
 import org.kitteh.irc.client.library.defaults.listener.DefaultListeners;
 import org.kitteh.irc.client.library.defaults.listener.DefaultTagmsgListener;
 import org.kitteh.irc.client.library.element.Actor;
 import org.kitteh.irc.client.library.element.Channel;
-import org.kitteh.irc.client.library.element.MessageReceiver;
+import org.kitteh.irc.client.library.element.MessageTag.Label;
 import org.kitteh.irc.client.library.element.MessageTag.MsgId;
 import org.kitteh.irc.client.library.element.MessageTag.Time;
 import org.kitteh.irc.client.library.element.MessageTag.Typing;
@@ -89,8 +91,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -389,16 +393,20 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                .map(Time::getTime)
                                .orElse(Instant.now());
 
-    String messageId = event.getTag("msgid", MsgId.class).map(MsgId::getId).orElse(null);
+    String messageId = event.getTag("msgid", MsgId.class)
+                            .map(MsgId::getId)
+                            .orElseThrow(
+                                () -> new IllegalArgumentException("Message does not have an id: %s".formatted(event)));
+    event.getTag("label", Label.class).map(Label::getLabel).ifPresent(chatChannel::removePendingMessage);
 
-    ChatMessage message = new ChatMessage(messageTime, sender, text, messageId, false);
+    ChatMessage message = new ChatMessage(messageId, messageTime, sender, text, Type.MESSAGE);
     chatChannel.addMessage(message);
     notifyIfMentioned(message);
   }
 
   private void notifyIfMentioned(ChatMessage chatMessage) {
-    String text = chatMessage.message();
-    ChatChannelUser sender = chatMessage.sender();
+    String text = chatMessage.getContent();
+    ChatChannelUser sender = chatMessage.getSender();
     if (sender.getCategory() == ChatUserCategory.FOE) {
       log.debug("Ignored ping from foe {}", sender);
       return;
@@ -427,7 +435,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private void notifyOnPrivateMessage(ChatMessage chatMessage) {
-    ChatChannelUser sender = chatMessage.sender();
+    ChatChannelUser sender = chatMessage.getSender();
     ChatChannel channel = sender.getChannel();
     if (channel.isPrivateChannel() && !channel.isOpen()) {
       audioService.playPrivateMessageSound();
@@ -438,9 +446,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                        .map(PlayerBean::getId)
                                        .map(String::valueOf)
                                        .orElse(sender.getUsername());
-        notificationService.addNotification(new TransientNotification(sender.getUsername(), chatMessage.message(),
+        notificationService.addNotification(new TransientNotification(sender.getUsername(), chatMessage.getContent(),
                                                                       IdenticonUtil.createIdenticon(identIconSource),
-                                      () -> navigationHandler.navigateTo(new NavigateEvent(NavigationItem.CHAT))));
+                                                                      () -> navigationHandler.navigateTo(
+                                                                          new NavigateEvent(NavigationItem.CHAT))));
       }
     }
   }
@@ -454,14 +463,20 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     String senderNick = user.getNick();
     String message = event.getMessage().replace("ACTION", senderNick);
     ChatChannelUser sender = getOrCreateChatUser(senderNick, channelName);
+    ChatChannel chatChannel = sender.getChannel();
     sender.setTyping(false);
+
     Instant messageTime = event.getTag("time", Time.class)
                                .map(Time::getTime)
                                .orElse(Instant.now());
 
-    String messageId = event.getTag("msgid", MsgId.class).map(MsgId::getId).orElse(null);
+    String messageId = event.getTag("msgid", MsgId.class)
+                            .map(MsgId::getId)
+                            .orElseThrow(
+                                () -> new IllegalArgumentException("Message does not have an id: %s".formatted(event)));
+    event.getTag("label", Label.class).map(Label::getLabel).ifPresent(chatChannel::removePendingMessage);
 
-    sender.getChannel().addMessage(new ChatMessage(messageTime, sender, message, messageId, true));
+    chatChannel.addMessage(new ChatMessage(messageId, messageTime, sender, message, Type.ACTION));
   }
 
   @Handler
@@ -488,6 +503,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     String senderNick = user.getNick();
 
     ChatChannelUser sender = getOrCreateChatUser(user.getNick(), senderNick);
+    ChatChannel chatChannel = sender.getChannel();
     sender.setTyping(false);
     if (sender.getCategory() == ChatUserCategory.FOE && chatPrefs.isHideFoeMessages()) {
       log.debug("Suppressing chat message from foe '{}'", senderNick);
@@ -499,10 +515,14 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                .map(Time::getTime)
                                .orElse(Instant.now());
 
-    String messageId = event.getTag("msgid", MsgId.class).map(MsgId::getId).orElse(null);
+    String messageId = event.getTag("msgid", MsgId.class)
+                            .map(MsgId::getId)
+                            .orElseThrow(
+                                () -> new IllegalArgumentException("Message does not have an id: %s".formatted(event)));
+    event.getTag("label", Label.class).map(Label::getLabel).ifPresent(chatChannel::removePendingMessage);
 
-    ChatMessage message = new ChatMessage(messageTime, sender, text, messageId);
-    sender.getChannel().addMessage(message);
+    ChatMessage message = new ChatMessage(messageId, messageTime, sender, text, Type.PENDING);
+    chatChannel.addMessage(message);
     notifyOnPrivateMessage(message);
   }
 
@@ -657,9 +677,15 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Override
   public CompletableFuture<Void> sendMessageInBackground(ChatChannel chatChannel, String message) {
     ChatChannelUser sender = getOrCreateChatUser(getCurrentUsername(), chatChannel.getName());
+    String id = String.valueOf(Objects.hash(new Random().nextInt(), message));
     return CompletableFuture.runAsync(() -> {
-      client.sendMessage(chatChannel.getName(), message);
-      chatChannel.addMessage(new ChatMessage(Instant.now(), sender, message, null));
+      new MessageCommand(client).target(chatChannel.getName())
+                                .message(message)
+                                .tags()
+                                .add("label", id)
+                                .then()
+                                .execute();
+      chatChannel.addMessage(new ChatMessage(id, Instant.now(), sender, message, Type.PENDING));
     });
   }
 
@@ -705,15 +731,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Override
-  public CompletableFuture<Void> sendActionInBackground(ChatChannel chatChannel, String action) {
-    ChatChannelUser sender = getOrCreateChatUser(getCurrentUsername(), chatChannel.getName());
-    return CompletableFuture.runAsync(() -> {
-      client.sendCtcpMessage(chatChannel.getName(), "ACTION " + action);
-      chatChannel.addMessage(new ChatMessage(Instant.now(), sender, action, null, true));
-    });
-  }
-
-  @Override
   public void joinChannel(String channelName) {
     log.debug("Joining channel: {}", channelName);
     if (client == null) {
@@ -732,17 +749,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private void setTypingState(ChatChannel chatChannel, TypingState state) {
-    Optional<MessageReceiver> receiver;
-    if (chatChannel.isPrivateChannel()) {
-      receiver = client.getActorTracker().getTrackedUser(chatChannel.getName()).map(MessageReceiver.class::cast);
-    } else {
-      receiver = client.getChannel(chatChannel.getName()).map(MessageReceiver.class::cast);
-    }
-    receiver.ifPresent(target -> new TagMessageCommand(client).target(target)
-                                                              .tags()
-                                                              .add("+typing", state.getValue())
-                                                              .then()
-                                                              .execute());
+    new TagMessageCommand(client).target(chatChannel.getName())
+                                 .tags()
+                                 .add("+typing", state.getValue())
+                                 .then()
+                                 .execute();
   }
 
   @Override

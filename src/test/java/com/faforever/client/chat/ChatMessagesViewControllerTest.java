@@ -177,33 +177,4 @@ public class ChatMessagesViewControllerTest extends PlatformTest {
     assertThat(instance.messageTextField.getText(), is(message));
     assertThat(instance.messageTextField.isDisable(), is(false));
   }
-
-  @Test
-  public void testOnSendMessageSendActionSuccessful() {
-    String message = "/me is happy";
-    instance.messageTextField.setText(message);
-    when(chatService.sendActionInBackground(any(), any())).thenReturn(completedFuture(null));
-
-    runOnFxThreadAndWait(() -> instance.onSendMessage());
-
-    verify(chatService).sendActionInBackground(eq(chatChannel), eq("is happy"));
-    assertThat(instance.messageTextField.getText(), is(emptyString()));
-    assertThat(instance.messageTextField.isDisable(), is(false));
-  }
-
-  @Test
-  public void testOnSendMessageSendActionFailed() {
-    String message = "/me is happy";
-    instance.messageTextField.setText(message);
-
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    future.completeExceptionally(new FakeTestException());
-    when(chatService.sendActionInBackground(any(), any())).thenReturn(future);
-
-    runOnFxThreadAndWait(() -> instance.onSendMessage());
-
-    verify(chatService).sendActionInBackground(chatChannel, "is happy");
-    assertThat(instance.messageTextField.getText(), is(message));
-    assertThat(instance.messageTextField.isDisable(), is(false));
-  }
 }
