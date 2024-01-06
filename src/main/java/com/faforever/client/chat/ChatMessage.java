@@ -1,10 +1,24 @@
 package com.faforever.client.chat;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.time.Instant;
 
-public record ChatMessage(Instant time, ChatChannelUser sender, String message, String id, boolean action) {
+@RequiredArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Getter
+public class ChatMessage {
 
-  public ChatMessage(Instant time, ChatChannelUser sender, String message, String id) {
-    this(time, sender, message, id, false);
+  @EqualsAndHashCode.Include
+  private final String id;
+  private final Instant time;
+  private final ChatChannelUser sender;
+  private final String content;
+  private final Type type;
+
+  public enum Type {
+    MESSAGE, ACTION, PENDING
   }
 }

@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.chat.ChatMessage.Type;
 import com.faforever.client.fx.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
@@ -13,10 +14,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -25,6 +28,10 @@ import java.util.function.Consumer;
 @ToString(onlyExplicitlyIncluded = true)
 public class ChatChannel {
 
+  private static final Comparator<ChatMessage> CHAT_MESSAGE_COMPARATOR = Comparator.comparing(ChatMessage::getType)
+                                                                                   .thenComparing(ChatMessage::getTime,
+                                                                                                  Comparator.nullsLast(
+                                                                                                      Comparator.naturalOrder()));
   @Getter
   @EqualsAndHashCode.Include
   @ToString.Include
@@ -39,9 +46,12 @@ public class ChatChannel {
   private final ObservableList<ChatChannelUser> unmodifiableUsers = FXCollections.unmodifiableObservableList(users);
   private final ObservableList<ChatChannelUser> typingUsers = new FilteredList<>(users, ChatChannelUser::isTyping);
   private final ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic(null, ""));
+  private final ObservableMap<String, ChatMessage> messagesById = FXCollections.synchronizedObservableMap(
+      FXCollections.observableHashMap());
+  private final ObservableList<ChatMessage> rawMessages = JavaFxUtil.attachListToMap(
+      FXCollections.synchronizedObservableList(FXCollections.observableArrayList()), messagesById);
   private final ObservableList<ChatMessage> messages = FXCollections.synchronizedObservableList(
-      FXCollections.observableArrayList());
-  private final ObservableList<ChatMessage> unmodifiableMessages = FXCollections.unmodifiableObservableList(messages);
+      new SortedList<>(rawMessages, CHAT_MESSAGE_COMPARATOR));
   private final BooleanProperty open = new SimpleBooleanProperty();
   private final IntegerProperty maxNumMessages = new SimpleIntegerProperty(Integer.MAX_VALUE);
   private final IntegerProperty numUnreadMessages = new SimpleIntegerProperty();
@@ -60,7 +70,8 @@ public class ChatChannel {
     int maxNumMessages = getMaxNumMessages();
     int numMessages = messages.size();
     if (numMessages > maxNumMessages) {
-      messages.subList(0, numMessages - maxNumMessages).clear();
+      List.copyOf(messages.subList(0, numMessages - maxNumMessages))
+          .forEach(message -> messagesById.remove(message.getId()));
     }
   }
 
@@ -134,13 +145,18 @@ public class ChatChannel {
     return Optional.ofNullable(usernameToChatUser.get(username));
   }
 
+  public void removePendingMessage(String messageId) {
+    messagesById.computeIfPresent(messageId,
+                                  (ignored, chatMessage) -> chatMessage.getType() == Type.PENDING ? null : chatMessage);
+  }
+
   public void addMessage(ChatMessage message) {
-    messages.add(message);
+    messagesById.put(message.getId(), message);
     pruneMessages();
   }
 
   public ObservableList<ChatMessage> getMessages() {
-    return unmodifiableMessages;
+    return messages;
   }
 
   public boolean isPrivateChannel() {

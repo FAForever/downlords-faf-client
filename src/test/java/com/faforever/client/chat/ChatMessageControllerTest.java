@@ -2,11 +2,13 @@ package com.faforever.client.chat;
 
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.chat.ChatMessage.Type;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.util.TimeService;
@@ -35,6 +37,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -55,6 +58,8 @@ public class ChatMessageControllerTest extends PlatformTest {
   private EmoticonService emoticonService;
   @Mock
   private ImageViewHelper imageViewHelper;
+  @Mock
+  private I18n i18n;
 
   @InjectMocks
   private ChatMessageController instance;
@@ -77,6 +82,7 @@ public class ChatMessageControllerTest extends PlatformTest {
     lenient().when(timeService.asShortTime(any())).thenReturn("now");
     lenient().when(imageViewHelper.createPlaceholderImageOnErrorObservable(any()))
              .thenReturn(new SimpleObjectProperty<>(image));
+    lenient().when(i18n.get("pending")).thenReturn("pending");
 
     user.setPlayer(player);
     user.setColor(new Color(0, 0, 0, 0));
@@ -85,15 +91,24 @@ public class ChatMessageControllerTest extends PlatformTest {
   }
 
   @Test
+  public void testPending() {
+    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "", Type.PENDING));
+    assertThat(instance.timeLabel.getText(), equalTo("pending"));
+
+    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "", Type.MESSAGE));
+    assertThat(instance.timeLabel.getText(), not(equalTo("pending")));
+  }
+
+  @Test
   public void testClickAuthor() {
-    instance.setChatMessage(new ChatMessage(Instant.now(), user, "", ""));
+    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "", Type.MESSAGE));
     runOnFxThreadAndWait(() -> instance.authorLabel.fireEvent(MouseEvents.generateClick(MouseButton.PRIMARY, 2)));
     verify(chatService).onInitiatePrivateChat("junit");
   }
 
   @Test
   public void testMultipleWords() {
-    instance.setChatMessage(new ChatMessage(Instant.now(), user, "Hello world!", ""));
+    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "Hello world!", Type.MESSAGE));
 
     ObservableList<Node> children = instance.message.getChildren();
     assertThat(children, hasSize(2));
@@ -113,7 +128,7 @@ public class ChatMessageControllerTest extends PlatformTest {
 
   @Test
   public void testChannel() {
-    instance.setChatMessage(new ChatMessage(Instant.now(), user, "#test", ""));
+    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "#test", Type.MESSAGE));
 
     ObservableList<Node> children = instance.message.getChildren();
     assertThat(children, hasSize(1));
@@ -129,7 +144,7 @@ public class ChatMessageControllerTest extends PlatformTest {
 
   @Test
   public void testUrl() {
-    instance.setChatMessage(new ChatMessage(Instant.now(), user, "https://www.google.com", ""));
+    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "https://www.google.com", Type.MESSAGE));
 
     ObservableList<Node> children = instance.message.getChildren();
     assertThat(children, hasSize(1));
@@ -145,7 +160,7 @@ public class ChatMessageControllerTest extends PlatformTest {
 
   @Test
   public void testSelf() {
-    instance.setChatMessage(new ChatMessage(Instant.now(), user, "junit", ""));
+    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "junit", Type.MESSAGE));
 
     ObservableList<Node> children = instance.message.getChildren();
     assertThat(children, hasSize(1));
@@ -160,7 +175,7 @@ public class ChatMessageControllerTest extends PlatformTest {
 
   @Test
   public void testEmoticon() {
-    instance.setChatMessage(new ChatMessage(Instant.now(), user, ":)", ""));
+    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, ":)", Type.MESSAGE));
 
     ObservableList<Node> children = instance.message.getChildren();
     assertThat(children, hasSize(1));
