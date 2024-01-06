@@ -5,6 +5,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PrivatePlayerInfoController;
 import com.faforever.client.preferences.ChatPrefs;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
@@ -47,17 +48,15 @@ public class PrivateChatTabController extends AbstractChatTabController {
     defaultIconImageView.visibleProperty().bind(avatarImageView.imageProperty().isNull().when(showing));
 
     privateChatTabRoot.textProperty().bind(channelName.when(attached));
-    privatePlayerInfoController.chatUserProperty()
-        .bind(chatChannel.map(channel -> chatService.getOrCreateChatUser(channel.getName(), channel.getName()))
-                         .when(showing));
 
-    avatarImageView.imageProperty()
-                   .bind(chatChannel.flatMap(
-                       channel -> channelName.map(chanName -> channel.getUser(chanName).orElse(null))
+    ObservableValue<ChatChannelUser> chatUser = chatChannel.flatMap(
+        channel -> channelName.map(chanName -> channel.getUser(chanName).orElse(null)));
+    privatePlayerInfoController.chatUserProperty().bind(chatUser.when(showing));
+
+    avatarImageView.imageProperty().bind(chatUser
                                              .flatMap(ChatChannelUser::playerProperty)
                                              .flatMap(PlayerBean::avatarProperty)
-                                             .map(avatarService::loadAvatar)
-                                             .when(showing)));
+                                             .map(avatarService::loadAvatar).when(showing));
   }
 
   @Override

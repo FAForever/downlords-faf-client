@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.avatar.AvatarService;
+import com.faforever.client.chat.ChatMessage.Type;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
@@ -8,6 +9,7 @@ import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.util.TimeService;
 import javafx.beans.property.BooleanProperty;
@@ -53,6 +55,7 @@ public class ChatMessageController extends NodeController<VBox> {
   private final ChatService chatService;
   private final EmoticonService emoticonService;
   private final ImageViewHelper imageViewHelper;
+  private final I18n i18n;
 
   public VBox root;
   public HBox detailsContainer;
@@ -76,7 +79,7 @@ public class ChatMessageController extends NodeController<VBox> {
 
     mentionPattern = chatService.getMentionPattern();
 
-    ObservableValue<ChatChannelUser> sender = chatMessage.map(ChatMessage::sender);
+    ObservableValue<ChatChannelUser> sender = chatMessage.map(ChatMessage::getSender);
     ObservableValue<PlayerBean> player = sender.flatMap(ChatChannelUser::playerProperty);
     avatarImageView.imageProperty()
                    .bind(player.flatMap(PlayerBean::avatarProperty)
@@ -104,8 +107,12 @@ public class ChatMessageController extends NodeController<VBox> {
         chatService.onInitiatePrivateChat(username);
       }
     });
-    timeLabel.textProperty().bind(chatMessage.map(ChatMessage::time).map(timeService::asShortTime).when(showing));
-    chatMessage.map(ChatMessage::message).map(this::convertMessageToNodes).when(showing).subscribe(messageNodes -> {
+    timeLabel.textProperty()
+             .bind(chatMessage.map(message -> message.getType() != Type.PENDING ? message.getTime() : null)
+                              .map(timeService::asShortTime)
+                              .orElse(i18n.get("pending"))
+                              .when(showing));
+    chatMessage.map(ChatMessage::getContent).map(this::convertMessageToNodes).when(showing).subscribe(messageNodes -> {
       Collection<? extends Node> children = messageNodes == null ? List.of() : messageNodes;
       message.getChildren().setAll(children);
     });

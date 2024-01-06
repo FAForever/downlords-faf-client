@@ -38,8 +38,6 @@ public interface ChatService {
 
   void leaveChannel(ChatChannel channel);
 
-  CompletableFuture<Void> sendActionInBackground(ChatChannel chatChannel, String action);
-
   void joinChannel(String channelName);
 
   boolean isDefaultChannel(ChatChannel chatChannel);
