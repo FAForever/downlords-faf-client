@@ -81,9 +81,12 @@ public class PlayerServiceTest extends ServiceTest {
     MapperSetup.injectMappers(playerMapper);
     lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
     lenient().when(fafServerAccessor.getEvents(PlayerInfo.class)).thenReturn(playerInfoTestPublisher.flux());
-    currentPlayer = new Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>());
-    playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null, new Avatar("https://test.com/test.png", "junit"), "", new HashMap<>(), new HashMap<>());
-    playerInfo2 = new com.faforever.commons.lobby.Player(3, "junit3", null, null, "", new HashMap<>(), new HashMap<>());
+    currentPlayer = new Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>(), null);
+    playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null,
+                                                         new Avatar("https://test.com/test.png", "junit"), "",
+                                                         new HashMap<>(), new HashMap<>(), null);
+    playerInfo2 = new com.faforever.commons.lobby.Player(3, "junit3", null, null, "", new HashMap<>(), new HashMap<>(),
+                                                         null);
 
     lenient().when(loginService.ownPlayerProperty()).thenReturn(new ReadOnlyObjectWrapper<>(currentPlayer));
     lenient().when(loginService.getUsername()).thenReturn("junit");
@@ -101,7 +104,8 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testPlayerComesOnline() {
-    playerInfoTestPublisher.next(new PlayerInfo(List.of(new com.faforever.commons.lobby.Player(4, "junit3", null, null, "", new HashMap<>(), new HashMap<>()))));
+    playerInfoTestPublisher.next(new PlayerInfo(List.of(
+        new com.faforever.commons.lobby.Player(4, "junit3", null, null, "", new HashMap<>(), new HashMap<>(), null))));
 
     assertTrue(instance.getPlayerByIdIfOnline(4).isPresent());
   }
@@ -127,7 +131,9 @@ public class PlayerServiceTest extends ServiceTest {
     assertEquals(playerInfo1.getClan(), player.getClan());
     assertEquals(playerInfo1.getCountry(), player.getCountry());
 
-    playerInfoTestPublisher.next(new PlayerInfo(List.of(new com.faforever.commons.lobby.Player(2, "junit2", "ABC", null, "DE", new HashMap<>(), new HashMap<>()))));
+    playerInfoTestPublisher.next(new PlayerInfo(List.of(
+        new com.faforever.commons.lobby.Player(2, "junit2", "ABC", null, "DE", new HashMap<>(), new HashMap<>(),
+                                               null))));
 
     assertEquals(0, player.getNumberOfGames());
     assertEquals("ABC", player.getClan());
@@ -206,13 +212,15 @@ public class PlayerServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testRemovePlayerIfOnline() {
+  public void testRemovePlayer() {
     assertFalse(instance.getPlayerNames().isEmpty());
     assertTrue(instance.isOnline(playerInfo1.getId()));
     assertTrue(instance.isOnline(playerInfo2.getId()));
 
-    instance.removePlayerIfOnline(playerInfo1.getLogin());
-    instance.removePlayerIfOnline(playerInfo2.getLogin());
+    instance.getPlayerByNameIfOnline(playerInfo1.getLogin())
+            .ifPresent(player -> player.setServerStatus(ServerStatus.OFFLINE));
+    instance.getPlayerByNameIfOnline(playerInfo2.getLogin())
+            .ifPresent(player -> player.setServerStatus(ServerStatus.OFFLINE));
 
     assertFalse(instance.getPlayerNames().contains(playerInfo1.getLogin()));
     assertFalse(instance.getPlayerNames().contains(playerInfo2.getLogin()));

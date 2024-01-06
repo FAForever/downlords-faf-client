@@ -11,6 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
+import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +36,7 @@ public abstract class AbstractChatTabController extends TabController {
   private final ObservableValue<Number> unreadMessagesCount = chatChannel.flatMap(
       ChatChannel::numUnreadMessagesProperty).orElse(0);
 
-  public Node chatMessagesView;
+  public VBox chatMessagesView;
   public ChatMessageViewController chatMessagesViewController;
 
   @Override

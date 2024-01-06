@@ -42,7 +42,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.list.NoSelectionModelListView;
+import com.faforever.client.ui.list.NoSelectionModel;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.LoginService;
 import com.google.common.annotations.VisibleForTesting;
@@ -184,8 +184,8 @@ public class SettingsController extends NodeController<Node> {
   @Override
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(vaultLocationWarningLabel);
-    themeComboBox.setButtonCell(new StringListCell<>(Theme::getDisplayName, fxApplicationThreadExecutor));
-    themeComboBox.setCellFactory(param -> new StringListCell<>(Theme::getDisplayName, fxApplicationThreadExecutor));
+    themeComboBox.setButtonCell(new StringListCell<>(Theme::displayName, fxApplicationThreadExecutor));
+    themeComboBox.setCellFactory(param -> new StringListCell<>(Theme::displayName, fxApplicationThreadExecutor));
 
     toastScreenComboBox.setButtonCell(screenListCell());
     toastScreenComboBox.setCellFactory(param -> screenListCell());
@@ -245,7 +245,8 @@ public class SettingsController extends NodeController<Node> {
   private void onThemeChanged(Theme newValue) {
     themeService.setTheme(newValue);
     if (themeService.doesThemeNeedRestart(newValue)) {
-      notificationService.addNotification(new PersistentNotification(i18n.get("theme.needsRestart.message", newValue.getDisplayName()), Severity.WARN,
+      notificationService.addNotification(
+          new PersistentNotification(i18n.get("theme.needsRestart.message", newValue.displayName()), Severity.WARN,
                                                                      Collections.singletonList(
                                                                          new Action(i18n.get("theme.needsRestart.quit"),
                                                                                     Platform::exit))));
@@ -357,7 +358,7 @@ public class SettingsController extends NodeController<Node> {
   }
 
   private void initAutoChannelListView() {
-    autoChannelListView.setSelectionModel(new NoSelectionModelListView<>());
+    autoChannelListView.setSelectionModel(new NoSelectionModel<>());
     autoChannelListView.setFocusTraversable(false);
     autoChannelListView.setItems(preferences.getChat().getAutoJoinChannels());
     autoChannelListView.setCellFactory(param -> new RemovableListCell<>(uiService, fxApplicationThreadExecutor));

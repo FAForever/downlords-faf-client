@@ -18,6 +18,7 @@ import com.faforever.commons.lobby.PlayerInfo;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
+import javafx.util.Subscription;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.function.TupleUtils;
 
 import java.util.ArrayList;
@@ -49,6 +51,7 @@ public class PlayerService implements InitializingBean {
 
   private final Map<String, PlayerBean> playersByName = new ConcurrentHashMap<>();
   private final Map<Integer, PlayerBean> playersById = new ConcurrentHashMap<>();
+  private final Map<PlayerBean, Set<Subscription>> playerSubscriptions = new ConcurrentHashMap<>();
   private final ReadOnlyObjectWrapper<PlayerBean> currentPlayer = new ReadOnlyObjectWrapper<>();
   private final List<Consumer<PlayerBean>> playerOnlineListeners = new ArrayList<>();
   private final List<Consumer<PlayerBean>> playerOfflineListeners = new ArrayList<>();
@@ -67,7 +70,7 @@ public class PlayerService implements InitializingBean {
                      .flatMap(player -> Mono.zip(Mono.just(player), Mono.justOrEmpty(playersById.get(player.getId()))
                                                                         .switchIfEmpty(initializePlayer(player))))
                      .publishOn(fxApplicationThreadExecutor.asScheduler())
-                     .map(TupleUtils.function(playerMapper::update))
+                     .map(TupleUtils.function(playerMapper::update)).publishOn(Schedulers.single())
                      .doOnError(throwable -> log.error("Error processing player", throwable))
                      .retry()
                      .subscribe();
@@ -109,6 +112,13 @@ public class PlayerService implements InitializingBean {
         newPlayer.setId(id);
         newPlayer.setUsername(playerInfo.getLogin());
         newPlayer.setSocialStatus(SocialStatus.SELF);
+        Subscription removeSubscription = newPlayer.serverStatusProperty().subscribe(serverStatus -> {
+          if (serverStatus == ServerStatus.OFFLINE) {
+            removePlayer(newPlayer);
+          }
+        });
+        playerSubscriptions.computeIfAbsent(newPlayer, ignored -> ConcurrentHashMap.newKeySet())
+                           .add(removeSubscription);
         playersByName.put(newPlayer.getUsername(), newPlayer);
         return playerMapper.update(playerInfo, newPlayer);
       } else {
@@ -122,6 +132,12 @@ public class PlayerService implements InitializingBean {
                  PlayerBean newPlayer = new PlayerBean();
                  newPlayer.setId(player.getId());
                  newPlayer.setUsername(player.getLogin());
+                 Subscription removeSubscription = newPlayer.serverStatusProperty().subscribe(serverStatus -> {
+                   if (serverStatus == ServerStatus.OFFLINE) {
+                     removePlayer(newPlayer);
+                   }
+                 });
+                 playerSubscriptions.computeIfAbsent(newPlayer, ignored -> ConcurrentHashMap.newKeySet()).add(removeSubscription);
                  return newPlayer;
                })
                .doOnNext(playerBean -> {
@@ -207,11 +223,15 @@ public class PlayerService implements InitializingBean {
                          .toFuture();
   }
 
-  public void removePlayerIfOnline(String username) {
-    PlayerBean player = playersByName.remove(username);
-    if (player != null) {
-      playersById.remove(player.getId());
-      playerOfflineListeners.forEach(listener -> listener.accept(player));
+  private void removePlayer(PlayerBean player) {
+    PlayerBean removedPlayer = playersById.remove(player.getId());
+    if (removedPlayer != null) {
+      playersByName.remove(removedPlayer.getUsername());
+      Set<Subscription> subscriptions = playerSubscriptions.remove(player);
+      if (subscriptions != null) {
+        subscriptions.forEach(Subscription::unsubscribe);
+      }
+      playerOfflineListeners.forEach(listener -> listener.accept(removedPlayer));
     }
   }
 

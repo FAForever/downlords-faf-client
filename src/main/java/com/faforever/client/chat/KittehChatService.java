@@ -164,6 +164,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     fafServerAccessor.addEventListener(SocialInfo.class, this::onSocialMessage);
 
     playerService.addPlayerOnlineListener(this::onPlayerOnline);
+    playerService.addPlayerOfflineListener(this::onPlayerOffline);
     chatPrefs.groupToColorProperty().subscribe(this::updateUserColors);
     chatPrefs.chatColorModeProperty().subscribe(this::updateUserColors);
     chatPrefs.maxMessagesProperty()
@@ -222,6 +223,15 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
             .map(channel -> channel.getUser(player.getUsername()))
             .flatMap(Optional::stream)
             .forEach(chatChannelUser -> fxApplicationThreadExecutor.execute(() -> chatChannelUser.setPlayer(player)));
+  }
+
+  @VisibleForTesting
+  void onPlayerOffline(PlayerBean player) {
+    channels.values()
+            .stream()
+            .map(channel -> channel.getUser(player.getUsername()))
+            .flatMap(Optional::stream)
+            .forEach(chatChannelUser -> fxApplicationThreadExecutor.execute(() -> chatChannelUser.setPlayer(null)));
   }
 
   @Handler
@@ -297,9 +307,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
             .forEach(chatChannel -> chatChannel.getUser(username)
                                                .ifPresent(chatUser -> fxApplicationThreadExecutor.execute(
                                                    () -> chatUser.setAway(event.isAway()))));
-    if (event.isAway()) {
-      playerService.removePlayerIfOnline(username);
-    }
   }
 
   @Handler
@@ -350,7 +357,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     User user = event.getUser();
     String username = user.getNick();
     channels.values().forEach(channel -> onChatUserLeftChannel(channel.getName(), username));
-    playerService.removePlayerIfOnline(username);
   }
 
   @Handler
@@ -683,7 +689,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private void removeChannel(String channelName) {
     ChatChannel removedChannel = channels.remove(channelName);
     lastSentActiveMap.remove(removedChannel);
-    channelSubscriptions.getOrDefault(removedChannel, Set.of()).forEach(Subscription::unsubscribe);
+    Set<Subscription> subscriptions = channelSubscriptions.remove(removedChannel);
+    if (subscriptions != null) {
+      subscriptions.forEach(Subscription::unsubscribe);
+    }
   }
 
   @Override

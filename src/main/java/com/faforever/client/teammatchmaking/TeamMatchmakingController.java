@@ -9,7 +9,7 @@ import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
-import com.faforever.client.game.PlayerStatus;
+import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
@@ -234,7 +234,7 @@ public class TeamMatchmakingController extends NodeController<Node> {
       buttonText = i18n.get("teammatchmaking.searchButton.inQueue").toUpperCase();
     } else if (!Objects.equals(teamMatchmakingService.getParty().getOwner(), currentPlayer)) {
       buttonText = i18n.get("teammatchmaking.searchButton.inParty").toUpperCase();
-    } else if (currentPlayer.getStatus() != PlayerStatus.IDLE) {
+    } else if (currentPlayer.getGameStatus() != PlayerGameStatus.IDLE) {
       buttonText = i18n.get("teammatchmaking.searchButton.inGame").toUpperCase();
     } else if (teamMatchmakingService.partyMembersNotReady()) {
       buttonText = i18n.get("teammatchmaking.searchButton.memberInGame").toUpperCase();

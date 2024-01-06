@@ -54,7 +54,7 @@ public class EmoticonsWindowControllerTest extends PlatformTest {
 
   @Test
   public void testOnEmoticonClicked() {
-    String shortcode = emoticonsGroups.getFirst().getEmoticons().getFirst().getShortcodes().getFirst();
+    String shortcode = emoticonsGroups.getFirst().emoticons().getFirst().shortcodes().getFirst();
     runOnFxThreadAndWait(() -> instance.onEmoticonClicked().accept(shortcode));
 
     String expected = " " + shortcode + " ";

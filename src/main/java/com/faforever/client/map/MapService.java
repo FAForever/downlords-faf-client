@@ -630,7 +630,7 @@ public class MapService implements InitializingBean, DisposableBean {
   public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getMatchmakerMapsWithPageCount(
       MatchmakerQueueBean matchmakerQueue, int count, int page) {
     PlayerBean player = playerService.getCurrentPlayer();
-    float rating = Optional.ofNullable(player.getLeaderboardRatings()
+    float rating = Optional.ofNullable(player.getLeaderboardRatings()).map(ratings -> ratings
             .get(matchmakerQueue.getLeaderboard().getTechnicalName()))
         .map(ratingBean -> ratingBean.getMean() - 3 * ratingBean.getDeviation()).orElse(0f);
     ElideNavigatorOnCollection<MapPoolAssignment> navigator = ElideNavigator.of(MapPoolAssignment.class).collection();

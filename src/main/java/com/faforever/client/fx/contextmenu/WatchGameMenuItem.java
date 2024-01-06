@@ -1,7 +1,7 @@
 package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.game.PlayerStatus;
+import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayRunner;
@@ -40,7 +40,7 @@ public class WatchGameMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected boolean isDisplayed() {
-    return object != null && object.getStatus() == PlayerStatus.PLAYING;
+    return object != null && object.getGameStatus() == PlayerGameStatus.PLAYING;
   }
 
   @Override

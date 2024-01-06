@@ -23,6 +23,8 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -97,7 +99,11 @@ public class TrayIconManager {
     graphicsContext2D.setTextAlign(TextAlignment.CENTER);
     graphicsContext2D.setTextBaseline(VPos.CENTER);
     graphicsContext2D.setFontSmoothingType(FontSmoothingType.LCD);
-    graphicsContext2D.setFont(javafx.scene.text.Font.loadFont(TrayIconManager.class.getResourceAsStream("/font/dfc-icons.ttf"), dimension));
+    try (InputStream inputStream = TrayIconManager.class.getResourceAsStream("/font/dfc-icons.ttf")) {
+      graphicsContext2D.setFont(javafx.scene.text.Font.loadFont(inputStream, dimension));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     graphicsContext2D.setFill(Color.BLACK);
     graphicsContext2D.fillOval(0, 0, dimension, dimension);
     graphicsContext2D.setFill(Color.WHITE);
