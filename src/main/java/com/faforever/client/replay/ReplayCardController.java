@@ -1,13 +1,16 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.domain.GamePlayerStatsBean;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayReviewsSummaryBean;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
+import com.faforever.client.game.PlayerCardController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -16,17 +19,10 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.rating.RatingService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.review.StarsController;
-import com.faforever.client.domain.GamePlayerStatsBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.commons.api.dto.Faction;
-import com.faforever.client.game.PlayerCardController;
-import com.faforever.client.game.RatingPrecision;
-import com.faforever.client.util.RatingUtil;
-import com.faforever.client.theme.UiService;
-import com.faforever.client.fx.FxApplicationThreadExecutor;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -44,14 +40,12 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.function.Function;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)

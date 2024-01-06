@@ -217,7 +217,6 @@ public class PlayerCardController extends NodeController<Node> {
   }
 
   public void removeAvatar() {
-    this.avatarImageView.managedProperty().set(false);
     this.avatarStackPane.setVisible(false);
   }
 
