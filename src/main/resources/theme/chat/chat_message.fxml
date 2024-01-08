@@ -15,23 +15,33 @@
       fx:id="root" styleClass="message-container" onMouseEntered="#onMouseEntered" onMouseExited="#onMouseExited">
     <HBox fx:id="detailsContainer" spacing="5" alignment="CENTER_LEFT">
         <padding>
-            <Insets top="10" bottom="2"/>
+            <Insets top="5" bottom="2"/>
         </padding>
         <ImageView fx:id="avatarImageView" fitWidth="40" fitHeight="20"/>
         <ImageView fx:id="countryImageView" fitHeight="20" fitWidth="20"/>
         <Label fx:id="clanLabel" styleClass="clan"/>
         <Label fx:id="authorLabel" styleClass="author"/>
     </HBox>
+    <HBox fx:id="replyContainer" alignment="CENTER_LEFT" visible="false" spacing="5">
+        <padding>
+            <Insets left="85"/>
+        </padding>
+        <children>
+            <Region styleClass="icon, icon16x16, response-icon"/>
+            <Label fx:id="replyAuthorLabel" minWidth="-Infinity"/>
+            <Label fx:id="replyPreviewLabel"/>
+        </children>
+    </HBox>
     <HBox alignment="CENTER_LEFT">
         <Label fx:id="timeLabel" styleClass="time" minWidth="75"/>
         <TextFlow fx:id="message" HBox.hgrow="ALWAYS"/>
         <HBox fx:id="messageActionsContainer" visible="false">
-            <Button fx:id="reactButton" onAction="#onReact">
+            <Button fx:id="reactButton" onAction="#onReactButtonClicked">
                 <graphic>
                     <Region styleClass="icon, icon16x16, react-icon"/>
                 </graphic>
             </Button>
-            <Button fx:id="replyButton" onAction="#onReply">
+            <Button fx:id="replyButton">
                 <graphic>
                     <Region styleClass="icon, icon16x16, reply-icon"/>
                 </graphic>

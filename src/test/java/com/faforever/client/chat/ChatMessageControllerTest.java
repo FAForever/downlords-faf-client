@@ -173,6 +173,22 @@ public class ChatMessageControllerTest extends PlatformTest {
   }
 
   @Test
+  public void testNoSchemeUrl() {
+    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "www.google.com", Type.MESSAGE, null));
+
+    ObservableList<Node> children = instance.message.getChildren();
+    assertThat(children, hasSize(1));
+
+    Node first = children.getFirst();
+    assertThat(first, instanceOf(Hyperlink.class));
+    Hyperlink hyperlink = (Hyperlink) first;
+    assertThat(hyperlink.getText(), equalTo("www.google.com "));
+
+    hyperlink.getOnAction().handle(null);
+    verify(platformService).showDocument("https://www.google.com");
+  }
+
+  @Test
   public void testSelf() {
     instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "junit", Type.MESSAGE, null));
 
@@ -241,7 +257,7 @@ public class ChatMessageControllerTest extends PlatformTest {
 
     ChatMessage message = new ChatMessage(null, Instant.now(), user, "hello", Type.MESSAGE, null);
     instance.setChatMessage(message);
-    instance.onReact();
+    instance.onReactButtonClicked();
 
     ArgumentCaptor<Consumer<Emoticon>> captor = captor();
 
@@ -264,7 +280,7 @@ public class ChatMessageControllerTest extends PlatformTest {
     ChatMessage message = new ChatMessage(null, Instant.now(), user, "hello", Type.MESSAGE, null);
     message.addReaction(emoticon, new ChatChannelUser("junit", new ChatChannel("junit")));
     instance.setChatMessage(message);
-    instance.onReact();
+    instance.onReactButtonClicked();
 
     ArgumentCaptor<Consumer<Emoticon>> captor = captor();
 
@@ -274,5 +290,73 @@ public class ChatMessageControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> consumer.accept(emoticon));
 
     verify(chatService, never()).reactToMessageInBackground(message, emoticon);
+  }
+
+  @Test
+  public void testButtonReact() {
+    ReactionController mockedReactionController = mock(ReactionController.class);
+    when(uiService.loadFxml("theme/chat/emoticons/reaction.fxml")).thenReturn(mockedReactionController);
+    when(mockedReactionController.getRoot()).thenReturn(new HBox());
+    SimpleObjectProperty<Consumer<Emoticon>> consumerProperty = new SimpleObjectProperty<>();
+    when(mockedReactionController.onReactionClickedProperty()).thenReturn(consumerProperty);
+
+    Emoticon emoticon = new Emoticon(List.of(), "");
+    ChatMessage message = new ChatMessage(null, Instant.now(), user, "hello", Type.MESSAGE, null);
+    message.addReaction(emoticon, new ChatChannelUser("test", new ChatChannel("junit")));
+    instance.setChatMessage(message);
+
+    Consumer<Emoticon> consumer = consumerProperty.getValue();
+    runOnFxThreadAndWait(() -> consumer.accept(emoticon));
+
+    verify(chatService).reactToMessageInBackground(message, emoticon);
+  }
+
+  @Test
+  public void testButtonReactAlreadyReacted() {
+    ReactionController mockedReactionController = mock(ReactionController.class);
+    when(uiService.loadFxml("theme/chat/emoticons/reaction.fxml")).thenReturn(mockedReactionController);
+    when(mockedReactionController.getRoot()).thenReturn(new HBox());
+    SimpleObjectProperty<Consumer<Emoticon>> consumerProperty = new SimpleObjectProperty<>();
+    when(mockedReactionController.onReactionClickedProperty()).thenReturn(consumerProperty);
+
+    Emoticon emoticon = new Emoticon(List.of(), "");
+    ChatMessage message = new ChatMessage(null, Instant.now(), user, "hello", Type.MESSAGE, null);
+    message.addReaction(emoticon, new ChatChannelUser("junit", new ChatChannel("junit")));
+    instance.setChatMessage(message);
+
+    Consumer<Emoticon> consumer = consumerProperty.getValue();
+    runOnFxThreadAndWait(() -> consumer.accept(emoticon));
+
+    verify(chatService, never()).reactToMessageInBackground(message, emoticon);
+  }
+
+  @Test
+  public void testMessageWithReply() {
+    ChatMessage targetMessage = new ChatMessage(null, Instant.now().minusSeconds(30), user, "boo", Type.MESSAGE, null);
+    ChatMessage message = new ChatMessage(null, Instant.now(), user, "hello", Type.MESSAGE, targetMessage);
+
+    Consumer<ChatMessage> mockConsumer = mock();
+
+    instance.setChatMessage(message);
+    instance.setOnReplyClicked(mockConsumer);
+
+    instance.replyContainer.getOnMouseClicked().handle(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
+
+    assertThat(instance.replyContainer.isVisible(), equalTo(true));
+    verify(mockConsumer).accept(targetMessage);
+  }
+
+  @Test
+  public void testReplyButtonClicked() {
+    ChatMessage message = new ChatMessage(null, Instant.now(), user, "hello", Type.MESSAGE, null);
+
+    Consumer<ChatMessage> mockConsumer = mock();
+
+    instance.setChatMessage(message);
+    instance.setOnReplyButtonClicked(mockConsumer);
+
+    instance.replyButton.getOnAction().handle(null);
+
+    verify(mockConsumer).accept(message);
   }
 }

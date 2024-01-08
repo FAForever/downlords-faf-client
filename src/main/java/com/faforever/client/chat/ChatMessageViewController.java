@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -28,6 +29,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
@@ -43,6 +45,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -70,11 +73,16 @@ public class ChatMessageViewController extends NodeController<VBox> {
   public Label typingLabel;
   public Node emoticonsWindow;
   public EmoticonsWindowController emoticonsWindowController;
+  public Button cancelReplyButton;
+  public Label replyPreviewLabel;
+  public Label replyAuthorLabel;
+  public HBox replyContainer;
 
   private final List<String> userMessageHistory = new ArrayList<>();
   private final ObjectProperty<ChatChannel> chatChannel = new SimpleObjectProperty<>();
   private final ObservableValue<ObservableList<ChatChannelUser>> users = chatChannel.map(ChatChannel::getUsers);
   private final ListChangeListener<ChatChannelUser> typingUserListChangeListener = this::updateTypingUsersLabel;
+  private final ObjectProperty<ChatMessage> targetMessage = new SimpleObjectProperty<>();
 
   private final ObservableList<ChatMessage> rawMessages = FXCollections.synchronizedObservableList(
       FXCollections.observableArrayList(chatMessage -> new Observable[]{chatMessage.getSender().categoryProperty()}));
@@ -87,6 +95,8 @@ public class ChatMessageViewController extends NodeController<VBox> {
 
   @Override
   protected void onInitialize() {
+    JavaFxUtil.bindManagedToVisible(replyContainer);
+
     filteredMessages.predicateProperty().bind(chatPrefs.hideFoeMessagesProperty().map(hideFoes -> {
       if (!hideFoes) {
         return message -> true;
@@ -98,7 +108,13 @@ public class ChatMessageViewController extends NodeController<VBox> {
     messagesListView.setSelectionModel(null);
     messagesListView.setItems(filteredMessages);
     messagesListView.setOrientation(Orientation.VERTICAL);
-    messagesListView.setCellFactory(ignored -> chatMessageItemCellFactory.getObject());
+    messagesListView.setCellFactory(ignored -> {
+      ChatMessageItemCell chatMessageItemCell = chatMessageItemCellFactory.getObject();
+      chatMessageItemCell.setOnReplyButtonClicked(targetMessage::set);
+      chatMessageItemCell.setOnReplyClicked(
+          message -> fxApplicationThreadExecutor.execute(() -> messagesListView.scrollTo(message)));
+      return chatMessageItemCell;
+    });
 
     messageTextField.setOnKeyPressed(this::handleKeyEvent);
     messageTextField.textProperty().subscribe(this::updateTypingState);
@@ -133,8 +149,19 @@ public class ChatMessageViewController extends NodeController<VBox> {
 
     createAutoCompletionHelper().bindTo(messageTextField);
 
-    filteredMessages.subscribe(
-        () -> fxApplicationThreadExecutor.execute(() -> messagesListView.scrollTo(filteredMessages.size())));
+    replyContainer.visibleProperty().bind(targetMessage.isNotNull().when(showing));
+    replyPreviewLabel.textProperty().bind(targetMessage.map(ChatMessage::getContent).when(showing));
+    replyAuthorLabel.textProperty()
+                    .bind(targetMessage.map(ChatMessage::getSender)
+                                       .map(ChatChannelUser::getUsername)
+                                       .map(username -> i18n.get("chat.replyingTo", username))
+                                       .when(showing));
+
+    filteredMessages.subscribe(() -> {
+      if (showing.get()) {
+        fxApplicationThreadExecutor.execute(() -> messagesListView.scrollTo(filteredMessages.size()));
+      }
+    });
   }
 
   private AutoCompletionHelper createAutoCompletionHelper() {
@@ -229,7 +256,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
 
     updateUserMessageHistory(text);
     sendMessage();
-    hideEmoticonsWindow();
+    emoticonsPopup.hide();
   }
 
   private void updateUserMessageHistory(String text) {
@@ -241,16 +268,24 @@ public class ChatMessageViewController extends NodeController<VBox> {
     }
   }
 
-  private void hideEmoticonsWindow() {
-    emoticonsPopup.hide();
-  }
-
   private void sendMessage() {
     messageTextField.setDisable(true);
 
     final String text = messageTextField.getText();
 
-    chatService.sendMessageInBackground(chatChannel.get(), text).whenComplete((result, throwable) -> {
+    CompletableFuture<Void> sendFuture;
+    ChatMessage targetMessage = this.targetMessage.get();
+    if (targetMessage == null) {
+      sendFuture = chatService.sendMessageInBackground(chatChannel.get(), text);
+    } else {
+      sendFuture = chatService.sendReplyInBackground(targetMessage, text).whenCompleteAsync((aVoid, throwable) -> {
+        if (throwable == null) {
+          removeReply();
+        }
+      }, fxApplicationThreadExecutor);
+    }
+
+    sendFuture.whenComplete((result, throwable) -> {
       if (throwable != null) {
         throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
         log.warn("Message could not be sent: {}", text, throwable);
@@ -290,11 +325,13 @@ public class ChatMessageViewController extends NodeController<VBox> {
   }
 
   public void openEmoticonsPopupWindow() {
-    Bounds screenBounds = emoticonsButton.localToScreen(emoticonsButton.getBoundsInLocal());
-    double anchorX = screenBounds.getMaxX() - 5;
-    double anchorY = screenBounds.getMinY() - 5;
+    Bounds bounds = emoticonsButton.localToScreen(emoticonsButton.getBoundsInLocal());
 
     messageTextField.requestFocus();
-    emoticonsPopup.show(emoticonsButton.getScene().getWindow(), anchorX, anchorY);
+    emoticonsPopup.show(emoticonsButton.getScene().getWindow(), bounds.getMaxX() - 5, bounds.getMinY() - 5);
+  }
+
+  public void removeReply() {
+    targetMessage.set(null);
   }
 }

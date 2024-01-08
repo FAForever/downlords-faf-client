@@ -28,6 +28,8 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableSet;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -36,6 +38,7 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -56,6 +59,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -87,11 +92,17 @@ public class ChatMessageController extends NodeController<VBox> {
   public Button reactButton;
   public Button replyButton;
   public FlowPane reactionsContainer;
+  public HBox replyContainer;
+  public Label replyAuthorLabel;
+  public Label replyPreviewLabel;
 
   private final Tooltip avatarTooltip = new Tooltip();
   private final ObjectProperty<ChatMessage> chatMessage = new SimpleObjectProperty<>();
   private final BooleanProperty showDetails = new SimpleBooleanProperty();
   private final StringProperty inlineTextColorStyleProperty = new SimpleStringProperty();
+  private final ObjectProperty<Consumer<ChatMessage>> onReplyButtonClicked = new SimpleObjectProperty<>();
+  private final ObjectProperty<Consumer<ChatMessage>> onReplyClicked = new SimpleObjectProperty<>();
+
   private final MapChangeListener<Emoticon, ObservableSet<String>> reactionChangeListener = this::onReactionChange;
 
   private final Map<Emoticon, HBox> reactionNodeMap = new HashMap<>();
@@ -100,7 +111,7 @@ public class ChatMessageController extends NodeController<VBox> {
 
   @Override
   protected void onInitialize() {
-    JavaFxUtil.bindManagedToVisible(detailsContainer, message);
+    JavaFxUtil.bindManagedToVisible(detailsContainer, replyContainer, message);
 
     mentionPattern = chatService.getMentionPattern();
 
@@ -167,6 +178,22 @@ public class ChatMessageController extends NodeController<VBox> {
 
     reactionsContainer.visibleProperty()
                       .bind(chatMessage.map(ChatMessage::getReactions).flatMap(Bindings::isNotEmpty).when(showing));
+    replyButton.onActionProperty().bind(chatMessage.flatMap(message -> onReplyButtonClicked.map(
+                                    onReplyClicked -> (EventHandler<ActionEvent>) event -> onReplyClicked.accept(message)))
+                                .when(showing));
+
+    ObservableValue<ChatMessage> targetMessage = chatMessage.map(ChatMessage::getTargetMessage);
+    replyContainer.onMouseClickedProperty()
+                  .bind(targetMessage.flatMap(message -> onReplyClicked.map(
+                                         onReplyClicked -> (EventHandler<MouseEvent>) event -> onReplyClicked.accept(message)))
+                                     .when(showing));
+    replyContainer.visibleProperty().bind(targetMessage.map(Objects::nonNull).orElse(false).when(showing));
+    replyPreviewLabel.textProperty().bind(targetMessage.map(ChatMessage::getContent).when(showing));
+    replyAuthorLabel.textProperty()
+                    .bind(targetMessage.map(ChatMessage::getSender)
+                                       .map(ChatChannelUser::getUsername)
+                                       .map(username -> "@" + username)
+                                       .when(showing));
   }
 
   private void onReactionChange(MapChangeListener.Change<? extends Emoticon, ? extends ObservableSet<String>> change) {
@@ -186,8 +213,13 @@ public class ChatMessageController extends NodeController<VBox> {
     reactionController.setReaction(reaction);
     reactionController.setReactors(reactors);
     reactionController.onReactionClickedProperty()
-                      .bind(
-                          chatMessage.map(message -> react -> chatService.reactToMessageInBackground(message, react)));
+                      .bind(chatMessage.map(target -> react -> {
+                        if (target != null && !target.getReactions()
+                                                     .getOrDefault(react, FXCollections.emptyObservableSet())
+                                                     .contains(chatService.getCurrentUsername())) {
+                          chatService.reactToMessageInBackground(target, react);
+                        }
+                      }));
     HBox reactionRoot = reactionController.getRoot();
     reactionNodeMap.put(reaction, reactionRoot);
     fxApplicationThreadExecutor.execute(() -> reactionsContainer.getChildren().add(reactionRoot));
@@ -207,7 +239,8 @@ public class ChatMessageController extends NodeController<VBox> {
 
   private Node convertWordToNode(String word) {
     return switch (word) {
-      case String url when PlatformService.URL_REGEX_PATTERN.matcher(url).matches() -> createExternalHyperlink(url);
+      case String url when PlatformService.LENIENT_URL_REGEX_PATTERN.matcher(url).matches() ->
+          createExternalHyperlink(url);
       case String channel when channel.startsWith("#") -> createChannelLink(channel);
       case String shortcode when emoticonService.isEmoticonShortcode(shortcode) -> createEmoticon(shortcode);
       default -> new Text(word + " ");
@@ -232,7 +265,13 @@ public class ChatMessageController extends NodeController<VBox> {
 
   private Hyperlink createExternalHyperlink(String url) {
     Hyperlink hyperlink = new Hyperlink(url + " ");
-    hyperlink.setOnAction(event -> platformService.showDocument(url));
+    hyperlink.setOnAction(event -> {
+      if (!url.matches("^https?://.*")) {
+        platformService.showDocument("https://" + url);
+      } else {
+        platformService.showDocument(url);
+      }
+    });
     return hyperlink;
   }
 
@@ -243,6 +282,30 @@ public class ChatMessageController extends NodeController<VBox> {
       case Text text when mentionPattern.matcher(text.getText()).matches() -> text.setStyle("-fx-fill: #FFA500");
       default -> node.styleProperty().bind(inlineTextColorStyleProperty);
     }
+  }
+
+  public void onReactButtonClicked() {
+    EmoticonsWindowController emoticonsWindowController = uiService.loadFxml(
+        "theme/chat/emoticons/emoticons_window.fxml");
+    Popup emoticonsPopup = PopupUtil.createPopup(AnchorLocation.WINDOW_BOTTOM_RIGHT,
+                                                 emoticonsWindowController.getRoot());
+    emoticonsPopup.setConsumeAutoHidingEvents(false);
+    emoticonsWindowController.setOnEmoticonClicked(emoticon -> {
+      ChatMessage target = getChatMessage();
+      if (target != null && !target.getReactions()
+                                   .getOrDefault(emoticon, FXCollections.emptyObservableSet())
+                                   .contains(chatService.getCurrentUsername())) {
+        chatService.reactToMessageInBackground(target, emoticon);
+      }
+      emoticonsPopup.hide();
+    });
+
+    Bounds bounds = reactButton.localToScreen(reactButton.getBoundsInLocal());
+    if (bounds == null) {
+      return;
+    }
+
+    emoticonsPopup.show(reactButton.getScene().getWindow(), bounds.getMaxX() - 5, bounds.getMinY() - 5);
   }
 
   @Override
@@ -274,29 +337,27 @@ public class ChatMessageController extends NodeController<VBox> {
     this.showDetails.set(showDetails);
   }
 
-  public void onReply() {}
+  public Consumer<ChatMessage> getOnReplyButtonClicked() {
+    return onReplyButtonClicked.get();
+  }
 
-  public void onReact() {
-    EmoticonsWindowController emoticonsWindowController = uiService.loadFxml(
-        "theme/chat/emoticons/emoticons_window.fxml");
-    Popup emoticonsPopup = PopupUtil.createPopup(AnchorLocation.WINDOW_BOTTOM_RIGHT,
-                                                 emoticonsWindowController.getRoot());
-    emoticonsPopup.setConsumeAutoHidingEvents(false);
-    emoticonsWindowController.setOnEmoticonClicked(emoticon -> {
-      ChatMessage target = getChatMessage();
-      if (target != null && !target.getReactions()
-                                   .getOrDefault(emoticon, FXCollections.emptyObservableSet())
-                                   .contains(chatService.getCurrentUsername())) {
-        chatService.reactToMessageInBackground(target, emoticon);
-      }
-      emoticonsPopup.hide();
-    });
+  public ObjectProperty<Consumer<ChatMessage>> onReplyButtonClickedProperty() {
+    return onReplyButtonClicked;
+  }
 
-    Bounds bounds = reactButton.localToScreen(reactButton.getBoundsInLocal());
-    if (bounds == null) {
-      return;
-    }
+  public void setOnReplyButtonClicked(Consumer<ChatMessage> onReplyButtonClicked) {
+    this.onReplyButtonClicked.set(onReplyButtonClicked);
+  }
 
-    emoticonsPopup.show(reactButton.getScene().getWindow(), bounds.getMaxX() - 5, bounds.getMinY() - 5);
+  public Consumer<ChatMessage> getOnReplyClicked() {
+    return onReplyClicked.get();
+  }
+
+  public ObjectProperty<Consumer<ChatMessage>> onReplyClickedProperty() {
+    return onReplyClicked;
+  }
+
+  public void setOnReplyClicked(Consumer<ChatMessage> onReplyClicked) {
+    this.onReplyClicked.set(onReplyClicked);
   }
 }
