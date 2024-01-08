@@ -2,6 +2,9 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.chat.ChatMessage.Type;
+import com.faforever.client.chat.emoticons.Emoticon;
+import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
@@ -40,6 +43,7 @@ import org.kitteh.irc.client.library.defaults.element.mode.DefaultModeStatus;
 import org.kitteh.irc.client.library.defaults.element.mode.DefaultModeStatusList;
 import org.kitteh.irc.client.library.defaults.feature.DefaultEventManager;
 import org.kitteh.irc.client.library.element.Channel;
+import org.kitteh.irc.client.library.element.MessageTag;
 import org.kitteh.irc.client.library.element.MessageTag.Typing;
 import org.kitteh.irc.client.library.element.MessageTag.Typing.State;
 import org.kitteh.irc.client.library.element.User;
@@ -59,6 +63,7 @@ import org.kitteh.irc.client.library.event.user.PrivateMessageEvent;
 import org.kitteh.irc.client.library.event.user.PrivateTagMessageEvent;
 import org.kitteh.irc.client.library.event.user.UserAwayMessageEvent;
 import org.kitteh.irc.client.library.event.user.UserQuitEvent;
+import org.kitteh.irc.client.library.feature.MessageTagManager.DefaultMessageTag;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -82,8 +87,10 @@ import java.util.function.Consumer;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
@@ -95,6 +102,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -134,6 +142,8 @@ public class KittehChatServiceTest extends ServiceTest {
   private AudioService audioService;
   @Mock
   private NotificationService notificationService;
+  @Mock
+  private EmoticonService emoticonService;
 
   @Mock
   private FafServerAccessor fafServerAccessor;
@@ -462,6 +472,13 @@ public class KittehChatServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testJoinPrivateChat() {
+    instance.joinPrivateChat("junit");
+
+    verify(spyClient).sendRawLine("CHATHISTORY LATEST junit" + " * " + chatPrefs.getMaxMessages() + 50);
+  }
+
+  @Test
   public void testTopicChange() {
     ChatChannel chatChannel = instance.getOrCreateChannel(defaultChannel.getName());
     assertThat(chatChannel.getUsers(), empty());
@@ -616,6 +633,44 @@ public class KittehChatServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testSendReplyInBackground() throws Exception {
+    connect();
+
+    String message = "test message";
+
+    ChatChannel chatChannel = new ChatChannel(DEFAULT_CHANNEL_NAME);
+
+    instance.sendReplyInBackground(
+        new ChatMessage("1", Instant.now(), new ChatChannelUser(CHAT_USER_NAME, chatChannel), "", Type.MESSAGE, null),
+        message).get(TIMEOUT, TIMEOUT_UNIT);
+
+    ChatMessage chatMessage = chatChannel.getMessages().getLast();
+    assertThat(chatMessage.getContent(), is(message));
+
+    ArgumentCaptor<String> captor = ArgumentCaptor.captor();
+    verify(spyClient, atLeastOnce()).sendRawLine(captor.capture());
+
+    String line = captor.getValue();
+    assertThat(line, containsString("+draft/reply=1"));
+    assertThat(line, containsString("label="));
+  }
+
+  @Test
+  public void testReactToMessageInBackground() throws Exception {
+    connect();
+
+    instance.reactToMessageInBackground(
+        new ChatMessage("1", Instant.now(), new ChatChannelUser(CHAT_USER_NAME, new ChatChannel(DEFAULT_CHANNEL_NAME)),
+                        "", Type.MESSAGE, null), new Emoticon(List.of(":)"), "")).get(TIMEOUT, TIMEOUT_UNIT);
+    ArgumentCaptor<String> captor = ArgumentCaptor.captor();
+    verify(spyClient, atLeastOnce()).sendRawLine(captor.capture());
+
+    String line = captor.getValue();
+    assertThat(line, containsString("+draft/reply=1"));
+    assertThat(line, containsString("+draft/react=:)"));
+  }
+
+  @Test
   public void testGetChatUsersForChannelEmpty() {
     ChatChannel chatChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
     assertThat(chatChannel.getUsers(), empty());
@@ -660,6 +715,10 @@ public class KittehChatServiceTest extends ServiceTest {
     instance.connectionState.set(ConnectionState.CONNECTED);
     String channelToJoin = "#anotherChannel";
     instance.joinChannel(channelToJoin);
+
+    verify(spyClient).addChannel(channelToJoin);
+    verify(spyClient).sendRawLine("CHATHISTORY LATEST " + channelToJoin + " * " + chatPrefs.getMaxMessages() + 50);
+    verify(spyClient).sendRawLine("WHO " + channelToJoin);
   }
 
   @Test
@@ -794,7 +853,28 @@ public class KittehChatServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testPrivateTypingTagMessageDoesNotCreateChannel() {
+  public void testChannelReactTagMessage() {
+    Emoticon emoticon = new Emoticon(List.of(), "");
+    when(emoticonService.getEmoticonByShortcode(any())).thenReturn(emoticon);
+    connect();
+
+    ChatChannelUser chatUser = instance.getOrCreateChatUser(user1.getNick(), defaultChannel.getName());
+
+    ChatMessage message = new ChatMessage("1", Instant.now(), chatUser, "", Type.MESSAGE, null);
+    chatUser.getChannel().addMessage(message);
+
+    MessageTag react = new DefaultMessageTag("+draft/react", ":)");
+    MessageTag reply = new DefaultMessageTag("+draft/reply", "1");
+    eventManager.callEvent(
+        new ChannelTagMessageEvent(realClient, new StringCommand("TAGMSG", "", List.of(react, reply)), user1,
+                                   defaultChannel));
+
+    assertThat(message.getReactions(), hasKey(emoticon));
+    assertThat(message.getReactions().get(emoticon), contains(chatUser.getUsername()));
+  }
+
+  @Test
+  public void testPrivateTagMessageDoesNotCreateChannel() {
     connect();
 
     Typing tag = DefaultMessageTagTyping.FUNCTION.apply(realClient, "+typing", "active");
@@ -815,6 +895,26 @@ public class KittehChatServiceTest extends ServiceTest {
         new PrivateTagMessageEvent(realClient, new StringCommand("TAGMSG", "", List.of(tag)), user1, "me"));
 
     assertTrue(chatUser.isTyping());
+  }
+
+  @Test
+  public void testPrivateReactTagMessage() {
+    Emoticon emoticon = new Emoticon(List.of(), "");
+    when(emoticonService.getEmoticonByShortcode(any())).thenReturn(emoticon);
+    connect();
+
+    ChatChannelUser chatUser = instance.getOrCreateChatUser(user1.getNick(), user1.getNick());
+
+    ChatMessage message = new ChatMessage("1", Instant.now(), chatUser, "", Type.MESSAGE, null);
+    chatUser.getChannel().addMessage(message);
+
+    MessageTag react = new DefaultMessageTag("+draft/react", ":)");
+    MessageTag reply = new DefaultMessageTag("+draft/reply", "1");
+    eventManager.callEvent(
+        new PrivateTagMessageEvent(realClient, new StringCommand("TAGMSG", "", List.of(react, reply)), user1, "me"));
+
+    assertThat(message.getReactions(), hasKey(emoticon));
+    assertThat(message.getReactions().get(emoticon), contains(chatUser.getUsername()));
   }
 
   @Test

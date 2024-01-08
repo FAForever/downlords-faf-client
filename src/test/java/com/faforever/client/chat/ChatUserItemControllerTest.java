@@ -111,7 +111,7 @@ public class ChatUserItemControllerTest extends PlatformTest {
   @Test
   public void testSingleClickDoesNotInitiatePrivateChat() {
     runOnFxThreadAndWait(() -> instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 1)));
-    verify(chatService, never()).onInitiatePrivateChat(any());
+    verify(chatService, never()).joinPrivateChat(any());
   }
 
   @Test
@@ -120,7 +120,7 @@ public class ChatUserItemControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 2)));
 
     ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-    verify(chatService, times(1)).onInitiatePrivateChat(captor.capture());
+    verify(chatService, times(1)).joinPrivateChat(captor.capture());
     assertEquals(USER_NAME, captor.getValue());
   }
 

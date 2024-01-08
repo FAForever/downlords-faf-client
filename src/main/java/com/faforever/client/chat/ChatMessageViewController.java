@@ -56,8 +56,6 @@ import java.util.stream.Collectors;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ChatMessageViewController extends NodeController<VBox> {
 
-  private static final String ACTION_PREFIX = "/me ";
-
   private final ObjectFactory<ChatMessageItemCell> chatMessageItemCellFactory;
   private final NotificationService notificationService;
   private final ChatService chatService;
@@ -69,8 +67,8 @@ public class ChatMessageViewController extends NodeController<VBox> {
   public TextField messageTextField;
   public ListView<ChatMessage> messagesListView;
   public VBox root;
-  public Node emoticonsWindow;
   public Label typingLabel;
+  public Node emoticonsWindow;
   public EmoticonsWindowController emoticonsWindowController;
 
   private final List<String> userMessageHistory = new ArrayList<>();
@@ -96,9 +94,6 @@ public class ChatMessageViewController extends NodeController<VBox> {
         return message -> message.getSender().getCategory() != ChatUserCategory.FOE;
       }
     }));
-
-    filteredMessages.subscribe(
-        () -> fxApplicationThreadExecutor.execute(() -> messagesListView.scrollTo(filteredMessages.size())));
 
     messagesListView.setSelectionModel(null);
     messagesListView.setItems(filteredMessages);
@@ -128,11 +123,18 @@ public class ChatMessageViewController extends NodeController<VBox> {
       }
     }));
 
-    emoticonsWindowController.setTextInputControl(messageTextField);
+    emoticonsWindowController.setOnEmoticonClicked(emoticon -> {
+      messageTextField.appendText(" " + emoticon.shortcodes().getFirst() + " ");
+      messageTextField.requestFocus();
+      messageTextField.selectEnd();
+    });
     emoticonsPopup = PopupUtil.createPopup(AnchorLocation.WINDOW_BOTTOM_RIGHT, emoticonsWindow);
     emoticonsPopup.setConsumeAutoHidingEvents(false);
 
     createAutoCompletionHelper().bindTo(messageTextField);
+
+    filteredMessages.subscribe(
+        () -> fxApplicationThreadExecutor.execute(() -> messagesListView.scrollTo(filteredMessages.size())));
   }
 
   private AutoCompletionHelper createAutoCompletionHelper() {

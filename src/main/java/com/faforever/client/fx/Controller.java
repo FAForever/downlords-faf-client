@@ -6,7 +6,7 @@ import javafx.util.Subscription;
 import java.util.ArrayList;
 import java.util.List;
 
-public sealed abstract class Controller<ROOT> permits MenuItemController, NodeController, TabController {
+public abstract class Controller<ROOT> {
 
   protected BooleanExpression attached;
   protected BooleanExpression showing;

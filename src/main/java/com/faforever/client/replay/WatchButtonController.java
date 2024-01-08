@@ -118,7 +118,6 @@ public class WatchButtonController extends NodeController<Node> {
   }
 
   private void showContextMenu() {
-    Bounds screenBounds = watchButton.localToScreen(watchButton.getBoundsInLocal());
     GameBean gameBean = getGame();
     if (gameBean == null) {
       return;
@@ -130,6 +129,7 @@ public class WatchButtonController extends NodeController<Node> {
         .addItem(RunReplayImmediatelyMenuItem.class, gameBean)
         .addItem(CancelActionRunReplayImmediatelyMenuItem.class, gameBean)
         .build();
+    Bounds screenBounds = watchButton.localToScreen(watchButton.getBoundsInLocal());
     contextMenu.show(watchButton.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());
   }
 

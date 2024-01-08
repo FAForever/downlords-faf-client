@@ -2,12 +2,11 @@ package com.faforever.client.chat.emoticons;
 
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.theme.UiService;
-import com.google.common.annotations.VisibleForTesting;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
-import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -28,27 +27,30 @@ public class EmoticonsWindowController extends NodeController<VBox> {
 
   public VBox root;
 
-  @Setter
-  private TextInputControl textInputControl;
+  private final ObjectProperty<Consumer<Emoticon>> onEmoticonClicked = new SimpleObjectProperty<>();
 
   @Override
   protected void onInitialize() {
     List<Node> nodes = new ArrayList<>();
     emoticonService.getEmoticonsGroups().forEach(group -> {
       EmoticonsGroupController controller = uiService.loadFxml("theme/chat/emoticons/emoticons_group.fxml");
-      controller.setGroup(group, onEmoticonClicked());
+      controller.setEmoticonsGroup(group);
+      controller.onEmoticonClickedProperty().bind(onEmoticonClicked);
       nodes.add(controller.getRoot());
     });
     root.getChildren().addAll(nodes);
   }
 
-  @VisibleForTesting
-  protected Consumer<String> onEmoticonClicked() {
-    return shortcode -> {
-      textInputControl.appendText(" " + shortcode + " ");
-      textInputControl.requestFocus();
-      textInputControl.selectEnd();
-    };
+  public Consumer<Emoticon> getOnEmoticonClicked() {
+    return onEmoticonClicked.get();
+  }
+
+  public ObjectProperty<Consumer<Emoticon>> onEmoticonClickedProperty() {
+    return onEmoticonClicked;
+  }
+
+  public void setOnEmoticonClicked(Consumer<Emoticon> onEmoticonClicked) {
+    this.onEmoticonClicked.set(onEmoticonClicked);
   }
 
   @Override

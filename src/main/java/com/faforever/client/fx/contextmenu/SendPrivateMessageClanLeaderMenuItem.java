@@ -26,8 +26,7 @@ public class SendPrivateMessageClanLeaderMenuItem extends AbstractMenuItem<Playe
 
     clanService.getClanByTag(object.getClan())
         .thenAccept(possibleClan -> possibleClan.map(ClanBean::getLeader)
-            .map(PlayerBean::getUsername)
-                                                .ifPresent(chatService::onInitiatePrivateChat));
+            .map(PlayerBean::getUsername).ifPresent(chatService::joinPrivateChat));
   }
 
   @Override

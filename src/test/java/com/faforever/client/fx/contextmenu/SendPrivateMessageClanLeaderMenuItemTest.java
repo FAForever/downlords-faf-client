@@ -44,7 +44,7 @@ public class SendPrivateMessageClanLeaderMenuItemTest extends PlatformTest {
 
     instance.setObject(PlayerBeanBuilder.create().get());
     instance.onClicked();
-    verify(chatService).onInitiatePrivateChat(any());
+    verify(chatService).joinPrivateChat(any());
   }
 
   @Test

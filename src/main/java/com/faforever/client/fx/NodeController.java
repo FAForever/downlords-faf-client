@@ -5,7 +5,7 @@ import javafx.beans.binding.BooleanExpression;
 import javafx.scene.Node;
 
 
-public abstract non-sealed class NodeController<ROOT extends Node> extends Controller<ROOT> {
+public abstract class NodeController<ROOT extends Node> extends Controller<ROOT> {
 
   @Override
   protected BooleanExpression createAttachedExpression() {

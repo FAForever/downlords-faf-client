@@ -145,6 +145,10 @@ public class ChatChannel {
     return Optional.ofNullable(usernameToChatUser.get(username));
   }
 
+  public Optional<ChatMessage> getMessage(String id) {
+    return Optional.ofNullable(messagesById.get(id));
+  }
+
   public void removePendingMessage(String messageId) {
     messagesById.computeIfPresent(messageId,
                                   (ignored, chatMessage) -> chatMessage.getType() == Type.PENDING ? null : chatMessage);

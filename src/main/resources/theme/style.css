@@ -1404,6 +1404,10 @@
   -fx-background-color: grey;
 }
 
+.my-reaction {
+    -fx-background-color: -fx-accent;
+}
+
 .attribution-hyperlink {
   -fx-focus-color: transparent;
   -fx-border-color: transparent;

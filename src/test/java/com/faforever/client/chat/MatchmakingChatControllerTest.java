@@ -22,9 +22,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
-import static com.faforever.client.theme.ThemeService.CHAT_CONTAINER;
-import static com.faforever.client.theme.ThemeService.CHAT_SECTION_COMPACT;
-import static com.faforever.client.theme.ThemeService.CHAT_TEXT_COMPACT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
@@ -74,12 +71,6 @@ public class MatchmakingChatControllerTest extends PlatformTest {
     lenient().when(chatService.getCurrentUsername()).thenReturn("junit");
     lenient().when(i18n.get(anyString())).thenReturn("");
     lenient().when(chatService.getOrCreateChannel("partyName")).thenReturn(new ChatChannel("partyName"));
-    lenient().when(themeService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(
-        getClass().getResource("/theme/chat/chat_container.html"));
-    lenient().when(themeService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(
-        getClass().getResource("/theme/chat/compact/chat_section.html"));
-    lenient().when(themeService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(
-        getClass().getResource("/theme/chat/compact/chat_text.html"));
     lenient().when(timeService.asShortTime(any())).thenReturn("");
 
     loadFxml("theme/chat/matchmaking_chat.fxml", clazz -> {
