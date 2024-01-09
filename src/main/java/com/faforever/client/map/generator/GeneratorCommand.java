@@ -95,7 +95,7 @@ public record GeneratorCommand(
         command.addAll(Arrays.asList("--reclaim-density", reclaimDensity.toString()));
       }
 
-      if (biome != null) {
+      if (biome != null && !biome.equals(MapGeneratorService.GENERATOR_RANDOM_BIOME)) {
         command.addAll(Arrays.asList("--biome", biome));
       }
 

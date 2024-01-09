@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Path;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -144,6 +147,18 @@ public class GeneratorCommandTest extends ServiceTest {
   public void testBiomeSet() {
     List<String> command = defaultBuilder().biome("TEST").build().getCommand();
     assertTrue(command.containsAll(List.of("--biome", "TEST")));
+  }
+
+  @Test
+  public void testRandomStyleSet() {
+    List<String> command = defaultBuilder().style("RANDOM").build().getCommand();
+    assertThat(command, not(contains("--style")));
+  }
+
+  @Test
+  public void testRandomBiomeSet() {
+    List<String> command = defaultBuilder().biome("RANDOM").build().getCommand();
+    assertThat(command, not(contains("--biome")));
   }
 
   @Test
