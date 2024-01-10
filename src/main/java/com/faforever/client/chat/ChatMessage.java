@@ -1,9 +1,9 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.emoticons.Emoticon;
+import com.faforever.client.chat.emoticons.Reaction;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
-import javafx.collections.ObservableSet;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -28,19 +28,28 @@ public class ChatMessage {
   @Getter
   private final ChatMessage targetMessage;
 
-  private final ObservableMap<Emoticon, ObservableSet<String>> reactions = FXCollections.synchronizedObservableMap(
+  private final ObservableMap<Emoticon, ObservableMap<String, String>> reactions = FXCollections.synchronizedObservableMap(
       FXCollections.observableHashMap());
-  private final ObservableMap<Emoticon, ObservableSet<String>> unmodifiableReactions = FXCollections.unmodifiableObservableMap(
+  private final ObservableMap<Emoticon, ObservableMap<String, String>> unmodifiableReactions = FXCollections.unmodifiableObservableMap(
       reactions);
 
-  public ObservableMap<Emoticon, ObservableSet<String>> getReactions() {
+  public ObservableMap<Emoticon, ObservableMap<String, String>> getReactions() {
     return unmodifiableReactions;
   }
 
-  public void addReaction(Emoticon reaction, ChatChannelUser reactor) {
-    reactions.computeIfAbsent(reaction,
-                              ignored -> FXCollections.synchronizedObservableSet(FXCollections.observableSet()))
-             .add(reactor.getUsername());
+  public void addReaction(Reaction reaction) {
+    reactions.computeIfAbsent(reaction.emoticon(),
+                              ignored -> FXCollections.synchronizedObservableMap(FXCollections.observableHashMap()))
+             .put(reaction.reactorName(), reaction.messageId());
+  }
+
+  public void removeReaction(Reaction reaction) {
+    ObservableMap<String, String> reactors = reactions.getOrDefault(reaction.emoticon(),
+                                                                    FXCollections.emptyObservableMap());
+    reactors.remove(reaction.reactorName());
+    if (reactors.isEmpty()) {
+      reactions.remove(reaction.emoticon());
+    }
   }
 
   public enum Type {

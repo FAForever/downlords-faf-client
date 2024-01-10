@@ -27,7 +27,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableSet;
+import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
@@ -103,7 +103,7 @@ public class ChatMessageController extends NodeController<VBox> {
   private final ObjectProperty<Consumer<ChatMessage>> onReplyButtonClicked = new SimpleObjectProperty<>();
   private final ObjectProperty<Consumer<ChatMessage>> onReplyClicked = new SimpleObjectProperty<>();
 
-  private final MapChangeListener<Emoticon, ObservableSet<String>> reactionChangeListener = this::onReactionChange;
+  private final MapChangeListener<Emoticon, ObservableMap<String, String>> reactionChangeListener = this::onReactionChange;
 
   private final Map<Emoticon, HBox> reactionNodeMap = new HashMap<>();
 
@@ -176,8 +176,7 @@ public class ChatMessageController extends NodeController<VBox> {
       }
     });
 
-    reactionsContainer.visibleProperty()
-                      .bind(chatMessage.map(ChatMessage::getReactions).flatMap(Bindings::isNotEmpty).when(showing));
+    reactionsContainer.visibleProperty().bind(Bindings.isNotEmpty(reactionsContainer.getChildren()).when(showing));
     replyButton.onActionProperty().bind(chatMessage.flatMap(message -> onReplyButtonClicked.map(
                                     onReplyClicked -> (EventHandler<ActionEvent>) event -> onReplyClicked.accept(message)))
                                 .when(showing));
@@ -196,7 +195,8 @@ public class ChatMessageController extends NodeController<VBox> {
                                        .when(showing));
   }
 
-  private void onReactionChange(MapChangeListener.Change<? extends Emoticon, ? extends ObservableSet<String>> change) {
+  private void onReactionChange(
+      MapChangeListener.Change<? extends Emoticon, ? extends ObservableMap<String, String>> change) {
     Emoticon reaction = change.getKey();
     if (change.wasRemoved()) {
       HBox reactionRoot = reactionNodeMap.remove(reaction);
@@ -208,18 +208,25 @@ public class ChatMessageController extends NodeController<VBox> {
     }
   }
 
-  private void addReaction(Emoticon reaction, ObservableSet<String> reactors) {
+  private void addReaction(Emoticon reaction, ObservableMap<String, String> reactors) {
     ReactionController reactionController = uiService.loadFxml("theme/chat/emoticons/reaction.fxml");
     reactionController.setReaction(reaction);
     reactionController.setReactors(reactors);
-    reactionController.onReactionClickedProperty()
-                      .bind(chatMessage.map(target -> react -> {
-                        if (target != null && !target.getReactions()
-                                                     .getOrDefault(react, FXCollections.emptyObservableSet())
-                                                     .contains(chatService.getCurrentUsername())) {
-                          chatService.reactToMessageInBackground(target, react);
-                        }
-                      }));
+    reactionController.onReactionClickedProperty().bind(chatMessage.map(target -> emoticon -> {
+      if (target == null) {
+        return;
+      }
+
+      ObservableMap<String, String> emoticonReactions = target.getReactions()
+                                                              .getOrDefault(emoticon,
+                                                                            FXCollections.emptyObservableMap());
+      String currentUsername = chatService.getCurrentUsername();
+      if (!emoticonReactions.containsKey(currentUsername)) {
+        chatService.reactToMessageInBackground(target, emoticon);
+      } else {
+        chatService.redactMessageInBackground(target.getSender().getChannel(), emoticonReactions.get(currentUsername));
+      }
+    }));
     HBox reactionRoot = reactionController.getRoot();
     reactionNodeMap.put(reaction, reactionRoot);
     fxApplicationThreadExecutor.execute(() -> reactionsContainer.getChildren().add(reactionRoot));
@@ -292,12 +299,21 @@ public class ChatMessageController extends NodeController<VBox> {
     emoticonsPopup.setConsumeAutoHidingEvents(false);
     emoticonsWindowController.setOnEmoticonClicked(emoticon -> {
       ChatMessage target = getChatMessage();
-      if (target != null && !target.getReactions()
-                                   .getOrDefault(emoticon, FXCollections.emptyObservableSet())
-                                   .contains(chatService.getCurrentUsername())) {
-        chatService.reactToMessageInBackground(target, emoticon);
-      }
       emoticonsPopup.hide();
+
+      if (target == null) {
+        return;
+      }
+
+      ObservableMap<String, String> emoticonReactions = target.getReactions()
+                                                              .getOrDefault(emoticon,
+                                                                            FXCollections.emptyObservableMap());
+      String currentUsername = chatService.getCurrentUsername();
+      if (emoticonReactions.containsKey(currentUsername)) {
+        return;
+      }
+
+      chatService.reactToMessageInBackground(target, emoticon);
     });
 
     Bounds bounds = reactButton.localToScreen(reactButton.getBoundsInLocal());

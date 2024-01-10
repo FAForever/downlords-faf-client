@@ -21,6 +21,8 @@ public interface ChatService {
 
   void disconnect();
 
+  CompletableFuture<Void> redactMessageInBackground(ChatChannel chatChannel, String messageId);
+
   CompletableFuture<Void> reactToMessageInBackground(ChatMessage targetMessage, Emoticon reaction);
 
   CompletableFuture<Void> sendReplyInBackground(ChatMessage targetMessage, String message);

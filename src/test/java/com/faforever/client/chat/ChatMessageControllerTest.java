@@ -6,6 +6,7 @@ import com.faforever.client.chat.ChatMessage.Type;
 import com.faforever.client.chat.emoticons.Emoticon;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
+import com.faforever.client.chat.emoticons.Reaction;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.MouseEvents;
@@ -237,13 +238,13 @@ public class ChatMessageControllerTest extends PlatformTest {
     when(mockedReactionController.onReactionClickedProperty()).thenReturn(new SimpleObjectProperty<>());
 
     Emoticon emoticon = new Emoticon(List.of(), "");
-    ChatMessage message = new ChatMessage(null, Instant.now(), user, "hello", Type.MESSAGE, null);
+    ChatMessage message = new ChatMessage("2", Instant.now(), user, "hello", Type.MESSAGE, null);
     instance.setChatMessage(message);
 
     assertThat(instance.reactionsContainer.isVisible(), is(false));
     assertThat(instance.reactionsContainer.getChildren(), empty());
 
-    runOnFxThreadAndWait(() -> message.addReaction(emoticon, new ChatChannelUser("junit", new ChatChannel("junit"))));
+    runOnFxThreadAndWait(() -> message.addReaction(new Reaction("1", "2", emoticon, "junit")));
 
     assertThat(instance.reactionsContainer.isVisible(), is(true));
     assertThat(instance.reactionsContainer.getChildren(), hasSize(1));
@@ -278,7 +279,7 @@ public class ChatMessageControllerTest extends PlatformTest {
 
     Emoticon emoticon = new Emoticon(List.of(), "");
     ChatMessage message = new ChatMessage(null, Instant.now(), user, "hello", Type.MESSAGE, null);
-    message.addReaction(emoticon, new ChatChannelUser("junit", new ChatChannel("junit")));
+    message.addReaction(new Reaction("1", "2", emoticon, "junit"));
     instance.setChatMessage(message);
     instance.onReactButtonClicked();
 
@@ -302,7 +303,7 @@ public class ChatMessageControllerTest extends PlatformTest {
 
     Emoticon emoticon = new Emoticon(List.of(), "");
     ChatMessage message = new ChatMessage(null, Instant.now(), user, "hello", Type.MESSAGE, null);
-    message.addReaction(emoticon, new ChatChannelUser("test", new ChatChannel("junit")));
+    message.addReaction(new Reaction("1", "2", emoticon, "other"));
     instance.setChatMessage(message);
 
     Consumer<Emoticon> consumer = consumerProperty.getValue();
@@ -320,14 +321,15 @@ public class ChatMessageControllerTest extends PlatformTest {
     when(mockedReactionController.onReactionClickedProperty()).thenReturn(consumerProperty);
 
     Emoticon emoticon = new Emoticon(List.of(), "");
-    ChatMessage message = new ChatMessage(null, Instant.now(), user, "hello", Type.MESSAGE, null);
-    message.addReaction(emoticon, new ChatChannelUser("junit", new ChatChannel("junit")));
+    ChatMessage message = new ChatMessage("2", Instant.now(), user, "hello", Type.MESSAGE, null);
+    message.addReaction(new Reaction("1", "2", emoticon, "junit"));
     instance.setChatMessage(message);
 
     Consumer<Emoticon> consumer = consumerProperty.getValue();
     runOnFxThreadAndWait(() -> consumer.accept(emoticon));
 
     verify(chatService, never()).reactToMessageInBackground(message, emoticon);
+    verify(chatService).redactMessageInBackground(user.getChannel(), "1");
   }
 
   @Test

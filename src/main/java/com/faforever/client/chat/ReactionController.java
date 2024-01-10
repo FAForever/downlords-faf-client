@@ -4,11 +4,12 @@ import com.faforever.client.chat.emoticons.Emoticon;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.NodeController;
-import javafx.beans.binding.Bindings;
+import com.faforever.client.i18n.I18n;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ObservableSet;
-import javafx.collections.SetChangeListener;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.event.EventHandler;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -35,6 +37,7 @@ public class ReactionController extends NodeController<HBox> {
 
   private final EmoticonService emoticonService;
   private final ChatService chatService;
+  private final I18n i18n;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public Label label;
@@ -42,10 +45,10 @@ public class ReactionController extends NodeController<HBox> {
   public ImageView emoticonImageView;
 
   private final ObjectProperty<Emoticon> reaction = new SimpleObjectProperty<>();
-  private final ObjectProperty<ObservableSet<String>> reactors = new SimpleObjectProperty<>();
+  private final ObjectProperty<ObservableMap<String, String>> reactors = new SimpleObjectProperty<>();
   private final ObjectProperty<Consumer<Emoticon>> onReactionClicked = new SimpleObjectProperty<>();
 
-  private final SetChangeListener<String> reactorsListener = this::onReactorsChanged;
+  private final MapChangeListener<String, String> reactorsListener = this::onReactorsChanged;
 
   private final Tooltip reactorsTooltip = new Tooltip();
 
@@ -60,12 +63,6 @@ public class ReactionController extends NodeController<HBox> {
                                    .map(SequencedCollection::getFirst)
                                    .map(emoticonService::getImageByShortcode)
                                    .when(showing));
-    label.textProperty().bind(reactors.flatMap(Bindings::size).map(String::valueOf).when(showing));
-
-    reactorsTooltip.textProperty()
-                   .bind(reactors.flatMap(
-                                     reactors -> Bindings.createStringBinding(() -> String.join(", ", reactors), reactors))
-                                 .when(showing));
 
     reactors.subscribe((oldValue, newValue) -> {
       if (oldValue != null) {
@@ -73,7 +70,7 @@ public class ReactionController extends NodeController<HBox> {
       }
 
       if (newValue != null) {
-        updateSelected(newValue);
+        updateReactors(newValue);
         newValue.addListener(reactorsListener);
       }
     });
@@ -85,19 +82,22 @@ public class ReactionController extends NodeController<HBox> {
     Tooltip.install(root, reactorsTooltip);
   }
 
-  private void onReactorsChanged(SetChangeListener.Change<? extends String> change) {
-    ObservableSet<? extends String> set = change.getSet();
-    updateSelected(set);
+  private void onReactorsChanged(MapChangeListener.Change<? extends String, ? extends String> change) {
+    updateReactors(change.getMap());
   }
 
-  private void updateSelected(Set<? extends String> set) {
-    boolean selected = set.contains(chatService.getCurrentUsername());
+  private void updateReactors(Map<? extends String, ? extends String> map) {
+    boolean selected = map.containsKey(chatService.getCurrentUsername());
+    Set<? extends String> reactors = Set.copyOf(map.keySet());
     fxApplicationThreadExecutor.execute(() -> {
-      if (selected) {
-        root.getStyleClass().add(MY_REACTION_CLASS);
-      } else {
-        root.getStyleClass().remove(MY_REACTION_CLASS);
+      ObservableList<String> styleClass = root.getStyleClass();
+      if (selected && !styleClass.contains(MY_REACTION_CLASS)) {
+        styleClass.add(MY_REACTION_CLASS);
+      } else if (!selected) {
+        styleClass.removeIf(MY_REACTION_CLASS::equals);
       }
+      reactorsTooltip.setText(String.join(", ", reactors));
+      label.setText(i18n.number(reactors.size()));
     });
   }
 
@@ -118,15 +118,15 @@ public class ReactionController extends NodeController<HBox> {
     this.reaction.set(reaction);
   }
 
-  public ObservableSet<String> getReactors() {
+  public ObservableMap<String, String> getReactors() {
     return reactors.get();
   }
 
-  public ObjectProperty<ObservableSet<String>> reactorsProperty() {
+  public ObjectProperty<ObservableMap<String, String>> reactorsProperty() {
     return reactors;
   }
 
-  public void setReactors(ObservableSet<String> reactors) {
+  public void setReactors(ObservableMap<String, String> reactors) {
     this.reactors.set(reactors);
   }
 
