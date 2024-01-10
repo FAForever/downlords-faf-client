@@ -35,8 +35,8 @@ public abstract class Controller<ROOT> {
         onDetached();
       }
     });
-    showing.subscribe(isSelected -> {
-      if (isSelected) {
+    showing.subscribe(isShowing -> {
+      if (isShowing) {
         onShow();
       } else {
         shownSubscriptions.forEach(Subscription::unsubscribe);

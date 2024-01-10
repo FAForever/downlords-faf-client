@@ -12,6 +12,7 @@ import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.PopupUtil;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -87,6 +88,9 @@ public class ChatMessageViewController extends NodeController<VBox> {
   private final ObservableList<ChatMessage> rawMessages = FXCollections.synchronizedObservableList(
       FXCollections.observableArrayList(chatMessage -> new Observable[]{chatMessage.getSender().categoryProperty()}));
   private final FilteredList<ChatMessage> filteredMessages = new FilteredList<>(rawMessages);
+  private final BooleanExpression atEnd = BooleanExpression.booleanExpression(
+      Bindings.valueAt(filteredMessages, Bindings.size(filteredMessages).subtract(1))
+              .flatMap(ChatMessage::openProperty));
 
   private Popup emoticonsPopup;
 
@@ -136,6 +140,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
         ObservableList<ChatChannelUser> typingUsers = newValue.getTypingUsers();
         setTypingLabel(typingUsers);
         typingUsers.addListener(typingUserListChangeListener);
+        scrollToEnd();
       }
     }));
 
@@ -158,10 +163,14 @@ public class ChatMessageViewController extends NodeController<VBox> {
                                        .when(showing));
 
     filteredMessages.subscribe(() -> {
-      if (showing.get()) {
-        fxApplicationThreadExecutor.execute(() -> messagesListView.scrollTo(filteredMessages.size()));
+      if (atEnd.get()) {
+        scrollToEnd();
       }
     });
+  }
+
+  private void scrollToEnd() {
+    fxApplicationThreadExecutor.execute(() -> messagesListView.scrollTo(filteredMessages.size()));
   }
 
   private AutoCompletionHelper createAutoCompletionHelper() {

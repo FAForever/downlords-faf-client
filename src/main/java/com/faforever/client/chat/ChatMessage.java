@@ -2,6 +2,8 @@ package com.faforever.client.chat;
 
 import com.faforever.client.chat.emoticons.Emoticon;
 import com.faforever.client.chat.emoticons.Reaction;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import lombok.EqualsAndHashCode;
@@ -28,6 +30,7 @@ public class ChatMessage {
   @Getter
   private final ChatMessage targetMessage;
 
+  private final BooleanProperty open = new SimpleBooleanProperty();
   private final ObservableMap<Emoticon, ObservableMap<String, String>> reactions = FXCollections.synchronizedObservableMap(
       FXCollections.observableHashMap());
   private final ObservableMap<Emoticon, ObservableMap<String, String>> unmodifiableReactions = FXCollections.unmodifiableObservableMap(
@@ -50,6 +53,18 @@ public class ChatMessage {
     if (reactors.isEmpty()) {
       reactions.remove(reaction.emoticon());
     }
+  }
+
+  public boolean isOpen() {
+    return open.get();
+  }
+
+  public BooleanProperty openProperty() {
+    return open;
+  }
+
+  public void setOpen(boolean open) {
+    this.open.set(open);
   }
 
   public enum Type {
