@@ -23,7 +23,7 @@ public class EmoticonControllerTest extends PlatformTest {
   @Mock
   private EmoticonService emoticonService;
   @Mock
-  private Consumer<String> onAction;
+  private Consumer<Emoticon> onAction;
 
   @InjectMocks
   private EmoticonController instance;
@@ -41,7 +41,7 @@ public class EmoticonControllerTest extends PlatformTest {
         .defaultValues()
         .image(new Image(new ClassPathResource("/images/hydro.png").getPath()))
         .get();
-    runOnFxThreadAndWait(() -> instance.setEmoticon(emoticon, onAction));
+    runOnFxThreadAndWait(() -> instance.setEmoticon(emoticon));
     assertNotNull(instance.emoticonImageView.getImage());
   }
 
@@ -49,10 +49,12 @@ public class EmoticonControllerTest extends PlatformTest {
   public void testEmoticonClicked() {
     Emoticon emoticon = EmoticonBuilder.create().defaultValues().get();
     runOnFxThreadAndWait(() -> {
-      instance.setEmoticon(emoticon, onAction);
+      instance.setEmoticon(emoticon);
+      instance.setOnEmoticonClicked(onAction);
       instance.root.fireEvent(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
     });
-    verify(onAction).accept(emoticon.shortcodes().getFirst());
+
+    verify(onAction).accept(emoticon);
   }
 
   @Test

@@ -37,16 +37,13 @@ public class EmoticonServiceTest extends ServiceTest {
         .thenReturn(new ObjectMapper().readValue(EmoticonService.EMOTICONS_JSON_FILE_RESOURCE.getInputStream(), EmoticonsGroup[].class));
 
     assertDoesNotThrow(() -> instance.loadAndVerifyEmoticons());
-    String shortcodePattern = instance.getEmoticonShortcodeDetectorPattern().pattern();
-    assertFalse(shortcodePattern.isBlank());
     assertFalse(instance.getEmoticonsGroups().isEmpty());
     instance.getEmoticonsGroups()
             .stream()
             .flatMap(emoticonsGroup -> emoticonsGroup.emoticons().stream())
             .flatMap(emoticon -> emoticon.shortcodes().stream())
         .forEach(shortcode -> {
-          assertTrue(shortcodePattern.contains(shortcode));
-          assertFalse(instance.getBase64SvgContentByShortcode(shortcode).isBlank());
+          assertTrue(instance.isEmoticonShortcode(shortcode));
         });
   }
 
@@ -95,18 +92,15 @@ public class EmoticonServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testGetSvgContentByShortcode() throws Exception {
+  public void testLoadEmoticons() throws Exception {
     EmoticonsGroup emoticonsGroup = EmoticonGroupBuilder.create().defaultValues().get();
     Emoticon emoticon = emoticonsGroup.emoticons().getFirst();
     EmoticonsGroup[] emoticonsGroupsArray = new EmoticonsGroup[]{emoticonsGroup};
     when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
 
     instance.loadAndVerifyEmoticons();
-    assertEquals(emoticon.base64SvgContent(),
-                 instance.getBase64SvgContentByShortcode(emoticon.shortcodes().getFirst()));
+
     emoticon.shortcodes()
-            .forEach(
-                shortcode -> assertTrue(instance.getEmoticonShortcodeDetectorPattern().pattern().contains(shortcode)));
-    assertTrue(instance.getEmoticonShortcodeDetectorPattern().pattern().contains("|"));
+            .forEach(shortcode -> assertTrue(instance.isEmoticonShortcode(shortcode)));
   }
 }

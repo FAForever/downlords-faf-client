@@ -93,11 +93,6 @@ public class ThemeService implements InitializingBean, DisposableBean {
   public static final String DEFAULT_ACHIEVEMENT_IMAGE = "theme/images/default_achievement.png";
   public static final String MENTION_SOUND = "theme/sounds/userMentionSound.mp3";
   public static final String CSS_CLASS_ICON = "icon";
-  public static final String CHAT_CONTAINER = "theme/chat/chat_container.html";
-  public static final String CHAT_SECTION_EXTENDED = "theme/chat/extended/chat_section.html";
-  public static final String CHAT_SECTION_COMPACT = "theme/chat/compact/chat_section.html";
-  public static final String CHAT_TEXT_EXTENDED = "theme/chat/extended/chat_text.html";
-  public static final String CHAT_TEXT_COMPACT = "theme/chat/compact/chat_text.html";
   public static final String CHAT_LIST_STATUS_HOSTING = "theme/images/player_status/host.png";
   public static final String CHAT_LIST_STATUS_LOBBYING = "theme/images/player_status/lobby.png";
   public static final String CHAT_LIST_STATUS_PLAYING = "theme/images/player_status/playing.png";

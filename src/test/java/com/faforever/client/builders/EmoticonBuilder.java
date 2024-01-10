@@ -37,6 +37,6 @@ public class EmoticonBuilder {
   }
 
   public Emoticon get() {
-    return new Emoticon(shortcodes, base64SvgContent, image);
+    return new Emoticon(shortcodes, base64SvgContent);
   }
 }

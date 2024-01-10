@@ -42,7 +42,7 @@ public class SendPrivateMessageMenuItemTest extends PlatformTest {
     instance.setObject(username);
     instance.onClicked();
 
-    verify(chatService).onInitiatePrivateChat(any());
+    verify(chatService).joinPrivateChat(any());
   }
 
   @Test

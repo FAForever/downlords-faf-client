@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.faforever.client.fx.PlatformService.URL_REGEX_PATTERN;
+import static com.faforever.client.fx.PlatformService.STRICT_URL_REGEX_PATTERN;
 
 @Slf4j
 @Component
@@ -116,7 +116,7 @@ public class ChannelTabController extends AbstractChatTabController {
     boolean notBlank = StringUtils.isNotBlank(content);
     if (notBlank) {
       Arrays.stream(content.split("\\s")).forEach(word -> {
-        if (URL_REGEX_PATTERN.matcher(word).matches()) {
+        if (STRICT_URL_REGEX_PATTERN.matcher(word).matches()) {
           Hyperlink link = new Hyperlink(word);
           link.setOnAction(event -> platformService.showDocument(word));
           children.add(link);

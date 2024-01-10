@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.ChatMessage.Type;
+import com.faforever.client.chat.emoticons.Reaction;
 import com.faforever.client.fx.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
@@ -21,7 +22,9 @@ import lombok.ToString;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -48,6 +51,7 @@ public class ChatChannel {
   private final ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic(null, ""));
   private final ObservableMap<String, ChatMessage> messagesById = FXCollections.synchronizedObservableMap(
       FXCollections.observableHashMap());
+  private final Map<String, Reaction> reactionsById = new ConcurrentHashMap<>();
   private final ObservableList<ChatMessage> rawMessages = JavaFxUtil.attachListToMap(
       FXCollections.synchronizedObservableList(FXCollections.observableArrayList()), messagesById);
   private final ObservableList<ChatMessage> messages = FXCollections.synchronizedObservableList(
@@ -145,6 +149,24 @@ public class ChatChannel {
     return Optional.ofNullable(usernameToChatUser.get(username));
   }
 
+  public Optional<ChatMessage> getMessage(String id) {
+    return Optional.ofNullable(messagesById.get(id));
+  }
+
+  public void removeMessage(String messageId) {
+    messagesById.remove(messageId);
+    Reaction removedReaction = reactionsById.remove(messageId);
+    if (removedReaction == null) {
+      return;
+    }
+    ChatMessage reactedToMessage = messagesById.get(removedReaction.targetMessageId());
+    if (reactedToMessage == null) {
+      return;
+    }
+
+    reactedToMessage.removeReaction(removedReaction);
+  }
+
   public void removePendingMessage(String messageId) {
     messagesById.computeIfPresent(messageId,
                                   (ignored, chatMessage) -> chatMessage.getType() == Type.PENDING ? null : chatMessage);
@@ -153,6 +175,16 @@ public class ChatChannel {
   public void addMessage(ChatMessage message) {
     messagesById.put(message.getId(), message);
     pruneMessages();
+  }
+
+  public void addReaction(Reaction reaction) {
+    ChatMessage targetMessage = messagesById.get(reaction.targetMessageId());
+    if (targetMessage == null) {
+      return;
+    }
+
+    targetMessage.addReaction(reaction);
+    reactionsById.put(reaction.messageId(), reaction);
   }
 
   public ObservableList<ChatMessage> getMessages() {

@@ -1,7 +1,6 @@
 [
   {
     "name": "FAF",
-    "attribution": "",
     "emoticons": [
       {
         "shortcodes": [
@@ -31,7 +30,7 @@
   },
   {
     "name": "Common",
-    "attribution": "https://twemoji.twitter.com/",
+    "attributionUrl": "https://twemoji.twitter.com/",
     "emoticons": [
       {
         "shortcodes": [

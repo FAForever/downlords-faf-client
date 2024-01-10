@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.chat.emoticons.Emoticon;
 import com.faforever.client.net.ConnectionState;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.MapChangeListener;
@@ -19,6 +20,12 @@ public interface ChatService {
   void connect();
 
   void disconnect();
+
+  CompletableFuture<Void> redactMessageInBackground(ChatChannel chatChannel, String messageId);
+
+  CompletableFuture<Void> reactToMessageInBackground(ChatMessage targetMessage, Emoticon reaction);
+
+  CompletableFuture<Void> sendReplyInBackground(ChatMessage targetMessage, String message);
 
   CompletableFuture<Void> sendMessageInBackground(ChatChannel chatChannel, String message);
 
@@ -52,7 +59,7 @@ public interface ChatService {
 
   void setChannelTopic(ChatChannel chatChannel, String text);
 
-  void onInitiatePrivateChat(String username);
+  void joinPrivateChat(String username);
 
   Set<ChatChannel> getChannels();
 

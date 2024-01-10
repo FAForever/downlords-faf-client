@@ -30,8 +30,8 @@ public class WhoAwayListener extends AbstractDefaultListenerBase {
     }
     final String channel = event.getParameters().get(1);
 
-      final String nick = event.getParameters().get(5);
-      final String status = event.getParameters().get(6);
+    final String nick = event.getParameters().get(5);
+    final String status = event.getParameters().get(6);
     boolean isAway = status.contains("G");
 
     this.fire(new WhoAwayMessageEvent(this.getClient(), channel, nick, isAway));
