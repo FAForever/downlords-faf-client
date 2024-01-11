@@ -510,12 +510,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     ChatChannelUser sender = chatMessage.getSender();
     if (sender.getCategory() == ChatUserCategory.FOE) {
-      log.debug("Ignored ping from foe {}", sender);
+      log.debug("Ignored mention from foe {}", sender);
       return;
     }
 
     String text = chatMessage.getContent();
-    if (!hasMention(text)) {
+    if (!hasMention(text) || chatMessage.getTargetMessage() != null || !getCurrentUsername().equals(
+        chatMessage.getTargetMessage().getSender().getUsername())) {
       return;
     }
 
