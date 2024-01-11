@@ -912,7 +912,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Override
   public void joinPrivateChat(String username) {
     getOrCreateChannel(username);
-    client.sendRawLine("CHATHISTORY LATEST " + username + " * " + chatPrefs.getMaxMessages() + 50);
+    client.sendRawLine("CHATHISTORY LATEST " + username + " * " + (chatPrefs.getMaxMessages() + 50));
   }
 
   @Override
