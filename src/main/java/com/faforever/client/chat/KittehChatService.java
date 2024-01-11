@@ -853,8 +853,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       bufferedChannels.add(channelName);
     } else {
       client.addChannel(channelName);
-      client.sendRawLine("WHO " + channelName);
       client.sendRawLine("CHATHISTORY LATEST " + channelName + " * " + (chatPrefs.getMaxMessages() + 50));
+      client.sendRawLine("WHO " + channelName);
     }
   }
 
