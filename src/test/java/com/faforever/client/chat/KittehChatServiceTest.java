@@ -1059,6 +1059,29 @@ public class KittehChatServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testReplyMention() {
+    when(user1.getNick()).thenReturn(CHAT_USER_NAME);
+
+    connect();
+
+    join(defaultChannel, user1);
+
+    MsgId id1 = DefaultMessageTagMsgId.FUNCTION.apply(realClient, "msgid", "1");
+    eventManager.callEvent(
+        new ChannelMessageEvent(realClient, new StringCommand("", "", List.of(id1)), user1, defaultChannel, ""));
+
+    MsgId id2 = DefaultMessageTagMsgId.FUNCTION.apply(realClient, "msgid", "2");
+    MessageTag reply = new DefaultMessageTag("+draft/reply", "1");
+    eventManager.callEvent(
+        new ChannelMessageEvent(realClient, new StringCommand("", "", List.of(id2, reply)), user2, defaultChannel, ""));
+
+    ChatChannel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    verify(audioService).playChatMentionSound();
+    verify(notificationService).addNotification(any(TransientNotification.class));
+    assertEquals(1, channel.getNumUnreadMessages());
+  }
+
+  @Test
   public void testMentionChannelOpen() {
     connect();
 

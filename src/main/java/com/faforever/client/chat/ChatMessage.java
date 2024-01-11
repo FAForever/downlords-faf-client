@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.time.Instant;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -27,7 +28,6 @@ public class ChatMessage {
   private final String content;
   @Getter
   private final Type type;
-  @Getter
   private final ChatMessage targetMessage;
 
   private final BooleanProperty open = new SimpleBooleanProperty();
@@ -35,6 +35,10 @@ public class ChatMessage {
       FXCollections.observableHashMap());
   private final ObservableMap<Emoticon, ObservableMap<String, String>> unmodifiableReactions = FXCollections.unmodifiableObservableMap(
       reactions);
+
+  public Optional<ChatMessage> getTargetMessage() {
+    return Optional.ofNullable(targetMessage);
+  }
 
   public ObservableMap<Emoticon, ObservableMap<String, String>> getReactions() {
     return unmodifiableReactions;

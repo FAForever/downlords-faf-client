@@ -184,7 +184,7 @@ public class ChatMessageController extends NodeController<VBox> {
                                     onReplyClicked -> (EventHandler<ActionEvent>) event -> onReplyClicked.accept(message)))
                                 .when(showing));
 
-    ObservableValue<ChatMessage> targetMessage = chatMessage.map(ChatMessage::getTargetMessage);
+    ObservableValue<ChatMessage> targetMessage = chatMessage.map(message -> message.getTargetMessage().orElse(null));
     replyContainer.onMouseClickedProperty()
                   .bind(targetMessage.flatMap(message -> onReplyClicked.map(
                                          onReplyClicked -> (EventHandler<MouseEvent>) event -> onReplyClicked.accept(message)))

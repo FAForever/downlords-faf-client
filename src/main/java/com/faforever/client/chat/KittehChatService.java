@@ -515,8 +515,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     }
 
     String text = chatMessage.getContent();
-    if (!hasMention(text) || chatMessage.getTargetMessage() != null || !getCurrentUsername().equals(
-        chatMessage.getTargetMessage().getSender().getUsername())) {
+    if (!(hasMention(text) || chatMessage.getTargetMessage()
+                                         .map(ChatMessage::getSender)
+                                         .map(ChatChannelUser::getUsername)
+                                         .map(getCurrentUsername()::equals)
+                                         .orElse(false))) {
       return;
     }
 
