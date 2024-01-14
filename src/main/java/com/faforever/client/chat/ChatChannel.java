@@ -57,6 +57,7 @@ public class ChatChannel {
   private final ObservableList<ChatMessage> messages = FXCollections.synchronizedObservableList(
       new SortedList<>(rawMessages, CHAT_MESSAGE_COMPARATOR));
   private final BooleanProperty open = new SimpleBooleanProperty();
+  private final BooleanProperty loaded = new SimpleBooleanProperty();
   private final IntegerProperty maxNumMessages = new SimpleIntegerProperty(Integer.MAX_VALUE);
   private final IntegerProperty numUnreadMessages = new SimpleIntegerProperty();
 
@@ -209,5 +210,17 @@ public class ChatChannel {
 
   public void setOpen(boolean open) {
     this.open.set(open);
+  }
+
+  public boolean isLoaded() {
+    return loaded.get();
+  }
+
+  public BooleanProperty loadedProperty() {
+    return loaded;
+  }
+
+  public void setLoaded(boolean loaded) {
+    this.loaded.set(loaded);
   }
 }

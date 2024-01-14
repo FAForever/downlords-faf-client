@@ -39,6 +39,7 @@ import org.kitteh.irc.client.library.defaults.element.DefaultActor;
 import org.kitteh.irc.client.library.defaults.element.DefaultChannelTopic;
 import org.kitteh.irc.client.library.defaults.element.DefaultServerMessage.StringCommand;
 import org.kitteh.irc.client.library.defaults.element.messagetag.DefaultMessageTagMsgId;
+import org.kitteh.irc.client.library.defaults.element.messagetag.DefaultMessageTagTime;
 import org.kitteh.irc.client.library.defaults.element.messagetag.DefaultMessageTagTyping;
 import org.kitteh.irc.client.library.defaults.element.mode.DefaultChannelUserMode;
 import org.kitteh.irc.client.library.defaults.element.mode.DefaultModeStatus;
@@ -252,34 +253,43 @@ public class KittehChatServiceTest extends ServiceTest {
   }
 
   private void join(Channel channel, User user) {
-    eventManager.callEvent(new ChannelJoinEvent(realClient, new StringCommand("", "", List.of()), channel, user));
+    DefaultMessageTagTime time = DefaultMessageTagTime.FUNCTION.apply(realClient, "time", Instant.now().toString());
+    eventManager.callEvent(new ChannelJoinEvent(realClient, new StringCommand("", "", List.of(time)), channel, user));
   }
 
   private void quit(User user) {
-    eventManager.callEvent(new UserQuitEvent(realClient, new StringCommand("", "", List.of()), user,
+    DefaultMessageTagTime time = DefaultMessageTagTime.FUNCTION.apply(realClient, "time", Instant.now().toString());
+    eventManager.callEvent(new UserQuitEvent(realClient, new StringCommand("", "", List.of(time)), user,
                                              String.format("%s quit", user.getNick())));
   }
 
   private void part(Channel channel, User user) {
-    eventManager.callEvent(new ChannelPartEvent(realClient, new StringCommand("", "", List.of()), channel, user,
+    DefaultMessageTagTime time = DefaultMessageTagTime.FUNCTION.apply(realClient, "time", Instant.now().toString());
+    eventManager.callEvent(new ChannelPartEvent(realClient, new StringCommand("", "", List.of(time)), channel, user,
                                                 String.format("%s left %s", user.getNick(), channel.getName())));
   }
 
   private void messageChannel(Channel channel, User user, String message) {
-    eventManager.callEvent(new ChannelMessageEvent(realClient, new StringCommand("", "", List.of(
-        DefaultMessageTagMsgId.FUNCTION.apply(realClient, "msgid", String.valueOf(new Random().nextInt())))), user,
+    DefaultMessageTagMsgId msgid = DefaultMessageTagMsgId.FUNCTION.apply(realClient, "msgid",
+                                                                         String.valueOf(new Random().nextInt()));
+    DefaultMessageTagTime time = DefaultMessageTagTime.FUNCTION.apply(realClient, "time", Instant.now().toString());
+    eventManager.callEvent(new ChannelMessageEvent(realClient, new StringCommand("", "", List.of(msgid, time)), user,
                                                    channel, message));
   }
 
   private void actionChannel(Channel channel, User user, String message) {
-    eventManager.callEvent(new ChannelCtcpEvent(realClient, new StringCommand("", "", List.of(
-        DefaultMessageTagMsgId.FUNCTION.apply(realClient, "msgid", String.valueOf(new Random().nextInt())))), user,
+    DefaultMessageTagMsgId msgid = DefaultMessageTagMsgId.FUNCTION.apply(realClient, "msgid",
+                                                                         String.valueOf(new Random().nextInt()));
+    DefaultMessageTagTime time = DefaultMessageTagTime.FUNCTION.apply(realClient, "time", Instant.now().toString());
+    eventManager.callEvent(new ChannelCtcpEvent(realClient, new StringCommand("", "", List.of(msgid, time)), user,
                                                 channel, message));
   }
 
   private void sendPrivateMessage(User user, String message) {
-    eventManager.callEvent(new PrivateMessageEvent(realClient, new StringCommand("", "", List.of(
-        DefaultMessageTagMsgId.FUNCTION.apply(realClient, "msgid", String.valueOf(new Random().nextInt())))), user,
+    DefaultMessageTagMsgId msgid = DefaultMessageTagMsgId.FUNCTION.apply(realClient, "msgid",
+                                                                         String.valueOf(new Random().nextInt()));
+    DefaultMessageTagTime time = DefaultMessageTagTime.FUNCTION.apply(realClient, "time", Instant.now().toString());
+    eventManager.callEvent(new PrivateMessageEvent(realClient, new StringCommand("", "", List.of(msgid, time)), user,
                                                    "me", message));
   }
 
@@ -388,6 +398,42 @@ public class KittehChatServiceTest extends ServiceTest {
     assertNotNull(chatChannel.getUser(user2.getNick()).orElse(null));
 
     assertEquals(player1, chatChannel.getUser(user1.getNick()).flatMap(ChatChannelUser::getPlayer).orElse(null));
+  }
+
+  @Test
+  public void testOnUserJoinedChannelStale() {
+    ChatChannel chatChannel = instance.getOrCreateChannel(defaultChannel.getName());
+    assertThat(chatChannel.getUsers(), empty());
+
+    connect();
+
+    DefaultMessageTagTime time = DefaultMessageTagTime.FUNCTION.apply(realClient, "time",
+                                                                      Instant.now().minusSeconds(61).toString());
+    eventManager.callEvent(
+        new ChannelJoinEvent(realClient, new StringCommand("", "", List.of(time)), defaultChannel, user1));
+
+    assertThat(chatChannel.getUsers(), empty());
+  }
+
+  @Test
+  public void testOnUsersLeaveChannelStale() {
+    ChatChannel chatChannel = instance.getOrCreateChannel(defaultChannel.getName());
+    assertThat(chatChannel.getUsers(), empty());
+
+    connect();
+
+    join(defaultChannel, user1);
+
+    assertThat(chatChannel.getUsers(), hasSize(1));
+    assertNotNull(chatChannel.getUser(user1.getNick()).orElse(null));
+
+    DefaultMessageTagTime time = DefaultMessageTagTime.FUNCTION.apply(realClient, "time",
+                                                                      Instant.now().minusSeconds(61).toString());
+    eventManager.callEvent(
+        new ChannelPartEvent(realClient, new StringCommand("", "", List.of(time)), defaultChannel, user1, ""));
+
+    assertThat(chatChannel.getUsers(), hasSize(1));
+    assertNotNull(chatChannel.getUser(user1.getNick()).orElse(null));
   }
 
   @Test
@@ -1059,6 +1105,26 @@ public class KittehChatServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testMentionStale() {
+    connect();
+
+    join(defaultChannel, user1);
+
+    DefaultMessageTagMsgId msgid = DefaultMessageTagMsgId.FUNCTION.apply(realClient, "msgid",
+                                                                         String.valueOf(new Random().nextInt()));
+    DefaultMessageTagTime time = DefaultMessageTagTime.FUNCTION.apply(realClient, "time",
+                                                                      Instant.now().minusSeconds(61).toString());
+    eventManager.callEvent(
+        new ChannelMessageEvent(realClient, new StringCommand("", "", List.of(msgid, time)), user1, defaultChannel,
+                                CHAT_USER_NAME));
+
+    ChatChannel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    verify(audioService, never()).playChatMentionSound();
+    verify(notificationService, never()).addNotification(any(TransientNotification.class));
+    assertEquals(0, channel.getNumUnreadMessages());
+  }
+
+  @Test
   public void testReplyMention() {
     when(user1.getNick()).thenReturn(CHAT_USER_NAME);
 
@@ -1071,9 +1137,11 @@ public class KittehChatServiceTest extends ServiceTest {
         new ChannelMessageEvent(realClient, new StringCommand("", "", List.of(id1)), user1, defaultChannel, ""));
 
     MsgId id2 = DefaultMessageTagMsgId.FUNCTION.apply(realClient, "msgid", "2");
+    DefaultMessageTagTime time = DefaultMessageTagTime.FUNCTION.apply(realClient, "time", Instant.now().toString());
     MessageTag reply = new DefaultMessageTag("+draft/reply", "1");
     eventManager.callEvent(
-        new ChannelMessageEvent(realClient, new StringCommand("", "", List.of(id2, reply)), user2, defaultChannel, ""));
+        new ChannelMessageEvent(realClient, new StringCommand("", "", List.of(id2, reply, time)), user2, defaultChannel,
+                                ""));
 
     ChatChannel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
     verify(audioService).playChatMentionSound();

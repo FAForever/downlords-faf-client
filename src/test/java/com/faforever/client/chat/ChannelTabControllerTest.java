@@ -89,6 +89,8 @@ public class ChannelTabControllerTest extends PlatformTest {
              .thenReturn(new ChatChannelUser("junit", defaultChatChannel));
     when(chatUserListController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
 
+    defaultChatChannel.setLoaded(true);
+
     Stage stage = mock(Stage.class);
     lenient().when(stage.focusedProperty()).thenReturn(new SimpleBooleanProperty());
 

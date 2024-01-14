@@ -11,6 +11,7 @@ import com.faforever.client.chat.kitteh.RedactListener;
 import com.faforever.client.chat.kitteh.RedactMessageEvent;
 import com.faforever.client.chat.kitteh.WhoAwayListener;
 import com.faforever.client.chat.kitteh.WhoAwayListener.WhoAwayMessageEvent;
+import com.faforever.client.chat.kitteh.WhoAwayListener.WhoComplete;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
@@ -398,6 +399,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Handler
   public void onJoinEvent(ChannelJoinEvent event) {
+    if (isStale(event)) {
+      return;
+    }
+
     User user = event.getActor();
     updateChatUser(user, event.getChannel());
   }
@@ -417,13 +422,29 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Handler
+  public void onWhoComplete(WhoComplete event) {
+    ChatChannel chatChannel = channels.get(event.getChannel().getName());
+    if (chatChannel != null) {
+      fxApplicationThreadExecutor.execute(() -> chatChannel.setLoaded(true));
+    }
+  }
+
+  @Handler
   public void onPartEvent(ChannelPartEvent event) {
+    if (isStale(event)) {
+      return;
+    }
+
     User user = event.getActor();
     onChatUserLeftChannel(event.getChannel().getName(), user.getNick());
   }
 
   @Handler
   public void onChatUserQuit(UserQuitEvent event) {
+    if (isStale(event)) {
+      return;
+    }
+
     User user = event.getUser();
     String username = user.getNick();
 
@@ -497,17 +518,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     chatChannel.addMessage(message);
 
     switch (event) {
-      case PrivateMessageEvent ignored -> notifyOnPrivateMessage(message);
-      case ChannelMessageEvent ignored -> notifyIfMentioned(message);
+      case PrivateMessageEvent privateEvent when !isStale(privateEvent) -> notifyOnPrivateMessage(message);
+      case ChannelMessageEvent channelEvent when !isStale(channelEvent) -> notifyIfMentioned(message);
       default -> {}
     }
   }
 
   private void notifyIfMentioned(ChatMessage chatMessage) {
-    if (chatMessage.getTime().isBefore(Instant.now().minusSeconds(60))) {
-      return;
-    }
-
     ChatChannelUser sender = chatMessage.getSender();
     if (sender.getCategory() == ChatUserCategory.FOE) {
       log.debug("Ignored mention from foe {}", sender);
@@ -541,10 +558,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private void notifyOnPrivateMessage(ChatMessage chatMessage) {
-    if (chatMessage.getTime().isBefore(Instant.now().minusSeconds(60))) {
-      return;
-    }
-
     ChatChannelUser sender = chatMessage.getSender();
     ChatChannel channel = sender.getChannel();
     if (channel.isPrivateChannel() && !channel.isOpen()) {
@@ -748,6 +761,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                         });
   }
 
+  private boolean isStale(ServerMessageEvent event) {
+    return event.getTag("time", Time.class)
+                .map(Time::getTime)
+                .map(time -> time.isBefore(Instant.now().minusSeconds(60)))
+                .orElse(true);
+  }
+
   @Override
   public void disconnect() {
     if (client != null) {
@@ -914,7 +934,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void joinPrivateChat(String username) {
-    getOrCreateChannel(username);
+    ChatChannel channel = getOrCreateChannel(username);
     client.sendRawLine("CHATHISTORY LATEST " + username + " * " + (chatPrefs.getMaxMessages() + 50));
   }
 
