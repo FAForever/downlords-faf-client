@@ -1424,6 +1424,10 @@
   -fx-background-color: #212121;
 }
 
+.message-container:hover {
+  -fx-background-color: derive(-fx-base, 5%);
+}
+
 .message-container Text {
   -fx-fill: -fx-text-color;
   -fx-font-size: 14px;

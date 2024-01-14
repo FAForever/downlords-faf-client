@@ -114,7 +114,10 @@ public class ChatMessageViewController extends NodeController<VBox> {
     messagesListView.setOrientation(Orientation.VERTICAL);
     messagesListView.setCellFactory(ignored -> {
       ChatMessageItemCell chatMessageItemCell = chatMessageItemCellFactory.getObject();
-      chatMessageItemCell.setOnReplyButtonClicked(targetMessage::set);
+      chatMessageItemCell.setOnReplyButtonClicked(message -> {
+        targetMessage.set(message);
+        messageTextField.requestFocus();
+      });
       chatMessageItemCell.setOnReplyClicked(
           message -> fxApplicationThreadExecutor.execute(() -> messagesListView.scrollTo(message)));
       return chatMessageItemCell;
