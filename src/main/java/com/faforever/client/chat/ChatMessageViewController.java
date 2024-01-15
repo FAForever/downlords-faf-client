@@ -290,11 +290,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
     if (targetMessage == null) {
       sendFuture = chatService.sendMessageInBackground(chatChannel.get(), text);
     } else {
-      sendFuture = chatService.sendReplyInBackground(targetMessage, text).whenCompleteAsync((aVoid, throwable) -> {
-        if (throwable == null) {
-          removeReply();
-        }
-      }, fxApplicationThreadExecutor);
+      sendFuture = chatService.sendReplyInBackground(targetMessage, text);
     }
 
     sendFuture.whenComplete((result, throwable) -> {
@@ -303,13 +299,12 @@ public class ChatMessageViewController extends NodeController<VBox> {
         log.warn("Message could not be sent: {}", text, throwable);
         notificationService.addImmediateErrorNotification(throwable, "chat.sendFailed");
       }
-    }).whenCompleteAsync((result, throwable) -> {
-      if (throwable == null) {
-        messageTextField.clear();
-      }
-      messageTextField.setDisable(false);
-      messageTextField.requestFocus();
-    }, fxApplicationThreadExecutor);
+    });
+
+    messageTextField.clear();
+    messageTextField.setDisable(false);
+    messageTextField.requestFocus();
+    removeReply();
   }
 
   private void updateTypingUsersLabel(Change<? extends ChatChannelUser> change) {

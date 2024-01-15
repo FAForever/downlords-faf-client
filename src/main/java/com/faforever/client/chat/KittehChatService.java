@@ -5,13 +5,14 @@ import com.faforever.client.chat.ChatMessage.Type;
 import com.faforever.client.chat.emoticons.Emoticon;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.emoticons.Reaction;
-import com.faforever.client.chat.kitteh.ChannelRedactMessageEvent;
-import com.faforever.client.chat.kitteh.PrivateRedactMessageEvent;
-import com.faforever.client.chat.kitteh.RedactListener;
-import com.faforever.client.chat.kitteh.RedactMessageEvent;
-import com.faforever.client.chat.kitteh.WhoAwayListener;
-import com.faforever.client.chat.kitteh.WhoAwayListener.WhoAwayMessageEvent;
-import com.faforever.client.chat.kitteh.WhoAwayListener.WhoComplete;
+import com.faforever.client.chat.kitteh.event.ChannelRedactMessageEvent;
+import com.faforever.client.chat.kitteh.event.PrivateRedactMessageEvent;
+import com.faforever.client.chat.kitteh.event.RedactMessageEvent;
+import com.faforever.client.chat.kitteh.listener.RedactListener;
+import com.faforever.client.chat.kitteh.listener.WhoAwayListener;
+import com.faforever.client.chat.kitteh.listener.WhoAwayListener.WhoAwayMessageEvent;
+import com.faforever.client.chat.kitteh.listener.WhoAwayListener.WhoComplete;
+import com.faforever.client.chat.kitteh.network.WebsocketNetworkHandler;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
@@ -731,7 +732,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                     .server()
                                     .host(irc.getHost())
                                     .port(irc.getPort(), SecurityType.SECURE)
-                                    .secureTrustManagerFactory(new TrustEveryoneFactory())
                                     .then()
                                     .listeners()
                                     .input(this::onMessage)
@@ -740,6 +740,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                     .then()
                                     .management()
                                     .eventListeners(eventListenerSuppliers)
+                                    .networkHandler(WebsocketNetworkHandler.getInstance())
                                     .then()
                                     .build();
 
@@ -934,7 +935,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void joinPrivateChat(String username) {
-    ChatChannel channel = getOrCreateChannel(username);
+    getOrCreateChannel(username);
     client.sendRawLine("CHATHISTORY LATEST " + username + " * " + (chatPrefs.getMaxMessages() + 50));
   }
 
