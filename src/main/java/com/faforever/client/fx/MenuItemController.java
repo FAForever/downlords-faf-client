@@ -4,7 +4,7 @@ import javafx.beans.binding.BooleanExpression;
 import javafx.scene.control.MenuItem;
 
 
-public abstract non-sealed class MenuItemController<ITEM extends MenuItem> extends Controller<ITEM> {
+public abstract class MenuItemController<ITEM extends MenuItem> extends Controller<ITEM> {
 
   @Override
   protected BooleanExpression createAttachedExpression() {

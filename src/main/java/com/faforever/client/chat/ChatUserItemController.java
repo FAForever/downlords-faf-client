@@ -186,7 +186,7 @@ public class ChatUserItemController extends NodeController<Node> {
   public void onItemClicked(MouseEvent mouseEvent) {
     ChatChannelUser chatChannelUser = chatUser.get();
     if (chatChannelUser != null && mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
-      chatService.onInitiatePrivateChat(chatChannelUser.getUsername());
+      chatService.joinPrivateChat(chatChannelUser.getUsername());
     }
   }
 

@@ -49,7 +49,7 @@ public class InvitePlayerController extends NodeController<Pane> {
     playerTextField.textProperty().addListener((observable, oldValue, newValue) ->
         playersListView.getSelectionModel().selectFirst()
     );
-    playerList.setAll(getPlayerNames());
+    playerList.setAll(playerService.getPlayerNames());
 
     filteredPlayerList.predicateProperty().bind(playerTextField.textProperty().map(text -> playerName -> {
       if (playerService.getCurrentPlayer().getUsername().equals(playerName)) {

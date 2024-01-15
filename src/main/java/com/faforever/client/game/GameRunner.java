@@ -421,6 +421,10 @@ public class GameRunner implements InitializingBean {
 
   private void askForGameRate() {
     GameBean game = getRunningGame();
+    if (game == null) {
+      return;
+    }
+
     notificationService.addNotification(
         new PersistentNotification(i18n.get("game.ended", game.getTitle()), Severity.INFO, List.of(
             new Action(i18n.get("game.rate"), () -> navigationHandler.navigateTo(new ShowReplayEvent(game.getId()))))));

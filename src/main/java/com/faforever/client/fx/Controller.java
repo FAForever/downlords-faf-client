@@ -6,7 +6,7 @@ import javafx.util.Subscription;
 import java.util.ArrayList;
 import java.util.List;
 
-public sealed abstract class Controller<ROOT> permits MenuItemController, NodeController, TabController {
+public abstract class Controller<ROOT> {
 
   protected BooleanExpression attached;
   protected BooleanExpression showing;
@@ -35,8 +35,8 @@ public sealed abstract class Controller<ROOT> permits MenuItemController, NodeCo
         onDetached();
       }
     });
-    showing.subscribe(isSelected -> {
-      if (isSelected) {
+    showing.subscribe(isShowing -> {
+      if (isShowing) {
         onShow();
       } else {
         shownSubscriptions.forEach(Subscription::unsubscribe);

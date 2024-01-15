@@ -4,7 +4,6 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PrivatePlayerInfoController;
-import com.faforever.client.preferences.ChatPrefs;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Component;
 public class PrivateChatTabController extends AbstractChatTabController {
 
   private final AvatarService avatarService;
-  private final ChatPrefs chatPrefs;
 
   public Tab privateChatTabRoot;
   public ImageView avatarImageView;
@@ -31,10 +29,9 @@ public class PrivateChatTabController extends AbstractChatTabController {
   public ScrollPane gameDetailScrollPane;
 
   @Autowired
-  public PrivateChatTabController(ChatService chatService, AvatarService avatarService, ChatPrefs chatPrefs) {
+  public PrivateChatTabController(ChatService chatService, AvatarService avatarService) {
     super(chatService);
     this.avatarService = avatarService;
-    this.chatPrefs = chatPrefs;
   }
 
   @Override

@@ -3,8 +3,7 @@ package com.faforever.client.chat.emoticons;
 import com.faforever.client.builders.EmoticonGroupBuilder;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputControl;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.layout.VBox;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +14,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 public class EmoticonsWindowControllerTest extends PlatformTest {
@@ -26,40 +26,25 @@ public class EmoticonsWindowControllerTest extends PlatformTest {
   @Mock
   private EmoticonsGroupController emoticonsGroupController;
 
-  private TextInputControl textField;
-  private List<EmoticonsGroup> emoticonsGroups;
-
   @InjectMocks
   private EmoticonsWindowController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    emoticonsGroups = List.of(
-        EmoticonGroupBuilder.create().defaultValues().get(),
-        EmoticonGroupBuilder.create().defaultValues().get()
-    );
+    List<EmoticonsGroup> emoticonsGroups = List.of(EmoticonGroupBuilder.create().defaultValues().get(),
+                                                   EmoticonGroupBuilder.create().defaultValues().get());
     when(emoticonService.getEmoticonsGroups()).thenReturn(emoticonsGroups);
     when(uiService.loadFxml("theme/chat/emoticons/emoticons_group.fxml")).thenReturn(emoticonsGroupController);
     when(emoticonsGroupController.getRoot()).thenReturn(new VBox(), new VBox()); // Root do not allow to put the same views
 
-    textField = new TextField();
-    instance.setTextInputControl(textField);
+    lenient().when(emoticonsGroupController.onEmoticonClickedProperty()).thenReturn(new SimpleObjectProperty<>());
+
     loadFxml("theme/chat/emoticons/emoticons_window.fxml", clazz -> instance);
   }
 
   @Test
   public void testSetEmoticonsGroupViews() {
     assertEquals(2, instance.root.getChildren().size());
-  }
-
-  @Test
-  public void testOnEmoticonClicked() {
-    String shortcode = emoticonsGroups.getFirst().emoticons().getFirst().shortcodes().getFirst();
-    runOnFxThreadAndWait(() -> instance.onEmoticonClicked().accept(shortcode));
-
-    String expected = " " + shortcode + " ";
-    assertEquals(expected, textField.getText());
-    assertEquals(expected.length(), textField.getCaretPosition());
   }
 
   @Test

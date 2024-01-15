@@ -3,14 +3,20 @@ package com.faforever.client.chat;
 
 import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.chat.ChatMessage.Type;
+import com.faforever.client.chat.emoticons.Emoticon;
+import com.faforever.client.chat.emoticons.Reaction;
 import com.faforever.client.test.DomainTest;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,8 +40,8 @@ public class ChatChannelTest extends DomainTest {
   public void testMessageMax() {
     ChatChannel channel = new ChatChannel("#test");
     ChatChannelUser sender = ChatChannelUserBuilder.create("", channel).defaultValues().get();
-    channel.addMessage(new ChatMessage("1", Instant.now().minusSeconds(1), sender, "1", Type.MESSAGE));
-    channel.addMessage(new ChatMessage("2", Instant.now(), sender, "2", Type.MESSAGE));
+    channel.addMessage(new ChatMessage("1", Instant.now().minusSeconds(1), sender, "1", Type.MESSAGE, null));
+    channel.addMessage(new ChatMessage("2", Instant.now(), sender, "2", Type.MESSAGE, null));
 
     assertThat(channel.getMessages(), hasSize(2));
 
@@ -44,7 +50,7 @@ public class ChatChannelTest extends DomainTest {
     assertThat(channel.getMessages(), hasSize(1));
     assertEquals("2", channel.getMessages().getLast().getContent());
 
-    channel.addMessage(new ChatMessage("3", Instant.now(), sender, "3", Type.MESSAGE));
+    channel.addMessage(new ChatMessage("3", Instant.now(), sender, "3", Type.MESSAGE, null));
 
     assertThat(channel.getMessages(), hasSize(1));
     assertEquals("3", channel.getMessages().getLast().getContent());
@@ -70,6 +76,24 @@ public class ChatChannelTest extends DomainTest {
     channel.setOpen(true);
 
     assertEquals(0, channel.getNumUnreadMessages());
+  }
+
+  @Test
+  public void testReactions() {
+    ChatChannel channel = new ChatChannel("#test");
+    ChatChannelUser sender = ChatChannelUserBuilder.create("", channel).defaultValues().get();
+    ChatMessage message = new ChatMessage("1", Instant.now().minusSeconds(1), sender, "1", Type.MESSAGE, null);
+    channel.addMessage(message);
+
+    Emoticon emoticon = new Emoticon(List.of(), "");
+    channel.addReaction(new Reaction("2", "1", emoticon, "junit"));
+
+    assertThat(message.getReactions(), hasKey(emoticon));
+    assertThat(message.getReactions().get(emoticon), hasKey("junit"));
+    assertThat(message.getReactions().get(emoticon).get("junit"), equalTo("2"));
+
+    channel.removeMessage("2");
+    assertThat(message.getReactions(), not(hasKey(emoticon)));
   }
 
 }

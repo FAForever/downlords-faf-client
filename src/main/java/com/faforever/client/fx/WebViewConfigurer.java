@@ -3,9 +3,7 @@ package com.faforever.client.fx;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.theme.ThemeService;
 import javafx.concurrent.Worker.State;
-import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -50,11 +48,6 @@ public class WebViewConfigurer {
     });
 
     BrowserCallback browserCallback = browserCallbackFactory.getObject();
-    EventHandler<MouseEvent> moveHandler = event -> {
-      browserCallback.setLastMouseX(event.getScreenX());
-      browserCallback.setLastMouseY(event.getScreenY());
-    };
-    webView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
 
     engine.setUserAgent(clientProperties.getUserAgent()); // removes faforever.com header and footer
     themeService.registerWebView(webView);

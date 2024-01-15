@@ -26,12 +26,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
-import java.util.regex.Pattern;
-
-import static com.faforever.client.theme.ThemeService.CHAT_CONTAINER;
-import static com.faforever.client.theme.ThemeService.CHAT_SECTION_COMPACT;
-import static com.faforever.client.theme.ThemeService.CHAT_TEXT_COMPACT;
-import static com.faforever.client.theme.ThemeService.CHAT_TEXT_EXTENDED;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -90,19 +84,12 @@ public class ChannelTabControllerTest extends PlatformTest {
     lenient().when(chatMessageViewController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(emoticonsWindowController.getRoot()).thenReturn(new VBox());
     lenient().when(chatService.getCurrentUsername()).thenReturn(user.getUsername());
-    lenient().when(themeService.getThemeFileUrl(CHAT_CONTAINER))
-             .thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
-    lenient().when(themeService.getThemeFileUrl(CHAT_SECTION_COMPACT))
-        .thenReturn(getClass().getResource("/theme/chat/compact/chat_section.html"));
-    lenient().when(themeService.getThemeFileUrl(CHAT_TEXT_COMPACT))
-        .thenReturn(getClass().getResource("/theme/chat/compact/chat_text.html"));
-    lenient().when(themeService.getThemeFileUrl(CHAT_TEXT_EXTENDED)).thenReturn(
-        getClass().getResource("/theme/chat/extended/chat_text.html"));
     lenient().when(timeService.asShortTime(any())).thenReturn("now");
-    lenient().when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile("-----"));
     lenient().when(chatService.getOrCreateChatUser(any(String.class), eq(defaultChatChannel.getName())))
              .thenReturn(new ChatChannelUser("junit", defaultChatChannel));
     when(chatUserListController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
+
+    defaultChatChannel.setLoaded(true);
 
     Stage stage = mock(Stage.class);
     lenient().when(stage.focusedProperty()).thenReturn(new SimpleBooleanProperty());

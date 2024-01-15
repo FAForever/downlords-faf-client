@@ -42,8 +42,7 @@ public class FriendOnlineNotifier implements InitializingBean {
           new TransientNotification(
               i18n.get("friend.nowOnlineNotification.title", player.getUsername()),
               i18n.get("friend.nowOnlineNotification.action"),
-              IdenticonUtil.createIdenticon(player.getId()),
-              () -> chatService.onInitiatePrivateChat(player.getUsername())
+              IdenticonUtil.createIdenticon(player.getId()), () -> chatService.joinPrivateChat(player.getUsername())
           ));
     }
   }

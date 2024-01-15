@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.chat.emoticons.Emoticon;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -17,25 +18,25 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
-import static com.faforever.client.theme.ThemeService.CHAT_CONTAINER;
-import static com.faforever.client.theme.ThemeService.CHAT_SECTION_COMPACT;
-import static com.faforever.client.theme.ThemeService.CHAT_SECTION_EXTENDED;
-import static com.faforever.client.theme.ThemeService.CHAT_TEXT_COMPACT;
-import static com.faforever.client.theme.ThemeService.CHAT_TEXT_EXTENDED;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentCaptor.captor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -77,17 +78,6 @@ public class ChatMessagesViewControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setup() throws Exception {
-    lenient().when(themeService.getThemeFileUrl(CHAT_CONTAINER))
-             .thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
-    lenient().when(themeService.getThemeFileUrl(CHAT_SECTION_COMPACT))
-             .thenReturn(getClass().getResource("/theme/chat/compact/chat_section.html"));
-    lenient().when(themeService.getThemeFileUrl(CHAT_TEXT_COMPACT))
-             .thenReturn(getClass().getResource("/theme/chat/compact/chat_text.html"));
-    lenient().when(themeService.getThemeFileUrl(CHAT_SECTION_EXTENDED))
-             .thenReturn(getClass().getResource("/theme/chat/extended/chat_section.html"));
-    lenient().when(themeService.getThemeFileUrl(CHAT_TEXT_EXTENDED))
-             .thenReturn(getClass().getResource("/theme/chat/extended/chat_text.html"));
-    lenient().when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile("-----"));
     lenient().when(chatService.getCurrentUsername()).thenReturn("junit");
     lenient().when(timeService.asShortTime(any())).thenReturn("now");
     lenient().when(emoticonsWindowController.getRoot()).thenReturn(new VBox());
@@ -176,5 +166,18 @@ public class ChatMessagesViewControllerTest extends PlatformTest {
     verify(chatService).sendMessageInBackground(chatChannel, message);
     assertThat(instance.messageTextField.getText(), is(message));
     assertThat(instance.messageTextField.isDisable(), is(false));
+  }
+
+  @Test
+  public void testOnEmoticonClicked() {
+    ArgumentCaptor<Consumer<Emoticon>> captor = captor();
+
+    verify(emoticonsWindowController).setOnEmoticonClicked(captor.capture());
+
+    runOnFxThreadAndWait(() -> captor.getValue().accept(new Emoticon(List.of(":)"), "")));
+
+    String expected = " " + ":)" + " ";
+    assertEquals(" :) ", instance.messageTextField.getText());
+    assertEquals(expected.length(), instance.messageTextField.getCaretPosition());
   }
 }
