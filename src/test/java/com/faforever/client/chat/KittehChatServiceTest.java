@@ -191,7 +191,6 @@ public class KittehChatServiceTest extends ServiceTest {
                                        .server()
                                        .host(irc.getHost())
                                        .port(irc.getPort(), SecurityType.SECURE)
-                                       .secureTrustManagerFactory(new TrustEveryoneFactory())
                                        .then()
                                        .build();
 
