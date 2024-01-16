@@ -164,10 +164,10 @@ public class ClientProperties {
       replay.setRemotePort(liveReplay.getPort());
     }
 
-    SocketEndpoint irc = serverEndpoints.getIrc();
-    if (irc != null) {
-      this.irc.setHost(irc.getHost());
-      this.irc.setPort(irc.getPort());
+    SocketEndpoint chat = serverEndpoints.getChat();
+    if (chat != null) {
+      this.irc.setHost(chat.getHost());
+      this.irc.setPort(chat.getPort());
     }
 
     UrlEndpoint api = serverEndpoints.getApi();

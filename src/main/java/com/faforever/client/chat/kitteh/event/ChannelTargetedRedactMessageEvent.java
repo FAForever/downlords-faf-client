@@ -1,4 +1,4 @@
-package com.faforever.client.chat.kitteh;
+package com.faforever.client.chat.kitteh.event;
 
 import org.kitteh.irc.client.library.Client;
 import org.kitteh.irc.client.library.element.Channel;

@@ -1,5 +1,8 @@
-package com.faforever.client.chat.kitteh;
+package com.faforever.client.chat.kitteh.listener;
 
+import com.faforever.client.chat.kitteh.event.ChannelRedactMessageEvent;
+import com.faforever.client.chat.kitteh.event.ChannelTargetedRedactMessageEvent;
+import com.faforever.client.chat.kitteh.event.PrivateRedactMessageEvent;
 import net.engio.mbassy.listener.Handler;
 import org.kitteh.irc.client.library.Client;
 import org.kitteh.irc.client.library.Client.WithManagement;

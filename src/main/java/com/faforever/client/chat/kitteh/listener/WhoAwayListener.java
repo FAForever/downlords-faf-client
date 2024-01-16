@@ -1,4 +1,4 @@
-package com.faforever.client.chat.kitteh;
+package com.faforever.client.chat.kitteh.listener;
 
 import net.engio.mbassy.listener.Handler;
 import org.checkerframework.checker.nullness.qual.NonNull;

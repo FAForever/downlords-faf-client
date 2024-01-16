@@ -1,17 +1,19 @@
-package com.faforever.client.chat.kitteh;
+package com.faforever.client.chat.kitteh.event;
 
 import org.kitteh.irc.client.library.Client;
+import org.kitteh.irc.client.library.element.Channel;
 import org.kitteh.irc.client.library.element.ServerMessage;
 import org.kitteh.irc.client.library.element.User;
-import org.kitteh.irc.client.library.event.abstractbase.PrivateEventBase;
-import org.kitteh.irc.client.library.event.helper.PrivateEvent;
+import org.kitteh.irc.client.library.event.abstractbase.ActorChannelEventBase;
+import org.kitteh.irc.client.library.event.helper.ActorEvent;
 
 import java.util.Optional;
 
 /**
- * Fires when a redact is sent to the client.
+ * Fires when a redact is sent to a channel. Note that the sender may be the client itself if the capability
+ * "echo-message" is enabled.
  */
-public class PrivateRedactMessageEvent extends PrivateEventBase<User> implements PrivateEvent, RedactMessageEvent {
+public class ChannelRedactMessageEvent extends ActorChannelEventBase<User> implements ActorEvent<User>, RedactMessageEvent {
 
   private final String redactedMessageId;
   private final String message;
@@ -22,14 +24,14 @@ public class PrivateRedactMessageEvent extends PrivateEventBase<User> implements
    * @param client client for which this is occurring
    * @param sourceMessage source message
    * @param sender who sent it
-   * @param target who received it
+   * @param channel channel receiving
    * @param message message sent
    */
-  public PrivateRedactMessageEvent(Client client, ServerMessage sourceMessage, User sender, String target,
+  public ChannelRedactMessageEvent(Client client, ServerMessage sourceMessage, User sender, Channel channel,
                                    String message, String redactedMessageId) {
-    super(client, sourceMessage, sender, target);
-    this.message = message;
+    super(client, sourceMessage, sender, channel);
     this.redactedMessageId = redactedMessageId;
+    this.message = message;
   }
 
   @Override
