@@ -164,7 +164,7 @@ public class ChatMessagesViewControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> instance.onSendMessage());
 
     verify(chatService).sendMessageInBackground(chatChannel, message);
-    assertThat(instance.messageTextField.getText(), is(message));
+    assertThat(instance.messageTextField.getText(), is(""));
     assertThat(instance.messageTextField.isDisable(), is(false));
   }
 
