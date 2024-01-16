@@ -124,6 +124,7 @@ public class PlayerCardControllerTest extends PlatformTest {
     instance.setFaction(Faction.RANDOM);
 
     assertTrue(instance.avatarImageView.isVisible());
+    assertTrue(instance.avatarStackPane.isVisible());
     assertEquals(avatarImage, instance.avatarImageView.getImage());
   }
 
@@ -136,6 +137,7 @@ public class PlayerCardControllerTest extends PlatformTest {
     instance.setFaction(Faction.RANDOM);
 
     assertFalse(instance.avatarImageView.isVisible());
+    assertTrue(instance.avatarStackPane.isVisible());
   }
 
   @Test
@@ -180,5 +182,18 @@ public class PlayerCardControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> player.setNote(""));
     assertNull(TooltipHelper.getTooltip(instance.root));
+  }
+
+  @Test 
+  public void testInvisibleAvatarOnRemove() {
+    Image avatarImage = new Image(InputStream.nullInputStream());
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    when(avatarService.loadAvatar(player.getAvatar())).thenReturn(avatarImage);
+
+    instance.setPlayer(player);
+    instance.setFaction(Faction.RANDOM);
+    instance.removeAvatar();
+
+    assertFalse(instance.avatarStackPane.isVisible());
   }
 }

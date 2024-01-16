@@ -36,6 +36,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -64,6 +65,7 @@ public class PlayerCardController extends NodeController<Node> {
   private final I18n i18n;
 
   public Label playerInfo;
+  public StackPane avatarStackPane;
   public ImageView countryImageView;
   public ImageView avatarImageView;
   public Label foeIconText;
@@ -83,7 +85,7 @@ public class PlayerCardController extends NodeController<Node> {
 
   @Override
   protected void onInitialize() {
-    JavaFxUtil.bindManagedToVisible(factionIcon, foeIconText, factionImage, friendIconText, countryImageView, noteIcon);
+    JavaFxUtil.bindManagedToVisible(avatarStackPane, factionIcon, foeIconText, factionImage, friendIconText, countryImageView, noteIcon);
     countryImageView.visibleProperty().bind(countryImageView.imageProperty().isNotNull());
     avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
 
@@ -169,6 +171,7 @@ public class PlayerCardController extends NodeController<Node> {
           .build()
           .show(getRoot().getScene().getWindow(), event.getScreenX(), event.getScreenY());
     }
+    event.consume();
   }
 
   private void onFactionChanged(Faction oldFaction, Faction newFaction) {
@@ -211,6 +214,10 @@ public class PlayerCardController extends NodeController<Node> {
     }
 
     return null;
+  }
+
+  public void removeAvatar() {
+    this.avatarStackPane.setVisible(false);
   }
 
   public PlayerBean getPlayer() {
