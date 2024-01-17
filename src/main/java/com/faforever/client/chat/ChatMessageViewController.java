@@ -11,8 +11,6 @@ import com.faforever.client.ui.StageHolder;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.PopupUtil;
 import javafx.beans.Observable;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -20,17 +18,18 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.collections.WeakListChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Bounds;
-import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
@@ -38,6 +37,10 @@ import javafx.stage.PopupWindow.AnchorLocation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.fxmisc.flowless.Cell;
+import org.fxmisc.flowless.VirtualFlow;
+import org.fxmisc.flowless.VirtualFlow.Gravity;
+import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -60,7 +63,7 @@ import java.util.stream.Collectors;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ChatMessageViewController extends NodeController<VBox> {
 
-  private final ObjectFactory<ChatMessageItemCell> chatMessageItemCellFactory;
+  private final ObjectFactory<ChatMessageCell> chatMessageCellFactory;
   private final NotificationService notificationService;
   private final ChatService chatService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -69,7 +72,6 @@ public class ChatMessageViewController extends NodeController<VBox> {
 
   public Button emoticonsButton;
   public TextField messageTextField;
-  public ListView<ChatMessage> messagesListView;
   public VBox root;
   public Label typingLabel;
   public Node emoticonsWindow;
@@ -78,6 +80,9 @@ public class ChatMessageViewController extends NodeController<VBox> {
   public Label replyPreviewLabel;
   public Label replyAuthorLabel;
   public HBox replyContainer;
+  public VBox messagesContainer;
+
+  private VirtualFlow<ChatMessage, Cell<ChatMessage, Node>> messageListView;
 
   private final List<String> userMessageHistory = new ArrayList<>();
   private final ObjectProperty<ChatChannel> chatChannel = new SimpleObjectProperty<>();
@@ -88,9 +93,10 @@ public class ChatMessageViewController extends NodeController<VBox> {
   private final ObservableList<ChatMessage> rawMessages = FXCollections.synchronizedObservableList(
       FXCollections.observableArrayList(chatMessage -> new Observable[]{chatMessage.getSender().categoryProperty()}));
   private final FilteredList<ChatMessage> filteredMessages = new FilteredList<>(rawMessages);
-  private final BooleanExpression atEnd = BooleanExpression.booleanExpression(
-      Bindings.valueAt(filteredMessages, Bindings.size(filteredMessages).subtract(1))
-              .flatMap(ChatMessage::openProperty));
+
+  private final ListChangeListener<ChatMessage> chatMessageListener = this::onMessageChange;
+  private final WeakListChangeListener<ChatMessage> weakMessageListChangeListener = new WeakListChangeListener<>(
+      chatMessageListener);
 
   private Popup emoticonsPopup;
 
@@ -109,20 +115,6 @@ public class ChatMessageViewController extends NodeController<VBox> {
       }
     }));
 
-    messagesListView.setSelectionModel(null);
-    messagesListView.setItems(filteredMessages);
-    messagesListView.setOrientation(Orientation.VERTICAL);
-    messagesListView.setCellFactory(ignored -> {
-      ChatMessageItemCell chatMessageItemCell = chatMessageItemCellFactory.getObject();
-      chatMessageItemCell.setOnReplyButtonClicked(message -> {
-        targetMessage.set(message);
-        messageTextField.requestFocus();
-      });
-      chatMessageItemCell.setOnReplyClicked(
-          message -> fxApplicationThreadExecutor.execute(() -> messagesListView.scrollTo(message)));
-      return chatMessageItemCell;
-    });
-
     messageTextField.setOnKeyPressed(this::handleKeyEvent);
     messageTextField.textProperty().subscribe(this::updateTypingState);
 
@@ -132,18 +124,18 @@ public class ChatMessageViewController extends NodeController<VBox> {
     chatChannel.when(attached).subscribe(((oldValue, newValue) -> {
       userMessageHistory.clear();
       if (oldValue != null) {
-        Bindings.bindContent(rawMessages, oldValue.getMessages());
+        oldValue.getMessages().removeListener(weakMessageListChangeListener);
         oldValue.getTypingUsers().removeListener(typingUserListChangeListener);
       }
 
       rawMessages.clear();
 
       if (newValue != null) {
-        Bindings.bindContent(rawMessages, newValue.getMessages());
+        newValue.getMessages().addListener(weakMessageListChangeListener);
+        newValue.getMessages().forEach(message -> fxApplicationThreadExecutor.execute(() -> rawMessages.add(message)));
         ObservableList<ChatChannelUser> typingUsers = newValue.getTypingUsers();
         setTypingLabel(typingUsers);
         typingUsers.addListener(typingUserListChangeListener);
-        scrollToEnd();
       }
     }));
 
@@ -165,15 +157,39 @@ public class ChatMessageViewController extends NodeController<VBox> {
                                        .map(username -> i18n.get("chat.replyingTo", username))
                                        .when(showing));
 
-    filteredMessages.subscribe(() -> {
-      if (atEnd.get()) {
-        scrollToEnd();
-      }
-    });
+    messageListView = VirtualFlow.createVertical(filteredMessages, item -> {
+      ChatMessageCell cell = chatMessageCellFactory.getObject();
+      cell.setItems(filteredMessages);
+      cell.updateItem(item);
+      cell.setOnReplyButtonClicked(message -> {
+        targetMessage.set(message);
+        messageTextField.requestFocus();
+      });
+      cell.setOnReplyClicked(message -> fxApplicationThreadExecutor.execute(
+          () -> messageListView.showAsFirst(filteredMessages.indexOf(message))));
+      return cell;
+    }, Gravity.FRONT);
+    VirtualizedScrollPane<VirtualFlow<ChatMessage, Cell<ChatMessage, Node>>> scrollPane = new VirtualizedScrollPane<>(
+        messageListView);
+    scrollPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+    VBox.setVgrow(scrollPane, Priority.ALWAYS);
+
+    messagesContainer.getChildren().add(scrollPane);
   }
 
-  private void scrollToEnd() {
-    fxApplicationThreadExecutor.execute(() -> messagesListView.scrollTo(filteredMessages.size()));
+  private void onMessageChange(Change<? extends ChatMessage> change) {
+    while (change.next()) {
+      if (change.wasAdded()) {
+        List.copyOf(change.getAddedSubList())
+            .forEach(message -> fxApplicationThreadExecutor.execute(() -> rawMessages.add(message)));
+      } else if (change.wasRemoved()) {
+        change.getRemoved().forEach(message -> fxApplicationThreadExecutor.execute(() -> rawMessages.add(message)));
+      } else if (change.wasUpdated()) {
+        List<ChatMessage> changedUsers = List.copyOf(change.getList().subList(change.getFrom(), change.getTo()));
+        changedUsers.forEach(message -> fxApplicationThreadExecutor.execute(() -> rawMessages.remove(message)));
+        changedUsers.forEach(message -> fxApplicationThreadExecutor.execute(() -> rawMessages.add(message)));
+      }
+    }
   }
 
   private AutoCompletionHelper createAutoCompletionHelper() {
@@ -207,7 +223,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
     ChatChannel channel = chatChannel.get();
     if (channel != null) {
       channel.getTypingUsers().removeListener(typingUserListChangeListener);
-      Bindings.unbindContent(rawMessages, channel.getMessages());
+      channel.getMessages().removeListener(weakMessageListChangeListener);
     }
   }
 

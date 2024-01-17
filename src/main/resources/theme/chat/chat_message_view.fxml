@@ -3,7 +3,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -12,7 +11,7 @@
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.faforever.client.chat.ChatMessageViewController"
       fx:id="root">
-    <ListView fx:id="messagesListView" styleClass="chat-list-view" VBox.vgrow="ALWAYS"/>
+    <VBox fx:id="messagesContainer" VBox.vgrow="ALWAYS" styleClass="chat-list-view"/>
     <Label fx:id="typingLabel" visible="false" styleClass="typing"/>
     <HBox fx:id="replyContainer" alignment="CENTER_LEFT" styleClass="channel-chat-container" visible="false"
           spacing="5">

@@ -111,7 +111,7 @@ public class ChatMessageController extends NodeController<VBox> {
 
   @Override
   protected void onInitialize() {
-    JavaFxUtil.bindManagedToVisible(detailsContainer, replyContainer, message);
+    JavaFxUtil.bindManagedToVisible(detailsContainer, replyContainer, message, messageActionsContainer);
 
     mentionPattern = chatService.getMentionPattern();
 
@@ -150,7 +150,7 @@ public class ChatMessageController extends NodeController<VBox> {
                               .when(showing));
     chatMessage.map(ChatMessage::getContent).map(this::convertMessageToNodes).when(showing).subscribe(messageNodes -> {
       Collection<? extends Node> children = messageNodes == null ? List.of() : messageNodes;
-      message.getChildren().setAll(children);
+      fxApplicationThreadExecutor.execute(() -> message.getChildren().setAll(children));
     });
 
     detailsContainer.visibleProperty().bind(showDetails.when(showing));
