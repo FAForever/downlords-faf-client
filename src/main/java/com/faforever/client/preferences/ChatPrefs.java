@@ -1,7 +1,6 @@
 package com.faforever.client.preferences;
 
 import com.faforever.client.chat.ChatColorMode;
-import com.faforever.client.chat.ChatFormat;
 import com.faforever.client.chat.ChatUserCategory;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.BooleanProperty;
@@ -48,7 +47,6 @@ public class ChatPrefs {
   private final BooleanProperty hideFoeMessages = new SimpleBooleanProperty(true);
   private final BooleanProperty playerListShown = new SimpleBooleanProperty(true);
   private final ObjectProperty<TimeInfo> timeFormat = new SimpleObjectProperty<>(TimeInfo.AUTO);
-  private final ObjectProperty<ChatFormat> chatFormat = new SimpleObjectProperty<>(ChatFormat.COMPACT);
   private final ObservableList<String> autoJoinChannels = FXCollections.observableArrayList();
   private final BooleanProperty showMapName = new SimpleBooleanProperty(false);
   private final BooleanProperty showMapPreview = new SimpleBooleanProperty(false);
@@ -78,18 +76,6 @@ public class ChatPrefs {
 
   public ObjectProperty<TimeInfo> timeFormatProperty() {
     return timeFormat;
-  }
-
-  public ChatFormat getChatFormat() {
-    return this.chatFormat.get();
-  }
-
-  public void setChatFormat(ChatFormat chatFormat) {
-    this.chatFormat.setValue(chatFormat);
-  }
-
-  public ObjectProperty<ChatFormat> chatFormatProperty() {
-    return chatFormat;
   }
 
   public ObjectProperty<ChatColorMode> chatColorModeProperty() {
