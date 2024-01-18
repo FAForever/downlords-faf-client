@@ -1438,7 +1438,7 @@
   -fx-font-size: 10px;
 }
 
-.message-container .author, .message-container .author {
+.message-container .author {
   -fx-text-fill: -fx-text-color;
   -fx-font-size: 14px;
   -fx-font-weight: bold;

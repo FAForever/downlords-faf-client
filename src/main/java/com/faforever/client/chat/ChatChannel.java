@@ -14,8 +14,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
 import javafx.collections.transformation.FilteredList;
-import javafx.collections.transformation.SortedList;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -30,11 +30,6 @@ import java.util.function.Consumer;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 public class ChatChannel {
-
-  private static final Comparator<ChatMessage> CHAT_MESSAGE_COMPARATOR = Comparator.comparing(ChatMessage::getType)
-                                                                                   .thenComparing(ChatMessage::getTime,
-                                                                                                  Comparator.nullsLast(
-                                                                                                      Comparator.naturalOrder()));
   @Getter
   @EqualsAndHashCode.Include
   @ToString.Include
@@ -52,10 +47,8 @@ public class ChatChannel {
   private final ObservableMap<String, ChatMessage> messagesById = FXCollections.synchronizedObservableMap(
       FXCollections.observableHashMap());
   private final Map<String, Reaction> reactionsById = new ConcurrentHashMap<>();
-  private final ObservableList<ChatMessage> rawMessages = JavaFxUtil.attachListToMap(
-      FXCollections.synchronizedObservableList(FXCollections.observableArrayList()), messagesById);
-  private final ObservableList<ChatMessage> messages = FXCollections.synchronizedObservableList(
-      new SortedList<>(rawMessages, CHAT_MESSAGE_COMPARATOR));
+  private final ObservableSet<ChatMessage> messages = JavaFxUtil.attachSetToMap(
+      FXCollections.synchronizedObservableSet(FXCollections.observableSet()), messagesById);
   private final BooleanProperty open = new SimpleBooleanProperty();
   private final BooleanProperty loaded = new SimpleBooleanProperty();
   private final IntegerProperty maxNumMessages = new SimpleIntegerProperty(Integer.MAX_VALUE);
@@ -75,8 +68,10 @@ public class ChatChannel {
     int maxNumMessages = getMaxNumMessages();
     int numMessages = messages.size();
     if (numMessages > maxNumMessages) {
-      List.copyOf(messages.subList(0, numMessages - maxNumMessages))
-          .forEach(message -> messagesById.remove(message.getId()));
+      messages.stream()
+              .sorted(Comparator.comparing(ChatMessage::getTime))
+              .limit(numMessages - maxNumMessages)
+              .forEach(message -> messagesById.remove(message.getId()));
     }
   }
 
@@ -188,7 +183,7 @@ public class ChatChannel {
     reactionsById.put(reaction.messageId(), reaction);
   }
 
-  public ObservableList<ChatMessage> getMessages() {
+  public ObservableSet<ChatMessage> getMessages() {
     return messages;
   }
 

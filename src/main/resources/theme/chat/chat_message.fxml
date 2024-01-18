@@ -13,7 +13,7 @@
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.faforever.client.chat.ChatMessageController"
       fx:id="root" styleClass="message-container" onMouseEntered="#onMouseEntered" onMouseExited="#onMouseExited"
-      alignment="CENTER_LEFT">
+      alignment="CENTER_LEFT" spacing="5">
     <HBox fx:id="detailsContainer" spacing="5" alignment="CENTER_LEFT">
         <padding>
             <Insets top="5" bottom="2"/>

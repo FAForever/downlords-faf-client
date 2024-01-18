@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 public class ChatMessageCell implements Cell<ChatMessage, Node> {
 
   private final ChatMessageController chatMessageController;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final ObjectProperty<Consumer<ChatMessage>> onReplyButtonClicked = new SimpleObjectProperty<>();
   private final ObjectProperty<Consumer<ChatMessage>> onReplyClicked = new SimpleObjectProperty<>();
@@ -31,6 +32,7 @@ public class ChatMessageCell implements Cell<ChatMessage, Node> {
   private final IntegerProperty index = new SimpleIntegerProperty();
 
   public ChatMessageCell(UiService uiService, FxApplicationThreadExecutor fxApplicationThreadExecutor) {
+    this.fxApplicationThreadExecutor = fxApplicationThreadExecutor;
     chatMessageController = uiService.loadFxml("theme/chat/chat_message.fxml");
     ObservableValue<ChatMessage> previousMessageProperty = items.flatMap(
         items -> Bindings.valueAt(items, index.subtract(1)));
@@ -55,17 +57,17 @@ public class ChatMessageCell implements Cell<ChatMessage, Node> {
 
   @Override
   public void updateItem(ChatMessage item) {
-    chatMessageController.setChatMessage(item);
+    fxApplicationThreadExecutor.execute(() -> chatMessageController.setChatMessage(item));
   }
 
   @Override
   public void updateIndex(int index) {
-    this.index.set(index);
+    fxApplicationThreadExecutor.execute(() -> this.index.set(index));
   }
 
   @Override
   public void reset() {
-    chatMessageController.setChatMessage(null);
+    fxApplicationThreadExecutor.execute(() -> chatMessageController.setChatMessage(null));
   }
 
   private boolean showDetails(ChatMessage previousMessage, ChatMessage currentMessage) {

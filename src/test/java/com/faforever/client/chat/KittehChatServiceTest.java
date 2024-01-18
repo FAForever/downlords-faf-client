@@ -550,7 +550,10 @@ public class KittehChatServiceTest extends ServiceTest {
 
     messageChannel(defaultChannel, user1, message);
 
-    ChatMessage chatMessage = channel.getMessages().getLast();
+    ChatMessage chatMessage = channel.getMessages()
+                                     .stream()
+                                     .max(Comparator.comparing(ChatMessage::getTime))
+                                     .orElseThrow();
 
     assertThat(chatMessage.getContent(), is(message));
     assertThat(chatMessage.getSender().getUsername(), is(user1.getNick()));
@@ -566,7 +569,10 @@ public class KittehChatServiceTest extends ServiceTest {
 
     actionChannel(defaultChannel, user1, message);
 
-    ChatMessage chatMessage = channel.getMessages().getLast();
+    ChatMessage chatMessage = channel.getMessages()
+                                     .stream()
+                                     .max(Comparator.comparing(ChatMessage::getTime))
+                                     .orElseThrow();
 
     assertThat(chatMessage.getContent(), is(message));
     assertThat(chatMessage.getSender().getUsername(), is(user1.getNick()));
@@ -582,7 +588,10 @@ public class KittehChatServiceTest extends ServiceTest {
 
     sendPrivateMessage(user1, message);
 
-    ChatMessage chatMessage = channel.getMessages().getLast();
+    ChatMessage chatMessage = channel.getMessages()
+                                     .stream()
+                                     .max(Comparator.comparing(ChatMessage::getTime))
+                                     .orElseThrow();
 
     assertThat(chatMessage.getContent(), is(message));
     assertThat(chatMessage.getSender().getUsername(), is(user1.getNick()));
@@ -675,7 +684,10 @@ public class KittehChatServiceTest extends ServiceTest {
 
     instance.sendMessageInBackground(chatChannel, message).get(TIMEOUT, TIMEOUT_UNIT);
 
-    ChatMessage chatMessage = chatChannel.getMessages().getLast();
+    ChatMessage chatMessage = chatChannel.getMessages()
+                                         .stream()
+                                         .max(Comparator.comparing(ChatMessage::getTime))
+                                         .orElseThrow();
     assertThat(chatMessage.getContent(), is(message));
   }
 
@@ -691,7 +703,10 @@ public class KittehChatServiceTest extends ServiceTest {
         new ChatMessage("1", Instant.now(), new ChatChannelUser(CHAT_USER_NAME, chatChannel), "", Type.MESSAGE, null),
         message).get(TIMEOUT, TIMEOUT_UNIT);
 
-    ChatMessage chatMessage = chatChannel.getMessages().getLast();
+    ChatMessage chatMessage = chatChannel.getMessages()
+                                         .stream()
+                                         .max(Comparator.comparing(ChatMessage::getTime))
+                                         .orElseThrow();
     assertThat(chatMessage.getContent(), is(message));
 
     ArgumentCaptor<String> captor = ArgumentCaptor.captor();

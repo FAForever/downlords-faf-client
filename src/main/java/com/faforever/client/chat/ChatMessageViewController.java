@@ -16,10 +16,10 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
-import javafx.collections.WeakListChangeListener;
+import javafx.collections.SetChangeListener;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -47,6 +47,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
@@ -87,16 +88,15 @@ public class ChatMessageViewController extends NodeController<VBox> {
   private final List<String> userMessageHistory = new ArrayList<>();
   private final ObjectProperty<ChatChannel> chatChannel = new SimpleObjectProperty<>();
   private final ObservableValue<ObservableList<ChatChannelUser>> users = chatChannel.map(ChatChannel::getUsers);
-  private final ListChangeListener<ChatChannelUser> typingUserListChangeListener = this::updateTypingUsersLabel;
+  private final ListChangeListener<ChatChannelUser> typingUsersChangeListener = this::updateTypingUsersLabel;
   private final ObjectProperty<ChatMessage> targetMessage = new SimpleObjectProperty<>();
 
   private final ObservableList<ChatMessage> rawMessages = FXCollections.synchronizedObservableList(
       FXCollections.observableArrayList(chatMessage -> new Observable[]{chatMessage.getSender().categoryProperty()}));
-  private final FilteredList<ChatMessage> filteredMessages = new FilteredList<>(rawMessages);
+  private final FilteredList<ChatMessage> filteredMessages = new FilteredList<>(
+      new SortedList<>(rawMessages, Comparator.comparing(ChatMessage::getType).thenComparing(ChatMessage::getTime)));
 
-  private final ListChangeListener<ChatMessage> chatMessageListener = this::onMessageChange;
-  private final WeakListChangeListener<ChatMessage> weakMessageListChangeListener = new WeakListChangeListener<>(
-      chatMessageListener);
+  private final SetChangeListener<ChatMessage> chatMessageListener = this::onMessageChange;
 
   private Popup emoticonsPopup;
 
@@ -124,18 +124,19 @@ public class ChatMessageViewController extends NodeController<VBox> {
     chatChannel.when(attached).subscribe(((oldValue, newValue) -> {
       userMessageHistory.clear();
       if (oldValue != null) {
-        oldValue.getMessages().removeListener(weakMessageListChangeListener);
-        oldValue.getTypingUsers().removeListener(typingUserListChangeListener);
+        oldValue.getMessages().removeListener(chatMessageListener);
+        oldValue.getTypingUsers().removeListener(typingUsersChangeListener);
       }
 
       rawMessages.clear();
 
       if (newValue != null) {
-        newValue.getMessages().addListener(weakMessageListChangeListener);
+        newValue.getMessages().addListener(chatMessageListener);
         newValue.getMessages().forEach(message -> fxApplicationThreadExecutor.execute(() -> rawMessages.add(message)));
+        fxApplicationThreadExecutor.execute(() -> messageListView.showAsLast(filteredMessages.size() - 1));
         ObservableList<ChatChannelUser> typingUsers = newValue.getTypingUsers();
         setTypingLabel(typingUsers);
-        typingUsers.addListener(typingUserListChangeListener);
+        typingUsers.addListener(typingUsersChangeListener);
       }
     }));
 
@@ -175,21 +176,20 @@ public class ChatMessageViewController extends NodeController<VBox> {
     VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
     messagesContainer.getChildren().add(scrollPane);
+
+    filteredMessages.subscribe(() -> {
+      if (messageListView.getLastVisibleIndex() == filteredMessages.size() - 2) {
+        fxApplicationThreadExecutor.execute(() -> messageListView.showAsLast(filteredMessages.size() - 1));
+      }
+    });
   }
 
-  private void onMessageChange(Change<? extends ChatMessage> change) {
-    while (change.next()) {
+  private void onMessageChange(SetChangeListener.Change<? extends ChatMessage> change) {
       if (change.wasAdded()) {
-        List.copyOf(change.getAddedSubList())
-            .forEach(message -> fxApplicationThreadExecutor.execute(() -> rawMessages.add(message)));
+        fxApplicationThreadExecutor.execute(() -> rawMessages.add(change.getElementAdded()));
       } else if (change.wasRemoved()) {
-        change.getRemoved().forEach(message -> fxApplicationThreadExecutor.execute(() -> rawMessages.add(message)));
-      } else if (change.wasUpdated()) {
-        List<ChatMessage> changedUsers = List.copyOf(change.getList().subList(change.getFrom(), change.getTo()));
-        changedUsers.forEach(message -> fxApplicationThreadExecutor.execute(() -> rawMessages.remove(message)));
-        changedUsers.forEach(message -> fxApplicationThreadExecutor.execute(() -> rawMessages.add(message)));
+        fxApplicationThreadExecutor.execute(() -> rawMessages.remove(change.getElementRemoved()));
       }
-    }
   }
 
   private AutoCompletionHelper createAutoCompletionHelper() {
@@ -222,8 +222,8 @@ public class ChatMessageViewController extends NodeController<VBox> {
   public void onDetached() {
     ChatChannel channel = chatChannel.get();
     if (channel != null) {
-      channel.getTypingUsers().removeListener(typingUserListChangeListener);
-      channel.getMessages().removeListener(weakMessageListChangeListener);
+      channel.getTypingUsers().removeListener(typingUsersChangeListener);
+      channel.getMessages().removeListener(chatMessageListener);
     }
   }
 
@@ -315,15 +315,15 @@ public class ChatMessageViewController extends NodeController<VBox> {
         log.warn("Message could not be sent: {}", text, throwable);
         notificationService.addImmediateErrorNotification(throwable, "chat.sendFailed");
       }
-    });
-
-    messageTextField.clear();
-    messageTextField.setDisable(false);
-    messageTextField.requestFocus();
-    removeReply();
+    }).whenCompleteAsync((ignored, throwable) -> {
+      messageTextField.clear();
+      messageTextField.setDisable(false);
+      messageTextField.requestFocus();
+      removeReply();
+    }, fxApplicationThreadExecutor);
   }
 
-  private void updateTypingUsersLabel(Change<? extends ChatChannelUser> change) {
+  private void updateTypingUsersLabel(ListChangeListener.Change<? extends ChatChannelUser> change) {
     List<ChatChannelUser> typingUsers = List.copyOf(change.getList());
     setTypingLabel(typingUsers);
   }

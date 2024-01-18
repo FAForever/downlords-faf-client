@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasKey;
@@ -40,20 +41,23 @@ public class ChatChannelTest extends DomainTest {
   public void testMessageMax() {
     ChatChannel channel = new ChatChannel("#test");
     ChatChannelUser sender = ChatChannelUserBuilder.create("", channel).defaultValues().get();
-    channel.addMessage(new ChatMessage("1", Instant.now().minusSeconds(1), sender, "1", Type.MESSAGE, null));
-    channel.addMessage(new ChatMessage("2", Instant.now(), sender, "2", Type.MESSAGE, null));
+    ChatMessage message1 = new ChatMessage("1", Instant.now().minusSeconds(1), sender, "1", Type.MESSAGE, null);
+    channel.addMessage(message1);
+    ChatMessage message2 = new ChatMessage("2", Instant.now(), sender, "2", Type.MESSAGE, null);
+    channel.addMessage(message2);
 
     assertThat(channel.getMessages(), hasSize(2));
 
     channel.setMaxNumMessages(1);
 
     assertThat(channel.getMessages(), hasSize(1));
-    assertEquals("2", channel.getMessages().getLast().getContent());
+    assertThat(channel.getMessages(), contains(message2));
 
-    channel.addMessage(new ChatMessage("3", Instant.now(), sender, "3", Type.MESSAGE, null));
+    ChatMessage message3 = new ChatMessage("3", Instant.now(), sender, "3", Type.MESSAGE, null);
+    channel.addMessage(message3);
 
     assertThat(channel.getMessages(), hasSize(1));
-    assertEquals("3", channel.getMessages().getLast().getContent());
+    assertThat(channel.getMessages(), contains(message3));
   }
 
   @Test
