@@ -874,7 +874,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       bufferedChannels.add(channelName);
     } else {
       client.addChannel(channelName);
-      client.sendRawLine("CHATHISTORY LATEST " + channelName + " * " + (chatPrefs.getMaxMessages() + 50));
+      client.sendRawLine("CHATHISTORY LATEST " + channelName + " * " + (chatPrefs.getMaxMessages() * 2));
       client.sendRawLine("WHO " + channelName);
     }
   }
@@ -936,7 +936,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Override
   public void joinPrivateChat(String username) {
     getOrCreateChannel(username);
-    client.sendRawLine("CHATHISTORY LATEST " + username + " * " + (chatPrefs.getMaxMessages() + 50));
+    client.sendRawLine("CHATHISTORY LATEST " + username + " * " + (chatPrefs.getMaxMessages() * 2));
   }
 
   @Override

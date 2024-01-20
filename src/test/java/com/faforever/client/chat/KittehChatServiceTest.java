@@ -519,7 +519,7 @@ public class KittehChatServiceTest extends ServiceTest {
   public void testJoinPrivateChat() {
     instance.joinPrivateChat("junit");
 
-    verify(spyClient).sendRawLine("CHATHISTORY LATEST junit" + " * " + (chatPrefs.getMaxMessages() + 50));
+    verify(spyClient).sendRawLine("CHATHISTORY LATEST junit" + " * " + (chatPrefs.getMaxMessages() * 2));
   }
 
   @Test
@@ -779,7 +779,7 @@ public class KittehChatServiceTest extends ServiceTest {
     instance.joinChannel(channelToJoin);
 
     verify(spyClient).addChannel(channelToJoin);
-    verify(spyClient).sendRawLine("CHATHISTORY LATEST " + channelToJoin + " * " + (chatPrefs.getMaxMessages() + 50));
+    verify(spyClient).sendRawLine("CHATHISTORY LATEST " + channelToJoin + " * " + (chatPrefs.getMaxMessages() * 2));
     verify(spyClient).sendRawLine("WHO " + channelToJoin);
   }
 

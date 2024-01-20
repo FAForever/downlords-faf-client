@@ -133,10 +133,11 @@ public class ChatMessageViewController extends NodeController<VBox> {
       if (newValue != null) {
         newValue.getMessages().addListener(chatMessageListener);
         newValue.getMessages().forEach(message -> fxApplicationThreadExecutor.execute(() -> rawMessages.add(message)));
-        fxApplicationThreadExecutor.execute(() -> messageListView.showAsLast(filteredMessages.size() - 1));
         ObservableList<ChatChannelUser> typingUsers = newValue.getTypingUsers();
         setTypingLabel(typingUsers);
         typingUsers.addListener(typingUsersChangeListener);
+
+        scrollToEnd();
       }
     }));
 
@@ -179,9 +180,13 @@ public class ChatMessageViewController extends NodeController<VBox> {
 
     filteredMessages.subscribe(() -> {
       if (messageListView.getLastVisibleIndex() == filteredMessages.size() - 2) {
-        fxApplicationThreadExecutor.execute(() -> messageListView.showAsLast(filteredMessages.size() - 1));
+        scrollToEnd();
       }
     });
+  }
+
+  private void scrollToEnd() {
+    fxApplicationThreadExecutor.execute(() -> messageListView.showAsLast(filteredMessages.size() - 1));
   }
 
   private void onMessageChange(SetChangeListener.Change<? extends ChatMessage> change) {
