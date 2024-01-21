@@ -176,10 +176,10 @@ public class ServerAccessorTest extends ServiceTest {
                                      clientProperties, new FafLobbyClient(objectMapper), () -> webClient);
 
     instance.afterPropertiesSet();
-    instance.addEventListener(ServerMessage.class, serverMessage -> {
+    instance.getEvents(ServerMessage.class).doOnNext(serverMessage -> {
       receivedMessage = serverMessage;
       messageReceivedByClientLatch.countDown();
-    });
+    }).subscribe();
 
     when(uidService.generate(any())).thenReturn("encrypteduidstring");
 
@@ -303,7 +303,7 @@ public class ServerAccessorTest extends ServiceTest {
 
     CompletableFuture<MatchmakerInfo> serviceStateDoneFuture = new CompletableFuture<>();
 
-    instance.addEventListener(MatchmakerInfo.class, serviceStateDoneFuture::complete);
+    instance.getEvents(MatchmakerInfo.class).subscribe(serviceStateDoneFuture::complete);
 
     sendFromServer(matchmakerMessage);
 
