@@ -107,23 +107,27 @@ public class ChatMessageControllerTest extends PlatformTest {
 
   @Test
   public void testPending() {
-    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "", Type.PENDING, null));
+    runOnFxThreadAndWait(
+        () -> instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "", Type.PENDING, null)));
     assertThat(instance.timeLabel.getText(), equalTo("pending"));
 
-    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "", Type.MESSAGE, null));
+    runOnFxThreadAndWait(
+        () -> instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "", Type.MESSAGE, null)));
     assertThat(instance.timeLabel.getText(), not(equalTo("pending")));
   }
 
   @Test
   public void testClickAuthor() {
-    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "", Type.MESSAGE, null));
+    runOnFxThreadAndWait(
+        () -> instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "", Type.MESSAGE, null)));
     runOnFxThreadAndWait(() -> instance.authorLabel.fireEvent(MouseEvents.generateClick(MouseButton.PRIMARY, 2)));
     verify(chatService).joinPrivateChat("junit");
   }
 
   @Test
   public void testMultipleWords() {
-    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "Hello world!", Type.MESSAGE, null));
+    runOnFxThreadAndWait(
+        () -> instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "Hello world!", Type.MESSAGE, null)));
 
     ObservableList<Node> children = instance.message.getChildren();
     assertThat(children, hasSize(2));
@@ -143,7 +147,8 @@ public class ChatMessageControllerTest extends PlatformTest {
 
   @Test
   public void testChannel() {
-    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "#test", Type.MESSAGE, null));
+    runOnFxThreadAndWait(
+        () -> instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "#test", Type.MESSAGE, null)));
 
     ObservableList<Node> children = instance.message.getChildren();
     assertThat(children, hasSize(1));
@@ -159,7 +164,8 @@ public class ChatMessageControllerTest extends PlatformTest {
 
   @Test
   public void testUrl() {
-    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "https://www.google.com", Type.MESSAGE, null));
+    runOnFxThreadAndWait(() -> instance.setChatMessage(
+        new ChatMessage(null, Instant.now(), user, "https://www.google.com", Type.MESSAGE, null)));
 
     ObservableList<Node> children = instance.message.getChildren();
     assertThat(children, hasSize(1));
@@ -175,7 +181,8 @@ public class ChatMessageControllerTest extends PlatformTest {
 
   @Test
   public void testNoSchemeUrl() {
-    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "www.google.com", Type.MESSAGE, null));
+    runOnFxThreadAndWait(() -> instance.setChatMessage(
+        new ChatMessage(null, Instant.now(), user, "www.google.com", Type.MESSAGE, null)));
 
     ObservableList<Node> children = instance.message.getChildren();
     assertThat(children, hasSize(1));
@@ -191,7 +198,8 @@ public class ChatMessageControllerTest extends PlatformTest {
 
   @Test
   public void testSelf() {
-    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "junit", Type.MESSAGE, null));
+    runOnFxThreadAndWait(
+        () -> instance.setChatMessage(new ChatMessage(null, Instant.now(), user, "junit", Type.MESSAGE, null)));
 
     ObservableList<Node> children = instance.message.getChildren();
     assertThat(children, hasSize(1));
@@ -209,7 +217,8 @@ public class ChatMessageControllerTest extends PlatformTest {
     when(emoticonService.isEmoticonShortcode(any())).thenReturn(true);
     when(emoticonService.getImageByShortcode(any())).thenReturn(image);
 
-    instance.setChatMessage(new ChatMessage(null, Instant.now(), user, ":)", Type.MESSAGE, null));
+    runOnFxThreadAndWait(
+        () -> instance.setChatMessage(new ChatMessage(null, Instant.now(), user, ":)", Type.MESSAGE, null)));
 
     ObservableList<Node> children = instance.message.getChildren();
     assertThat(children, hasSize(1));
@@ -239,7 +248,7 @@ public class ChatMessageControllerTest extends PlatformTest {
 
     Emoticon emoticon = new Emoticon(List.of(), "");
     ChatMessage message = new ChatMessage("2", Instant.now(), user, "hello", Type.MESSAGE, null);
-    instance.setChatMessage(message);
+    runOnFxThreadAndWait(() -> instance.setChatMessage(message));
 
     assertThat(instance.reactionsContainer.isVisible(), is(false));
     assertThat(instance.reactionsContainer.getChildren(), empty());
@@ -257,7 +266,7 @@ public class ChatMessageControllerTest extends PlatformTest {
     when(mockedEmoticonsWindowController.getRoot()).thenReturn(new VBox());
 
     ChatMessage message = new ChatMessage(null, Instant.now(), user, "hello", Type.MESSAGE, null);
-    instance.setChatMessage(message);
+    runOnFxThreadAndWait(() -> instance.setChatMessage(message));
     instance.onReactButtonClicked();
 
     ArgumentCaptor<Consumer<Emoticon>> captor = captor();
@@ -280,7 +289,7 @@ public class ChatMessageControllerTest extends PlatformTest {
     Emoticon emoticon = new Emoticon(List.of(), "");
     ChatMessage message = new ChatMessage(null, Instant.now(), user, "hello", Type.MESSAGE, null);
     message.addReaction(new Reaction("1", "2", emoticon, "junit"));
-    instance.setChatMessage(message);
+    runOnFxThreadAndWait(() -> instance.setChatMessage(message));
     instance.onReactButtonClicked();
 
     ArgumentCaptor<Consumer<Emoticon>> captor = captor();
@@ -304,7 +313,7 @@ public class ChatMessageControllerTest extends PlatformTest {
     Emoticon emoticon = new Emoticon(List.of(), "");
     ChatMessage message = new ChatMessage(null, Instant.now(), user, "hello", Type.MESSAGE, null);
     message.addReaction(new Reaction("1", "2", emoticon, "other"));
-    instance.setChatMessage(message);
+    runOnFxThreadAndWait(() -> instance.setChatMessage(message));
 
     Consumer<Emoticon> consumer = consumerProperty.getValue();
     runOnFxThreadAndWait(() -> consumer.accept(emoticon));
@@ -323,7 +332,7 @@ public class ChatMessageControllerTest extends PlatformTest {
     Emoticon emoticon = new Emoticon(List.of(), "");
     ChatMessage message = new ChatMessage("2", Instant.now(), user, "hello", Type.MESSAGE, null);
     message.addReaction(new Reaction("1", "2", emoticon, "junit"));
-    instance.setChatMessage(message);
+    runOnFxThreadAndWait(() -> instance.setChatMessage(message));
 
     Consumer<Emoticon> consumer = consumerProperty.getValue();
     runOnFxThreadAndWait(() -> consumer.accept(emoticon));
@@ -339,7 +348,7 @@ public class ChatMessageControllerTest extends PlatformTest {
 
     Consumer<ChatMessage> mockConsumer = mock();
 
-    instance.setChatMessage(message);
+    runOnFxThreadAndWait(() -> instance.setChatMessage(message));
     instance.setOnReplyClicked(mockConsumer);
 
     instance.replyContainer.getOnMouseClicked().handle(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
@@ -354,7 +363,7 @@ public class ChatMessageControllerTest extends PlatformTest {
 
     Consumer<ChatMessage> mockConsumer = mock();
 
-    instance.setChatMessage(message);
+    runOnFxThreadAndWait(() -> instance.setChatMessage(message));
     instance.setOnReplyButtonClicked(mockConsumer);
 
     instance.replyButton.getOnAction().handle(null);
