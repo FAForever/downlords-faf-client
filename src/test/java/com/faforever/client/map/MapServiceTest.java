@@ -39,7 +39,6 @@ import com.faforever.commons.api.dto.MapPoolAssignment;
 import com.faforever.commons.api.dto.MapVersion;
 import com.faforever.commons.api.dto.NeroxisGeneratorParams;
 import com.faforever.commons.api.elide.ElideEntity;
-import com.google.common.collect.ImmutableSet;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -57,6 +56,7 @@ import org.springframework.util.FileSystemUtils;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import reactor.util.function.Tuple2;
 
 import java.io.IOException;
@@ -65,7 +65,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
@@ -79,7 +79,6 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -158,7 +157,7 @@ public class MapServiceTest extends PlatformTest {
                               themeService, mapGeneratorService, playerService, mapMapper, fileSizeReader,
                               clientProperties, forgedAlliancePrefs, preferences, mapUploadTaskFactory,
                               downloadMapTaskFactory, uninstallMapTaskFactory, fxApplicationThreadExecutor);
-    instance.officialMaps = ImmutableSet.of();
+    instance.officialMaps = Set.of();
     instance.afterPropertiesSet();
   }
 
@@ -170,7 +169,7 @@ public class MapServiceTest extends PlatformTest {
   @Test
   @Disabled("Unstable test: Map could not be read")
   public void testGetLocalMapsOfficialMap() throws Exception {
-    instance.officialMaps = ImmutableSet.of("SCMP_001");
+    instance.officialMaps = Set.of("SCMP_001");
 
     Path scmp001 = Files.createDirectory(mapsDirectory.resolve("SCMP_001"));
     Files.copy(getClass().getResourceAsStream("/maps/SCMP_001/SCMP_001_scenario.lua"), scmp001.resolve("SCMP_001_scenario.lua"));
@@ -214,7 +213,7 @@ public class MapServiceTest extends PlatformTest {
 
   @Test
   public void testInstalledOfficialMapIgnoreCase() throws Exception {
-    instance.officialMaps = ImmutableSet.of("SCMP_001");
+    instance.officialMaps = Set.of("SCMP_001");
 
     Path scmp001 = Files.createDirectory(mapsDirectory.resolve("SCMP_001"));
     Files.copy(getClass().getResourceAsStream("/maps/SCMP_001/SCMP_001_scenario.lua"), scmp001.resolve("SCMP_001_scenario.lua"));
@@ -277,7 +276,7 @@ public class MapServiceTest extends PlatformTest {
 
   @Test
   public void testIsOfficialMap() {
-    instance.officialMaps = ImmutableSet.of("SCMP_001");
+    instance.officialMaps = Set.of("SCMP_001");
 
     MapVersionBean officialMap = MapVersionBeanBuilder.create().folderName("SCMP_001").get();
     MapVersionBean customMap = MapVersionBeanBuilder.create().folderName("customMap.v0001").get();
@@ -289,7 +288,7 @@ public class MapServiceTest extends PlatformTest {
 
   @Test
   public void testIsCustomMap() {
-    instance.officialMaps = ImmutableSet.of("SCMP_001");
+    instance.officialMaps = Set.of("SCMP_001");
 
     MapVersionBean officialMap = MapVersionBeanBuilder.create().folderName("SCMP_001").get();
     MapVersionBean customMap = MapVersionBeanBuilder.create().folderName("customMap.v0001").get();
@@ -301,7 +300,7 @@ public class MapServiceTest extends PlatformTest {
   @Test
   public void testGetLatestVersionMap() {
     MapVersionBean oldestMap = MapVersionBeanBuilder.create().folderName("unitMap v1").version(null).get();
-    assertThat(instance.getMapLatestVersion(oldestMap).join(), is(oldestMap));
+    StepVerifier.create(instance.getMapLatestVersion(oldestMap)).expectNext(oldestMap).verifyComplete();
 
     MapBean mapBean = MapBeanBuilder.create().defaultValues().get();
     MapVersionBean mapVersionBean = MapVersionBeanBuilder.create()
@@ -320,7 +319,9 @@ public class MapServiceTest extends PlatformTest {
     Map map = mapMapper.map(mapBean, new CycleAvoidingMappingContext());
 
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(map));
-    assertThat(instance.getMapLatestVersion(mapVersionBean).join().getId(), is(sameMap.getId()));
+    StepVerifier.create(instance.getMapLatestVersion(mapVersionBean).map(MapVersionBean::getId))
+                .expectNext(sameMap.getId())
+                .verifyComplete();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("versions.folderName")
         .eq("junit_map1.v0003"))));
@@ -340,7 +341,9 @@ public class MapServiceTest extends PlatformTest {
     mapBean.setLatestVersion(newMap);
     map = mapMapper.map(mapBean, new CycleAvoidingMappingContext());
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(map));
-    assertThat(instance.getMapLatestVersion(outdatedMap).join().getId(), is(newMap.getId()));
+    StepVerifier.create(instance.getMapLatestVersion(outdatedMap).map(MapVersionBean::getId))
+                .expectNext(newMap.getId())
+                .verifyComplete();
   }
 
   @Test
@@ -368,7 +371,9 @@ public class MapServiceTest extends PlatformTest {
     assertThat(checkCustomMapFolderExist(updatedMap), is(false));
     prepareDownloadMapTask(updatedMap);
     prepareUninstallMapTask(outdatedMap);
-    assertThat(instance.updateLatestVersionIfNecessary(outdatedMap).join().getId(), is(updatedMap.getId()));
+    StepVerifier.create(instance.updateLatestVersionIfNecessary(outdatedMap).map(MapVersionBean::getId))
+                .expectNext(updatedMap.getId())
+                .verifyComplete();
 
     assertThat(checkCustomMapFolderExist(outdatedMap), is(false));
     assertThat(checkCustomMapFolderExist(updatedMap), is(true));
@@ -376,13 +381,14 @@ public class MapServiceTest extends PlatformTest {
 
   @Test
   public void testUpdateMapToLatestVersionIfOfficalMap() throws Exception {
+    instance.officialMaps = Set.of("SCMP_001");
     MapVersionBean offical = MapVersionBeanBuilder.create()
         .defaultValues()
         .folderName("SCMP_001")
         .version(new ComparableVersion("1"))
         .get();
 
-    instance.updateLatestVersionIfNecessary(offical);
+    StepVerifier.create(instance.updateLatestVersionIfNecessary(offical)).expectNext(offical).verifyComplete();
 
     verify(fafApiAccessor, times(0)).getMany(any());
   }
@@ -396,7 +402,7 @@ public class MapServiceTest extends PlatformTest {
         .get();
     preferences.setMapAndModAutoUpdate(false);
 
-    instance.updateLatestVersionIfNecessary(map);
+    StepVerifier.create(instance.updateLatestVersionIfNecessary(map)).expectNext(map).verifyComplete();
 
     verify(fafApiAccessor, times(0)).getMany(any());
   }
@@ -414,7 +420,9 @@ public class MapServiceTest extends PlatformTest {
 
     copyMapsToCustomMapsDirectory(mapVersionBean);
     assertThat(checkCustomMapFolderExist(mapVersionBean), is(true));
-    assertThat(instance.updateLatestVersionIfNecessary(mapVersionBean).join(), is(mapVersionBean));
+    StepVerifier.create(instance.updateLatestVersionIfNecessary(mapVersionBean))
+                .expectNext(mapVersionBean)
+                .verifyComplete();
     assertThat(checkCustomMapFolderExist(mapVersionBean), is(true));
   }
 
@@ -427,7 +435,7 @@ public class MapServiceTest extends PlatformTest {
         .get();
     when(fafApiAccessor.patch(any(), any())).thenReturn(Mono.empty());
 
-    instance.hideMapVersion(map);
+    StepVerifier.create(instance.hideMapVersion(map)).verifyComplete();
 
     verify(fafApiAccessor).patch(any(), argThat(mapVersion -> ((MapVersion) mapVersion).getHidden()));
   }
@@ -458,10 +466,9 @@ public class MapServiceTest extends PlatformTest {
     Flux<ElideEntity> resultFlux = Flux.just(mapMapper.map(mapVersionBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
-    Optional<MapVersionBean> result = instance.findByMapFolderName("test").join();
+    StepVerifier.create(instance.findByMapFolderName("test")).expectNext(mapVersionBean).verifyComplete();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("folderName").eq("test"))));
-    assertThat(result.orElse(null), is(mapVersionBean));
   }
 
   @Test
@@ -536,7 +543,7 @@ public class MapServiceTest extends PlatformTest {
 
     MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().get();
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
-    Boolean result = instance.hasPlayedMap(player, mapVersion).blockOptional().orElseThrow();
+    StepVerifier.create(instance.hasPlayedMap(player, mapVersion)).expectNext(false).verifyComplete();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("mapVersion.id")
         .eq(mapVersion.getId())
@@ -544,7 +551,6 @@ public class MapServiceTest extends PlatformTest {
         .intNum("playerStats.player.id")
         .eq(player.getId()))));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("endTime", false)));
-    assertFalse(result);
   }
 
   @Test

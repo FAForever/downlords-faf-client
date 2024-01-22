@@ -28,7 +28,6 @@ import java.nio.file.Path;
 import java.security.InvalidParameterException;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -91,7 +90,7 @@ public class MapGeneratorService implements DisposableBean {
   }
 
   @VisibleForTesting
-  private CompletableFuture<ComparableVersion> queryMaxSupportedVersion() {
+  private Mono<ComparableVersion> queryMaxSupportedVersion() {
     ComparableVersion minVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator()
         .getMinSupportedMajorVersion()));
     ComparableVersion maxVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator()
@@ -105,15 +104,14 @@ public class MapGeneratorService implements DisposableBean {
         .map(release -> new ComparableVersion(release.getTagName()))
         .filter(version -> version.compareTo(maxVersion) < 0 && minVersion.compareTo(version) < 0)
         .sort(Comparator.naturalOrder())
-        .last()
-        .switchIfEmpty(Mono.error(new RuntimeException("No valid generator version found")))
-        .toFuture();
+                           .last()
+                           .switchIfEmpty(Mono.error(new RuntimeException("No valid generator version found")));
   }
 
-  public CompletableFuture<String> generateMap(String mapName) {
+  public Mono<String> generateMap(String mapName) {
     Matcher matcher = GENERATED_MAP_PATTERN.matcher(mapName);
     if (!matcher.find()) {
-      return CompletableFuture.failedFuture(new InvalidParameterException("Map name is not a generated map"));
+      return Mono.error(new InvalidParameterException("Map name is not a generated map"));
     }
 
     ComparableVersion version = new ComparableVersion(matcher.group(1));
@@ -121,7 +119,7 @@ public class MapGeneratorService implements DisposableBean {
 
     Path generatorExecutablePath = getGeneratorExecutablePath(version);
 
-    CompletableFuture<Void> downloadGeneratorFuture = downloadGeneratorIfNecessary(version);
+    Mono<Void> downloadGeneratorFuture = downloadGeneratorIfNecessary(version);
 
     GenerateMapTask generateMapTask = generateMapTaskFactory.getObject();
     generateMapTask.setVersion(version);
@@ -129,75 +127,75 @@ public class MapGeneratorService implements DisposableBean {
     generateMapTask.setMapName(mapName);
     generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
 
-    return downloadGeneratorFuture.thenCompose((aVoid) -> taskService.submitTask(generateMapTask).getFuture());
+    return downloadGeneratorFuture.then(Mono.defer(() -> taskService.submitTask(generateMapTask).getMono()));
   }
 
-  public CompletableFuture<String> generateMap(GeneratorOptions generatorOptions) {
+  public Mono<String> generateMap(GeneratorOptions generatorOptions) {
     Path generatorExecutablePath = getGeneratorExecutablePath(defaultGeneratorVersion);
 
-    CompletableFuture<Void> downloadGeneratorFuture = downloadGeneratorIfNecessary(defaultGeneratorVersion);
+    Mono<Void> downloadGeneratorFuture = downloadGeneratorIfNecessary(defaultGeneratorVersion);
 
     GenerateMapTask generateMapTask = generateMapTaskFactory.getObject();
     generateMapTask.setVersion(defaultGeneratorVersion);
     generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
     generateMapTask.setGeneratorOptions(generatorOptions);
 
-    return downloadGeneratorFuture.thenCompose((aVoid) -> taskService.submitTask(generateMapTask).getFuture());
+    return downloadGeneratorFuture.then(Mono.defer(() -> taskService.submitTask(generateMapTask).getMono()));
   }
 
-  public CompletableFuture<Void> downloadGeneratorIfNecessary(ComparableVersion version) {
+  public Mono<Void> downloadGeneratorIfNecessary(ComparableVersion version) {
     ComparableVersion minVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator()
         .getMinSupportedMajorVersion()));
     ComparableVersion maxVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator()
         .getMaxSupportedMajorVersion() + 1));
     if (version.compareTo(maxVersion) >= 0) {
-      return CompletableFuture.failedFuture(new UnsupportedVersionException("New version not supported"));
+      return Mono.error(new UnsupportedVersionException("New version not supported"));
     }
     if (version.compareTo(minVersion) < 0) {
-      return CompletableFuture.failedFuture(new OutdatedVersionException("Old Version not supported"));
+      return Mono.error(new OutdatedVersionException("Old Version not supported"));
     }
     Path generatorExecutablePath = getGeneratorExecutablePath(version);
 
     if (!Files.exists(generatorExecutablePath)) {
       if (!VERSION_PATTERN.matcher(version.toString()).matches()) {
         log.warn("Unsupported generator version: {}", version);
-        return CompletableFuture.failedFuture(new UnsupportedVersionException("Unsupported generator version: " + version));
+        return Mono.error(new UnsupportedVersionException("Unsupported generator version: " + version));
       }
 
       log.info("Downloading MapGenerator version: {}", version);
       DownloadMapGeneratorTask downloadMapGeneratorTask = downloadMapGeneratorTaskFactory.getObject();
       downloadMapGeneratorTask.setVersion(version);
-      return taskService.submitTask(downloadMapGeneratorTask).getFuture();
+      return taskService.submitTask(downloadMapGeneratorTask).getMono();
     } else {
       log.info("Found MapGenerator version: {}", version);
-      return CompletableFuture.completedFuture(null);
+      return Mono.empty();
     }
   }
 
   @Cacheable(value = CacheNames.MAP_GENERATOR, sync = true)
-  public CompletableFuture<Void> getNewestGenerator() {
-    return queryMaxSupportedVersion().thenAccept(newVersion -> defaultGeneratorVersion = newVersion)
-        .thenCompose(aVoid -> downloadGeneratorIfNecessary(defaultGeneratorVersion));
+  public Mono<Void> getNewestGenerator() {
+    return queryMaxSupportedVersion().doOnNext(newVersion -> defaultGeneratorVersion = newVersion)
+                                     .flatMap(this::downloadGeneratorIfNecessary);
   }
 
-  public CompletableFuture<List<String>> getGeneratorStyles() {
+  public Mono<List<String>> getGeneratorStyles() {
     Assert.checkNullIllegalState(defaultGeneratorVersion, "Generator version not set");
     GeneratorOptionsTask generatorOptionsTask = generatorOptionsTaskFactory.getObject();
     Path generatorExecutablePath = getGeneratorExecutablePath(defaultGeneratorVersion);
     generatorOptionsTask.setVersion(defaultGeneratorVersion);
     generatorOptionsTask.setQuery("--styles");
     generatorOptionsTask.setGeneratorExecutableFile(generatorExecutablePath);
-    return taskService.submitTask(generatorOptionsTask).getFuture();
+    return taskService.submitTask(generatorOptionsTask).getMono();
   }
 
-  public CompletableFuture<List<String>> getGeneratorBiomes() {
+  public Mono<List<String>> getGeneratorBiomes() {
     Assert.checkNullIllegalState(defaultGeneratorVersion, "Generator version not set");
     GeneratorOptionsTask generatorOptionsTask = generatorOptionsTaskFactory.getObject();
     Path generatorExecutablePath = getGeneratorExecutablePath(defaultGeneratorVersion);
     generatorOptionsTask.setVersion(defaultGeneratorVersion);
     generatorOptionsTask.setQuery("--biomes");
     generatorOptionsTask.setGeneratorExecutableFile(generatorExecutablePath);
-    return taskService.submitTask(generatorOptionsTask).getFuture();
+    return taskService.submitTask(generatorOptionsTask).getMono();
   }
 
   @NotNull

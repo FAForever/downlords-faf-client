@@ -24,10 +24,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.teammatchmaking.PartyMemberItemController.LEADER_PSEUDO_CLASS;
 import static com.faforever.client.teammatchmaking.PartyMemberItemController.PLAYING_PSEUDO_CLASS;
@@ -81,8 +80,7 @@ public class PartyMemberItemControllerTest extends PlatformTest {
     lenient().when(i18n.get(eq("teammatchmaking.gameCount"), anyInt())).thenReturn("GAMES PLAYED: 0");
     lenient().when(playerService.getCurrentPlayer()).thenReturn(owner);
     lenient().when(teamMatchmakingService.getParty()).thenReturn(party);
-    lenient().when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
-        CompletableFuture.completedFuture(Optional.empty()));
+    lenient().when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(Mono.empty());
 
     loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml", clazz -> instance);
     runOnFxThreadAndWait(() -> instance.setMember(partyMember));
@@ -97,7 +95,7 @@ public class PartyMemberItemControllerTest extends PlatformTest {
   @Test
   public void testLeagueSet() {
     when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
-        CompletableFuture.completedFuture(Optional.of(LeagueEntryBeanBuilder.create().defaultValues().get())));
+        Mono.just(LeagueEntryBeanBuilder.create().defaultValues().get()));
 
     runOnFxThreadAndWait(() -> instance.setLeagueInfo());
 

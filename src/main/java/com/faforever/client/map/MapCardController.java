@@ -107,21 +107,19 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
 
   public void onInstallButtonClicked() {
     MapVersionBean mapVersionBean = entity.get();
-    mapService.downloadAndInstallMap(mapVersionBean, null, null).exceptionally(throwable -> {
+    mapService.downloadAndInstallMap(mapVersionBean, null, null).subscribe(null, throwable -> {
       log.error("Map installation failed", throwable);
       notificationService.addImmediateErrorNotification(throwable, "mapVault.installationFailed", mapVersionBean.getMap()
           .getDisplayName(), throwable.getLocalizedMessage());
-      return null;
     });
   }
 
   public void onUninstallButtonClicked() {
     MapVersionBean mapVersionBean = entity.get();
-    mapService.uninstallMap(mapVersionBean).exceptionally(throwable -> {
+    mapService.uninstallMap(mapVersionBean).subscribe(null, throwable -> {
       log.error("Could not delete map", throwable);
       notificationService.addImmediateErrorNotification(throwable, "mapVault.couldNotDeleteMap", mapVersionBean.getMap()
           .getDisplayName(), throwable.getLocalizedMessage());
-      return null;
     });
   }
 

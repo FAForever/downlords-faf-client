@@ -12,9 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import reactor.core.publisher.Mono;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 
@@ -27,19 +25,16 @@ public class ClanService {
   private final ClanMapper clanMapper;
 
   @Cacheable(value = CacheNames.CLAN, sync = true)
-  public CompletableFuture<Optional<ClanBean>> getClanByTag(String tag) {
+  public Mono<ClanBean> getClanByTag(String tag) {
     if (tag == null) {
-      return CompletableFuture.completedFuture(Optional.empty());
+      return Mono.empty();
     }
 
     ElideNavigatorOnCollection<Clan> navigator = ElideNavigator.of(Clan.class).collection()
         .setFilter(qBuilder().string("tag").eq(tag))
         .pageSize(1);
     return fafApiAccessor.getMany(navigator)
-        .next()
-        .map(dto -> clanMapper.map(dto, new CycleAvoidingMappingContext()))
-        .toFuture()
-        .thenApply(Optional::ofNullable);
+        .next().map(dto -> clanMapper.map(dto, new CycleAvoidingMappingContext())).cache();
   }
 }
 

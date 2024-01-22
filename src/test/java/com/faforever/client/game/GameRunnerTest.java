@@ -53,6 +53,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import reactor.core.publisher.Mono;
 import reactor.test.publisher.TestPublisher;
 
 import java.io.IOException;
@@ -185,7 +186,7 @@ public class GameRunnerTest extends ServiceTest {
   private void mockStartGameProcess(GameLaunchResponse gameLaunchResponse) throws IOException {
     String mapName = gameLaunchResponse.getMapName();
     if (mapName != null) {
-      lenient().when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
+      lenient().when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     }
     lenient().when(forgedAllianceLaunchService.launchOnlineGame(any(), anyInt(), anyInt())).thenReturn(process);
     lenient().when(replayServer.start(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
@@ -249,7 +250,7 @@ public class GameRunnerTest extends ServiceTest {
                                                                     .ratingType("ladder_1v1")
                                                                     .get();
     mockStartGameProcess(gameLaunchResponse);
-    when(leaderboardService.getActiveLeagueEntryForPlayer(any(), any())).thenReturn(completedFuture(Optional.empty()));
+    when(leaderboardService.getActiveLeagueEntryForPlayer(any(), any())).thenReturn(Mono.empty());
 
     instance.startOnlineGame(gameLaunchResponse);
 
@@ -274,8 +275,7 @@ public class GameRunnerTest extends ServiceTest {
                                                                     .get();
     mockStartGameProcess(gameLaunchResponse);
     LeagueEntryBean leagueEntry = LeagueEntryBeanBuilder.create().defaultValues().get();
-    when(leaderboardService.getActiveLeagueEntryForPlayer(any(), any())).thenReturn(
-        completedFuture(Optional.of(leagueEntry)));
+    when(leaderboardService.getActiveLeagueEntryForPlayer(any(), any())).thenReturn(Mono.just(leagueEntry));
 
     instance.startOnlineGame(gameLaunchResponse);
 
@@ -385,7 +385,7 @@ public class GameRunnerTest extends ServiceTest {
     GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
     mockStartGameProcess(gameLaunchResponse);
     when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
+    when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
 
     instance.prepareAndLaunchGameWhenReady("faf", Set.of(), "testMap", () -> completedFuture(gameLaunchResponse));
 
@@ -419,7 +419,7 @@ public class GameRunnerTest extends ServiceTest {
     lenient().when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     lenient().when(fafServerAccessor.requestJoinGame(anyInt(), any())).thenReturn(completedFuture(gameLaunchResponse));
     lenient().when(modService.downloadAndEnableMods(anySet())).thenReturn(completedFuture(null));
-    lenient().when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
+    lenient().when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     mockStartGameProcess(gameLaunchResponse);
   }
 
@@ -559,7 +559,7 @@ public class GameRunnerTest extends ServiceTest {
     lenient().when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     lenient().when(fafServerAccessor.requestHostGame(any())).thenReturn(completedFuture(gameLaunchResponse));
     lenient().when(modService.downloadAndEnableMods(anySet())).thenReturn(completedFuture(null));
-    lenient().when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
+    lenient().when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     lenient().when(gameService.getByUid(anyInt()))
              .thenReturn(Optional.of(GameBeanBuilder.create().defaultValues().get()));
     mockStartGameProcess(gameLaunchResponse);
@@ -715,7 +715,7 @@ public class GameRunnerTest extends ServiceTest {
   @Test
   public void testLaunchTutorial() {
     when(preferencesService.hasValidGamePath()).thenReturn(true);
-    when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
+    when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     when(forgedAllianceLaunchService.launchOfflineGame(any())).thenReturn(process);
     when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     when(process.onExit()).thenReturn(new CompletableFuture<>());
@@ -733,7 +733,7 @@ public class GameRunnerTest extends ServiceTest {
   @Test
   public void testLaunchTutorialGameRunning() {
     when(preferencesService.hasValidGamePath()).thenReturn(true);
-    when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
+    when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     when(forgedAllianceLaunchService.launchOfflineGame(any())).thenReturn(process);
     when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     when(process.onExit()).thenReturn(new CompletableFuture<>());

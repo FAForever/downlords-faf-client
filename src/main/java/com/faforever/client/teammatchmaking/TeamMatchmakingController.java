@@ -5,7 +5,6 @@ import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -122,6 +121,9 @@ public class TeamMatchmakingController extends NodeController<Node> {
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView, leagueImageView);
     JavaFxUtil.fixScrollSpeed(scrollPane);
+
+    leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
+    leagueImageView.setVisible(false);
 
     factionsToButtons = Map.of(Faction.UEF, uefButton, Faction.AEON, aeonButton, Faction.CYBRAN, cybranButton,
                                Faction.SERAPHIM, seraphimButton);
@@ -251,20 +253,17 @@ public class TeamMatchmakingController extends NodeController<Node> {
       return;
     }
 
-    leaderboardService.getHighestActiveLeagueEntryForPlayer(currentPlayer).thenAcceptAsync(leagueEntry -> {
-      SubdivisionBean subdivision = leagueEntry.map(LeagueEntryBean::getSubdivision).orElse(null);
-      if (subdivision == null) {
-        leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
-        leagueImageView.setVisible(false);
-      } else {
-        leagueLabel.setText(i18n.get("leaderboard.divisionName",
-                                     i18n.getOrDefault(subdivision.getDivision().getNameKey(),
-                                                       subdivision.getDivisionI18nKey()), subdivision.getNameKey())
-                                .toUpperCase());
-        leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
-        leagueImageView.setVisible(true);
-      }
-    }, fxApplicationThreadExecutor);
+    leaderboardService.getHighestActiveLeagueEntryForPlayer(currentPlayer)
+                      .mapNotNull(LeagueEntryBean::getSubdivision)
+                      .publishOn(fxApplicationThreadExecutor.asScheduler())
+                      .subscribe(subdivision -> {
+                        leagueLabel.setText(i18n.get("leaderboard.divisionName",
+                                                     i18n.getOrDefault(subdivision.getDivision().getNameKey(),
+                                                                       subdivision.getDivisionI18nKey()),
+                                                     subdivision.getNameKey()).toUpperCase());
+                        leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
+                        leagueImageView.setVisible(true);
+                      });
   }
 
   private void renderPartyMembers() {

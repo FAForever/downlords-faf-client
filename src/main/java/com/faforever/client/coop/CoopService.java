@@ -15,9 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import reactor.core.publisher.Flux;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 
@@ -31,17 +29,14 @@ public class CoopService {
   private final CoopMapper coopMapper;
 
   @Cacheable(value = CacheNames.COOP_MAPS, sync = true)
-  public CompletableFuture<List<CoopMissionBean>> getMissions() {
+  public Flux<CoopMissionBean> getMissions() {
     ElideNavigatorOnCollection<CoopMission> navigator = ElideNavigator.of(CoopMission.class).collection()
         .pageSize(1000);
-    return fafApiAccessor.getMany(navigator)
-        .map(dto -> coopMapper.map(dto, new CycleAvoidingMappingContext()))
-        .collectList()
-        .toFuture();
+    return fafApiAccessor.getMany(navigator).map(dto -> coopMapper.map(dto, new CycleAvoidingMappingContext())).cache();
   }
 
   @Cacheable(value = CacheNames.COOP_LEADERBOARD, sync = true)
-  public CompletableFuture<List<CoopResultBean>> getLeaderboard(CoopMissionBean mission, int numberOfPlayers) {
+  public Flux<CoopResultBean> getLeaderboard(CoopMissionBean mission, int numberOfPlayers) {
     Condition<?> filterCondition = qBuilder().intNum("mission").eq(mission.getId());
     if (numberOfPlayers > 0) {
       filterCondition = filterCondition.and().intNum("playerCount").eq(numberOfPlayers);
@@ -50,9 +45,6 @@ public class CoopService {
         .setFilter(filterCondition)
         .addSortingRule("duration", true)
         .pageSize(1000);
-    return fafApiAccessor.getMany(navigator)
-        .map(dto -> coopMapper.map(dto, new CycleAvoidingMappingContext()))
-        .collectList()
-        .toFuture();
+    return fafApiAccessor.getMany(navigator).map(dto -> coopMapper.map(dto, new CycleAvoidingMappingContext())).cache();
   }
 }

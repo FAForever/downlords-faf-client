@@ -95,14 +95,26 @@ public class ChatUserFilterController extends AbstractFilterController<ChatListI
                                                                                                                 .orElse(
                                                                                                                     false));
 
-    filterBuilder.rangeSliderWithCombobox(i18n.get("game.rating"), leaderboardService.getLeaderboards(), leaderboardConverter, MIN_RATING, MAX_RATING,
-        (ratingWithRange, item) -> ratingWithRange.range() == AbstractRangeSliderFilterController.NO_CHANGE || item.user() == null ||
-            item.user().getPlayer()
-                .map(PlayerBean::getLeaderboardRatings)
-                .map(ratingMap -> ratingMap.get(ratingWithRange.item().getTechnicalName()))
-                .map(RatingUtil::getRating)
-                .map(rating -> ratingWithRange.range().contains(rating))
-                .orElse(false));
+    RangeSliderWithChoiceFilterController<LeaderboardBean, ChatListItem> ratingFilter = filterBuilder.rangeSliderWithCombobox(
+        i18n.get("game.rating"), leaderboardConverter, MIN_RATING, MAX_RATING, (ratingWithRange, item) -> {
+          if (ratingWithRange.range() == AbstractRangeSliderFilterController.NO_CHANGE) {
+            return true;
+          }
+
+          if (item.user() == null) {
+            return true;
+          }
+
+          return item.user()
+                     .getPlayer()
+                     .map(PlayerBean::getLeaderboardRatings)
+                     .map(ratingMap -> ratingMap.get(ratingWithRange.item().getTechnicalName()))
+                     .map(RatingUtil::getRating)
+                     .map(rating -> ratingWithRange.range().contains(rating))
+                     .orElse(false);
+        });
+
+    leaderboardService.getLeaderboards().collectList().subscribe(ratingFilter::setItems);
 
     filterBuilder.multiCheckbox(i18n.get("country"), countryFlagService.getCountries(), countryConverter,
         (countries, item) -> countries.isEmpty() || item.user() == null ||

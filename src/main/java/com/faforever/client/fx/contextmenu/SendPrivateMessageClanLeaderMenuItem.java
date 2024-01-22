@@ -25,8 +25,9 @@ public class SendPrivateMessageClanLeaderMenuItem extends AbstractMenuItem<Playe
     Assert.checkNullIllegalState(object, "no player has been set");
 
     clanService.getClanByTag(object.getClan())
-        .thenAccept(possibleClan -> possibleClan.map(ClanBean::getLeader)
-            .map(PlayerBean::getUsername).ifPresent(chatService::joinPrivateChat));
+               .map(ClanBean::getLeader)
+               .map(PlayerBean::getUsername)
+               .subscribe(chatService::joinPrivateChat);
   }
 
   @Override

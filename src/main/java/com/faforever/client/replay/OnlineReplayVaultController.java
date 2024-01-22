@@ -28,7 +28,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -140,20 +139,21 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
     CategoryFilterController featuredModFilterController = searchController.addCategoryFilter("featuredMod.displayName",
         i18n.get("featuredMod.displayName"), List.of());
 
-    featuredModService.getFeaturedMods().thenAccept(featuredMods ->
-        fxApplicationThreadExecutor.execute(() ->
-            featuredModFilterController.setItems(featuredMods.stream().map(FeaturedModBean::getDisplayName)
-                .collect(Collectors.toList()))));
+    featuredModService.getFeaturedMods()
+                      .map(FeaturedModBean::getDisplayName)
+                      .collectList()
+                      .publishOn(fxApplicationThreadExecutor.asScheduler())
+                      .subscribe(featuredModFilterController::setItems);
 
     CategoryFilterController leaderboardFilterController = searchController.addCategoryFilter("playerStats.ratingChanges.leaderboard.id",
         i18n.get("leaderboard.displayName"), Map.of());
 
-    leaderboardService.getLeaderboards().thenAccept(leaderboards -> {
-      Map<String, String> leaderboardItems = new LinkedHashMap<>();
-      leaderboards.forEach(leaderboard -> leaderboardItems.put(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()), String.valueOf(leaderboard.getId())));
-      fxApplicationThreadExecutor.execute(() ->
-          leaderboardFilterController.setItems(leaderboardItems));
-    });
+    leaderboardService.getLeaderboards()
+                      .collect(Collectors.toMap(
+                          leaderboard -> i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()),
+                          leaderboard -> String.valueOf(leaderboard.getId())))
+                      .publishOn(fxApplicationThreadExecutor.asScheduler())
+                      .subscribe(leaderboardFilterController::setItems);
 
     //TODO: Use rating rather than estimated mean with an assumed deviation of 300 when that is available
     searchController.addRangeFilter("playerStats.ratingChanges.meanBefore", i18n.get("game.rating"),

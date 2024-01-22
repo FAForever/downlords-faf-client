@@ -20,10 +20,10 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -47,6 +47,7 @@ public class UserLeaderboardInfoControllerTest extends PlatformTest {
 
     lenient().when(leaderboardService.loadDivisionImage(any()))
              .thenReturn(new Image("https://content.faforever.com/divisions/icons/unranked.png"));
+    lenient().when(i18n.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
 
     loadFxml("theme/user_leaderboard_info.fxml", clazz -> instance);
   }
@@ -73,10 +74,8 @@ public class UserLeaderboardInfoControllerTest extends PlatformTest {
     instance.setLeaderboardInfo(player, leaderboard);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertFalse(instance.divisionImage.isVisible());
-    assertFalse(instance.divisionImage.isManaged());
-    assertFalse(instance.divisionLabel.isVisible());
-    assertFalse(instance.divisionLabel.isManaged());
+    assertTrue(instance.divisionImage.isVisible());
+    assertTrue(instance.divisionLabel.isVisible());
     assertEquals("1v1", instance.leaderboardNameLabel.getText());
     assertEquals("47 games", instance.gamesPlayedLabel.getText());
     assertEquals("200 rating", instance.ratingLabel.getText());
@@ -99,16 +98,11 @@ public class UserLeaderboardInfoControllerTest extends PlatformTest {
   }
 
   @Test
-  public void testSetUnrankedLeague() {
-    when(i18n.get("teammatchmaking.inPlacement")).thenReturn("unlisted");
-
-    instance.setUnlistedLeague();
-    WaitForAsyncUtils.waitForFxEvents();
-
+  public void testUnrankedLeague() {
     assertTrue(instance.divisionImage.isVisible());
     assertTrue(instance.divisionImage.isManaged());
     assertTrue(instance.divisionLabel.isVisible());
     assertTrue(instance.divisionLabel.isManaged());
-    assertEquals("UNLISTED", instance.divisionLabel.getText());
+    assertEquals("TEAMMATCHMAKING.INPLACEMENT", instance.divisionLabel.getText());
   }
 }

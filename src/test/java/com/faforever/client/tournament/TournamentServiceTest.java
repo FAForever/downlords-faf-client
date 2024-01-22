@@ -17,11 +17,8 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
-import java.util.List;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -48,8 +45,7 @@ public class TournamentServiceTest extends ServiceTest {
     TournamentBean tournamentBean = TournamentBeanBuilder.create().defaultValues().get();
     Flux<Tournament> resultFlux = Flux.just(tournamentMapper.map(tournamentBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(eq(Tournament.class), anyString(), anyInt(), any())).thenReturn(resultFlux);
-    List<TournamentBean> results = instance.getAllTournaments().join();
+    StepVerifier.create(instance.getAllTournaments()).expectNext(tournamentBean).verifyComplete();
     verify(fafApiAccessor).getMany(eq(Tournament.class), eq("/challonge/v1/tournaments.json"), eq(100), any());
-    assertThat(results, contains(tournamentBean));
   }
 }

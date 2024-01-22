@@ -74,7 +74,10 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
       fafDataDirectory = dataPrefs.getBaseDataDirectory();
     }
 
-    List<FeaturedModFile> featuredModFiles = featuredModService.getFeaturedModFiles(featuredMod, version).join();
+    List<FeaturedModFile> featuredModFiles = featuredModService.getFeaturedModFiles(featuredMod, version)
+                                                               .collectList()
+                                                               .blockOptional()
+                                                               .orElse(List.of());
 
     featuredModFiles
         .forEach(featuredModFile -> {

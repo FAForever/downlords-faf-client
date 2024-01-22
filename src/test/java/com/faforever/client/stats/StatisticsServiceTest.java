@@ -20,12 +20,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Flux;
-
-import java.util.List;
+import reactor.test.StepVerifier;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
@@ -55,12 +52,14 @@ public class StatisticsServiceTest extends ServiceTest {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboardRatingJournalBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    List<LeaderboardRatingJournalBean> results = instance.getRatingHistory(player, leaderboard).join();
+    StepVerifier.create(instance.getRatingHistory(player, leaderboard))
+                .expectNext(leaderboardRatingJournalBean)
+                .expectComplete()
+                .verify();
     verify(fafApiAccessor).getMany(argThat(
         ElideMatchers.hasFilter(qBuilder().intNum("gamePlayerStats.player.id").eq(player.getId()).and()
             .intNum("leaderboard.id").eq(leaderboard.getId()))
     ));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(10000)));
-    assertThat(results, contains(leaderboardRatingJournalBean));
   }
 }

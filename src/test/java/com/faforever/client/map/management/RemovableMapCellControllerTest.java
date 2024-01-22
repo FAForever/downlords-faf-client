@@ -11,8 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
-import java.util.concurrent.CompletableFuture;
+import reactor.core.publisher.Mono;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -67,7 +66,7 @@ public class RemovableMapCellControllerTest extends PlatformTest {
 
   @Test
   public void testOnRemoveButtonClicked() {
-    when(mapService.uninstallMap(customMap)).thenReturn(CompletableFuture.completedFuture(null));
+    when(mapService.uninstallMap(customMap)).thenReturn(Mono.empty());
     instance.setMapVersion(customMap);
     instance.removeButton.getOnMouseClicked().handle(null);
     verify(mapService).uninstallMap(customMap);
@@ -76,7 +75,7 @@ public class RemovableMapCellControllerTest extends PlatformTest {
   @Test
   public void testOnRemoveButtonClickedWhenThrowException() {
     when(mapService.uninstallMap(customMap)).thenReturn(
-        CompletableFuture.failedFuture(new RuntimeException("an error when uninstall map")));
+        Mono.error(new RuntimeException("an error when uninstall map")));
     instance.setMapVersion(customMap);
     instance.removeButton.getOnMouseClicked().handle(null);
     verify(notificationService).addImmediateErrorNotification(any(RuntimeException.class), any());

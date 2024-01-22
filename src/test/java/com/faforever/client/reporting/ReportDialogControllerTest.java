@@ -20,6 +20,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.List;
@@ -68,11 +70,10 @@ public class ReportDialogControllerTest extends PlatformTest {
     lenient().when(i18n.get("report.noReports")).thenReturn("noReports");
 
     lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
-    lenient().when(playerService.getPlayerByName(player.getUsername()))
-             .thenReturn(CompletableFuture.completedFuture(Optional.of(player)));
+    lenient().when(playerService.getPlayerByName(player.getUsername())).thenReturn(Mono.just(player));
     lenient().when(replayService.findById(replay.getId()))
              .thenReturn(CompletableFuture.completedFuture(Optional.of(replay)));
-    lenient().when(moderationService.getModerationReports()).thenReturn(CompletableFuture.completedFuture(List.of()));
+    lenient().when(moderationService.getModerationReports()).thenReturn(Flux.just());
     lenient().when(moderationService.postModerationReport(any()))
              .thenReturn(CompletableFuture.completedFuture(ModerationReportBeanBuilder.create().defaultValues().get()));
 
@@ -132,7 +133,7 @@ public class ReportDialogControllerTest extends PlatformTest {
 
   @Test
   public void testOnReportNoPlayer() {
-    when(playerService.getPlayerByName(player.getUsername())).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
+    when(playerService.getPlayerByName(player.getUsername())).thenReturn(Mono.empty());
 
     instance.onReportButtonClicked();
 

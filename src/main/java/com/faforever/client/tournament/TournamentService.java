@@ -9,10 +9,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 @Lazy
 @Service
@@ -22,10 +21,8 @@ public class TournamentService {
   private final FafApiAccessor fafApiAccessor;
   private final TournamentMapper tournamentMapper;
 
-  public CompletableFuture<List<TournamentBean>> getAllTournaments() {
+  public Flux<TournamentBean> getAllTournaments() {
     return fafApiAccessor.getMany(Tournament.class, "/challonge/v1/tournaments.json", 100, Map.of())
-        .map(dto -> tournamentMapper.map(dto, new CycleAvoidingMappingContext()))
-        .collectList()
-        .toFuture();
+        .map(dto -> tournamentMapper.map(dto, new CycleAvoidingMappingContext())).cache();
   }
 }

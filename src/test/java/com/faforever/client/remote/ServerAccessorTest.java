@@ -227,14 +227,12 @@ public class ServerAccessorTest extends ServiceTest {
   }
 
   private void assertMessageContainsComponents(String command, String... values) {
-    serverMessagesReceived.filter(message -> message.contains(command)).next()
-                          .switchIfEmpty(Mono.error(new AssertionError("No matching messages")))
-                          .doOnNext(json -> {
-                            assertThat(json, containsString("command"));
-                            for (String string : values) {
-                              assertThat(json, containsString(string));
-                            }
-                          }).block(Duration.ofSeconds(10));
+    StepVerifier.create(serverMessagesReceived.filter(message -> message.contains(command)).next()).assertNext(json -> {
+      assertThat(json, containsString("command"));
+      for (String string : values) {
+        assertThat(json, containsString(string));
+      }
+    }).verifyComplete();
   }
 
   @AfterEach

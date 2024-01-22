@@ -25,14 +25,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -76,8 +74,8 @@ public class CoopControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    lenient().when(coopService.getLeaderboard(any(), anyInt())).thenReturn(completedFuture(emptyList()));
-    lenient().when(coopService.getMissions()).thenReturn(completedFuture(emptyList()));
+    lenient().when(coopService.getLeaderboard(any(), anyInt())).thenReturn(Flux.empty());
+    lenient().when(coopService.getMissions()).thenReturn(Flux.empty());
     lenient().when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
     lenient().when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
 
@@ -98,7 +96,7 @@ public class CoopControllerTest extends PlatformTest {
 
   @Test
   public void onPlayButtonClicked() {
-    when(coopService.getMissions()).thenReturn(completedFuture(singletonList(new CoopMissionBean())));
+    when(coopService.getMissions()).thenReturn(Flux.just(new CoopMissionBean()));
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
     instance.missionComboBox.getSelectionModel().select(new CoopMissionBean());
@@ -140,7 +138,7 @@ public class CoopControllerTest extends PlatformTest {
             .get())
         .get());
 
-    when(coopService.getLeaderboard(any(), eq(1))).thenReturn(completedFuture(result));
+    when(coopService.getLeaderboard(any(), eq(1))).thenReturn(Flux.fromIterable(result));
 
     instance.missionComboBox.getSelectionModel().select(new CoopMissionBean());
 
@@ -172,7 +170,7 @@ public class CoopControllerTest extends PlatformTest {
             .get())
         .get());
 
-    when(coopService.getLeaderboard(any(), eq(2))).thenReturn(completedFuture(result));
+    when(coopService.getLeaderboard(any(), eq(2))).thenReturn(Flux.fromIterable(result));
 
     instance.missionComboBox.getSelectionModel().select(new CoopMissionBean());
 
@@ -217,7 +215,7 @@ public class CoopControllerTest extends PlatformTest {
             .get())
         .get());
 
-    when(coopService.getLeaderboard(any(), eq(0))).thenReturn(completedFuture(result));
+    when(coopService.getLeaderboard(any(), eq(0))).thenReturn(Flux.fromIterable(result));
 
     instance.missionComboBox.getSelectionModel().select(new CoopMissionBean());
 

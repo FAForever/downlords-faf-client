@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import reactor.test.publisher.TestPublisher;
 
 import java.net.URI;
@@ -26,7 +27,6 @@ import java.util.HashMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -95,7 +95,7 @@ public class LoginServiceTest extends ServiceTest {
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
     when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
 
-    instance.login("abc", VERIFIER, REDIRECT_URI).block();
+    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyComplete();
 
     assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
     assertEquals(meResult.getUserName(), instance.getUsername());
@@ -111,11 +111,11 @@ public class LoginServiceTest extends ServiceTest {
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
     when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
 
-    instance.login("abc", VERIFIER, REDIRECT_URI).block();
+    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyComplete();
 
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
 
-    instance.login("abc", VERIFIER, REDIRECT_URI).block();
+    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyComplete();
 
     assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
     assertEquals(meResult.getUserName(), instance.getUsername());
@@ -132,10 +132,8 @@ public class LoginServiceTest extends ServiceTest {
     FakeTestException testException = new FakeTestException("failed");
     when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.error(testException));
 
-    FakeTestException thrown = assertThrows(FakeTestException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI)
-        .block());
+    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyError();
 
-    assertEquals(testException, thrown);
     assertNull(instance.getOwnUser());
     assertNull(instance.getOwnPlayer());
     assertFalse(instance.isLoggedIn());
@@ -150,10 +148,8 @@ public class LoginServiceTest extends ServiceTest {
     FakeTestException testException = new FakeTestException("failed");
     when(fafApiAccessor.getMe()).thenReturn(Mono.error(testException));
 
-    FakeTestException thrown = assertThrows(FakeTestException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI)
-        .block());
+    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyError();
 
-    assertEquals(testException, thrown);
     assertNull(instance.getOwnUser());
     assertNull(instance.getOwnPlayer());
     assertFalse(instance.isLoggedIn());
@@ -171,10 +167,8 @@ public class LoginServiceTest extends ServiceTest {
     FakeTestException testException = new FakeTestException("failed");
     when(fafApiAccessor.getMe()).thenReturn(Mono.error(testException));
 
-    FakeTestException thrown = assertThrows(FakeTestException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI)
-        .block());
+    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyError();
 
-    assertEquals(testException, thrown);
     assertNull(instance.getOwnUser());
     assertNull(instance.getOwnPlayer());
     assertFalse(instance.isLoggedIn());
@@ -192,10 +186,8 @@ public class LoginServiceTest extends ServiceTest {
     FakeTestException testException = new FakeTestException("failed");
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.error(testException));
 
-    FakeTestException thrown = assertThrows(FakeTestException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI)
-        .block());
+    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyError();
 
-    assertEquals(testException, thrown);
     assertNull(instance.getOwnUser());
     assertNull(instance.getOwnPlayer());
     assertFalse(instance.isLoggedIn());
@@ -214,10 +206,8 @@ public class LoginServiceTest extends ServiceTest {
     FakeTestException testException = new FakeTestException("failed");
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.error(testException));
 
-    FakeTestException thrown = assertThrows(FakeTestException.class, () -> instance.login("abc", VERIFIER, REDIRECT_URI)
-        .block());
+    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyError();
 
-    assertEquals(testException, thrown);
     assertNull(instance.getOwnUser());
     assertNull(instance.getOwnPlayer());
     assertFalse(instance.isLoggedIn());
@@ -233,7 +223,7 @@ public class LoginServiceTest extends ServiceTest {
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
     when(tokenRetriever.loginWithRefreshToken()).thenReturn(Mono.empty());
 
-    instance.loginWithRefreshToken().block();
+    StepVerifier.create(instance.loginWithRefreshToken()).verifyComplete();
 
     assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
     assertEquals(meResult.getUserName(), instance.getUsername());
@@ -250,9 +240,8 @@ public class LoginServiceTest extends ServiceTest {
     FakeTestException testException = new FakeTestException("failed");
     when(tokenRetriever.loginWithRefreshToken()).thenReturn(Mono.error(testException));
 
-    FakeTestException thrown = assertThrows(FakeTestException.class, () -> instance.loginWithRefreshToken().block());
+    StepVerifier.create(instance.loginWithRefreshToken()).verifyError();
 
-    assertEquals(testException, thrown);
     assertNull(instance.getOwnUser());
     assertFalse(instance.isLoggedIn());
     verify(tokenRetriever).loginWithRefreshToken();

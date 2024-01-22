@@ -15,9 +15,9 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
@@ -32,15 +32,13 @@ public class ModerationService {
   private final ModerationReportMapper moderationReportMapper;
 
   @Cacheable(value = CacheNames.MODERATION_REPORTS, sync = true)
-  public CompletableFuture<List<ModerationReportBean>> getModerationReports() {
+  public Flux<ModerationReportBean> getModerationReports() {
     ElideNavigatorOnCollection<ModerationReport> navigator = ElideNavigator.of(ModerationReport.class).collection()
         .setFilter(qBuilder().intNum("reporter.id").eq(playerService.getCurrentPlayer().getId())
         .and().instant("createTime").after(OffsetDateTime.now().minusYears(1).toInstant(), false))
         .addSortingRule("createTime", false);
     return fafApiAccessor.getMany(navigator)
-        .map(dto -> moderationReportMapper.map(dto, new CycleAvoidingMappingContext()))
-        .collectList()
-        .toFuture();
+        .map(dto -> moderationReportMapper.map(dto, new CycleAvoidingMappingContext())).cache();
   }
 
   @CacheEvict(value = CacheNames.MODERATION_REPORTS)

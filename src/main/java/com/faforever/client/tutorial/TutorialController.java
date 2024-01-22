@@ -44,11 +44,10 @@ public class TutorialController extends NodeController<Node> {
     tutorialListItemControllers.clear();
     tutorialOverviewPane.getChildren().clear();
     tutorialService.getTutorialCategories()
-        .thenAccept(this::displayTutorials)
-        .exceptionally(throwable -> {
-          log.error("Tutorials could not be loaded", throwable);
-          return null;
-        });
+                   .collectList()
+                   .publishOn(fxApplicationThreadExecutor.asScheduler())
+                   .subscribe(this::displayTutorials,
+                              throwable -> log.error("Tutorials could not be loaded", throwable));
   }
 
   private void setLoading(boolean loading) {
@@ -57,7 +56,6 @@ public class TutorialController extends NodeController<Node> {
   }
 
   private void displayTutorials(List<TutorialCategoryBean> categories) {
-    fxApplicationThreadExecutor.execute(() -> {
       if (categories.isEmpty()) {
         setLoading(false);
         setNothingToShow(true);
@@ -73,7 +71,6 @@ public class TutorialController extends NodeController<Node> {
       }
       setLoading(false);
       setNothingToShow(false);
-    });
   }
 
   private void setNothingToShow(boolean activate) {

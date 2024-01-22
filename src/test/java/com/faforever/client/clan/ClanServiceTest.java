@@ -18,9 +18,9 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
@@ -47,7 +47,7 @@ public class ClanServiceTest extends ServiceTest {
     ClanBean clan = ClanBeanBuilder.create().defaultValues().get();
     Flux<ElideEntity> resultFlux = Flux.just(clanMapper.map(clan, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    assertEquals(clan, instance.getClanByTag("test").join().get());
+    StepVerifier.create(instance.getClanByTag("test")).expectNext(clan).verifyComplete();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("tag").eq("test"))));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1)));
   }

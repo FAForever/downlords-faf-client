@@ -141,7 +141,7 @@ public class ReportDialogController extends NodeController<Node> {
   }
 
   private void submitReport(ModerationReportBean report) {
-    playerService.getPlayerByName(offender.getText())
+    playerService.getPlayerByName(offender.getText()).singleOptional().toFuture()
         .thenApply(player -> {
           if (player.isEmpty()) {
             warnNoPlayer();
@@ -257,8 +257,11 @@ public class ReportDialogController extends NodeController<Node> {
   }
 
   private void populateReportTable() {
-    moderationService.getModerationReports().thenAccept(reports ->
-        fxApplicationThreadExecutor.execute(() -> reportTable.setItems(FXCollections.observableList(reports))));
+    moderationService.getModerationReports()
+                     .collectList()
+                     .map(FXCollections::observableList)
+                     .publishOn(fxApplicationThreadExecutor.asScheduler())
+                     .subscribe(reportTable::setItems);
   }
 
   @Override

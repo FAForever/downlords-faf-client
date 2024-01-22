@@ -44,10 +44,9 @@ public class RemovableMapCellController extends NodeController<HBox> {
     removeButton.disableProperty().bind(mapVersion.map(mapService::isCustomMap).map(isCustom -> !isCustom));
     removeButton.onMouseClickedProperty()
                 .bind(mapVersion.map(
-                    mapVersion -> event -> mapService.uninstallMap(mapVersion).exceptionally(throwable -> {
+                    mapVersion -> event -> mapService.uninstallMap(mapVersion).subscribe(null, throwable -> {
                       log.error("Cannot uninstall map `{}`", mapVersion, throwable);
                       notificationService.addImmediateErrorNotification(throwable, "management.maps.uninstall.error");
-                      return null;
                     })));
   }
 

@@ -12,9 +12,7 @@ import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import reactor.core.publisher.Flux;
 
 @Slf4j
 @Service
@@ -24,13 +22,11 @@ public class TutorialService {
   private final GameRunner gameRunner;
   private final TutorialMapper tutorialMapper;
 
-  public CompletableFuture<List<TutorialCategoryBean>> getTutorialCategories() {
+  public Flux<TutorialCategoryBean> getTutorialCategories() {
     ElideNavigatorOnCollection<TutorialCategory> navigator = ElideNavigator.of(TutorialCategory.class).collection()
         .pageSize(1000);
     return fafApiAccessor.getMany(navigator)
-        .map(dto -> tutorialMapper.map(dto, new CycleAvoidingMappingContext()))
-        .collectList()
-        .toFuture();
+        .map(dto -> tutorialMapper.map(dto, new CycleAvoidingMappingContext())).cache();
   }
 
   public void launchTutorial(TutorialBean tutorial) {

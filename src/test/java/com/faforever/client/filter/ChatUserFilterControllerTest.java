@@ -23,11 +23,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import reactor.core.publisher.Flux;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -71,7 +71,7 @@ public class ChatUserFilterControllerTest extends PlatformTest {
     // Order is important
     when(uiService.loadFxml(anyString())).thenReturn(clanFilter, playerStatusFilter, countryFilter);
     when(uiService.loadFxml(anyString(), eq(RangeSliderWithChoiceFilterController.class))).thenReturn(playerRatingFilter);
-    when(leaderboardService.getLeaderboards()).thenReturn(CompletableFuture.completedFuture(List.of(ladder, global)));
+    when(leaderboardService.getLeaderboards()).thenReturn(Flux.just(ladder, global));
 
     loadFxml("theme/filter/filter.fxml", clazz -> instance, instance);
   }

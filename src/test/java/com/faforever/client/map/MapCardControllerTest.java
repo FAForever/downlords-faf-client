@@ -25,9 +25,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import reactor.core.publisher.Mono;
 
 import java.io.InputStream;
-import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -79,9 +79,8 @@ public class MapCardControllerTest extends PlatformTest {
              .thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
     lenient().when(mapService.isInstalledBinding(Mockito.<ObservableValue<MapVersionBean>>any())).thenReturn(installed);
     lenient().when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
-    lenient().when(mapService.downloadAndInstallMap(any(), isNull(), isNull()))
-             .thenReturn(CompletableFuture.runAsync(() -> {}));
-    lenient().when(mapService.uninstallMap(any())).thenReturn(CompletableFuture.runAsync(() -> {}));
+    lenient().when(mapService.downloadAndInstallMap(any(), isNull(), isNull())).thenReturn(Mono.empty());
+    lenient().when(mapService.uninstallMap(any())).thenReturn(Mono.empty());
     mapBean = MapVersionBeanBuilder.create()
         .defaultValues()
         .map(MapBeanBuilder.create().defaultValues().get())

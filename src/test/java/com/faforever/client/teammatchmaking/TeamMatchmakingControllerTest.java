@@ -37,10 +37,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.teammatchmaking.PartyMemberItemController.LEADER_PSEUDO_CLASS;
 import static com.faforever.client.teammatchmaking.TeamMatchmakingController.CHAT_AT_BOTTOM_PSEUDO_CLASS;
@@ -103,8 +102,7 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
     lenient().when(teamMatchmakingService.getParty()).thenReturn(party);
 
     lenient().when(i18n.get(anyString(), any(Object.class))).thenReturn("");
-    lenient().when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
-        CompletableFuture.completedFuture(Optional.empty()));
+    lenient().when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(Mono.empty());
     lenient().when(teamMatchmakingService.inQueueProperty()).thenReturn(new SimpleBooleanProperty(false));
     lenient().when(teamMatchmakingService.searchingProperty()).thenReturn(new SimpleBooleanProperty());
     lenient().when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(new ReadOnlyBooleanWrapper());
@@ -144,7 +142,7 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
   @Test
   public void testLeagueSet() {
     when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
-        CompletableFuture.completedFuture(Optional.of(LeagueEntryBeanBuilder.create().defaultValues().get())));
+        Mono.just(LeagueEntryBeanBuilder.create().defaultValues().get()));
 
     reinitialize(instance);
     waitForFxEvents();

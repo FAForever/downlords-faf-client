@@ -25,8 +25,7 @@ public class OpenClanUrlMenuItem extends AbstractMenuItem<PlayerBean> {
   protected void onClicked() {
     Assert.checkNullIllegalState(object, "no player has been set");
 
-    clanService.getClanByTag(object.getClan())
-        .thenAccept(possibleClan -> possibleClan.map(ClanBean::getWebsiteUrl).ifPresent(platformService::showDocument));
+    clanService.getClanByTag(object.getClan()).map(ClanBean::getWebsiteUrl).subscribe(platformService::showDocument);
   }
 
   @Override

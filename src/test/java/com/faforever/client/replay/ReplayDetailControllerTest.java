@@ -152,9 +152,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
              .thenReturn(new Image(InputStream.nullInputStream()));
     lenient().when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
     lenient().when(playerService.getPlayersByIds(any()))
-             .thenReturn(CompletableFuture.completedFuture(List.of(PlayerBeanBuilder.create()
-        .defaultValues()
-        .get())));
+             .thenReturn(Flux.just(PlayerBeanBuilder.create().defaultValues().get()));
     lenient().when(replayService.getFileSize(onlineReplay)).thenReturn(CompletableFuture.completedFuture(12));
     lenient().when(replayService.replayChangedRating(onlineReplay)).thenReturn(true);
     lenient().when(timeService.asDate(onlineReplay.getStartTime())).thenReturn("Min Date");

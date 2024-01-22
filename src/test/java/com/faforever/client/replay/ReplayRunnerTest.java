@@ -24,6 +24,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.net.URI;
 import java.nio.file.Path;
@@ -31,13 +33,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static java.util.concurrent.CompletableFuture.failedFuture;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -96,9 +93,9 @@ public class ReplayRunnerTest extends ServiceTest {
 
   @Test
   public void testDownloadMapWithErrorIgnore() {
-    when(mapService.downloadIfNecessary(any())).thenReturn(failedFuture(new Exception()));
+    when(mapService.downloadIfNecessary(any())).thenReturn(Mono.error(new Exception()));
 
-    CompletableFuture<Void> future = instance.downloadMapAskIfError("test");
+    StepVerifier verifier = StepVerifier.create(instance.downloadMapAskIfError("test")).expectComplete().verifyLater();
 
     verify(mapService).downloadIfNecessary("test");
 
@@ -108,25 +105,24 @@ public class ReplayRunnerTest extends ServiceTest {
     ImmediateNotification notification = captor.getValue();
     notification.actions().getFirst().run();
 
-    assertDoesNotThrow(() -> future.get(1, TimeUnit.SECONDS));
+    verifier.verify();
   }
 
   @Test
   public void testDownloadMapWithError() {
-    when(mapService.downloadIfNecessary(any())).thenReturn(
-        CompletableFuture.runAsync(() -> {throw new RuntimeException();}));
+    when(mapService.downloadIfNecessary(any())).thenReturn(Mono.error(new RuntimeException()));
 
-    CompletableFuture<Void> future = instance.downloadMapAskIfError("test");
+    StepVerifier verifier = StepVerifier.create(instance.downloadMapAskIfError("test")).expectError().verifyLater();
 
     verify(mapService).downloadIfNecessary("test");
 
     ArgumentCaptor<ImmediateNotification> captor = ArgumentCaptor.forClass(ImmediateNotification.class);
-    verify(notificationService, timeout(100)).addNotification(captor.capture());
+    verify(notificationService, timeout(1000)).addNotification(captor.capture());
 
     ImmediateNotification notification = captor.getValue();
     notification.actions().get(1).run();
 
-    assertThrows(ExecutionException.class, () -> future.get(1, TimeUnit.SECONDS));
+    verifier.verify();
   }
 
   private void mockStartReplayProcess() {
@@ -134,7 +130,7 @@ public class ReplayRunnerTest extends ServiceTest {
     lenient().when(featuredModService.updateFeaturedMod(any(), any(), any(), anyBoolean()))
              .thenReturn(completedFuture(null));
     lenient().when(modService.downloadAndEnableMods(any())).thenReturn(completedFuture(null));
-    lenient().when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
+    lenient().when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     lenient().when(process.onExit()).thenReturn(new CompletableFuture<>());
     lenient().when(process.isAlive()).thenReturn(true);
     lenient().when(forgedAllianceLaunchService.startReplay(any(Path.class), any())).thenReturn(process);
@@ -200,7 +196,7 @@ public class ReplayRunnerTest extends ServiceTest {
     lenient().when(gameService.getByUid(any())).thenReturn(Optional.of(game));
     lenient().when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     lenient().when(modService.downloadAndEnableMods(any())).thenReturn(completedFuture(null));
-    lenient().when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
+    lenient().when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     lenient().when(process.onExit()).thenReturn(new CompletableFuture<>());
     lenient().when(process.isAlive()).thenReturn(true);
     lenient().when(forgedAllianceLaunchService.startReplay(any(URI.class), any())).thenReturn(process);

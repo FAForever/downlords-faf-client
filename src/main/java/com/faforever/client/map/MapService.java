@@ -386,16 +386,16 @@ public class MapService implements InitializingBean, DisposableBean {
     return Bindings.createBooleanBinding(() -> isInstalled(mapFolderName), installedMaps);
   }
 
-  public CompletableFuture<String> generateIfNotInstalled(String mapName) {
+  public Mono<String> generateIfNotInstalled(String mapName) {
     if (isInstalled(mapName)) {
-      return CompletableFuture.completedFuture(mapName);
+      return Mono.just(mapName);
     }
     return mapGeneratorService.generateMap(mapName);
   }
 
-  public CompletableFuture<Void> downloadIfNecessary(String technicalMapName) {
+  public Mono<Void> downloadIfNecessary(String technicalMapName) {
     if (isInstalled(technicalMapName)) {
-      return CompletableFuture.completedFuture(null);
+      return Mono.empty();
     }
     try {
       URL mapUrl = getDownloadUrl(technicalMapName, mapDownloadUrlFormat);
@@ -406,7 +406,7 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
 
-  public CompletableFuture<Void> downloadAndInstallMap(MapVersionBean mapVersion,
+  public Mono<Void> downloadAndInstallMap(MapVersionBean mapVersion,
                                                        @Nullable DoubleProperty progressProperty,
                                                        @Nullable StringProperty titleProperty) {
     return downloadAndInstallMap(mapVersion.getFolderName(), mapVersion.getDownloadUrl(), progressProperty, titleProperty);
@@ -436,13 +436,13 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
 
-  public CompletableFuture<Void> uninstallMap(MapVersionBean mapVersion) {
+  public Mono<Void> uninstallMap(MapVersionBean mapVersion) {
     if (isOfficialMap(mapVersion.getFolderName())) {
       throw new IllegalArgumentException("Attempt to uninstall an official map");
     }
     UninstallMapTask task = uninstallMapTaskFactory.getObject();
     task.setMap(mapVersion);
-    return taskService.submitTask(task).getFuture();
+    return taskService.submitTask(task).getMono();
   }
 
 
@@ -487,26 +487,26 @@ public class MapService implements InitializingBean, DisposableBean {
     return Pattern.matches(MAP_VERSION_REGEX, mapFolderName);
   }
 
-  public CompletableFuture<MapVersionBean> updateLatestVersionIfNecessary(MapVersionBean mapVersion) {
+  public Mono<MapVersionBean> updateLatestVersionIfNecessary(MapVersionBean mapVersion) {
     if (isOfficialMap(mapVersion) || !preferences.isMapAndModAutoUpdate()) {
-      return CompletableFuture.completedFuture(mapVersion);
+      return Mono.just(mapVersion);
     }
-    return getMapLatestVersion(mapVersion).thenCompose(latestMap -> {
-      CompletableFuture<Void> downloadFuture;
+    return getMapLatestVersion(mapVersion).flatMap(latestMap -> {
+      Mono<Void> downloadFuture;
       if (!isInstalled(latestMap.getFolderName())) {
         downloadFuture = downloadAndInstallMap(latestMap, null, null);
       } else {
-        downloadFuture = CompletableFuture.completedFuture(null);
+        downloadFuture = Mono.empty();
       }
-      return downloadFuture.thenApply(aVoid -> latestMap);
-    }).thenCompose(latestMap -> {
-      CompletableFuture<Void> uninstallFuture;
+      return downloadFuture.thenReturn(latestMap);
+    }).flatMap(latestMap -> {
+      Mono<Void> uninstallFuture;
       if (!latestMap.getFolderName().equals(mapVersion.getFolderName())) {
         uninstallFuture = uninstallMap(mapVersion);
       } else {
-        uninstallFuture = CompletableFuture.completedFuture(null);
+        uninstallFuture = Mono.empty();
       }
-      return uninstallFuture.thenApply(aVoid -> latestMap);
+      return uninstallFuture.thenReturn(latestMap);
     });
   }
 
@@ -514,16 +514,16 @@ public class MapService implements InitializingBean, DisposableBean {
     return fileSizeReader.getFileSize(mapVersion.getDownloadUrl());
   }
 
-  private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl,
+  private Mono<Void> downloadAndInstallMap(String folderName, URL downloadUrl,
                                                         @Nullable DoubleProperty progressProperty,
                                                         @Nullable StringProperty titleProperty) {
     if (mapGeneratorService.isGeneratedMap(folderName)) {
-      return generateIfNotInstalled(folderName).thenRun(() -> {});
+      return generateIfNotInstalled(folderName).then();
     }
 
     if (isInstalled(folderName)) {
       log.info("Map '{}' exists locally already. Download is not required", folderName);
-      return CompletableFuture.completedFuture(null);
+      return Mono.empty();
     }
 
     DownloadMapTask task = downloadMapTaskFactory.getObject();
@@ -537,7 +537,7 @@ public class MapService implements InitializingBean, DisposableBean {
       titleProperty.bind(task.titleProperty());
     }
 
-    return taskService.submitTask(task).getFuture();
+    return taskService.submitTask(task).getMono();
   }
 
   @Override
@@ -573,27 +573,23 @@ public class MapService implements InitializingBean, DisposableBean {
   /**
    * Tries to find a map my its folder name, first locally then on the server.
    */
-  public CompletableFuture<Optional<MapVersionBean>> findByMapFolderName(String folderName) {
-    Optional<MapVersionBean> installed = getMapLocallyFromName(folderName);
-    if (installed.isPresent()) {
-      return CompletableFuture.completedFuture(installed);
-    }
-
+  public Mono<MapVersionBean> findByMapFolderName(String folderName) {
     ElideNavigatorOnCollection<MapVersion> navigator = ElideNavigator.of(MapVersion.class).collection()
         .setFilter(qBuilder().string("folderName").eq(folderName));
-    return fafApiAccessor.getMany(navigator)
-        .next()
-        .map(dto -> mapMapper.map(dto, new CycleAvoidingMappingContext()))
-        .toFuture()
-        .thenApply(Optional::ofNullable);
+    Mono<MapVersionBean> apiMapVersion = fafApiAccessor.getMany(navigator)
+                                                       .next()
+                                                       .map(dto -> mapMapper.map(dto,
+                                                                                 new CycleAvoidingMappingContext()));
+
+    return Mono.justOrEmpty(getMapLocallyFromName(folderName)).switchIfEmpty(apiMapVersion);
   }
 
   @VisibleForTesting
-  CompletableFuture<MapVersionBean> getMapLatestVersion(MapVersionBean mapVersion) {
+  Mono<MapVersionBean> getMapLatestVersion(MapVersionBean mapVersion) {
     String folderName = mapVersion.getFolderName();
 
     if (!containsVersionControl(folderName)) {
-      return CompletableFuture.completedFuture(mapVersion);
+      return Mono.just(mapVersion);
     }
 
     ElideNavigatorOnCollection<Map> navigator = ElideNavigator.of(Map.class).collection()
@@ -602,10 +598,8 @@ public class MapService implements InitializingBean, DisposableBean {
     return fafApiAccessor.getMany(navigator)
         .next()
         .map(dto -> mapMapper.map(dto, new CycleAvoidingMappingContext()))
-        .map(MapBean::getLatestVersion)
-        .toFuture()
-        .thenApply(Optional::ofNullable)
-        .thenApply(latestMap -> latestMap.orElse(mapVersion));
+                         .map(MapBean::getLatestVersion)
+                         .defaultIfEmpty(mapVersion);
 
   }
 
@@ -616,7 +610,7 @@ public class MapService implements InitializingBean, DisposableBean {
         .map(mapPoolAssignment -> mapMapper.mapFromPoolAssignment(mapPoolAssignment, new CycleAvoidingMappingContext()))
         .distinct()
         .filter(mapVersion -> !mapGeneratorService.isGeneratedMap(mapVersion.getFolderName()))
-        .flatMap(mapVersion -> Mono.fromCompletionStage(() -> downloadAndInstallMap(mapVersion, null, null))
+                         .flatMap(mapVersion -> downloadAndInstallMap(mapVersion, null, null)
             .onErrorResume(throwable -> {
               log.warn("Unable to download map `{}`", mapVersion.getFolderName(), throwable);
               notificationService.addPersistentErrorNotification("map.download.error", mapVersion.getFolderName());

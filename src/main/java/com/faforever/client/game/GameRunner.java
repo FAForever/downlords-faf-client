@@ -6,7 +6,6 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameParameters;
@@ -60,6 +59,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -174,8 +174,9 @@ public class GameRunner implements InitializingBean {
 
     String mapFolderName = gameLaunchResponse.getMapName();
     CompletableFuture<Void> downloadMapFuture = mapFolderName == null ? completedFuture(
-        null) : mapService.downloadIfNecessary(mapFolderName);
-    CompletableFuture<League> leagueFuture = hasLeague ? completedFuture(null) : getDivisionInfo(leaderboard);
+        null) : mapService.downloadIfNecessary(mapFolderName).toFuture();
+    CompletableFuture<League> leagueFuture = hasLeague ? completedFuture(null) : getDivisionInfo(
+        leaderboard).toFuture();
     CompletableFuture<Integer> startReplayServerFuture = replayServer.start(uid);
     CompletableFuture<Integer> startIceAdapterFuture = startIceAdapter(uid);
 
@@ -212,7 +213,7 @@ public class GameRunner implements InitializingBean {
     CompletableFuture<Void> installSimModsFuture = simModUids.isEmpty() ? completedFuture(
         null) : modService.downloadAndEnableMods(simModUids);
     CompletableFuture<Void> downloadMapFuture = mapFolderName == null || mapFolderName.isBlank() ? completedFuture(
-        null) : mapService.downloadIfNecessary(mapFolderName);
+        null) : mapService.downloadIfNecessary(mapFolderName).toFuture();
     return CompletableFuture.allOf(updateFeaturedModFuture, installSimModsFuture, downloadMapFuture)
                             .thenCompose(ignored -> gameLaunchSupplier.get())
                             .thenCompose(this::startOnlineGame);
@@ -383,18 +384,16 @@ public class GameRunner implements InitializingBean {
                                                           .thenApply(ignored -> icePort));
   }
 
-  private CompletableFuture<League> getDivisionInfo(String leaderboard) {
+  private Mono<League> getDivisionInfo(String leaderboard) {
     return leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), leaderboard)
-                             .thenApply(leagueEntryOptional -> {
-                               Optional<SubdivisionBean> subdivisionBeanOptional = leagueEntryOptional.map(
-                                   LeagueEntryBean::getSubdivision);
-                               String division = subdivisionBeanOptional.map(SubdivisionBean::getDivision)
-                                                                        .map(DivisionBean::getNameKey)
-                                                                        .orElse("unlisted");
-                               String subDivision = subdivisionBeanOptional.map(SubdivisionBean::getNameKey)
-                                                                           .orElse(null);
+                             .map(LeagueEntryBean::getSubdivision)
+                             .map(subdivision -> {
+                               DivisionBean divisionBean = subdivision.getDivision();
+                               String division = divisionBean == null ? null : divisionBean.getNameKey();
+                               String subDivision = subdivision.getNameKey();
                                return new League(division, subDivision);
-                             });
+                             })
+                             .defaultIfEmpty(new League("unlisted", null));
   }
 
   private void handleTermination(Process finishedProcess) {
@@ -466,7 +465,7 @@ public class GameRunner implements InitializingBean {
     }
 
     String mapFolderName = mapVersion.getFolderName();
-    CompletableFuture<Void> downloadMapFuture = mapService.downloadIfNecessary(mapFolderName);
+    CompletableFuture<Void> downloadMapFuture = mapService.downloadIfNecessary(mapFolderName).toFuture();
     CompletableFuture<Void> updateTutorialFuture = featuredModService.updateFeaturedModToLatest(
         TUTORIALS.getTechnicalName(), false);
 

@@ -272,10 +272,10 @@ public class GameDetailController extends NodeController<Pane> {
 
   public void onGenerateMapClicked() {
     setGeneratingMapInProgress(true);
-    mapService.generateIfNotInstalled(getGame().getMapFolderName()).exceptionally(throwable -> {
-      notificationService.addImmediateErrorNotification(throwable, "game.mapGeneration.failed.title");
-      return null;
-    }).whenComplete((unused, throwable) -> setGeneratingMapInProgress(false));
+    mapService.generateIfNotInstalled(getGame().getMapFolderName())
+              .doOnTerminate(() -> setGeneratingMapInProgress(false))
+              .subscribe(null, throwable -> notificationService.addImmediateErrorNotification(throwable,
+                                                                                              "game.mapGeneration.failed.title"));
   }
 
   private void setGeneratingMapInProgress(boolean inProgress) {

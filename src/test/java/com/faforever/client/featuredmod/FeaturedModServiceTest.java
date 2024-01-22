@@ -17,10 +17,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -51,7 +50,7 @@ public class FeaturedModServiceTest extends ServiceTest {
     when(fafApiAccessor.getMany(eq(FeaturedModFile.class), anyString(), anyInt(), any())).thenReturn(
         Flux.just(new FeaturedModFile()));
 
-    instance.getFeaturedModFiles(featuredMod, 0);
+    StepVerifier.create(instance.getFeaturedModFiles(featuredMod, 0)).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).getMany(eq(FeaturedModFile.class),
                                    eq(String.format("/featuredMods/%s/files/%s", featuredMod.getId(), 0)), eq(100),
                                    any());
@@ -62,10 +61,9 @@ public class FeaturedModServiceTest extends ServiceTest {
     FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
     Flux<ElideEntity> resultFlux = Flux.just(featuredModMapper.map(featuredMod, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    FeaturedModBean result = instance.getFeaturedMod("test").block();
+    StepVerifier.create(instance.getFeaturedMod("test")).expectNext(featuredMod).verifyComplete();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("technicalName").eq("test"))));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("order", true)));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1)));
-    assertThat(result, is(featuredMod));
   }
 }

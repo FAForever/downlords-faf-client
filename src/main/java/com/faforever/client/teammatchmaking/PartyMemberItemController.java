@@ -1,9 +1,9 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
+import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -20,7 +20,6 @@ import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.ThemeService;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.commons.lobby.Faction;
 import com.google.common.base.Strings;
@@ -54,7 +53,6 @@ public class PartyMemberItemController extends NodeController<Node> {
   private final LeaderboardService leaderboardService;
   private final PlayerService playerService;
   private final TeamMatchmakingService teamMatchmakingService;
-  private final UiService uiService;
   private final ThemeService themeService;
   private final I18n i18n;
   private final ContextMenuBuilder contextMenuBuilder;
@@ -84,7 +82,11 @@ public class PartyMemberItemController extends NodeController<Node> {
 
   @Override
   protected void onInitialize() {
-    JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView, playerStatusImageView, leagueImageView, kickPlayerButton);
+    JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView, playerStatusImageView, leagueImageView,
+                                    kickPlayerButton);
+
+    leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
+    leagueImageView.setVisible(false);
   }
 
   @Override
@@ -141,31 +143,33 @@ public class PartyMemberItemController extends NodeController<Node> {
 
   @VisibleForTesting
   protected void setLeagueInfo() {
-    leaderboardService.getHighestActiveLeagueEntryForPlayer(player).thenAcceptAsync(leagueEntry -> {
-      if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
-        leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
-        leagueImageView.setVisible(false);
-      } else {
-        SubdivisionBean subdivision = leagueEntry.get().getSubdivision();
-        leagueLabel.setText(i18n.get("leaderboard.divisionName",
-            i18n.getOrDefault(subdivision.getDivision().getNameKey(), subdivision.getDivisionI18nKey()),
-            subdivision.getNameKey()).toUpperCase());
-        leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
-        leagueImageView.setVisible(true);
-      }
-    }, fxApplicationThreadExecutor);
+    leaderboardService.getHighestActiveLeagueEntryForPlayer(player)
+                      .mapNotNull(LeagueEntryBean::getSubdivision)
+                      .publishOn(fxApplicationThreadExecutor.asScheduler())
+                      .subscribe(subdivision -> {
+                        leagueLabel.setText(i18n.get("leaderboard.divisionName",
+                                                     i18n.getOrDefault(subdivision.getDivision().getNameKey(),
+                                                                       subdivision.getDivisionI18nKey()),
+                                                     subdivision.getNameKey()).toUpperCase());
+                        leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
+                        leagueImageView.setVisible(true);
+                      });
   }
 
   private void addListeners() {
-    JavaFxUtil.addAndTriggerListener(player.clanProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(player.clanProperty(),
+                                     new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addListener(player.avatarProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
-    JavaFxUtil.addListener(player.countryProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.countryProperty(),
+                           new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addListener(player.leaderboardRatingsProperty(),
                            new WeakInvalidationListener(playerPropertiesInvalidationListener));
-    JavaFxUtil.addListener(player.usernameProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.usernameProperty(),
+                           new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addAndTriggerListener(player.gameStatusProperty(),
                                      new WeakInvalidationListener(playerStatusInvalidationListener));
-    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(partyOwnerInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().ownerProperty(),
+                                     new WeakInvalidationListener(partyOwnerInvalidationListener));
   }
 
   private void selectFactionsBasedOnParty() {
@@ -176,8 +180,11 @@ public class PartyMemberItemController extends NodeController<Node> {
   }
 
   private boolean factionIsNotSelected(Faction faction) {
-    return teamMatchmakingService.getParty().getMembers().stream()
-        .noneMatch(member -> member.getPlayer() == player && member.getFactions().contains(faction));
+    return teamMatchmakingService.getParty()
+                                 .getMembers()
+                                 .stream()
+                                 .noneMatch(
+                                     member -> member.getPlayer() == player && member.getFactions().contains(faction));
   }
 
   public void onKickPlayerButtonClicked() {
@@ -186,14 +193,14 @@ public class PartyMemberItemController extends NodeController<Node> {
 
   public void onContextMenuRequested(ContextMenuEvent event) {
     contextMenuBuilder.newBuilder()
-        .addItem(ShowPlayerInfoMenuItem.class, player)
-        .addItem(SendPrivateMessageMenuItem.class, player.getUsername())
-        .addItem(CopyUsernameMenuItem.class, player.getUsername())
-        .addSeparator()
-        .addItem(ReportPlayerMenuItem.class, player)
-        .addSeparator()
-        .addItem(ViewReplaysMenuItem.class, player)
-        .build()
-        .show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+                      .addItem(ShowPlayerInfoMenuItem.class, player)
+                      .addItem(SendPrivateMessageMenuItem.class, player.getUsername())
+                      .addItem(CopyUsernameMenuItem.class, player.getUsername())
+                      .addSeparator()
+                      .addItem(ReportPlayerMenuItem.class, player)
+                      .addSeparator()
+                      .addItem(ViewReplaysMenuItem.class, player)
+                      .build()
+                      .show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
   }
 }

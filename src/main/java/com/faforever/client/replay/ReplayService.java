@@ -199,10 +199,11 @@ public class ReplayService {
       CompletableFuture<FeaturedModBean> featuredModFuture = featuredModService.getFeaturedMod(
                                                                                    replayMetadata.getFeaturedMod())
                                                                                .toFuture();
-      CompletableFuture<Optional<MapVersionBean>> mapVersionFuture = mapService.findByMapFolderName(replayMetadata.getMapname());
+      CompletableFuture<MapVersionBean> mapVersionFuture = mapService.findByMapFolderName(replayMetadata.getMapname())
+                                                                     .toFuture();
 
       return CompletableFuture.allOf(featuredModFuture, mapVersionFuture).thenApply(ignoredVoid -> {
-        MapVersionBean mapVersion = mapVersionFuture.join().orElse(null);
+        MapVersionBean mapVersion = mapVersionFuture.join();
         FeaturedModBean featuredMod = featuredModFuture.join();
         if (mapVersion == null) {
           log.warn("Could not find map for replay file `{}`", replayFile);
