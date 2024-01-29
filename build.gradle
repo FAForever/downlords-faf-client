@@ -3,7 +3,7 @@ import org.gradle.internal.os.OperatingSystem
 
 plugins {
   id("org.springframework.boot") version "3.2.1"
-  id("com.install4j.gradle") version "10.0.6"
+  id("com.install4j.gradle") version "10.0.7"
   id("de.undercouch.download") version "5.5.0"
   id("jacoco")
   id("java")
