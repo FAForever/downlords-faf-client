@@ -10,13 +10,13 @@
 
 The official client for [Forged Alliance Forever (FAF)](https://www.faforever.com/)
 
-## Support development
+## Support Development
 
-Post a bounty on Issue Hunt. You can reward and financially help developers that solve the issue. Concerning new features it can be helpful to first ask on whether other people also see your change as an improvement in order to not found feature that will not be accepted.
+Post a bounty on Issue Hunt. You can reward and financially help developers that solve the issue. For new features, it can be helpful to first ask whether other people also see your change as an improvement. This helps avoid feature requests that will not be accepted.
 
 [![Issue hunt](https://github.com/BoostIO/issuehunt-materials/raw/master/v1/issuehunt-button-v1.svg?sanitize=true)](https://issuehunt.io/r/FAForever/downlords-faf-client)
 
-## How to run
+## How To Run
 1. Use [Temurin](https://adoptium.net/) 21 or Oracle JDK 21 (others might not work)
 1. Clone the project with Git
     - using SSH: `git clone git@github.com:FAForever/downlords-faf-client.git`
@@ -29,9 +29,9 @@ Post a bounty on Issue Hunt. You can reward and financially help developers that
 A video tutorial is available [here](https://youtu.be/6gsHnt02I_Y). Don't forget to `Enable annotation processing`.
 
 ### Linux
-Learn how to install the client on Linux [here](https://github.com/FAForever/downlords-faf-client/wiki/Install-on-Linux)
+Learn how to install the client on Linux [here](https://github.com/FAForever/downlords-faf-client/wiki/Install-on-Linux).
 
-## Open Source licenses
+## Open Source Licenses
 |                                                                                                                                                |                                                                                                                                                                                               |
 |----------------|-------------------------------|
 | <img src="https://www.ej-technologies.com/images/product_banners/install4j_large.png" width="128">                                             | Thanks to [ej-technologies](https://www.ej-technologies.com) for their [open source license](https://www.ej-technologies.com/buy/install4j/openSource). We use Install4j to build installers. |
@@ -41,8 +41,6 @@ Learn how to install the client on Linux [here](https://github.com/FAForever/dow
 
 
 ## Contribute
-Please take a look at the [contribution guidelines](https://github.com/FAForever/java-guidelines/wiki/Contribution-Guidelines) before creating a pull request
+Please take a look at the [contribution guidelines](https://github.com/FAForever/java-guidelines/wiki/Contribution-Guidelines) before creating a pull request.
 
 Have a look at our [wiki](https://github.com/FAForever/downlords-faf-client/wiki).
-
-
