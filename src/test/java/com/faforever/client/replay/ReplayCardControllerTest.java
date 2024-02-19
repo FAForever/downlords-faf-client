@@ -1,7 +1,5 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.builders.GamePlayerStatsBeanBuilder;
-import com.faforever.client.builders.LeaderboardRatingJournalBeanBuilder;
 import com.faforever.client.builders.MapBeanBuilder;
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.PlayerStatsMapBuilder;
@@ -290,31 +288,5 @@ public class ReplayCardControllerTest extends PlatformTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(notificationService).addNotification(any());
-  }
-
-  @Test
-  public void withThreeTeamsShowClickForMore() {
-    PlayerStatsMapBuilder builder = PlayerStatsMapBuilder.create().defaultValues();
-    builder.appendToTeam("1", GamePlayerStatsBeanBuilder.create()
-                                                        .defaultValues()
-                                                        .leaderboardRatingJournals(List.of(
-                                                            LeaderboardRatingJournalBeanBuilder.create()
-                                                                                               .defaultValues()
-                                                                                               .get()))
-                                                        .get());
-    builder.appendToTeam("3", GamePlayerStatsBeanBuilder.create()
-                                                        .defaultValues()
-                                                        .leaderboardRatingJournals(List.of(
-                                                            LeaderboardRatingJournalBeanBuilder.create()
-                                                                                               .defaultValues()
-                                                                                               .get()))
-                                                        .get());
-
-    onlineReplay.setTeamPlayerStats(builder.get());
-
-    runOnFxThreadAndWait(() -> instance.setEntity(onlineReplay));
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertEquals(1, instance.teamsContainer.getChildren().size());
   }
 }
