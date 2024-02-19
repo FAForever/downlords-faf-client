@@ -108,6 +108,8 @@ public class CreateGameController extends NodeController<Pane> {
 
   private final SimpleInvalidationListener createButtonStateListener = this::setCreateGameButtonState;
 
+  private MapVersionBean lastMapChosen = null;
+
   public Label mapSizeLabel;
   public Label mapPlayersLabel;
   public Label mapDescriptionLabel;
@@ -158,7 +160,7 @@ public class CreateGameController extends NodeController<Pane> {
       mapListView.scrollTo(newMapIndex);
       event.consume();
     });
-
+  
     Function<FeaturedModBean, String> isDefaultModString = mod -> Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ? " " + i18n.get("game.create.defaultGameTypeMarker") : null;
 
     featuredModListView.setCellFactory(param -> new DualStringListCell<>(FeaturedModBean::getDisplayName, isDefaultModString, FeaturedModBean::getDescription, STYLE_CLASS_DUAL_LIST_CELL, uiService, fxApplicationThreadExecutor));
@@ -299,9 +301,16 @@ public class CreateGameController extends NodeController<Pane> {
 
   private void setSelectedMap(MapVersionBean mapVersion) {
     if (mapVersion == null) {
-      fxApplicationThreadExecutor.execute(() -> mapNameLabel.setText(""));
+      if (lastMapChosen != null && filteredMaps.contains(lastMapChosen)) {
+        mapListView.getSelectionModel().select(lastMapChosen);
+      } else {
+        lastMapChosen = null;
+        fxApplicationThreadExecutor.execute(() -> mapNameLabel.setText(""));
+      }
       return;
     }
+
+    lastMapChosen = mapVersion;
 
     ComparableVersion version = mapVersion.getVersion();
     MapSize mapSize = mapVersion.getSize();
@@ -501,7 +510,7 @@ public class CreateGameController extends NodeController<Pane> {
   }
 
   /**
-   * @return returns true of the map was found and false if not
+   * @return returns true if the map was found and false if not
    */
   boolean selectMap(String mapFolderName) {
     Optional<MapVersionBean> mapBeanOptional = mapListView.getItems()
