@@ -29,6 +29,7 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.player.ServerStatus;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
@@ -475,6 +476,11 @@ public class TeamMatchmakingService implements InitializingBean {
 
     if (!preferencesService.hasValidGamePath()) {
       gamePathHandler.notifyMissingGamePath(true);
+      return;
+    }
+
+    if (player.getServerStatus() == ServerStatus.OFFLINE) {
+      notificationService.addImmediateWarnNotification("teammatchmaking.notification.hostIsOffline.message");
       return;
     }
 

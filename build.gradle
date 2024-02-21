@@ -2,8 +2,8 @@ import com.install4j.gradle.Install4jTask
 import org.gradle.internal.os.OperatingSystem
 
 plugins {
-  id("org.springframework.boot") version "3.2.1"
-  id("com.install4j.gradle") version "10.0.6"
+  id("org.springframework.boot") version "3.2.2"
+  id("com.install4j.gradle") version "10.0.7"
   id("de.undercouch.download") version "5.5.0"
   id("jacoco")
   id("java")
@@ -303,7 +303,7 @@ dependencies {
   implementation("com.github.FAForever.faf-java-commons:faf-commons-api:${commonsVersion}")
   implementation("com.github.FAForever.faf-java-commons:faf-commons-lobby:${commonsVersion}")
   implementation("com.google.guava:guava:33.0.0-jre")
-  implementation("org.apache.commons:commons-compress:1.25.0")
+  implementation("org.apache.commons:commons-compress:1.26.0")
   implementation("net.java.dev.jna:jna:5.13.0")
   implementation("net.java.dev.jna:jna-platform:5.13.0")
   implementation("org.jetbrains:annotations:24.1.0")
@@ -323,7 +323,7 @@ dependencies {
   implementation("com.github.ben-manes.caffeine:caffeine")
   implementation("io.github.micheljung:fxstage:0.8.3")
   implementation("io.github.micheljung:jfx-waitomo-theme:0.3.0")
-  implementation("org.kitteh.irc:client-lib:8.0.0")
+  implementation("org.kitteh.irc:client-lib:9.0.0")
   def mapstructVersion = "1.5.5.Final"
   implementation("org.mapstruct:mapstruct:${mapstructVersion}")
   implementation("com.code-disaster.steamworks4j:steamworks4j:1.9.0")
@@ -346,16 +346,16 @@ dependencies {
   implementation("org.javassist:javassist:3.30.2-GA")
 
   implementation("io.github.sheikah45.fx2j:fx2j-api:0.0.0")
-  implementation("com.install4j:install4j-runtime:10.0.6")
+  implementation("com.install4j:install4j-runtime:10.0.7")
 
   testImplementation("com.squareup.okhttp3:okhttp")
   testImplementation("com.squareup.okhttp3:mockwebserver")
   testImplementation("io.projectreactor:reactor-test")
-  testImplementation("org.testfx:testfx-core:4.0.17") {
+  testImplementation("org.testfx:testfx-core:4.0.18") {
     exclude module: 'guava'
   }
   testImplementation("io.projectreactor.netty:reactor-netty")
-  testImplementation("org.testfx:testfx-junit5:4.0.17")
+  testImplementation("org.testfx:testfx-junit5:4.0.18")
   testImplementation("com.natpryce.hamcrest:hamcrest-reflection:0.1-2")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 

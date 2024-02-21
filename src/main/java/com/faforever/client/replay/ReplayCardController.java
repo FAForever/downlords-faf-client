@@ -50,7 +50,6 @@ import java.util.function.Consumer;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-// TODO: Add tests
 public class ReplayCardController extends VaultEntityCardController<ReplayBean> {
 
   private final UiService uiService;
@@ -162,7 +161,6 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
       return teams.entrySet().stream().map(entry -> {
         String team = entry.getKey();
         List<GamePlayerStatsBean> playerStats = entry.getValue();
-
         VBox teamCard = new VBox();
 
         String teamLabelText = team.equals("1") ? i18n.get("replay.noTeam") : i18n.get("replay.team", Integer.parseInt(team) - 1);
