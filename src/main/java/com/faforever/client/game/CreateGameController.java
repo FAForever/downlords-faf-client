@@ -160,7 +160,7 @@ public class CreateGameController extends NodeController<Pane> {
       mapListView.scrollTo(newMapIndex);
       event.consume();
     });
-  
+
     Function<FeaturedModBean, String> isDefaultModString = mod -> Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ? " " + i18n.get("game.create.defaultGameTypeMarker") : null;
 
     featuredModListView.setCellFactory(param -> new DualStringListCell<>(FeaturedModBean::getDisplayName, isDefaultModString, FeaturedModBean::getDescription, STYLE_CLASS_DUAL_LIST_CELL, uiService, fxApplicationThreadExecutor));
@@ -272,7 +272,13 @@ public class CreateGameController extends NodeController<Pane> {
     mapListView.getSelectionModel()
                .selectedItemProperty()
                .when(showing)
-               .subscribe(this::setSelectedMap);
+               .subscribe((oldItem, newItem) -> {
+                if (newItem == null && oldItem != null && filteredMaps.contains(oldItem)) {
+                  mapListView.getSelectionModel().select(oldItem);
+                } else {
+                  setSelectedMap(newItem);
+                }
+               });
 
     FilteredList<MapVersionBean> skirmishMaps = mapService.getInstalledMaps()
         .filtered(mapVersion -> mapVersion.getMap().getMapType() == MapType.SKIRMISH);
@@ -301,16 +307,9 @@ public class CreateGameController extends NodeController<Pane> {
 
   private void setSelectedMap(MapVersionBean mapVersion) {
     if (mapVersion == null) {
-      if (lastMapChosen != null && filteredMaps.contains(lastMapChosen)) {
-        mapListView.getSelectionModel().select(lastMapChosen);
-      } else {
-        lastMapChosen = null;
-        fxApplicationThreadExecutor.execute(() -> mapNameLabel.setText(""));
-      }
+      fxApplicationThreadExecutor.execute(() -> mapNameLabel.setText(""));
       return;
     }
-
-    lastMapChosen = mapVersion;
 
     ComparableVersion version = mapVersion.getVersion();
     MapSize mapSize = mapVersion.getSize();
