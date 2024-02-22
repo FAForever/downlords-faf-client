@@ -30,6 +30,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -78,6 +79,7 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
   public Label onMapLabel;
   public Button watchButton;
   public Button deleteButton;
+  public TextField replayIdField;
   public StarsController starsController;
 
   private Consumer<ReplayBean> onOpenDetailListener;
@@ -141,6 +143,8 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
             .orElse(0)
             .map(i18n::number)
             .when(showing));
+    replayIdField.textProperty()
+            .bind(entity.flatMap(ReplayBean::idProperty).map(id -> i18n.get("game.idFormat", id)).when(showing));
     starsController.valueProperty()
         .bind(entity.flatMap(ReplayBean::gameReviewsSummaryProperty)
             .flatMap(reviewsSummary -> reviewsSummary.scoreProperty().divide(reviewsSummary.numReviewsProperty()))

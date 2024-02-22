@@ -176,6 +176,7 @@ public class ReplayCardControllerTest extends PlatformTest {
     assertEquals("1234", instance.playerCountLabel.getText());
     assertEquals("42", instance.qualityLabel.getText());
     assertEquals(mapBean.getMap().getDisplayName(), instance.onMapLabel.getText());
+    assertEquals(String.valueOf(onlineReplay.getId()), instance.replayIdField.getText());
   }
 
   @Test
@@ -206,6 +207,7 @@ public class ReplayCardControllerTest extends PlatformTest {
     assertEquals(null, instance.modLabel.getText());
     assertEquals("1234", instance.playerCountLabel.getText());
     assertEquals(mapBean.getMap().getDisplayName(), instance.onMapLabel.getText());
+    assertEquals(String.valueOf(localReplay.getId()), instance.replayIdField.getText());
   }
 
   @Test
