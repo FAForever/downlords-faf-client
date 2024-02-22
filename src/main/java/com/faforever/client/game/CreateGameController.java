@@ -270,7 +270,13 @@ public class CreateGameController extends NodeController<Pane> {
     mapListView.getSelectionModel()
                .selectedItemProperty()
                .when(showing)
-               .subscribe(this::setSelectedMap);
+               .subscribe((oldItem, newItem) -> {
+                if (newItem == null && filteredMaps.contains(oldItem)) {
+                  mapListView.getSelectionModel().select(oldItem);
+                } else {
+                  setSelectedMap(newItem);
+                }
+               });
 
     FilteredList<MapVersionBean> skirmishMaps = mapService.getInstalledMaps()
         .filtered(mapVersion -> mapVersion.getMap().getMapType() == MapType.SKIRMISH);
@@ -501,7 +507,7 @@ public class CreateGameController extends NodeController<Pane> {
   }
 
   /**
-   * @return returns true of the map was found and false if not
+   * @return returns true if the map was found and false if not
    */
   boolean selectMap(String mapFolderName) {
     Optional<MapVersionBean> mapBeanOptional = mapListView.getItems()

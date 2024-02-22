@@ -24,6 +24,7 @@ import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.user.LoginService;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
@@ -280,7 +282,6 @@ public class CreateGameControllerTest extends PlatformTest {
   }
 
   @Test
-  @Disabled("I will deal with this later")
   public void testSelectLastMap() {
     MapVersionBean lastMapBean = MapVersionBeanBuilder.create()
         .defaultValues()
@@ -540,7 +541,7 @@ public class CreateGameControllerTest extends PlatformTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testMapNameSearch() {
+  public void testMapNameSearchFilter() {
     ArgumentCaptor<BiFunction<String, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
     verify(mapFilterController).addExternalFilter(any(ObservableValue.class),
                                                   argumentCaptor.capture());
@@ -557,5 +558,54 @@ public class CreateGameControllerTest extends PlatformTest {
     assertTrue(filter.apply("Dual", mapVersionBean));
     assertTrue(filter.apply("ua", mapVersionBean));
     assertFalse(filter.apply("ap.v1000", mapVersionBean));
+  }
+
+  @Test
+  public void testMapNameSearchKeepsSelectedIfInMaps() {
+    ArgumentCaptor<BiFunction<String, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    verify(mapFilterController).addExternalFilter(any(ObservableValue.class),
+                                                  argumentCaptor.capture());
+    BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
+    ObjectProperty<Predicate<MapVersionBean>> predicate = mapFilterController.predicateProperty();
+    mapList.add(MapVersionBeanBuilder.create()
+        .defaultValues()
+        .map(MapBeanBuilder.create().defaultValues().displayName("Test1").get())
+        .get());
+
+    predicate.setValue((item) -> filter.apply("Test", item));
+    runOnFxThreadAndWait(() -> {
+      instance.mapListView.getSelectionModel().select(0);
+      instance.mapSearchTextField.setText("Test");
+    });
+
+    assertThat(instance.mapListView.getSelectionModel().getSelectedIndex(), is(0));
+
+    predicate.setValue((item) -> filter.apply("Test1", item));
+    runOnFxThreadAndWait(() -> {
+      instance.mapSearchTextField.setText("Test1");
+    });
+
+    assertThat(instance.mapListView.getSelectionModel().getSelectedIndex(), is(0));
+  }
+
+  @Test
+  public void testMapNameSearchClearsSelected() {
+    ArgumentCaptor<BiFunction<String, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    verify(mapFilterController).addExternalFilter(any(ObservableValue.class),
+                                                  argumentCaptor.capture());
+    BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
+    ObjectProperty<Predicate<MapVersionBean>> predicate = mapFilterController.predicateProperty();
+    mapList.add(MapVersionBeanBuilder.create()
+        .defaultValues()
+        .map(MapBeanBuilder.create().defaultValues().displayName("Test1").get())
+        .get());
+
+    predicate.setValue((item) -> filter.apply("Not in Filtered Maps", item));
+    runOnFxThreadAndWait(() -> {
+      instance.mapListView.getSelectionModel().select(0);
+      instance.mapSearchTextField.setText("Not in Filtered Maps");
+    });
+
+    assertThat(instance.mapListView.getSelectionModel().getSelectedIndex(), is(-1));
   }
 }
