@@ -108,8 +108,6 @@ public class CreateGameController extends NodeController<Pane> {
 
   private final SimpleInvalidationListener createButtonStateListener = this::setCreateGameButtonState;
 
-  private MapVersionBean lastMapChosen = null;
-
   public Label mapSizeLabel;
   public Label mapPlayersLabel;
   public Label mapDescriptionLabel;
@@ -273,7 +271,7 @@ public class CreateGameController extends NodeController<Pane> {
                .selectedItemProperty()
                .when(showing)
                .subscribe((oldItem, newItem) -> {
-                if (newItem == null && oldItem != null && filteredMaps.contains(oldItem)) {
+                if (newItem == null && filteredMaps.contains(oldItem)) {
                   mapListView.getSelectionModel().select(oldItem);
                 } else {
                   setSelectedMap(newItem);
