@@ -97,7 +97,7 @@
           GridPane.columnIndex="2" GridPane.rowIndex="8"
           GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
         <TextField fx:id="replayIdField" alignment="CENTER_RIGHT" editable="false"
-                maxWidth="100.0" promptText="&lt;ReplayID&gt;" text="#123456789"/>
+                maxWidth="100.0"/>
         <Button fx:id="deleteButton" mnemonicParsing="false"
                 visible="false" managed="false"
                 onAction="#onDeleteButtonClicked"
