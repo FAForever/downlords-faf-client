@@ -89,8 +89,7 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
   public ComboBox<Integer> perPageComboBox;
 
   protected Mono<Tuple2<List<T>, Integer>> currentSupplier;
-  private final CompletableFuture<Void> showRoomInitializedFuture = CompletableFuture.runAsync(
-      this::initializeShowRoomCards);
+  private final Mono<Object> initializeMono = Mono.fromRunnable(this::initializeShowRoomCards).cache();
 
   protected abstract void initSearchController();
 
@@ -161,11 +160,11 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
     vaultRoot.getChildren().add(detailView);
     JavaFxUtil.setAnchors(detailView, 0d);
 
-    showRoomGroup.visibleProperty().bind(state.isEqualTo(State.SHOWROOM));
-    searchResultGroup.visibleProperty().bind(state.isEqualTo(State.RESULT));
-    backButton.visibleProperty().bind(state.isEqualTo(State.RESULT));
-    paginationGroup.visibleProperty().bind(state.isEqualTo(State.RESULT));
-    loadingPane.visibleProperty().bind(state.isEqualTo(State.SEARCHING));
+    showRoomGroup.visibleProperty().bind(state.isEqualTo(State.SHOWROOM).when(showing));
+    searchResultGroup.visibleProperty().bind(state.isEqualTo(State.RESULT).when(showing));
+    backButton.visibleProperty().bind(state.isEqualTo(State.RESULT).when(showing));
+    paginationGroup.visibleProperty().bind(state.isEqualTo(State.RESULT).when(showing));
+    loadingPane.visibleProperty().bind(state.isEqualTo(State.SEARCHING).when(showing));
 
     Bindings.bindContent(searchResultPane.getChildren(), resultCardRoots);
   }
@@ -241,19 +240,18 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
 
   protected void loadShowRooms() {
     enterSearchingState();
-    List<Mono<List<T>>> showRoomLoadMonos = showRoomEntities.entrySet().stream().map(entry -> {
-      ShowRoomCategory<T> showRoomCategory = entry.getKey();
-      ObservableList<T> entities = entry.getValue();
-      return showRoomCategory.entitySupplier()
-                             .get()
-                             .map(Tuple2::getT1)
-                             .publishOn(fxApplicationThreadExecutor.asScheduler())
-                             .doOnNext(entities::setAll);
-    }).toList();
 
-    Mono.fromFuture(showRoomInitializedFuture)
-        .then(Mono.when(showRoomLoadMonos))
-        .subscribe(null, null, this::enterShowRoomState);
+    initializeMono.then(Mono.defer(() -> Mono.when(showRoomEntities.entrySet().stream().map(entry -> {
+                    ShowRoomCategory<T> showRoomCategory = entry.getKey();
+                    ObservableList<T> entities = entry.getValue();
+                    return showRoomCategory.entitySupplier()
+                                           .get()
+                                           .map(Tuple2::getT1)
+                                           .publishOn(fxApplicationThreadExecutor.asScheduler())
+                                           .doOnNext(entities::setAll);
+                  }).toList())))
+                  .subscribe(null, throwable -> log.warn("Failed to load show rooms", throwable),
+                             this::enterShowRoomState);
   }
 
   private VaultEntityShowRoomController loadShowRoom(ShowRoomCategory<T> showRoomCategory) {
@@ -340,8 +338,6 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
     if (!(navigateEvent.getClass().equals(defaultNavigateEvent)) && !navigateEvent.getClass()
                                                                                   .equals(NavigateEvent.class)) {
       handleSpecialNavigateEvent(navigateEvent);
-    } else if (state.get() == State.UNINITIALIZED) {
-      loadShowRooms();
     }
   }
 
