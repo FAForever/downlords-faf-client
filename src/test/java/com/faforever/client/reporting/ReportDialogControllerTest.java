@@ -143,7 +143,7 @@ public class ReportDialogControllerTest extends PlatformTest {
 
     instance.onReportButtonClicked();
 
-    verify(notificationService).addImmediateWarnNotification("report.warning.title");
+    verify(notificationService).addImmediateWarnNotification("report.warning.noGame");
   }
 
   @Test
