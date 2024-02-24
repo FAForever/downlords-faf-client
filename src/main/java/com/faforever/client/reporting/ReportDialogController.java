@@ -216,7 +216,7 @@ public class ReportDialogController extends NodeController<Node> {
 
   private void warnNoGame() {
     log.warn("GameId {} does not exist", gameId.getText());
-    notificationService.addImmediateWarnNotification("report.warning.title");
+    notificationService.addImmediateWarnNotification("report.warning.noGame");
   }
 
   public void setOffender(PlayerBean player) {

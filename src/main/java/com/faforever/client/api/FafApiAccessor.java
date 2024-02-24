@@ -53,6 +53,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
@@ -217,7 +218,11 @@ public class FafApiAccessor implements InitializingBean {
 
     Class<T> type = navigator.getDtoClass();
     String endpointPath = navigator.build();
-    return retrieveMonoWithErrorHandling(type, apiWebClient.get().uri(endpointPath)).cache()
+    return retrieveMonoWithErrorHandling(type, apiWebClient.get().uri(endpointPath)).onErrorResume(
+                                                                                        WebClientResponseException.NotFound.class, throwable -> {
+                                                                                          log.warn("No {} found for path {}", type, endpointPath);
+                                                                                          return Mono.empty();
+                                                                                        }).cache()
         .doOnNext(object -> log.trace("Retrieved {} from {} with type {}", object, endpointPath, type));
   }
 
