@@ -11,6 +11,7 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.io.CharStreams;
+import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Pane;
@@ -85,19 +86,17 @@ public class TournamentsController extends NodeController<Node> {
     webViewConfigurer.configureWebView(tournamentDetailWebView);
 
     tournamentService.getAllTournaments()
-        .thenAcceptAsync(tournaments -> {
-          tournaments.sort(
-              Comparator.<TournamentBean, Integer>comparing(o -> o.getStatus().getSortOrderPriority())
-                  .thenComparing(TournamentBean::getCreatedAt)
-                  .reversed()
-          );
-          tournamentListView.getItems().setAll(tournaments);
-          tournamentListView.getSelectionModel().selectFirst();
-          onLoadingStop();
-        }, fxApplicationThreadExecutor).exceptionally(throwable -> {
-          log.error("Tournaments could not be loaded", throwable);
-          return null;
-        });
+                     .sort(Comparator.<TournamentBean, Integer>comparing(o -> o.getStatus().getSortOrderPriority())
+                                     .thenComparing(TournamentBean::getCreatedAt)
+                                     .reversed())
+                     .collectList()
+                     .map(FXCollections::observableList)
+                     .publishOn(fxApplicationThreadExecutor.asScheduler())
+                     .subscribe(tournaments -> {
+                       tournamentListView.getItems().setAll(tournaments);
+                       tournamentListView.getSelectionModel().selectFirst();
+                       onLoadingStop();
+                     }, throwable -> log.error("Tournaments could not be loaded", throwable));
   }
 
   private void displayTournamentItem(TournamentBean tournamentBean) {

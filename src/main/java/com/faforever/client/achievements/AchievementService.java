@@ -15,12 +15,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 
@@ -38,37 +39,35 @@ public class AchievementService {
   private final NotificationService notificationService;
 
   @Cacheable(value = CacheNames.ACHIEVEMENTS, sync = true)
-  public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(Integer playerId) {
+  public Flux<PlayerAchievement> getPlayerAchievements(Integer playerId) {
     ElideNavigatorOnCollection<PlayerAchievement> navigator = ElideNavigator.of(PlayerAchievement.class)
         .collection()
         .setFilter(qBuilder().intNum("player.id").eq(playerId))
         .pageSize(fafApiAccessor.getMaxPageSize());
-    return fafApiAccessor.getMany(navigator).collectList().toFuture();
+    return fafApiAccessor.getMany(navigator).cache();
   }
 
 
   @Cacheable(value = CacheNames.ACHIEVEMENTS, sync = true)
-  public CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions() {
+  public Flux<AchievementDefinition> getAchievementDefinitions() {
     ElideNavigatorOnCollection<AchievementDefinition> navigator = ElideNavigator.of(AchievementDefinition.class)
         .collection()
         .addSortingRule("order", true)
         .pageSize(fafApiAccessor.getMaxPageSize());
-    return fafApiAccessor.getMany(navigator)
-        .collectList()
-        .toFuture();
+    return fafApiAccessor.getMany(navigator).cache();
   }
 
   @Cacheable(value = CacheNames.ACHIEVEMENT_IMAGES, sync = true)
   public Image getImage(AchievementDefinition achievementDefinition, AchievementState achievementState) {
     try {
       URL url = switch (achievementState) {
-        case REVEALED -> new URL(achievementDefinition.getRevealedIconUrl());
-        case UNLOCKED -> new URL(achievementDefinition.getUnlockedIconUrl());
-        default -> throw new UnsupportedOperationException("Not yet implemented");
+        case REVEALED -> new URI(achievementDefinition.getRevealedIconUrl()).toURL();
+        case UNLOCKED -> new URI(achievementDefinition.getUnlockedIconUrl()).toURL();
+        case HIDDEN -> throw new UnsupportedOperationException("Not yet implemented");
       };
       return assetService.loadAndCacheImage(url, Path.of("achievements").resolve(achievementState.name().toLowerCase()),
           null, ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE);
-    } catch (MalformedURLException e) {
+    } catch (MalformedURLException | URISyntaxException e) {
       log.warn("Could not load achievement image bad url for achievement: {}", achievementDefinition.getName(), e);
       notificationService.addPersistentErrorNotification("achievements.load.badUrl", achievementDefinition.getName());
       return null;

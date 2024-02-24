@@ -13,7 +13,6 @@ import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.ModerationReport;
 import com.faforever.commons.api.elide.ElideEntity;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -22,12 +21,9 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
+import reactor.test.StepVerifier;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -62,11 +58,11 @@ public class ModerationServiceTest extends ServiceTest {
     ModerationReportBean report = ModerationReportBeanBuilder.create().defaultValues().get();
     Flux<ElideEntity> resultFlux = Flux.just(moderationReportMapper.map(report, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    List<ModerationReportBean> results = instance.getModerationReports().join();
+    StepVerifier.create(instance.getModerationReports()).expectNext(report).verifyComplete();
+    ;
     verify(fafApiAccessor).getMany(argThat(
         ElideMatchers.hasFilter(qBuilder().intNum("reporter.id").eq(player.getId())
     )));
-    assertThat(results, contains(report));
   }
 
   @Test
@@ -75,8 +71,7 @@ public class ModerationServiceTest extends ServiceTest {
     ModerationReport moderationReport = moderationReportMapper.map(report, new CycleAvoidingMappingContext());
     Mono<ElideEntity> resultMono = Mono.just(moderationReport);
     when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
-    ModerationReportBean result = instance.postModerationReport(report).join();
+    StepVerifier.create(instance.postModerationReport(report)).expectNext(report).verifyComplete();
     verify(fafApiAccessor).post(any(), eq(moderationReport));
-    assertThat(result, CoreMatchers.is(report));
   }
 }

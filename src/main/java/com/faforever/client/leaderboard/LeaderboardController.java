@@ -60,7 +60,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LeaderboardController extends NodeController<StackPane> {
 
-  private static final PseudoClass NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("highlighted-bar");
+  private static final PseudoClass NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass(
+      "highlighted-bar");
 
   private final I18n i18n;
   private final LeaderboardService leaderboardService;
@@ -108,8 +109,9 @@ public class LeaderboardController extends NodeController<StackPane> {
     yAxis.setTickLabelFormatter(new ToStringOnlyConverter<>(number -> String.valueOf(number.intValue())));
     yAxis.setTickUnit(10d);
 
-    subDivisionTabPane.widthProperty().when(showing).subscribe(newValue ->
-        setTabWidth((double) newValue, subDivisionTabPane.getTabs().size()));
+    subDivisionTabPane.widthProperty()
+                      .when(showing)
+                      .subscribe(newValue -> setTabWidth((double) newValue, subDivisionTabPane.getTabs().size()));
   }
 
   private void setTabWidth(double tabPaneWidth, int tabNumber) {
@@ -128,21 +130,17 @@ public class LeaderboardController extends NodeController<StackPane> {
       return;
     }
 
-    playerService.getPlayerByName(searchText).thenAccept(playerBeanOptional -> playerBeanOptional.ifPresent(player ->
-      leaderboardService.getLeagueEntryForPlayer(player, season).thenAccept(leagueEntry -> {
-        if (leagueEntry == null) {
-          return;
-        }
-        selectLeagueEntry(leagueEntry);
-      })));
+    playerService.getPlayerByName(searchText)
+                 .flatMap(player -> leaderboardService.getLeagueEntryForPlayer(player, season))
+                 .subscribe(this::selectLeagueEntry);
   }
 
   public void setSeason(LeagueSeasonBean season) {
     this.season = season;
 
-    seasonLabel.setText(i18n.getOrDefault(
-        season.getNameKey(), String.format("leaderboard.season.%s", season.getNameKey()), season.getSeasonNumber()
-    ).toUpperCase());
+    seasonLabel.setText(
+        i18n.getOrDefault(season.getNameKey(), String.format("leaderboard.season.%s", season.getNameKey()),
+                          season.getSeasonNumber()).toUpperCase());
     String startDate = timeService.asDate(season.getStartDate(), FormatStyle.MEDIUM);
     String endDate = timeService.asDate(season.getEndDate(), FormatStyle.MEDIUM);
     seasonDateLabel.setText(i18n.get("leaderboard.seasonDate", startDate, endDate));
@@ -151,13 +149,14 @@ public class LeaderboardController extends NodeController<StackPane> {
     if (usernamesAutoCompletion != null) {
       usernamesAutoCompletion.dispose();
     }
-    leaderboardService.getAllSubdivisions(season).thenAccept(this::setUsernamesAutoCompletion)
-        .exceptionally(throwable -> {
-          contentPane.setVisible(false);
-          log.error("Error while loading division list", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoadDivisions");
-          return null;
-        });
+    leaderboardService.getAllSubdivisions(season)
+                      .collectList()
+                      .subscribe(this::setUsernamesAutoCompletion, throwable -> {
+                        contentPane.setVisible(false);
+                        log.error("Error while loading division list", throwable);
+                        notificationService.addImmediateErrorNotification(throwable,
+                                                                          "leaderboard.failedToLoadDivisions");
+                      });
 
     JavaFxUtil.addAndTriggerListener(playerService.getCurrentPlayer().leaderboardRatingsProperty(),
                                      new WeakInvalidationListener(playerRatingListener));
@@ -166,25 +165,28 @@ public class LeaderboardController extends NodeController<StackPane> {
   private void setUsernamesAutoCompletion(List<SubdivisionBean> subdivisions) {
     fxApplicationThreadExecutor.execute(() -> {
       majorDivisionPicker.getItems().clear();
-      List<SubdivisionBean> majorDivisions = subdivisions
-          .stream()
-          .filter(subdivision -> subdivision.getIndex() == 1)
-          .collect(Collectors.toList());
+      List<SubdivisionBean> majorDivisions = subdivisions.stream()
+                                                         .filter(subdivision -> subdivision.getIndex() == 1)
+                                                         .collect(Collectors.toList());
       Collections.reverse(majorDivisions);
       majorDivisionPicker.getItems().addAll(majorDivisions);
     });
     Set<String> leagueEntryNames = new HashSet<>();
     List<CompletableFuture<?>> futures = new ArrayList<>();
     subdivisions.forEach(subdivision -> {
-      CompletableFuture<Void> future = leaderboardService.getEntries(subdivision).thenAccept(entries ->
-          entries.stream()
-              .map(leagueEntryBean -> leagueEntryBean.getPlayer().getUsername())
-              .forEach(leagueEntryNames::add));
+      CompletableFuture<List<LeagueEntryBean>> future = leaderboardService.getEntries(subdivision)
+                                                                          .collectList()
+                                                                          .doOnNext(entries -> entries.stream()
+                                                                                                      .map(
+                                                                                                          leagueEntryBean -> leagueEntryBean.getPlayer()
+                                                                                                                                            .getUsername())
+                                                                                                      .forEach(
+                                                                                                          leagueEntryNames::add))
+                                                                          .toFuture();
       futures.add(future);
     });
     CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).thenRun(() -> {
-      usernamesAutoCompletion = TextFields.bindAutoCompletion(searchTextField,
-          leagueEntryNames);
+      usernamesAutoCompletion = TextFields.bindAutoCompletion(searchTextField, leagueEntryNames);
       usernamesAutoCompletion.setDelay(0);
       usernamesAutoCompletion.setOnAutoCompleted(event -> processSearchInput());
       fxApplicationThreadExecutor.execute(() -> contentPane.setVisible(true));
@@ -198,45 +200,50 @@ public class LeaderboardController extends NodeController<StackPane> {
 
   @VisibleForTesting
   protected void updateDisplayedPlayerStats() {
-    leaderboardService.getAllSubdivisions(season).thenAccept(divisions ->
-      leaderboardService.getLeagueEntryForPlayer(playerService.getCurrentPlayer(), season).thenAccept(leagueEntry -> {
-        if (leagueEntry == null) {
-          selectHighestDivision();
-        } else {
-          if (leagueEntry.getSubdivision() == null) {
-            fxApplicationThreadExecutor.execute(() -> {
-              playerDivisionNameLabel.setVisible(false);
-              placementLabel.setVisible(true);
-              int gamesNeeded = leagueEntry.getReturningPlayer() ? season.getPlacementGamesReturningPlayer() : season.getPlacementGames();
-              placementLabel.setText(i18n.get("leaderboard.placement", leagueEntry.getGamesPlayed(), gamesNeeded));
-            });
-            selectHighestDivision();
-          } else {
-            fxApplicationThreadExecutor.execute(() -> {
-              playerDivisionNameLabel.setVisible(true);
-              placementLabel.setVisible(false);
-              playerDivisionImageView.setImage(
-                  leaderboardService.loadDivisionImage(leagueEntry.getSubdivision().getImageUrl()));
-              playerDivisionNameLabel.setText(i18n.get("leaderboard.divisionName",
-                  i18n.get(leagueEntry.getSubdivision().getDivisionI18nKey()),
-                  leagueEntry.getSubdivision().getNameKey()).toUpperCase());
-              scoreArc.setLength(-360.0 * leagueEntry.getScore() / leagueEntry.getSubdivision().getHighestScore());
-              playerScoreLabel.setText(i18n.number(leagueEntry.getScore()));
-            });
-            selectLeagueEntry(leagueEntry);
-          }
-        }
-        plotDivisionDistributions(divisions, leagueEntry);
-      }).exceptionally(throwable -> {
-        log.error("Error while fetching leagueEntry", throwable);
-        notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoadEntry");
-        return null;
-      })
-    ).exceptionally(throwable -> {
-      log.error("Error while loading division list", throwable);
-      notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoadDivisions");
-      return null;
-    });
+    leaderboardService.getAllSubdivisions(season)
+                      .collectList()
+                      .subscribe(
+                          divisions -> leaderboardService.getLeagueEntryForPlayer(playerService.getCurrentPlayer(),
+                                                                                  season).subscribe(leagueEntry -> {
+                            if (leagueEntry == null) {
+                              selectHighestDivision();
+                            } else {
+                              if (leagueEntry.getSubdivision() == null) {
+                                fxApplicationThreadExecutor.execute(() -> {
+                                  playerDivisionNameLabel.setVisible(false);
+                                  placementLabel.setVisible(true);
+                                  int gamesNeeded = leagueEntry.getReturningPlayer() ? season.getPlacementGamesReturningPlayer() : season.getPlacementGames();
+                                  placementLabel.setText(
+                                      i18n.get("leaderboard.placement", leagueEntry.getGamesPlayed(), gamesNeeded));
+                                });
+                                selectHighestDivision();
+                              } else {
+                                fxApplicationThreadExecutor.execute(() -> {
+                                  playerDivisionNameLabel.setVisible(true);
+                                  placementLabel.setVisible(false);
+                                  playerDivisionImageView.setImage(
+                                      leaderboardService.loadDivisionImage(leagueEntry.getSubdivision().getImageUrl()));
+                                  playerDivisionNameLabel.setText(i18n.get("leaderboard.divisionName", i18n.get(
+                                                                               leagueEntry.getSubdivision().getDivisionI18nKey()),
+                                                                           leagueEntry.getSubdivision().getNameKey())
+                                                                      .toUpperCase());
+                                  scoreArc.setLength(
+                                      -360.0 * leagueEntry.getScore() / leagueEntry.getSubdivision().getHighestScore());
+                                  playerScoreLabel.setText(i18n.number(leagueEntry.getScore()));
+                                });
+                                selectLeagueEntry(leagueEntry);
+                              }
+                            }
+                            plotDivisionDistributions(divisions, leagueEntry);
+                          }, throwable -> {
+                            log.error("Error while fetching leagueEntry", throwable);
+                            notificationService.addImmediateErrorNotification(throwable,
+                                                                              "leaderboard.failedToLoadEntry");
+                          }), throwable -> {
+                            log.error("Error while loading division list", throwable);
+                            notificationService.addImmediateErrorNotification(throwable,
+                                                                              "leaderboard.failedToLoadDivisions");
+                          });
   }
 
   private void selectHighestDivision() {
@@ -252,11 +259,11 @@ public class LeaderboardController extends NodeController<StackPane> {
       selectAssociatedTab();
     } else {
       majorDivisionPicker.getItems()
-          .stream()
-          .filter(item -> hasSameDivisionIndex(entryToSelect, item))
-          .findFirst()
-          .ifPresent(item -> fxApplicationThreadExecutor.execute(() -> majorDivisionPicker.getSelectionModel()
-              .select(item)));
+                         .stream()
+                         .filter(item -> hasSameDivisionIndex(entryToSelect, item))
+                         .findFirst()
+                         .ifPresent(item -> fxApplicationThreadExecutor.execute(
+                             () -> majorDivisionPicker.getSelectionModel().select(item)));
     }
   }
 
@@ -268,21 +275,21 @@ public class LeaderboardController extends NodeController<StackPane> {
     if (majorDivisionPicker.getValue() == null) {
       throw new IllegalStateException("majorDivisionPicker has no item selected");
     }
-    leaderboardService.getAllSubdivisions(season).thenAccept(subdivisions -> {
+    leaderboardService.getAllSubdivisions(season).collectList().subscribe(subdivisions -> {
       fxApplicationThreadExecutor.execute(() -> subDivisionTabPane.getTabs().clear());
       subdivisions.stream()
-          .filter(subdivision -> subdivision.getDivision().getIndex() == majorDivisionPicker.getValue()
-              .getDivision()
-              .getIndex())
-          .forEach(subdivision -> {
-            SubDivisionTabController controller = uiService.loadFxml("theme/leaderboard/sub_division_tab.fxml");
-            controller.getRoot().setUserData(subdivision.getIndex());
-            controller.populate(subdivision);
-            fxApplicationThreadExecutor.execute(() -> {
-              subDivisionTabPane.getTabs().add(controller.getRoot());
-              subDivisionTabPane.getSelectionModel().selectLast();
-            });
-          });
+                  .filter(subdivision -> subdivision.getDivision().getIndex() == majorDivisionPicker.getValue()
+                                                                                                    .getDivision()
+                                                                                                    .getIndex())
+                  .forEach(subdivision -> {
+                    SubDivisionTabController controller = uiService.loadFxml("theme/leaderboard/sub_division_tab.fxml");
+                    controller.getRoot().setUserData(subdivision.getIndex());
+                    controller.populate(subdivision);
+                    fxApplicationThreadExecutor.execute(() -> {
+                      subDivisionTabPane.getTabs().add(controller.getRoot());
+                      subDivisionTabPane.getSelectionModel().selectLast();
+                    });
+                  });
       setTabWidth(subDivisionTabPane.getWidth(), subDivisionTabPane.getTabs().size());
       if (entryToSelect != null && hasSameDivisionIndex(entryToSelect, majorDivisionPicker.getValue())) {
         selectAssociatedTab();
@@ -291,14 +298,16 @@ public class LeaderboardController extends NodeController<StackPane> {
   }
 
   private void selectAssociatedTab() {
-    subDivisionTabPane.getTabs().stream()
-        .filter(tab -> tab.getUserData().equals(entryToSelect.getSubdivision().getIndex()))
-        .findFirst().ifPresent(tab -> fxApplicationThreadExecutor.execute(() -> {
-          subDivisionTabPane.getSelectionModel().select(tab);
-          TableView<LeagueEntryBean> newTable = (TableView<LeagueEntryBean>) tab.getContent();
-          newTable.scrollTo(entryToSelect);
-          newTable.getSelectionModel().select(entryToSelect);
-        }));
+    subDivisionTabPane.getTabs()
+                      .stream()
+                      .filter(tab -> tab.getUserData().equals(entryToSelect.getSubdivision().getIndex()))
+                      .findFirst()
+                      .ifPresent(tab -> fxApplicationThreadExecutor.execute(() -> {
+                        subDivisionTabPane.getSelectionModel().select(tab);
+                        TableView<LeagueEntryBean> newTable = (TableView<LeagueEntryBean>) tab.getContent();
+                        newTable.scrollTo(entryToSelect);
+                        newTable.getSelectionModel().select(entryToSelect);
+                      }));
   }
 
   private void plotDivisionDistributions(List<SubdivisionBean> subdivisions, LeagueEntryBean leagueEntry) {
@@ -306,34 +315,38 @@ public class LeaderboardController extends NodeController<StackPane> {
     // We need to set the categories first, to ensure they have the right order.
     ObservableList<String> categories = FXCollections.observableArrayList();
     subdivisions.stream()
-        .filter(subdivision -> subdivision.getIndex() == 1)
-        .map(subdivision -> i18n.get(subdivision.getDivisionI18nKey()))
-        .forEach(categories::add);
+                .filter(subdivision -> subdivision.getIndex() == 1)
+                .map(subdivision -> i18n.get(subdivision.getDivisionI18nKey()))
+                .forEach(categories::add);
     xAxis.setCategories(categories);
 
-    subdivisions.stream().filter(subdivision -> subdivision.getDivision().getIndex() == 1).forEach(firstTierSubDivision -> {
-      XYChart.Series<String, Integer> series = new XYChart.Series<>();
-      series.setName(firstTierSubDivision.getNameKey());
-      subdivisions.stream()
-          .filter(subdivision -> subdivision.getIndex() == firstTierSubDivision.getIndex())
-          .forEach(subdivision -> leaderboardService.getSizeOfDivision(subdivision).thenAccept(size -> {
-            XYChart.Data<String, Integer> data = new XYChart.Data<>(i18n.get(subdivision.getDivisionI18nKey()), size);
-            Text label = new Text();
-            label.setText(subdivision.getNameKey());
-            label.setFill(Color.WHITE);
-            data.nodeProperty().addListener((observable, oldValue, newValue) -> {
-              if (leagueEntry != null && subdivision.equals(leagueEntry.getSubdivision())) {
-                newValue.pseudoClassStateChanged(NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS, true);
-              }
-              addNodeOnTopOfBar(data, label);
-            });
-            fxApplicationThreadExecutor.execute(() -> series.getData().add(data));
-          }));
-      fxApplicationThreadExecutor.execute(() -> ratingDistributionChart.getData().add(series));
-    });
-    leaderboardService.getTotalPlayers(season).thenAccept(totalPlayers ->
-        fxApplicationThreadExecutor.execute(() -> xAxis.labelProperty()
-            .setValue(i18n.get("leaderboard.totalPlayers", totalPlayers))));
+    subdivisions.stream()
+                .filter(subdivision -> subdivision.getDivision().getIndex() == 1)
+                .forEach(firstTierSubDivision -> {
+                  XYChart.Series<String, Integer> series = new XYChart.Series<>();
+                  series.setName(firstTierSubDivision.getNameKey());
+                  subdivisions.stream()
+                              .filter(subdivision -> subdivision.getIndex() == firstTierSubDivision.getIndex())
+                              .forEach(
+                                  subdivision -> leaderboardService.getSizeOfDivision(subdivision).subscribe(size -> {
+                                    XYChart.Data<String, Integer> data = new XYChart.Data<>(
+                                        i18n.get(subdivision.getDivisionI18nKey()), size);
+                                    Text label = new Text();
+                                    label.setText(subdivision.getNameKey());
+                                    label.setFill(Color.WHITE);
+                                    data.nodeProperty().addListener((observable, oldValue, newValue) -> {
+                                      if (leagueEntry != null && subdivision.equals(leagueEntry.getSubdivision())) {
+                                        newValue.pseudoClassStateChanged(NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS, true);
+                                      }
+                                      addNodeOnTopOfBar(data, label);
+                                    });
+                                    fxApplicationThreadExecutor.execute(() -> series.getData().add(data));
+                                  }));
+                  fxApplicationThreadExecutor.execute(() -> ratingDistributionChart.getData().add(series));
+                });
+    leaderboardService.getTotalPlayers(season)
+                      .publishOn(fxApplicationThreadExecutor.asScheduler())
+                      .subscribe(totalPlayers -> xAxis.setLabel(i18n.get("leaderboard.totalPlayers", totalPlayers)));
   }
 
   private void addNodeOnTopOfBar(XYChart.Data<String, Integer> data, Node nodeToAdd) {

@@ -38,11 +38,11 @@ import org.controlsfx.control.textfield.TextFields;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Component
@@ -142,55 +142,43 @@ public class ReportDialogController extends NodeController<Node> {
 
   private void submitReport(ModerationReportBean report) {
     playerService.getPlayerByName(offender.getText())
-        .thenApply(player -> {
-          if (player.isEmpty()) {
-            warnNoPlayer();
-            return false;
-          }
+                 .map(player -> {
+                   report.getReportedUsers().add(player);
+                   return report;
+                 })
+                 .switchIfEmpty(Mono.fromRunnable(this::warnNoPlayer))
+                 .flatMap(reportBean -> {
+                   if (!gameId.getText().isBlank()) {
+                     return replayService.findById(Integer.parseInt(gameId.getText())).flatMap(replay -> {
+                       if (replay.getTeams()
+                                 .values()
+                                 .stream()
+                                 .flatMap(Collection::stream)
+                                 .noneMatch(username -> username.equals(offender.getText()))) {
+                         warnOffenderNotInGame();
+                         return Mono.empty();
+                       }
 
-          report.getReportedUsers().add(player.get());
-          return true;
-        })
-        .thenCompose(submit -> {
-          if (submit && !gameId.getText().isBlank()) {
-            return replayService.findById(Integer.parseInt(gameId.getText())).thenApply(possibleReplay -> {
-              if (possibleReplay.isEmpty()) {
-                warnNoGame();
-                return false;
-              }
-
-              ReplayBean actualReplay = possibleReplay.get();
-              if (actualReplay.getTeams().values().stream().flatMap(Collection::stream).noneMatch(username -> username.equals(offender.getText()))) {
-                warnOffenderNotInGame();
-                return false;
-              }
-
-              ReplayBean replayBean = new ReplayBean();
-              replayBean.setId(actualReplay.getId());
-              report.setGame(replayBean);
-              return true;
-            });
-          } else {
-            return CompletableFuture.completedFuture(submit);
-          }
-        }).thenCompose(submit -> {
-      if (!submit) {
-        return CompletableFuture.completedFuture(null);
-      }
-
-      setSendingReport(true);
-      return moderationService.postModerationReport(report);
-    }).thenAccept(postedReport -> {
-      if (postedReport != null) {
-        populateReportTable();
-        clearReport();
-        notificationService.addImmediateInfoNotification("report.success");
-      }
-    }).exceptionally(throwable -> {
-      log.error("Error submitting moderation report", throwable);
-      notificationService.addImmediateErrorNotification(throwable, "report.error");
-      return null;
-    }).whenComplete((aVoid, throwable) -> setSendingReport(false));
+                       reportBean.setGame(replay);
+                       return Mono.just(reportBean);
+                     }).switchIfEmpty(Mono.fromRunnable(this::warnNoGame));
+                   } else {
+                     return Mono.just(reportBean);
+                   }
+                 })
+                 .doOnNext(reportBean -> setSendingReport(true))
+                 .flatMap(moderationService::postModerationReport)
+                 .doAfterTerminate(() -> setSendingReport(false))
+                 .subscribe(postedReport -> {
+                   if (postedReport != null) {
+                     populateReportTable();
+                     clearReport();
+                     notificationService.addImmediateInfoNotification("report.success");
+                   }
+                 }, throwable -> {
+                   log.error("Error submitting moderation report", throwable);
+                   notificationService.addImmediateErrorNotification(throwable, "report.error");
+                 });
   }
 
   private void setSendingReport(boolean sending) {
@@ -228,7 +216,7 @@ public class ReportDialogController extends NodeController<Node> {
 
   private void warnNoGame() {
     log.warn("GameId {} does not exist", gameId.getText());
-    notificationService.addImmediateWarnNotification("report.warning.title");
+    notificationService.addImmediateWarnNotification("report.warning.noGame");
   }
 
   public void setOffender(PlayerBean player) {
@@ -257,8 +245,11 @@ public class ReportDialogController extends NodeController<Node> {
   }
 
   private void populateReportTable() {
-    moderationService.getModerationReports().thenAccept(reports ->
-        fxApplicationThreadExecutor.execute(() -> reportTable.setItems(FXCollections.observableList(reports))));
+    moderationService.getModerationReports()
+                     .collectList()
+                     .map(FXCollections::observableList)
+                     .publishOn(fxApplicationThreadExecutor.asScheduler())
+                     .subscribe(reportTable::setItems);
   }
 
   @Override

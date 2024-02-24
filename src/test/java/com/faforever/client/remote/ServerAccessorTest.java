@@ -176,10 +176,10 @@ public class ServerAccessorTest extends ServiceTest {
                                      clientProperties, new FafLobbyClient(objectMapper), () -> webClient);
 
     instance.afterPropertiesSet();
-    instance.addEventListener(ServerMessage.class, serverMessage -> {
+    instance.getEvents(ServerMessage.class).doOnNext(serverMessage -> {
       receivedMessage = serverMessage;
       messageReceivedByClientLatch.countDown();
-    });
+    }).subscribe();
 
     when(uidService.generate(any())).thenReturn("encrypteduidstring");
 
@@ -227,14 +227,12 @@ public class ServerAccessorTest extends ServiceTest {
   }
 
   private void assertMessageContainsComponents(String command, String... values) {
-    serverMessagesReceived.filter(message -> message.contains(command)).next()
-                          .switchIfEmpty(Mono.error(new AssertionError("No matching messages")))
-                          .doOnNext(json -> {
-                            assertThat(json, containsString("command"));
-                            for (String string : values) {
-                              assertThat(json, containsString(string));
-                            }
-                          }).block(Duration.ofSeconds(10));
+    StepVerifier.create(serverMessagesReceived.filter(message -> message.contains(command)).next()).assertNext(json -> {
+      assertThat(json, containsString("command"));
+      for (String string : values) {
+        assertThat(json, containsString(string));
+      }
+    }).verifyComplete();
   }
 
   @AfterEach
@@ -303,7 +301,7 @@ public class ServerAccessorTest extends ServiceTest {
 
     CompletableFuture<MatchmakerInfo> serviceStateDoneFuture = new CompletableFuture<>();
 
-    instance.addEventListener(MatchmakerInfo.class, serviceStateDoneFuture::complete);
+    instance.getEvents(MatchmakerInfo.class).subscribe(serviceStateDoneFuture::complete);
 
     sendFromServer(matchmakerMessage);
 

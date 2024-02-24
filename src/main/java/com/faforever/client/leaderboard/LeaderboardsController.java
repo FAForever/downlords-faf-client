@@ -18,10 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 
 @Slf4j
@@ -51,38 +52,35 @@ public class LeaderboardsController extends NodeController<Node> {
   @Override
   protected void onInitialize() {
     leaderboardService.getLeagues()
-                      .thenApply(leagues -> {
-                        if (leagues.isEmpty()) {
-                          log.warn("Api returned no leagues");
-                          notificationService.addImmediateWarnNotification("leaderboard.noLeaderboards");
-                          return List.<ToggleButton>of();
-                        }
+                      .map(league -> {
+                        String buttonText = i18n.getOrDefault(league.getTechnicalName(), String.format("leaderboard.%s",
+                                                                                                       league.getTechnicalName()));
+                        ToggleButton toggleButton = new ToggleButton(buttonText);
+                        toggleButton.setToggleGroup(navigation);
+                        toggleButton.getStyleClass().add("main-navigation-button");
 
-                        List<ToggleButton> leagueButtons = leagues.stream().map(league -> {
-                          String buttonText = i18n.getOrDefault(league.getTechnicalName(),
-                                                                String.format("leaderboard.%s",
-                                                                              league.getTechnicalName()));
-                          ToggleButton toggleButton = new ToggleButton(buttonText);
-                          toggleButton.setToggleGroup(navigation);
-                          toggleButton.getStyleClass().add("main-navigation-button");
-
-                          toggleButton.setOnAction(event -> loadLeague(league));
-                          buttonLeagueMap.put(league, toggleButton);
-                          return toggleButton;
-                        }).toList();
-
-                        LeagueBean lastLeagueTab = navigationHandler.getLastLeagueTab();
-                        loadLeague(lastLeagueTab == null ? leagues.getFirst() : lastLeagueTab);
-
-                        return leagueButtons;
+                        toggleButton.setOnAction(event -> loadLeague(league));
+                        buttonLeagueMap.put(league, toggleButton);
+                        return toggleButton;
                       })
-                      .thenAcceptAsync(buttons -> navigationBox.getChildren().setAll(buttons),
-                                       fxApplicationThreadExecutor)
-                      .exceptionally(throwable -> {
+                      .switchIfEmpty(Mono.error(new IllegalStateException("No leagues loaded")))
+                      .collectList()
+                      .doOnNext(leagueButtons -> {
+                        LeagueBean lastLeagueTab = navigationHandler.getLastLeagueTab();
+                        loadLeague(lastLeagueTab == null ? buttonLeagueMap.entrySet()
+                                                                          .stream()
+                                                                          .filter(entry -> entry.getValue()
+                                                                                                .equals(
+                                                                                                    leagueButtons.getFirst()))
+                                                                          .map(Entry::getKey)
+                                                                          .findFirst()
+                                                                          .orElseThrow() : lastLeagueTab);
+                      })
+                      .publishOn(fxApplicationThreadExecutor.asScheduler())
+                      .subscribe(buttons -> navigationBox.getChildren().setAll(buttons), throwable -> {
                         log.error("Error while loading leagues", throwable);
                         notificationService.addImmediateErrorNotification(throwable,
                                                                           "leaderboard.failedToLoadLeaderboards");
-                        return null;
                       });
   }
 
@@ -93,17 +91,16 @@ public class LeaderboardsController extends NodeController<Node> {
     }
     navigationHandler.setLastLeagueTab(league);
     leaderboardService.getLatestSeason(league)
-                      .thenApply(season -> {
+                      .map(season -> {
                         LeaderboardController controller = uiService.loadFxml("theme/leaderboard/leaderboard.fxml");
                         controller.setSeason(season);
                         return controller.getRoot();
                       })
-                      .thenAcceptAsync(tab -> contentPane.getChildren().setAll(tab), fxApplicationThreadExecutor)
-                      .exceptionally(throwable -> {
+                      .publishOn(fxApplicationThreadExecutor.asScheduler())
+                      .subscribe(tab -> contentPane.getChildren().setAll(tab), throwable -> {
                         log.error("Error while loading seasons", throwable);
                         notificationService.addImmediateErrorNotification(throwable,
                                                                           "leaderboard.failedToLoadLeaderboards");
-                        return null;
                       });
   }
 }

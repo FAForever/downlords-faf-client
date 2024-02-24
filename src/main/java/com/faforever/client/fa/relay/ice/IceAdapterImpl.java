@@ -74,12 +74,37 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   @Override
   public void afterPropertiesSet() {
-    fafServerAccessor.addEventListener(JoinGameGpgCommand.class, message -> iceAdapterProxy.joinGame(message.getUsername(), message.getPeerUid()));
-    fafServerAccessor.addEventListener(HostGameGpgCommand.class, message -> iceAdapterProxy.hostGame(message.getMap()));
-    fafServerAccessor.addEventListener(ConnectToPeerGpgCommand.class, message -> iceAdapterProxy.connectToPeer(message.getUsername(), message.getPeerUid(), message.isOffer()));
-    fafServerAccessor.addEventListener(GameLaunchResponse.class, this::updateGameTypeFromGameInfo);
-    fafServerAccessor.addEventListener(DisconnectFromPeerGpgCommand.class, message -> iceAdapterProxy.disconnectFromPeer(message.getUid()));
-    fafServerAccessor.addEventListener(IceMsgGpgCommand.class, message -> iceAdapterProxy.iceMsg(message.getSender(), message.getRecord()));
+    fafServerAccessor.getEvents(JoinGameGpgCommand.class)
+                     .doOnNext(message -> iceAdapterProxy.joinGame(message.getUsername(), message.getPeerUid()))
+                     .doOnError(throwable -> log.warn("Unable to join game", throwable))
+                     .retry()
+                     .subscribe();
+    fafServerAccessor.getEvents(HostGameGpgCommand.class)
+                     .doOnNext(message -> iceAdapterProxy.hostGame(message.getMap()))
+                     .doOnError(throwable -> log.warn("Unable to host game", throwable))
+                     .retry()
+                     .subscribe();
+    fafServerAccessor.getEvents(ConnectToPeerGpgCommand.class)
+                     .doOnNext(message -> iceAdapterProxy.connectToPeer(message.getUsername(), message.getPeerUid(),
+                                                                        message.isOffer()))
+                     .doOnError(throwable -> log.warn("Unable to connect to peer", throwable))
+                     .retry()
+                     .subscribe();
+    fafServerAccessor.getEvents(GameLaunchResponse.class)
+                     .doOnNext(this::updateGameTypeFromGameInfo)
+                     .doOnError(throwable -> log.warn("Unable to update game type", throwable))
+                     .retry()
+                     .subscribe();
+    fafServerAccessor.getEvents(DisconnectFromPeerGpgCommand.class)
+                     .doOnNext(message -> iceAdapterProxy.disconnectFromPeer(message.getUid()))
+                     .doOnError(throwable -> log.warn("Unable to disconnect from peer", throwable))
+                     .retry()
+                     .subscribe();
+    fafServerAccessor.getEvents(IceMsgGpgCommand.class)
+                     .doOnNext(message -> iceAdapterProxy.iceMsg(message.getSender(), message.getRecord()))
+                     .doOnError(throwable -> log.warn("Unable to ice msg", throwable))
+                     .retry()
+                     .subscribe();
   }
 
   @Override

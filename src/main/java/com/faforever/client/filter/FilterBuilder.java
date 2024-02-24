@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Range;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
@@ -37,17 +36,21 @@ public class FilterBuilder<T> {
   }
 
   public <U> FilterMultiCheckboxController<U, T> multiCheckbox(String text, List<U> items, StringConverter<U> converter, BiFunction<List<U>, T, Boolean> filter) {
-    return multiCheckbox(text, CompletableFuture.completedFuture(items), converter, filter);
-  }
-
-  public <U> FilterMultiCheckboxController<U, T> multiCheckbox(String text, CompletableFuture<List<U>> future, StringConverter<U> converter, BiFunction<List<U>, T, Boolean> filter) {
     FilterMultiCheckboxController<U, T> controller = uiService.loadFxml("theme/filter/multicheckbox_filter.fxml");
     controller.setText(text);
     controller.setConverter(converter);
-    future.thenAccept(items -> {
-      controller.setItems(items);
-      controller.registerListener(filter);
-    });
+    controller.setItems(items);
+    controller.registerListener(filter);
+    onFilterBuilt.accept(controller);
+    return controller;
+  }
+
+  public <U> FilterMultiCheckboxController<U, T> multiCheckbox(String text, StringConverter<U> converter,
+                                                               BiFunction<List<U>, T, Boolean> filter) {
+    FilterMultiCheckboxController<U, T> controller = uiService.loadFxml("theme/filter/multicheckbox_filter.fxml");
+    controller.setText(text);
+    controller.setConverter(converter);
+    controller.registerListener(filter);
     onFilterBuilt.accept(controller);
     return controller;
   }
@@ -61,15 +64,15 @@ public class FilterBuilder<T> {
     return controller;
   }
 
-  public <I> RangeSliderWithChoiceFilterController<I, T> rangeSliderWithCombobox(String text, CompletableFuture<List<I>> future, StringConverter<I> converter, double minValue, double maxValue, BiFunction<ItemWithRange<I, Integer>, T, Boolean> filter) {
+  public <I> RangeSliderWithChoiceFilterController<I, T> rangeSliderWithCombobox(String text,
+                                                                                 StringConverter<I> converter,
+                                                                                 double minValue, double maxValue,
+                                                                                 BiFunction<ItemWithRange<I, Integer>, T, Boolean> filter) {
     RangeSliderWithChoiceFilterController<I, T> controller = uiService.loadFxml("theme/filter/range_slider_filter.fxml", RangeSliderWithChoiceFilterController.class);
     controller.setText(text);
     controller.setMinMaxValue(minValue, maxValue);
     controller.setConverter(converter);
-    future.thenAcceptAsync(items -> {
-      controller.setItems(items);
-      controller.registerListener(filter);
-    }, fxApplicationThreadExecutor);
+    controller.registerListener(filter);
     onFilterBuilt.accept(controller);
     return controller;
   }

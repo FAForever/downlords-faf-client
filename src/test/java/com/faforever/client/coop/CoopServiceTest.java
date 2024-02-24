@@ -18,12 +18,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Flux;
-
-import java.util.List;
+import reactor.test.StepVerifier;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
@@ -54,9 +51,8 @@ public class CoopServiceTest extends ServiceTest {
 
     Flux<ElideEntity> resultFlux = Flux.just(coopMapper.map(coopMissionBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    List<CoopMissionBean> results = instance.getMissions().join();
+    StepVerifier.create(instance.getMissions()).expectNext(coopMissionBean).verifyComplete();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1000)));
-    assertThat(results, contains(coopMissionBean));
   }
 
   @Test
@@ -66,11 +62,10 @@ public class CoopServiceTest extends ServiceTest {
     Flux<ElideEntity> resultFlux = Flux.just(coopMapper.map(coopResultBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     CoopMissionBean mission = CoopMissionBeanBuilder.create().defaultValues().get();
-    List<CoopResultBean> results = instance.getLeaderboard(mission, 2).join();
+    StepVerifier.create(instance.getLeaderboard(mission, 2)).expectNext(coopResultBean).verifyComplete();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1000)));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("mission").eq(mission.getId())
         .and().intNum("playerCount").eq(2))));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("duration", true)));
-    assertThat(results, contains(coopResultBean));
   }
 }

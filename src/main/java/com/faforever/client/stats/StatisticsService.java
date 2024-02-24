@@ -14,9 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import reactor.core.publisher.Flux;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 
@@ -30,14 +28,12 @@ public class StatisticsService {
   private final LeaderboardMapper leaderboardMapper;
 
   @Cacheable(value = CacheNames.RATING_HISTORY, sync = true)
-  public CompletableFuture<List<LeaderboardRatingJournalBean>> getRatingHistory(PlayerBean player, LeaderboardBean leaderboard) {
+  public Flux<LeaderboardRatingJournalBean> getRatingHistory(PlayerBean player, LeaderboardBean leaderboard) {
     ElideNavigatorOnCollection<LeaderboardRatingJournal> navigator = ElideNavigator.of(LeaderboardRatingJournal.class).collection()
         .setFilter(qBuilder().intNum("gamePlayerStats.player.id").eq(player.getId()).and()
         .intNum("leaderboard.id").eq(leaderboard.getId()))
         .pageSize(fafApiAccessor.getMaxPageSize());
     return fafApiAccessor.getMany(navigator)
-        .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
-        .collectList()
-        .toFuture();
+        .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext())).cache();
   }
 }

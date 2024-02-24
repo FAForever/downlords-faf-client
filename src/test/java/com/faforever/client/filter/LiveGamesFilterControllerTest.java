@@ -11,18 +11,17 @@ import com.faforever.client.social.SocialService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameType;
-import javafx.collections.FXCollections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import reactor.core.publisher.Flux;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
 import static com.faforever.client.builders.GameBeanBuilder.create;
@@ -75,8 +74,7 @@ public class LiveGamesFilterControllerTest extends PlatformTest {
         mock(FilterMultiCheckboxController.class), // Featured mods
         playerNameController
     );
-    when(featuredModService.getFeaturedMods()).thenReturn(
-        CompletableFuture.completedFuture(FXCollections.observableArrayList()));
+    when(featuredModService.getFeaturedMods()).thenReturn(Flux.empty());
 
     loadFxml("theme/filter/filter.fxml", clazz -> instance, instance);
   }

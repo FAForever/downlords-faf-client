@@ -19,11 +19,8 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
-import java.util.List;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
@@ -51,8 +48,7 @@ public class TutorialServiceTest extends ServiceTest {
     TutorialCategoryBean tutorialCategoryBean = TutorialCategoryBeanBuilder.create().defaultValues().get();
     Flux<ElideEntity> resultFlux = Flux.just(tutorialMapper.map(tutorialCategoryBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    List<TutorialCategoryBean> results = instance.getTutorialCategories().join();
+    StepVerifier.create(instance.getTutorialCategories()).expectNext(tutorialCategoryBean).verifyComplete();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1000)));
-    assertThat(results, contains(tutorialCategoryBean));
   }
 }

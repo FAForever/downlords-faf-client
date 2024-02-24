@@ -13,10 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -48,10 +46,9 @@ public class LeaderboardsControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(leaderboardService.getLeagues()).thenReturn(
-        CompletableFuture.completedFuture(List.of(LeagueBeanBuilder.create().defaultValues().get())));
+    when(leaderboardService.getLeagues()).thenReturn(Flux.just(LeagueBeanBuilder.create().defaultValues().get()));
     when(leaderboardService.getLatestSeason(any())).thenReturn(
-        CompletableFuture.completedFuture(LeagueSeasonBeanBuilder.create().defaultValues().get()));
+        Mono.just(LeagueSeasonBeanBuilder.create().defaultValues().get()));
     when(i18n.getOrDefault(anyString(), anyString())).thenReturn("league");
     when(uiService.loadFxml("theme/leaderboard/leaderboard.fxml")).thenReturn(controller);
     when(controller.getRoot()).thenReturn(new StackPane());
@@ -68,29 +65,29 @@ public class LeaderboardsControllerTest extends PlatformTest {
 
   @Test
   public void testNoLeagues() {
-    when(leaderboardService.getLeagues()).thenReturn(CompletableFuture.completedFuture(List.of()));
+    when(leaderboardService.getLeagues()).thenReturn(Flux.empty());
 
     reinitialize(instance);
 
-    verify(notificationService).addImmediateWarnNotification(eq("leaderboard.noLeaderboards"));
+    verify(notificationService).addImmediateErrorNotification(any(), eq("leaderboard.failedToLoadLeaderboards"));
   }
 
   @Test
   public void testInitializeWithLeagueError() {
-    when(leaderboardService.getLeagues()).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    when(leaderboardService.getLeagues()).thenReturn(Flux.error(new FakeTestException()));
 
     reinitialize(instance);
 
-    verify(notificationService).addImmediateErrorNotification(any(CompletionException.class), eq("leaderboard.failedToLoadLeaderboards"));
+    verify(notificationService).addImmediateErrorNotification(any(), eq("leaderboard.failedToLoadLeaderboards"));
   }
 
   @Test
   public void testInitializeWithSeasonError() {
-    when(leaderboardService.getLatestSeason(any())).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    when(leaderboardService.getLatestSeason(any())).thenReturn(Mono.error(new FakeTestException()));
 
     reinitialize(instance);
 
-    verify(notificationService).addImmediateErrorNotification(any(CompletionException.class), eq("leaderboard.failedToLoadLeaderboards"));
+    verify(notificationService).addImmediateErrorNotification(any(), eq("leaderboard.failedToLoadLeaderboards"));
   }
 
   @Test

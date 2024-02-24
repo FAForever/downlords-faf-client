@@ -9,9 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import reactor.core.publisher.Flux;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 
@@ -53,13 +51,11 @@ public class EventService {
   private final FafApiAccessor fafApiAccessor;
 
   @Cacheable(value = CacheNames.PLAYER_EVENTS, sync = true)
-  public CompletableFuture<Map<String, PlayerEvent>> getPlayerEvents(int playerId) {
+  public Flux<PlayerEvent> getPlayerEvents(int playerId) {
     ElideNavigatorOnCollection<PlayerEvent> navigator = ElideNavigator.of(PlayerEvent.class)
         .collection()
         .setFilter(qBuilder().intNum("player.id").eq(playerId))
         .pageSize(fafApiAccessor.getMaxPageSize());
-    return fafApiAccessor.getMany(navigator)
-        .collectMap(playerEvent -> playerEvent.getEvent().getId())
-        .toFuture();
+    return fafApiAccessor.getMany(navigator).cache();
   }
 }

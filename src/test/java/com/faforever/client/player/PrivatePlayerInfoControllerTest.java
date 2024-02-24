@@ -23,10 +23,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Flux;
 
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -71,12 +70,9 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
                                             .get();
 
     lenient().when(gameDetailController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
-    lenient().when(achievementService.getPlayerAchievements(player.getId()))
-             .thenReturn(CompletableFuture.completedFuture(List.of()));
-    lenient().when(achievementService.getAchievementDefinitions())
-             .thenReturn(CompletableFuture.completedFuture(List.of()));
-    lenient().when(leaderboardService.getLeaderboards())
-             .thenReturn(CompletableFuture.completedFuture(List.of(leaderboard)));
+    lenient().when(achievementService.getPlayerAchievements(player.getId())).thenReturn(Flux.empty());
+    lenient().when(achievementService.getAchievementDefinitions()).thenReturn(Flux.empty());
+    lenient().when(leaderboardService.getLeaderboards()).thenReturn(Flux.just(leaderboard));
     lenient().when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()))
              .thenReturn(leaderboard.getTechnicalName());
     lenient().when(i18n.get("leaderboard.rating", leaderboard.getTechnicalName()))

@@ -6,7 +6,6 @@ import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.ModBeanBuilder;
 import com.faforever.client.builders.ModVersionBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.featuredmod.FeaturedModService;
@@ -42,17 +41,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.core.Is.is;
@@ -62,7 +58,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -114,11 +109,11 @@ public class CreateGameControllerTest extends PlatformTest {
 
     mapList = FXCollections.observableArrayList();
 
-    when(featuredModService.getFeaturedMods()).thenReturn(
-        completedFuture(List.of(FeaturedModBeanBuilder.create().defaultValues().get())));
+    lenient().when(featuredModService.getFeaturedMods())
+             .thenReturn(Flux.just(FeaturedModBeanBuilder.create().defaultValues().get()));
 
-    lenient().when(mapGeneratorService.downloadGeneratorIfNecessary(any())).thenReturn(completedFuture(null));
-    lenient().when(mapGeneratorService.getGeneratorStyles()).thenReturn(completedFuture(List.of()));
+    lenient().when(mapGeneratorService.downloadGeneratorIfNecessary(any())).thenReturn(Mono.empty());
+    lenient().when(mapGeneratorService.getGeneratorStyles()).thenReturn(Mono.just(List.of()));
     lenient().when(uiService.showInDialog(any(), any(), any())).thenReturn(new Dialog());
     lenient().when(uiService.loadFxml("theme/play/generate_map.fxml")).thenReturn(generateMapController);
     lenient().when(mapService.getInstalledMaps()).thenReturn(mapList);
@@ -131,7 +126,7 @@ public class CreateGameControllerTest extends PlatformTest {
              .thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
     lenient().when(loginService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
     lenient().when(modService.updateAndActivateModVersions(any()))
-        .thenAnswer(invocation -> completedFuture(invocation.getArgument(0)));
+             .thenAnswer(invocation -> Mono.just(List.copyOf(invocation.getArgument(0))));
     lenient().when(uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class))
              .thenReturn(mapFilterController);
     lenient().when(mapFilterController.filterActiveProperty()).thenReturn(new SimpleBooleanProperty());
@@ -307,10 +302,10 @@ public class CreateGameControllerTest extends PlatformTest {
     Runnable closeAction = mock(Runnable.class);
     instance.setOnCloseButtonClickedListener(closeAction);
 
-    MapBean map = MapBeanBuilder.create().defaultValues().get();
-    when(mapService.updateLatestVersionIfNecessary(map.getLatestVersion())).thenReturn(completedFuture(map.getLatestVersion()));
+    MapVersionBean latestVersion = MapVersionBeanBuilder.create().defaultValues().get();
+    when(mapService.updateLatestVersionIfNecessary(latestVersion)).thenReturn(Mono.just(latestVersion));
 
-    mapList.add(map.getLatestVersion());
+    mapList.add(latestVersion);
     instance.mapListView.getSelectionModel().select(0);
     instance.onCreateButtonClicked();
 
@@ -332,7 +327,7 @@ public class CreateGameControllerTest extends PlatformTest {
         .defaultValues()
         .map(MapBeanBuilder.create().defaultValues().get())
         .get();
-    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
+    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(Mono.just(map));
 
     mapList.add(map);
     runOnFxThreadAndWait(() -> {
@@ -359,17 +354,16 @@ public class CreateGameControllerTest extends PlatformTest {
     String newModUid = "new-mod";
     newModVersion.setUid(newModUid);
 
-    Set<ModVersionBean> selectedMods = singleton(modVersion);
+    Set<ModVersionBean> selectedMods = Set.of(modVersion);
     when(modManagerController.getSelectedModVersions()).thenReturn(selectedMods);
 
     MapVersionBean map = MapVersionBeanBuilder.create()
         .defaultValues()
         .map(MapBeanBuilder.create().defaultValues().get())
         .get();
-    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(CompletableFuture.completedFuture(map));
+    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(Mono.just(map));
 
-    when(modService.updateAndActivateModVersions(eq(selectedMods)))
-        .thenAnswer(invocation -> completedFuture(List.of(newModVersion)));
+    when(modService.updateAndActivateModVersions(selectedMods)).thenReturn(Mono.just(List.of(newModVersion)));
 
     runOnFxThreadAndWait(() -> {
       mapList.add(map);
@@ -393,7 +387,7 @@ public class CreateGameControllerTest extends PlatformTest {
         .map(MapBeanBuilder.create().defaultValues().get())
         .get();
 
-    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
+    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(Mono.just(map));
 
     mapList.add(map);
     runOnFxThreadAndWait(() -> {
@@ -420,7 +414,7 @@ public class CreateGameControllerTest extends PlatformTest {
         .folderName("test.v0002")
         .map(MapBeanBuilder.create().defaultValues().get())
         .get();
-    when(mapService.updateLatestVersionIfNecessary(outdatedMap)).thenReturn(completedFuture(updatedMap));
+    when(mapService.updateLatestVersionIfNecessary(outdatedMap)).thenReturn(Mono.just(updatedMap));
 
     mapList.add(outdatedMap);
     runOnFxThreadAndWait(() -> {
@@ -441,8 +435,8 @@ public class CreateGameControllerTest extends PlatformTest {
         .defaultValues()
         .map(MapBeanBuilder.create().defaultValues().get())
         .get();
-    when(mapService.updateLatestVersionIfNecessary(map))
-        .thenReturn(CompletableFuture.failedFuture(new RuntimeException("error when checking for update or updating map")));
+    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(
+        Mono.error(new RuntimeException("error when checking for update or updating map")));
 
     mapList.add(map);
     runOnFxThreadAndWait(() -> {
@@ -458,7 +452,7 @@ public class CreateGameControllerTest extends PlatformTest {
   @Test
   public void testInitGameTypeComboBoxPostPopulated() {
     FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().get();
-    when(featuredModService.getFeaturedMods()).thenReturn(completedFuture(singletonList(featuredModBean)));
+    when(featuredModService.getFeaturedMods()).thenReturn(Flux.just(featuredModBean));
 
     WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
@@ -475,7 +469,7 @@ public class CreateGameControllerTest extends PlatformTest {
         .get();
 
     lastGamePrefs.setLastGameType(null);
-    when(featuredModService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
+    when(featuredModService.getFeaturedMods()).thenReturn(Flux.just(featuredModBean, featuredModBean2));
 
     WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
@@ -492,7 +486,7 @@ public class CreateGameControllerTest extends PlatformTest {
         .get();
 
     lastGamePrefs.setLastGameType("last");
-    when(featuredModService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
+    when(featuredModService.getFeaturedMods()).thenReturn(Flux.just(featuredModBean, featuredModBean2));
 
     WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
     WaitForAsyncUtils.waitForFxEvents();
@@ -525,9 +519,9 @@ public class CreateGameControllerTest extends PlatformTest {
 
   @Test
   public void testOnGenerateMapClicked() {
-    when(mapGeneratorService.getNewestGenerator()).thenReturn(completedFuture(null));
-    when(mapGeneratorService.getGeneratorStyles()).thenReturn(completedFuture(List.of()));
-    when(mapGeneratorService.getGeneratorBiomes()).thenReturn(completedFuture(List.of()));
+    when(mapGeneratorService.getNewestGenerator()).thenReturn(Mono.empty());
+    when(mapGeneratorService.getGeneratorStyles()).thenReturn(Mono.just(List.of()));
+    when(mapGeneratorService.getGeneratorBiomes()).thenReturn(Mono.just(List.of()));
 
     runOnFxThreadAndWait(() -> instance.onGenerateMapButtonClicked());
 

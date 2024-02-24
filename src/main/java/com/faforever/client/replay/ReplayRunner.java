@@ -28,17 +28,14 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
@@ -78,8 +75,8 @@ public class ReplayRunner implements InitializingBean {
   }
 
   @VisibleForTesting
-  CompletableFuture<Void> downloadMapAskIfError(String mapFolderName) {
-    return mapService.downloadIfNecessary(mapFolderName).exceptionallyCompose(this::shouldStartWithOutMap);
+  Mono<Void> downloadMapAskIfError(String mapFolderName) {
+    return mapService.downloadIfNecessary(mapFolderName).onErrorResume(this::shouldStartWithOutMap);
   }
 
   /**
@@ -105,38 +102,22 @@ public class ReplayRunner implements InitializingBean {
                                                                                            baseFafVersion, true);
     boolean hasSimMods = simMods == null || simMods.isEmpty();
     CompletableFuture<Void> installAndActivateSimModsFuture = hasSimMods ? completedFuture(
-        null) : modService.downloadAndEnableMods(simMods);
-    CompletableFuture<Void> downloadMapFuture = downloadMapAskIfError(mapFolderName);
+        null) : modService.downloadAndEnableMods(simMods).toFuture();
+    CompletableFuture<Void> downloadMapFuture = downloadMapAskIfError(mapFolderName).toFuture();
     CompletableFuture.allOf(updateFeaturedModFuture, installAndActivateSimModsFuture, downloadMapFuture)
                      .thenApply(ignored -> forgedAllianceLaunchService.startReplay(path, replayId))
                      .thenAcceptAsync(process::set, fxApplicationThreadExecutor);
   }
 
-  private CompletableFuture<Void> shouldStartWithOutMap(Throwable throwable) {
-    CompletableFuture<Void> future = new CompletableFuture<>();
+  private Mono<Void> shouldStartWithOutMap(Throwable throwable) {
+    return Mono.create(sink -> {
+      List<Action> actions = List.of(new Action(i18n.get("replay.ignoreMapNotFound"), sink::success),
+                                     new Action(i18n.get("replay.abortAfterMapNotFound"), () -> sink.error(throwable)));
 
-    CountDownLatch userAnswered = new CountDownLatch(1);
-    AtomicReference<Boolean> shouldStart = new AtomicReference<>(false);
-    List<Action> actions = Arrays.asList(new Action(i18n.get("replay.ignoreMapNotFound"), () -> {
-      shouldStart.set(true);
-      userAnswered.countDown();
-    }), new Action(i18n.get("replay.abortAfterMapNotFound"), userAnswered::countDown));
-    notificationService.addNotification(new ImmediateNotification(i18n.get("replay.mapDownloadFailed"),
-                                                                  i18n.get("replay.mapDownloadFailed.wannaContinue"),
-
-                                                                  Severity.WARN, actions));
-
-    return CompletableFuture.runAsync(() -> {
-      try {
-        userAnswered.await();
-        if (shouldStart.get()) {
-          future.complete(null);
-        } else {
-          throw new CompletionException(throwable);
-        }
-      } catch (InterruptedException exception) {
-        throw new CompletionException(throwable);
-      }
+      ImmediateNotification notification = new ImmediateNotification(i18n.get("replay.mapDownloadFailed"),
+                                                                     i18n.get("replay.mapDownloadFailed.wannaContinue"),
+                                                                     Severity.WARN, actions);
+      notificationService.addNotification(notification);
     });
   }
 
@@ -171,8 +152,8 @@ public class ReplayRunner implements InitializingBean {
     CompletableFuture<Void> updateFeaturedModFuture = featuredModService.updateFeaturedModToLatest(featuredModName,
                                                                                                    true);
     CompletableFuture<Void> installAndActivateSimModsFuture = simModUids.isEmpty() ? completedFuture(
-        null) : modService.downloadAndEnableMods(simModUids);
-    CompletableFuture<Void> downloadMapFuture = downloadMapAskIfError(mapName);
+        null) : modService.downloadAndEnableMods(simModUids).toFuture();
+    CompletableFuture<Void> downloadMapFuture = downloadMapAskIfError(mapName).toFuture();
     CompletableFuture.allOf(updateFeaturedModFuture, installAndActivateSimModsFuture, downloadMapFuture)
                      .thenApply(ignored -> forgedAllianceLaunchService.startReplay(replayUrl, game.getId()))
                      .thenAcceptAsync(process::set, fxApplicationThreadExecutor)

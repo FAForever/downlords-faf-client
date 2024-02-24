@@ -15,9 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -45,13 +45,10 @@ public class FeaturedModService {
   }
 
   @Cacheable(value = CacheNames.FEATURED_MOD_FILES, sync = true)
-  public CompletableFuture<List<FeaturedModFile>> getFeaturedModFiles(FeaturedModBean featuredMod, Integer version) {
+  public Flux<FeaturedModFile> getFeaturedModFiles(FeaturedModBean featuredMod, Integer version) {
     String endpoint = format("/featuredMods/%s/files/%s", featuredMod.getId(),
                              Optional.ofNullable(version).map(String::valueOf).orElse("latest"));
-    return fafApiAccessor.getMany(FeaturedModFile.class, endpoint, fafApiAccessor.getMaxPageSize(), Map.of())
-                         .collectList()
-                         .switchIfEmpty(Mono.just(List.of()))
-                         .toFuture();
+    return fafApiAccessor.getMany(FeaturedModFile.class, endpoint, fafApiAccessor.getMaxPageSize(), Map.of()).cache();
   }
 
   @Cacheable(value = CacheNames.FEATURED_MODS, sync = true)
@@ -71,7 +68,7 @@ public class FeaturedModService {
   }
 
   @Cacheable(value = CacheNames.FEATURED_MODS, sync = true)
-  public CompletableFuture<List<FeaturedModBean>> getFeaturedMods() {
+  public Flux<FeaturedModBean> getFeaturedMods() {
     ElideNavigatorOnCollection<FeaturedMod> navigator = ElideNavigator.of(FeaturedMod.class)
                                                                       .collection()
                                                                       .setFilter(qBuilder().bool("visible").isTrue())
@@ -79,7 +76,6 @@ public class FeaturedModService {
                                                                       .pageSize(50);
     return fafApiAccessor.getMany(navigator)
                          .map(dto -> featuredModMapper.map(dto, new CycleAvoidingMappingContext()))
-                         .collectList()
-                         .toFuture();
+                         .cache();
   }
 }

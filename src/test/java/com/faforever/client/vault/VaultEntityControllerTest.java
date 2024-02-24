@@ -30,7 +30,6 @@ import reactor.util.function.Tuple2;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -74,9 +73,9 @@ public class VaultEntityControllerTest extends PlatformTest {
         Math.min((page + 1) * pageSize, elements.size()));
   }
 
-  private CompletableFuture<Tuple2<List<Integer>, Integer>> mocksAsFuture(List<Integer> elements, int pageSize, int page) {
+  private Mono<Tuple2<List<Integer>, Integer>> mocksAsMono(List<Integer> elements, int pageSize, int page) {
     return Mono.zip(Mono.just(getMockPageElements(elements, pageSize, page)),
-        Mono.just((int) Math.ceil((double) elements.size() / pageSize))).toFuture();
+                    Mono.just((int) Math.ceil((double) elements.size() / pageSize)));
   }
 
   @BeforeEach
@@ -115,13 +114,13 @@ public class VaultEntityControllerTest extends PlatformTest {
       protected List<ShowRoomCategory<Integer>> getShowRoomCategories() {
         List<ShowRoomCategory<Integer>> categories = new ArrayList<>();
         categories.add(
-            new ShowRoomCategory<>(() -> mocksAsFuture(items, TOP_ELEMENT_COUNT, 0), SearchType.NEWEST, "mock"));
+            new ShowRoomCategory<>(() -> mocksAsMono(items, TOP_ELEMENT_COUNT, 0), SearchType.NEWEST, "mock"));
         return categories;
       }
 
       @Override
       protected void setSupplier(SearchConfig searchConfig) {
-        currentSupplier = mocksAsFuture(items, pageSize, pagination.getCurrentPageIndex());
+        currentSupplier = mocksAsMono(items, pageSize, pagination.getCurrentPageIndex());
       }
 
       @Override

@@ -10,17 +10,16 @@ import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleListProperty;
-import javafx.collections.FXCollections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import reactor.core.publisher.Flux;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
 import static com.faforever.client.builders.GameBeanBuilder.create;
@@ -66,8 +65,7 @@ public class CustomGamesFilterControllerTest extends PlatformTest {
         mock(FilterMultiCheckboxController.class),  // Featured mods
         mapFolderNameBlackListFilter
     );
-    when(featuredModService.getFeaturedMods()).thenReturn(
-        CompletableFuture.completedFuture(FXCollections.observableArrayList()));
+    when(featuredModService.getFeaturedMods()).thenReturn(Flux.empty());
     when(mapFolderNameBlackListFilter.valueProperty()).thenReturn(new SimpleListProperty<>());
     when(privateGameFilter.valueProperty()).thenReturn(new SimpleBooleanProperty());
     when(simModsFilter.valueProperty()).thenReturn(new SimpleBooleanProperty());

@@ -60,7 +60,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 @Lazy
 @Component
@@ -138,20 +137,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
 
   public <T extends ServerMessage> Flux<T> getEvents(Class<T> type) {
     return lobbyClient.getEvents().ofType(type);
-  }
-
-  /**
-   * @deprecated should use {@link FafServerAccessor#getEvents(Class)} instead
-   */
-  @Deprecated
-  public <T extends ServerMessage> void addEventListener(Class<T> type, Consumer<T> listener) {
-    lobbyClient.getEvents()
-               .ofType(type)
-               .flatMap(message -> Mono.fromRunnable(() -> listener.accept(message)).onErrorResume(throwable -> {
-                 log.error("Could not process listener for `{}`", message, throwable);
-                 return Mono.empty();
-               }))
-               .subscribe();
   }
 
   public ConnectionState getConnectionState() {

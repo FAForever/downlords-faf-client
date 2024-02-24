@@ -15,10 +15,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -755,7 +755,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     instance.previousMapName.setText("neroxis_map_generator_0.0.0_12345");
     instance.setOnCloseButtonClickedListener(() -> {});
     when(mapGeneratorService.isGeneratedMap("neroxis_map_generator_0.0.0_12345")).thenReturn(true);
-    when(mapGeneratorService.generateMap(anyString())).thenReturn(CompletableFuture.completedFuture(null));
+    when(mapGeneratorService.generateMap(anyString())).thenReturn(Mono.empty());
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
 

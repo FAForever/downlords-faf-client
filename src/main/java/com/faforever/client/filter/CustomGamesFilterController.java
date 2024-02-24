@@ -44,9 +44,11 @@ public class CustomGamesFilterController extends AbstractFilterController<GameBe
 
     simModsFilter = filterBuilder.checkbox(i18n.get("moddedGames"), new SimModsFilterFunction());
 
-    filterBuilder.multiCheckbox(i18n.get("featuredMod.displayName"), featuredModService.getFeaturedMods(),
-                                new ToStringOnlyConverter<>(FeaturedModBean::getDisplayName),
-                                new FeaturedModFilterFunction());
+    FilterMultiCheckboxController<FeaturedModBean, GameBean> featuredModFilter = filterBuilder.multiCheckbox(
+        i18n.get("featuredMod.displayName"), new ToStringOnlyConverter<>(FeaturedModBean::getDisplayName),
+        new FeaturedModFilterFunction());
+
+    featuredModService.getFeaturedMods().collectList().subscribe(featuredModFilter::setItems);
 
     mapFolderNameBlackListFilter = filterBuilder.mutableList(i18n.get("blacklist.mapFolderName"), i18n.get("blacklist.mapFolderName.promptText"),
         (folderNames, game) -> folderNames.isEmpty() || folderNames.stream()

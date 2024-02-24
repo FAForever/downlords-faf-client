@@ -59,9 +59,11 @@ public class LiveGamesFilterController extends AbstractFilterController<GameBean
     filterBuilder.multiCheckbox(i18n.get("gameType"), List.of(GameType.CUSTOM, GameType.MATCHMAKER, GameType.COOP), gameTypeConverter,
         (selectedGameTypes, game) -> selectedGameTypes.isEmpty() || selectedGameTypes.contains(game.getGameType()));
 
-    filterBuilder.multiCheckbox(i18n.get("featuredMod.displayName"), featuredModService.getFeaturedMods(),
-                                new ToStringOnlyConverter<>(FeaturedModBean::getDisplayName),
-                                new FeaturedModFilterFunction());
+    FilterMultiCheckboxController<FeaturedModBean, GameBean> featuredModFilter = filterBuilder.multiCheckbox(
+        i18n.get("featuredMod.displayName"), new ToStringOnlyConverter<>(FeaturedModBean::getDisplayName),
+        new FeaturedModFilterFunction());
+
+    featuredModService.getFeaturedMods().collectList().subscribe(featuredModFilter::setItems);
 
     filterBuilder.textField(i18n.get("game.player.username"), (text, game) -> text.isEmpty() || game.getTeams()
         .values()

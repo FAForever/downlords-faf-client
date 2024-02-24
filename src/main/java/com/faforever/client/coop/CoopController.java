@@ -4,7 +4,6 @@ import com.faforever.client.domain.CoopMissionBean;
 import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.ReplayBean;
-import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.ControllerTableCell;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
@@ -67,7 +66,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.game.KnownFeaturedMod.COOP;
-import static javafx.collections.FXCollections.observableList;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -88,7 +86,6 @@ public class CoopController extends NodeController<Node> {
   private final TimeService timeService;
   private final MapService mapService;
   private final WebViewConfigurer webViewConfigurer;
-  private final FeaturedModService featuredModService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final ObservableList<CoopResultBean> leaderboardUnFilteredList = FXCollections.observableArrayList();
   private final FilteredList<CoopResultBean> leaderboardFilteredList = new FilteredList<>(leaderboardUnFilteredList);
@@ -134,17 +131,19 @@ public class CoopController extends NodeController<Node> {
     numberOfPlayersComboBox.getSelectionModel().select(0);
     numberOfPlayersComboBox.getSelectionModel().selectedItemProperty().subscribe(this::loadLeaderboard);
 
-    leaderboardFilteredList.predicateProperty().bind(leaderboardSearchTextField.textProperty().map(newValue -> coopResultBean -> {
-      if (newValue.isEmpty()) {
-        return true;
-      }
-      return coopResultBean.getReplay()
-          .getTeams()
-          .values()
-          .stream()
-          .flatMap(Collection::stream)
-          .anyMatch(name -> name.toLowerCase().contains(newValue.toLowerCase()));
-    }));
+    leaderboardFilteredList.predicateProperty()
+                           .bind(leaderboardSearchTextField.textProperty().map(newValue -> coopResultBean -> {
+                             if (newValue.isEmpty()) {
+                               return true;
+                             }
+                             return coopResultBean.getReplay()
+                                                  .getTeams()
+                                                  .values()
+                                                  .stream()
+                                                  .flatMap(Collection::stream)
+                                                  .anyMatch(
+                                                      name -> name.toLowerCase().contains(newValue.toLowerCase()));
+                           }));
     leaderboardTable.setItems(leaderboardFilteredList);
 
     rankColumn.setCellValueFactory(param -> param.getValue().rankingProperty().asObject().when(showing));
@@ -195,25 +194,27 @@ public class CoopController extends NodeController<Node> {
     FilteredList<GameBean> filteredItems = new FilteredList<>(gameService.getGames());
     filteredItems.setPredicate(OPEN_COOP_GAMES_PREDICATE);
 
-    coopService.getMissions().thenAcceptAsync(coopMaps -> {
+    coopService.getMissions()
+               .collectList()
+               .map(FXCollections::observableList)
+               .publishOn(fxApplicationThreadExecutor.asScheduler())
+               .subscribe(coopMaps -> {
+                 missionComboBox.setItems(coopMaps);
 
-      missionComboBox.setItems(observableList(coopMaps));
-      gamesTableController.getMapPreviewColumn().setVisible(false);
-      gamesTableController.getRatingRangeColumn().setVisible(false);
+                 gamesTableController.initializeGameTable(filteredItems,
+                                                          mapFolderName -> coopMissionFromFolderName(coopMaps,
+                                                                                                     mapFolderName),
+                                                          false);
+                 gamesTableController.getMapPreviewColumn().setVisible(false);
+                 gamesTableController.getRatingRangeColumn().setVisible(false);
 
-      gamesTableController.initializeGameTable(filteredItems,
-                                               mapFolderName -> coopMissionFromFolderName(coopMaps, mapFolderName),
-                                               false);
 
-      SingleSelectionModel<CoopMissionBean> selectionModel = missionComboBox.getSelectionModel();
-      if (selectionModel.isEmpty()) {
-        selectionModel.selectFirst();
-      }
-    }, fxApplicationThreadExecutor).exceptionally(throwable -> {
-      notificationService.addPersistentErrorNotification("coop.couldNotLoad",
-                                                         throwable.getLocalizedMessage());
-      return null;
-    });
+                 SingleSelectionModel<CoopMissionBean> selectionModel = missionComboBox.getSelectionModel();
+                 if (selectionModel.isEmpty()) {
+                   selectionModel.selectFirst();
+                 }
+               }, throwable -> notificationService.addPersistentErrorNotification("coop.couldNotLoad",
+                                                                                  throwable.getLocalizedMessage()));
   }
 
   private String coopMissionFromFolderName(List<CoopMissionBean> coopMaps, String mapFolderName) {
@@ -267,17 +268,16 @@ public class CoopController extends NodeController<Node> {
     }
 
     coopService.getLeaderboard(selectedMission, numberOfPlayers)
-               .thenApply(this::filterOnlyUniquePlayers)
-               .thenApply(coopLeaderboardEntries -> {
+               .collectList()
+               .map(this::filterOnlyUniquePlayers)
+               .doOnNext(coopLeaderboardEntries -> {
                  AtomicInteger ranking = new AtomicInteger();
                  coopLeaderboardEntries.forEach(coopResult -> coopResult.setRanking(ranking.incrementAndGet()));
-                 return coopLeaderboardEntries;
                })
-               .thenAcceptAsync(leaderboardUnFilteredList::setAll, fxApplicationThreadExecutor)
-               .exceptionally(throwable -> {
+               .publishOn(fxApplicationThreadExecutor.asScheduler())
+               .subscribe(leaderboardUnFilteredList::setAll, throwable -> {
                  log.warn("Could not load coop leaderboard", throwable);
                  notificationService.addImmediateErrorNotification(throwable, "coop.leaderboard.couldNotLoad");
-                 return null;
                });
   }
 

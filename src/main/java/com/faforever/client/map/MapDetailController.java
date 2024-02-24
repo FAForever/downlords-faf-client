@@ -50,9 +50,9 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -277,18 +277,17 @@ public class MapDetailController extends NodeController<Node> {
   }
 
   public void onInstallButtonClicked() {
-    installMap();
+    installMap().subscribe();
   }
 
-  public CompletableFuture<Void> installMap() {
+  public Mono<Void> installMap() {
     MapVersionBean mapVersion = this.mapVersion.get();
     return mapService.downloadAndInstallMap(mapVersion, progressBar.progressProperty(), progressLabel.textProperty())
-                     .exceptionally(throwable -> {
+                     .doOnError(throwable -> {
                        log.error("Map installation failed", throwable);
                        notificationService.addImmediateErrorNotification(throwable, "mapVault.installationFailed",
                                                                          mapVersion.getMap().getDisplayName(),
                                                                          throwable.getLocalizedMessage());
-                       return null;
                      });
   }
 
@@ -297,12 +296,11 @@ public class MapDetailController extends NodeController<Node> {
     progressBar.setProgress(-1);
 
     MapVersionBean mapVersion = this.mapVersion.get();
-    mapService.uninstallMap(mapVersion).exceptionally(throwable -> {
+    mapService.uninstallMap(mapVersion).subscribe(null, throwable -> {
       log.error("Could not delete map", throwable);
       notificationService.addImmediateErrorNotification(throwable, "mapVault.couldNotDeleteMap",
                                                         mapVersion.getMap().getDisplayName(),
                                                         throwable.getLocalizedMessage());
-      return null;
     });
   }
 
@@ -317,7 +315,8 @@ public class MapDetailController extends NodeController<Node> {
   public void onCreateGameButtonClicked() {
     MapVersionBean mapVersion = this.mapVersion.get();
     if (!mapService.isInstalled(mapVersion.getFolderName())) {
-      installMap().thenRun(() -> navigationHandler.navigateTo(new HostGameEvent(mapVersion.getFolderName())));
+      installMap().subscribe(null, null,
+                             () -> navigationHandler.navigateTo(new HostGameEvent(mapVersion.getFolderName())));
     } else {
       navigationHandler.navigateTo(new HostGameEvent(mapVersion.getFolderName()));
     }

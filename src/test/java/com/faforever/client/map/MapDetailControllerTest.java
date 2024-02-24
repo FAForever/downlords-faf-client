@@ -123,8 +123,7 @@ public class MapDetailControllerTest extends PlatformTest {
     lenient().when(timeService.asDate(any(OffsetDateTime.class))).thenReturn("test date");
     lenient().when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
     lenient().when(mapService.downloadAndInstallMap(any(), any(DoubleProperty.class), any(StringProperty.class)))
-             .thenReturn(CompletableFuture.runAsync(() -> {
-    }));
+             .thenReturn(Mono.empty());
     lenient().when(i18n.number(testMap.getMaxPlayers())).thenReturn(String.valueOf(testMap.getMaxPlayers()));
     lenient().when(i18n.get("map.id", testMap.getId())).thenReturn(String.valueOf(testMap.getId()));
     lenient().when(i18n.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -228,7 +227,7 @@ public class MapDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnInstallButtonClicked() {
-    when(mapService.downloadAndInstallMap(any(MapVersionBean.class), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(mapService.downloadAndInstallMap(any(MapVersionBean.class), any(), any())).thenReturn(Mono.empty());
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     instance.onInstallButtonClicked();
@@ -239,9 +238,8 @@ public class MapDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnInstallButtonClickedInstallingMapThrowsException() {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    future.completeExceptionally(new FakeTestException());
-    when(mapService.downloadAndInstallMap(any(MapVersionBean.class), any(), any())).thenReturn(future);
+    when(mapService.downloadAndInstallMap(any(MapVersionBean.class), any(), any())).thenReturn(
+        Mono.error(new FakeTestException()));
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
@@ -256,7 +254,7 @@ public class MapDetailControllerTest extends PlatformTest {
   public void testOnUninstallButtonClicked() {
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
-    when(mapService.uninstallMap(testMap)).thenReturn(CompletableFuture.completedFuture(null));
+    when(mapService.uninstallMap(testMap)).thenReturn(Mono.empty());
 
     runOnFxThreadAndWait(() -> instance.onUninstallButtonClicked());
 
@@ -268,9 +266,7 @@ public class MapDetailControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
 
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    future.completeExceptionally(new FakeTestException());
-    when(mapService.uninstallMap(testMap)).thenReturn(future);
+    when(mapService.uninstallMap(testMap)).thenReturn(Mono.error(new FakeTestException()));
 
     runOnFxThreadAndWait(() -> instance.onUninstallButtonClicked());
     WaitForAsyncUtils.waitForFxEvents();

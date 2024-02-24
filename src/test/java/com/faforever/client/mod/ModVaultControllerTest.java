@@ -26,7 +26,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -67,15 +66,18 @@ public class ModVaultControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(modService.getNewestModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
-    when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
-    when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
+    when(modService.getNewestModsWithPageCount(anyInt(), anyInt())).thenReturn(
+        Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)));
+    when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(
+        Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)));
+    when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(
+        Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)));
     when(i18n.get(anyString())).thenReturn("test");
     when(modDetailController.getRoot()).thenReturn(new Pane());
 
     when(uiService.loadFxml("theme/vault/mod/mod_detail.fxml")).thenReturn(modDetailController);
 
-    when(modService.getRecommendedModPageCount(VaultEntityController.TOP_ELEMENT_COUNT)).thenReturn(CompletableFuture.completedFuture(0));
+    when(modService.getRecommendedModPageCount(VaultEntityController.TOP_ELEMENT_COUNT)).thenReturn(Mono.just(0));
 
     loadFxml("theme/vault/vault_entity.fxml", clazz -> {
       if (SearchController.class.isAssignableFrom(clazz)) {

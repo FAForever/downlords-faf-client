@@ -10,9 +10,7 @@ import com.faforever.client.test.PlatformTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import reactor.core.publisher.Mono;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,9 +36,7 @@ public class SendPrivateMessageClanLeaderMenuItemTest extends PlatformTest {
 
   @Test
   public void testSendMessageClanLeader() {
-    when(clanService.getClanByTag(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(ClanBeanBuilder.create()
-        .defaultValues()
-        .get())));
+    when(clanService.getClanByTag(any())).thenReturn(Mono.just(ClanBeanBuilder.create().defaultValues().get()));
 
     instance.setObject(PlayerBeanBuilder.create().get());
     instance.onClicked();

@@ -9,9 +9,7 @@ import com.faforever.client.test.PlatformTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import reactor.core.publisher.Mono;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,10 +36,8 @@ public class OpenClanUrlMenuItemTest extends PlatformTest {
 
   @Test
   public void testOpenClanUrl() {
-    when(clanService.getClanByTag(anyString())).thenReturn(CompletableFuture.completedFuture(Optional.of(ClanBeanBuilder.create()
-        .defaultValues()
-        .websiteUrl("https://site.com")
-        .get())));
+    when(clanService.getClanByTag(anyString())).thenReturn(
+        Mono.just(ClanBeanBuilder.create().defaultValues().websiteUrl("https://site.com").get()));
 
     instance.setObject(PlayerBeanBuilder.create().clan("clan").get());
     instance.onClicked();

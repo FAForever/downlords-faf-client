@@ -29,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
+import reactor.test.StepVerifier;
 import reactor.test.publisher.TestPublisher;
 
 import java.util.HashMap;
@@ -167,17 +168,16 @@ public class PlayerServiceTest extends ServiceTest {
     PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
     Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    Optional<PlayerBean> result = instance.getPlayerByName("test").join();
+    StepVerifier.create(instance.getPlayerByName("test")).expectNext(playerBean).verifyComplete();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("login").eq("test"))));
-    assertThat(result.orElse(null), is(playerBean));
   }
 
   @Test
   public void testGetPlayerByNamePlayerOnline() {
-    instance.getPlayerByName("junit2").join();
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
 
-    verify(fafApiAccessor, never()).getMany(any());
+    StepVerifier.create(instance.getPlayerByName("junit2")).expectNextCount(1).verifyComplete();
   }
 
   @Test
@@ -185,14 +185,14 @@ public class PlayerServiceTest extends ServiceTest {
     PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().username("junit4").id(4).get();
     Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    instance.getPlayersByIds(List.of(1, 2, 3, 4)).join();
+    instance.getPlayersByIds(List.of(1, 2, 3, 4)).blockLast();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("id").in(List.of(4)))));
   }
 
   @Test
   public void testGetPlayersByIdsAllPlayersOnline() {
-    instance.getPlayersByIds(List.of(2, 3)).join();
+    StepVerifier.create(instance.getPlayersByIds(List.of(2, 3))).expectNextCount(2).verifyComplete();
 
     verify(fafApiAccessor, never()).getMany(any());
   }

@@ -15,10 +15,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
@@ -57,10 +57,8 @@ public class CoturnServiceTest extends ServiceTest {
     otherServer.setId("0");
     when(fafApiAccessor.getApiObject(any(), any())).thenReturn(Mono.just(new IceSession("someSessionId", List.of(otherServer))));
 
-    List<CoturnServer> servers = instance.getSelectedCoturns(123).join();
+    StepVerifier.create(instance.getSelectedCoturns(123)).expectNext(otherServer).verifyComplete();
 
-    assertEquals(1, servers.size());
-    assertEquals("0", servers.getFirst().getId());
     verify(fafApiAccessor).getApiObject(endsWith("123"), eq(IceSession.class));
   }
 
@@ -70,10 +68,8 @@ public class CoturnServiceTest extends ServiceTest {
     otherServer.setId("0");
     when(fafApiAccessor.getApiObject(any(), any())).thenReturn(Mono.just(new IceSession("someSessionId", List.of(otherServer))));
 
-    List<CoturnServer> servers = instance.getSelectedCoturns(123).join();
+    StepVerifier.create(instance.getSelectedCoturns(123)).expectNext(otherServer).verifyComplete();
 
-    assertEquals(1, servers.size());
-    assertEquals("0", servers.getFirst().getId());
     verify(fafApiAccessor).getApiObject(endsWith("123"), eq(IceSession.class));
   }
 
@@ -84,13 +80,11 @@ public class CoturnServiceTest extends ServiceTest {
     CoturnServer otherServer = new CoturnServer();
     otherServer.setId("0");
     CoturnServer selectedServer = new CoturnServer();
-    otherServer.setId("1");
+    selectedServer.setId("1");
     when(fafApiAccessor.getApiObject(any(), any())).thenReturn(Mono.just(new IceSession("someSessionId", List.of(otherServer, selectedServer))));
 
-    List<CoturnServer> servers = instance.getSelectedCoturns(123).join();
+    StepVerifier.create(instance.getSelectedCoturns(123)).expectNext(selectedServer).verifyComplete();
 
-    assertEquals(1, servers.size());
-    assertEquals("1", servers.getFirst().getId());
     verify(fafApiAccessor).getApiObject(endsWith("123"), eq(IceSession.class));
   }
 }

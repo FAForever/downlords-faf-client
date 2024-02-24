@@ -12,9 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
-
-import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
+import reactor.core.publisher.Flux;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -52,7 +50,7 @@ public class TutorialControllerTest extends PlatformTest {
     tutorial.setId(1);
     tutorial.setOrdinal(1);
     tutorialCategory.getTutorials().add(tutorial);
-    when(tutorialService.getTutorialCategories()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(tutorialCategory)));
+    when(tutorialService.getTutorialCategories()).thenReturn(Flux.just(tutorialCategory));
     when(tutorialListItemController.getRoot()).thenReturn(new Pane());
     when(tutorialsCategoryListItemController.getRoot()).thenReturn(new Pane());
     when(uiService.loadFxml("theme/tutorial_category_list_item.fxml")).thenReturn(tutorialsCategoryListItemController);

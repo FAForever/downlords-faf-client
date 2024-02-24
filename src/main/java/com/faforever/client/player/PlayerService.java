@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -167,18 +166,17 @@ public class PlayerService implements InitializingBean {
     return Optional.ofNullable(playersByName.get(playerName));
   }
 
-  public CompletableFuture<List<PlayerBean>> getPlayersByIds(Collection<Integer> playerIds) {
-    Set<Integer> onlineIds = new HashSet<>();
+  public Flux<PlayerBean> getPlayersByIds(Collection<Integer> playerIds) {
+    List<PlayerBean> onlinePlayers = playerIds.stream()
+                                              .map(this::getPlayerByIdIfOnline)
+                                              .flatMap(Optional::stream)
+                                              .toList();
 
-    List<PlayerBean> players = playerIds.stream()
-                                        .map(this::getPlayerByIdIfOnline)
-                                        .flatMap(Optional::stream)
-                                        .peek(playerBean -> onlineIds.add(playerBean.getId()))
-                                        .collect(Collectors.toCollection(ArrayList::new));
-
-    if (players.size() == playerIds.size()) {
-      return CompletableFuture.completedFuture(players);
+    if (onlinePlayers.size() == playerIds.size()) {
+      return Flux.fromIterable(onlinePlayers);
     }
+
+    Set<Integer> onlineIds = onlinePlayers.stream().map(PlayerBean::getId).collect(Collectors.toSet());
 
     Set<Integer> offlineIds = playerIds.stream()
                                        .filter(playerId -> !onlineIds.contains(playerId))
@@ -189,28 +187,22 @@ public class PlayerService implements InitializingBean {
                                                                  .setFilter(qBuilder().intNum("id").in(offlineIds));
     return fafApiAccessor.getMany(navigator)
                          .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()))
-                         .doOnNext(players::add)
-                         .then(Mono.just(players))
-                         .toFuture();
+                         .concatWithValues(onlinePlayers.toArray(new PlayerBean[0]));
   }
 
-  public CompletableFuture<Optional<PlayerBean>> getPlayerByName(String playerName) {
-    Optional<PlayerBean> onlinePlayer = getPlayerByNameIfOnline(playerName);
-    if (onlinePlayer.isPresent()) {
-      return CompletableFuture.completedFuture(onlinePlayer);
-    }
-
+  public Mono<PlayerBean> getPlayerByName(String playerName) {
     ElideNavigatorOnCollection<Player> navigator = ElideNavigator.of(Player.class)
                                                                  .collection()
                                                                  .setFilter(qBuilder().string("login").eq(playerName));
-    return fafApiAccessor.getMany(navigator)
-                         .next()
-                         .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()))
-                         .singleOptional()
-                         .toFuture();
+
+    Mono<PlayerBean> apiPlayer = fafApiAccessor.getMany(navigator)
+                                               .next()
+                                               .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()));
+
+    return Mono.justOrEmpty(getPlayerByNameIfOnline(playerName)).switchIfEmpty(apiPlayer);
   }
 
-  public CompletableFuture<List<NameRecordBean>> getPlayerNames(PlayerBean player) {
+  public Flux<NameRecordBean> getPlayerNames(PlayerBean player) {
     ElideNavigatorOnCollection<NameRecord> navigator = ElideNavigator.of(NameRecord.class)
                                                                      .collection()
                                                                      .setFilter(qBuilder().intNum("player.id")
@@ -218,9 +210,7 @@ public class PlayerService implements InitializingBean {
 
     return fafApiAccessor.getMany(navigator)
                          .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()))
-                         .sort(Comparator.comparing(NameRecordBean::getChangeTime))
-                         .collectList()
-                         .toFuture();
+                         .sort(Comparator.comparing(NameRecordBean::getChangeTime));
   }
 
   private void removePlayer(PlayerBean player) {

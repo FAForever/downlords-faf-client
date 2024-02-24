@@ -16,6 +16,7 @@ import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
 import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import javafx.collections.FXCollections;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -26,8 +27,11 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
+import reactor.function.TupleUtils;
+import reactor.util.function.Tuple3;
 
-import static javafx.collections.FXCollections.observableList;
+import java.util.function.Function;
 
 
 @Slf4j
@@ -82,17 +86,18 @@ public class SubDivisionTabController extends TabController {
       LeagueEntryBean entry = row.getItem();
       PlayerBean player = entry.getPlayer();
       contextMenuBuilder.newBuilder()
-          .addItem(ShowPlayerInfoMenuItem.class, player)
-          .addItem(CopyUsernameMenuItem.class, player.getUsername())
-          .addSeparator()
-          .addItem(AddFriendMenuItem.class, player)
-          .addItem(RemoveFriendMenuItem.class, player)
-          .addItem(AddFoeMenuItem.class, player)
-          .addItem(RemoveFoeMenuItem.class, player)
-          .addSeparator()
-          .addItem(ViewReplaysMenuItem.class, player)
-          .build()
-          .show(subDivisionTab.getTabPane().getScene().getWindow(), event.getScreenX(), event.getScreenY());
+                        .addItem(ShowPlayerInfoMenuItem.class, player)
+                        .addItem(CopyUsernameMenuItem.class, player.getUsername())
+                        .addSeparator()
+                        .addItem(AddFriendMenuItem.class, player)
+                        .addItem(RemoveFriendMenuItem.class, player)
+                        .addItem(AddFoeMenuItem.class, player)
+                        .addItem(RemoveFoeMenuItem.class, player)
+                        .addSeparator()
+                        .addItem(ViewReplaysMenuItem.class, player)
+                        .build()
+                        .show(subDivisionTab.getTabPane().getScene().getWindow(), event.getScreenX(),
+                              event.getScreenY());
     });
 
     return row;
@@ -101,14 +106,20 @@ public class SubDivisionTabController extends TabController {
   public void populate(SubdivisionBean subdivision) {
     fxApplicationThreadExecutor.execute(() -> subDivisionTab.setText(subdivision.getNameKey()));
 
-    leaderboardService.getEntries(subdivision).thenAccept(leagueEntryBeans -> {
-      leaderboardService.getPlayerNumberInHigherDivisions(subdivision).thenAccept(count ->
-          leagueEntryBeans.forEach(entry -> entry.setRank(count + 1 + leagueEntryBeans.indexOf(entry))));
-      ratingTable.setItems(observableList(leagueEntryBeans));
-    }).exceptionally(throwable -> {
-      log.error("Error while loading leaderboard entries for subdivision `{}`", subdivision, throwable);
-      notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoad");
-      return null;
-    });
+    Mono<Integer> playersInHigherDivisions = leaderboardService.getPlayerNumberInHigherDivisions(subdivision).cache();
+    leaderboardService.getEntries(subdivision)
+                      .index((index, entry) -> Mono.zip(Mono.just(entry), Mono.just(index), playersInHigherDivisions))
+                      .flatMap(Function.identity())
+                      .doOnNext(TupleUtils.consumer(
+                          (entry, index, numHigherPlayers) -> entry.setRank(numHigherPlayers + 1 + index.intValue())))
+                      .map(Tuple3::getT1)
+                      .collectList()
+                      .map(FXCollections::observableList)
+                      .publishOn(fxApplicationThreadExecutor.asScheduler())
+                      .subscribe(ratingTable::setItems, throwable -> {
+                        log.error("Error while loading leaderboard entries for subdivision `{}`", subdivision,
+                                  throwable);
+                        notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoad");
+                      });
   }
 }

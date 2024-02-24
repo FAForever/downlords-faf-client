@@ -13,10 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,11 +52,11 @@ public class SubDivisionTabControllerTest extends PlatformTest {
     SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
     LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().id(2).subdivision(subdivisionBean).get();
     LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean).get();
-    when(leaderboardService.getEntries(subdivisionBean)).thenReturn(CompletableFuture.completedFuture(List.of(
-        leagueEntryBean1, leagueEntryBean2)));
-    when(leaderboardService.getPlayerNumberInHigherDivisions(any())).thenReturn(CompletableFuture.completedFuture(10));
+    when(leaderboardService.getEntries(subdivisionBean)).thenReturn(Flux.just(leagueEntryBean1, leagueEntryBean2));
+    when(leaderboardService.getPlayerNumberInHigherDivisions(any())).thenReturn(Mono.just(10));
 
-    instance.populate(subdivisionBean);
+    runOnFxThreadAndWait(() -> instance.populate(subdivisionBean));
+
     assertEquals(2, instance.ratingTable.getItems().size());
     assertEquals(leagueEntryBean1, instance.ratingTable.getItems().getFirst());
     assertEquals(11, leagueEntryBean1.getRank());
@@ -68,10 +66,11 @@ public class SubDivisionTabControllerTest extends PlatformTest {
   @Test
   public void testPopulateWithError() {
     SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
-    when(leaderboardService.getEntries(subdivisionBean)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    when(leaderboardService.getEntries(subdivisionBean)).thenReturn(Flux.error(new FakeTestException()));
+    when(leaderboardService.getPlayerNumberInHigherDivisions(any())).thenReturn(Mono.error(new RuntimeException()));
 
-    instance.populate(subdivisionBean);
+    runOnFxThreadAndWait(() -> instance.populate(subdivisionBean));
 
-    verify(notificationService).addImmediateErrorNotification(any(CompletionException.class), eq("leaderboard.failedToLoad"));
+    verify(notificationService).addImmediateErrorNotification(any(), eq("leaderboard.failedToLoad"));
   }
 }

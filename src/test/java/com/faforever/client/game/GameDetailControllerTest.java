@@ -310,7 +310,8 @@ public class GameDetailControllerTest extends PlatformTest {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(true);
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(false);
-    when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(CompletableFuture.failedFuture(new RuntimeException("failed")));
+    when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(
+        Mono.error(new RuntimeException("failed")));
 
     runOnFxThreadAndWait(() -> {
       instance.setGame(game);
@@ -345,7 +346,8 @@ public class GameDetailControllerTest extends PlatformTest {
   public void testOnGenerateMapClickedAndCompleted(boolean succeed) {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     when(i18n.get("game.create.generatedMap")).thenReturn("text");
-    when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(succeed ? CompletableFuture.completedFuture(game.getMapFolderName()) : CompletableFuture.failedFuture(new RuntimeException("failed")));
+    when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(
+        succeed ? Mono.just(game.getMapFolderName()) : Mono.error(new RuntimeException("failed")));
 
     runOnFxThreadAndWait(() -> {
       instance.setGame(game);

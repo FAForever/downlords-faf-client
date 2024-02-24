@@ -44,6 +44,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.beans.factory.ObjectFactory;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Flux;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -125,9 +126,7 @@ public class SettingsControllerTest extends PlatformTest {
     lenient().when(themeService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(themeService.getCurrentTheme()).thenReturn(FIRST_THEME);
     lenient().when(themeService.getAvailableThemes()).thenReturn(Arrays.asList(FIRST_THEME, SECOND_THEME));
-    IceServer coturnServer = new IceServer("0", "Test");
-    lenient().when(coturnService.getActiveCoturns())
-             .thenReturn(CompletableFuture.completedFuture(List.of(coturnServer)));
+    lenient().when(coturnService.getActiveCoturns()).thenReturn(Flux.just(new IceServer("0", "Test")));
 
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     lenient().when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));

@@ -43,6 +43,16 @@ public class UserLeaderboardInfoController extends NodeController<Node> {
   @Override
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(divisionImage, divisionLabel);
+
+    try {
+      divisionImage.setImage(
+          new Image(new ClassPathResource("/images/leagueUnlistedDivision.png").getURL().toString(), true));
+      divisionImage.setVisible(true);
+    } catch (IOException e) {
+      log.error("Could not load unlisted division image.", e);
+    }
+    divisionLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
+    divisionLabel.setVisible(true);
   }
 
   @Override
@@ -72,20 +82,6 @@ public class UserLeaderboardInfoController extends NodeController<Node> {
       divisionImage.setImage(image);
       divisionImage.setVisible(true);
       divisionLabel.setText(divisionName);
-      divisionLabel.setVisible(true);
-    });
-  }
-
-  public void setUnlistedLeague() {
-    fxApplicationThreadExecutor.execute(() -> {
-      try {
-        divisionImage.setImage(new Image(new ClassPathResource("/images/leagueUnlistedDivision.png").getURL()
-            .toString(), true));
-        divisionImage.setVisible(true);
-      } catch (IOException e) {
-        log.error("Could not load unlisted division image.", e);
-      }
-      divisionLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
       divisionLabel.setVisible(true);
     });
   }

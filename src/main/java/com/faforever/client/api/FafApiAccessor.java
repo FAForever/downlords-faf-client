@@ -53,6 +53,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
@@ -217,7 +218,11 @@ public class FafApiAccessor implements InitializingBean {
 
     Class<T> type = navigator.getDtoClass();
     String endpointPath = navigator.build();
-    return retrieveMonoWithErrorHandling(type, apiWebClient.get().uri(endpointPath)).cache()
+    return retrieveMonoWithErrorHandling(type, apiWebClient.get().uri(endpointPath)).onErrorResume(
+                                                                                        WebClientResponseException.NotFound.class, throwable -> {
+                                                                                          log.warn("No {} found for path {}", type, endpointPath);
+                                                                                          return Mono.empty();
+                                                                                        }).cache()
         .doOnNext(object -> log.trace("Retrieved {} from {} with type {}", object, endpointPath, type));
   }
 
@@ -308,21 +313,21 @@ public class FafApiAccessor implements InitializingBean {
     }
     return requestSpec.retrieve().onStatus(HttpStatusCode::isError, response -> {
       HttpStatusCode httpStatus = response.statusCode();
-      if (httpStatus.equals(HttpStatus.BAD_REQUEST) || httpStatus.equals(HttpStatus.UNPROCESSABLE_ENTITY)) {
+      return switch (httpStatus) {
+        case HttpStatus.BAD_REQUEST, HttpStatus.UNPROCESSABLE_ENTITY ->
             /* onStatus expects a mono which emits an exception so here we map it to an Exception, however
               this map is never executed since bodyToMono will throw its own ResourceParseException if there are
               any errors in the JSONAPIDocument which we expect with a BAD REQUEST and UNPROCESSABLE response so this
               mapping only exists to satisfy the typing of onStatus*/
-        return response.bodyToMono(JSONAPIDocument.class)
-            .flatMap(jsonapiDocument -> response.createException())
-            .onErrorMap(ResourceParseException.class, exception -> new ApiException(exception.getErrors().getErrors()));
-      } else if (httpStatus.equals(HttpStatus.SERVICE_UNAVAILABLE)) {
-        return response.createException().map(error -> new UnreachableApiException("API is unreachable", error));
-      } else if (httpStatus.equals(HttpStatus.TOO_MANY_REQUESTS)) {
-        return response.createException().map(RateLimitApiException::new);
-      } else {
-        return response.createException();
-      }
+            response.bodyToMono(JSONAPIDocument.class)
+                    .flatMap(jsonapiDocument -> response.createException())
+                    .onErrorMap(ResourceParseException.class,
+                                exception -> new ApiException(exception.getErrors().getErrors()));
+        case HttpStatus.SERVICE_UNAVAILABLE ->
+            response.createException().map(error -> new UnreachableApiException("API is unreachable", error));
+        case HttpStatus.TOO_MANY_REQUESTS -> response.createException().map(RateLimitApiException::new);
+        default -> response.createException();
+      };
     });
   }
 
