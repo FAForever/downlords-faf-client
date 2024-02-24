@@ -63,7 +63,8 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
     super.onInitialize();
     manageVaultButton.setVisible(true);
     manageVaultButton.setText(i18n.get("management.maps.openButton.label"));
-    mapService.getRecommendedMapPageCount(TOP_ELEMENT_COUNT).thenAccept(numPages -> recommendedShowRoomPageCount = numPages);
+    mapService.getRecommendedMapPageCount(TOP_ELEMENT_COUNT)
+              .subscribe(numPages -> recommendedShowRoomPageCount = numPages);
   }
 
   @Override
@@ -105,15 +106,17 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
 
   @Override
   protected void setSupplier(SearchConfig searchConfig) {
-    switch (searchType) {
-      case SEARCH -> currentSupplier = mapService.findByQueryWithPageCount(searchConfig, pageSize, pagination.getCurrentPageIndex() + 1);
-      case RECOMMENDED -> currentSupplier = mapService.getRecommendedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-      case NEWEST -> currentSupplier = mapService.getNewestMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-      case HIGHEST_RATED -> currentSupplier = mapService.getHighestRatedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-      case PLAYED -> currentSupplier = mapService.getMostPlayedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-      case MAP_POOL -> currentSupplier = mapService.getMatchmakerMapsWithPageCount(matchmakerQueue, pageSize, pagination.getCurrentPageIndex() + 1);
-      case OWN -> currentSupplier = mapService.getOwnedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-    }
+    currentSupplier = switch (searchType) {
+      case SEARCH -> mapService.findByQueryWithPageCount(searchConfig, pageSize, pagination.getCurrentPageIndex() + 1);
+      case RECOMMENDED -> mapService.getRecommendedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case NEWEST -> mapService.getNewestMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case HIGHEST_RATED -> mapService.getHighestRatedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case PLAYED -> mapService.getMostPlayedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case MAP_POOL ->
+          mapService.getMatchmakerMapsWithPageCount(matchmakerQueue, pageSize, pagination.getCurrentPageIndex() + 1);
+      case OWN -> mapService.getOwnedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case PLAYER, HIGHEST_RATED_UI -> throw new UnsupportedOperationException();
+    };
   }
 
   @Override

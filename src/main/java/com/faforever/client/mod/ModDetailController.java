@@ -227,12 +227,10 @@ public class ModDetailController extends NodeController<Node> {
   public void onInstallButtonClicked() {
     ModVersionBean modVersion = this.modVersion.get();
     modService.downloadIfNecessary(modVersion, progressBar.progressProperty(),
-                                   progressLabel.textProperty())
-        .exceptionally(throwable -> {
+                                   progressLabel.textProperty()).subscribe(null, throwable -> {
           log.error("Could not install mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed",
               modVersion.getMod().getDisplayName(), throwable.getLocalizedMessage());
-          return null;
         });
   }
 

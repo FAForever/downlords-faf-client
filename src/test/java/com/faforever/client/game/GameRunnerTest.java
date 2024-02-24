@@ -53,11 +53,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.publisher.TestPublisher;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -161,7 +161,7 @@ public class GameRunnerTest extends ServiceTest {
       return null;
     }).when(fxApplicationThreadExecutor).execute(any());
     lenient().when(fafServerAccessor.getEvents(NoticeInfo.class)).thenReturn(testNoticePublisher.flux());
-    lenient().when(coturnService.getSelectedCoturns(anyInt())).thenReturn(completedFuture(List.of()));
+    lenient().when(coturnService.getSelectedCoturns(anyInt())).thenReturn(Flux.empty());
     lenient().when(preferencesService.hasValidGamePath()).thenReturn(true);
     lenient().when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(replayServer.start(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
@@ -191,7 +191,7 @@ public class GameRunnerTest extends ServiceTest {
     lenient().when(forgedAllianceLaunchService.launchOnlineGame(any(), anyInt(), anyInt())).thenReturn(process);
     lenient().when(replayServer.start(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     lenient().when(iceAdapter.start(anyInt())).thenReturn(completedFuture(GPG_PORT));
-    lenient().when(coturnService.getSelectedCoturns(anyInt())).thenReturn(completedFuture(List.of()));
+    lenient().when(coturnService.getSelectedCoturns(anyInt())).thenReturn(Flux.empty());
     lenient().when(process.onExit()).thenReturn(new CompletableFuture<>());
     lenient().when(process.exitValue()).thenReturn(0);
     lenient().when(process.isAlive()).thenReturn(true);
@@ -399,7 +399,7 @@ public class GameRunnerTest extends ServiceTest {
     GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
     mockStartGameProcess(gameLaunchResponse);
     when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(modService.downloadAndEnableMods(any())).thenReturn(completedFuture(null));
+    when(modService.downloadAndEnableMods(any())).thenReturn(Mono.empty());
 
     instance.prepareAndLaunchGameWhenReady("faf", Set.of("uid"), null, () -> completedFuture(gameLaunchResponse));
 
@@ -418,7 +418,7 @@ public class GameRunnerTest extends ServiceTest {
 
     lenient().when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     lenient().when(fafServerAccessor.requestJoinGame(anyInt(), any())).thenReturn(completedFuture(gameLaunchResponse));
-    lenient().when(modService.downloadAndEnableMods(anySet())).thenReturn(completedFuture(null));
+    lenient().when(modService.downloadAndEnableMods(anySet())).thenReturn(Mono.empty());
     lenient().when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     mockStartGameProcess(gameLaunchResponse);
   }
@@ -558,7 +558,7 @@ public class GameRunnerTest extends ServiceTest {
 
     lenient().when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     lenient().when(fafServerAccessor.requestHostGame(any())).thenReturn(completedFuture(gameLaunchResponse));
-    lenient().when(modService.downloadAndEnableMods(anySet())).thenReturn(completedFuture(null));
+    lenient().when(modService.downloadAndEnableMods(anySet())).thenReturn(Mono.empty());
     lenient().when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     lenient().when(gameService.getByUid(anyInt()))
              .thenReturn(Optional.of(GameBeanBuilder.create().defaultValues().get()));
@@ -627,7 +627,7 @@ public class GameRunnerTest extends ServiceTest {
   private void mockMatchmakerGame(GameLaunchResponse gameLaunchResponse) throws IOException {
     lenient().when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     lenient().when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchResponse));
-    lenient().when(modService.downloadAndEnableMods(anySet())).thenReturn(completedFuture(null));
+    lenient().when(modService.downloadAndEnableMods(anySet())).thenReturn(Mono.empty());
     mockStartGameProcess(gameLaunchResponse);
   }
 

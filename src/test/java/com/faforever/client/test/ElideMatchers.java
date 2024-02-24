@@ -31,41 +31,41 @@ public final class ElideMatchers {
     return builder -> builder != null && builder.getDtoClass().equals(clazz);
   }
 
-  public static ElideParamMatcher filterPresent() {
+  public static ArgumentMatcher<ElideNavigatorOnCollection<?>> filterPresent() {
     return new ElideParamMatcher(containsString("filter="));
   }
 
-  public static ElideParamMatcher hasFilter(Condition<?> condition) {
+  public static ArgumentMatcher<ElideNavigatorOnCollection<?>> hasFilter(Condition<?> condition) {
     return new ElideParamMatcher(containsString(String.format("filter=%s", condition.query(new RSQLVisitor()))));
   }
 
-  public static ElideParamListMatcher<ElideNavigatorOnCollection<?>> hasSort(String sortProperty, boolean ascending) {
+  public static ArgumentMatcher<ElideNavigatorOnCollection<?>> hasSort(String sortProperty, boolean ascending) {
     return new ElideParamListMatcher<>(contains((ascending ? "" : "-") + sortProperty), SORT);
   }
 
-  public static ElideParamListMatcher<?> hasIncludes(List<String> includes) {
+  public static ArgumentMatcher<?> hasIncludes(List<String> includes) {
     return new ElideParamListMatcher<>(containsInAnyOrder(includes.stream()
         .map(Matchers::equalTo)
         .collect(Collectors.toList())), INCLUDE);
   }
 
-  public static ElideParamMatcher hasPageSize(int pageSize) {
+  public static ArgumentMatcher<ElideNavigatorOnCollection<?>> hasPageSize(int pageSize) {
     return new ElideParamMatcher(containsString(String.format("page[size]=%d", pageSize)));
   }
 
-  public static ElideParamMatcher hasPageNumber(int pageNumber) {
+  public static ArgumentMatcher<ElideNavigatorOnCollection<?>> hasPageNumber(int pageNumber) {
     return new ElideParamMatcher(containsString(String.format("page[number]=%d", pageNumber)));
   }
 
-  public static ElideParamMatcher hasPageTotals() {
+  public static ArgumentMatcher<ElideNavigatorOnCollection<?>> hasPageTotals() {
     return new ElideParamMatcher(containsString("page[totals]"));
   }
 
-  public static ElideIdMatcher hasId(int id) {
+  public static ArgumentMatcher<ElideNavigatorOnId<?>> hasId(int id) {
     return new ElideIdMatcher(matchesPattern(String.format("^/data/\\w+/%d.*", id)));
   }
 
-  public static ElideRelationshipMatcher hasRelationship(String relationship) {
+  public static ArgumentMatcher<ElideNavigatorOnCollection<?>> hasRelationship(String relationship) {
     return new ElideRelationshipMatcher(matchesPattern(String.format("^/data/\\w+/\\d+/%s.*", relationship)));
   }
 

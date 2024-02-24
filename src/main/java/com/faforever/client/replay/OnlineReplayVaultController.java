@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
@@ -206,8 +207,11 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
 
   private void showReplayWithID(int replayId) {
     replayService.findById(replayId)
-        .thenAccept(possibleReplay -> possibleReplay.ifPresentOrElse(replayBean -> fxApplicationThreadExecutor.execute(() -> onDisplayDetails(replayBean)),
-            () -> notificationService.addImmediateWarnNotification("replay.replayNotFoundText", replayId)));
+                 .switchIfEmpty(Mono.fromRunnable(
+                     () -> notificationService.addImmediateWarnNotification("replay.replayNotFoundText", replayId)))
+                 .publishOn(fxApplicationThreadExecutor.asScheduler())
+                 .subscribe(this::onDisplayDetails,
+                            throwable -> log.error("Error while loading replay {}", replayId, throwable));
   }
 
   private void onShowUserReplaysEvent(ShowUserReplaysEvent event) {

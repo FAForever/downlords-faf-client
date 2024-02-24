@@ -61,6 +61,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.scheduling.TaskScheduler;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.publisher.TestPublisher;
 
@@ -468,7 +469,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   public void testJoinLeaveQueues() {
     matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
 
-    when(mapService.downloadAllMatchmakerMaps(any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(mapService.downloadAllMatchmakerMaps(any())).thenReturn(Mono.empty());
     when(featuredModService.updateFeaturedModToLatest(anyString(), anyBoolean())).thenReturn(
         CompletableFuture.completedFuture(null));
 
@@ -546,7 +547,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   public void testJoinQueuesPartyJoinQueueFails() {
     matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
 
-    when(mapService.downloadAllMatchmakerMaps(any())).thenReturn(CompletableFuture.failedFuture(new Exception()));
+    when(mapService.downloadAllMatchmakerMaps(any())).thenReturn(Mono.error(new Exception()));
     when(featuredModService.updateFeaturedModToLatest(anyString(), anyBoolean())).thenReturn(
         CompletableFuture.completedFuture(null));
 
@@ -587,7 +588,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
     instance.setSearching(true);
 
-    when(mapService.downloadAllMatchmakerMaps(any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(mapService.downloadAllMatchmakerMaps(any())).thenReturn(Mono.empty());
 
     SearchInfo message1 = new SearchInfo("queue1", MatchmakerState.START);
     SearchInfo message2 = new SearchInfo("queue2", MatchmakerState.START);

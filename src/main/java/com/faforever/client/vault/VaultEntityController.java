@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
 import java.util.ArrayList;
@@ -87,7 +88,7 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
   public int pageSize;
   public ComboBox<Integer> perPageComboBox;
 
-  protected CompletableFuture<Tuple2<List<T>, Integer>> currentSupplier;
+  protected Mono<Tuple2<List<T>, Integer>> currentSupplier;
   private final CompletableFuture<Void> showRoomInitializedFuture = CompletableFuture.runAsync(
       this::initializeShowRoomCards);
 
@@ -240,23 +241,22 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
 
   protected void loadShowRooms() {
     enterSearchingState();
-    showRoomInitializedFuture.thenComposeAsync(aVoid -> CompletableFuture.allOf(showRoomEntities.entrySet()
-                                                                                                .stream()
-                                                                                                .map(
-                                                                                                    entry -> entry.getKey()
-                                                                                                                  .entitySupplier()
-                                                                                                                  .get()
-                                                                                                                  .thenAcceptAsync(
-                                                                                                                      results -> entry.getValue()
-                                                                                                                                      .setAll(
-                                                                                                                                          results.getT1()),
-                                                                                                                      fxApplicationThreadExecutor))
-                                                                                                .toArray(
-                                                                                                    CompletableFuture[]::new)))
-                             .thenRunAsync(this::enterShowRoomState);
+    List<Mono<List<T>>> showRoomLoadMonos = showRoomEntities.entrySet().stream().map(entry -> {
+      ShowRoomCategory<T> showRoomCategory = entry.getKey();
+      ObservableList<T> entities = entry.getValue();
+      return showRoomCategory.entitySupplier()
+                             .get()
+                             .map(Tuple2::getT1)
+                             .publishOn(fxApplicationThreadExecutor.asScheduler())
+                             .doOnNext(entities::setAll);
+    }).toList();
+
+    Mono.fromFuture(showRoomInitializedFuture)
+        .then(Mono.when(showRoomLoadMonos))
+        .subscribe(null, null, this::enterShowRoomState);
   }
 
-  private VaultEntityShowRoomController loadShowRoom(ShowRoomCategory showRoomCategory) {
+  private VaultEntityShowRoomController loadShowRoom(ShowRoomCategory<T> showRoomCategory) {
     VaultEntityShowRoomController vaultEntityShowRoomController = uiService.loadFxml(
         "theme/vault/vault_entity_show_room.fxml");
     vaultEntityShowRoomController.getLabel().setText(i18n.get(showRoomCategory.i18nKey()));
@@ -288,15 +288,15 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
     });
   }
 
-  protected void displayFromSupplier(Supplier<CompletableFuture<Tuple2<List<T>, Integer>>> supplier,
+  protected void displayFromSupplier(Supplier<Mono<Tuple2<List<T>, Integer>>> supplier,
                                      boolean firstLoad) {
-    supplier.get().thenAcceptAsync(tuple -> {
+    supplier.get().subscribe(tuple -> {
       displaySearchResult(tuple.getT1());
       if (firstLoad) {
-        //when theres no search results the page count should be 1, 0 (which is returned) results in infinite pages
+        //when there's no search results the page count should be 1, 0 (which is returned) results in infinite pages
         fxApplicationThreadExecutor.execute(() -> pagination.setPageCount(Math.max(1, tuple.getT2())));
       }
-    }).exceptionally(throwable -> {
+    }, throwable -> {
       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
       if (throwable instanceof ApiException) {
         String query = searchController.queryTextField.getText();
@@ -307,7 +307,6 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
         notificationService.addImmediateErrorNotification(throwable, "vault.searchError");
       }
       enterShowRoomState();
-      return null;
     });
   }
 
@@ -360,6 +359,6 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
   }
 
   public record ShowRoomCategory<T>(
-      Supplier<CompletableFuture<Tuple2<List<T>, Integer>>> entitySupplier, SearchType searchType, String i18nKey
+      Supplier<Mono<Tuple2<List<T>, Integer>>> entitySupplier, SearchType searchType, String i18nKey
   ) {}
 }

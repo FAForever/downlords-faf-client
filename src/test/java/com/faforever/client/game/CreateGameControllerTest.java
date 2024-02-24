@@ -49,8 +49,6 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
-import static java.util.Collections.singleton;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.core.Is.is;
@@ -60,7 +58,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -129,7 +126,7 @@ public class CreateGameControllerTest extends PlatformTest {
              .thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
     lenient().when(loginService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
     lenient().when(modService.updateAndActivateModVersions(any()))
-        .thenAnswer(invocation -> completedFuture(invocation.getArgument(0)));
+             .thenAnswer(invocation -> Mono.just(List.copyOf(invocation.getArgument(0))));
     lenient().when(uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class))
              .thenReturn(mapFilterController);
     lenient().when(mapFilterController.filterActiveProperty()).thenReturn(new SimpleBooleanProperty());
@@ -357,7 +354,7 @@ public class CreateGameControllerTest extends PlatformTest {
     String newModUid = "new-mod";
     newModVersion.setUid(newModUid);
 
-    Set<ModVersionBean> selectedMods = singleton(modVersion);
+    Set<ModVersionBean> selectedMods = Set.of(modVersion);
     when(modManagerController.getSelectedModVersions()).thenReturn(selectedMods);
 
     MapVersionBean map = MapVersionBeanBuilder.create()
@@ -366,8 +363,7 @@ public class CreateGameControllerTest extends PlatformTest {
         .get();
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(Mono.just(map));
 
-    when(modService.updateAndActivateModVersions(eq(selectedMods)))
-        .thenAnswer(invocation -> completedFuture(List.of(newModVersion)));
+    when(modService.updateAndActivateModVersions(selectedMods)).thenReturn(Mono.just(List.of(newModVersion)));
 
     runOnFxThreadAndWait(() -> {
       mapList.add(map);

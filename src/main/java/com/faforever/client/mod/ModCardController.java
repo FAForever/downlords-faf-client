@@ -82,11 +82,10 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
 
   public void onInstallButtonClicked() {
     ModVersionBean modVersionBean = entity.get();
-    modService.downloadIfNecessary(modVersionBean, null, null).exceptionally(throwable -> {
+    modService.downloadIfNecessary(modVersionBean, null, null).subscribe(null, throwable -> {
       log.error("Could not install mod", throwable);
       notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed", modVersionBean.getMod()
           .getDisplayName(), throwable.getLocalizedMessage());
-      return null;
     });
   }
 

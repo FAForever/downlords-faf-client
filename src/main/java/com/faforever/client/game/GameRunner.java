@@ -211,7 +211,7 @@ public class GameRunner implements InitializingBean {
                                                                                                    false);
 
     CompletableFuture<Void> installSimModsFuture = simModUids.isEmpty() ? completedFuture(
-        null) : modService.downloadAndEnableMods(simModUids);
+        null) : modService.downloadAndEnableMods(simModUids).toFuture();
     CompletableFuture<Void> downloadMapFuture = mapFolderName == null || mapFolderName.isBlank() ? completedFuture(
         null) : mapService.downloadIfNecessary(mapFolderName).toFuture();
     return CompletableFuture.allOf(updateFeaturedModFuture, installSimModsFuture, downloadMapFuture)
@@ -380,8 +380,10 @@ public class GameRunner implements InitializingBean {
   private CompletableFuture<Integer> startIceAdapter(int uid) {
     return iceAdapter.start(uid)
                      .thenCompose(icePort -> coturnService.getSelectedCoturns(uid)
-                                                          .thenAccept(iceAdapter::setIceServers)
-                                                          .thenApply(ignored -> icePort));
+                                                          .collectList()
+                                                          .doOnNext(iceAdapter::setIceServers)
+                                                          .thenReturn(icePort)
+                                                          .toFuture());
   }
 
   private Mono<League> getDivisionInfo(String leaderboard) {

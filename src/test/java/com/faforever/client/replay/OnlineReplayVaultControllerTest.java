@@ -32,8 +32,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -95,13 +93,12 @@ public class OnlineReplayVaultControllerTest extends PlatformTest {
     lenient().when(featuredModService.getFeaturedMods()).thenReturn(Flux.empty());
     lenient().when(leaderboardService.getLeaderboards()).thenReturn(Flux.empty());
     lenient().when(replayService.getNewestReplaysWithPageCount(anyInt(), anyInt()))
-             .thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
+             .thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)));
     lenient().when(replayService.getHighestRatedReplaysWithPageCount(anyInt(), anyInt()))
-             .thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
-    lenient().when(replayService.findById(anyInt()))
-             .thenReturn(CompletableFuture.completedFuture(Optional.of(testReplay)));
+             .thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)));
+    lenient().when(replayService.findById(anyInt())).thenReturn(Mono.just(testReplay));
     lenient().when(replayService.getOwnReplaysWithPageCount(anyInt(), anyInt()))
-             .thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
+             .thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)));
     lenient().when(uiService.loadFxml("theme/vault/replay/replay_detail.fxml")).thenReturn(replayDetailController);
     lenient().when(uiService.loadFxml("theme/vault/vault_entity_show_room.fxml"))
              .thenReturn(vaultEntityShowRoomController);
@@ -164,7 +161,7 @@ public class OnlineReplayVaultControllerTest extends PlatformTest {
 
   @Test
   public void showReplayButReplayNotPresent() {
-    when(replayService.findById(anyInt())).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
+    when(replayService.findById(anyInt())).thenReturn(Mono.empty());
     runOnFxThreadAndWait(() -> instance.display(new ShowReplayEvent(123)));
     verify(notificationService).addImmediateWarnNotification(anyString(), anyInt());
   }

@@ -41,7 +41,6 @@ import org.apache.commons.compress.compressors.CompressorException;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -63,7 +62,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
@@ -149,9 +147,7 @@ public class ReplayService {
     return KnownFeaturedMod.DEFAULT.getTechnicalName();
   }
 
-  @Async
-  public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> loadLocalReplayPage(int pageSize,
-                                                                                  int page) throws IOException {
+  public Mono<Tuple2<List<ReplayBean>, Integer>> loadLocalReplayPage(int pageSize, int page) throws IOException {
     String replayFileGlob = clientProperties.getReplay().getReplayFileGlob();
 
     Path replaysDirectory = dataPrefs.getReplaysDirectory();
@@ -162,7 +158,7 @@ public class ReplayService {
     int skippedReplays = pageSize * (page - 1);
 
     try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(replaysDirectory, replayFileGlob)) {
-      Stream<Path> filesStream = StreamSupport.stream(directoryStream.spliterator(), false)
+      List<Path> filesList = StreamSupport.stream(directoryStream.spliterator(), false)
           .sorted(Comparator.comparing(path -> {
             try {
               return Files.getLastModifiedTime((Path) path);
@@ -170,9 +166,8 @@ public class ReplayService {
               log.warn("Could not get last modified time of file {}", path, e);
               return FileTime.from(Instant.EPOCH);
             }
-          }).reversed());
+          }).reversed()).toList();
 
-      List<Path> filesList = filesStream.toList();
       int numPages = filesList.size() / pageSize;
 
       List<CompletableFuture<ReplayBean>> replayFutures = filesList.stream()
@@ -184,9 +179,9 @@ public class ReplayService {
 
       return Mono.fromFuture(CompletableFuture.allOf(replayFutures.toArray(new CompletableFuture[0]))
           .thenApply(ignoredVoid -> replayFutures.stream()
-              .map(CompletableFuture::join)
-              .filter(Objects::nonNull)
-              .collect(Collectors.toList()))).zipWith(Mono.just(numPages)).toFuture();
+                                                 .map(CompletableFuture::join)
+                                                 .filter(Objects::nonNull)
+                                                 .collect(Collectors.toList()))).zipWith(Mono.just(numPages));
     }
   }
 
@@ -389,17 +384,17 @@ public class ReplayService {
   }
 
   @Cacheable(value = CacheNames.REPLAYS_RECENT, sync = true)
-  public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getNewestReplaysWithPageCount(int count, int page) {
+  public Mono<Tuple2<List<ReplayBean>, Integer>> getNewestReplaysWithPageCount(int count, int page) {
     ElideNavigatorOnCollection<Game> navigator = ElideNavigator.of(Game.class)
         .collection()
         .setFilter(qBuilder().instant("endTime")
             .after(Instant.now().minus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS), false))
         .addSortingRule("endTime", false);
-    return getReplayPage(navigator, count, page);
+    return getReplayPage(navigator, count, page).cache();
   }
 
   @Cacheable(value = CacheNames.REPLAYS_SEARCH, sync = true)
-  public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getReplaysForPlayerWithPageCount(int playerId, int count,
+  public Mono<Tuple2<List<ReplayBean>, Integer>> getReplaysForPlayerWithPageCount(int playerId, int count,
                                                                                                int page) {
     ElideNavigatorOnCollection<Game> navigator = ElideNavigator.of(Game.class)
         .collection()
@@ -409,11 +404,11 @@ public class ReplayService {
             .instant("endTime")
             .after(Instant.now().minus(365, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS), false))
         .addSortingRule("endTime", false);
-    return getReplayPage(navigator, count, page);
+    return getReplayPage(navigator, count, page).cache();
   }
 
   @Cacheable(value = CacheNames.REPLAYS_LIKED, sync = true)
-  public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getHighestRatedReplaysWithPageCount(int count, int page) {
+  public Mono<Tuple2<List<ReplayBean>, Integer>> getHighestRatedReplaysWithPageCount(int count, int page) {
     ElideNavigatorOnCollection<GameReviewsSummary> navigator = ElideNavigator.of(GameReviewsSummary.class)
         .collection()
         .addSortingRule("lowerBound", false)
@@ -421,52 +416,45 @@ public class ReplayService {
         .pageNumber(page);
     return fafApiAccessor.getManyWithPageCount(navigator)
         .map(tuple -> tuple.mapT1(mods -> mods.stream()
-            .map(dto -> replayMapper.map(dto.getGame(), new CycleAvoidingMappingContext()))
-            .collect(toList())))
-        .toFuture();
+                                              .map(dto -> replayMapper.map(dto.getGame(),
+                                                                           new CycleAvoidingMappingContext()))
+                                              .collect(toList()))).cache();
   }
 
   @Cacheable(value = CacheNames.REPLAYS_SEARCH, sync = true)
-  public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig,
+  public Mono<Tuple2<List<ReplayBean>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig,
                                                                                        int count, int page) {
     SortConfig sortConfig = searchConfig.sortConfig();
     ElideNavigatorOnCollection<Game> navigator = ElideNavigator.of(Game.class)
         .collection()
         .addSortingRule(sortConfig.sortProperty(), sortConfig.sortOrder().equals(SortOrder.ASC));
-    return getReplayPage(navigator, searchConfig.searchQuery(), count, page);
+    return getReplayPage(navigator, searchConfig.searchQuery(), count, page).cache();
   }
 
   @Cacheable(value = CacheNames.REPLAYS_SEARCH, sync = true)
-  public CompletableFuture<Optional<ReplayBean>> findById(int id) {
+  public Mono<ReplayBean> findById(int id) {
     ElideNavigatorOnId<Game> navigator = ElideNavigator.of(Game.class).id(String.valueOf(id));
     return fafApiAccessor.getOne(navigator)
-        .map(dto -> replayMapper.map(dto, new CycleAvoidingMappingContext()))
-        .toFuture()
-        .thenApply(Optional::ofNullable);
+                         .map(dto -> replayMapper.map(dto, new CycleAvoidingMappingContext()))
+                         .cache();
   }
 
   @Cacheable(value = CacheNames.REPLAYS_MINE, sync = true)
-  public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getOwnReplaysWithPageCount(int count, int page) {
-    return getReplaysForPlayerWithPageCount(loginService.getUserId(), count, page);
+  public Mono<Tuple2<List<ReplayBean>, Integer>> getOwnReplaysWithPageCount(int count, int page) {
+    return getReplaysForPlayerWithPageCount(loginService.getUserId(), count, page).cache();
   }
 
-  private CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getReplayPage(ElideNavigatorOnCollection<Game> navigator,
+  private Mono<Tuple2<List<ReplayBean>, Integer>> getReplayPage(ElideNavigatorOnCollection<Game> navigator,
                                                                              int count, int page) {
-    navigator.pageSize(count).pageNumber(page);
-    return fafApiAccessor.getManyWithPageCount(navigator)
-        .map(tuple -> tuple.mapT1(mods -> mods.stream()
-            .map(dto -> replayMapper.map(dto, new CycleAvoidingMappingContext()))
-            .collect(toList())))
-        .toFuture();
+    return getReplayPage(navigator, "", count, page);
   }
 
-  private CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getReplayPage(ElideNavigatorOnCollection<Game> navigator,
+  private Mono<Tuple2<List<ReplayBean>, Integer>> getReplayPage(ElideNavigatorOnCollection<Game> navigator,
                                                                              String customFilter, int count, int page) {
     navigator.pageNumber(page).pageSize(count);
     return fafApiAccessor.getManyWithPageCount(navigator, customFilter)
         .map(tuple -> tuple.mapT1(mods -> mods.stream()
-            .map(dto -> replayMapper.map(dto, new CycleAvoidingMappingContext()))
-            .collect(toList())))
-        .toFuture();
+                                              .map(dto -> replayMapper.map(dto, new CycleAvoidingMappingContext()))
+                                              .collect(toList())));
   }
 }

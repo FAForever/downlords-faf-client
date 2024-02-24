@@ -437,16 +437,16 @@ public class TeamMatchmakingService implements InitializingBean {
 
   private CompletableFuture<Boolean> joinQueue(MatchmakerQueueBean queue) {
     return mapService.downloadAllMatchmakerMaps(queue)
-                     .thenRun(() -> fafServerAccessor.gameMatchmaking(queue, MatchmakerState.START))
-                     .thenApply(aVoid -> true)
-                     .exceptionally(throwable -> {
-                       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+                     .then(Mono.fromRunnable(() -> fafServerAccessor.gameMatchmaking(queue, MatchmakerState.START)))
+                     .thenReturn(true)
+                     .onErrorResume(throwable -> {
                        log.error("Unable to join queue `{}`", queue.getTechnicalName(), throwable);
                        notificationService.addImmediateErrorNotification(throwable, "teammatchmaking.couldNotJoinQueue",
                                                                          queue.getTechnicalName());
                        queue.setMatchingStatus(null);
-                       return false;
-                     });
+                       return Mono.just(false);
+                     })
+                     .toFuture();
   }
 
   private void leaveQueue(MatchmakerQueueBean queue) {

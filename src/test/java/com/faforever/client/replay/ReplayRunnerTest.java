@@ -129,7 +129,7 @@ public class ReplayRunnerTest extends ServiceTest {
     lenient().when(preferencesService.hasValidGamePath()).thenReturn(true);
     lenient().when(featuredModService.updateFeaturedMod(any(), any(), any(), anyBoolean()))
              .thenReturn(completedFuture(null));
-    lenient().when(modService.downloadAndEnableMods(any())).thenReturn(completedFuture(null));
+    lenient().when(modService.downloadAndEnableMods(any())).thenReturn(Mono.empty());
     lenient().when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     lenient().when(process.onExit()).thenReturn(new CompletableFuture<>());
     lenient().when(process.isAlive()).thenReturn(true);
@@ -195,7 +195,7 @@ public class ReplayRunnerTest extends ServiceTest {
     lenient().when(preferencesService.hasValidGamePath()).thenReturn(true);
     lenient().when(gameService.getByUid(any())).thenReturn(Optional.of(game));
     lenient().when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
-    lenient().when(modService.downloadAndEnableMods(any())).thenReturn(completedFuture(null));
+    lenient().when(modService.downloadAndEnableMods(any())).thenReturn(Mono.empty());
     lenient().when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     lenient().when(process.onExit()).thenReturn(new CompletableFuture<>());
     lenient().when(process.isAlive()).thenReturn(true);

@@ -26,8 +26,6 @@ import reactor.core.publisher.Mono;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -71,11 +69,10 @@ public class ReportDialogControllerTest extends PlatformTest {
 
     lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
     lenient().when(playerService.getPlayerByName(player.getUsername())).thenReturn(Mono.just(player));
-    lenient().when(replayService.findById(replay.getId()))
-             .thenReturn(CompletableFuture.completedFuture(Optional.of(replay)));
+    lenient().when(replayService.findById(replay.getId())).thenReturn(Mono.just(replay));
     lenient().when(moderationService.getModerationReports()).thenReturn(Flux.just());
     lenient().when(moderationService.postModerationReport(any()))
-             .thenReturn(CompletableFuture.completedFuture(ModerationReportBeanBuilder.create().defaultValues().get()));
+             .thenReturn(Mono.just(ModerationReportBeanBuilder.create().defaultValues().get()));
 
     loadFxml("theme/reporting/report_dialog.fxml", clazz -> instance);
 
@@ -142,7 +139,7 @@ public class ReportDialogControllerTest extends PlatformTest {
 
   @Test
   public void testOnReportNoGame() {
-    when(replayService.findById(replay.getId())).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
+    when(replayService.findById(replay.getId())).thenReturn(Mono.empty());
 
     instance.onReportButtonClicked();
 

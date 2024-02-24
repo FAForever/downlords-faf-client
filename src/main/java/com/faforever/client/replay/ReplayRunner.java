@@ -102,7 +102,7 @@ public class ReplayRunner implements InitializingBean {
                                                                                            baseFafVersion, true);
     boolean hasSimMods = simMods == null || simMods.isEmpty();
     CompletableFuture<Void> installAndActivateSimModsFuture = hasSimMods ? completedFuture(
-        null) : modService.downloadAndEnableMods(simMods);
+        null) : modService.downloadAndEnableMods(simMods).toFuture();
     CompletableFuture<Void> downloadMapFuture = downloadMapAskIfError(mapFolderName).toFuture();
     CompletableFuture.allOf(updateFeaturedModFuture, installAndActivateSimModsFuture, downloadMapFuture)
                      .thenApply(ignored -> forgedAllianceLaunchService.startReplay(path, replayId))
@@ -152,7 +152,7 @@ public class ReplayRunner implements InitializingBean {
     CompletableFuture<Void> updateFeaturedModFuture = featuredModService.updateFeaturedModToLatest(featuredModName,
                                                                                                    true);
     CompletableFuture<Void> installAndActivateSimModsFuture = simModUids.isEmpty() ? completedFuture(
-        null) : modService.downloadAndEnableMods(simModUids);
+        null) : modService.downloadAndEnableMods(simModUids).toFuture();
     CompletableFuture<Void> downloadMapFuture = downloadMapAskIfError(mapName).toFuture();
     CompletableFuture.allOf(updateFeaturedModFuture, installAndActivateSimModsFuture, downloadMapFuture)
                      .thenApply(ignored -> forgedAllianceLaunchService.startReplay(replayUrl, game.getId()))

@@ -16,9 +16,9 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
-import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 
@@ -42,11 +42,10 @@ public class ModerationService {
   }
 
   @CacheEvict(value = CacheNames.MODERATION_REPORTS)
-  public CompletableFuture<ModerationReportBean> postModerationReport(ModerationReportBean report) {
+  public Mono<ModerationReportBean> postModerationReport(ModerationReportBean report) {
     ModerationReport reportDto = moderationReportMapper.map(report, new CycleAvoidingMappingContext());
     ElideNavigatorOnCollection<ModerationReport> navigator = ElideNavigator.of(ModerationReport.class).collection();
     return fafApiAccessor.post(navigator, reportDto)
-        .map(dto -> moderationReportMapper.map(dto, new CycleAvoidingMappingContext()))
-        .toFuture();
+                         .map(dto -> moderationReportMapper.map(dto, new CycleAvoidingMappingContext()));
   }
 }

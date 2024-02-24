@@ -330,28 +330,39 @@ public class SettingsController extends NodeController<Node> {
   }
 
   private void initPreferredCoturnListView() {
-    coturnService.getActiveCoturns().thenAcceptAsync(coturnServers -> {
-      preferredCoturnListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-      preferredCoturnListView.setItems(FXCollections.observableList(coturnServers));
-      preferredCoturnListView.setCellFactory(param -> new StringListCell<>(IceServer::region, fxApplicationThreadExecutor));
-      ObservableSet<String> preferredCoturnServers = preferences
-          .getForgedAlliance()
-          .getPreferredCoturnIds();
-      Map<String, IceServer> hostPortCoturnServerMap = coturnServers.stream()
-          .collect(Collectors.toMap(IceServer::id, Function.identity()));
+    coturnService.getActiveCoturns()
+                 .collectList()
+                 .map(FXCollections::observableList)
+                 .publishOn(fxApplicationThreadExecutor.asScheduler())
+                 .subscribe(coturnServers -> {
+                   preferredCoturnListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+                   preferredCoturnListView.setItems(FXCollections.observableList(coturnServers));
+                   preferredCoturnListView.setCellFactory(
+                       param -> new StringListCell<>(IceServer::region, fxApplicationThreadExecutor));
+                   Map<String, IceServer> hostPortCoturnServerMap = coturnServers.stream()
+                                                                                 .collect(
+                                                                                     Collectors.toMap(IceServer::id,
+                                                                                                      Function.identity()));
 
-      preferredCoturnServers.stream()
-          .filter(hostPortCoturnServerMap::containsKey)
-          .map(hostPortCoturnServerMap::get)
-          .forEach(coturnServer -> preferredCoturnListView.getSelectionModel().select(coturnServer));
+                   ObservableSet<String> preferredCoturnServers = preferences.getForgedAlliance()
+                                                                             .getPreferredCoturnIds();
 
-      JavaFxUtil.addAndTriggerListener(preferredCoturnListView.getSelectionModel()
-          .getSelectedItems(), observable -> {
-        List<IceServer> selectedCoturns = preferredCoturnListView.getSelectionModel().getSelectedItems();
-        preferredCoturnServers.clear();
-        selectedCoturns.stream().map(IceServer::id).forEach(preferredCoturnServers::add);
-      });
-    }, fxApplicationThreadExecutor);
+                   preferredCoturnServers.stream()
+                                         .filter(hostPortCoturnServerMap::containsKey)
+                                         .map(hostPortCoturnServerMap::get)
+                                         .forEach(coturnServer -> preferredCoturnListView.getSelectionModel()
+                                                                                         .select(coturnServer));
+
+                   JavaFxUtil.addAndTriggerListener(preferredCoturnListView.getSelectionModel().getSelectedItems(),
+                                                    observable -> {
+                                                      List<IceServer> selectedCoturns = preferredCoturnListView.getSelectionModel()
+                                                                                                               .getSelectedItems();
+                                                      preferredCoturnServers.clear();
+                                                      selectedCoturns.stream()
+                                                                     .map(IceServer::id)
+                                                                     .forEach(preferredCoturnServers::add);
+                                                    });
+                 });
   }
 
   private void initAutoChannelListView() {

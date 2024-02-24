@@ -74,6 +74,7 @@ import java.nio.charset.CharsetEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -466,11 +467,11 @@ public class CreateGameController extends NodeController<Pane> {
                                                                       "Error when updating the map", throwable))
                                                                   .onErrorReturn(selectedMap)
                                                                   .toFuture();
-    CompletableFuture<Collection<ModVersionBean>> modUpdateFuture = modService.updateAndActivateModVersions(
-        selectedModVersions).exceptionally(throwable -> {
+    CompletableFuture<List<ModVersionBean>> modUpdateFuture = modService.updateAndActivateModVersions(
+        selectedModVersions).toFuture().exceptionally(throwable -> {
       log.error("Error when updating selected mods", throwable);
       notificationService.addImmediateErrorNotification(throwable, "game.create.errorUpdatingMods");
-      return selectedModVersions;
+      return List.copyOf(selectedModVersions);
     });
 
     mapUpdateFuture.thenAcceptBoth(modUpdateFuture, this::hostGame).exceptionally(throwable -> {

@@ -49,7 +49,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,7 +62,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -184,10 +185,9 @@ public class ModServiceTest extends PlatformTest {
     StringProperty stringProperty = new SimpleStringProperty();
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
-    instance.downloadIfNecessary(ModVersionBeanBuilder.create().defaultValues().get(), doubleProperty,
-                                 stringProperty)
-            .toCompletableFuture()
-            .get(TIMEOUT, TIMEOUT_UNIT);
+    StepVerifier.create(
+        instance.downloadIfNecessary(ModVersionBeanBuilder.create().defaultValues().get(), doubleProperty,
+                                     stringProperty)).verifyComplete();
 
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
@@ -210,9 +210,7 @@ public class ModServiceTest extends PlatformTest {
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
     ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().downloadUrl(modUrl).get();
-    instance.downloadIfNecessary(modVersion, doubleProperty, stringProperty)
-            .toCompletableFuture()
-            .get(TIMEOUT, TIMEOUT_UNIT);
+    StepVerifier.create(instance.downloadIfNecessary(modVersion, doubleProperty, stringProperty)).verifyComplete();
 
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
@@ -319,11 +317,11 @@ public class ModServiceTest extends PlatformTest {
 
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(dto));
 
-    Collection<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
+    StepVerifier.create(instance.updateAndActivateModVersions(List.of(modVersion)))
+                .expectNext(List.of(modVersion))
+                .verifyComplete();
 
     verify(taskService, times(0)).submitTask(any(DownloadModTask.class));
-
-    assertThat(modVersions, contains(modVersion));
   }
 
   @Test
@@ -331,11 +329,11 @@ public class ModServiceTest extends PlatformTest {
     ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().get();
     preferences.setMapAndModAutoUpdate(false);
 
-    Collection<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
+    StepVerifier.create(instance.updateAndActivateModVersions(List.of(modVersion)))
+                .expectNext(List.of(modVersion))
+                .verifyComplete();
 
     verify(fafApiAccessor, times(0)).getMany(any());
-
-    assertThat(modVersions, contains(modVersion));
   }
 
   @Test
@@ -351,11 +349,11 @@ public class ModServiceTest extends PlatformTest {
 
     when(downloadModTaskFactory.getObject()).thenReturn(stubDownloadModTask());
 
-    Collection<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
+    StepVerifier.create(instance.updateAndActivateModVersions(List.of(modVersion)))
+                .expectNext(List.of(latestVersion))
+                .verifyComplete();
 
     verify(taskService, times(2)).submitTask(any());
-
-    assertThat(modVersions, contains(latestVersion));
   }
 
   private DownloadModTask stubDownloadModTask() {
@@ -372,11 +370,12 @@ public class ModServiceTest extends PlatformTest {
     ModVersionBean modVersionBean = ModVersionBeanBuilder.create().defaultValues().get();
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
         List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
-    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
-    List<ModVersionBean> results = instance.getRecommendedModsWithPageCount(10, 0).join().getT1();
+    when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
+    StepVerifier.create(instance.getRecommendedModsWithPageCount(10, 0))
+                .expectNext(Tuples.of(List.of(modVersionBean), 1))
+                .verifyComplete();
     verify(fafApiAccessor).getManyWithPageCount(
-        argThat(ElideMatchers.hasFilter(qBuilder().bool("recommended").isTrue())));
-    assertThat(results, contains(modVersionBean));
+        argThat(ElideMatchers.hasFilter(qBuilder().bool("recommended").isTrue())), anyString());
   }
 
   @Test
@@ -387,12 +386,13 @@ public class ModServiceTest extends PlatformTest {
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
     SearchConfig searchConfig = new SearchConfig(new SortConfig("testSort", SortOrder.ASC), "testQuery");
-    List<ModVersionBean> results = instance.findByQueryWithPageCount(searchConfig, 10, 1).join().getT1();
+    StepVerifier.create(instance.findByQueryWithPageCount(searchConfig, 10, 1))
+                .expectNext(Tuples.of(List.of(modVersionBean), 1))
+                .verifyComplete();
 
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("testSort", true)), eq("testQuery"));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)), eq("testQuery"));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)), eq("testQuery"));
-    assertThat(results, contains(modVersionBean));
   }
 
   @Test
@@ -400,14 +400,16 @@ public class ModServiceTest extends PlatformTest {
     ModVersionBean modVersionBean = ModVersionBeanBuilder.create().defaultValues().get();
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
         List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
-    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
-    List<ModVersionBean> results = instance.getHighestRatedModsWithPageCount(10, 1).join().getT1();
+    when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
+    StepVerifier.create(instance.getHighestRatedModsWithPageCount(10, 1))
+                .expectNext(Tuples.of(List.of(modVersionBean), 1))
+                .verifyComplete();
     verify(fafApiAccessor).getManyWithPageCount(
-        argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type").eq("SIM"))));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("reviewsSummary.lowerBound", false)));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
-    assertThat(results, contains(modVersionBean));
+        argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type").eq("SIM"))), anyString());
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("reviewsSummary.lowerBound", false)),
+                                                anyString());
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)), anyString());
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)), anyString());
   }
 
   @Test
@@ -415,14 +417,16 @@ public class ModServiceTest extends PlatformTest {
     ModVersionBean modVersionBean = ModVersionBeanBuilder.create().defaultValues().get();
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
         List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
-    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
-    List<ModVersionBean> results = instance.getHighestRatedUiModsWithPageCount(10, 1).join().getT1();
+    when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
+    StepVerifier.create(instance.getHighestRatedUiModsWithPageCount(10, 1))
+                .expectNext(Tuples.of(List.of(modVersionBean), 1))
+                .verifyComplete();
     verify(fafApiAccessor).getManyWithPageCount(
-        argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type").eq("UI"))));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("reviewsSummary.lowerBound", false)));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
-    assertThat(results, contains(modVersionBean));
+        argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type").eq("UI"))), anyString());
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("reviewsSummary.lowerBound", false)),
+                                                anyString());
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)), anyString());
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)), anyString());
   }
 
   @Test
@@ -430,12 +434,14 @@ public class ModServiceTest extends PlatformTest {
     ModVersionBean modVersionBean = ModVersionBeanBuilder.create().defaultValues().get();
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
         List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
-    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
-    List<ModVersionBean> results = instance.getNewestModsWithPageCount(10, 1).join().getT1();
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("latestVersion.createTime", false)));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
-    assertThat(results, contains(modVersionBean));
+    when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
+    StepVerifier.create(instance.getNewestModsWithPageCount(10, 1))
+                .expectNext(Tuples.of(List.of(modVersionBean), 1))
+                .verifyComplete();
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("latestVersion.createTime", false)),
+                                                anyString());
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)), anyString());
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)), anyString());
   }
 
   private void prepareUninstallModTask(ModVersionBean modToDelete) {

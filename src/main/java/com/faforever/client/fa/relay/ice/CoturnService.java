@@ -11,9 +11,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 @Lazy
 @RequiredArgsConstructor
@@ -23,15 +21,13 @@ public class CoturnService {
   private final FafApiAccessor fafApiAccessor;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
 
-  public CompletableFuture<List<IceServer>> getActiveCoturns() {
+  public Flux<IceServer> getActiveCoturns() {
     return fafApiAccessor.getApiObject("/ice/server", IceServerResponse.class)
         .flatMapIterable(IceServerResponse::servers)
-        .switchIfEmpty(Flux.error(new IllegalStateException("No Coturn Servers Available")))
-        .collectList()
-        .toFuture();
+                         .switchIfEmpty(Flux.error(new IllegalStateException("No Coturn Servers Available")));
   }
 
-  public CompletableFuture<List<CoturnServer>> getSelectedCoturns(int gameId) {
+  public Flux<CoturnServer> getSelectedCoturns(int gameId) {
     Flux<CoturnServer> coturnServerFlux = fafApiAccessor.getApiObject("/ice/session/game/" + gameId, IceSession.class)
         .flatMapIterable(IceSession::servers);
 
@@ -39,8 +35,6 @@ public class CoturnService {
 
     return coturnServerFlux.filter(coturnServer -> preferredCoturnIds.contains(coturnServer.getId()))
         .switchIfEmpty(coturnServerFlux)
-        .switchIfEmpty(Flux.error(new IllegalStateException("No Coturn Servers Available")))
-        .collectList()
-        .toFuture();
+                           .switchIfEmpty(Flux.error(new IllegalStateException("No Coturn Servers Available")));
   }
 }
