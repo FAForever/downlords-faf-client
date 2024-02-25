@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapBean.MapType;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ModVersionBean;
@@ -19,7 +20,6 @@ import com.faforever.client.fx.contextmenu.CopyLabelMenuItem;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.map.MapSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModManagerController;
 import com.faforever.client.mod.ModService;
@@ -35,6 +35,8 @@ import com.faforever.commons.lobby.GameVisibility;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.beans.WeakInvalidationListener;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.transformation.FilteredList;
@@ -48,7 +50,6 @@ import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.image.Image;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
@@ -63,7 +64,6 @@ import javafx.stage.PopupWindow.AnchorLocation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -108,7 +108,6 @@ public class CreateGameController extends NodeController<Pane> {
   private final LastGamePrefs lastGamePrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  private final SimpleInvalidationListener createButtonStateListener = this::setCreateGameButtonState;
 
   public Label mapSizeLabel;
   public Label mapPlayersLabel;
@@ -136,6 +135,9 @@ public class CreateGameController extends NodeController<Pane> {
   FilteredList<MapVersionBean> filteredMaps;
   private Runnable onCloseButtonClickedListener;
   private MapFilterController mapFilterController;
+
+  private final ObjectProperty<MapVersionBean> selectedMap = new SimpleObjectProperty<>();
+  private final SimpleInvalidationListener createButtonStateListener = this::setCreateGameButtonState;
 
   @Override
   protected void onInitialize() {
@@ -279,13 +281,45 @@ public class CreateGameController extends NodeController<Pane> {
   }
 
   protected void initMapSelection() {
+    mapNameLabel.textProperty()
+                .bind(selectedMap.flatMap(MapVersionBean::mapProperty)
+                                 .flatMap(MapBean::displayNameProperty)
+                                 .when(showing));
+    mapSizeLabel.textProperty()
+                .bind(selectedMap.flatMap(MapVersionBean::sizeProperty)
+                                 .map(mapSize -> i18n.get("mapPreview.size", mapSize.getWidthInKm(),
+                                                          mapSize.getHeightInKm()))
+                                 .when(showing));
+    BackgroundSize backgroundSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true,
+                                                       false);
+    mapPreviewPane.backgroundProperty()
+                  .bind(selectedMap.flatMap(MapVersionBean::folderNameProperty)
+                                   .map(folderName -> mapService.loadPreview(folderName, PreviewSize.LARGE))
+                                   .map(preview -> new BackgroundImage(preview, NO_REPEAT, NO_REPEAT, CENTER,
+                                                                       backgroundSize))
+                                   .map(Background::new)
+                                   .when(showing));
+    mapPlayersLabel.textProperty()
+                   .bind(selectedMap.flatMap(MapVersionBean::maxPlayersProperty).map(i18n::number).when(showing));
+    mapDescriptionLabel.textProperty()
+                       .bind(selectedMap.flatMap(MapVersionBean::descriptionProperty)
+                                        .map(Strings::emptyToNull)
+                                        .map(FaStrings::removeLocalizationTag)
+                                        .orElse(i18n.get("map.noDescriptionAvailable"))
+                                        .when(showing));
+    versionLabel.textProperty()
+                .bind(selectedMap.flatMap(MapVersionBean::versionProperty)
+                                 .map(version -> i18n.get("versionFormat", version))
+                                 .when(showing));
+    versionLabel.visibleProperty().bind(versionLabel.textProperty().isNotEmpty());
+
     mapListView.setCellFactory(
         param -> new StringListCell<>(mapVersion -> mapVersion.getMap().getDisplayName(), fxApplicationThreadExecutor));
     mapListView.getSelectionModel().selectedItemProperty().when(showing).subscribe((oldItem, newItem) -> {
                 if (newItem == null && filteredMaps.contains(oldItem)) {
                   mapListView.getSelectionModel().select(oldItem);
                 } else {
-                  setSelectedMap(newItem);
+                  selectedMap.set(newItem);
                 }
                });
 
@@ -313,38 +347,6 @@ public class CreateGameController extends NodeController<Pane> {
     });
 
     mapListView.setItems(filteredMaps);
-  }
-
-  private void setSelectedMap(MapVersionBean mapVersion) {
-    if (mapVersion == null) {
-      fxApplicationThreadExecutor.execute(() -> mapNameLabel.setText(""));
-      return;
-    }
-
-    ComparableVersion version = mapVersion.getVersion();
-    MapSize mapSize = mapVersion.getSize();
-    Image largePreview = mapService.loadPreview(mapVersion.getFolderName(), PreviewSize.LARGE);
-    lastGamePrefs.setLastMap(mapVersion.getFolderName());
-
-    fxApplicationThreadExecutor.execute(() -> {
-      mapPreviewPane.setBackground(new Background(new BackgroundImage(largePreview, NO_REPEAT, NO_REPEAT, CENTER,
-                                                                      new BackgroundSize(BackgroundSize.AUTO,
-                                                                                         BackgroundSize.AUTO, false,
-                                                                                         false, true, false))));
-      mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInKm(), mapSize.getHeightInKm()));
-      mapNameLabel.setText(mapVersion.getMap().getDisplayName());
-      mapPlayersLabel.setText(i18n.number(mapVersion.getMaxPlayers()));
-      mapDescriptionLabel.setText(Optional.ofNullable(mapVersion.getDescription())
-                                          .map(Strings::emptyToNull)
-                                          .map(FaStrings::removeLocalizationTag)
-                                          .orElseGet(() -> i18n.get("map.noDescriptionAvailable")));
-      if (version == null) {
-        versionLabel.setVisible(false);
-      } else {
-        versionLabel.setVisible(true);
-        versionLabel.setText(i18n.get("versionFormat", version));
-      }
-    });
   }
 
   private void initFeaturedModList() {
