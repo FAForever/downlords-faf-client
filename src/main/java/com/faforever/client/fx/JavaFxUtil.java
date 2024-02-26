@@ -25,10 +25,12 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Labeled;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
@@ -441,6 +443,14 @@ public final class JavaFxUtil {
 
   public static void bindManagedToVisible(Node... nodes) {
     Arrays.stream(nodes).forEach(node -> node.managedProperty().bind(node.visibleProperty()));
+  }
+
+  public static void bindVisibleToTextNotEmpty(Labeled... labeleds) {
+    Arrays.stream(labeleds).forEach(labeled -> labeled.visibleProperty().bind(labeled.textProperty().isNotEmpty()));
+  }
+
+  public static void bindVisibleToImageNotNull(ImageView... images) {
+    Arrays.stream(images).forEach(image -> image.visibleProperty().bind(image.imageProperty().isNotNull()));
   }
 
   public static void bindTextFieldAndRangeSlider(TextField lowValueTextField, TextField highValueTextField,

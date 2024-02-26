@@ -30,7 +30,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -123,49 +122,6 @@ public class LeaderboardService {
                          .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()));
   }
 
-  @Cacheable(value = CacheNames.LEAGUE, sync = true)
-  public Mono<Integer> getPlayerNumberInHigherDivisions(SubdivisionBean subdivision) {
-    LeagueSeasonBean leagueSeason = subdivision.getDivision().getLeagueSeason();
-    return getAllSubdivisions(leagueSeason).filter(
-                                               otherSubdivision -> SUBDIVISION_COMPARATOR.compare(otherSubdivision, subdivision) > 0)
-                                           .flatMap(this::getSizeOfDivision)
-                                           .reduce(0, Integer::sum)
-                                           .cache();
-  }
-
-  @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
-  public Mono<Integer> getTotalPlayers(LeagueSeasonBean leagueSeason) {
-    ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class)
-                                                                            .collection()
-                                                                            .setFilter(
-                                                                                qBuilder().intNum("leagueSeason.id")
-                                                                                          .eq(leagueSeason.getId())
-                                                                                          .and()
-                                                                                          .intNum("score")
-                                                                                          .gt(-1))
-                                                                            .pageSize(1);
-    return fafApiAccessor.getManyWithPageCount(navigator).map(Tuple2::getT2);
-  }
-
-  @Cacheable(value = CacheNames.DIVISIONS, sync = true)
-  public Mono<Integer> getSizeOfDivision(SubdivisionBean subdivision) {
-    Condition<?> filter = qBuilder().intNum("leagueSeason.id")
-                                    .eq(subdivision.getDivision().getLeagueSeason().getId())
-                                    .and()
-                                    .intNum("leagueSeasonDivisionSubdivision.subdivisionIndex")
-                                    .eq(subdivision.getIndex())
-                                    .and()
-                                    .intNum("leagueSeasonDivisionSubdivision.leagueSeasonDivision.divisionIndex")
-                                    .eq(subdivision.getDivision().getIndex());
-
-    ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class)
-                                                                            .collection()
-                                                                            .setFilter(filter)
-                                                                            .pageSize(1);
-
-    return fafApiAccessor.getManyWithPageCount(navigator).map(Tuple2::getT2);
-  }
-
   @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
   public Mono<LeagueEntryBean> getLeagueEntryForPlayer(PlayerBean player, LeagueSeasonBean leagueSeason) {
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class)
@@ -182,9 +138,27 @@ public class LeaderboardService {
                          .cache();
   }
 
+  @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
   public Mono<LeagueEntryBean> getHighestActiveLeagueEntryForPlayer(PlayerBean player) {
-    return getActiveLeagueEntriesForPlayer(player).sort(
-        Comparator.comparing(LeagueEntryBean::getSubdivision, SUBDIVISION_COMPARATOR)).takeLast(1).next();
+    Condition<?> filter = qBuilder().intNum("loginId")
+                                    .eq(player.getId())
+                                    .and()
+                                    .instant("leagueSeason.startDate")
+                                    .before(OffsetDateTime.now().toInstant(), false)
+                                    .and()
+                                    .instant("leagueSeason.endDate")
+                                    .after(OffsetDateTime.now().toInstant(), false);
+
+    ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class)
+                                                                            .collection()
+                                                                            .setFilter(filter);
+    return fafApiAccessor.getMany(navigator)
+                         .map(dto -> leaderboardMapper.map(dto, player, new CycleAvoidingMappingContext()))
+                         .filter(leagueEntryBean -> leagueEntryBean.getSubdivision() != null)
+                         .sort(Comparator.comparing(LeagueEntryBean::getSubdivision, SUBDIVISION_COMPARATOR))
+                         .takeLast(1)
+                         .next()
+                         .cache();
   }
 
   @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
@@ -219,48 +193,28 @@ public class LeaderboardService {
   }
 
   @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
-  public Flux<LeagueEntryBean> getActiveLeagueEntriesForPlayer(PlayerBean player) {
-    ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class)
-                                                                            .collection()
-                                                                            .setFilter(qBuilder().intNum("loginId")
-                                                                                                 .eq(player.getId())
-                                                                                                 .and()
-                                                                                                 .instant(
-                                                                                                     "leagueSeason.startDate")
-                                                                                                 .before(
-                                                                                                     OffsetDateTime.now()
-                                                                                                                   .toInstant(),
-                                                                                                     false)
-                                                                                                 .and()
-                                                                                                 .instant(
-                                                                                                     "leagueSeason.endDate")
-                                                                                                 .after(
-                                                                                                     OffsetDateTime.now()
-                                                                                                                   .toInstant(),
-                                                                                                     false));
-    return fafApiAccessor.getMany(navigator)
-                         .map(dto -> leaderboardMapper.map(dto, player, new CycleAvoidingMappingContext()))
-                         .filter(leagueEntryBean -> leagueEntryBean.getSubdivision() != null)
-                         .cache();
-  }
-
-  @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
-  public Flux<LeagueEntryBean> getEntries(SubdivisionBean subdivision) {
-    Condition<?> filter = qBuilder().intNum("leagueSeason.id")
-                                    .eq(subdivision.getDivision().getLeagueSeason().getId())
-                                    .and()
-                                    .intNum("leagueSeasonDivisionSubdivision.subdivisionIndex")
-                                    .eq(subdivision.getIndex())
-                                    .and()
-                                    .intNum("leagueSeasonDivisionSubdivision.leagueSeasonDivision.divisionIndex")
-                                    .eq(subdivision.getDivision().getIndex());
+  public Flux<LeagueEntryBean> getActiveEntries(LeagueSeasonBean leagueSeason) {
+    Condition<?> filter = qBuilder().intNum("leagueSeason.id").eq(leagueSeason.getId()).and().intNum("score").gte(0);
 
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class)
                                                                             .collection()
                                                                             .setFilter(filter)
-                                                                            .addSortingRule("score", false);
+                                                                            .pageSize(fafApiAccessor.getMaxPageSize());
 
-    return fafApiAccessor.getMany(navigator).collectList().flatMapMany(this::mapLeagueEntryDtoToBean).cache();
+    return fafApiAccessor.getMany(navigator)
+                         .collectList()
+                         .flatMapMany(this::mapLeagueEntryDtoToBean)
+                         .sort(Comparator.comparing(LeagueEntryBean::getSubdivision,
+                                                    Comparator.comparing(SubdivisionBean::getDivision,
+                                                                         Comparator.comparing(DivisionBean::getIndex))
+                                                              .thenComparing(SubdivisionBean::getIndex))
+                                         .thenComparing(LeagueEntryBean::getScore)
+                                         .reversed())
+                         .index((index, leagueEntry) -> {
+                           leagueEntry.setRank(index.intValue() + 1);
+                           return leagueEntry;
+                         })
+                         .cache();
   }
 
   private Flux<LeagueEntryBean> mapLeagueEntryDtoToBean(List<LeagueSeasonScore> seasonScores) {

@@ -84,7 +84,8 @@ public class UserLeaderboardInfoControllerTest extends PlatformTest {
   @Test
   public void testSetLeagueInfo() {
     LeagueEntryBean leagueEntry = LeagueEntryBeanBuilder.create().defaultValues().get();
-    when(i18n.getOrDefault(leagueEntry.getSubdivision().getDivision().getNameKey(), leagueEntry.getSubdivision().getDivisionI18nKey())).thenReturn("bronze");
+    when(i18n.getOrDefault(leagueEntry.getSubdivision().getDivision().getNameKey(), "leagues.divisionName.%s".formatted(
+        leagueEntry.getSubdivision().getDivision().getNameKey()))).thenReturn("bronze");
     when(i18n.get("leaderboard.divisionName", "bronze", leagueEntry.getSubdivision().getNameKey())).thenReturn("bronze II");
 
     instance.setLeagueInfo(leagueEntry);

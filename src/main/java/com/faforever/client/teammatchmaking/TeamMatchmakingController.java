@@ -259,7 +259,8 @@ public class TeamMatchmakingController extends NodeController<Node> {
                       .subscribe(subdivision -> {
                         leagueLabel.setText(i18n.get("leaderboard.divisionName",
                                                      i18n.getOrDefault(subdivision.getDivision().getNameKey(),
-                                                                       subdivision.getDivisionI18nKey()),
+                                                                       "leagues.divisionName.%s".formatted(
+                                                                           subdivision.getDivision().getNameKey())),
                                                      subdivision.getNameKey()).toUpperCase());
                         leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
                         leagueImageView.setVisible(true);

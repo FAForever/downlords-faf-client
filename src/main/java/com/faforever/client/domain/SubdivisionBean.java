@@ -147,8 +147,4 @@ public class SubdivisionBean extends AbstractEntityBean {
   public ObjectProperty<URL> smallImageUrlProperty() {
     return smallImageUrl;
   }
-
-  public String getDivisionI18nKey() {
-    return String.format("leagues.divisionName.%s", getDivision().getNameKey());
-  }
 }

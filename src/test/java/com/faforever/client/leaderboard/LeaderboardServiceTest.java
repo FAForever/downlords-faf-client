@@ -23,8 +23,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.commons.api.dto.LeagueSeasonDivisionSubdivision;
-import com.faforever.commons.api.dto.LeagueSeasonScore;
 import com.faforever.commons.api.elide.ElideEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,12 +31,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-import reactor.util.function.Tuple2;
 
 import java.nio.file.Path;
-import java.util.List;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static org.mockito.ArgumentMatchers.any;
@@ -127,53 +122,6 @@ public class LeaderboardServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testGetPlayerNumberInHigherDivisions() {
-    SubdivisionBean subdivisionBean1 = SubdivisionBeanBuilder.create().defaultValues().index(1).get();
-    SubdivisionBean subdivisionBean2 = SubdivisionBeanBuilder.create().defaultValues().index(2).get();
-    SubdivisionBean subdivisionBean3 = SubdivisionBeanBuilder.create().defaultValues().index(3).get();
-    LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().score(8).subdivision(subdivisionBean2).get();
-    LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = Mono.zip(
-        Mono.just(List.of(
-            leaderboardMapper.map(leagueEntryBean1, new CycleAvoidingMappingContext()),
-            leaderboardMapper.map(leagueEntryBean2, new CycleAvoidingMappingContext())
-        )), Mono.just(2));
-    when(fafApiAccessor.getManyWithPageCount(argThat(ElideMatchers.hasDtoClass(LeagueSeasonScore.class)))).thenReturn(resultMono);
-    Flux<ElideEntity> resultFlux = Flux.just(
-        leaderboardMapper.map(subdivisionBean1, new CycleAvoidingMappingContext()),
-        leaderboardMapper.map(subdivisionBean2, new CycleAvoidingMappingContext()),
-        leaderboardMapper.map(subdivisionBean3, new CycleAvoidingMappingContext()));
-    when(fafApiAccessor.getMany(argThat(ElideMatchers.hasDtoClass(LeagueSeasonDivisionSubdivision.class)))).thenReturn(resultFlux);
-
-    StepVerifier.create(instance.getPlayerNumberInHigherDivisions(subdivisionBean2)).expectNext(2).verifyComplete();
-  }
-
-  @Test
-  public void testGetTotalPlayers() {
-    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(Mono.zip(Mono.just(List.of()), Mono.just(0)));
-    LeagueSeasonBean season = LeagueSeasonBeanBuilder.create().defaultValues().get();
-
-    StepVerifier.create(instance.getTotalPlayers(season)).expectNext(0).verifyComplete();
-
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.filterPresent()));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(1)));
-  }
-
-  @Test
-  public void testGetSizeOfDivision() {
-    SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
-    LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean).get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = Mono.zip(
-        Mono.just(List.of(leaderboardMapper.map(leagueEntryBean, new CycleAvoidingMappingContext()))), Mono.just(1));
-    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
-
-    StepVerifier.create(instance.getSizeOfDivision(subdivisionBean)).expectNext(1).verifyComplete();
-
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.filterPresent()));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(1)));
-  }
-
-  @Test
   public void testGetLeagueEntryForPlayer() {
     LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().get();
     LeagueSeasonBean season = LeagueSeasonBeanBuilder.create().defaultValues().id(2).get();
@@ -210,9 +158,8 @@ public class LeaderboardServiceTest extends ServiceTest {
   @Test
   public void testGetActiveLeagueEntryForPlayer() {
     LeaderboardBean leaderboard = LeaderboardBeanBuilder.create().defaultValues().id(2).technicalName("ladder").get();
-    LeagueSeasonBean season = LeagueSeasonBeanBuilder.create().defaultValues().leaderboard(leaderboard).get();
     LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().get();
-    LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().leagueSeason(season).get();
+    LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().get();
 
     Flux<ElideEntity> resultFlux = Flux.just(
         leaderboardMapper.map(leagueEntryBean1, new CycleAvoidingMappingContext()),
@@ -225,21 +172,6 @@ public class LeaderboardServiceTest extends ServiceTest {
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId())
         .and().string("leagueSeason.leaderboard.technicalName").eq(leaderboard.getTechnicalName()))));
-  }
-
-  @Test
-  public void testGetActiveLeagueEntriesForPlayer() {
-    LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().get();
-    LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(null).get();
-
-    Flux<ElideEntity> resultFlux = Flux.just(
-        leaderboardMapper.map(leagueEntryBean1, new CycleAvoidingMappingContext()),
-        leaderboardMapper.map(leagueEntryBean2, new CycleAvoidingMappingContext()));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-
-    StepVerifier.create(instance.getActiveLeagueEntriesForPlayer(player)).expectNext(leagueEntryBean1).verifyComplete();
-
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId()))));
   }
 
   @Test
@@ -256,23 +188,23 @@ public class LeaderboardServiceTest extends ServiceTest {
 
   @Test
   public void testGetLeagueEntries() {
-    SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
-    LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean).get();
+    LeagueSeasonBean leagueSeasonBean = LeagueSeasonBeanBuilder.create().defaultValues().get();
+    LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().get();
     Flux<ElideEntity> resultFlux = Flux.just(
         leaderboardMapper.map(leagueEntryBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     when(playerService.getPlayersByIds(anyCollection())).thenReturn(
         Flux.just(PlayerBeanBuilder.create().id(1).username("junit").get()));
 
-    StepVerifier.create(instance.getEntries(subdivisionBean)).expectNext(leagueEntryBean).verifyComplete();
+    StepVerifier.create(instance.getActiveEntries(leagueSeasonBean)).expectNext(leagueEntryBean).verifyComplete();
   }
 
   @Test
   public void testGetLeagueEntriesEmpty() {
-    SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
+    LeagueSeasonBean leagueSeasonBean = LeagueSeasonBeanBuilder.create().defaultValues().get();
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
     when(playerService.getPlayersByIds(anyCollection())).thenReturn(Flux.empty());
-    StepVerifier.create(instance.getEntries(subdivisionBean)).verifyComplete();
+    StepVerifier.create(instance.getActiveEntries(leagueSeasonBean)).verifyComplete();
   }
 
 

@@ -8,7 +8,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import javafx.scene.layout.StackPane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -21,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
@@ -42,7 +42,13 @@ public class LeaderboardsControllerTest extends PlatformTest {
   private NavigationHandler navigationHandler;
 
   @Mock
-  private LeaderboardController controller;
+  private LeaderboardController leaderboardController;
+  @Mock
+  private LeaderboardRankingsController leaderboardRankingsController;
+  @Mock
+  private LeaderboardDistributionController leaderboardDistributionController;
+  @Mock
+  private LeaderboardPlayerDetailsController leaderboardPlayerDetailsController;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -50,10 +56,22 @@ public class LeaderboardsControllerTest extends PlatformTest {
     when(leaderboardService.getLatestSeason(any())).thenReturn(
         Mono.just(LeagueSeasonBeanBuilder.create().defaultValues().get()));
     when(i18n.getOrDefault(anyString(), anyString())).thenReturn("league");
-    when(uiService.loadFxml("theme/leaderboard/leaderboard.fxml")).thenReturn(controller);
-    when(controller.getRoot()).thenReturn(new StackPane());
 
-    loadFxml("theme/leaderboard/leaderboards.fxml", clazz -> instance);
+    loadFxml("theme/leaderboard/leaderboards.fxml", clazz -> {
+      if (clazz == LeaderboardController.class) {
+        return leaderboardController;
+      }
+      if (clazz == LeaderboardRankingsController.class) {
+        return leaderboardRankingsController;
+      }
+      if (clazz == LeaderboardDistributionController.class) {
+        return leaderboardDistributionController;
+      }
+      if (clazz == LeaderboardPlayerDetailsController.class) {
+        return leaderboardPlayerDetailsController;
+      }
+      return instance;
+    });
   }
 
   @Test
@@ -87,7 +105,8 @@ public class LeaderboardsControllerTest extends PlatformTest {
 
     reinitialize(instance);
 
-    verify(notificationService).addImmediateErrorNotification(any(), eq("leaderboard.failedToLoadLeaderboards"));
+    verify(notificationService, times(2)).addImmediateErrorNotification(any(),
+                                                                        eq("leaderboard.failedToLoadLeaderboards"));
   }
 
   @Test
