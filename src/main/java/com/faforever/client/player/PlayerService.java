@@ -178,16 +178,19 @@ public class PlayerService implements InitializingBean {
 
     Set<Integer> onlineIds = onlinePlayers.stream().map(PlayerBean::getId).collect(Collectors.toSet());
 
-    Set<Integer> offlineIds = playerIds.stream()
-                                       .filter(playerId -> !onlineIds.contains(playerId))
-                                       .collect(Collectors.toSet());
-
-    ElideNavigatorOnCollection<Player> navigator = ElideNavigator.of(Player.class)
-                                                                 .collection()
-                                                                 .setFilter(qBuilder().intNum("id").in(offlineIds));
-    return fafApiAccessor.getMany(navigator)
-                         .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()))
-                         .concatWithValues(onlinePlayers.toArray(new PlayerBean[0]));
+    return Flux.fromIterable(playerIds)
+               .filter(playerId -> !onlineIds.contains(playerId))
+               .window(100)
+               .flatMap(Flux::collectList)
+               .flatMap(offlineIds -> {
+                 ElideNavigatorOnCollection<Player> navigator = ElideNavigator.of(Player.class)
+                                                                              .collection()
+                                                                              .setFilter(qBuilder().intNum("id")
+                                                                                                   .in(offlineIds));
+                 return fafApiAccessor.getMany(navigator)
+                                      .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()));
+               })
+               .concatWithValues(onlinePlayers.toArray(new PlayerBean[0]));
   }
 
   public Mono<PlayerBean> getPlayerByName(String playerName) {

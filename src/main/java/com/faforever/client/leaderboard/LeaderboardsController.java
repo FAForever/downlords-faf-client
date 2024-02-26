@@ -6,8 +6,8 @@ import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.theme.UiService;
 import javafx.scene.Node;
+import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
@@ -23,6 +23,7 @@ import reactor.core.publisher.Mono;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 
 @Slf4j
@@ -33,16 +34,16 @@ public class LeaderboardsController extends NodeController<Node> {
   private final I18n i18n;
   private final LeaderboardService leaderboardService;
   private final NotificationService notificationService;
-  private final UiService uiService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final NavigationHandler navigationHandler;
 
   public VBox leaderboardRoot;
   public HBox navigationBox;
   public StackPane contentPane;
+  public LeaderboardController leaderboardController;
 
   private final ToggleGroup navigation = new ToggleGroup();
-  private final Map<LeagueBean, ToggleButton> buttonLeagueMap = new HashMap<>();
+  private final Map<Toggle, LeagueBean> toggleLeagueMap = new HashMap<>();
 
   @Override
   public Node getRoot() {
@@ -51,6 +52,14 @@ public class LeaderboardsController extends NodeController<Node> {
 
   @Override
   protected void onInitialize() {
+    navigation.selectedToggleProperty().when(showing).subscribe((oldToggle, newToggle) -> {
+      if (newToggle != null) {
+        setLeague(toggleLeagueMap.get(newToggle));
+      } else {
+        navigation.selectToggle(oldToggle);
+      }
+    });
+
     leaderboardService.getLeagues()
                       .map(league -> {
                         String buttonText = i18n.getOrDefault(league.getTechnicalName(), String.format("leaderboard.%s",
@@ -58,23 +67,21 @@ public class LeaderboardsController extends NodeController<Node> {
                         ToggleButton toggleButton = new ToggleButton(buttonText);
                         toggleButton.setToggleGroup(navigation);
                         toggleButton.getStyleClass().add("main-navigation-button");
-
-                        toggleButton.setOnAction(event -> loadLeague(league));
-                        buttonLeagueMap.put(league, toggleButton);
+                        toggleLeagueMap.put(toggleButton, league);
                         return toggleButton;
                       })
                       .switchIfEmpty(Mono.error(new IllegalStateException("No leagues loaded")))
                       .collectList()
                       .doOnNext(leagueButtons -> {
                         LeagueBean lastLeagueTab = navigationHandler.getLastLeagueTab();
-                        loadLeague(lastLeagueTab == null ? buttonLeagueMap.entrySet()
-                                                                          .stream()
-                                                                          .filter(entry -> entry.getValue()
-                                                                                                .equals(
-                                                                                                    leagueButtons.getFirst()))
-                                                                          .map(Entry::getKey)
-                                                                          .findFirst()
-                                                                          .orElseThrow() : lastLeagueTab);
+                        Toggle startingToggle = toggleLeagueMap.entrySet()
+                                                               .stream()
+                                                               .filter(entry -> Objects.equals(lastLeagueTab,
+                                                                                               entry.getValue()))
+                                                               .findFirst()
+                                                               .map(Entry::getKey)
+                                                               .orElse(leagueButtons.getFirst());
+                        navigation.selectToggle(startingToggle);
                       })
                       .publishOn(fxApplicationThreadExecutor.asScheduler())
                       .subscribe(buttons -> navigationBox.getChildren().setAll(buttons), throwable -> {
@@ -84,20 +91,11 @@ public class LeaderboardsController extends NodeController<Node> {
                       });
   }
 
-  private void loadLeague(LeagueBean league) {
-    ToggleButton toggleButton = buttonLeagueMap.get(league);
-    if (toggleButton != null) {
-      fxApplicationThreadExecutor.execute(() -> toggleButton.setSelected(true));
-    }
+  private void setLeague(LeagueBean league) {
     navigationHandler.setLastLeagueTab(league);
     leaderboardService.getLatestSeason(league)
-                      .map(season -> {
-                        LeaderboardController controller = uiService.loadFxml("theme/leaderboard/leaderboard.fxml");
-                        controller.setSeason(season);
-                        return controller.getRoot();
-                      })
                       .publishOn(fxApplicationThreadExecutor.asScheduler())
-                      .subscribe(tab -> contentPane.getChildren().setAll(tab), throwable -> {
+                      .subscribe(leaderboardController::setLeagueSeason, throwable -> {
                         log.error("Error while loading seasons", throwable);
                         notificationService.addImmediateErrorNotification(throwable,
                                                                           "leaderboard.failedToLoadLeaderboards");

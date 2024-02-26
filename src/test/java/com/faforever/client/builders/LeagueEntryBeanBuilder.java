@@ -1,7 +1,6 @@
 package com.faforever.client.builders;
 
 import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.LeagueSeasonBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
 
@@ -19,7 +18,6 @@ public class LeagueEntryBeanBuilder {
     gamesPlayed(100);
     score(5);
     returningPlayer(false);
-    leagueSeason(LeagueSeasonBeanBuilder.create().defaultValues().get());
     subdivision(SubdivisionBeanBuilder.create().defaultValues().get());
     return this;
   }
@@ -31,11 +29,6 @@ public class LeagueEntryBeanBuilder {
 
   public LeagueEntryBeanBuilder gamesPlayed(int gamesPlayed) {
     leagueEntryBean.setGamesPlayed(gamesPlayed);
-    return this;
-  }
-
-  public LeagueEntryBeanBuilder leagueSeason(LeagueSeasonBean leagueSeason) {
-    leagueEntryBean.setLeagueSeason(leagueSeason);
     return this;
   }
 

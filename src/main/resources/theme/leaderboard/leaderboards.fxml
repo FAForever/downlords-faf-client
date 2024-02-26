@@ -7,5 +7,7 @@
       xmlns="http://javafx.com/javafx/8.0.60"
       fx:controller="com.faforever.client.leaderboard.LeaderboardsController">
     <HBox fx:id="navigationBox" styleClass="main-navigation-top"/>
-    <StackPane fx:id="contentPane" VBox.vgrow="ALWAYS"/>
+    <StackPane fx:id="contentPane" VBox.vgrow="ALWAYS">
+        <fx:include source="leaderboard.fxml" fx:id="leaderboard"/>
+    </StackPane>
 </VBox>

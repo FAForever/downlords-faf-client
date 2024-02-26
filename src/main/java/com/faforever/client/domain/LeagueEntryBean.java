@@ -15,7 +15,7 @@ public class LeagueEntryBean extends AbstractEntityBean {
   @ToString.Include
   private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
   private final IntegerProperty gamesPlayed = new SimpleIntegerProperty();
-  private final IntegerProperty score = new SimpleIntegerProperty();
+  private final ObjectProperty<Integer> score = new SimpleObjectProperty<>();
   private final BooleanProperty returningPlayer = new SimpleBooleanProperty();
   private final ObjectProperty<LeagueSeasonBean> leagueSeason = new SimpleObjectProperty<>();
   private final ObjectProperty<SubdivisionBean> subdivision = new SimpleObjectProperty<>();
@@ -46,15 +46,15 @@ public class LeagueEntryBean extends AbstractEntityBean {
     return gamesPlayed;
   }
 
-  public int getScore() {
+  public Integer getScore() {
     return score.get();
   }
 
-  public void setScore(int score) {
+  public void setScore(Integer score) {
     this.score.set(score);
   }
 
-  public IntegerProperty scoreProperty() {
+  public ObjectProperty<Integer> scoreProperty() {
     return score;
   }
 
