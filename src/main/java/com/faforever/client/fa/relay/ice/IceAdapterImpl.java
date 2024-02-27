@@ -36,14 +36,12 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.net.ServerSocket;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -133,22 +131,22 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     return CompletableFuture.supplyAsync(() -> {
       Path workDirectory = Path.of(System.getProperty("nativeDir", "lib")).toAbsolutePath();
 
-      int adapterPort;
-      int gpgPort;
-      try (ServerSocket adapterTestSocket = new ServerSocket(0);
-           ServerSocket gpgTestSocket = new ServerSocket(0)) {
-        adapterPort = adapterTestSocket.getLocalPort();
-        gpgPort = gpgTestSocket.getLocalPort();
-      } catch (IOException exception) {
-        throw new CompletionException("Unable to find open port for ICE and GPG", exception);
-      }
-
-      List<String> cmd = buildCommand(workDirectory, adapterPort, gpgPort, gameId);
-      try {
-        startIceAdapterProcess(workDirectory, cmd);
-      } catch (IOException e) {
-        throw new CompletionException(e);
-      }
+      int adapterPort = 15666;
+      int gpgPort = 17666;
+//      try (ServerSocket adapterTestSocket = new ServerSocket(0);
+//           ServerSocket gpgTestSocket = new ServerSocket(0)) {
+//        adapterPort = adapterTestSocket.getLocalPort();
+//        gpgPort = gpgTestSocket.getLocalPort();
+//      } catch (IOException exception) {
+//        throw new CompletionException("Unable to find open port for ICE and GPG", exception);
+//      }
+//
+//      List<String> cmd = buildCommand(workDirectory, adapterPort, gpgPort, gameId);
+//      try {
+//        startIceAdapterProcess(workDirectory, cmd);
+//      } catch (IOException e) {
+//        throw new CompletionException(e);
+//      }
 
       initializeIceAdapterConnection(adapterPort);
 
