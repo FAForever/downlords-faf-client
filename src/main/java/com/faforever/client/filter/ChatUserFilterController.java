@@ -56,7 +56,7 @@ public class ChatUserFilterController extends AbstractFilterController<ChatListI
   private final StringConverter<LeaderboardBean> leaderboardConverter = new StringConverter<>() {
     @Override
     public String toString(LeaderboardBean object) {
-      String rating = i18n.getOrDefault(object.getTechnicalName(), object.getNameKey());
+      String rating = i18n.getOrDefault(object.technicalName(), object.nameKey());
       return i18n.get("leaderboard.rating", rating);
     }
 
@@ -108,7 +108,7 @@ public class ChatUserFilterController extends AbstractFilterController<ChatListI
           return item.user()
                      .getPlayer()
                      .map(PlayerBean::getLeaderboardRatings)
-                     .map(ratingMap -> ratingMap.get(ratingWithRange.item().getTechnicalName()))
+                     .map(ratingMap -> ratingMap.get(ratingWithRange.item().technicalName()))
                      .map(RatingUtil::getRating)
                      .map(rating -> ratingWithRange.range().contains(rating))
                      .orElse(false);

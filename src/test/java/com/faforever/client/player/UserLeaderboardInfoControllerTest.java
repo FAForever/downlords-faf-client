@@ -1,6 +1,5 @@
 package com.faforever.client.player;
 
-import com.faforever.client.builders.LeaderboardBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingMapBuilder;
 import com.faforever.client.builders.LeagueEntryBeanBuilder;
@@ -13,12 +12,14 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.test.PlatformTest;
 import javafx.scene.image.Image;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -42,7 +43,7 @@ public class UserLeaderboardInfoControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    leaderboard = LeaderboardBeanBuilder.create().defaultValues().technicalName("1v1").get();
+    leaderboard = Instancio.of(LeaderboardBean.class).set(field(LeaderboardBean::technicalName), "1v1").create();
     player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
 
     lenient().when(leaderboardService.loadDivisionImage(any()))
@@ -60,7 +61,7 @@ public class UserLeaderboardInfoControllerTest extends PlatformTest {
 
   @Test
   public void testSetLeaderboardInfo() {
-    when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey())).thenReturn(leaderboard.getTechnicalName());
+    when(i18n.getOrDefault(leaderboard.technicalName(), leaderboard.nameKey())).thenReturn(leaderboard.technicalName());
     when(i18n.get("leaderboard.gameNumber", 47)).thenReturn("47 games");
     when(i18n.get("leaderboard.rating", 200)).thenReturn("200 rating");
     final LeaderboardRatingBean leaderboardRating = LeaderboardRatingBeanBuilder.create()
@@ -69,7 +70,8 @@ public class UserLeaderboardInfoControllerTest extends PlatformTest {
         .mean(500)
         .deviation(100)
         .get();
-    player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create().put(leaderboard.getTechnicalName(), leaderboardRating).get());
+    player.setLeaderboardRatings(
+        LeaderboardRatingMapBuilder.create().put(leaderboard.technicalName(), leaderboardRating).get());
 
     instance.setLeaderboardInfo(player, leaderboard);
     WaitForAsyncUtils.waitForFxEvents();

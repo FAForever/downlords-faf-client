@@ -181,8 +181,7 @@ public class CreateGameController extends NodeController<Pane> {
                       .map(observableList -> observableList.filtered(FeaturedModBean::visible))
                       .publishOn(fxApplicationThreadExecutor.asScheduler())
                       .subscribe(featuredModBeans -> {
-                        featuredModListView.setItems(
-                            FXCollections.observableList(featuredModBeans).filtered(FeaturedModBean::visible));
+                        featuredModListView.setItems(featuredModBeans);
                         selectLastOrDefaultGameType();
                       });
 

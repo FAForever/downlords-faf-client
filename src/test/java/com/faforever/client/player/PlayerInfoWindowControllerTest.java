@@ -3,7 +3,6 @@ package com.faforever.client.player;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.builders.AchievementDefinitionBuilder;
-import com.faforever.client.builders.LeaderboardBeanBuilder;
 import com.faforever.client.builders.LeaderboardEntryBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingJournalBeanBuilder;
@@ -25,6 +24,7 @@ import com.faforever.commons.api.dto.AchievementState;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -84,11 +84,11 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    leaderboard = LeaderboardBeanBuilder.create().defaultValues().get();
+    leaderboard = Instancio.create(LeaderboardBean.class);
     player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
 
-    lenient().when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()))
-             .thenReturn(leaderboard.getTechnicalName());
+    lenient().when(i18n.getOrDefault(leaderboard.technicalName(), leaderboard.nameKey()))
+             .thenReturn(leaderboard.technicalName());
     lenient().when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
     lenient().when(achievementItemController.getRoot()).thenReturn(new HBox());
     lenient().when(uiService.loadFxml("theme/chat/player_rating_chart_tooltip.fxml"))
@@ -145,7 +145,7 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
     when(eventService.getPlayerEvents(player.getId())).thenReturn(Flux.empty());
     when(leaderboardService.getActiveSeasons()).thenReturn(
         Flux.just(LeagueSeasonBeanBuilder.create().defaultValues().leaderboard(leaderboard).get()));
-    when(leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard.getTechnicalName())).thenReturn(
+    when(leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard.technicalName())).thenReturn(
         Mono.empty());
     when(userLeaderboardInfoController.getRoot()).thenReturn(new VBox());
     final LeaderboardRatingBean leaderboardRating = LeaderboardRatingBeanBuilder.create()
@@ -154,7 +154,8 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
         .mean(500)
         .deviation(100)
         .get();
-    player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create().put(leaderboard.getTechnicalName(), leaderboardRating).get());
+    player.setLeaderboardRatings(
+        LeaderboardRatingMapBuilder.create().put(leaderboard.technicalName(), leaderboardRating).get());
 
     instance.setPlayer(player);
     WaitForAsyncUtils.waitForFxEvents();

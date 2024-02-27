@@ -3,6 +3,7 @@ package com.faforever.client.builders;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.MatchingStatus;
 import com.faforever.client.domain.MatchmakerQueueBean;
+import org.instancio.Instancio;
 
 import java.time.OffsetDateTime;
 
@@ -22,7 +23,7 @@ public class MatchmakerQueueBeanBuilder {
     activeGames(0);
     joined(false);
     matchingStatus(null);
-    leaderboard(LeaderboardBeanBuilder.create().defaultValues().get());
+    leaderboard(Instancio.create(LeaderboardBean.class));
     id(0);
     return this;
   }

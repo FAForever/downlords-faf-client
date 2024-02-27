@@ -1,7 +1,6 @@
 package com.faforever.client.stats;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.LeaderboardBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingJournalBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.LeaderboardBean;
@@ -13,6 +12,7 @@ import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.elide.ElideEntity;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -43,7 +43,7 @@ public class StatisticsServiceTest extends ServiceTest {
   public void setUp() throws Exception {
     MapperSetup.injectMappers(leaderboardMapper);
     when(fafApiAccessor.getMaxPageSize()).thenReturn(10000);
-    leaderboard = LeaderboardBeanBuilder.create().defaultValues().get();
+    leaderboard = Instancio.create(LeaderboardBean.class);
   }
 
   @Test
@@ -58,7 +58,8 @@ public class StatisticsServiceTest extends ServiceTest {
                 .verify();
     verify(fafApiAccessor).getMany(argThat(
         ElideMatchers.hasFilter(qBuilder().intNum("gamePlayerStats.player.id").eq(player.getId()).and()
-            .intNum("leaderboard.id").eq(leaderboard.getId()))
+                                          .intNum("leaderboard.id")
+                                          .eq(leaderboard.id()))
     ));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(10000)));
   }

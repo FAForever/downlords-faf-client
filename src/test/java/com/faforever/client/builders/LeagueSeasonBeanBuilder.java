@@ -3,6 +3,7 @@ package com.faforever.client.builders;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.LeagueBean;
 import com.faforever.client.domain.LeagueSeasonBean;
+import org.instancio.Instancio;
 
 import java.time.OffsetDateTime;
 
@@ -15,7 +16,7 @@ public class LeagueSeasonBeanBuilder {
 
   public LeagueSeasonBeanBuilder defaultValues() {
     league(LeagueBeanBuilder.create().defaultValues().get());
-    leaderboard(LeaderboardBeanBuilder.create().defaultValues().get());
+    leaderboard(Instancio.create(LeaderboardBean.class));
     nameKey("seasonName");
     seasonNumber(1);
     placementGames(10);

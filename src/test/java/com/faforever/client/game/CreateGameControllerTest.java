@@ -110,8 +110,10 @@ public class CreateGameControllerTest extends PlatformTest {
     mapList = FXCollections.observableArrayList();
 
     lenient().when(featuredModService.getFeaturedMods())
-             .thenReturn(Flux.just(
-                 Instancio.of(FeaturedModBean.class).set(field(FeaturedModBean::technicalName), "faf").create()));
+             .thenReturn(Flux.just(Instancio.of(FeaturedModBean.class)
+                                            .set(field(FeaturedModBean::technicalName), "faf")
+                                            .set(field(FeaturedModBean::visible), true)
+                                            .create()));
 
     lenient().when(mapGeneratorService.downloadGeneratorIfNecessary(any())).thenReturn(Mono.empty());
     lenient().when(mapGeneratorService.getGeneratorStyles()).thenReturn(Mono.just(List.of()));
@@ -454,6 +456,7 @@ public class CreateGameControllerTest extends PlatformTest {
   public void testInitGameTypeComboBoxPostPopulated() {
     FeaturedModBean featuredModBean = Instancio.of(FeaturedModBean.class)
                                                .set(field(FeaturedModBean::technicalName), "faf")
+                                               .set(field(FeaturedModBean::visible), true)
                                                .create();
     when(featuredModService.getFeaturedMods()).thenReturn(Flux.just(featuredModBean));
 
@@ -485,16 +488,20 @@ public class CreateGameControllerTest extends PlatformTest {
   public void testSelectLastOrDefaultSelectLast() {
     FeaturedModBean featuredModBean = Instancio.of(FeaturedModBean.class)
                                                .set(field(FeaturedModBean::technicalName), "last")
+                                               .set(field(FeaturedModBean::visible), true)
                                                .create();
     FeaturedModBean featuredModBean2 = Instancio.of(FeaturedModBean.class)
                                                 .set(field(FeaturedModBean::technicalName), "faf")
+                                                .set(field(FeaturedModBean::visible), true)
                                                 .create();
 
-    lastGamePrefs.setLastGameType("last");
     when(featuredModService.getFeaturedMods()).thenReturn(Flux.just(featuredModBean, featuredModBean2));
 
-    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> {
+      reinitialize(instance);
+      instance.featuredModListView.getSelectionModel().select(featuredModBean);
+      reinitialize(instance);
+    });
 
     assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredModBean));
   }

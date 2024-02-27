@@ -146,10 +146,10 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
     Flux<LeaderboardBean> leaderboardFlux = leaderboardService.getLeaderboards()
                                                               .filter(leaderboard -> player.getLeaderboardRatings()
                                                                                            .containsKey(
-                                                                                               leaderboard.getTechnicalName()))
+                                                                                               leaderboard.technicalName()))
                                                               .cache();
 
-    leaderboardFlux.map(leaderboard -> i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()))
+    leaderboardFlux.map(leaderboard -> i18n.getOrDefault(leaderboard.technicalName(), leaderboard.nameKey()))
                    .collect(Collectors.joining("\n\n"))
                    .publishOn(fxApplicationThreadExecutor.asScheduler())
                    .subscribe(ratingsLabels::setText);

@@ -2,7 +2,6 @@ package com.faforever.client.leaderboard;
 
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.LeaderboardBeanBuilder;
 import com.faforever.client.builders.LeaderboardEntryBeanBuilder;
 import com.faforever.client.builders.LeagueBeanBuilder;
 import com.faforever.client.builders.LeagueEntryBeanBuilder;
@@ -24,6 +23,7 @@ import com.faforever.client.remote.AssetService;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.elide.ElideEntity;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -36,6 +36,7 @@ import reactor.test.StepVerifier;
 import java.nio.file.Path;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
+import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -66,7 +67,7 @@ public class LeaderboardServiceTest extends ServiceTest {
 
   @Test
   public void testGetLeaderboards() {
-    LeaderboardBean leaderboardBean = LeaderboardBeanBuilder.create().defaultValues().get();
+    LeaderboardBean leaderboardBean = Instancio.create(LeaderboardBean.class);
 
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboardBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
@@ -157,7 +158,10 @@ public class LeaderboardServiceTest extends ServiceTest {
 
   @Test
   public void testGetActiveLeagueEntryForPlayer() {
-    LeaderboardBean leaderboard = LeaderboardBeanBuilder.create().defaultValues().id(2).technicalName("ladder").get();
+    LeaderboardBean leaderboard = Instancio.of(LeaderboardBean.class)
+                                           .set(field(LeaderboardBean::technicalName), "ladder")
+                                           .set(field(LeaderboardBean::id), 2)
+                                           .create();
     LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().get();
     LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().get();
 
@@ -171,7 +175,10 @@ public class LeaderboardServiceTest extends ServiceTest {
                 .verifyComplete();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId())
-        .and().string("leagueSeason.leaderboard.technicalName").eq(leaderboard.getTechnicalName()))));
+                                                                             .and()
+                                                                             .string(
+                                                                                 "leagueSeason.leaderboard.technicalName")
+                                                                             .eq(leaderboard.technicalName()))));
   }
 
   @Test

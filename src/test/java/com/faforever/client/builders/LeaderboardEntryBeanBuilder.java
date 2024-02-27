@@ -3,6 +3,7 @@ package com.faforever.client.builders;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.LeaderboardEntryBean;
 import com.faforever.client.domain.PlayerBean;
+import org.instancio.Instancio;
 
 import java.time.OffsetDateTime;
 
@@ -15,7 +16,7 @@ public class LeaderboardEntryBeanBuilder {
   private final LeaderboardEntryBean leaderboardEntryBean = new LeaderboardEntryBean();
 
   public LeaderboardEntryBeanBuilder defaultValues() {
-    leaderboard(LeaderboardBeanBuilder.create().defaultValues().get());
+    leaderboard(Instancio.create(LeaderboardBean.class));
     id(0);
     player(PlayerBeanBuilder.create().defaultValues().get());
     rating(100);

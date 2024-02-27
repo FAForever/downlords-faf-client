@@ -254,7 +254,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
         rating.setDeviation(0);
         rating.setMean((float) leaderboardEntryBean.getRating());
         rating.setNumberOfGames(leaderboardEntryBean.getGamesPlayed());
-        ratingMap.put(leaderboardEntryBean.getLeaderboard().getTechnicalName(), rating);
+        ratingMap.put(leaderboardEntryBean.getLeaderboard().technicalName(), rating);
       });
       player.setLeaderboardRatings(ratingMap);
     }).thenReturn(player);
@@ -269,7 +269,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
                                                                        leaderboard -> {
                                                                          LeaderboardRatingBean leaderboardRating = player.getLeaderboardRatings()
                                                                                                                          .get(
-                                                                                                                             leaderboard.getTechnicalName());
+                                                                                                                             leaderboard.technicalName());
                                                                          if (leaderboardRating != null) {
                                                                            UserLeaderboardInfoController controller = uiService.loadFxml(
                                                                                "theme/user_leaderboard_info.fxml");
@@ -282,7 +282,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
                                                                                                         season.getLeaderboard(),
                                                                                                         leaderboard))) {
                                                                              leaderboardService.getActiveLeagueEntryForPlayer(
-                                                                                                   player, leaderboard.getTechnicalName())
+                                                                                                   player, leaderboard.technicalName())
                                                                                                .subscribe(
                                                                                                    controller::setLeagueInfo);
                                                                            }
@@ -398,8 +398,10 @@ public class PlayerInfoWindowController extends NodeController<Node> {
                       .subscribe(leaderboardEntries -> leaderboardEntries.forEach(
                                      leaderboardEntry -> gamesPlayedChart.getData()
                                                                          .add(new PieChart.Data(i18n.getOrDefault(
-                                                                             leaderboardEntry.getLeaderboard().getTechnicalName(),
-                                                                             leaderboardEntry.getLeaderboard().getNameKey()),
+                                                                             leaderboardEntry.getLeaderboard()
+                                                                                             .technicalName(),
+                                                                             leaderboardEntry.getLeaderboard()
+                                                                                             .nameKey()),
                                                                                                 leaderboardEntry.getGamesPlayed()))),
                                  throwable -> {
                                    log.error("Leaderboard entry could not be read for player: " + player.getUsername(),
@@ -518,7 +520,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
     return new StringConverter<>() {
       @Override
       public String toString(LeaderboardBean leaderboard) {
-        return i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
+        return i18n.getOrDefault(leaderboard.technicalName(), leaderboard.nameKey());
       }
 
       @Override

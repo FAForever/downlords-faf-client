@@ -23,7 +23,7 @@ public final class RatingUtil {
   }
 
   public static Integer getRoundedLeaderboardRating(PlayerBean player, LeaderboardBean leaderboard) {
-    return getRoundedLeaderboardRating(player, leaderboard.getTechnicalName());
+    return getRoundedLeaderboardRating(player, leaderboard.technicalName());
   }
 
   public static int getRoundedRating(int rating) {
@@ -38,7 +38,7 @@ public final class RatingUtil {
   }
 
   public static Integer getLeaderboardRating(PlayerBean player, LeaderboardBean leaderboard) {
-    return getLeaderboardRating(player, leaderboard.getTechnicalName());
+    return getLeaderboardRating(player, leaderboard.technicalName());
   }
 
   public static int getRating(LeaderboardRatingBean leaderboardRating) {

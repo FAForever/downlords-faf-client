@@ -150,8 +150,8 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
 
     leaderboardService.getLeaderboards()
                       .collect(Collectors.toMap(
-                          leaderboard -> i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()),
-                          leaderboard -> String.valueOf(leaderboard.getId())))
+                          leaderboard -> i18n.getOrDefault(leaderboard.technicalName(), leaderboard.nameKey()),
+                          leaderboard -> String.valueOf(leaderboard.id())))
                       .publishOn(fxApplicationThreadExecutor.asScheduler())
                       .subscribe(leaderboardFilterController::setItems);
 

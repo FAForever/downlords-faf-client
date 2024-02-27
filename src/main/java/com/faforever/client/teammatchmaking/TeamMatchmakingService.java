@@ -364,7 +364,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void updateMatchmakerGameCount(MatchmakerQueueBean matchmakerQueue) {
-    String leaderboard = matchmakerQueue.getLeaderboard().getTechnicalName();
+    String leaderboard = matchmakerQueue.getLeaderboard().technicalName();
     int activeGames = (int) gameService.getGames()
                                        .stream()
                                        .filter(game -> GameStatus.CLOSED != game.getStatus())

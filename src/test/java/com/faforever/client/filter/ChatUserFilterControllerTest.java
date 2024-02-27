@@ -2,7 +2,6 @@ package com.faforever.client.filter;
 
 import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.LeaderboardBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.ChatChannel;
@@ -18,6 +17,7 @@ import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
 import org.apache.commons.lang3.Range;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -60,8 +61,12 @@ public class ChatUserFilterControllerTest extends PlatformTest {
   @Mock
   private FilterMultiCheckboxController<Country, ChatListItem> countryFilter;
 
-  private final LeaderboardBean ladder = LeaderboardBeanBuilder.create().defaultValues().technicalName("ladder").get();
-  private final LeaderboardBean global = LeaderboardBeanBuilder.create().defaultValues().technicalName("global").get();
+  private final LeaderboardBean ladder = Instancio.of(LeaderboardBean.class)
+                                                  .set(field(LeaderboardBean::technicalName), "ladder")
+                                                  .create();
+  private final LeaderboardBean global = Instancio.of(LeaderboardBean.class)
+                                                  .set(field(LeaderboardBean::technicalName), "global")
+                                                  .create();
 
   @InjectMocks
   private ChatUserFilterController instance;
@@ -169,17 +174,17 @@ public class ChatUserFilterControllerTest extends PlatformTest {
     assertTrue(filter.apply(noChange, user1));
     assertTrue(filter.apply(noChange, user2));
 
-    ItemWithRange<LeaderboardBean, Integer> ladderFilter = new ItemWithRange<>(ladder, Range.between(1700, 4000));
+    ItemWithRange<LeaderboardBean, Integer> ladderFilter = new ItemWithRange<>(ladder, Range.of(1700, 4000));
     assertTrue(filter.apply(ladderFilter, category));
     assertTrue(filter.apply(ladderFilter, user1));
     assertFalse(filter.apply(ladderFilter, user2));
 
-    ItemWithRange<LeaderboardBean, Integer> godFilter = new ItemWithRange<>(ladder, Range.between(3000, 4000));
+    ItemWithRange<LeaderboardBean, Integer> godFilter = new ItemWithRange<>(ladder, Range.of(3000, 4000));
     assertTrue(filter.apply(godFilter, category));
     assertFalse(filter.apply(godFilter, user1));
     assertFalse(filter.apply(godFilter, user2));
 
-    ItemWithRange<LeaderboardBean, Integer> globalFilter = new ItemWithRange<>(global, Range.between(800, 2000));
+    ItemWithRange<LeaderboardBean, Integer> globalFilter = new ItemWithRange<>(global, Range.of(800, 2000));
     assertTrue(filter.apply(globalFilter, category));
     assertTrue(filter.apply(globalFilter, user1));
     assertTrue(filter.apply(globalFilter, user2));

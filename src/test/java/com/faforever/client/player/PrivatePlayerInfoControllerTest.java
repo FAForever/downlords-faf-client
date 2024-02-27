@@ -3,7 +3,6 @@ package com.faforever.client.player;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.LeaderboardBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingMapBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
@@ -18,6 +17,7 @@ import com.faforever.client.replay.WatchButtonController;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleObjectProperty;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -27,6 +27,7 @@ import reactor.core.publisher.Flux;
 
 import java.util.Map;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -62,7 +63,7 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    leaderboard = LeaderboardBeanBuilder.create().defaultValues().technicalName("global").get();
+    leaderboard = Instancio.of(LeaderboardBean.class).set(field(LeaderboardBean::technicalName), "gloabl").create();
     player = PlayerBeanBuilder.create().defaultValues().game(null).get();
     chatChannelUser = ChatChannelUserBuilder.create(USERNAME, new ChatChannel("testChannel"))
                                             .defaultValues()
@@ -73,10 +74,9 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
     lenient().when(achievementService.getPlayerAchievements(player.getId())).thenReturn(Flux.empty());
     lenient().when(achievementService.getAchievementDefinitions()).thenReturn(Flux.empty());
     lenient().when(leaderboardService.getLeaderboards()).thenReturn(Flux.just(leaderboard));
-    lenient().when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()))
-             .thenReturn(leaderboard.getTechnicalName());
-    lenient().when(i18n.get("leaderboard.rating", leaderboard.getTechnicalName()))
-             .thenReturn(leaderboard.getTechnicalName());
+    lenient().when(i18n.getOrDefault(leaderboard.technicalName(), leaderboard.nameKey()))
+             .thenReturn(leaderboard.technicalName());
+    lenient().when(i18n.get("leaderboard.rating", leaderboard.technicalName())).thenReturn(leaderboard.technicalName());
     lenient().when(i18n.get(eq("chat.privateMessage.achievements.unlockedFormat"), any(), any())).thenReturn("0/0");
     lenient().when(i18n.number(anyInt())).thenReturn("123");
 
@@ -93,7 +93,12 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
 
   @Test
   public void testSetChatUserWithPlayerNoGame() {
-    player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create().put(leaderboard.getTechnicalName(), LeaderboardRatingBeanBuilder.create().defaultValues().get()).get());
+    player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create()
+                                                            .put(leaderboard.technicalName(),
+                                                                 LeaderboardRatingBeanBuilder.create()
+                                                                                             .defaultValues()
+                                                                                             .get())
+                                                            .get());
 
     instance.setChatUser(chatChannelUser);
     WaitForAsyncUtils.waitForFxEvents();
@@ -108,7 +113,7 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
     assertTrue(instance.unlockedAchievementsLabel.isVisible());
     assertNotNull(instance.userImageView.getImage());
     assertFalse(instance.gameDetailWrapper.isVisible());
-    assertTrue(instance.ratingsLabels.getText().contains(leaderboard.getTechnicalName()));
+    assertTrue(instance.ratingsLabels.getText().contains(leaderboard.technicalName()));
     assertTrue(instance.ratingsValues.getText().contains("123"));
     assertEquals("0/0", instance.unlockedAchievements.getText());
     assertEquals("123", instance.gamesPlayed.getText());
@@ -191,7 +196,12 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
     assertFalse(instance.unlockedAchievements.isVisible());
     assertFalse(instance.unlockedAchievementsLabel.isVisible());
 
-    player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create().put(leaderboard.getTechnicalName(), LeaderboardRatingBeanBuilder.create().defaultValues().get()).get());
+    player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create()
+                                                            .put(leaderboard.technicalName(),
+                                                                 LeaderboardRatingBeanBuilder.create()
+                                                                                             .defaultValues()
+                                                                                             .get())
+                                                            .get());
     chatChannelUser.setPlayer(player);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -205,7 +215,7 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
     assertTrue(instance.unlockedAchievementsLabel.isVisible());
     assertNotNull(instance.userImageView.getImage());
     assertFalse(instance.gameDetailWrapper.isVisible());
-    assertTrue(instance.ratingsLabels.getText().contains(leaderboard.getTechnicalName()));
+    assertTrue(instance.ratingsLabels.getText().contains(leaderboard.technicalName()));
     assertTrue(instance.ratingsValues.getText().contains("123"));
     assertEquals("0/0", instance.unlockedAchievements.getText());
     assertEquals("123", instance.gamesPlayed.getText());

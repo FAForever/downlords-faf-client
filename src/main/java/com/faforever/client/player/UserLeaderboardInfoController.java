@@ -61,8 +61,9 @@ public class UserLeaderboardInfoController extends NodeController<Node> {
   }
 
   public void setLeaderboardInfo(PlayerBean player, LeaderboardBean leaderboard) {
-    String leaderboardName = i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
-    String gameNumber = i18n.get("leaderboard.gameNumber", player.getNumberOfGamesForLeaderboard(leaderboard.getTechnicalName()));
+    String leaderboardName = i18n.getOrDefault(leaderboard.technicalName(), leaderboard.nameKey());
+    String gameNumber = i18n.get("leaderboard.gameNumber",
+                                 player.getNumberOfGamesForLeaderboard(leaderboard.technicalName()));
     String ratingNumber = i18n.get("leaderboard.rating", RatingUtil.getLeaderboardRating(player, leaderboard));
 
     fxApplicationThreadExecutor.execute(() -> {
