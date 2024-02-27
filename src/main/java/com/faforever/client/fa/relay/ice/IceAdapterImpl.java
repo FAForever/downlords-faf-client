@@ -1,5 +1,6 @@
 package com.faforever.client.fa.relay.ice;
 
+import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.GameFullNotifier;
 import com.faforever.client.mapstruct.IceServerMapper;
@@ -65,6 +66,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private final Preferences preferences;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final ObjectFactory<IceAdapterCallbacks> iceAdapterCallbacksFactory;
+  private final TokenRetriever tokenRetriever;
   @Lazy
   private final GameFullNotifier gameFullNotifier;
 
@@ -226,9 +228,9 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     }
 
     List<String> standardIceOptions = List.of(
-        "-cp", classpath,
-        "com.faforever.iceadapter.IceAdapter",
-        "--id", String.valueOf(currentPlayer.getId()),
+        "-cp", classpath, "com.faforever.ice.KiaApplication", "--access-token",
+        tokenRetriever.getRefreshedTokenValue().block(),
+//        "--id", String.valueOf(currentPlayer.getId()),
         "--game-id", String.valueOf(gameId),
         "--login", currentPlayer.getUsername(),
         "--rpc-port", String.valueOf(adapterPort),
