@@ -3,7 +3,6 @@ package com.faforever.client.player;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.builders.AchievementDefinitionBuilder;
-import com.faforever.client.builders.LeaderboardRatingJournalBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingMapBuilder;
 import com.faforever.client.builders.LeagueSeasonBeanBuilder;
 import com.faforever.client.builders.PlayerAchievementBuilder;
@@ -11,6 +10,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.LeaderboardEntryBean;
 import com.faforever.client.domain.LeaderboardRatingBean;
+import com.faforever.client.domain.LeaderboardRatingJournalBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -31,8 +31,6 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.time.OffsetDateTime;
 
 import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -99,8 +97,13 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
     lenient().when(leaderboardService.getEntriesForPlayer(eq(player)))
              .thenReturn(Flux.just(Instancio.create(LeaderboardEntryBean.class)));
     lenient().when(statisticsService.getRatingHistory(eq(player), any())).thenReturn(Flux.just(
-        LeaderboardRatingJournalBeanBuilder.create().defaultValues().createTime(OffsetDateTime.now()).meanBefore(1500d).deviationBefore(50d).get(),
-        LeaderboardRatingJournalBeanBuilder.create().defaultValues().createTime(OffsetDateTime.now().plusDays(1)).meanBefore(1500d).deviationBefore(50d).get()));
+        Instancio.of(LeaderboardRatingJournalBean.class)
+                 .set(field(LeaderboardRatingJournalBean::meanBefore), 1500d)
+                 .set(field(LeaderboardRatingJournalBean::deviationBefore), 50d)
+                 .create(), Instancio.of(LeaderboardRatingJournalBean.class)
+                                     .set(field(LeaderboardRatingJournalBean::meanBefore), 1500d)
+                                     .set(field(LeaderboardRatingJournalBean::deviationBefore), 50d)
+                                     .create()));
 
     loadFxml("theme/user_info_window.fxml", clazz -> instance);
   }

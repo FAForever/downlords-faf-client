@@ -1,7 +1,6 @@
 package com.faforever.client.stats;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.LeaderboardRatingJournalBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.LeaderboardRatingJournalBean;
@@ -48,7 +47,7 @@ public class StatisticsServiceTest extends ServiceTest {
 
   @Test
   public void testGetStatisticsForPlayer() throws Exception {
-    LeaderboardRatingJournalBean leaderboardRatingJournalBean = LeaderboardRatingJournalBeanBuilder.create().defaultValues().get();
+    LeaderboardRatingJournalBean leaderboardRatingJournalBean = Instancio.create(LeaderboardRatingJournalBean.class);
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboardRatingJournalBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);

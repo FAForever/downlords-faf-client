@@ -315,7 +315,8 @@ public class ReplayService {
         .values()
         .stream()
         .flatMap(Collection::stream).flatMap(playerStats -> playerStats.leaderboardRatingJournals().stream())
-        .anyMatch(ratingJournal -> ratingJournal.getMeanAfter() != null && ratingJournal.getDeviationAfter() != null);
+                 .anyMatch(
+                     ratingJournal -> ratingJournal.meanAfter() != null && ratingJournal.deviationAfter() != null);
   }
 
   public void runReplayFile(Path path) throws IOException, CompressorException {

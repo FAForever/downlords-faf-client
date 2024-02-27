@@ -207,9 +207,9 @@ public class PlayerCardController extends NodeController<Node> {
   }
 
   private Integer getRatingChange(LeaderboardRatingJournalBean ratingJournal) {
-    if (ratingJournal.getMeanAfter() != null && ratingJournal.getDeviationAfter() != null) {
-      int newRating = RatingUtil.getRating(ratingJournal.getMeanAfter(), ratingJournal.getDeviationAfter());
-      int oldRating = RatingUtil.getRating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore());
+    if (ratingJournal.meanAfter() != null && ratingJournal.deviationAfter() != null) {
+      int newRating = RatingUtil.getRating(ratingJournal.meanAfter(), ratingJournal.deviationAfter());
+      int oldRating = RatingUtil.getRating(ratingJournal.meanBefore(), ratingJournal.deviationBefore());
 
       return newRating - oldRating;
     }

@@ -32,8 +32,7 @@ public class JSkillsRatingService implements RatingService {
     }
     if (!teams.stream()
               .allMatch(playerStats -> playerStats.stream().allMatch(stats -> stats.leaderboardRatingJournals().stream()
-        .findFirst()
-        .map(ratingJournal -> ratingJournal.getMeanBefore() != null && ratingJournal.getDeviationBefore() != null)
+        .findFirst().map(ratingJournal -> ratingJournal.meanBefore() != null && ratingJournal.deviationBefore() != null)
         .orElse(false)))) {
       return Double.NaN;
     }
@@ -43,9 +42,9 @@ public class JSkillsRatingService implements RatingService {
           players.forEach(stats -> {
             stats.leaderboardRatingJournals().stream().findFirst().ifPresent(
                 ratingJournal -> {
-                  if (ratingJournal.getMeanBefore() != null && ratingJournal.getDeviationBefore() != null) {
+                  if (ratingJournal.meanBefore() != null && ratingJournal.deviationBefore() != null) {
                     team.addPlayer(new jskills.Player<>(stats.player().getId()),
-                                   new Rating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore())
+                                   new Rating(ratingJournal.meanBefore(), ratingJournal.deviationBefore())
                     );
                   }
                 }

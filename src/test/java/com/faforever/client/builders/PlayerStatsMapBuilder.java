@@ -1,6 +1,7 @@
 package com.faforever.client.builders;
 
 import com.faforever.client.domain.GamePlayerStatsBean;
+import com.faforever.client.domain.LeaderboardRatingJournalBean;
 import org.instancio.Instancio;
 
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ public class PlayerStatsMapBuilder {
   public PlayerStatsMapBuilder defaultValues() {
     GamePlayerStatsBean playerStats1 = Instancio.of(GamePlayerStatsBean.class)
                                                 .set(field(GamePlayerStatsBean::leaderboardRatingJournals), List.of(
-                                                    LeaderboardRatingJournalBeanBuilder.create().defaultValues().get()))
+                                                    Instancio.create(LeaderboardRatingJournalBean.class)))
                                                 .create();
     appendToTeam("2", playerStats1);
     return this;

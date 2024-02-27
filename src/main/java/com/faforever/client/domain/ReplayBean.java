@@ -61,7 +61,10 @@ public class ReplayBean {
                                                                                                           .stream()
                                                                                                           .findFirst())
       .flatMap(Optional::stream)
-      .mapToInt(ratingJournal -> RatingUtil.getRating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore()))
+                                                                                        .mapToInt(
+                                                                                            ratingJournal -> RatingUtil.getRating(
+                                                                                                ratingJournal.meanBefore(),
+                                                                                                ratingJournal.deviationBefore()))
       .average()
       .stream()
       .boxed()

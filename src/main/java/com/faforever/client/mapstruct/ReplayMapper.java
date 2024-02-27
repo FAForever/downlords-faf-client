@@ -124,18 +124,19 @@ public interface ReplayMapper {
     HashMap<String, List<GamePlayerStatsBean>> teams = new HashMap<>();
     parser.getArmies().values().forEach(armyInfo -> {
       if (!(boolean) armyInfo.get("Human")) {
-        int team = ((Float) armyInfo.get("Team")).intValue();
+        byte team = ((Float) armyInfo.get("Team")).byteValue();
         String teamString = String.valueOf(team);
         PlayerBean player = new PlayerBean();
         player.setId(Integer.parseInt((String) armyInfo.get("OwnerID")));
         player.setUsername((String) armyInfo.get("PlayerName"));
         player.setCountry((String) armyInfo.get("Country"));
-        LeaderboardRatingJournalBean ratingJournal = new LeaderboardRatingJournalBean();
-        ratingJournal.setMeanBefore(((Float) armyInfo.get("MEAN")).doubleValue());
-        ratingJournal.setDeviationBefore(((Float) armyInfo.get("DEV")).doubleValue());
+        double mean = ((Float) armyInfo.get("MEAN")).doubleValue();
+        double deviation = ((Float) armyInfo.get("DEV")).doubleValue();
+        LeaderboardRatingJournalBean ratingJournal = new LeaderboardRatingJournalBean(null, null, null, mean, deviation,
+                                                                                      null, null);
         Float factionFloat = (Float) armyInfo.get("Faction");
         Faction faction = Faction.fromFaValue(factionFloat.intValue());
-        GamePlayerStatsBean stats = new GamePlayerStatsBean(player, 0, team, faction, null, null,
+        GamePlayerStatsBean stats = new GamePlayerStatsBean(player, (byte) 0, team, faction, null, null,
                                                             List.of(ratingJournal));
         teams.computeIfAbsent(teamString, key -> new ArrayList<>()).add(stats);
       }

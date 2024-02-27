@@ -50,7 +50,7 @@ public final class RatingUtil {
   }
 
   public static int getRating(LeaderboardRatingJournalBean ratingJournal) {
-    return getRating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore());
+    return getRating(ratingJournal.meanBefore(), ratingJournal.deviationBefore());
   }
 
   public static int getRating(Rating rating) {

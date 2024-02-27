@@ -6,9 +6,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 public record GamePlayerStatsBean(
-    PlayerBean player,
-    int score,
-    int team,
+    PlayerBean player, byte score, byte team,
     Faction faction,
     OffsetDateTime scoreTime,
     ReplayBean game,

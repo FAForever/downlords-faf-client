@@ -481,8 +481,8 @@ public class ReplayDetailController extends NodeController<Node> {
     return playerStats == null ? null : playerStats.leaderboardRatingJournals()
                                                    .stream()
                                                    .findFirst()
-                                                   .filter(ratingJournal -> ratingJournal.getMeanBefore() != null)
-                                                   .filter(ratingJournal -> ratingJournal.getDeviationBefore() != null)
+                                                   .filter(ratingJournal -> ratingJournal.meanBefore() != null)
+                                                   .filter(ratingJournal -> ratingJournal.deviationBefore() != null)
                                                    .map(RatingUtil::getRating)
                                                    .orElse(null);
   }
