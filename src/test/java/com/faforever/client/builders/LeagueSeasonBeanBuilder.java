@@ -15,7 +15,7 @@ public class LeagueSeasonBeanBuilder {
   }
 
   public LeagueSeasonBeanBuilder defaultValues() {
-    league(LeagueBeanBuilder.create().defaultValues().get());
+    league(Instancio.create(LeagueBean.class));
     leaderboard(Instancio.create(LeaderboardBean.class));
     nameKey("seasonName");
     seasonNumber(1);

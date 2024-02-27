@@ -110,7 +110,7 @@ public class LeaderboardService {
     ElideNavigatorOnCollection<LeagueSeason> navigator = ElideNavigator.of(LeagueSeason.class)
                                                                        .collection()
                                                                        .setFilter(qBuilder().intNum("league.id")
-                                                                                            .eq(league.getId())
+                                                                                            .eq(league.id())
                                                                                             .and()
                                                                                             .instant("startDate")
                                                                                             .before(OffsetDateTime.now()

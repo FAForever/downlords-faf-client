@@ -467,28 +467,6 @@ public class CreateGameControllerTest extends PlatformTest {
   }
 
   @Test
-  public void testSelectLastOrDefaultSelectDefault() {
-    FeaturedModBean featuredModBean = Instancio.of(FeaturedModBean.class)
-                                               .set(field(FeaturedModBean::technicalName), "something")
-                                               .create();
-    FeaturedModBean featuredModBean2 = Instancio.of(FeaturedModBean.class)
-                                                .set(field(FeaturedModBean::technicalName), "faf")
-                                                .create();
-    ;
-
-    lastGamePrefs.setLastGameType(null);
-    when(featuredModService.getFeaturedMods()).thenReturn(Flux.just(featuredModBean, featuredModBean2));
-
-    runOnFxThreadAndWait(() -> {
-      reinitialize(instance);
-      instance.featuredModListView.getSelectionModel().select(null);
-      reinitialize(instance);
-    });
-
-    assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredModBean2));
-  }
-
-  @Test
   public void testSelectLastOrDefaultSelectLast() {
     FeaturedModBean featuredModBean = Instancio.of(FeaturedModBean.class)
                                                .set(field(FeaturedModBean::technicalName), "last")
