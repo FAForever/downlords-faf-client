@@ -252,9 +252,9 @@ public class PlayerInfoWindowController extends NodeController<Node> {
       leaderboardEntryBeans.forEach(leaderboardEntryBean -> {
         LeaderboardRatingBean rating = new LeaderboardRatingBean();
         rating.setDeviation(0);
-        rating.setMean((float) leaderboardEntryBean.getRating());
-        rating.setNumberOfGames(leaderboardEntryBean.getGamesPlayed());
-        ratingMap.put(leaderboardEntryBean.getLeaderboard().technicalName(), rating);
+        rating.setMean((float) leaderboardEntryBean.rating());
+        rating.setNumberOfGames(leaderboardEntryBean.gamesPlayed());
+        ratingMap.put(leaderboardEntryBean.leaderboard().technicalName(), rating);
       });
       player.setLeaderboardRatings(ratingMap);
     }).thenReturn(player);
@@ -398,11 +398,11 @@ public class PlayerInfoWindowController extends NodeController<Node> {
                       .subscribe(leaderboardEntries -> leaderboardEntries.forEach(
                                      leaderboardEntry -> gamesPlayedChart.getData()
                                                                          .add(new PieChart.Data(i18n.getOrDefault(
-                                                                             leaderboardEntry.getLeaderboard()
+                                                                             leaderboardEntry.leaderboard()
                                                                                              .technicalName(),
-                                                                             leaderboardEntry.getLeaderboard()
+                                                                             leaderboardEntry.leaderboard()
                                                                                              .nameKey()),
-                                                                                                leaderboardEntry.getGamesPlayed()))),
+                                                                                                leaderboardEntry.gamesPlayed()))),
                                  throwable -> {
                                    log.error("Leaderboard entry could not be read for player: " + player.getUsername(),
                                              throwable);

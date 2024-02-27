@@ -3,7 +3,6 @@ package com.faforever.client.player;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.builders.AchievementDefinitionBuilder;
-import com.faforever.client.builders.LeaderboardEntryBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingJournalBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingMapBuilder;
@@ -11,6 +10,7 @@ import com.faforever.client.builders.LeagueSeasonBeanBuilder;
 import com.faforever.client.builders.PlayerAchievementBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.LeaderboardBean;
+import com.faforever.client.domain.LeaderboardEntryBean;
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
@@ -97,7 +97,7 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
     lenient().when(playerService.getPlayerNames(any())).thenReturn(Flux.empty());
     lenient().when(leaderboardService.getLeaderboards()).thenReturn(Flux.just(leaderboard));
     lenient().when(leaderboardService.getEntriesForPlayer(eq(player)))
-             .thenReturn(Flux.just(LeaderboardEntryBeanBuilder.create().defaultValues().get()));
+             .thenReturn(Flux.just(Instancio.create(LeaderboardEntryBean.class)));
     lenient().when(statisticsService.getRatingHistory(eq(player), any())).thenReturn(Flux.just(
         LeaderboardRatingJournalBeanBuilder.create().defaultValues().createTime(OffsetDateTime.now()).meanBefore(1500d).deviationBefore(50d).get(),
         LeaderboardRatingJournalBeanBuilder.create().defaultValues().createTime(OffsetDateTime.now().plusDays(1)).meanBefore(1500d).deviationBefore(50d).get()));

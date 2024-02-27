@@ -2,7 +2,6 @@ package com.faforever.client.leaderboard;
 
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.LeaderboardEntryBeanBuilder;
 import com.faforever.client.builders.LeagueBeanBuilder;
 import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.LeagueSeasonBeanBuilder;
@@ -79,7 +78,7 @@ public class LeaderboardServiceTest extends ServiceTest {
 
   @Test
   public void testGetEntriesForPlayer() {
-    LeaderboardEntryBean leaderboardEntryBean = LeaderboardEntryBeanBuilder.create().defaultValues().get();
+    LeaderboardEntryBean leaderboardEntryBean = Instancio.create(LeaderboardEntryBean.class);
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboardEntryBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
