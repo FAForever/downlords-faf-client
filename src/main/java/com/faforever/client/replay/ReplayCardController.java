@@ -113,8 +113,7 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
     dateLabel.textProperty().bind(startTimeObservable.map(timeService::asDate).when(showing));
     timeLabel.textProperty().bind(startTimeObservable.map(timeService::asShortTime).when(showing));
     modLabel.textProperty()
-        .bind(entity.flatMap(ReplayBean::featuredModProperty)
-            .flatMap(FeaturedModBean::displayNameProperty)
+        .bind(entity.flatMap(ReplayBean::featuredModProperty).map(FeaturedModBean::displayName)
             .when(showing));
     playerCountLabel.textProperty()
         .bind(entity.flatMap(ReplayBean::numPlayersProperty).map(i18n::number).when(showing));

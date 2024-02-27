@@ -25,6 +25,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.image.Image;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -102,8 +103,7 @@ public class ReplayCardControllerTest extends PlatformTest {
     mapBean = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get();
     onlineReplay = ReplayBeanBuilder.create()
                                     .defaultValues()
-                                    .validity(Validity.VALID)
-                                    .featuredMod(new FeaturedModBean())
+                                    .validity(Validity.VALID).featuredMod(Instancio.create(FeaturedModBean.class))
                                     .title("test")
                                     .mapVersion(mapBean)
                                     .teamPlayerStats(PlayerStatsMapBuilder.create().defaultValues().get())
@@ -111,8 +111,7 @@ public class ReplayCardControllerTest extends PlatformTest {
     localReplay = ReplayBeanBuilder.create()
                                    .defaultValues()
                                    .local(true)
-                                   .validity(null)
-                                   .featuredMod(new FeaturedModBean())
+                                   .validity(null).featuredMod(Instancio.create(FeaturedModBean.class))
                                    .title("test")
                                    .mapVersion(mapBean)
                                    .replayFile(Path.of("foo.tmp"))
@@ -172,7 +171,7 @@ public class ReplayCardControllerTest extends PlatformTest {
     assertEquals("-", instance.ratingLabel.getText());
     assertEquals("Min Date", instance.dateLabel.getText());
     assertEquals("Min Time", instance.timeLabel.getText());
-    assertEquals(null, instance.modLabel.getText());
+    assertEquals(onlineReplay.getFeaturedMod().displayName(), instance.modLabel.getText());
     assertEquals("1234", instance.playerCountLabel.getText());
     assertEquals("42", instance.qualityLabel.getText());
     assertEquals(mapBean.getMap().getDisplayName(), instance.onMapLabel.getText());
@@ -204,7 +203,7 @@ public class ReplayCardControllerTest extends PlatformTest {
     assertEquals("-", instance.ratingLabel.getText());
     assertEquals("Min Date", instance.dateLabel.getText());
     assertEquals("Min Time", instance.timeLabel.getText());
-    assertEquals(null, instance.modLabel.getText());
+    assertEquals(localReplay.getFeaturedMod().displayName(), instance.modLabel.getText());
     assertEquals("1234", instance.playerCountLabel.getText());
     assertEquals(mapBean.getMap().getDisplayName(), instance.onMapLabel.getText());
     assertEquals(String.valueOf(localReplay.getId()), instance.replayIdField.getText());

@@ -40,6 +40,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -123,8 +124,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
     currentPlayer = PlayerBeanBuilder.create().defaultValues().get();
     mapBean = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get();
     onlineReplay = ReplayBeanBuilder.create().defaultValues()
-        .validity(Validity.VALID)
-        .featuredMod(new FeaturedModBean())
+        .validity(Validity.VALID).featuredMod(Instancio.create(FeaturedModBean.class))
         .title("test")
         .mapVersion(mapBean)
         .teamPlayerStats(PlayerStatsMapBuilder.create().defaultValues().get())
@@ -132,8 +132,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
     localReplay = ReplayBeanBuilder.create().defaultValues()
         .local(true)
-        .validity(null)
-        .featuredMod(new FeaturedModBean())
+        .validity(null).featuredMod(Instancio.create(FeaturedModBean.class))
         .title("test")
         .replayFile(Path.of("foo.tmp"))
         .get();
@@ -210,7 +209,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
     assertEquals("Min Time", instance.timeLabel.getText());
     assertEquals("Forever", instance.durationLabel.getText());
     assertEquals(String.valueOf(onlineReplay.getId()), instance.replayIdField.getText());
-    assertEquals("unknown", instance.modLabel.getText());
+    assertEquals(onlineReplay.getFeaturedMod().displayName(), instance.modLabel.getText());
     assertEquals("test", instance.titleLabel.getText());
     assertEquals("1234", instance.playerCountLabel.getText());
     assertEquals("42", instance.qualityLabel.getText());

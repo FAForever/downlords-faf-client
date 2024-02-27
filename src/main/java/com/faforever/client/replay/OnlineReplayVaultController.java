@@ -140,8 +140,7 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
     CategoryFilterController featuredModFilterController = searchController.addCategoryFilter("featuredMod.displayName",
         i18n.get("featuredMod.displayName"), List.of());
 
-    featuredModService.getFeaturedMods()
-                      .map(FeaturedModBean::getDisplayName)
+    featuredModService.getFeaturedMods().map(FeaturedModBean::displayName)
                       .collectList()
                       .publishOn(fxApplicationThreadExecutor.asScheduler())
                       .subscribe(featuredModFilterController::setItems);

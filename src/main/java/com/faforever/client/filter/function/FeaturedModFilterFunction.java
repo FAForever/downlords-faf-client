@@ -9,6 +9,7 @@ import java.util.function.BiFunction;
 public class FeaturedModFilterFunction implements BiFunction<List<FeaturedModBean>, GameBean, Boolean> {
   @Override
   public Boolean apply(List<FeaturedModBean> selectedMods, GameBean game) {
-    return selectedMods.isEmpty() || selectedMods.stream().anyMatch(mod -> mod.getTechnicalName().equals(game.getFeaturedMod()));
+    return selectedMods.isEmpty() || selectedMods.stream()
+                                                 .anyMatch(mod -> mod.technicalName().equals(game.getFeaturedMod()));
   }
 }

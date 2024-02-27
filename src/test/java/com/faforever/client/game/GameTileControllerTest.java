@@ -1,10 +1,10 @@
 package com.faforever.client.game;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.AvatarBean;
+import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.ImageViewHelper;
@@ -79,7 +79,7 @@ public class GameTileControllerTest extends PlatformTest {
 
     lenient().when(i18n.get(anyString())).thenReturn("test");
     lenient().when(featuredModService.getFeaturedMod(game.getFeaturedMod())).thenReturn(
-        Mono.just(FeaturedModBeanBuilder.create().defaultValues().get()));
+        Mono.just(Instancio.create(FeaturedModBean.class)));
     lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
     lenient().when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
     lenient().when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(

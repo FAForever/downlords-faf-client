@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
@@ -26,6 +25,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -41,13 +41,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -90,24 +91,29 @@ public class GameDetailControllerTest extends PlatformTest {
   public void setUp() throws Exception {
     game = GameBeanBuilder.create().defaultValues().get();
 
-    doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
+    lenient().doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
         .createPlaceholderImageOnErrorObservable(any());
-    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
-    when(watchButtonController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(watchButtonController.getRoot()).thenReturn(new Button());
-    when(teamCardController.getRoot()).then(invocation -> new Pane());
-    when(teamCardController.ratingProviderProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(teamCardController.playerIdsProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(teamCardController.teamIdProperty()).thenReturn(new SimpleIntegerProperty());
-    when(featuredModService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
-                                                                                                              .defaultValues()
-                                                                                                              .get()));
-    when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
-    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(new Image(InputStream.nullInputStream()));
-    when(timeService.shortDuration(any())).thenReturn("duration");
-    when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
-    when(i18n.get("game.detail.players.format", game.getNumActivePlayers(), game.getMaxPlayers())).thenReturn(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()));
-    when(i18n.get("unknown")).thenReturn("unknown");
+    lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
+    lenient().when(watchButtonController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(watchButtonController.getRoot()).thenReturn(new Button());
+    lenient().when(teamCardController.getRoot()).then(invocation -> new Pane());
+    lenient().when(teamCardController.ratingProviderProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(teamCardController.playerIdsProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(teamCardController.teamIdProperty()).thenReturn(new SimpleIntegerProperty());
+    lenient().when(featuredModService.getFeaturedMod(game.getFeaturedMod()))
+             .thenReturn(Mono.just(Instancio.of(FeaturedModBean.class)
+                                            .set(field(FeaturedModBean::displayName), "Forged Alliance Forever")
+                                            .create()));
+    lenient().when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
+    lenient().when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE))
+             .thenReturn(new Image(InputStream.nullInputStream()));
+    lenient().when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL))
+             .thenReturn(new Image(InputStream.nullInputStream()));
+    lenient().when(timeService.shortDuration(any())).thenReturn("duration");
+    lenient().when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
+    lenient().when(i18n.get("game.detail.players.format", game.getNumActivePlayers(), game.getMaxPlayers()))
+             .thenReturn(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()));
+    lenient().when(i18n.get("unknown")).thenReturn("unknown");
 
     loadFxml("theme/play/game_detail.fxml", clazz -> {
       if (clazz == WatchButtonController.class) {
@@ -181,14 +187,13 @@ public class GameDetailControllerTest extends PlatformTest {
   @Test
   public void testModListener() {
     assertEquals("Forged Alliance Forever", instance.gameTypeLabel.getText());
-    FeaturedModBean mod = FeaturedModBeanBuilder.create()
-        .defaultValues()
-        .technicalName("ladder")
-        .displayName("LADDER")
-        .get();
-    when(featuredModService.getFeaturedMod(mod.getTechnicalName())).thenReturn(Mono.just(mod));
-    runOnFxThreadAndWait(() -> game.setFeaturedMod(mod.getTechnicalName()));
-    assertEquals(mod.getDisplayName(), instance.gameTypeLabel.getText());
+    FeaturedModBean mod = Instancio.of(FeaturedModBean.class)
+                                   .set(field(FeaturedModBean::technicalName), "ladder")
+                                   .set(field(FeaturedModBean::displayName), "LADDER")
+                                   .create();
+    when(featuredModService.getFeaturedMod(mod.technicalName())).thenReturn(Mono.just(mod));
+    runOnFxThreadAndWait(() -> game.setFeaturedMod(mod.technicalName()));
+    assertEquals(mod.displayName(), instance.gameTypeLabel.getText());
   }
 
   @Test

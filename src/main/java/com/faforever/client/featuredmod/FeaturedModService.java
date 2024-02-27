@@ -46,7 +46,7 @@ public class FeaturedModService {
 
   @Cacheable(value = CacheNames.FEATURED_MOD_FILES, sync = true)
   public Flux<FeaturedModFile> getFeaturedModFiles(FeaturedModBean featuredMod, Integer version) {
-    String endpoint = format("/featuredMods/%s/files/%s", featuredMod.getId(),
+    String endpoint = format("/featuredMods/%s/files/%s", featuredMod.id(),
                              Optional.ofNullable(version).map(String::valueOf).orElse("latest"));
     return fafApiAccessor.getMany(FeaturedModFile.class, endpoint, fafApiAccessor.getMaxPageSize(), Map.of()).cache();
   }

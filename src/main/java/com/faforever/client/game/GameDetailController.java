@@ -199,8 +199,7 @@ public class GameDetailController extends NodeController<Pane> {
 
   private void onFeaturedModChanged(String featuredModTechnicalName) {
     Mono.justOrEmpty(featuredModTechnicalName)
-        .flatMap(featuredModService::getFeaturedMod)
-        .map(FeaturedModBean::getDisplayName)
+        .flatMap(featuredModService::getFeaturedMod).map(FeaturedModBean::displayName)
         .switchIfEmpty(Mono.just(i18n.get("unknown")))
         .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(gameTypeLabel::setText);

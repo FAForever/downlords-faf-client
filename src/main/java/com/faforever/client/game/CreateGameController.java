@@ -163,13 +163,13 @@ public class CreateGameController extends NodeController<Pane> {
       event.consume();
     });
 
-    Function<FeaturedModBean, String> isDefaultModString = mod -> Objects.equals(mod.getTechnicalName(),
+    Function<FeaturedModBean, String> isDefaultModString = mod -> Objects.equals(mod.technicalName(),
                                                                                  KnownFeaturedMod.DEFAULT.getTechnicalName()) ? " " + i18n.get(
         "game.create.defaultGameTypeMarker") : null;
 
     featuredModListView.setCellFactory(
-        param -> new DualStringListCell<>(FeaturedModBean::getDisplayName, isDefaultModString,
-                                          FeaturedModBean::getDescription, STYLE_CLASS_DUAL_LIST_CELL, uiService,
+        param -> new DualStringListCell<>(FeaturedModBean::displayName, isDefaultModString,
+                                          FeaturedModBean::description, STYLE_CLASS_DUAL_LIST_CELL, uiService,
                                           fxApplicationThreadExecutor));
 
     JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH, true);
@@ -178,11 +178,11 @@ public class CreateGameController extends NodeController<Pane> {
     featuredModService.getFeaturedMods()
                       .collectList()
                       .map(FXCollections::observableList)
-                      .map(observableList -> observableList.filtered(FeaturedModBean::getVisible))
+                      .map(observableList -> observableList.filtered(FeaturedModBean::visible))
                       .publishOn(fxApplicationThreadExecutor.asScheduler())
                       .subscribe(featuredModBeans -> {
                         featuredModListView.setItems(
-                            FXCollections.observableList(featuredModBeans).filtered(FeaturedModBean::getVisible));
+                            FXCollections.observableList(featuredModBeans).filtered(FeaturedModBean::visible));
                         selectLastOrDefaultGameType();
                       });
 
@@ -350,8 +350,7 @@ public class CreateGameController extends NodeController<Pane> {
   }
 
   private void initFeaturedModList() {
-    featuredModListView.getSelectionModel().selectedItemProperty()
-                       .map(FeaturedModBean::getTechnicalName)
+    featuredModListView.getSelectionModel().selectedItemProperty().map(FeaturedModBean::technicalName)
                        .when(showing)
                        .subscribe(lastGamePrefs::setLastGameType);
   }
@@ -414,7 +413,7 @@ public class CreateGameController extends NodeController<Pane> {
     }
 
     for (FeaturedModBean mod : featuredModListView.getItems()) {
-      if (Objects.equals(mod.getTechnicalName(), lastGameMod)) {
+      if (Objects.equals(mod.technicalName(), lastGameMod)) {
         featuredModListView.getSelectionModel().select(mod);
         featuredModListView.scrollTo(mod);
         break;
@@ -509,7 +508,7 @@ public class CreateGameController extends NodeController<Pane> {
 
     enforceRating = enforceRankingCheckBox.isSelected();
 
-    String featuredModName = featuredModListView.getSelectionModel().getSelectedItem().getTechnicalName();
+    String featuredModName = featuredModListView.getSelectionModel().getSelectedItem().technicalName();
     NewGameInfo newGameInfo = new NewGameInfo(titleTextField.getText().trim(),
                                               Strings.emptyToNull(passwordTextField.getText()), featuredModName,
                                               mapVersion.getFolderName(), getUUIDsFromModVersions(mods),

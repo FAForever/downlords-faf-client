@@ -132,8 +132,7 @@ public class GameTileController extends NodeController<Node> {
       return;
     }
 
-    featuredModService.getFeaturedMod(featuredMod)
-                      .map(FeaturedModBean::getDisplayName)
+    featuredModService.getFeaturedMod(featuredMod).map(FeaturedModBean::displayName)
                       .map(StringUtils::defaultString)
                       .publishOn(fxApplicationThreadExecutor.asScheduler())
                       .subscribe(gameTypeLabel::setText,

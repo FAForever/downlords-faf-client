@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.MapBeanBuilder;
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.ModBeanBuilder;
@@ -34,6 +33,7 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -51,6 +51,7 @@ import java.util.function.Predicate;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.core.Is.is;
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -109,7 +110,8 @@ public class CreateGameControllerTest extends PlatformTest {
     mapList = FXCollections.observableArrayList();
 
     lenient().when(featuredModService.getFeaturedMods())
-             .thenReturn(Flux.just(FeaturedModBeanBuilder.create().defaultValues().get()));
+             .thenReturn(Flux.just(
+                 Instancio.of(FeaturedModBean.class).set(field(FeaturedModBean::technicalName), "faf").create()));
 
     lenient().when(mapGeneratorService.downloadGeneratorIfNecessary(any())).thenReturn(Mono.empty());
     lenient().when(mapGeneratorService.getGeneratorStyles()).thenReturn(Mono.just(List.of()));
@@ -450,7 +452,9 @@ public class CreateGameControllerTest extends PlatformTest {
 
   @Test
   public void testInitGameTypeComboBoxPostPopulated() {
-    FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().get();
+    FeaturedModBean featuredModBean = Instancio.of(FeaturedModBean.class)
+                                               .set(field(FeaturedModBean::technicalName), "faf")
+                                               .create();
     when(featuredModService.getFeaturedMods()).thenReturn(Flux.just(featuredModBean));
 
     WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
@@ -461,11 +465,13 @@ public class CreateGameControllerTest extends PlatformTest {
 
   @Test
   public void testSelectLastOrDefaultSelectDefault() {
-    FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().technicalName("something").get();
-    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create()
-        .defaultValues()
-        .technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName())
-        .get();
+    FeaturedModBean featuredModBean = Instancio.of(FeaturedModBean.class)
+                                               .set(field(FeaturedModBean::technicalName), "something")
+                                               .create();
+    FeaturedModBean featuredModBean2 = Instancio.of(FeaturedModBean.class)
+                                                .set(field(FeaturedModBean::technicalName), "faf")
+                                                .create();
+    ;
 
     lastGamePrefs.setLastGameType(null);
     when(featuredModService.getFeaturedMods()).thenReturn(Flux.just(featuredModBean, featuredModBean2));
@@ -478,11 +484,12 @@ public class CreateGameControllerTest extends PlatformTest {
 
   @Test
   public void testSelectLastOrDefaultSelectLast() {
-    FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().technicalName("last").get();
-    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create()
-        .defaultValues()
-        .technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName())
-        .get();
+    FeaturedModBean featuredModBean = Instancio.of(FeaturedModBean.class)
+                                               .set(field(FeaturedModBean::technicalName), "last")
+                                               .create();
+    FeaturedModBean featuredModBean2 = Instancio.of(FeaturedModBean.class)
+                                                .set(field(FeaturedModBean::technicalName), "faf")
+                                                .create();
 
     lastGamePrefs.setLastGameType("last");
     when(featuredModService.getFeaturedMods()).thenReturn(Flux.just(featuredModBean, featuredModBean2));
@@ -583,7 +590,7 @@ public class CreateGameControllerTest extends PlatformTest {
 
   @Test
   public void testMapNameSearchClearsSelected() {
-    ArgumentCaptor<BiFunction<String, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<String, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.captor();
     verify(mapFilterController).addExternalFilter(any(ObservableValue.class),
                                                   argumentCaptor.capture());
     BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();

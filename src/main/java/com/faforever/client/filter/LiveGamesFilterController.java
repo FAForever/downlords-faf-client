@@ -60,7 +60,7 @@ public class LiveGamesFilterController extends AbstractFilterController<GameBean
         (selectedGameTypes, game) -> selectedGameTypes.isEmpty() || selectedGameTypes.contains(game.getGameType()));
 
     FilterMultiCheckboxController<FeaturedModBean, GameBean> featuredModFilter = filterBuilder.multiCheckbox(
-        i18n.get("featuredMod.displayName"), new ToStringOnlyConverter<>(FeaturedModBean::getDisplayName),
+        i18n.get("featuredMod.displayName"), new ToStringOnlyConverter<>(FeaturedModBean::displayName),
         new FeaturedModFilterFunction());
 
     featuredModService.getFeaturedMods().collectList().subscribe(featuredModFilter::setItems);

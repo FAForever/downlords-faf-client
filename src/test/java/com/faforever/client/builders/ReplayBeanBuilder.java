@@ -9,6 +9,7 @@ import com.faforever.client.domain.ReplayBean.ChatMessage;
 import com.faforever.client.domain.ReplayReviewsSummaryBean;
 import com.faforever.commons.api.dto.Validity;
 import javafx.collections.FXCollections;
+import org.instancio.Instancio;
 
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
@@ -30,7 +31,7 @@ public class ReplayBeanBuilder {
     startTime(OffsetDateTime.now().minusHours(1));
     endTime(OffsetDateTime.now());
     validity(Validity.VALID);
-    featuredMod(new FeaturedModBean());
+    featuredMod(Instancio.create(FeaturedModBean.class));
     teams(FXCollections.observableMap(Map.of("2", List.of("junit1"), "3", List.of("junit2"))));
     views(100);
     chatMessages(ReplayChatMessageListBuilder.create().defaultValues().get());

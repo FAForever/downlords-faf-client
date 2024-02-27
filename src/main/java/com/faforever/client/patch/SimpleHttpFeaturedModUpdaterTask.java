@@ -62,7 +62,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
   protected PatchResult call() throws Exception {
     FeaturedModBean featuredMod = featuredModService.getFeaturedMod(featuredModName).blockOptional().orElseThrow();
 
-    String initFileName = "init_" + featuredMod.getTechnicalName() + ".lua";
+    String initFileName = "init_" + featuredMod.technicalName() + ".lua";
 
     updateTitle(i18n.get("updater.taskTitle"));
     updateMessage(i18n.get("updater.readingFileList"));
@@ -116,12 +116,14 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
             .resolve(featuredModFile.getName()))
         .filter(Files::exists)
         .findAny()
-        .orElseThrow(() -> new IllegalStateException("No init file found for featured mod: " + featuredMod.getTechnicalName()));
+                                    .orElseThrow(() -> new IllegalStateException(
+                                        "No init file found for featured mod: " + featuredMod.technicalName()));
 
     int maxVersion = featuredModFiles.stream()
         .mapToInt(mod -> Integer.parseInt(mod.getVersion()))
         .max()
-        .orElseThrow(() -> new IllegalStateException("No version found for featured mod: " + featuredMod.getTechnicalName()));
+                                     .orElseThrow(() -> new IllegalStateException(
+                                         "No version found for featured mod: " + featuredMod.technicalName()));
 
     return new PatchResult(new ComparableVersion(String.valueOf(maxVersion)), initFile);
   }

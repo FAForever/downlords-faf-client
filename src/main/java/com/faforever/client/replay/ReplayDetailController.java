@@ -249,8 +249,7 @@ public class ReplayDetailController extends NodeController<Node> {
                                    .when(showing));
 
     modLabel.textProperty()
-            .bind(replay.flatMap(ReplayBean::featuredModProperty)
-                        .flatMap(FeaturedModBean::displayNameProperty)
+            .bind(replay.flatMap(ReplayBean::featuredModProperty).map(FeaturedModBean::displayName)
                         .orElse(i18n.get("unknown"))
                         .when(showing));
 
