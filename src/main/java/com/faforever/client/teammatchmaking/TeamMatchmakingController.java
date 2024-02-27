@@ -253,16 +253,15 @@ public class TeamMatchmakingController extends NodeController<Node> {
       return;
     }
 
-    leaderboardService.getHighestActiveLeagueEntryForPlayer(currentPlayer)
-                      .mapNotNull(LeagueEntryBean::getSubdivision)
+    leaderboardService.getHighestActiveLeagueEntryForPlayer(currentPlayer).mapNotNull(LeagueEntryBean::subdivision)
                       .publishOn(fxApplicationThreadExecutor.asScheduler())
                       .subscribe(subdivision -> {
-                        leagueLabel.setText(i18n.get("leaderboard.divisionName",
-                                                     i18n.getOrDefault(subdivision.getDivision().nameKey(),
-                                                                       "leagues.divisionName.%s".formatted(
-                                                                           subdivision.getDivision().nameKey())),
-                                                     subdivision.getNameKey()).toUpperCase());
-                        leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
+                        String divisionNameKey = subdivision.division().nameKey();
+                        leagueLabel.setText(i18n.get("leaderboard.divisionName", i18n.getOrDefault(divisionNameKey,
+                                                                                                   "leagues.divisionName.%s".formatted(
+                                                                                                       divisionNameKey)),
+                                                     subdivision.nameKey()).toUpperCase());
+                        leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.mediumImageUrl()));
                         leagueImageView.setVisible(true);
                       });
   }

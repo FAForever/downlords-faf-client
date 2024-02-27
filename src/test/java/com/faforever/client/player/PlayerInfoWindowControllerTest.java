@@ -4,13 +4,13 @@ import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.builders.AchievementDefinitionBuilder;
 import com.faforever.client.builders.LeaderboardRatingMapBuilder;
-import com.faforever.client.builders.LeagueSeasonBeanBuilder;
 import com.faforever.client.builders.PlayerAchievementBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.LeaderboardEntryBean;
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.LeaderboardRatingJournalBean;
+import com.faforever.client.domain.LeagueSeasonBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -146,8 +146,8 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
                                 .state(AchievementState.UNLOCKED)
                                 .get()));
     when(eventService.getPlayerEvents(player.getId())).thenReturn(Flux.empty());
-    when(leaderboardService.getActiveSeasons()).thenReturn(
-        Flux.just(LeagueSeasonBeanBuilder.create().defaultValues().leaderboard(leaderboard).get()));
+    when(leaderboardService.getActiveSeasons()).thenReturn(Flux.just(
+        Instancio.of(LeagueSeasonBean.class).set(field(LeagueSeasonBean::leagueLeaderboard), leaderboard).create()));
     when(leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard.technicalName())).thenReturn(
         Mono.empty());
     when(userLeaderboardInfoController.getRoot()).thenReturn(new VBox());

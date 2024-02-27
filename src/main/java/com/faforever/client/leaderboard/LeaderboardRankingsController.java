@@ -5,6 +5,7 @@ import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.NodeController;
+import com.faforever.client.fx.ObservableConstant;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.ToStringOnlyConverter;
 import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
@@ -87,8 +88,8 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
 
     subdivisions.map(this::getDivisions).map(FXCollections::observableList).when(showing).subscribe(divisions -> {
       divisionPicker.setItems(divisions);
-      DivisionBean selectedDivision = selectedLeagueEntry.map(LeagueEntryBean::getSubdivision)
-                                                         .map(SubdivisionBean::getDivision)
+      DivisionBean selectedDivision = selectedLeagueEntry.map(LeagueEntryBean::subdivision)
+                                                         .map(SubdivisionBean::division)
                                                          .getValue();
       divisions.stream()
                .filter(division -> division.equals(selectedDivision))
@@ -112,7 +113,7 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
                                       .selectedItemProperty()
                                       .map(division -> subdivisions.stream()
                                                                    .filter(subdivision -> division.equals(
-                                                                       subdivision.getDivision()))
+                                                                       subdivision.division()))
                                                                    .toList())).orElse(List.of());
 
     selectedSubdivisions.when(showing).subscribe(this::createSubdivisionButtons);
@@ -127,7 +128,7 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
                                                                  .map(toggleSubdivisionMap::get)
                                                                  .map(subdivision -> leagueEntries.stream()
                                                                                                   .filter(
-                                                                                                      leagueEntry1 -> leagueEntry1.getSubdivision()
+                                                                                                      leagueEntry1 -> leagueEntry1.subdivision()
                                                                                                                                   .equals(
                                                                                                                                       subdivision))
                                                                                                   .toList()))
@@ -143,15 +144,15 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
                  .subscribe(leagueEntries -> leagueEntries.stream()
                                                           .filter(leagueEntry -> playerService.getCurrentPlayer()
                                                                                               .equals(
-                                                                                                  leagueEntry.getPlayer()))
+                                                                                                  leagueEntry.player()))
                                                           .findFirst()
                                                           .ifPresentOrElse(selectedLeagueEntry::set,
                                                                            () -> selectedLeagueEntry.set(null)));
 
     selectedLeagueEntry.when(showing).subscribe(leagueEntry -> {
       if (leagueEntry != null) {
-        divisionPicker.getSelectionModel().select(leagueEntry.getSubdivision().getDivision());
-        subdivisionToggleGroup.selectToggle(subdivisionToggleMap.get(leagueEntry.getSubdivision()));
+        divisionPicker.getSelectionModel().select(leagueEntry.subdivision().division());
+        subdivisionToggleGroup.selectToggle(subdivisionToggleMap.get(leagueEntry.subdivision()));
         ratingTable.scrollTo(leagueEntry);
         ratingTable.getSelectionModel().select(leagueEntry);
       }
@@ -159,17 +160,17 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
 
     ratingTable.setRowFactory(param -> entriesRowFactory());
 
-    rankColumn.setCellValueFactory(param -> param.getValue().rankProperty());
+    rankColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().rank()));
     rankColumn.setCellFactory(param -> new StringCell<>(rank -> i18n.number(rank.intValue())));
 
-    nameColumn.setCellValueFactory(param -> param.getValue().getPlayer().usernameProperty());
+    nameColumn.setCellValueFactory(param -> param.getValue().player().usernameProperty());
     nameColumn.setCellFactory(param -> new StringCell<>(name -> name));
     nameColumn.prefWidthProperty().bind(ratingTable.widthProperty().subtract(250));
 
-    gamesPlayedColumn.setCellValueFactory(param -> param.getValue().gamesPlayedProperty());
+    gamesPlayedColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().gamesPlayed()));
     gamesPlayedColumn.setCellFactory(param -> new StringCell<>(count -> i18n.number(count.intValue())));
 
-    scoreColumn.setCellValueFactory(param -> param.getValue().scoreProperty());
+    scoreColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().score()));
     scoreColumn.setCellFactory(param -> new StringCell<>(i18n::number));
   }
 
@@ -184,7 +185,7 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
     }
 
     subdivisions.forEach(subdivision -> {
-      ToggleButton toggleButton = new ToggleButton(subdivision.getNameKey());
+      ToggleButton toggleButton = new ToggleButton(subdivision.nameKey());
       toggleButton.getStyleClass().add("main-navigation-button");
       toggleButton.prefWidthProperty().bind(ratingTable.widthProperty().divide(subdivisions.size()));
       subdivisionToggleMap.put(subdivision, toggleButton);
@@ -193,7 +194,7 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
       subdivisionButtons.getChildren().add(toggleButton);
     });
 
-    SubdivisionBean selectedSubdivision = selectedLeagueEntry.map(LeagueEntryBean::getSubdivision).getValue();
+    SubdivisionBean selectedSubdivision = selectedLeagueEntry.map(LeagueEntryBean::subdivision).getValue();
     subdivisions.stream()
                 .filter(subdivision -> subdivision.equals(selectedSubdivision))
                 .findFirst()
@@ -209,7 +210,7 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
       if (leagueEntry == null) {
         return;
       }
-      PlayerBean player = leagueEntry.getPlayer();
+      PlayerBean player = leagueEntry.player();
       contextMenuBuilder.newBuilder()
                         .addItem(ShowPlayerInfoMenuItem.class, player)
                         .addItem(CopyUsernameMenuItem.class, player.getUsername())
@@ -228,12 +229,11 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
   }
 
   private Set<String> getPlayerNames(List<LeagueEntryBean> entries) {
-    return entries.stream().map(LeagueEntryBean::getPlayer).map(PlayerBean::getUsername).collect(Collectors.toSet());
+    return entries.stream().map(LeagueEntryBean::player).map(PlayerBean::getUsername).collect(Collectors.toSet());
   }
 
   private List<DivisionBean> getDivisions(List<SubdivisionBean> subdivisions) {
-    return subdivisions.stream()
-                       .map(SubdivisionBean::getDivision)
+    return subdivisions.stream().map(SubdivisionBean::division)
                        .distinct().sorted(Comparator.comparing(DivisionBean::index).reversed())
                        .toList();
   }
@@ -245,8 +245,7 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
     }
 
     leagueEntries.getValue()
-                 .stream()
-                 .filter(leagueEntry -> leagueEntry.getPlayer().getUsername().equals(searchedUsername))
+                 .stream().filter(leagueEntry -> leagueEntry.player().getUsername().equals(searchedUsername))
                  .findFirst()
                  .ifPresent(selectedLeagueEntry::set);
   }

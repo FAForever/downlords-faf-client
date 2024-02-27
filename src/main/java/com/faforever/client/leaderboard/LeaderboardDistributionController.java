@@ -82,8 +82,7 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
 
   private void updateChartData(List<LeagueEntryBean> leagueEntries) {
     Map<SubdivisionBean, Long> dataCountMap = leagueEntries.stream()
-                                                           .collect(
-                                                               Collectors.groupingBy(LeagueEntryBean::getSubdivision,
+                                                           .collect(Collectors.groupingBy(LeagueEntryBean::subdivision,
                                                                                      Collectors.counting()));
     subdivisionData.forEach(
         (subdivision, data) -> data.setYValue(dataCountMap.getOrDefault(subdivision, 0L).intValue()));
@@ -93,8 +92,7 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
     subdivisionData.clear();
     subdivisions.forEach(subdivision -> subdivisionData.put(subdivision, createSubdivisionData(subdivision)));
 
-    List<String> categories = subdivisions.stream()
-                                          .map(SubdivisionBean::getDivision)
+    List<String> categories = subdivisions.stream().map(SubdivisionBean::division)
                                           .distinct()
                                           .sorted(Comparator.comparing(DivisionBean::index))
                                           .map(DivisionBean::nameKey)
@@ -105,7 +103,7 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
     Collection<Series<String, Integer>> series = subdivisionData.entrySet()
                                                                 .stream()
                                                                 .collect(Collectors.groupingBy(
-                                                                    entry -> entry.getKey().getIndex(),
+                                                                    entry -> entry.getKey().index(),
                                                                     Collectors.mapping(Entry::getValue,
                                                                                        Collectors.collectingAndThen(
                                                                                            Collectors.toCollection(
@@ -123,9 +121,9 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
     SubdivisionBean currentPlayerSubdivision = leagueEntries.getValue()
                                                             .stream()
-                                                            .filter(leagueEntry -> leagueEntry.getPlayer()
+                                                            .filter(leagueEntry -> leagueEntry.player()
                                                                                               .equals(currentPlayer))
-                                                            .map(LeagueEntryBean::getSubdivision)
+                                                            .map(LeagueEntryBean::subdivision)
                                                             .findFirst()
                                                             .orElse(null);
     subdivisionData.forEach((subdivision, data) -> {
@@ -140,7 +138,7 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
 
   private Data<String, Integer> createSubdivisionData(SubdivisionBean subdivision) {
     Data<String, Integer> data = new Data<>();
-    data.setXValue(i18n.get("leagues.divisionName.%s".formatted(subdivision.getDivision().nameKey())));
+    data.setXValue(i18n.get("leagues.divisionName.%s".formatted(subdivision.division().nameKey())));
     data.setYValue(0);
 
 
@@ -151,7 +149,7 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
     data.setNode(node);
 
     Label label = new Label();
-    label.textProperty().bind(subdivision.nameKeyProperty());
+    label.setText(subdivision.nameKey());
     label.setTextFill(Color.WHITE);
     label.setAlignment(Pos.CENTER);
     label.minWidthProperty().bind(node.widthProperty());

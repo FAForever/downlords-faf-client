@@ -1,9 +1,6 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.builders.LeagueEntryBeanBuilder;
-import com.faforever.client.builders.LeagueSeasonBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.SubdivisionBeanBuilder;
 import com.faforever.client.domain.DivisionBean;
 import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.LeagueSeasonBean;
@@ -63,47 +60,52 @@ public class LeaderboardControllerTest extends PlatformTest {
   private final ObjectProperty<LeagueSeasonBean> leagueSeasonProperty = new SimpleObjectProperty<>();
 
   private PlayerBean player;
-  private LeagueSeasonBean season;
+  private final LeagueSeasonBean season = Instancio.of(LeagueSeasonBean.class)
+                                                   .set(field(LeagueSeasonBean::nameKey), "seasonName")
+                                                   .set(field(LeagueSeasonBean::seasonNumber), 1)
+                                                   .create();
+  ;
   private final DivisionBean division = Instancio.of(DivisionBean.class)
                                                  .set(field(DivisionBean::nameKey), "silver")
                                                  .set(field(DivisionBean::index), 2)
                                                  .create();
 
-  private final SubdivisionBean subdivisionBean2 = SubdivisionBeanBuilder.create()
-                                                                         .defaultValues()
-                                                                         .id(2)
-                                                                         .index(1)
-                                                                         .division(division)
-                                                                         .get();
+  private final SubdivisionBean subdivisionBean2 = Instancio.of(SubdivisionBean.class)
+                                                            .set(field(SubdivisionBean::id), 2)
+                                                            .set(field(SubdivisionBean::division), division)
+                                                            .set(field(SubdivisionBean::index), 1)
+                                                            .create();
   ;
-  private final SubdivisionBean subdivisionBean1 = SubdivisionBeanBuilder.create().defaultValues().id(1).index(1).get();
-  private final LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create()
-                                                                         .defaultValues()
-                                                                         .subdivision(subdivisionBean1)
-                                                                         .id(1)
-                                                                         .player(PlayerBeanBuilder.create()
-                                                                                                  .defaultValues()
-                                                                                                  .username("2")
-                                                                                                  .get())
-                                                                         .get();
-  private final LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create()
-                                                                         .defaultValues()
-                                                                         .subdivision(subdivisionBean1)
-                                                                         .id(0)
-                                                                         .player(PlayerBeanBuilder.create()
-                                                                                                  .defaultValues()
-                                                                                                  .username("1")
-                                                                                                  .get())
-                                                                         .get();
+  private final SubdivisionBean subdivisionBean1 = Instancio.of(SubdivisionBean.class)
+                                                            .set(field(SubdivisionBean::id), 1)
+                                                            .set(field(SubdivisionBean::index), 1)
+                                                            .create();
+  private final LeagueEntryBean leagueEntryBean2 = Instancio.of(LeagueEntryBean.class)
+                                                            .set(field(LeagueEntryBean::subdivision), subdivisionBean1)
+                                                            .set(field(LeagueEntryBean::id), 1)
+                                                            .set(field(LeagueEntryBean::player),
+                                                                 PlayerBeanBuilder.create()
+                                                                                  .defaultValues()
+                                                                                  .username("2")
+                                                                                  .get())
+                                                            .create();
+  private final LeagueEntryBean leagueEntryBean1 = Instancio.of(LeagueEntryBean.class)
+                                                            .set(field(LeagueEntryBean::subdivision), subdivisionBean1)
+                                                            .set(field(LeagueEntryBean::id), 0)
+                                                            .set(field(LeagueEntryBean::player),
+                                                                 PlayerBeanBuilder.create()
+                                                                                  .defaultValues()
+                                                                                  .username("1")
+                                                                                  .get())
+                                                            .create();
 
 
   @BeforeEach
   public void setUp() throws Exception {
     player = PlayerBeanBuilder.create().defaultValues().id(3).username("junit").get();
-    lenient().when(i18n.getOrDefault("seasonName", "leaderboard.season.seasonName", 1)).thenReturn("seasonName 1");
+    lenient().when(i18n.getOrDefault("seasonName", "leagueLeaderboard.season.seasonName", 1))
+             .thenReturn("seasonName 1");
     lenient().when(i18n.get("leaderboard.seasonDate", null, null)).thenReturn("-");
-
-    season = LeagueSeasonBeanBuilder.create().defaultValues().get();
 
     lenient().when(leaderboardService.getAllSubdivisions(season))
              .thenReturn(Flux.just(subdivisionBean1, subdivisionBean2));

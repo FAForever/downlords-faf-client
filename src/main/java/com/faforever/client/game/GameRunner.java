@@ -388,11 +388,11 @@ public class GameRunner implements InitializingBean {
 
   private Mono<League> getDivisionInfo(String leaderboard) {
     return leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), leaderboard)
-                             .map(LeagueEntryBean::getSubdivision)
+                             .map(LeagueEntryBean::subdivision)
                              .map(subdivision -> {
-                               DivisionBean divisionBean = subdivision.getDivision();
+                               DivisionBean divisionBean = subdivision.division();
                                String division = divisionBean == null ? null : divisionBean.nameKey();
-                               String subDivision = subdivision.getNameKey();
+                               String subDivision = subdivision.nameKey();
                                return new League(division, subDivision);
                              })
                              .defaultIfEmpty(new League("unlisted", null));

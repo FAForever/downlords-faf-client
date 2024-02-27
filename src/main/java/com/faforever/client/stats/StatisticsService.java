@@ -31,7 +31,7 @@ public class StatisticsService {
   public Flux<LeaderboardRatingJournalBean> getRatingHistory(PlayerBean player, LeaderboardBean leaderboard) {
     ElideNavigatorOnCollection<LeaderboardRatingJournal> navigator = ElideNavigator.of(LeaderboardRatingJournal.class).collection()
         .setFilter(qBuilder().intNum("gamePlayerStats.player.id").eq(player.getId()).and()
-                             .intNum("leaderboard.id")
+                             .intNum("leagueLeaderboard.id")
                              .eq(leaderboard.id()))
         .pageSize(fafApiAccessor.getMaxPageSize());
     return fafApiAccessor.getMany(navigator)

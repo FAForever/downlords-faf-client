@@ -57,7 +57,7 @@ public class StatisticsServiceTest extends ServiceTest {
                 .verify();
     verify(fafApiAccessor).getMany(argThat(
         ElideMatchers.hasFilter(qBuilder().intNum("gamePlayerStats.player.id").eq(player.getId()).and()
-                                          .intNum("leaderboard.id")
+                                          .intNum("leagueLeaderboard.id")
                                           .eq(leaderboard.id()))
     ));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(10000)));

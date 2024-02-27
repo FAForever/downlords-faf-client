@@ -1,16 +1,15 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
 import com.faforever.client.builders.PartyBuilder;
 import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.SubdivisionBeanBuilder;
 import com.faforever.client.chat.ChatMessageViewController;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.MatchmakingChatController;
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
+import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PartyBean;
 import com.faforever.client.domain.PlayerBean;
@@ -30,6 +29,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -141,15 +141,15 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
 
   @Test
   public void testLeagueSet() {
-    when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
-        Mono.just(LeagueEntryBeanBuilder.create().defaultValues().get()));
+    LeagueEntryBean leagueEntry = Instancio.create(LeagueEntryBean.class);
+    when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(Mono.just(leagueEntry));
 
     reinitialize(instance);
     waitForFxEvents();
 
     assertTrue(instance.leagueImageView.isVisible());
     assertThat(instance.leagueLabel.getText(), is("DIVISION V"));
-    verify(leaderboardService).loadDivisionImage(SubdivisionBeanBuilder.create().defaultValues().get().getMediumImageUrl());
+    verify(leaderboardService).loadDivisionImage(leagueEntry.subdivision().mediumImageUrl());
   }
 
   @Test

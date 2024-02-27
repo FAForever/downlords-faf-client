@@ -1,7 +1,7 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.builders.LeagueSeasonBeanBuilder;
 import com.faforever.client.domain.LeagueBean;
+import com.faforever.client.domain.LeagueSeasonBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
@@ -54,8 +54,7 @@ public class LeaderboardsControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     when(leaderboardService.getLeagues()).thenReturn(Flux.just(Instancio.create(LeagueBean.class)));
-    when(leaderboardService.getLatestSeason(any())).thenReturn(
-        Mono.just(LeagueSeasonBeanBuilder.create().defaultValues().get()));
+    when(leaderboardService.getLatestSeason(any())).thenReturn(Mono.just(Instancio.create(LeagueSeasonBean.class)));
     when(i18n.getOrDefault(anyString(), anyString())).thenReturn("league");
 
     loadFxml("theme/leaderboard/leaderboards.fxml", clazz -> {

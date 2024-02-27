@@ -56,16 +56,16 @@ public class LeaderboardController extends NodeController<StackPane> {
     connectionProgressPane.visibleProperty().bind(contentPane.visibleProperty().not());
 
     seasonLabel.textProperty()
-               .bind(leagueSeason.map(seasonBean -> i18n.getOrDefault(seasonBean.getNameKey(),
-                                                                      "leaderboard.season.%s".formatted(
-                                                                          seasonBean.getNameKey()),
-                                                                      seasonBean.getSeasonNumber()))
+               .bind(leagueSeason.map(seasonBean -> i18n.getOrDefault(seasonBean.nameKey(),
+                                                                      "leagueLeaderboard.season.%s".formatted(
+                                                                          seasonBean.nameKey()),
+                                                                      seasonBean.seasonNumber()))
                                  .map(String::toUpperCase)
                                  .when(showing));
 
     seasonDateLabel.textProperty().bind(leagueSeason.map(seasonBean -> {
-      String startDate = timeService.asDate(seasonBean.getStartDate(), FormatStyle.MEDIUM);
-      String endDate = timeService.asDate(seasonBean.getEndDate(), FormatStyle.MEDIUM);
+      String startDate = timeService.asDate(seasonBean.startDate(), FormatStyle.MEDIUM);
+      String endDate = timeService.asDate(seasonBean.endDate(), FormatStyle.MEDIUM);
       return i18n.get("leaderboard.seasonDate", startDate, endDate);
     }).when(showing));
 

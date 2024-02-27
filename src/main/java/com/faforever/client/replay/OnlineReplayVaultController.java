@@ -145,7 +145,8 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
                       .publishOn(fxApplicationThreadExecutor.asScheduler())
                       .subscribe(featuredModFilterController::setItems);
 
-    CategoryFilterController leaderboardFilterController = searchController.addCategoryFilter("playerStats.ratingChanges.leaderboard.id",
+    CategoryFilterController leaderboardFilterController = searchController.addCategoryFilter(
+        "playerStats.ratingChanges.leagueLeaderboard.id",
         i18n.get("leaderboard.displayName"), Map.of());
 
     leaderboardService.getLeaderboards()

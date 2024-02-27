@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -52,11 +53,6 @@ public class LeaderboardService {
   private final FafApiAccessor fafApiAccessor;
   private final LeaderboardMapper leaderboardMapper;
   private final PlayerService playerService;
-
-  private static final Comparator<SubdivisionBean> SUBDIVISION_COMPARATOR = Comparator.comparing(
-                                                                                          SubdivisionBean::getDivision, Comparator.comparing(DivisionBean::index))
-                                                                                      .thenComparing(
-                                                                                          SubdivisionBean::getIndex);
 
   @Cacheable(value = CacheNames.LEADERBOARD, sync = true)
   public Flux<LeaderboardBean> getLeaderboards() {
@@ -131,10 +127,10 @@ public class LeaderboardService {
                                                                                                  .and()
                                                                                                  .intNum(
                                                                                                      "leagueSeason.id")
-                                                                                                 .eq(leagueSeason.getId()));
+                                                                                                 .eq(leagueSeason.id()));
     return fafApiAccessor.getMany(navigator)
                          .next()
-                         .map(dto -> leaderboardMapper.map(dto, player, new CycleAvoidingMappingContext()))
+                         .map(dto -> leaderboardMapper.map(dto, player, null, new CycleAvoidingMappingContext()))
                          .cache();
   }
 
@@ -153,9 +149,12 @@ public class LeaderboardService {
                                                                             .collection()
                                                                             .setFilter(filter);
     return fafApiAccessor.getMany(navigator)
-                         .map(dto -> leaderboardMapper.map(dto, player, new CycleAvoidingMappingContext()))
-                         .filter(leagueEntryBean -> leagueEntryBean.getSubdivision() != null)
-                         .sort(Comparator.comparing(LeagueEntryBean::getSubdivision, SUBDIVISION_COMPARATOR))
+                         .map(dto -> leaderboardMapper.map(dto, player, null, new CycleAvoidingMappingContext()))
+                         .filter(leagueEntryBean -> leagueEntryBean.subdivision() != null)
+                         .sort(Comparator.comparing(LeagueEntryBean::subdivision,
+                                                    Comparator.comparing(SubdivisionBean::division,
+                                                                         Comparator.comparing(DivisionBean::index))
+                                                              .thenComparing(SubdivisionBean::index)))
                          .takeLast(1)
                          .next()
                          .cache();
@@ -169,7 +168,7 @@ public class LeaderboardService {
                                                                                                  .eq(player.getId())
                                                                                                  .and()
                                                                                                  .string(
-                                                                                                     "leagueSeason.leaderboard.technicalName")
+                                                                                                     "leagueSeason.leagueLeaderboard.technicalName")
                                                                                                  .eq(leaderboardName)
                                                                                                  .and()
                                                                                                  .instant(
@@ -186,44 +185,44 @@ public class LeaderboardService {
                                                                                                                    .toInstant(),
                                                                                                      false));
     return fafApiAccessor.getMany(navigator)
+                         .filter(leagueEntry -> leagueEntry.getLeagueSeasonDivisionSubdivision() != null)
                          .next()
-                         .map(dto -> leaderboardMapper.map(dto, player, new CycleAvoidingMappingContext()))
-                         .filter(leagueEntryBean -> leagueEntryBean.getSubdivision() != null)
+                         .map(dto -> leaderboardMapper.map(dto, player, null, new CycleAvoidingMappingContext()))
                          .cache();
   }
 
   @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
   public Flux<LeagueEntryBean> getActiveEntries(LeagueSeasonBean leagueSeason) {
-    Condition<?> filter = qBuilder().intNum("leagueSeason.id").eq(leagueSeason.getId()).and().intNum("score").gte(0);
+    Condition<?> filter = qBuilder().intNum("leagueSeason.id").eq(leagueSeason.id()).and().intNum("score").gte(0);
 
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class)
                                                                             .collection()
                                                                             .setFilter(filter)
+                                                                            .addSortingRule(
+                                                                                "leagueSeasonDivisionSubdivision.leagueSeasonDivision.divisionIndex",
+                                                                                false)
+                                                                            .addSortingRule(
+                                                                                "leagueSeasonDivisionSubdivision.subdivisionIndex",
+                                                                                false)
                                                                             .pageSize(fafApiAccessor.getMaxPageSize());
 
-    return fafApiAccessor.getMany(navigator)
+    return fafApiAccessor.getMany(navigator).index()
                          .collectList()
                          .flatMapMany(this::mapLeagueEntryDtoToBean)
-                         .sort(Comparator.comparing(LeagueEntryBean::getSubdivision,
-                                                    Comparator.comparing(SubdivisionBean::getDivision,
-                                                                         Comparator.comparing(DivisionBean::index))
-                                                              .thenComparing(SubdivisionBean::getIndex))
-                                         .thenComparing(LeagueEntryBean::getScore)
-                                         .reversed())
-                         .index((index, leagueEntry) -> {
-                           leagueEntry.setRank(index.intValue() + 1);
-                           return leagueEntry;
-                         })
                          .cache();
   }
 
-  private Flux<LeagueEntryBean> mapLeagueEntryDtoToBean(List<LeagueSeasonScore> seasonScores) {
-    Map<Integer, LeagueSeasonScore> scoresMap = seasonScores.stream()
-                                                            .collect(Collectors.toMap(LeagueSeasonScore::getLoginId,
+  private Flux<LeagueEntryBean> mapLeagueEntryDtoToBean(List<Tuple2<Long, LeagueSeasonScore>> seasonScoresWithRank) {
+    Map<Integer, Tuple2<Long, LeagueSeasonScore>> scoresByPlayer = seasonScoresWithRank.stream()
+                                                                                       .collect(Collectors.toMap(
+                                                                                           tuple -> tuple.getT2()
+                                                                                                         .getLoginId(),
                                                                                       Function.identity()));
-    return playerService.getPlayersByIds(scoresMap.keySet())
-                        .map(player -> leaderboardMapper.map(scoresMap.get(player.getId()), player,
-                                                             new CycleAvoidingMappingContext()));
+    return playerService.getPlayersByIds(scoresByPlayer.keySet()).map(player -> {
+      Tuple2<Long, LeagueSeasonScore> seasonScoreWithRank = scoresByPlayer.get(player.getId());
+      return leaderboardMapper.map(seasonScoreWithRank.getT2(), player, seasonScoreWithRank.getT1(),
+                                   new CycleAvoidingMappingContext());
+    });
   }
 
   @Cacheable(value = CacheNames.DIVISIONS, sync = true)
@@ -234,7 +233,7 @@ public class LeaderboardService {
                                                                                           .setFilter(qBuilder().string(
                                                                                                                    "leagueSeasonDivision.leagueSeason.id")
                                                                                                                .eq(String.valueOf(
-                                                                                                                   leagueSeason.getId())));
+                                                                                                                   leagueSeason.id())));
     return fafApiAccessor.getMany(navigator)
                          .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
                          .cache();

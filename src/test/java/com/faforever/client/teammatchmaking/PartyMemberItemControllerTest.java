@@ -2,15 +2,15 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.PartyBuilder;
 import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.SubdivisionBeanBuilder;
 import com.faforever.client.domain.AvatarBean;
+import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.PartyBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -33,6 +33,7 @@ import static com.faforever.client.teammatchmaking.PartyMemberItemController.LEA
 import static com.faforever.client.teammatchmaking.PartyMemberItemController.PLAYING_PSEUDO_CLASS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -95,14 +96,16 @@ public class PartyMemberItemControllerTest extends PlatformTest {
 
   @Test
   public void testLeagueSet() {
-    when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
-        Mono.just(LeagueEntryBeanBuilder.create().defaultValues().get()));
+    LeagueEntryBean leagueEntry = Instancio.of(LeagueEntryBean.class)
+                                           .set(field(SubdivisionBean::nameKey), "V")
+                                           .create();
+    when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(Mono.just(leagueEntry));
 
     runOnFxThreadAndWait(() -> instance.setLeagueInfo());
 
     assertThat(instance.leagueLabel.getText(), is("DIVISION V"));
     assertTrue(instance.leagueImageView.isVisible());
-    verify(leaderboardService).loadDivisionImage(SubdivisionBeanBuilder.create().defaultValues().get().getMediumImageUrl());
+    verify(leaderboardService).loadDivisionImage(leagueEntry.subdivision().mediumImageUrl());
   }
 
   @Test

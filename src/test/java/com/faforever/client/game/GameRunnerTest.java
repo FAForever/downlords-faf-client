@@ -2,7 +2,6 @@ package com.faforever.client.game;
 
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.GameLaunchMessageBuilder;
-import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.NewGameInfoBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
@@ -45,6 +44,7 @@ import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.NoticeInfo;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.stage.Stage;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -274,7 +274,7 @@ public class GameRunnerTest extends ServiceTest {
                                                                     .ratingType("ladder_1v1")
                                                                     .get();
     mockStartGameProcess(gameLaunchResponse);
-    LeagueEntryBean leagueEntry = LeagueEntryBeanBuilder.create().defaultValues().get();
+    LeagueEntryBean leagueEntry = Instancio.create(LeagueEntryBean.class);
     when(leaderboardService.getActiveLeagueEntryForPlayer(any(), any())).thenReturn(Mono.just(leagueEntry));
 
     instance.startOnlineGame(gameLaunchResponse);
@@ -287,8 +287,8 @@ public class GameRunnerTest extends ServiceTest {
     verify(mapService).downloadIfNecessary(gameParameters.mapName());
 
     assertNotNull(gameParameters.league());
-    assertEquals(leagueEntry.getSubdivision().getDivision().nameKey(), gameParameters.league().division());
-    assertEquals(leagueEntry.getSubdivision().getNameKey(), gameParameters.league().subDivision());
+    assertEquals(leagueEntry.subdivision().division().nameKey(), gameParameters.league().division());
+    assertEquals(leagueEntry.subdivision().nameKey(), gameParameters.league().subDivision());
   }
 
   @Test

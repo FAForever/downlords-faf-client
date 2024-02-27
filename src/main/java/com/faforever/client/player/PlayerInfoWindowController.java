@@ -277,8 +277,9 @@ public class PlayerInfoWindowController extends NodeController<Node> {
                                                                            if (leagueSeasonBeans.stream()
                                                                                                 .anyMatch(
                                                                                                     season -> Objects.equals(
-                                                                                                        season.getLeaderboard(),
-                                                                                                        leaderboard))) {
+                                                                                                        season.leagueLeaderboard()
+                                                                                                              .technicalName(),
+                                                                                                        leaderboard.technicalName()))) {
                                                                              leaderboardService.getActiveLeagueEntryForPlayer(
                                                                                                    player, leaderboard.technicalName())
                                                                                                .subscribe(

@@ -53,10 +53,10 @@ public interface LeaderboardMapper {
 
   League map(LeagueBean bean, @Context CycleAvoidingMappingContext context);
 
-  @Mapping(target = "leaderboard", source = "leagueLeaderboard")
+  @Mapping(target = "leagueLeaderboard", source = "leagueLeaderboard")
   LeagueSeasonBean map(LeagueSeason dto, @Context CycleAvoidingMappingContext context);
 
-  @Mapping(target = "leagueLeaderboard", source = "leaderboard")
+  @Mapping(target = "leagueLeaderboard", source = "leagueLeaderboard")
   LeagueSeason map(LeagueSeasonBean bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "index", source = "divisionIndex")
@@ -76,9 +76,8 @@ public interface LeaderboardMapper {
   @Mapping(target = "gamesPlayed", source = "source.gameCount")
   @Mapping(target = "subdivision", source = "source.leagueSeasonDivisionSubdivision")
   @Mapping(target = "id", source = "source.id")
-  @Mapping(target = "createTime", source = "source.createTime")
-  @Mapping(target = "updateTime", source = "source.updateTime")
-  LeagueEntryBean map(LeagueSeasonScore source, PlayerBean player, @Context CycleAvoidingMappingContext context);
+  LeagueEntryBean map(LeagueSeasonScore source, PlayerBean player, Long rank,
+                      @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "loginId", source = "player.id")
   @Mapping(target = "gameCount", source = "gamesPlayed")
