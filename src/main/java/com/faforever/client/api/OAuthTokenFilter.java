@@ -20,7 +20,15 @@ public class OAuthTokenFilter implements ExchangeFilterFunction {
   @Override
   public @NotNull Mono<ClientResponse> filter(@NotNull ClientRequest request, @NotNull ExchangeFunction next) {
     return tokenRetriever.getRefreshedTokenValue().flatMap(token -> next.exchange(ClientRequest.from(request)
-        .headers(headers -> headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                                                                                               .headers(headers -> {
+                                                                                                 log.info(
+                                                                                                     "{} --> Using Bearer token: {}",
+                                                                                                     request.url(),
+                                                                                                     token);
+                                                                                                 headers.add(
+                                                                                                     HttpHeaders.AUTHORIZATION,
+                                                                                                     "Bearer " + token);
+                                                                                               })
         .build()));
   }
 }
