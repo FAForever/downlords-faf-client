@@ -19,6 +19,7 @@ import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -96,10 +97,11 @@ public class CoopControllerTest extends PlatformTest {
 
   @Test
   public void onPlayButtonClicked() {
-    when(coopService.getMissions()).thenReturn(Flux.just(new CoopMissionBean()));
+    CoopMissionBean coopMission = Instancio.create(CoopMissionBean.class);
+    when(coopService.getMissions()).thenReturn(Flux.just(coopMission));
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
-    instance.missionComboBox.getSelectionModel().select(new CoopMissionBean());
+    instance.missionComboBox.getSelectionModel().select(coopMission);
 
     WaitForAsyncUtils.waitForFxEvents();
     instance.onPlayButtonClicked();
@@ -140,7 +142,7 @@ public class CoopControllerTest extends PlatformTest {
 
     when(coopService.getLeaderboard(any(), eq(1))).thenReturn(Flux.fromIterable(result));
 
-    instance.missionComboBox.getSelectionModel().select(new CoopMissionBean());
+    instance.missionComboBox.getSelectionModel().select(Instancio.create(CoopMissionBean.class));
 
     runOnFxThreadAndWait(() -> {
       reinitialize(instance);
@@ -172,7 +174,7 @@ public class CoopControllerTest extends PlatformTest {
 
     when(coopService.getLeaderboard(any(), eq(2))).thenReturn(Flux.fromIterable(result));
 
-    instance.missionComboBox.getSelectionModel().select(new CoopMissionBean());
+    instance.missionComboBox.getSelectionModel().select(Instancio.create(CoopMissionBean.class));
 
     runOnFxThreadAndWait(() -> {
       reinitialize(instance);
@@ -217,7 +219,7 @@ public class CoopControllerTest extends PlatformTest {
 
     when(coopService.getLeaderboard(any(), eq(0))).thenReturn(Flux.fromIterable(result));
 
-    instance.missionComboBox.getSelectionModel().select(new CoopMissionBean());
+    instance.missionComboBox.getSelectionModel().select(Instancio.create(CoopMissionBean.class));
 
     runOnFxThreadAndWait(() -> {
       reinitialize(instance);

@@ -37,7 +37,7 @@ public class CoopService {
 
   @Cacheable(value = CacheNames.COOP_LEADERBOARD, sync = true)
   public Flux<CoopResultBean> getLeaderboard(CoopMissionBean mission, int numberOfPlayers) {
-    Condition<?> filterCondition = qBuilder().intNum("mission").eq(mission.getId());
+    Condition<?> filterCondition = qBuilder().intNum("mission").eq(mission.id());
     if (numberOfPlayers > 0) {
       filterCondition = filterCondition.and().intNum("playerCount").eq(numberOfPlayers);
     }

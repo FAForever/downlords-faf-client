@@ -119,8 +119,7 @@ public class CoopController extends NodeController<Node> {
 
     mapPreviewImageView.imageProperty()
                        .bind(missionComboBox.getSelectionModel()
-                                            .selectedItemProperty()
-                                            .flatMap(CoopMissionBean::mapFolderNameProperty)
+                                            .selectedItemProperty().map(CoopMissionBean::mapFolderName)
                                             .map(folderName -> mapService.loadPreview(folderName, PreviewSize.LARGE))
                                             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
                                             .when(showing));
@@ -218,10 +217,8 @@ public class CoopController extends NodeController<Node> {
   }
 
   private String coopMissionFromFolderName(List<CoopMissionBean> coopMaps, String mapFolderName) {
-    return coopMaps.stream()
-                   .filter(coopMission -> coopMission.getMapFolderName().equalsIgnoreCase(mapFolderName))
-                   .findFirst()
-                   .map(CoopMissionBean::getName)
+    return coopMaps.stream().filter(coopMission -> coopMission.mapFolderName().equalsIgnoreCase(mapFolderName))
+                   .findFirst().map(CoopMissionBean::name)
                    .orElse(i18n.get("coop.unknownMission"));
   }
 
@@ -243,12 +240,12 @@ public class CoopController extends NodeController<Node> {
   }
 
   private ListCell<CoopMissionBean> missionListCell() {
-    return new StringListCell<>(fxApplicationThreadExecutor, CoopMissionBean::getName, mission -> {
+    return new StringListCell<>(fxApplicationThreadExecutor, CoopMissionBean::name, mission -> {
       Label label = new Label();
       Region iconRegion = new Region();
       label.setGraphic(iconRegion);
       iconRegion.getStyleClass().add(ThemeService.CSS_CLASS_ICON);
-      switch (mission.getCategory()) {
+      switch (mission.category()) {
         case AEON -> iconRegion.getStyleClass().add(ThemeService.AEON_STYLE_CLASS);
         case CYBRAN -> iconRegion.getStyleClass().add(ThemeService.CYBRAN_STYLE_CLASS);
         case UEF -> iconRegion.getStyleClass().add(ThemeService.UEF_STYLE_CLASS);
@@ -306,7 +303,7 @@ public class CoopController extends NodeController<Node> {
       return;
     }
     fxApplicationThreadExecutor.execute(() -> {
-      String description = mission.getDescription();
+      String description = mission.description();
       if (description != null) {
         descriptionWebView.getEngine().loadContent(description);
       }
@@ -316,7 +313,7 @@ public class CoopController extends NodeController<Node> {
 
   public void onPlayButtonClicked() {
     gameRunner.host(new NewGameInfo(titleTextField.getText(), Strings.emptyToNull(passwordTextField.getText()),
-                                    COOP.getTechnicalName(), getSelectedMission().getMapFolderName(), Set.of()));
+                                    COOP.getTechnicalName(), getSelectedMission().mapFolderName(), Set.of()));
   }
 
   public void onMapPreviewImageClicked() {

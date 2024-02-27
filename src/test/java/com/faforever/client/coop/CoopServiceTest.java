@@ -1,7 +1,6 @@
 package com.faforever.client.coop;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.CoopMissionBeanBuilder;
 import com.faforever.client.builders.CoopResultBeanBuilder;
 import com.faforever.client.domain.CoopMissionBean;
 import com.faforever.client.domain.CoopResultBean;
@@ -11,6 +10,7 @@ import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.elide.ElideEntity;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -47,7 +47,7 @@ public class CoopServiceTest extends ServiceTest {
 
   @Test
   public void testGetCoopMaps() throws Exception {
-    CoopMissionBean coopMissionBean = CoopMissionBeanBuilder.create().defaultValues().get();
+    CoopMissionBean coopMissionBean = Instancio.create(CoopMissionBean.class);
 
     Flux<ElideEntity> resultFlux = Flux.just(coopMapper.map(coopMissionBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
@@ -61,10 +61,10 @@ public class CoopServiceTest extends ServiceTest {
 
     Flux<ElideEntity> resultFlux = Flux.just(coopMapper.map(coopResultBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    CoopMissionBean mission = CoopMissionBeanBuilder.create().defaultValues().get();
+    CoopMissionBean mission = Instancio.create(CoopMissionBean.class);
     StepVerifier.create(instance.getLeaderboard(mission, 2)).expectNext(coopResultBean).verifyComplete();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1000)));
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("mission").eq(mission.getId())
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("mission").eq(mission.id())
         .and().intNum("playerCount").eq(2))));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("duration", true)));
   }
