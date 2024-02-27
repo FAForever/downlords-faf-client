@@ -54,7 +54,7 @@ public class LeaderboardService {
   private final PlayerService playerService;
 
   private static final Comparator<SubdivisionBean> SUBDIVISION_COMPARATOR = Comparator.comparing(
-                                                                                          SubdivisionBean::getDivision, Comparator.comparing(DivisionBean::getIndex))
+                                                                                          SubdivisionBean::getDivision, Comparator.comparing(DivisionBean::index))
                                                                                       .thenComparing(
                                                                                           SubdivisionBean::getIndex);
 
@@ -206,7 +206,7 @@ public class LeaderboardService {
                          .flatMapMany(this::mapLeagueEntryDtoToBean)
                          .sort(Comparator.comparing(LeagueEntryBean::getSubdivision,
                                                     Comparator.comparing(SubdivisionBean::getDivision,
-                                                                         Comparator.comparing(DivisionBean::getIndex))
+                                                                         Comparator.comparing(DivisionBean::index))
                                                               .thenComparing(SubdivisionBean::getIndex))
                                          .thenComparing(LeagueEntryBean::getScore)
                                          .reversed())

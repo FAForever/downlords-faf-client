@@ -1,6 +1,5 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.builders.DivisionBeanBuilder;
 import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.LeagueSeasonBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
@@ -18,6 +17,7 @@ import com.faforever.client.test.PlatformTest;
 import com.faforever.client.util.TimeService;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -27,6 +27,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -63,7 +64,11 @@ public class LeaderboardControllerTest extends PlatformTest {
 
   private PlayerBean player;
   private LeagueSeasonBean season;
-  private final DivisionBean division = DivisionBeanBuilder.create().defaultValues().nameKey("silver").index(2).get();
+  private final DivisionBean division = Instancio.of(DivisionBean.class)
+                                                 .set(field(DivisionBean::nameKey), "silver")
+                                                 .set(field(DivisionBean::index), 2)
+                                                 .create();
+
   private final SubdivisionBean subdivisionBean2 = SubdivisionBeanBuilder.create()
                                                                          .defaultValues()
                                                                          .id(2)

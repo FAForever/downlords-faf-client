@@ -391,7 +391,7 @@ public class GameRunner implements InitializingBean {
                              .map(LeagueEntryBean::getSubdivision)
                              .map(subdivision -> {
                                DivisionBean divisionBean = subdivision.getDivision();
-                               String division = divisionBean == null ? null : divisionBean.getNameKey();
+                               String division = divisionBean == null ? null : divisionBean.nameKey();
                                String subDivision = subdivision.getNameKey();
                                return new League(division, subDivision);
                              })

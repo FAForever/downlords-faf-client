@@ -287,7 +287,7 @@ public class GameRunnerTest extends ServiceTest {
     verify(mapService).downloadIfNecessary(gameParameters.mapName());
 
     assertNotNull(gameParameters.league());
-    assertEquals(leagueEntry.getSubdivision().getDivision().getNameKey(), gameParameters.league().division());
+    assertEquals(leagueEntry.getSubdivision().getDivision().nameKey(), gameParameters.league().division());
     assertEquals(leagueEntry.getSubdivision().getNameKey(), gameParameters.league().subDivision());
   }
 

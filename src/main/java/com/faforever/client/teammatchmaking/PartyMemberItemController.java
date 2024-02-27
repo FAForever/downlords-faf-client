@@ -148,9 +148,9 @@ public class PartyMemberItemController extends NodeController<Node> {
                       .publishOn(fxApplicationThreadExecutor.asScheduler())
                       .subscribe(subdivision -> {
                         leagueLabel.setText(i18n.get("leaderboard.divisionName",
-                                                     i18n.getOrDefault(subdivision.getDivision().getNameKey(),
+                                                     i18n.getOrDefault(subdivision.getDivision().nameKey(),
                                                                        "leagues.divisionName.%s".formatted(
-                                                                           subdivision.getDivision().getNameKey())),
+                                                                           subdivision.getDivision().nameKey())),
                                                      subdivision.getNameKey()).toUpperCase());
                         leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
                         leagueImageView.setVisible(true);

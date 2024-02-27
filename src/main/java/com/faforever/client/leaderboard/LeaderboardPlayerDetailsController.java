@@ -52,7 +52,7 @@ public class LeaderboardPlayerDetailsController extends NodeController<HBox> {
     scoreLabel.setText(i18n.get("leaderboard.score").toUpperCase());
 
     playerDivisionNameLabel.textProperty().bind(leagueEntry.map(LeagueEntryBean::getSubdivision).map(subdivision -> {
-      String divisionName = i18n.get("leagues.divisionName.%s".formatted(subdivision.getDivision().getNameKey()));
+      String divisionName = i18n.get("leagues.divisionName.%s".formatted(subdivision.getDivision().nameKey()));
       return i18n.get("leaderboard.divisionName", divisionName, subdivision.getNameKey());
     }).map(String::toUpperCase));
 

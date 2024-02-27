@@ -83,7 +83,7 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
     subdivisionButtons.prefWidthProperty().bind(ratingTable.widthProperty());
 
     divisionPicker.setConverter(new ToStringOnlyConverter<>(
-        division -> i18n.get("leagues.divisionName.%s".formatted(division.getNameKey())).toUpperCase()));
+        division -> i18n.get("leagues.divisionName.%s".formatted(division.nameKey())).toUpperCase()));
 
     subdivisions.map(this::getDivisions).map(FXCollections::observableList).when(showing).subscribe(divisions -> {
       divisionPicker.setItems(divisions);
@@ -234,8 +234,7 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
   private List<DivisionBean> getDivisions(List<SubdivisionBean> subdivisions) {
     return subdivisions.stream()
                        .map(SubdivisionBean::getDivision)
-                       .distinct()
-                       .sorted(Comparator.comparing(DivisionBean::getIndex).reversed())
+                       .distinct().sorted(Comparator.comparing(DivisionBean::index).reversed())
                        .toList();
   }
 

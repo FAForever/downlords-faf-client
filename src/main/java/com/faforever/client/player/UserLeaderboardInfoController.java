@@ -75,9 +75,9 @@ public class UserLeaderboardInfoController extends NodeController<Node> {
   public void setLeagueInfo(LeagueEntryBean leagueEntry) {
     Image image = leaderboardService.loadDivisionImage(leagueEntry.getSubdivision().getImageUrl());
     String divisionName = i18n.get("leaderboard.divisionName",
-                                   i18n.getOrDefault(leagueEntry.getSubdivision().getDivision().getNameKey(),
+                                   i18n.getOrDefault(leagueEntry.getSubdivision().getDivision().nameKey(),
                                                      "leagues.divisionName.%s".formatted(
-                                                         leagueEntry.getSubdivision().getDivision().getNameKey())),
+                                                         leagueEntry.getSubdivision().getDivision().nameKey())),
         leagueEntry.getSubdivision().getNameKey()).toUpperCase();
 
     fxApplicationThreadExecutor.execute(() -> {

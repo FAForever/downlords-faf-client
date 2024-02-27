@@ -96,8 +96,8 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
     List<String> categories = subdivisions.stream()
                                           .map(SubdivisionBean::getDivision)
                                           .distinct()
-                                          .sorted(Comparator.comparing(DivisionBean::getIndex))
-                                          .map(DivisionBean::getNameKey)
+                                          .sorted(Comparator.comparing(DivisionBean::index))
+                                          .map(DivisionBean::nameKey)
                                           .map(nameKey -> i18n.get("leagues.divisionName.%s".formatted(nameKey)))
                                           .toList();
     xAxis.setCategories(FXCollections.observableList(categories));
@@ -140,7 +140,7 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
 
   private Data<String, Integer> createSubdivisionData(SubdivisionBean subdivision) {
     Data<String, Integer> data = new Data<>();
-    data.setXValue(i18n.get("leagues.divisionName.%s".formatted(subdivision.getDivision().getNameKey())));
+    data.setXValue(i18n.get("leagues.divisionName.%s".formatted(subdivision.getDivision().nameKey())));
     data.setYValue(0);
 
 

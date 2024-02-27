@@ -1,6 +1,5 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.builders.DivisionBeanBuilder;
 import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.SubdivisionBeanBuilder;
@@ -13,6 +12,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
 import javafx.beans.property.SimpleObjectProperty;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -24,6 +24,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 
@@ -51,8 +52,8 @@ public class LeaderboardRankingsControllerTest extends PlatformTest {
 
   @Test
   public void testSetRankings() {
-    DivisionBean divisionBean1 = DivisionBeanBuilder.create().defaultValues().id(1).index(1).get();
-    DivisionBean divisionBean2 = DivisionBeanBuilder.create().defaultValues().id(2).index(2).get();
+    DivisionBean divisionBean1 = Instancio.of(DivisionBean.class).set(field(DivisionBean::index), 1).create();
+    DivisionBean divisionBean2 = Instancio.of(DivisionBean.class).set(field(DivisionBean::index), 2).create();
     SubdivisionBean subdivision1 = SubdivisionBeanBuilder.create()
                                                          .defaultValues()
                                                          .id(1)

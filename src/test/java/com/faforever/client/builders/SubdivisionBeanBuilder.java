@@ -2,6 +2,7 @@ package com.faforever.client.builders;
 
 import com.faforever.client.domain.DivisionBean;
 import com.faforever.client.domain.SubdivisionBean;
+import org.instancio.Instancio;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -21,7 +22,7 @@ public class SubdivisionBeanBuilder {
     highestScore(10);
     maxRating(100);
     minRating(-100);
-    division(DivisionBeanBuilder.create().defaultValues().get());
+    division(Instancio.create(DivisionBean.class));
     try {
       imageUrl(new URL("https:example.com/test_nameI.png"));
     } catch (MalformedURLException ignored) {}
