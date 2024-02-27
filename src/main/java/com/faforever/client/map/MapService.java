@@ -632,14 +632,14 @@ public class MapService implements InitializingBean, DisposableBean {
   public Mono<Tuple2<List<MapVersionBean>, Integer>> getMatchmakerMapsWithPageCount(
       MatchmakerQueueBean matchmakerQueue, int count, int page) {
     PlayerBean player = playerService.getCurrentPlayer();
-    float rating = Optional.ofNullable(player.getLeaderboardRatings())
+    double rating = Optional.ofNullable(player.getLeaderboardRatings())
                            .map(ratings -> ratings.get(matchmakerQueue.getLeaderboard().technicalName()))
-                           .map(ratingBean -> ratingBean.getMean() - 3 * ratingBean.getDeviation())
-                           .orElse(0f);
+                            .map(ratingBean -> ratingBean.mean() - 3 * ratingBean.deviation())
+                            .orElse(0d);
     ElideNavigatorOnCollection<MapPoolAssignment> navigator = ElideNavigator.of(MapPoolAssignment.class).collection();
     List<Condition<?>> conditions = new ArrayList<>();
     conditions.add(qBuilder().intNum("mapPool.matchmakerQueueMapPool.matchmakerQueue.id").eq(matchmakerQueue.getId()));
-    conditions.add(qBuilder().floatNum("mapPool.matchmakerQueueMapPool.minRating")
+    conditions.add(qBuilder().doubleNum("mapPool.matchmakerQueueMapPool.minRating")
                              .lte(rating)
                              .or()
                              .floatNum("mapPool.matchmakerQueueMapPool.minRating")

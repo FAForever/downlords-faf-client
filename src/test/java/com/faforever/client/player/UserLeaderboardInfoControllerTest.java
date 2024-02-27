@@ -1,6 +1,5 @@
 package com.faforever.client.player;
 
-import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingMapBuilder;
 import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
@@ -64,12 +63,11 @@ public class UserLeaderboardInfoControllerTest extends PlatformTest {
     when(i18n.getOrDefault(leaderboard.technicalName(), leaderboard.nameKey())).thenReturn(leaderboard.technicalName());
     when(i18n.get("leaderboard.gameNumber", 47)).thenReturn("47 games");
     when(i18n.get("leaderboard.rating", 200)).thenReturn("200 rating");
-    final LeaderboardRatingBean leaderboardRating = LeaderboardRatingBeanBuilder.create()
-        .defaultValues()
-        .numberOfGames(47)
-        .mean(500)
-        .deviation(100)
-        .get();
+    final LeaderboardRatingBean leaderboardRating = Instancio.of(LeaderboardRatingBean.class)
+                                                             .set(field(LeaderboardRatingBean::mean), 500)
+                                                             .set(field(LeaderboardRatingBean::deviation), 100)
+                                                             .set(field(LeaderboardRatingBean::numberOfGames), 47)
+                                                             .create();
     player.setLeaderboardRatings(
         LeaderboardRatingMapBuilder.create().put(leaderboard.technicalName(), leaderboardRating).get());
 

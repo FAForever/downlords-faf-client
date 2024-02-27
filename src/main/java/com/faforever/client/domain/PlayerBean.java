@@ -44,7 +44,7 @@ public class PlayerBean extends AbstractEntityBean {
                                                                    .orElse(PlayerGameStatus.IDLE);
   private final StringProperty note = new SimpleStringProperty();
   private final ObservableValue<Integer> numberOfGames = leaderboardRatings.map(
-      ratings -> ratings.values().stream().mapToInt(LeaderboardRatingBean::getNumberOfGames).sum()).orElse(0);
+      ratings -> ratings.values().stream().mapToInt(LeaderboardRatingBean::numberOfGames).sum()).orElse(0);
 
   public SocialStatus getSocialStatus() {
     return socialStatus.get();
@@ -172,7 +172,7 @@ public class PlayerBean extends AbstractEntityBean {
 
   public int getNumberOfGamesForLeaderboard(final String leaderboardName) {
     return Optional.ofNullable(leaderboardRatings.get()).map(ratings -> ratings.get(leaderboardName))
-                   .map(LeaderboardRatingBean::getNumberOfGames)
+                   .map(LeaderboardRatingBean::numberOfGames)
                    .orElse(0);
   }
 

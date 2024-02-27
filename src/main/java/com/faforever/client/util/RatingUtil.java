@@ -42,7 +42,7 @@ public final class RatingUtil {
   }
 
   public static int getRating(LeaderboardRatingBean leaderboardRating) {
-    return (int) (leaderboardRating.getMean() - 3f * leaderboardRating.getDeviation());
+    return (int) (leaderboardRating.mean() - 3f * leaderboardRating.deviation());
   }
 
   public static int getRating(double ratingMean, double ratingDeviation) {

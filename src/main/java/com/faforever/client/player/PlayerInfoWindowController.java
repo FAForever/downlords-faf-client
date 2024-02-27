@@ -250,10 +250,8 @@ public class PlayerInfoWindowController extends NodeController<Node> {
     return leaderboardService.getEntriesForPlayer(player).collectList().doOnNext(leaderboardEntryBeans -> {
       Map<String, LeaderboardRatingBean> ratingMap = new HashMap<>();
       leaderboardEntryBeans.forEach(leaderboardEntryBean -> {
-        LeaderboardRatingBean rating = new LeaderboardRatingBean();
-        rating.setDeviation(0);
-        rating.setMean((float) leaderboardEntryBean.rating());
-        rating.setNumberOfGames(leaderboardEntryBean.gamesPlayed());
+        LeaderboardRatingBean rating = new LeaderboardRatingBean(0, leaderboardEntryBean.rating(),
+                                                                 leaderboardEntryBean.gamesPlayed());
         ratingMap.put(leaderboardEntryBean.leaderboard().technicalName(), rating);
       });
       player.setLeaderboardRatings(ratingMap);

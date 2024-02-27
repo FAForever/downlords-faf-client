@@ -1,9 +1,12 @@
 package com.faforever.client.builders;
 
 import com.faforever.client.domain.LeaderboardRatingBean;
+import org.instancio.Instancio;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.instancio.Select.field;
 
 public class LeaderboardRatingMapBuilder {
   private final Map<String, LeaderboardRatingBean> leaderboardRatingMap = new HashMap<>();
@@ -13,8 +16,8 @@ public class LeaderboardRatingMapBuilder {
   }
 
   public LeaderboardRatingMapBuilder defaultValues() {
-    put("ladder_1v1", LeaderboardRatingBeanBuilder.create().defaultValues().get());
-    put("global", LeaderboardRatingBeanBuilder.create().defaultValues().get());
+    put("ladder_1v1", Instancio.create(LeaderboardRatingBean.class));
+    put("global", Instancio.create(LeaderboardRatingBean.class));
     return this;
   }
 
@@ -24,7 +27,11 @@ public class LeaderboardRatingMapBuilder {
   }
 
   public LeaderboardRatingMapBuilder put(String ratingType, float mean, float deviation, int numGames) {
-    leaderboardRatingMap.put(ratingType, LeaderboardRatingBeanBuilder.create().mean(mean).deviation(deviation).numberOfGames(numGames).get());
+    leaderboardRatingMap.put(ratingType, Instancio.of(LeaderboardRatingBean.class)
+                                                  .set(field(LeaderboardRatingBean::mean), mean)
+                                                  .set(field(LeaderboardRatingBean::deviation), deviation)
+                                                  .set(field(LeaderboardRatingBean::numberOfGames), numGames)
+                                                  .create());
     return this;
   }
 

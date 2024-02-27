@@ -56,8 +56,8 @@ public class ForgedAllianceLaunchService {
                                                                 .map(
                                                                     rating -> rating.get(gameParameters.leaderboard()));
 
-    float mean = leaderboardRating.map(LeaderboardRatingBean::getMean).orElse(0f);
-    float deviation = leaderboardRating.map(LeaderboardRatingBean::getDeviation).orElse(0f);
+    double mean = leaderboardRating.map(LeaderboardRatingBean::mean).orElse(0d);
+    double deviation = leaderboardRating.map(LeaderboardRatingBean::deviation).orElse(0d);
 
     int uid = gameParameters.uid();
 

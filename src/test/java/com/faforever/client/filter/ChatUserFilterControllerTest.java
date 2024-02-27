@@ -2,12 +2,12 @@ package com.faforever.client.filter;
 
 import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.ChatChannel;
 import com.faforever.client.chat.ChatListItem;
 import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.domain.LeaderboardBean;
+import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -75,7 +75,8 @@ public class ChatUserFilterControllerTest extends PlatformTest {
   public void setUp() throws Exception {
     // Order is important
     when(uiService.loadFxml(anyString())).thenReturn(clanFilter, playerStatusFilter, countryFilter);
-    when(uiService.loadFxml(anyString(), eq(RangeSliderWithChoiceFilterController.class))).thenReturn(playerRatingFilter);
+    when(uiService.loadFxml(anyString(), eq(RangeSliderWithChoiceFilterController.class))).thenReturn(
+        playerRatingFilter);
     when(leaderboardService.getLeaderboards()).thenReturn(Flux.just(ladder, global));
 
     loadFxml("theme/filter/filter.fxml", clazz -> instance, instance);
@@ -83,13 +84,15 @@ public class ChatUserFilterControllerTest extends PlatformTest {
 
   @Test
   public void testClanFilter() {
-    ArgumentCaptor<BiFunction<String, ChatListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<String, ChatListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(
+        BiFunction.class);
     verify(clanFilter).registerListener(argumentCaptor.capture());
 
     ChatListItem category = new ChatListItem(null, ChatUserCategory.FRIEND, null, null);
     ChatListItem user1 = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
-        .player(PlayerBeanBuilder.create().clan("clan_lenta").get())
-        .get(), ChatUserCategory.FRIEND, null, null);
+                                                                .player(
+                                                                    PlayerBeanBuilder.create().clan("clan_lenta").get())
+                                                                .get(), ChatUserCategory.FRIEND, null, null);
     ChatListItem user2 = new ChatListItem(ChatChannelUserBuilder.create("user2", CHANNEL).get(),
                                           ChatUserCategory.FRIEND, null, null);
     BiFunction<String, ChatListItem, Boolean> filter = argumentCaptor.getValue();
@@ -114,15 +117,23 @@ public class ChatUserFilterControllerTest extends PlatformTest {
     verify(playerStatusFilter).registerListener(argumentCaptor.capture());
 
     ChatListItem category = new ChatListItem(null, ChatUserCategory.FRIEND, null, null);
-    ChatListItem idleUser = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL).player(
-        PlayerBeanBuilder.create().defaultValues().game(null).get()
-    ).get(), ChatUserCategory.FRIEND, null, null);
-    ChatListItem busyUser = new ChatListItem(ChatChannelUserBuilder.create("user2", CHANNEL).player(
-        PlayerBeanBuilder.create()
-            .defaultValues()
-            .game(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get())
-            .get()
-    ).get(), ChatUserCategory.FRIEND, null, null);
+    ChatListItem idleUser = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
+                                                                   .player(PlayerBeanBuilder.create()
+                                                                                            .defaultValues()
+                                                                                            .game(null)
+                                                                                            .get())
+                                                                   .get(), ChatUserCategory.FRIEND, null, null);
+    ChatListItem busyUser = new ChatListItem(ChatChannelUserBuilder.create("user2", CHANNEL)
+                                                                   .player(PlayerBeanBuilder.create()
+                                                                                            .defaultValues()
+                                                                                            .game(
+                                                                                                GameBeanBuilder.create()
+                                                                                                               .defaultValues()
+                                                                                                               .status(
+                                                                                                                   GameStatus.PLAYING)
+                                                                                                               .get())
+                                                                                            .get())
+                                                                   .get(), ChatUserCategory.FRIEND, null, null);
     BiFunction<List<PlayerGameStatus>, ChatListItem, Boolean> filter = argumentCaptor.getValue();
 
     List<PlayerGameStatus> emptyList = Collections.emptyList();
@@ -143,33 +154,67 @@ public class ChatUserFilterControllerTest extends PlatformTest {
 
   @Test
   public void testPlayerRatingFilter() {
-    ArgumentCaptor<BiFunction<ItemWithRange<LeaderboardBean, Integer>, ChatListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<ItemWithRange<LeaderboardBean, Integer>, ChatListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(
+        BiFunction.class);
     verify(playerRatingFilter).registerListener(argumentCaptor.capture());
 
     ChatListItem category = new ChatListItem(null, ChatUserCategory.FRIEND, null, null);
     ChatListItem user1 = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
-        .player(PlayerBeanBuilder.create()
-            .defaultValues()
-            .leaderboardRatings(Map.of("ladder", LeaderboardRatingBeanBuilder.create()
-                    .defaultValues()
-                    .mean(2000)
-                    .deviation(0)
-                    .get(),
-                "global", LeaderboardRatingBeanBuilder.create().defaultValues().mean(1000).deviation(0).get()))
-            .get()).get(), ChatUserCategory.FRIEND, null, null);
+                                                                .player(PlayerBeanBuilder.create()
+                                                                                         .defaultValues()
+                                                                                         .leaderboardRatings(
+                                                                                             Map.of("ladder",
+                                                                                                    Instancio.of(
+                                                                                                                 LeaderboardRatingBean.class)
+                                                                                                             .set(field(
+                                                                                                                      LeaderboardRatingBean::mean),
+                                                                                                                  2000)
+                                                                                                             .set(field(
+                                                                                                                      LeaderboardRatingBean::deviation),
+                                                                                                                  0)
+                                                                                                             .create(),
+                                                                                                    "global",
+                                                                                                    Instancio.of(
+                                                                                                                 LeaderboardRatingBean.class)
+                                                                                                             .set(field(
+                                                                                                                      LeaderboardRatingBean::mean),
+                                                                                                                  1500)
+                                                                                                             .set(field(
+                                                                                                                      LeaderboardRatingBean::deviation),
+                                                                                                                  0)
+                                                                                                             .create()))
+                                                                                         .get())
+                                                                .get(), ChatUserCategory.FRIEND, null, null);
     ChatListItem user2 = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
-        .player(PlayerBeanBuilder.create()
-            .defaultValues()
-            .leaderboardRatings(Map.of("ladder", LeaderboardRatingBeanBuilder.create()
-                    .defaultValues()
-                    .mean(1500)
-                    .deviation(0)
-                    .get(),
-                "global", LeaderboardRatingBeanBuilder.create().defaultValues().mean(1500).deviation(0).get()))
-            .get()).get(), ChatUserCategory.FRIEND, null, null);
+                                                                .player(PlayerBeanBuilder.create()
+                                                                                         .defaultValues()
+                                                                                         .leaderboardRatings(
+                                                                                             Map.of("ladder",
+                                                                                                    Instancio.of(
+                                                                                                                 LeaderboardRatingBean.class)
+                                                                                                             .set(field(
+                                                                                                                      LeaderboardRatingBean::mean),
+                                                                                                                  1500)
+                                                                                                             .set(field(
+                                                                                                                      LeaderboardRatingBean::deviation),
+                                                                                                                  0)
+                                                                                                             .create(),
+                                                                                                    "global",
+                                                                                                    Instancio.of(
+                                                                                                                 LeaderboardRatingBean.class)
+                                                                                                             .set(field(
+                                                                                                                      LeaderboardRatingBean::mean),
+                                                                                                                  1500)
+                                                                                                             .set(field(
+                                                                                                                      LeaderboardRatingBean::deviation),
+                                                                                                                  0)
+                                                                                                             .create()))
+                                                                                         .get())
+                                                                .get(), ChatUserCategory.FRIEND, null, null);
     BiFunction<ItemWithRange<LeaderboardBean, Integer>, ChatListItem, Boolean> filter = argumentCaptor.getValue();
 
-    ItemWithRange<LeaderboardBean, Integer> noChange = new ItemWithRange<>(ladder, AbstractRangeSliderFilterController.NO_CHANGE);
+    ItemWithRange<LeaderboardBean, Integer> noChange = new ItemWithRange<>(ladder,
+                                                                           AbstractRangeSliderFilterController.NO_CHANGE);
     assertTrue(filter.apply(noChange, category));
     assertTrue(filter.apply(noChange, user1));
     assertTrue(filter.apply(noChange, user2));
@@ -192,16 +237,23 @@ public class ChatUserFilterControllerTest extends PlatformTest {
 
   @Test
   public void testCountryCodeFilter() {
-    ArgumentCaptor<BiFunction<List<Country>, ChatListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<List<Country>, ChatListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(
+        BiFunction.class);
     verify(countryFilter).registerListener(argumentCaptor.capture());
 
     ChatListItem category = new ChatListItem(null, ChatUserCategory.FRIEND, null, null);
     ChatListItem russiaUser = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
-        .player(PlayerBeanBuilder.create().defaultValues().country("ru").get())
-        .get(), ChatUserCategory.FRIEND, null, null);
+                                                                     .player(PlayerBeanBuilder.create()
+                                                                                              .defaultValues()
+                                                                                              .country("ru")
+                                                                                              .get())
+                                                                     .get(), ChatUserCategory.FRIEND, null, null);
     ChatListItem americanUser = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
-        .player(PlayerBeanBuilder.create().defaultValues().country("us").get())
-        .get(), ChatUserCategory.FRIEND, null, null);
+                                                                       .player(PlayerBeanBuilder.create()
+                                                                                                .defaultValues()
+                                                                                                .country("us")
+                                                                                                .get())
+                                                                       .get(), ChatUserCategory.FRIEND, null, null);
     BiFunction<List<Country>, ChatListItem, Boolean> filter = argumentCaptor.getValue();
 
     List<Country> emptyList = Collections.emptyList();

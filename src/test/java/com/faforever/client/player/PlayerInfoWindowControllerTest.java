@@ -3,7 +3,6 @@ package com.faforever.client.player;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.builders.AchievementDefinitionBuilder;
-import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingJournalBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingMapBuilder;
 import com.faforever.client.builders.LeagueSeasonBeanBuilder;
@@ -35,6 +34,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -148,12 +148,11 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
     when(leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard.technicalName())).thenReturn(
         Mono.empty());
     when(userLeaderboardInfoController.getRoot()).thenReturn(new VBox());
-    final LeaderboardRatingBean leaderboardRating = LeaderboardRatingBeanBuilder.create()
-        .defaultValues()
-        .numberOfGames(47)
-        .mean(500)
-        .deviation(100)
-        .get();
+    final LeaderboardRatingBean leaderboardRating = Instancio.of(LeaderboardRatingBean.class)
+                                                             .set(field(LeaderboardRatingBean::mean), 500)
+                                                             .set(field(LeaderboardRatingBean::deviation), 100)
+                                                             .set(field(LeaderboardRatingBean::numberOfGames), 47)
+                                                             .create();
     player.setLeaderboardRatings(
         LeaderboardRatingMapBuilder.create().put(leaderboard.technicalName(), leaderboardRating).get());
 
