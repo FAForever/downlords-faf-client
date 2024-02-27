@@ -31,7 +31,9 @@ public abstract class ClanMapper {
   public List<ClanMembership> mapMembership(ClanBean bean, @Context CycleAvoidingMappingContext context) {
     Clan clan = map(bean, context);
     List<ClanMembership> memberships = new ArrayList<>();
-    bean.getMembers().forEach(playerBean -> memberships.add(new ClanMembership().setClan(clan).setPlayer(playerMapper.map(playerBean, context))));
+    bean.members()
+        .forEach(playerBean -> memberships.add(
+            new ClanMembership().setClan(clan).setPlayer(playerMapper.map(playerBean, context))));
     return memberships;
   }
 }

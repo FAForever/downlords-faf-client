@@ -38,11 +38,11 @@ public class ClanTooltipController extends NodeController<Node> {
   }
 
   public void setClan(ClanBean clan) {
-    nameLabel.setText(clan.getName());
-    membersLabel.setText(i18n.number(clan.getMembers().size()));
-    descriptionLabel.setText(clan.getDescription());
-    leaderLabel.setText(clan.getLeader().getUsername());
-    descriptionLabel.setText(Optional.ofNullable(clan.getDescription()).orElse(""));
+    nameLabel.setText(clan.name());
+    membersLabel.setText(i18n.number(clan.members().size()));
+    descriptionLabel.setText(clan.description());
+    leaderLabel.setText(clan.leader().getUsername());
+    descriptionLabel.setText(Optional.ofNullable(clan.description()).orElse(""));
   }
 
   @Override

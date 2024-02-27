@@ -12,6 +12,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.net.URL;
+
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
@@ -25,7 +27,10 @@ public class OpenClanUrlMenuItem extends AbstractMenuItem<PlayerBean> {
   protected void onClicked() {
     Assert.checkNullIllegalState(object, "no player has been set");
 
-    clanService.getClanByTag(object.getClan()).map(ClanBean::getWebsiteUrl).subscribe(platformService::showDocument);
+    clanService.getClanByTag(object.getClan())
+               .map(ClanBean::websiteUrl)
+               .map(URL::toExternalForm)
+               .subscribe(platformService::showDocument);
   }
 
   @Override

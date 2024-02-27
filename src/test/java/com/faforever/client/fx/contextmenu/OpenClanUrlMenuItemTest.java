@@ -1,16 +1,20 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.builders.ClanBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.clan.ClanService;
+import com.faforever.client.domain.ClanBean;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.PlatformTest;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
+
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,9 +39,12 @@ public class OpenClanUrlMenuItemTest extends PlatformTest {
   }
 
   @Test
-  public void testOpenClanUrl() {
-    when(clanService.getClanByTag(anyString())).thenReturn(
-        Mono.just(ClanBeanBuilder.create().defaultValues().websiteUrl("https://site.com").get()));
+  public void testOpenClanUrl() throws Exception {
+    when(clanService.getClanByTag(anyString())).thenReturn(Mono.just(Instancio.of(ClanBean.class)
+                                                                              .set(field(ClanBean::websiteUrl),
+                                                                                   URI.create("https://site.com")
+                                                                                      .toURL())
+                                                                              .create()));
 
     instance.setObject(PlayerBeanBuilder.create().clan("clan").get());
     instance.onClicked();

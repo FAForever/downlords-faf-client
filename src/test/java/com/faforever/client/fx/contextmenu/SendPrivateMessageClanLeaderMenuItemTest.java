@@ -1,17 +1,19 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.builders.ClanBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.clan.ClanService;
+import com.faforever.client.domain.ClanBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.PlatformTest;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import reactor.core.publisher.Mono;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
@@ -36,7 +38,12 @@ public class SendPrivateMessageClanLeaderMenuItemTest extends PlatformTest {
 
   @Test
   public void testSendMessageClanLeader() {
-    when(clanService.getClanByTag(any())).thenReturn(Mono.just(ClanBeanBuilder.create().defaultValues().get()));
+    when(clanService.getClanByTag(any())).thenReturn(Mono.just(Instancio.of(ClanBean.class)
+                                                                        .set(field(ClanBean::leader),
+                                                                             PlayerBeanBuilder.create()
+                                                                                              .defaultValues()
+                                                                                              .get())
+                                                                        .create()));
 
     instance.setObject(PlayerBeanBuilder.create().get());
     instance.onClicked();
