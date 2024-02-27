@@ -56,7 +56,10 @@ public class ReplayBean {
   ObservableValue<Double> averageRating = teamPlayerStats.map(playerStats -> playerStats.values()
       .stream()
       .flatMap(Collection::stream)
-      .map(stats -> stats.getLeaderboardRatingJournals().stream().findFirst())
+                                                                                        .map(
+                                                                                            stats -> stats.leaderboardRatingJournals()
+                                                                                                          .stream()
+                                                                                                          .findFirst())
       .flatMap(Optional::stream)
       .mapToInt(ratingJournal -> RatingUtil.getRating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore()))
       .average()

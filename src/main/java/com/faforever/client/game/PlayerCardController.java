@@ -27,7 +27,6 @@ import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.Faction;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -117,7 +116,9 @@ public class PlayerCardController extends NodeController<Node> {
         .addListener((SimpleChangeListener<String>) this::onNoteChanged);
 
     ratingChange.visibleProperty().bind(playerStats.isNotNull());
-    ObservableValue<Integer> ratingChangeObservable = playerStats.flatMap(stats -> Bindings.valueAt(stats.getLeaderboardRatingJournals(), 0))
+    ObservableValue<Integer> ratingChangeObservable = playerStats.map(GamePlayerStatsBean::leaderboardRatingJournals)
+                                                                 .map(
+                                                                     journals -> journals.isEmpty() ? null : journals.getFirst())
         .map(this::getRatingChange);
     ratingChange.textProperty().bind(ratingChangeObservable.map(i18n::numberWithSign));
     ratingChangeObservable.addListener((observable, oldValue, newValue) -> onRatingChanged(oldValue, newValue));

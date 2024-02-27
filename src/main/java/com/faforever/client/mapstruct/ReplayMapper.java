@@ -133,11 +133,10 @@ public interface ReplayMapper {
         LeaderboardRatingJournalBean ratingJournal = new LeaderboardRatingJournalBean();
         ratingJournal.setMeanBefore(((Float) armyInfo.get("MEAN")).doubleValue());
         ratingJournal.setDeviationBefore(((Float) armyInfo.get("DEV")).doubleValue());
-        GamePlayerStatsBean stats = new GamePlayerStatsBean();
-        stats.setFaction(Faction.fromFaValue(((Float) armyInfo.get("Faction")).intValue()));
-        stats.setTeam(team);
-        stats.setLeaderboardRatingJournals(List.of(ratingJournal));
-        stats.setPlayer(player);
+        Float factionFloat = (Float) armyInfo.get("Faction");
+        Faction faction = Faction.fromFaValue(factionFloat.intValue());
+        GamePlayerStatsBean stats = new GamePlayerStatsBean(player, 0, team, faction, null, null,
+                                                            List.of(ratingJournal));
         teams.computeIfAbsent(teamString, key -> new ArrayList<>()).add(stats);
       }
     });

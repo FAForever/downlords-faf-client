@@ -174,8 +174,8 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
 
         playerStats.forEach(player -> {
           PlayerCardController controller = uiService.loadFxml("theme/player_card.fxml");
-          controller.setPlayer(player.getPlayer());
-          controller.setFaction(player.getFaction());
+          controller.setPlayer(player.player());
+          controller.setFaction(player.faction());
           controller.removeAvatar();
           teamCard.getChildren().add(controller.getRoot());
         });

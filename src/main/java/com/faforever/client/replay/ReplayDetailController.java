@@ -277,7 +277,7 @@ public class ReplayDetailController extends NodeController<Node> {
                                                       .stream()
                                                       .flatMapToInt(playerStats -> playerStats.stream()
                                                                                               .map(
-                                                                                                  GamePlayerStatsBean::getLeaderboardRatingJournals)
+                                                                                                  GamePlayerStatsBean::leaderboardRatingJournals)
                                                                                               .mapToInt(
                                                                                                   journals -> journals.stream()
                                                                                                                       .map(
@@ -456,7 +456,7 @@ public class ReplayDetailController extends NodeController<Node> {
 
       Map<PlayerBean, GamePlayerStatsBean> statsByPlayer = playerStats.stream()
                                                                       .collect(Collectors.toMap(
-                                                                          GamePlayerStatsBean::getPlayer,
+                                                                          GamePlayerStatsBean::player,
                                                                           Function.identity()));
 
       TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
@@ -473,12 +473,12 @@ public class ReplayDetailController extends NodeController<Node> {
 
   private Faction getPlayerFaction(PlayerBean player, Map<PlayerBean, GamePlayerStatsBean> statsByPlayerId) {
     GamePlayerStatsBean playerStats = statsByPlayerId.get(player);
-    return playerStats == null ? null : playerStats.getFaction();
+    return playerStats == null ? null : playerStats.faction();
   }
 
   private Integer getPlayerRating(PlayerBean player, Map<PlayerBean, GamePlayerStatsBean> statsByPlayerId) {
     GamePlayerStatsBean playerStats = statsByPlayerId.get(player);
-    return playerStats == null ? null : playerStats.getLeaderboardRatingJournals()
+    return playerStats == null ? null : playerStats.leaderboardRatingJournals()
                                                    .stream()
                                                    .findFirst()
                                                    .filter(ratingJournal -> ratingJournal.getMeanBefore() != null)

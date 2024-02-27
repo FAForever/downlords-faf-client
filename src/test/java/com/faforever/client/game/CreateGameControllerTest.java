@@ -476,8 +476,7 @@ public class CreateGameControllerTest extends PlatformTest {
     lastGamePrefs.setLastGameType(null);
     when(featuredModService.getFeaturedMods()).thenReturn(Flux.just(featuredModBean, featuredModBean2));
 
-    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> reinitialize(instance));
 
     assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredModBean2));
   }

@@ -314,8 +314,7 @@ public class ReplayService {
     return replay.getTeamPlayerStats()
         .values()
         .stream()
-        .flatMap(Collection::stream)
-        .flatMap(playerStats -> playerStats.getLeaderboardRatingJournals().stream())
+        .flatMap(Collection::stream).flatMap(playerStats -> playerStats.leaderboardRatingJournals().stream())
         .anyMatch(ratingJournal -> ratingJournal.getMeanAfter() != null && ratingJournal.getDeviationAfter() != null);
   }
 

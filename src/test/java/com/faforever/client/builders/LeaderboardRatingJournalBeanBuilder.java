@@ -3,6 +3,7 @@ package com.faforever.client.builders;
 import com.faforever.client.domain.GamePlayerStatsBean;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.LeaderboardRatingJournalBean;
+import org.instancio.Instancio;
 
 import java.time.OffsetDateTime;
 
@@ -21,7 +22,7 @@ public class LeaderboardRatingJournalBeanBuilder {
     meanBefore(100d);
     deviationBefore(10d);
     leaderboard(LeaderboardBeanBuilder.create().defaultValues().get());
-    gamePlayerStats(GamePlayerStatsBeanBuilder.create().defaultValues().get());
+    gamePlayerStats(Instancio.create(GamePlayerStatsBean.class));
     return this;
   }
 

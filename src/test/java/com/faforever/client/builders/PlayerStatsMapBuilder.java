@@ -1,11 +1,14 @@
 package com.faforever.client.builders;
 
 import com.faforever.client.domain.GamePlayerStatsBean;
+import org.instancio.Instancio;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.instancio.Select.field;
 
 public class PlayerStatsMapBuilder {
   private final Map<String, List<GamePlayerStatsBean>> teamPlayerStats = new HashMap<>();
@@ -15,7 +18,10 @@ public class PlayerStatsMapBuilder {
   }
 
   public PlayerStatsMapBuilder defaultValues() {
-    GamePlayerStatsBean playerStats1 = GamePlayerStatsBeanBuilder.create().defaultValues().leaderboardRatingJournals(List.of(LeaderboardRatingJournalBeanBuilder.create().defaultValues().get())).get();
+    GamePlayerStatsBean playerStats1 = Instancio.of(GamePlayerStatsBean.class)
+                                                .set(field(GamePlayerStatsBean::leaderboardRatingJournals), List.of(
+                                                    LeaderboardRatingJournalBeanBuilder.create().defaultValues().get()))
+                                                .create();
     appendToTeam("2", playerStats1);
     return this;
   }

@@ -158,8 +158,6 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testGamePropertyListener() {
-    when(i18n.get("unknown")).thenReturn("unknown");
-
     assertEquals(game.getTitle(), instance.gameTitleLabel.getText());
     assertEquals(game.getHost(), instance.hostLabel.getText());
     assertEquals(game.getMapFolderName(), instance.mapLabel.getText());

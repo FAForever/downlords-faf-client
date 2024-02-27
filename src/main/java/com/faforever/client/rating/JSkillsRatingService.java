@@ -30,7 +30,8 @@ public class JSkillsRatingService implements RatingService {
     if (teams.size() != 2) {
       return Double.NaN;
     }
-    if (!teams.stream().allMatch(playerStats -> playerStats.stream().allMatch(stats -> stats.getLeaderboardRatingJournals().stream()
+    if (!teams.stream()
+              .allMatch(playerStats -> playerStats.stream().allMatch(stats -> stats.leaderboardRatingJournals().stream()
         .findFirst()
         .map(ratingJournal -> ratingJournal.getMeanBefore() != null && ratingJournal.getDeviationBefore() != null)
         .orElse(false)))) {
@@ -40,11 +41,11 @@ public class JSkillsRatingService implements RatingService {
         .map(players -> {
           Team team = new Team();
           players.forEach(stats -> {
-            stats.getLeaderboardRatingJournals().stream().findFirst().ifPresent(
+            stats.leaderboardRatingJournals().stream().findFirst().ifPresent(
                 ratingJournal -> {
                   if (ratingJournal.getMeanBefore() != null && ratingJournal.getDeviationBefore() != null) {
-                    team.addPlayer(
-                        new jskills.Player<>(stats.getPlayer().getId()), new Rating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore())
+                    team.addPlayer(new jskills.Player<>(stats.player().getId()),
+                                   new Rating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore())
                     );
                   }
                 }

@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.builders.GamePlayerStatsBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GamePlayerStatsBean;
 import com.faforever.client.domain.PlayerBean;
@@ -12,6 +11,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.Label;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -54,10 +55,7 @@ public class TeamCardControllerTest extends PlatformTest {
     lenient().when(playerCardController.factionProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(playerCardController.playerProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(playerCardController.getRoot()).thenReturn(new Label());
-    playerStats = GamePlayerStatsBeanBuilder.create()
-        .defaultValues()
-        .player(PlayerBeanBuilder.create().defaultValues().get())
-        .get();
+    playerStats = Instancio.of(GamePlayerStatsBean.class).set(field(GamePlayerStatsBean::player), player).create();
 
     teams.put("2", Collections.singletonList(playerStats));
 

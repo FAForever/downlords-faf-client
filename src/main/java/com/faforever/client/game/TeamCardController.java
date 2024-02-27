@@ -158,7 +158,7 @@ public class TeamCardController extends NodeController<Node> {
 
   public void setStats(List<GamePlayerStatsBean> teamPlayerStats) {
     for (GamePlayerStatsBean playerStats : teamPlayerStats) {
-      PlayerCardController controller = playerCardControllersMap.get(playerStats.getPlayer());
+      PlayerCardController controller = playerCardControllersMap.get(playerStats.player());
       if (controller != null) {
         controller.setPlayerStats(playerStats);
       }
