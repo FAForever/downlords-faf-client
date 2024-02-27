@@ -1,7 +1,6 @@
 package com.faforever.client.coop;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.CoopResultBeanBuilder;
 import com.faforever.client.domain.CoopMissionBean;
 import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.mapstruct.CoopMapper;
@@ -9,6 +8,7 @@ import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.commons.api.dto.CoopResult;
 import com.faforever.commons.api.elide.ElideEntity;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +21,7 @@ import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
+import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
@@ -57,9 +58,10 @@ public class CoopServiceTest extends ServiceTest {
 
   @Test
   public void testGetLeaderboard() throws Exception {
-    CoopResultBean coopResultBean = CoopResultBeanBuilder.create().defaultValues().get();
+    CoopResultBean coopResultBean = Instancio.of(CoopResultBean.class).set(field(CoopResultBean::ranking), 0).create();
 
-    Flux<ElideEntity> resultFlux = Flux.just(coopMapper.map(coopResultBean, new CycleAvoidingMappingContext()));
+    CoopResult result = coopMapper.map(coopResultBean, new CycleAvoidingMappingContext());
+    Flux<ElideEntity> resultFlux = Flux.just(result, result);
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     CoopMissionBean mission = Instancio.create(CoopMissionBean.class);
     StepVerifier.create(instance.getLeaderboard(mission, 2)).expectNext(coopResultBean).verifyComplete();

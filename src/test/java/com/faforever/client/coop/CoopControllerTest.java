@@ -1,9 +1,6 @@
 package com.faforever.client.coop;
 
-import com.faforever.client.builders.CoopResultBeanBuilder;
-import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.domain.CoopMissionBean;
-import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -28,15 +25,10 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Flux;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -117,115 +109,5 @@ public class CoopControllerTest extends PlatformTest {
   public void testGetRoot() throws Exception {
     assertEquals(instance.coopRoot, instance.getRoot());
     assertNull(instance.getRoot().getParent());
-  }
-
-  @Test
-  public void testNoDuplicatedPlayersInTableWhenSetCountPlayersToOne() {
-    List<CoopResultBean> result = new ArrayList<>();
-    result.add(CoopResultBeanBuilder.create().defaultValues()
-        .replay(ReplayBeanBuilder.create().defaultValues()
-            .teams(FXCollections.observableMap(Map.of("2", List.of("junit1"))))
-            .get())
-        .get());
-
-    result.add(CoopResultBeanBuilder.create().defaultValues()
-        .replay(ReplayBeanBuilder.create().defaultValues()
-            .teams(FXCollections.observableMap(Map.of("2", List.of("junit1"))))
-            .get())
-        .get());
-
-    result.add(CoopResultBeanBuilder.create().defaultValues()
-        .replay(ReplayBeanBuilder.create().defaultValues()
-            .teams(FXCollections.observableMap(Map.of("2", List.of("junit2"))))
-            .get())
-        .get());
-
-    when(coopService.getLeaderboard(any(), eq(1))).thenReturn(Flux.fromIterable(result));
-
-    instance.missionComboBox.getSelectionModel().select(Instancio.create(CoopMissionBean.class));
-
-    runOnFxThreadAndWait(() -> {
-      reinitialize(instance);
-      instance.numberOfPlayersComboBox.getSelectionModel().select(1);
-    });
-    assertEquals(2, instance.leaderboardTable.getItems().size());
-  }
-
-  @Test
-  public void testNoDuplicatedPlayersInTableWhenSetCountPlayersToTwo() {
-    List<CoopResultBean> result = new ArrayList<>();
-    result.add(CoopResultBeanBuilder.create().defaultValues()
-        .replay(ReplayBeanBuilder.create().defaultValues()
-            .teams(FXCollections.observableMap(Map.of("2", List.of("junit1"), "3", List.of("junit2"))))
-            .get())
-        .get());
-
-    result.add(CoopResultBeanBuilder.create().defaultValues()
-        .replay(ReplayBeanBuilder.create().defaultValues()
-            .teams(FXCollections.observableMap(Map.of("2", List.of("test1"), "3", List.of("test2"))))
-            .get())
-        .get());
-
-    result.add(CoopResultBeanBuilder.create().defaultValues()
-        .replay(ReplayBeanBuilder.create().defaultValues()
-            .teams(FXCollections.observableMap(Map.of("2", List.of("junit2"), "3", List.of("junit1"))))
-            .get())
-        .get());
-
-    when(coopService.getLeaderboard(any(), eq(2))).thenReturn(Flux.fromIterable(result));
-
-    instance.missionComboBox.getSelectionModel().select(Instancio.create(CoopMissionBean.class));
-
-    runOnFxThreadAndWait(() -> {
-      reinitialize(instance);
-      instance.numberOfPlayersComboBox.getSelectionModel().select(2);
-    });
-    assertEquals(2, instance.leaderboardTable.getItems().size());
-  }
-
-  @Test
-  public void testNoDuplicatedPlayersInTableWhenSetCountPlayersToAll() {
-    List<CoopResultBean> result = new ArrayList<>();
-
-    result.add(CoopResultBeanBuilder.create().defaultValues()
-        .replay(ReplayBeanBuilder.create().defaultValues()
-            .teams(FXCollections.observableMap(Map.of("2", List.of("junit1"), "3", List.of("junit2"))))
-            .get())
-        .get());
-
-    result.add(CoopResultBeanBuilder.create().defaultValues()
-        .replay(ReplayBeanBuilder.create().defaultValues()
-            .teams(FXCollections.observableMap(Map.of("2", List.of("junit2"), "3", List.of("junit1"))))
-            .get())
-        .get());
-
-    result.add(CoopResultBeanBuilder.create().defaultValues()
-        .replay(ReplayBeanBuilder.create().defaultValues()
-            .teams(FXCollections.observableMap(Map.of("2", List.of("junit1"))))
-            .get())
-        .get());
-
-    result.add(CoopResultBeanBuilder.create().defaultValues()
-        .replay(ReplayBeanBuilder.create().defaultValues()
-            .teams(FXCollections.observableMap(Map.of("2", List.of("junit1"))))
-            .get())
-        .get());
-
-    result.add(CoopResultBeanBuilder.create().defaultValues()
-        .replay(ReplayBeanBuilder.create().defaultValues()
-            .teams(FXCollections.observableMap(Map.of("2", List.of("test1", "test3"), "3", List.of("test2"))))
-            .get())
-        .get());
-
-    when(coopService.getLeaderboard(any(), eq(0))).thenReturn(Flux.fromIterable(result));
-
-    instance.missionComboBox.getSelectionModel().select(Instancio.create(CoopMissionBean.class));
-
-    runOnFxThreadAndWait(() -> {
-      reinitialize(instance);
-      instance.numberOfPlayersComboBox.getSelectionModel().select(1);
-      instance.numberOfPlayersComboBox.getSelectionModel().select(0);
-    });
-    assertEquals(3, instance.leaderboardTable.getItems().size());
   }
 }

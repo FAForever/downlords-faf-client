@@ -3,11 +3,11 @@ package com.faforever.client.coop;
 import com.faforever.client.domain.CoopMissionBean;
 import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.fx.ControllerTableCell;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.NodeController;
+import com.faforever.client.fx.ObservableConstant;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -56,11 +56,9 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -102,8 +100,8 @@ public class CoopController extends NodeController<Node> {
   public Region leaderboardInfoIcon;
   public TableView<CoopResultBean> leaderboardTable;
   public ComboBox<Integer> numberOfPlayersComboBox;
-  public TableColumn<CoopResultBean, Integer> rankColumn;
-  public TableColumn<CoopResultBean, Integer> playerCountColumn;
+  public TableColumn<CoopResultBean, Number> rankColumn;
+  public TableColumn<CoopResultBean, Number> playerCountColumn;
   public TableColumn<CoopResultBean, String> playerNamesColumn;
   public TableColumn<CoopResultBean, Boolean> secondaryObjectivesColumn;
   public TableColumn<CoopResultBean, OffsetDateTime> dateColumn;
@@ -135,7 +133,7 @@ public class CoopController extends NodeController<Node> {
                              if (newValue.isEmpty()) {
                                return true;
                              }
-                             return coopResultBean.getReplay()
+                             return coopResultBean.replay()
                                                   .getTeams()
                                                   .values()
                                                   .stream()
@@ -145,15 +143,13 @@ public class CoopController extends NodeController<Node> {
                            }));
     leaderboardTable.setItems(leaderboardFilteredList);
 
-    rankColumn.setCellValueFactory(param -> param.getValue().rankingProperty().asObject().when(showing));
+    rankColumn.setCellValueFactory(param -> ObservableConstant.valueOf((param.getValue().ranking())));
     rankColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
 
-    playerCountColumn.setCellValueFactory(param -> param.getValue().playerCountProperty().asObject().when(showing));
+    playerCountColumn.setCellValueFactory(param -> ObservableConstant.valueOf((param.getValue().playerCount())));
     playerCountColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
 
-    playerNamesColumn.setCellValueFactory(param -> param.getValue()
-                                                        .replayProperty()
-                                                        .flatMap(ReplayBean::teamsProperty)
+    playerNamesColumn.setCellValueFactory(param -> param.getValue().replay().teamsProperty()
                                                         .map(teams -> teams.values()
                                                                            .stream()
                                                                            .flatMap(Collection::stream)
@@ -164,17 +160,17 @@ public class CoopController extends NodeController<Node> {
     playerNamesColumn.setCellFactory(param -> new StringCell<>(Function.identity()));
 
     secondaryObjectivesColumn.setCellValueFactory(
-        param -> param.getValue().secondaryObjectivesProperty().when(showing));
+        param -> ObservableConstant.valueOf((param.getValue().secondaryObjectives())));
     secondaryObjectivesColumn.setCellFactory(
         param -> new StringCell<>(aBoolean -> aBoolean ? i18n.get("yes") : i18n.get("no")));
 
-    dateColumn.setCellValueFactory(param -> param.getValue().getReplay().endTimeProperty().when(showing));
+    dateColumn.setCellValueFactory(param -> param.getValue().replay().endTimeProperty().when(showing));
     dateColumn.setCellFactory(param -> new StringCell<>(timeService::asDate));
 
-    timeColumn.setCellValueFactory(param -> param.getValue().durationProperty().when(showing));
+    timeColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().duration()));
     timeColumn.setCellFactory(param -> new StringCell<>(timeService::shortDuration));
 
-    replayColumn.setCellValueFactory(param -> param.getValue().getReplay().idProperty().asString().when(showing));
+    replayColumn.setCellValueFactory(param -> param.getValue().replay().idProperty().asString().when(showing));
     replayColumn.setCellFactory(param -> {
       ReplayButtonController controller = uiService.loadFxml("theme/play/coop/replay_button.fxml");
       controller.setOnClickedAction(this::onReplayButtonClicked);
@@ -266,11 +262,6 @@ public class CoopController extends NodeController<Node> {
 
     coopService.getLeaderboard(selectedMission, numberOfPlayers)
                .collectList()
-               .map(this::filterOnlyUniquePlayers)
-               .doOnNext(coopLeaderboardEntries -> {
-                 AtomicInteger ranking = new AtomicInteger();
-                 coopLeaderboardEntries.forEach(coopResult -> coopResult.setRanking(ranking.incrementAndGet()));
-               })
                .publishOn(fxApplicationThreadExecutor.asScheduler())
                .subscribe(leaderboardUnFilteredList::setAll, throwable -> {
                  log.warn("Could not load coop leaderboard", throwable);
@@ -278,14 +269,8 @@ public class CoopController extends NodeController<Node> {
                });
   }
 
-  private List<CoopResultBean> filterOnlyUniquePlayers(List<CoopResultBean> result) {
-    Set<Set<String>> uniquePlayerNames = new HashSet<>();
-    result.removeIf(coopResult -> !uniquePlayerNames.add(getAllPlayerNamesFromTeams(coopResult)));
-    return result;
-  }
-
   private Set<String> getAllPlayerNamesFromTeams(CoopResultBean coopResult) {
-    return coopResult.getReplay()
+    return coopResult.replay()
                      .getTeams()
                      .values()
                      .stream()

@@ -11,15 +11,17 @@ import org.mapstruct.Mapping;
 @Mapper(uses = {ReplayMapper.class}, config = MapperConfiguration.class)
 public interface CoopMapper {
 
-    @Mapping(target="mapFolderName", source="folderName")
-    CoopMissionBean map(CoopMission dto, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "mapFolderName", source = "folderName")
+  CoopMissionBean map(CoopMission dto, @Context CycleAvoidingMappingContext context);
 
-    @Mapping(target="folderName", source="mapFolderName")
-    CoopMission map(CoopMissionBean bean, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "folderName", source = "mapFolderName")
+  CoopMission map(CoopMissionBean bean, @Context CycleAvoidingMappingContext context);
 
-    @Mapping(target="replay", source="game")
-    CoopResultBean map(CoopResult dto, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "replay", source = "dto.game")
+  @Mapping(target = "ranking", source = "ranking")
+  @Mapping(target = ".", source = "dto")
+  CoopResultBean map(CoopResult dto, int ranking, @Context CycleAvoidingMappingContext context);
 
-    @Mapping(target="game", source="replay")
-    CoopResult map(CoopResultBean bean, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "game", source = "replay")
+  CoopResult map(CoopResultBean bean, @Context CycleAvoidingMappingContext context);
 }

@@ -8,6 +8,8 @@ import com.faforever.client.mapstruct.CoopMapper;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.commons.api.dto.CoopMission;
 import com.faforever.commons.api.dto.CoopResult;
+import com.faforever.commons.api.dto.GamePlayerStats;
+import com.faforever.commons.api.dto.Player;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
@@ -16,6 +18,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 
@@ -45,6 +51,18 @@ public class CoopService {
         .setFilter(filterCondition)
         .addSortingRule("duration", true)
         .pageSize(1000);
-    return fafApiAccessor.getMany(navigator).map(dto -> coopMapper.map(dto, new CycleAvoidingMappingContext())).cache();
+    return fafApiAccessor.getMany(navigator)
+                         .distinct(this::getAllPlayerNamesFromTeams)
+                         .index(
+                             (index, dto) -> coopMapper.map(dto, index.intValue(), new CycleAvoidingMappingContext()))
+                         .cache();
+  }
+
+  private Set<String> getAllPlayerNamesFromTeams(CoopResult coopResult) {
+    List<GamePlayerStats> playerStats = coopResult.getGame().getPlayerStats();
+    return playerStats == null ? Set.of() : playerStats.stream()
+                                                       .map(GamePlayerStats::getPlayer)
+                                                       .map(Player::getLogin)
+                                                       .collect(Collectors.toUnmodifiableSet());
   }
 }
