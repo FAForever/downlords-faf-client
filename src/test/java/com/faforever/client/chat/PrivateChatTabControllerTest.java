@@ -2,7 +2,6 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.builders.AvatarBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
@@ -26,6 +25,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.image.Image;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -33,7 +33,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 
 import java.io.InputStream;
-import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -154,10 +153,10 @@ public class PrivateChatTabControllerTest extends PlatformTest {
   public void checkPlayerAvatarListener() throws Exception {
     assertNotNull(instance.avatarImageView.getImage());
 
-    Image newAvatar = new Image(InputStream.nullInputStream());
-    AvatarBean avatarBean = AvatarBeanBuilder.create().defaultValues().url(new URL("https://test11.com")).get();
-    when(avatarService.loadAvatar(avatarBean)).thenReturn(newAvatar);
+    Image newAvatarImage = new Image(InputStream.nullInputStream());
+    AvatarBean avatarBean = Instancio.create(AvatarBean.class);
+    when(avatarService.loadAvatar(avatarBean)).thenReturn(newAvatarImage);
     runOnFxThreadAndWait(() -> player.setAvatar(avatarBean));
-    assertEquals(newAvatar, instance.avatarImageView.getImage());
+    assertEquals(newAvatarImage, instance.avatarImageView.getImage());
   }
 }

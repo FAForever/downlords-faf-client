@@ -1,10 +1,10 @@
 package com.faforever.client.game;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.builders.AvatarBeanBuilder;
 import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.ImageViewHelper;
@@ -19,6 +19,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -142,7 +143,7 @@ public class GameTileControllerTest extends PlatformTest {
   @Test
   public void testShowAvatarInsteadOfDefaultHostIcon() {
     when(playerService.getPlayerByNameIfOnline(anyString())).thenReturn(
-        Optional.of(PlayerBeanBuilder.create().avatar(AvatarBeanBuilder.create().get()).get()));
+        Optional.of(PlayerBeanBuilder.create().avatar(Instancio.create(AvatarBean.class)).get()));
     when(avatarService.loadAvatar(any())).thenReturn(new Image(InputStream.nullInputStream()));
 
     runOnFxThreadAndWait(() -> instance.setGame(game));

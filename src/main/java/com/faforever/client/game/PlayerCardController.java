@@ -36,10 +36,10 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.StackPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -130,7 +130,7 @@ public class PlayerCardController extends NodeController<Node> {
     noteIcon.visibleProperty().bind(noteTooltip.textProperty().isNotEmpty());
 
     avatarTooltip.textProperty()
-        .bind(player.flatMap(PlayerBean::avatarProperty).flatMap(AvatarBean::descriptionProperty).when(showing));
+                 .bind(player.flatMap(PlayerBean::avatarProperty).map(AvatarBean::description).when(showing));
     avatarTooltip.setShowDelay(Duration.ZERO);
     avatarTooltip.setShowDuration(Duration.seconds(30));
     Tooltip.install(avatarImageView, avatarTooltip);

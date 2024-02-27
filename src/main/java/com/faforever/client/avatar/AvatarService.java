@@ -33,7 +33,7 @@ public class AvatarService {
     if (avatar == null) {
       return null;
     }
-    return assetService.loadAndCacheImage(avatar.getUrl(), Path.of("avatars"));
+    return assetService.loadAndCacheImage(avatar.url(), Path.of("avatars"));
   }
 
   public CompletableFuture<List<AvatarBean>> getAvailableAvatars() {
@@ -42,7 +42,7 @@ public class AvatarService {
   }
 
   public void changeAvatar(AvatarBean avatar) {
-    fafServerAccessor.selectAvatar(avatar.getUrl());
+    fafServerAccessor.selectAvatar(avatar.url());
     playerService.getCurrentPlayer().setAvatar(avatar);
   }
 }

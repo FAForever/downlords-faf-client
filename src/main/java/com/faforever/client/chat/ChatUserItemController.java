@@ -253,7 +253,7 @@ public class ChatUserItemController extends NodeController<Node> {
     noteTooltip.textProperty().bind(playerProperty.flatMap(PlayerBean::noteProperty).when(showing));
 
     ObservableValue<AvatarBean> avatarProperty = playerProperty.flatMap(PlayerBean::avatarProperty);
-    avatarTooltip.textProperty().bind(avatarProperty.flatMap(AvatarBean::descriptionProperty).when(showing));
+    avatarTooltip.textProperty().bind(avatarProperty.map(AvatarBean::description).when(showing));
     avatarImageView.imageProperty().bind(avatarProperty.map(avatarService::loadAvatar).when(showing));
 
     ObservableValue<String> countryProperty = playerProperty.flatMap(PlayerBean::countryProperty);

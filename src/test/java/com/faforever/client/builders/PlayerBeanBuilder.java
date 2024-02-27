@@ -5,6 +5,7 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.player.SocialStatus;
+import org.instancio.Instancio;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -26,7 +27,7 @@ public class PlayerBeanBuilder {
     clan("tst");
     country("US");
     note("");
-    avatar(AvatarBeanBuilder.create().defaultValues().get());
+    avatar(Instancio.create(AvatarBean.class));
     return this;
   }
 

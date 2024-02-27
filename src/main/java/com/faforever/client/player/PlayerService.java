@@ -69,7 +69,9 @@ public class PlayerService implements InitializingBean {
                      .flatMap(player -> Mono.zip(Mono.just(player), Mono.justOrEmpty(playersById.get(player.getId()))
                                                                         .switchIfEmpty(initializePlayer(player))))
                      .publishOn(fxApplicationThreadExecutor.asScheduler())
-                     .map(TupleUtils.function(playerMapper::update)).publishOn(Schedulers.single())
+                     .map(TupleUtils.function((player, playerBean) -> playerMapper.update(player, playerBean,
+                                                                                          new CycleAvoidingMappingContext())))
+                     .publishOn(Schedulers.single())
                      .doOnError(throwable -> log.error("Error processing player", throwable))
                      .retry()
                      .subscribe();
@@ -119,9 +121,9 @@ public class PlayerService implements InitializingBean {
         playerSubscriptions.computeIfAbsent(newPlayer, ignored -> ConcurrentHashMap.newKeySet())
                            .add(removeSubscription);
         playersByName.put(newPlayer.getUsername(), newPlayer);
-        return playerMapper.update(playerInfo, newPlayer);
+        return playerMapper.update(playerInfo, newPlayer, new CycleAvoidingMappingContext());
       } else {
-        return playerMapper.update(playerInfo, knownPlayer);
+        return playerMapper.update(playerInfo, knownPlayer, new CycleAvoidingMappingContext());
       }
     });
   }

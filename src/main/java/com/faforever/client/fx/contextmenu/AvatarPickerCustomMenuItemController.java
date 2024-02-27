@@ -43,15 +43,13 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
       avatarComboBox.setCellFactory(param -> avatarCell());
       avatarComboBox.setButtonCell(avatarCell());
 
-      noAvatar = new AvatarBean();
-      noAvatar.setDescription(i18n.get("chat.userContext.noAvatar"));
+      noAvatar = new AvatarBean(null, null, i18n.get("chat.userContext.noAvatar"));
       loadAvailableAvatars();
     }
   }
 
   private StringListCell<AvatarBean> avatarCell() {
-    return new StringListCell<>(
-        AvatarBean::getDescription,
+    return new StringListCell<>(AvatarBean::description,
         avatarBean -> new ImageView(avatarService.loadAvatar(avatarBean)), fxApplicationThreadExecutor);
   }
 
@@ -64,7 +62,7 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
   private void loadAvailableAvatars() {
     avatarService.getAvailableAvatars().thenAcceptAsync(avatars -> {
       ObservableList<AvatarBean> items = FXCollections.observableArrayList(avatars);
-      items.add(0, noAvatar);
+      items.addFirst(noAvatar);
 
       AvatarBean currentAvatar = object.getAvatar();
       avatarComboBox.getItems().setAll(items);

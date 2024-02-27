@@ -1,13 +1,13 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.builders.AvatarBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.PartyBuilder;
 import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.SubdivisionBeanBuilder;
+import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PartyBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
@@ -19,6 +19,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.commons.lobby.GameStatus;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -147,7 +148,7 @@ public class PartyMemberItemControllerTest extends PlatformTest {
     assertThat(instance.clanLabel.getText(), is(String.format("[%s]", player.getClan())));
 
     player.setCountry("DE");
-    player.setAvatar(AvatarBeanBuilder.create().defaultValues().get());
+    player.setAvatar(Instancio.create(AvatarBean.class));
     player.setClan("");
     player.setUsername("player");
     player.setLeaderboardRatings(new HashMap<>());

@@ -42,7 +42,8 @@ public interface PlayerMapper {
      @Mapping(target = "username", source = "login")
      @Mapping(target = "leaderboardRatings", source = "ratings")
      @Mapping(target = "serverStatus", source = "state")
-     PlayerBean update(com.faforever.commons.lobby.Player dto, @MappingTarget PlayerBean bean);
+     PlayerBean update(com.faforever.commons.lobby.Player dto, @MappingTarget PlayerBean bean,
+                       @Context CycleAvoidingMappingContext context);
 
 
 }

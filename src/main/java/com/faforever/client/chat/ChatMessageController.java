@@ -156,8 +156,7 @@ public class ChatMessageController extends NodeController<VBox> {
     detailsContainer.visibleProperty().bind(showDetails.when(showing));
 
     avatarTooltip.textProperty()
-                 .bind(
-                     player.flatMap(PlayerBean::avatarProperty).flatMap(AvatarBean::descriptionProperty).when(showing));
+                 .bind(player.flatMap(PlayerBean::avatarProperty).map(AvatarBean::description).when(showing));
     avatarTooltip.setShowDelay(Duration.ZERO);
     avatarTooltip.setShowDuration(Duration.seconds(30));
     Tooltip.install(avatarImageView, avatarTooltip);
