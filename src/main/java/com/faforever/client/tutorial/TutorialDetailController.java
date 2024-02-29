@@ -1,7 +1,6 @@
 package com.faforever.client.tutorial;
 
 import com.faforever.client.domain.MapBean;
-import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.TutorialBean;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -67,21 +66,19 @@ public class TutorialDetailController extends NodeController<Node> {
 
   public void setTutorial(TutorialBean tutorial) {
     this.tutorial = tutorial;
-    titleLabel.textProperty().bind(tutorial.titleProperty());
-    if (tutorial.getMapVersion() != null) {
-      mapNameLabel.textProperty()
-          .bind(tutorial.mapVersionProperty()
-              .flatMap(MapVersionBean::mapProperty)
+    titleLabel.setText(tutorial.title());
+    if (tutorial.mapVersion() != null) {
+      mapNameLabel.textProperty().bind(tutorial.mapVersion().mapProperty()
               .flatMap(MapBean::displayNameProperty)
               .map(displayName -> i18n.get("tutorial.mapName", displayName)));
 
-      mapImage.setImage(mapService.loadPreview(tutorial.getMapVersion(), PreviewSize.LARGE));
+      mapImage.setImage(mapService.loadPreview(tutorial.mapVersion(), PreviewSize.LARGE));
       mapContainer.setVisible(true);
     } else {
       mapContainer.setVisible(false);
     }
 
-    descriptionWebView.getEngine().loadContent(tutorial.getDescription());
-    launchButton.visibleProperty().bind(tutorial.launchableProperty());
+    descriptionWebView.getEngine().loadContent(tutorial.description());
+    launchButton.setVisible(tutorial.launchable());
   }
 }

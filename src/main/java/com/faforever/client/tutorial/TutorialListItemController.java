@@ -46,14 +46,14 @@ public class TutorialListItemController extends NodeController<Node> {
   public void setTutorial(final TutorialBean tutorial) {
     this.tutorial = tutorial;
     imageView.setImage(getImage(tutorial));
-    titleLabel.textProperty().bind(tutorial.titleProperty());
-    ordinalLabel.textProperty().bind(tutorial.ordinalProperty().map(String::valueOf));
+    titleLabel.setText(tutorial.title());
+    ordinalLabel.setText(String.valueOf(tutorial.ordinal()));
   }
 
   private Image getImage(TutorialBean tutorial) {
-    if (!Strings.isNullOrEmpty(tutorial.getImageUrl())) {
-      return new Image(tutorial.getImageUrl());
+    if (!Strings.isNullOrEmpty(tutorial.imageUrl())) {
+      return new Image(tutorial.imageUrl());
     }
-    return tutorial.getMapVersion() != null ? mapService.loadPreview(tutorial.getMapVersion(), PreviewSize.SMALL) : null;
+    return tutorial.mapVersion() != null ? mapService.loadPreview(tutorial.mapVersion(), PreviewSize.SMALL) : null;
   }
 }

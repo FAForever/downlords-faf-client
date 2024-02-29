@@ -63,7 +63,7 @@ public class TutorialController extends NodeController<Node> {
       }
       categories.forEach(tutorialCategory -> {
         addCategory(tutorialCategory);
-        addTutorials(tutorialCategory.getTutorials());
+        addTutorials(tutorialCategory.tutorials());
       });
 
       if (tutorialDetailController.getTutorial() == null && !tutorialListItemControllers.isEmpty()) {

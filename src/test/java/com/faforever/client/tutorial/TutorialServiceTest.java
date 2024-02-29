@@ -1,7 +1,6 @@
 package com.faforever.client.tutorial;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.TutorialCategoryBeanBuilder;
 import com.faforever.client.domain.TutorialCategoryBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
@@ -10,6 +9,7 @@ import com.faforever.client.mapstruct.TutorialMapper;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.elide.ElideEntity;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +45,7 @@ public class TutorialServiceTest extends ServiceTest {
 
   @Test
   public void testGetTutorialCategories() throws Exception {
-    TutorialCategoryBean tutorialCategoryBean = TutorialCategoryBeanBuilder.create().defaultValues().get();
+    TutorialCategoryBean tutorialCategoryBean = Instancio.create(TutorialCategoryBean.class);
     Flux<ElideEntity> resultFlux = Flux.just(tutorialMapper.map(tutorialCategoryBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getTutorialCategories()).expectNext(tutorialCategoryBean).verifyComplete();

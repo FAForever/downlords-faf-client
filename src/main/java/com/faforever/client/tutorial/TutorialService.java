@@ -30,6 +30,6 @@ public class TutorialService {
   }
 
   public void launchTutorial(TutorialBean tutorial) {
-    gameRunner.launchTutorial(tutorial.getMapVersion(), tutorial.getTechnicalName());
+    gameRunner.launchTutorial(tutorial.mapVersion(), tutorial.technicalName());
   }
 }

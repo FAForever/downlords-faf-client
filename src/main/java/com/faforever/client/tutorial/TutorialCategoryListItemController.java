@@ -24,6 +24,6 @@ public class TutorialCategoryListItemController extends NodeController<Node> {
   }
 
   public void setCategory(TutorialCategoryBean category) {
-    titleLabel.setText(category.getCategory());
+    titleLabel.setText(category.category());
   }
 }
