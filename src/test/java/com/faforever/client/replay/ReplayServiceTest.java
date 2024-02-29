@@ -3,7 +3,6 @@ package com.faforever.client.replay;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
-import com.faforever.client.builders.ReplayReviewsSummaryBeanBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayReviewsSummaryBean;
@@ -39,6 +38,7 @@ import com.faforever.commons.replay.GameOption;
 import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -460,12 +460,12 @@ public class ReplayServiceTest extends ServiceTest {
 
   @Test
   public void testGetHighestRated() {
-    ReplayReviewsSummaryBean replayReviewsSummaryBean = ReplayReviewsSummaryBeanBuilder.create().defaultValues().get();
+    ReplayReviewsSummaryBean replayReviewsSummaryBean = Instancio.create(ReplayReviewsSummaryBean.class);
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(reviewMapper.map(replayReviewsSummaryBean, new CycleAvoidingMappingContext())), 1);
     when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
 
     StepVerifier.create(instance.getHighestRatedReplaysWithPageCount(10, 1))
-                .expectNext(Tuples.of(List.of(replayReviewsSummaryBean.getReplay()), 1))
+                .expectNext(Tuples.of(List.of(replayReviewsSummaryBean.subject()), 1))
                 .verifyComplete();
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasDtoClass(GameReviewsSummary.class)));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("lowerBound", false)));

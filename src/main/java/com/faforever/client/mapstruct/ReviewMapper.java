@@ -38,34 +38,42 @@ public interface ReviewMapper {
   ModVersionReview map(ModVersionReviewBean bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "numReviews", source = "reviews")
-  @Mapping(target = "replay", source = "game")
+  @Mapping(target = "subject", source = "game")
   ReplayReviewsSummaryBean map(GameReviewsSummary dto, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "reviews", source = "numReviews")
-  @Mapping(target = "game", source = "replay")
+  @Mapping(target = "game", source = "subject")
   GameReviewsSummary map(ReplayReviewsSummaryBean bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "numReviews", source = "reviews")
+  @Mapping(target = "subject", source = "mapVersion")
   MapVersionReviewsSummaryBean map(MapVersionReviewsSummary dto, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "reviews", source = "numReviews")
+  @Mapping(target = "mapVersion", source = "subject")
   MapVersionReviewsSummary map(MapVersionReviewsSummaryBean bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "numReviews", source = "reviews")
+  @Mapping(target = "subject", source = "modVersion")
   ModVersionReviewsSummaryBean map(ModVersionReviewsSummary dto, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "reviews", source = "numReviews")
+  @Mapping(target = "modVersion", source = "subject")
   ModVersionReviewsSummary map(ModVersionReviewsSummaryBean bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "numReviews", source = "reviews")
+  @Mapping(target = "subject", source = "map")
   MapReviewsSummaryBean map(MapReviewsSummary dto, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "reviews", source = "numReviews")
+  @Mapping(target = "map", source = "subject")
   MapReviewsSummary map(MapReviewsSummaryBean bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "numReviews", source = "reviews")
+  @Mapping(target = "subject", source = "mod")
   ModReviewsSummaryBean map(ModReviewsSummary dto, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "reviews", source = "numReviews")
+  @Mapping(target = "mod", source = "subject")
   ModReviewsSummary map(ModReviewsSummaryBean bean, @Context CycleAvoidingMappingContext context);
 }

@@ -137,8 +137,7 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
                 .map(startTime -> Duration.between(startTime, endTime))
                 .map(timeService::shortDuration))).orElse(i18n.get("notAvailable")).when(showing));
     numberOfReviewsLabel.textProperty()
-        .bind(entity.flatMap(ReplayBean::gameReviewsSummaryProperty)
-            .flatMap(ReplayReviewsSummaryBean::numReviewsProperty)
+        .bind(entity.flatMap(ReplayBean::gameReviewsSummaryProperty).map(ReplayReviewsSummaryBean::numReviews)
             .orElse(0)
             .map(i18n::number)
             .when(showing));
@@ -146,7 +145,7 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
             .bind(entity.flatMap(ReplayBean::idProperty).map(id -> i18n.get("game.idFormat", id)).when(showing));
     starsController.valueProperty()
         .bind(entity.flatMap(ReplayBean::gameReviewsSummaryProperty)
-            .flatMap(reviewsSummary -> reviewsSummary.scoreProperty().divide(reviewsSummary.numReviewsProperty()))
+                    .map(reviewsSummary -> reviewsSummary.score() / reviewsSummary.numReviews())
             .when(showing));
 
     teams.bind(entity.flatMap(ReplayBean::teamPlayerStatsProperty).when(showing));

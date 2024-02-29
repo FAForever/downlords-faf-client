@@ -9,7 +9,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.review.StarsController;
 import javafx.beans.binding.BooleanExpression;
@@ -33,7 +32,6 @@ import java.util.function.Consumer;
 @Slf4j
 public class MapCardController extends VaultEntityCardController<MapVersionBean> {
 
-  private final UiService uiService;
   private final MapService mapService;
   private final NotificationService notificationService;
   private final I18n i18n;
@@ -94,14 +92,13 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
     uninstallButton.visibleProperty().bind(isOfficialMap.not().and(isMapInstalled).when(showing));
 
     numberOfReviewsLabel.textProperty()
-        .bind(mapObservable.flatMap(MapBean::mapReviewsSummaryProperty)
-            .flatMap(MapReviewsSummaryBean::numReviewsProperty)
+        .bind(mapObservable.flatMap(MapBean::mapReviewsSummaryProperty).map(MapReviewsSummaryBean::numReviews)
             .orElse(0)
             .map(i18n::number)
             .when(showing));
     starsController.valueProperty()
         .bind(mapObservable.flatMap(MapBean::mapReviewsSummaryProperty)
-            .flatMap(reviewsSummary -> reviewsSummary.scoreProperty().divide(reviewsSummary.numReviewsProperty()))
+                           .map(reviewsSummary -> reviewsSummary.score() / reviewsSummary.numReviews())
             .when(showing));
   }
 

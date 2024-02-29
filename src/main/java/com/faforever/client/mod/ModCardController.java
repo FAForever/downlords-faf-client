@@ -54,14 +54,13 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
     JavaFxUtil.bindManagedToVisible(installButton, uninstallButton);
     ObservableValue<ModBean> modObservable = entity.flatMap(ModVersionBean::modProperty);
     numberOfReviewsLabel.textProperty()
-        .bind(modObservable.flatMap(ModBean::modReviewsSummaryProperty)
-            .flatMap(ModReviewsSummaryBean::numReviewsProperty)
+        .bind(modObservable.flatMap(ModBean::modReviewsSummaryProperty).map(ModReviewsSummaryBean::numReviews)
             .orElse(0)
             .map(i18n::number)
             .when(showing));
     starsController.valueProperty()
         .bind(modObservable.flatMap(ModBean::modReviewsSummaryProperty)
-            .flatMap(reviewsSummary -> reviewsSummary.scoreProperty().divide(reviewsSummary.numReviewsProperty()))
+                           .map(reviewsSummary -> reviewsSummary.score() / reviewsSummary.numReviews())
             .when(showing));
 
     BooleanExpression isModInstalled = modService.isInstalledBinding(entity);
