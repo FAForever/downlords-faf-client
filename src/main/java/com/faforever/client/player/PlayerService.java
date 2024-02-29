@@ -215,7 +215,7 @@ public class PlayerService implements InitializingBean {
 
     return fafApiAccessor.getMany(navigator)
                          .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()))
-                         .sort(Comparator.comparing(NameRecordBean::getChangeTime));
+                         .sort(Comparator.comparing(NameRecordBean::changeTime));
   }
 
   private void removePlayer(PlayerBean player) {

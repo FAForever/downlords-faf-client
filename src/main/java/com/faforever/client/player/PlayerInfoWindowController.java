@@ -11,6 +11,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
+import com.faforever.client.fx.ObservableConstant;
 import com.faforever.client.fx.OffsetDateTimeCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -172,8 +173,8 @@ public class PlayerInfoWindowController extends NodeController<Node> {
                                          i18n.get("achievements.unlocked",
                                                   unlockedAchievementsContainer.getChildren().size())));
 
-    nameColumn.setCellValueFactory(param -> param.getValue().nameProperty());
-    changeDateColumn.setCellValueFactory(param -> param.getValue().changeTimeProperty());
+    nameColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().name()));
+    changeDateColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().changeTime()));
     changeDateColumn.setCellFactory(param -> new OffsetDateTimeCell<>(timeService));
 
     timePeriodComboBox.setConverter(timePeriodStringConverter());

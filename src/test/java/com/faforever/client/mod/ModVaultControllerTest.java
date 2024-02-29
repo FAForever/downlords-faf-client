@@ -67,11 +67,11 @@ public class ModVaultControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     when(modService.getNewestModsWithPageCount(anyInt(), anyInt())).thenReturn(
-        Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)));
+        Mono.zip(Mono.just(List.of()), Mono.just(0)));
     when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(
-        Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)));
+        Mono.zip(Mono.just(List.of()), Mono.just(0)));
     when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(
-        Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)));
+        Mono.zip(Mono.just(List.of()), Mono.just(0)));
     when(i18n.get(anyString())).thenReturn("test");
     when(modDetailController.getRoot()).thenReturn(new Pane());
 
