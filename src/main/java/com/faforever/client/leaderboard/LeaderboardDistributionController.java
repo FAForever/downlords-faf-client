@@ -33,9 +33,11 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SequencedCollection;
 import java.util.stream.Collectors;
 
 
@@ -83,7 +85,7 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
   private void updateChartData(List<LeagueEntryBean> leagueEntries) {
     Map<SubdivisionBean, Long> dataCountMap = leagueEntries.stream()
                                                            .collect(Collectors.groupingBy(LeagueEntryBean::subdivision,
-                                                                                     Collectors.counting()));
+                                                                                          Collectors.counting()));
     subdivisionData.forEach(
         (subdivision, data) -> data.setYValue(dataCountMap.getOrDefault(subdivision, 0L).intValue()));
   }
@@ -100,16 +102,24 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
                                           .toList();
     xAxis.setCategories(FXCollections.observableList(categories));
 
-    Collection<Series<String, Integer>> series = subdivisionData.entrySet()
-                                                                .stream()
-                                                                .collect(Collectors.groupingBy(
-                                                                    entry -> entry.getKey().index(),
-                                                                    Collectors.mapping(Entry::getValue,
-                                                                                       Collectors.collectingAndThen(
-                                                                                           Collectors.toCollection(
-                                                                                               FXCollections::observableArrayList),
-                                                                                           Series::new))))
-                                                                .values();
+    SequencedCollection<Series<String, Integer>> series = subdivisionData.entrySet()
+                                                                         .stream()
+                                                                         .sorted(Entry.comparingByKey(
+                                                                             Comparator.comparing(
+                                                                                           SubdivisionBean::division,
+                                                                                           Comparator.comparing(
+                                                                                               DivisionBean::index))
+                                                                                       .thenComparing(
+                                                                                           SubdivisionBean::index)))
+                                                                         .collect(Collectors.groupingBy(
+                                                                             entry -> entry.getKey().index(),
+                                                                             LinkedHashMap::new,
+                                                                             Collectors.mapping(Entry::getValue,
+                                                                                                Collectors.collectingAndThen(
+                                                                                                    Collectors.toCollection(
+                                                                                                        FXCollections::observableArrayList),
+                                                                                                    Series::new))))
+                                                                         .sequencedValues();
 
     updateHighlightedSubdivision();
 

@@ -191,18 +191,14 @@ public class ModDetailController extends NodeController<Node> {
     reviewsController.setCanWriteReview(false);
     reviewsController.setOnSendReviewListener(this::onSendReview);
     reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
-    reviewsController.setReviewSupplier(() -> {
-      ModVersionReviewBean review = new ModVersionReviewBean();
-      review.setPlayer(playerService.getCurrentPlayer());
-      review.setModVersion(modVersion.get());
-      return review;
-    });
+    reviewsController.setReviewSupplier(
+        () -> new ModVersionReviewBean(null, null, playerService.getCurrentPlayer(), null, modVersion.get()));
     reviewsController.bindReviews(modReviews);
   }
 
   @VisibleForTesting
   void onDeleteReview(ModVersionReviewBean review) {
-    reviewService.deleteModVersionReview(review)
+    reviewService.deleteReview(review)
         .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(null, throwable -> {
           log.error("Review could not be deleted", throwable);
@@ -212,7 +208,7 @@ public class ModDetailController extends NodeController<Node> {
 
   @VisibleForTesting
   void onSendReview(ModVersionReviewBean review) {
-    reviewService.saveModVersionReview(review)
+    reviewService.saveReview(review)
         .filter(savedReview -> !modReviews.contains(savedReview))
         .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(savedReview -> {

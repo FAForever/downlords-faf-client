@@ -5,7 +5,6 @@ import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PlayerStatsMapBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
-import com.faforever.client.builders.ReplayReviewBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.PlayerBean;
@@ -58,6 +57,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -329,11 +329,6 @@ public class ReplayDetailControllerTest extends PlatformTest {
   @Test
   public void onDownloadMoreInfoClicked() throws Exception {
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    ReplayReviewBean review = ReplayReviewBeanBuilder.create()
-        .defaultValues()
-        .player(PlayerBeanBuilder.create().defaultValues().get())
-        .get();
-    review.setReplay(replay);
 
     runOnFxThreadAndWait(() -> instance.setReplay(replay));
     WaitForAsyncUtils.waitForFxEvents();
@@ -397,31 +392,31 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnDeleteReview() {
-    ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
-
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    review.setReplay(replay);
+    ReplayReviewBean review = Instancio.of(ReplayReviewBean.class)
+                                       .set(field(ReplayReviewBean::subject), replay)
+                                       .create();
 
     runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
-    when(reviewService.deleteGameReview(review)).thenReturn(Mono.empty());
+    when(reviewService.deleteReview(review)).thenReturn(Mono.empty());
 
     instance.onDeleteReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).deleteGameReview(review);
+    verify(reviewService).deleteReview(review);
   }
 
   @Test
   public void testOnDeleteReviewThrowsException() {
-    ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
-
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    review.setReplay(replay);
+    ReplayReviewBean review = Instancio.of(ReplayReviewBean.class)
+                                       .set(field(ReplayReviewBean::subject), replay)
+                                       .create();
 
     runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
-    when(reviewService.deleteGameReview(review)).thenReturn(Mono.error(new FakeTestException()));
+    when(reviewService.deleteReview(review)).thenReturn(Mono.error(new FakeTestException()));
 
     instance.onDeleteReview(review);
     WaitForAsyncUtils.waitForFxEvents();
@@ -431,50 +426,49 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnSendReviewNew() {
-    ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().id(null).get();
-
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    review.setReplay(replay);
+    ReplayReviewBean review = Instancio.of(ReplayReviewBean.class)
+                                       .set(field(ReplayReviewBean::id), null)
+                                       .set(field(ReplayReviewBean::subject), replay)
+                                       .create();
 
     runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
-    when(reviewService.saveReplayReview(review)).thenReturn(Mono.empty());
+    when(reviewService.saveReview(review)).thenReturn(Mono.empty());
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveReplayReview(review);
-    assertEquals(currentPlayer, review.getPlayer());
+    verify(reviewService).saveReview(review);
   }
 
   @Test
   public void testOnSendReviewUpdate() {
-    ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().id(0).get();
-
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    review.setReplay(replay);
+    ReplayReviewBean review = Instancio.of(ReplayReviewBean.class)
+                                       .set(field(ReplayReviewBean::subject), replay)
+                                       .create();
 
     runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
-    when(reviewService.saveReplayReview(review)).thenReturn(Mono.empty());
+    when(reviewService.saveReview(review)).thenReturn(Mono.empty());
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveReplayReview(review);
-    assertEquals(currentPlayer, review.getPlayer());
+    verify(reviewService).saveReview(review);
   }
 
   @Test
   public void testOnSendReviewThrowsException() {
-    ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
-
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    review.setReplay(replay);
+    ReplayReviewBean review = Instancio.of(ReplayReviewBean.class)
+                                       .set(field(ReplayReviewBean::subject), replay)
+                                       .create();
 
     runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
-    when(reviewService.saveReplayReview(review)).thenReturn(Mono.error(new FakeTestException()));
+    when(reviewService.saveReview(review)).thenReturn(Mono.error(new FakeTestException()));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();

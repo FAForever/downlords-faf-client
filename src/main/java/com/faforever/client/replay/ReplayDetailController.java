@@ -367,17 +367,14 @@ public class ReplayDetailController extends NodeController<Node> {
     reviewsController.setOnSendReviewListener(this::onSendReview);
     reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
     reviewsController.setReviewSupplier(() -> {
-      ReplayReviewBean review = new ReplayReviewBean();
-      review.setPlayer(playerService.getCurrentPlayer());
-      review.setReplay(replay.get());
-      return review;
+      return new ReplayReviewBean(null, null, playerService.getCurrentPlayer(), null, replay.get());
     });
     reviewsController.bindReviews(replayReviews);
   }
 
   @VisibleForTesting
   void onDeleteReview(ReplayReviewBean review) {
-    reviewService.deleteGameReview(review)
+    reviewService.deleteReview(review)
                  .publishOn(fxApplicationThreadExecutor.asScheduler())
                  .subscribe(null, throwable -> {
                    log.error("Review could not be saved", throwable);
@@ -387,7 +384,7 @@ public class ReplayDetailController extends NodeController<Node> {
 
   @VisibleForTesting
   void onSendReview(ReplayReviewBean review) {
-    reviewService.saveReplayReview(review)
+    reviewService.saveReview(review)
                  .filter(savedReview -> !replayReviews.contains(savedReview))
                  .publishOn(fxApplicationThreadExecutor.asScheduler())
                  .subscribe(savedReview -> {

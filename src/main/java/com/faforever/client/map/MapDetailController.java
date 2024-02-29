@@ -197,12 +197,8 @@ public class MapDetailController extends NodeController<Node> {
     reviewsController.setCanWriteReview(false);
     reviewsController.setOnSendReviewListener(this::onSendReview);
     reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
-    reviewsController.setReviewSupplier(() -> {
-      MapVersionReviewBean review = new MapVersionReviewBean();
-      review.setPlayer(playerService.getCurrentPlayer());
-      review.setMapVersion(mapVersion.get());
-      return review;
-    });
+    reviewsController.setReviewSupplier(
+        () -> new MapVersionReviewBean(null, null, playerService.getCurrentPlayer(), null, mapVersion.get()));
     reviewsController.bindReviews(mapReviews);
   }
 
@@ -254,7 +250,7 @@ public class MapDetailController extends NodeController<Node> {
 
   @VisibleForTesting
   void onDeleteReview(MapVersionReviewBean review) {
-    reviewService.deleteMapVersionReview(review)
+    reviewService.deleteReview(review)
                  .publishOn(fxApplicationThreadExecutor.asScheduler())
                  .subscribe(null, throwable -> {
                    log.error("Review could not be deleted", throwable);
@@ -264,7 +260,7 @@ public class MapDetailController extends NodeController<Node> {
 
   @VisibleForTesting
   void onSendReview(MapVersionReviewBean review) {
-    reviewService.saveMapVersionReview(review)
+    reviewService.saveReview(review)
                  .filter(savedReview -> !mapReviews.contains(savedReview))
                  .publishOn(fxApplicationThreadExecutor.asScheduler())
                  .subscribe(savedReview -> {

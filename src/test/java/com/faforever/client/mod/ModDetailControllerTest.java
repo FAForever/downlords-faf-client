@@ -2,7 +2,6 @@ package com.faforever.client.mod;
 
 import com.faforever.client.builders.ModBeanBuilder;
 import com.faforever.client.builders.ModVersionBeanBuilder;
-import com.faforever.client.builders.ModVersionReviewBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
@@ -26,6 +25,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -38,6 +38,7 @@ import reactor.core.scheduler.Schedulers;
 import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -317,25 +318,30 @@ public class ModDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnDeleteReview() {
-    ModVersionReviewBean review = ModVersionReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
+    ModVersionReviewBean review = Instancio.of(ModVersionReviewBean.class)
+                                           .set(field(ModVersionReviewBean::player), currentPlayer)
+                                           .create();
 
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
 
-    when(reviewService.deleteModVersionReview(review)).thenReturn(Mono.empty());
+    when(reviewService.deleteReview(review)).thenReturn(Mono.empty());
 
     instance.onDeleteReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).deleteModVersionReview(review);
+    verify(reviewService).deleteReview(review);
   }
 
   @Test
   public void testOnDeleteReviewThrowsException() {
-    ModVersionReviewBean review = ModVersionReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
+    ModVersionReviewBean review = Instancio.of(ModVersionReviewBean.class)
+                                           .set(field(ModVersionReviewBean::player), currentPlayer)
+                                           .set(field(ModVersionReviewBean::player), currentPlayer)
+                                           .create();
 
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
 
-    when(reviewService.deleteModVersionReview(review)).thenReturn(Mono.error(new FakeTestException()));
+    when(reviewService.deleteReview(review)).thenReturn(Mono.error(new FakeTestException()));
 
     instance.onDeleteReview(review);
     WaitForAsyncUtils.waitForFxEvents();
@@ -345,45 +351,52 @@ public class ModDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnSendReviewNew() {
-    ModVersionReviewBean review = ModVersionReviewBeanBuilder.create().defaultValues().id(null).get();
-    review.setModVersion(modVersion);
+    ModVersionReviewBean review = Instancio.of(ModVersionReviewBean.class)
+                                           .set(field(ModVersionReviewBean::player), currentPlayer)
+                                           .set(field(ModVersionReviewBean::id), null)
+                                           .set(field(ModVersionReviewBean::subject), modVersion)
+                                           .create();
 
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
 
-    when(reviewService.saveModVersionReview(review)).thenReturn(Mono.empty());
+    when(reviewService.saveReview(review)).thenReturn(Mono.empty());
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveModVersionReview(review);
-    assertEquals(currentPlayer, review.getPlayer());
+    verify(reviewService).saveReview(review);
+    assertEquals(currentPlayer, review.player());
   }
 
   @Test
   public void testOnSendReviewUpdate() {
-    ModVersionReviewBean review = ModVersionReviewBeanBuilder.create().defaultValues().get();
-    review.setModVersion(modVersion);
-    review.setId(0);
+    ModVersionReviewBean review = Instancio.of(ModVersionReviewBean.class)
+                                           .set(field(ModVersionReviewBean::player), currentPlayer)
+                                           .set(field(ModVersionReviewBean::id), 0)
+                                           .set(field(ModVersionReviewBean::subject), modVersion)
+                                           .create();
 
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
 
-    when(reviewService.saveModVersionReview(review)).thenReturn(Mono.empty());
+    when(reviewService.saveReview(review)).thenReturn(Mono.empty());
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveModVersionReview(review);
-    assertEquals(currentPlayer, review.getPlayer());
+    verify(reviewService).saveReview(review);
+    assertEquals(currentPlayer, review.player());
   }
 
   @Test
   public void testOnSendReviewThrowsException() {
-    ModVersionReviewBean review = ModVersionReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
-    review.setModVersion(modVersion);
+    ModVersionReviewBean review = Instancio.of(ModVersionReviewBean.class)
+                                           .set(field(ModVersionReviewBean::player), currentPlayer)
+                                           .set(field(ModVersionReviewBean::subject), modVersion)
+                                           .create();
 
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
 
-    when(reviewService.saveModVersionReview(review)).thenReturn(Mono.error(new FakeTestException()));
+    when(reviewService.saveReview(review)).thenReturn(Mono.error(new FakeTestException()));
 
     runOnFxThreadAndWait(() -> instance.onSendReview(review));
 

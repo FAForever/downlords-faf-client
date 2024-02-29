@@ -1,38 +1,18 @@
 package com.faforever.client.domain;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableValue;
-import lombok.EqualsAndHashCode;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
-@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
-public class MapVersionReviewBean extends ReviewBean {
-  private final ObjectProperty<MapVersionBean> mapVersion = new SimpleObjectProperty<>();
-  private final ObservableValue<ComparableVersion> latestVersion = mapVersion.flatMap(MapVersionBean::mapProperty)
-                                                                             .flatMap(MapBean::latestVersionProperty)
-                                                                             .flatMap(MapVersionBean::versionProperty);
-  private final ObservableValue<ComparableVersion> version = mapVersion.flatMap(MapVersionBean::versionProperty);
+public record MapVersionReviewBean(
+    Integer id, String text, PlayerBean player, Integer score, MapVersionBean subject
+) implements ReviewBean<MapVersionReviewBean, MapVersionBean> {
 
-  public MapVersionBean getMapVersion() {
-    return mapVersion.get();
-  }
-
-  public ObjectProperty<MapVersionBean> mapVersionProperty() {
-    return mapVersion;
-  }
-
-  public void setMapVersion(MapVersionBean mapVersion) {
-    this.mapVersion.set(mapVersion);
+  @Override
+  public ComparableVersion version() {
+    return subject().getVersion();
   }
 
   @Override
-  public ObservableValue<ComparableVersion> versionProperty() {
-    return version;
-  }
-
-  @Override
-  public ObservableValue<ComparableVersion> latestVersionProperty() {
-    return latestVersion;
+  public MapVersionReviewBean withScoreAndText(int score, String text) {
+    return new MapVersionReviewBean(id(), text, player(), score, subject());
   }
 }

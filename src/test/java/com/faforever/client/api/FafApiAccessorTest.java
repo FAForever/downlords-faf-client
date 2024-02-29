@@ -1,6 +1,5 @@
 package com.faforever.client.api;
 
-import com.faforever.client.builders.ReplayReviewBeanBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Api;
 import com.faforever.client.config.JsonApiConfig;
@@ -25,6 +24,7 @@ import io.netty.resolver.DefaultAddressResolverGroup;
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -152,7 +152,7 @@ public class FafApiAccessorTest extends ServiceTest {
 
   @Test
   public void testPost() throws Exception {
-    ReplayReviewBean reviewBean = ReplayReviewBeanBuilder.create().defaultValues().id(0).get();
+    ReplayReviewBean reviewBean = Instancio.create(ReplayReviewBean.class);
     GameReview review = reviewMapper.map(reviewBean, new CycleAvoidingMappingContext());
 
     prepareJsonApiResponse(review);
@@ -163,7 +163,7 @@ public class FafApiAccessorTest extends ServiceTest {
 
   @Test
   public void testPatch() throws Exception {
-    ReplayReviewBean reviewBean = ReplayReviewBeanBuilder.create().defaultValues().id(0).get();
+    ReplayReviewBean reviewBean = Instancio.create(ReplayReviewBean.class);
     GameReview review = reviewMapper.map(reviewBean, new CycleAvoidingMappingContext());
 
     prepareVoidResponse();
@@ -173,7 +173,7 @@ public class FafApiAccessorTest extends ServiceTest {
 
   @Test
   public void testDelete() throws Exception {
-    ReplayReviewBean reviewBean = ReplayReviewBeanBuilder.create().defaultValues().id(0).get();
+    ReplayReviewBean reviewBean = Instancio.create(ReplayReviewBean.class);
     GameReview review = reviewMapper.map(reviewBean, new CycleAvoidingMappingContext());
 
     prepareVoidResponse();
@@ -183,7 +183,7 @@ public class FafApiAccessorTest extends ServiceTest {
 
   @Test
   public void testGetOne() throws Exception {
-    ReplayReviewBean reviewBean = ReplayReviewBeanBuilder.create().defaultValues().id(0).get();
+    ReplayReviewBean reviewBean = Instancio.create(ReplayReviewBean.class);
     GameReview review = reviewMapper.map(reviewBean, new CycleAvoidingMappingContext());
 
     prepareJsonApiResponse(review);
@@ -204,7 +204,7 @@ public class FafApiAccessorTest extends ServiceTest {
 
   @Test
   public void testGetManyNoNavigator() throws Exception {
-    ReplayReviewBean reviewBean = ReplayReviewBeanBuilder.create().defaultValues().id(0).get();
+    ReplayReviewBean reviewBean = Instancio.create(ReplayReviewBean.class);
     GameReview review = reviewMapper.map(reviewBean, new CycleAvoidingMappingContext());
 
     prepareJsonApiResponse(List.of(review));

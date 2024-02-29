@@ -7,6 +7,7 @@ import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionReviewBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayReviewBean;
+import com.faforever.client.domain.ReviewBean;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.ReviewMapper;
 import com.faforever.commons.api.dto.Game;
@@ -17,6 +18,7 @@ import com.faforever.commons.api.dto.MapVersionReview;
 import com.faforever.commons.api.dto.Mod;
 import com.faforever.commons.api.dto.ModVersion;
 import com.faforever.commons.api.dto.ModVersionReview;
+import com.faforever.commons.api.dto.Review;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.api.elide.ElideNavigatorOnId;
@@ -33,9 +35,18 @@ public class ReviewService {
   private final FafApiAccessor fafApiAccessor;
   private final ReviewMapper reviewMapper;
 
-  public Mono<ReplayReviewBean> saveReplayReview(ReplayReviewBean review) {
-    Assert.notNull(review.getPlayer(), "Player must be set");
-    Assert.notNull(review.getReplay(), "Game must be set");
+  @SuppressWarnings("unchecked")
+  public <R extends ReviewBean<R, ?>> Mono<R> saveReview(R review) {
+    Assert.notNull(review.player(), "Player must be set");
+    Assert.notNull(review.subject(), "Subject must be set");
+    return switch (review) {
+      case ReplayReviewBean replayReview -> (Mono<R>) saveReplayReview(replayReview);
+      case MapVersionReviewBean mapReview -> (Mono<R>) saveMapVersionReview(mapReview);
+      case ModVersionReviewBean modReview -> (Mono<R>) saveModVersionReview(modReview);
+    };
+  }
+
+  private Mono<ReplayReviewBean> saveReplayReview(ReplayReviewBean review) {
     GameReview gameReview = reviewMapper.map(review, new CycleAvoidingMappingContext());
     if (gameReview.getId() == null) {
       ElideNavigatorOnCollection<GameReview> navigator = ElideNavigator.of(gameReview.getGame())
@@ -52,9 +63,7 @@ public class ReviewService {
 
   }
 
-  public Mono<ModVersionReviewBean> saveModVersionReview(ModVersionReviewBean review) {
-    Assert.notNull(review.getPlayer(), "Player must be set");
-    Assert.notNull(review.getModVersion(), "ModVersion must be set");
+  private Mono<ModVersionReviewBean> saveModVersionReview(ModVersionReviewBean review) {
     ModVersionReview modVersionReview = reviewMapper.map(review, new CycleAvoidingMappingContext());
     if (modVersionReview.getId() == null) {
       ElideNavigatorOnCollection<ModVersionReview> navigator = ElideNavigator.of(modVersionReview.getModVersion())
@@ -70,9 +79,7 @@ public class ReviewService {
     }
   }
 
-  public Mono<MapVersionReviewBean> saveMapVersionReview(MapVersionReviewBean review) {
-    Assert.notNull(review.getPlayer(), "Player must be set");
-    Assert.notNull(review.getMapVersion(), "MapVersion must be set");
+  private Mono<MapVersionReviewBean> saveMapVersionReview(MapVersionReviewBean review) {
     MapVersionReview mapVersionReview = reviewMapper.map(review, new CycleAvoidingMappingContext());
     if (mapVersionReview.getId() == null) {
       ElideNavigatorOnCollection<MapVersionReview> navigator = ElideNavigator.of(mapVersionReview.getMapVersion())
@@ -89,21 +96,9 @@ public class ReviewService {
 
   }
 
-  public Mono<Void> deleteGameReview(ReplayReviewBean review) {
-    GameReview gameReview = reviewMapper.map(review, new CycleAvoidingMappingContext());
-    ElideNavigatorOnId<GameReview> endpointBuilder = ElideNavigator.of(gameReview);
-    return fafApiAccessor.delete(endpointBuilder);
-  }
-
-  public Mono<Void> deleteMapVersionReview(MapVersionReviewBean review) {
-    MapVersionReview mapVersionReview = reviewMapper.map(review, new CycleAvoidingMappingContext());
-    ElideNavigatorOnId<MapVersionReview> endpointBuilder = ElideNavigator.of(mapVersionReview);
-    return fafApiAccessor.delete(endpointBuilder);
-  }
-
-  public Mono<Void> deleteModVersionReview(ModVersionReviewBean review) {
-    ModVersionReview modVersionReview = reviewMapper.map(review, new CycleAvoidingMappingContext());
-    ElideNavigatorOnId<ModVersionReview> endpointBuilder = ElideNavigator.of(modVersionReview);
+  public Mono<Void> deleteReview(ReviewBean<?, ?> review) {
+    Review reviewDto = reviewMapper.map(review, new CycleAvoidingMappingContext());
+    ElideNavigatorOnId<Review> endpointBuilder = ElideNavigator.of(reviewDto);
     return fafApiAccessor.delete(endpointBuilder);
   }
 

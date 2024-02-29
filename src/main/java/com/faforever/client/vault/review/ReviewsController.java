@@ -8,20 +8,19 @@ import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.NumberBinding;
-import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -32,6 +31,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -45,7 +45,7 @@ import java.util.function.Supplier;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ReviewsController<T extends ReviewBean> extends NodeController<Pane> {
+public class ReviewsController<R extends ReviewBean<R, ?>> extends NodeController<Pane> {
   private static final int REVIEWS_PER_PAGE = 4;
   private final I18n i18n;
   private final UiService uiService;
@@ -62,7 +62,7 @@ public class ReviewsController<T extends ReviewBean> extends NodeController<Pane
   public Label totalReviewsLabel;
   public StarsController averageStarsController;
   public Pane ownReview;
-  public ReviewController<T> ownReviewController;
+  public ReviewController<R> ownReviewController;
   public Label ownReviewLabel;
   public Pane otherReviewsContainer;
   public Pane reviewsPagination;
@@ -71,34 +71,37 @@ public class ReviewsController<T extends ReviewBean> extends NodeController<Pane
 
   private final BooleanProperty canWriteReview = new SimpleBooleanProperty();
   private final IntegerProperty currentPage = new SimpleIntegerProperty(0);
-  private final ObjectProperty<Supplier<T>> reviewSupplier = new SimpleObjectProperty<>();
-  private final ObservableList<T> reviews = FXCollections.observableArrayList(
-      review -> new Observable[]{review.scoreProperty()});
+  private final ObjectProperty<Supplier<R>> reviewSupplier = new SimpleObjectProperty<>();
+  private final ObservableList<R> reviews = FXCollections.observableArrayList();
 
   @Override
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(ownReviewLabel, ownReview, pageLeftButton, reviewsPagination, pageRightButton);
     JavaFxUtil.setAnchors(ownReview, 0d);
 
-    FilteredList<T> otherNonEmptyReviews = new FilteredList<>(
-        new SortedList<>(reviews, Comparator.comparing(ReviewBean::getVersion).reversed()));
+    FilteredList<R> otherNonEmptyReviews = new FilteredList<>(new SortedList<>(reviews,
+                                                                               Comparator.<R, ComparableVersion>comparing(
+                                                                                             ReviewBean::version,
+                                                                                             Comparator.nullsFirst(
+                                                                                                 Comparator.naturalOrder()))
+                                                                                         .reversed()));
     IntegerBinding numOtherNonEmptyReviews = Bindings.size(otherNonEmptyReviews);
     NumberBinding totalReviews = Bindings.max(Bindings.size(reviews), 1d);
-    NumberBinding fiveStarPercentage = Bindings.size(new FilteredList<>(reviews, review -> review.getScore() == 5))
+    NumberBinding fiveStarPercentage = Bindings.size(new FilteredList<>(reviews, review -> review.score() == 5))
                                                .divide(totalReviews);
-    NumberBinding fourStarPercentage = Bindings.size(new FilteredList<>(reviews, review -> review.getScore() == 4))
+    NumberBinding fourStarPercentage = Bindings.size(new FilteredList<>(reviews, review -> review.score() == 4))
                                                .divide(totalReviews);
-    NumberBinding threeStarPercentage = Bindings.size(new FilteredList<>(reviews, review -> review.getScore() == 3))
+    NumberBinding threeStarPercentage = Bindings.size(new FilteredList<>(reviews, review -> review.score() == 3))
                                                 .divide(totalReviews);
-    NumberBinding twoStarPercentage = Bindings.size(new FilteredList<>(reviews, review -> review.getScore() == 2))
+    NumberBinding twoStarPercentage = Bindings.size(new FilteredList<>(reviews, review -> review.score() == 2))
                                               .divide(totalReviews);
-    NumberBinding oneStarPercentage = Bindings.size(new FilteredList<>(reviews, review -> review.getScore() == 1))
+    NumberBinding oneStarPercentage = Bindings.size(new FilteredList<>(reviews, review -> review.score() == 1))
                                               .divide(totalReviews);
 
     totalReviewsLabel.textProperty()
                      .bind(totalReviews.map(numReviews -> i18n.get("reviews.totalReviewers", numReviews)));
     DoubleBinding average = Bindings.createDoubleBinding(
-        () -> reviews.stream().mapToInt(ReviewBean::getScore).average().orElse(0d), reviews);
+        () -> reviews.stream().mapToInt(ReviewBean::score).average().orElse(0d), reviews);
     scoreLabel.textProperty().bind(average.map(averageValue -> i18n.rounded(averageValue, 1)));
     averageStarsController.valueProperty().bind(average);
 
@@ -126,28 +129,22 @@ public class ReviewsController<T extends ReviewBean> extends NodeController<Pane
 
     otherNonEmptyReviews.predicateProperty()
                         .bind(playerService.currentPlayerProperty()
-                                           .map(player -> (Predicate<? super ReviewBean>) review -> !Objects.equals(
-                                               review.getPlayer().getId(), player.getId()) && !StringUtils.isBlank(
-                                               review.getText()))
+                                           .map(player -> (Predicate<? super R>) review -> !Objects.equals(
+                                               review.player().getId(), player.getId()) && !StringUtils.isBlank(
+                                               review.text()))
                                            .when(showing));
 
-    ObjectBinding<T> ownReviewBinding = Bindings.createObjectBinding(() -> {
+    ObservableValue<R> ownReviewBinding = Bindings.when(canWriteReview).then(Bindings.createObjectBinding(() -> {
       PlayerBean currentPlayer = playerService.getCurrentPlayer();
       return reviews.stream()
-                    .filter(review -> Objects.equals(currentPlayer, review.getPlayer()))
-                    .max(Comparator.comparing(ReviewBean::getVersion))
-                    .orElseGet(() -> {
-                      if (!canWriteReview.get() || reviewSupplier.get() == null) {
-                        return null;
-                      }
-
-                      return reviewSupplier.get().get();
-                    });
-    }, playerService.currentPlayerProperty(), reviews, canWriteReview, reviewSupplier);
+                    .filter(review -> Objects.equals(currentPlayer, review.player()))
+                    .max(Comparator.comparing(ReviewBean::version))
+                    .orElseGet(() -> reviewSupplier.get().get());
+    }, playerService.currentPlayerProperty(), reviews, reviewSupplier)).otherwise((R) null);
     ownReviewController.reviewProperty().bind(ownReviewBinding.when(showing));
 
     BooleanExpression reviewCreated = BooleanExpression.booleanExpression(
-        ownReviewBinding.flatMap(ReviewBean::idProperty).map(Objects::nonNull));
+        ownReviewBinding.map(ReviewBean::id).map(Objects::nonNull));
 
     BooleanBinding noOwnReview = ownReviewController.reviewProperty().isNotNull();
     ownReview.visibleProperty().bind(noOwnReview.when(showing));
@@ -155,7 +152,7 @@ public class ReviewsController<T extends ReviewBean> extends NodeController<Pane
     reviewsPagination.visibleProperty().bind(numOtherNonEmptyReviews.greaterThan(REVIEWS_PER_PAGE).when(showing));
 
     for (int i = 0; i < 4; i++) {
-      ReviewController<T> controller = uiService.loadFxml("theme/vault/review/review.fxml");
+      ReviewController<R> controller = uiService.loadFxml("theme/vault/review/review.fxml");
       controller.reviewProperty()
                 .bind(Bindings.valueAt(otherNonEmptyReviews, currentPage.multiply(REVIEWS_PER_PAGE).add(i))
                               .when(showing));
@@ -170,11 +167,11 @@ public class ReviewsController<T extends ReviewBean> extends NodeController<Pane
     return reviewsRoot;
   }
 
-  public void setOnSendReviewListener(Consumer<T> onSendReviewListener) {
+  public void setOnSendReviewListener(Consumer<R> onSendReviewListener) {
     ownReviewController.setOnSendReviewListener(onSendReviewListener);
   }
 
-  public void bindReviews(ObservableList<T> reviews) {
+  public void bindReviews(ObservableList<R> reviews) {
     Bindings.bindContent(this.reviews, reviews);
   }
 
@@ -182,11 +179,11 @@ public class ReviewsController<T extends ReviewBean> extends NodeController<Pane
     this.canWriteReview.set(canWriteReview);
   }
 
-  public void setReviewSupplier(Supplier<T> reviewSupplier) {
+  public void setReviewSupplier(Supplier<R> reviewSupplier) {
     this.reviewSupplier.set(reviewSupplier);
   }
 
-  public void setOnDeleteReviewListener(Consumer<T> onDeleteReviewListener) {
+  public void setOnDeleteReviewListener(Consumer<R> onDeleteReviewListener) {
     ownReviewController.setOnDeleteReviewListener(onDeleteReviewListener);
   }
 

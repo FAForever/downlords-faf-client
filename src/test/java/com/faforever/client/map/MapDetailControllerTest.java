@@ -2,7 +2,6 @@ package com.faforever.client.map;
 
 import com.faforever.client.builders.MapBeanBuilder;
 import com.faforever.client.builders.MapVersionBeanBuilder;
-import com.faforever.client.builders.MapVersionReviewBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.MapVersionReviewBean;
@@ -31,6 +30,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.input.MouseEvent;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -44,6 +44,7 @@ import reactor.core.scheduler.Schedulers;
 import java.time.OffsetDateTime;
 import java.util.concurrent.CompletableFuture;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -112,7 +113,7 @@ public class MapDetailControllerTest extends PlatformTest {
         .defaultValues()
         .map(MapBeanBuilder.create().defaultValues().author(currentPlayer).get())
         .get();
-    review = MapVersionReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
+    review = Instancio.of(MapVersionReviewBean.class).set(field(MapVersionReviewBean::player), currentPlayer).create();
 
     lenient().when(mapService.isInstalledBinding(Mockito.<ObservableValue<MapVersionBean>>any())).thenReturn(installed);
     lenient().when(imageViewHelper.createPlaceholderImageOnErrorObservable(any()))
@@ -338,12 +339,12 @@ public class MapDetailControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
 
-    when(reviewService.deleteMapVersionReview(review)).thenReturn(Mono.empty());
+    when(reviewService.deleteReview(review)).thenReturn(Mono.empty());
 
     instance.onDeleteReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).deleteMapVersionReview(review);
+    verify(reviewService).deleteReview(review);
   }
 
   @Test
@@ -351,7 +352,7 @@ public class MapDetailControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
 
-    when(reviewService.deleteMapVersionReview(review)).thenReturn(Mono.error(new FakeTestException()));
+    when(reviewService.deleteReview(review)).thenReturn(Mono.error(new FakeTestException()));
 
     instance.onDeleteReview(review);
     WaitForAsyncUtils.waitForFxEvents();
@@ -361,47 +362,50 @@ public class MapDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnSendReviewNew() {
-    review.setId(null);
-    review.setMapVersion(testMap);
+    MapVersionReviewBean review = Instancio.of(MapVersionReviewBean.class)
+                                           .set(field(MapVersionReviewBean::id), null)
+                                           .set(field(MapVersionReviewBean::subject), testMap)
+                                           .create();
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
 
-    when(reviewService.saveMapVersionReview(review)).thenReturn(Mono.empty());
+    when(reviewService.saveReview(review)).thenReturn(Mono.empty());
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveMapVersionReview(review);
-    assertEquals(currentPlayer, review.getPlayer());
+    verify(reviewService).saveReview(review);
   }
 
   @Test
   public void testOnSendReviewUpdate() {
-    review.setMapVersion(testMap);
-    review.setId(0);
+    MapVersionReviewBean review = Instancio.of(MapVersionReviewBean.class)
+                                           .set(field(MapVersionReviewBean::subject), testMap)
+                                           .create();
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
 
-    when(reviewService.saveMapVersionReview(review)).thenReturn(Mono.empty());
+    when(reviewService.saveReview(review)).thenReturn(Mono.empty());
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveMapVersionReview(review);
-    assertEquals(currentPlayer, review.getPlayer());
+    verify(reviewService).saveReview(review);
   }
 
   @Test
   public void testOnSendReviewThrowsException() {
-    review.setMapVersion(testMap);
+    MapVersionReviewBean review = Instancio.of(MapVersionReviewBean.class)
+                                           .set(field(MapVersionReviewBean::subject), testMap)
+                                           .create();
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
 
 
-    when(reviewService.saveMapVersionReview(review)).thenReturn(Mono.error(new FakeTestException()));
+    when(reviewService.saveReview(review)).thenReturn(Mono.error(new FakeTestException()));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
