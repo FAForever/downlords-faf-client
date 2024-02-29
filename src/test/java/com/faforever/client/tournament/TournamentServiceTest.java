@@ -1,13 +1,13 @@
 package com.faforever.client.tournament;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.TournamentBeanBuilder;
 import com.faforever.client.domain.TournamentBean;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.TournamentMapper;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.Tournament;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +42,7 @@ public class TournamentServiceTest extends ServiceTest {
 
   @Test
   public void testAllTournaments() throws Exception {
-    TournamentBean tournamentBean = TournamentBeanBuilder.create().defaultValues().get();
+    TournamentBean tournamentBean = Instancio.create(TournamentBean.class);
     Flux<Tournament> resultFlux = Flux.just(tournamentMapper.map(tournamentBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(eq(Tournament.class), anyString(), anyInt(), any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getAllTournaments()).expectNext(tournamentBean).verifyComplete();

@@ -2,6 +2,7 @@ package com.faforever.client.tournament;
 
 
 import com.faforever.client.domain.TournamentBean;
+import com.faforever.client.domain.TournamentBean.Status;
 import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.NodeController;
@@ -86,8 +87,8 @@ public class TournamentsController extends NodeController<Node> {
     webViewConfigurer.configureWebView(tournamentDetailWebView);
 
     tournamentService.getAllTournaments()
-                     .sort(Comparator.<TournamentBean, Integer>comparing(o -> o.getStatus().getSortOrderPriority())
-                                     .thenComparing(TournamentBean::getCreatedAt)
+                     .sort(Comparator.<TournamentBean, Status>comparing(TournamentBean::status)
+                                     .thenComparing(TournamentBean::createdAt)
                                      .reversed())
                      .collectList()
                      .map(FXCollections::observableList)
@@ -101,23 +102,26 @@ public class TournamentsController extends NodeController<Node> {
 
   private void displayTournamentItem(TournamentBean tournamentBean) {
     String startingDate = i18n.get("tournament.noStartingDate");
-    if (tournamentBean.getStartingAt() != null) {
-      startingDate = MessageFormat.format(i18n.get("dateWithTime"), timeService.asDate(tournamentBean.getStartingAt()), timeService.asShortTime(tournamentBean.getStartingAt()));
+    if (tournamentBean.startingAt() != null) {
+      startingDate = MessageFormat.format(i18n.get("dateWithTime"), timeService.asDate(tournamentBean.startingAt()),
+                                          timeService.asShortTime(tournamentBean.startingAt()));
     }
 
     String completedDate = i18n.get("tournament.noCompletionDate");
-    if (tournamentBean.getCompletedAt() != null) {
-      completedDate = MessageFormat.format(i18n.get("dateWithTime"), timeService.asDate(tournamentBean.getCompletedAt()), timeService.asShortTime(tournamentBean.getCompletedAt()));
+    if (tournamentBean.completedAt() != null) {
+      completedDate = MessageFormat.format(i18n.get("dateWithTime"), timeService.asDate(tournamentBean.completedAt()),
+                                           timeService.asShortTime(tournamentBean.completedAt()));
     }
 
     try (Reader reader = new InputStreamReader(TOURNAMENT_DETAIL_HTML_RESOURCE.getInputStream())) {
-      String html = CharStreams.toString(reader).replace("{name}", tournamentBean.getName())
-          .replace("{challonge-url}", tournamentBean.getChallongeUrl())
-          .replace("{tournament-type}", tournamentBean.getTournamentType())
+      String html = CharStreams.toString(reader)
+                               .replace("{name}", tournamentBean.name())
+                               .replace("{challonge-url}", tournamentBean.challongeUrl())
+                               .replace("{tournament-type}", tournamentBean.tournamentType())
           .replace("{starting-date}", startingDate)
           .replace("{completed-date}", completedDate)
-          .replace("{description}", tournamentBean.getDescription())
-          .replace("{tournament-image}", tournamentBean.getLiveImageUrl())
+                               .replace("{description}", tournamentBean.description())
+                               .replace("{tournament-image}", tournamentBean.liveImageUrl())
           .replace("{open-on-challonge-label}", i18n.get("tournament.openOnChallonge"))
           .replace("{game-type-label}", i18n.get("tournament.gameType"))
           .replace("{starting-at-label}", i18n.get("tournament.startingAt"))

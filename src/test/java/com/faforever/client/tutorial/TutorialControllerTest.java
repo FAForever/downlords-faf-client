@@ -43,8 +43,8 @@ public class TutorialControllerTest extends PlatformTest {
     });
     TutorialCategoryBean tutorialCategory = Instancio.create(TutorialCategoryBean.class);
     when(tutorialService.getTutorialCategories()).thenReturn(Flux.just(tutorialCategory));
-    when(tutorialListItemController.getRoot()).thenReturn(new Pane());
-    when(tutorialsCategoryListItemController.getRoot()).thenReturn(new Pane());
+    when(tutorialListItemController.getRoot()).thenAnswer(invocation -> new Pane());
+    when(tutorialsCategoryListItemController.getRoot()).thenAnswer(invocation -> new Pane());
     when(uiService.loadFxml("theme/tutorial_category_list_item.fxml")).thenReturn(tutorialsCategoryListItemController);
     when(uiService.loadFxml("theme/tutorial_list_item.fxml")).thenReturn(tutorialListItemController);
   }

@@ -36,12 +36,13 @@ public class TournamentListItemController extends NodeController<Node> {
   }
 
   void setTournamentItem(TournamentBean tournamentBean) {
-    nameLabel.setText(tournamentBean.getName());
-    if (tournamentBean.getStartingAt() == null) {
+    nameLabel.setText(tournamentBean.name());
+    if (tournamentBean.startingAt() == null) {
       startingLabel.setText(i18n.get("unknown"));
     } else {
-      startingLabel.setText(MessageFormat.format("{0} {1}", timeService.asDate(tournamentBean.getStartingAt()), timeService.asShortTime(tournamentBean.getStartingAt())));
+      startingLabel.setText(MessageFormat.format("{0} {1}", timeService.asDate(tournamentBean.startingAt()),
+                                                 timeService.asShortTime(tournamentBean.startingAt())));
     }
-    statusLabel.setText(i18n.get(tournamentBean.getStatus().getMessageKey()));
+    statusLabel.setText(i18n.get(tournamentBean.status().getMessageKey()));
   }
 }
