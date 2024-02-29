@@ -2,7 +2,6 @@ package com.faforever.client.map;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.builders.MapBeanBuilder;
-import com.faforever.client.builders.MapPoolAssignmentBeanBuilder;
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
@@ -44,6 +43,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.hamcrest.core.IsInstanceOf;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -79,6 +79,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -480,14 +481,17 @@ public class MapServiceTest extends PlatformTest {
 
   @Test
   public void testGetMatchMakerMaps() throws Exception {
-    MapPoolAssignmentBean mapPoolAssignment1 = MapPoolAssignmentBeanBuilder.create().defaultValues().get();
-    MapPoolAssignmentBean mapPoolAssignment2 = MapPoolAssignmentBeanBuilder.create()
-                                                                           .defaultValues()
-                                                                           .mapVersion(null)
-                                                                           .mapParams(
-                                                                               new NeroxisGeneratorParams().setVersion(
-                                                                                   "0.0.0").setSize(512).setSpawns(2))
-                                                                           .get();
+    MapPoolAssignmentBean mapPoolAssignment1 = Instancio.of(MapPoolAssignmentBean.class)
+                                                        .set(field(MapPoolAssignmentBean::mapVersion),
+                                                             MapVersionBeanBuilder.create().defaultValues().get())
+                                                        .create();
+    MapPoolAssignmentBean mapPoolAssignment2 = Instancio.of(MapPoolAssignmentBean.class)
+                                                        .set(field(MapPoolAssignmentBean::mapVersion), null)
+                                                        .set(field(MapPoolAssignmentBean::mapParams),
+                                                             new NeroxisGeneratorParams().setVersion("0.0.0")
+                                                                                         .setSize(512)
+                                                                                         .setSpawns(2))
+                                                        .create();
 
     Flux<ElideEntity> resultFlux = Flux.fromIterable(
         matchmakerMapper.mapAssignmentBeans(List.of(mapPoolAssignment1, mapPoolAssignment2),
@@ -506,33 +510,42 @@ public class MapServiceTest extends PlatformTest {
 
   @Test
   public void testGetMatchMakerMapsWithPagination() throws Exception {
-    MapPoolAssignmentBean mapPoolAssignment1 = MapPoolAssignmentBeanBuilder.create()
-        .defaultValues()
-        .mapVersion(MapVersionBeanBuilder.create()
-            .defaultValues()
-            .id(1)
-            .map(MapBeanBuilder.create().defaultValues().displayName("a").get())
-            .size(MapSize.valueOf(512, 512))
-            .get())
-        .get();
-    MapPoolAssignmentBean mapPoolAssignment2 = MapPoolAssignmentBeanBuilder.create()
-        .defaultValues()
-        .mapVersion(MapVersionBeanBuilder.create()
-            .defaultValues()
-            .id(2)
-            .map(MapBeanBuilder.create().defaultValues().displayName("b").get())
-            .size(MapSize.valueOf(512, 512))
-            .get())
-        .get();
-    MapPoolAssignmentBean mapPoolAssignment3 = MapPoolAssignmentBeanBuilder.create()
-        .defaultValues()
-        .mapVersion(MapVersionBeanBuilder.create()
-            .defaultValues()
-            .id(3)
-            .map(MapBeanBuilder.create().defaultValues().displayName("c").get())
-            .size(MapSize.valueOf(1024, 1024))
-            .get())
-        .get();
+    MapPoolAssignmentBean mapPoolAssignment1 = Instancio.of(MapPoolAssignmentBean.class)
+                                                        .set(field(MapPoolAssignmentBean::mapVersion),
+                                                             MapVersionBeanBuilder.create()
+                                                                                  .defaultValues()
+                                                                                  .id(1)
+                                                                                  .map(MapBeanBuilder.create()
+                                                                                                     .defaultValues()
+                                                                                                     .displayName("a")
+                                                                                                     .get())
+                                                                                  .size(MapSize.valueOf(512, 512))
+                                                                                  .get())
+                                                        .create();
+    MapPoolAssignmentBean mapPoolAssignment2 = Instancio.of(MapPoolAssignmentBean.class)
+                                                        .set(field(MapPoolAssignmentBean::mapVersion),
+                                                             MapVersionBeanBuilder.create()
+                                                                                  .defaultValues()
+                                                                                  .id(2)
+                                                                                  .map(MapBeanBuilder.create()
+                                                                                                     .defaultValues()
+                                                                                                     .displayName("b")
+                                                                                                     .get())
+                                                                                  .size(MapSize.valueOf(512, 512))
+                                                                                  .get())
+                                                        .create();
+    MapPoolAssignmentBean mapPoolAssignment3 = Instancio.of(MapPoolAssignmentBean.class)
+                                                        .set(field(MapPoolAssignmentBean::mapVersion),
+                                                             MapVersionBeanBuilder.create()
+                                                                                  .defaultValues()
+                                                                                  .id(3)
+                                                                                  .map(MapBeanBuilder.create()
+                                                                                                     .defaultValues()
+                                                                                                     .displayName("c")
+                                                                                                     .get())
+                                                                                  .size(MapSize.valueOf(1024, 1024))
+                                                                                  .get())
+                                                        .create();
 
     Flux<ElideEntity> resultFlux = Flux.fromIterable(matchmakerMapper.mapAssignmentBeans(List.of(mapPoolAssignment1, mapPoolAssignment2, mapPoolAssignment3), new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any(), anyString())).thenReturn(resultFlux);

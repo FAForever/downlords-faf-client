@@ -650,11 +650,16 @@ public class MapService implements InitializingBean, DisposableBean {
                                                             .map(mapPoolAssignment -> mapMapper.mapFromPoolAssignment(
                                                                 mapPoolAssignment, new CycleAvoidingMappingContext()))
                                                             .distinct()
-                                                            .sort(Comparator.comparing(MapVersionBean::getSize)
-                                                                            .thenComparing(
-                                                                                mapVersion -> mapVersion.getMap()
-                                                                                                        .getDisplayName(),
-                                                                                String.CASE_INSENSITIVE_ORDER));
+                                                            .sort(Comparator.nullsLast(
+                                                                                Comparator.comparing(MapVersionBean::getSize))
+                                                                            .thenComparing(Comparator.nullsLast(
+                                                                                Comparator.comparing(
+                                                                                    MapVersionBean::getMap,
+                                                                                    Comparator.nullsLast(
+                                                                                        Comparator.comparing(
+                                                                                            MapBean::getDisplayName,
+                                                                                            Comparator.nullsLast(
+                                                                                                String.CASE_INSENSITIVE_ORDER)))))));
     return Mono.zip(matchmakerMapsFlux.skip((long) (page - 1) * count).take(count).collectList(),
                     matchmakerMapsFlux.count().map(size -> (int) (size - 1) / count + 1));
   }

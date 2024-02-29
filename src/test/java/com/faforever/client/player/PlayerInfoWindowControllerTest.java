@@ -10,6 +10,7 @@ import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.LeaderboardEntryBean;
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.LeaderboardRatingJournalBean;
+import com.faforever.client.domain.LeagueLeaderboardBean;
 import com.faforever.client.domain.LeagueSeasonBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
@@ -146,8 +147,13 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
                                 .state(AchievementState.UNLOCKED)
                                 .get()));
     when(eventService.getPlayerEvents(player.getId())).thenReturn(Flux.empty());
-    when(leaderboardService.getActiveSeasons()).thenReturn(Flux.just(
-        Instancio.of(LeagueSeasonBean.class).set(field(LeagueSeasonBean::leagueLeaderboard), leaderboard).create()));
+    when(leaderboardService.getActiveSeasons()).thenReturn(Flux.just(Instancio.of(LeagueSeasonBean.class)
+                                                                              .set(field(
+                                                                                       LeagueSeasonBean::leagueLeaderboard),
+                                                                                   new LeagueLeaderboardBean(
+                                                                                       leaderboard.id(),
+                                                                                       leaderboard.technicalName()))
+                                                                              .create()));
     when(leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard.technicalName())).thenReturn(
         Mono.empty());
     when(userLeaderboardInfoController.getRoot()).thenReturn(new VBox());
