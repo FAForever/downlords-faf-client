@@ -93,8 +93,7 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
 
     ObservableValue<MapVersionBean> mapVersionObservable = entity.flatMap(ReplayBean::mapVersionProperty);
     onMapLabel.textProperty()
-        .bind(mapVersionObservable.flatMap(MapVersionBean::mapProperty)
-            .flatMap(MapBean::displayNameProperty)
+        .bind(mapVersionObservable.flatMap(MapVersionBean::mapProperty).map(MapBean::displayName)
             .map(displayName -> i18n.get("game.onMapFormat", displayName))
             .when(showing));
 

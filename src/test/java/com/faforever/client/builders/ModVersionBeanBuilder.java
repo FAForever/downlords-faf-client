@@ -4,7 +4,6 @@ import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
 import com.faforever.client.domain.ModVersionReviewsSummaryBean;
-import com.faforever.commons.mod.MountInfo;
 import javafx.collections.FXCollections;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
@@ -39,7 +38,6 @@ public class ModVersionBeanBuilder {
     try {
       downloadUrl(new URL("https://www.google.com"));
     } catch (MalformedURLException ignored) { }
-    hookDirectories(FXCollections.observableArrayList());
     modType(ModType.UI);
     filename("foo.tmp");
     icon("testIcon");
@@ -95,16 +93,6 @@ public class ModVersionBeanBuilder {
 
   public ModVersionBeanBuilder downloadUrl(URL downloadUrl) {
     modVersionBean.setDownloadUrl(downloadUrl);
-    return this;
-  }
-
-  public ModVersionBeanBuilder mountPoints(List<MountInfo> mountPoints) {
-    modVersionBean.setMountPoints(mountPoints);
-    return this;
-  }
-
-  public ModVersionBeanBuilder hookDirectories(List<String> hookDirectories) {
-    modVersionBean.setHookDirectories(hookDirectories);
     return this;
   }
 

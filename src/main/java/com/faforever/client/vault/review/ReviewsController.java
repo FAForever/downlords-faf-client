@@ -45,7 +45,7 @@ import java.util.function.Supplier;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ReviewsController<R extends ReviewBean<R, ?>> extends NodeController<Pane> {
+public class ReviewsController<R extends ReviewBean<R>> extends NodeController<Pane> {
   private static final int REVIEWS_PER_PAGE = 4;
   private final I18n i18n;
   private final UiService uiService;

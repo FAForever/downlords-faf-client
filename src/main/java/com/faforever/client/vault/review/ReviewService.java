@@ -36,9 +36,8 @@ public class ReviewService {
   private final ReviewMapper reviewMapper;
 
   @SuppressWarnings("unchecked")
-  public <R extends ReviewBean<R, ?>> Mono<R> saveReview(R review) {
+  public <R extends ReviewBean<R>> Mono<R> saveReview(R review) {
     Assert.notNull(review.player(), "Player must be set");
-    Assert.notNull(review.subject(), "Subject must be set");
     return switch (review) {
       case ReplayReviewBean replayReview -> (Mono<R>) saveReplayReview(replayReview);
       case MapVersionReviewBean mapReview -> (Mono<R>) saveMapVersionReview(mapReview);
@@ -47,6 +46,7 @@ public class ReviewService {
   }
 
   private Mono<ReplayReviewBean> saveReplayReview(ReplayReviewBean review) {
+    Assert.notNull(review.subject(), "Subject must be set");
     GameReview gameReview = reviewMapper.map(review, new CycleAvoidingMappingContext());
     if (gameReview.getId() == null) {
       ElideNavigatorOnCollection<GameReview> navigator = ElideNavigator.of(gameReview.getGame())
@@ -64,6 +64,7 @@ public class ReviewService {
   }
 
   private Mono<ModVersionReviewBean> saveModVersionReview(ModVersionReviewBean review) {
+    Assert.notNull(review.subject(), "Subject must be set");
     ModVersionReview modVersionReview = reviewMapper.map(review, new CycleAvoidingMappingContext());
     if (modVersionReview.getId() == null) {
       ElideNavigatorOnCollection<ModVersionReview> navigator = ElideNavigator.of(modVersionReview.getModVersion())
@@ -80,6 +81,7 @@ public class ReviewService {
   }
 
   private Mono<MapVersionReviewBean> saveMapVersionReview(MapVersionReviewBean review) {
+    Assert.notNull(review.subject(), "Subject must be set");
     MapVersionReview mapVersionReview = reviewMapper.map(review, new CycleAvoidingMappingContext());
     if (mapVersionReview.getId() == null) {
       ElideNavigatorOnCollection<MapVersionReview> navigator = ElideNavigator.of(mapVersionReview.getMapVersion())
@@ -96,15 +98,14 @@ public class ReviewService {
 
   }
 
-  public Mono<Void> deleteReview(ReviewBean<?, ?> review) {
+  public Mono<Void> deleteReview(ReviewBean<?> review) {
     Review reviewDto = reviewMapper.map(review, new CycleAvoidingMappingContext());
     ElideNavigatorOnId<Review> endpointBuilder = ElideNavigator.of(reviewDto);
     return fafApiAccessor.delete(endpointBuilder);
   }
 
   public Flux<MapVersionReviewBean> getMapReviews(MapBean map) {
-    ElideNavigatorOnCollection<MapVersion> versionsNavigator = ElideNavigator.of(Map.class)
-        .id(String.valueOf(map.getId()))
+    ElideNavigatorOnCollection<MapVersion> versionsNavigator = ElideNavigator.of(Map.class).id(String.valueOf(map.id()))
         .navigateRelationship(MapVersion.class, "versions")
         .collection()
         .addInclude("reviews")

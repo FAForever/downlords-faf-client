@@ -2,7 +2,7 @@ package com.faforever.client.domain;
 
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
-public sealed interface ReviewBean<R extends ReviewBean<R, S>, S> permits MapVersionReviewBean, ModVersionReviewBean, ReplayReviewBean {
+public sealed interface ReviewBean<R extends ReviewBean<R>> permits MapVersionReviewBean, ModVersionReviewBean, ReplayReviewBean {
   Integer id();
 
   String text();
@@ -12,8 +12,6 @@ public sealed interface ReviewBean<R extends ReviewBean<R, S>, S> permits MapVer
   Integer score();
 
   ComparableVersion version();
-
-  S subject();
 
   R withScoreAndText(int score, String text);
 

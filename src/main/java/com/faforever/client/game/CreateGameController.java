@@ -244,8 +244,7 @@ public class CreateGameController extends NodeController<Pane> {
   private void initMapFilterPopup() {
     mapFilterController = uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class);
     mapFilterController.addExternalFilter(mapSearchTextField.textProperty().when(showing),
-                                          (text, mapVersion) -> text.isEmpty() || mapVersion.getMap()
-                                                                                            .getDisplayName()
+                                          (text, mapVersion) -> text.isEmpty() || mapVersion.getMap().displayName()
                                                                                             .toLowerCase()
                                                                                             .contains(
                                                                                                 text.toLowerCase()) || mapVersion.getFolderName()
@@ -281,8 +280,7 @@ public class CreateGameController extends NodeController<Pane> {
 
   protected void initMapSelection() {
     mapNameLabel.textProperty()
-                .bind(selectedMap.flatMap(MapVersionBean::mapProperty)
-                                 .flatMap(MapBean::displayNameProperty)
+                .bind(selectedMap.flatMap(MapVersionBean::mapProperty).map(MapBean::displayName)
                                  .when(showing));
     mapSizeLabel.textProperty()
                 .bind(selectedMap.flatMap(MapVersionBean::sizeProperty)
@@ -313,7 +311,7 @@ public class CreateGameController extends NodeController<Pane> {
     versionLabel.visibleProperty().bind(versionLabel.textProperty().isNotEmpty());
 
     mapListView.setCellFactory(
-        param -> new StringListCell<>(mapVersion -> mapVersion.getMap().getDisplayName(), fxApplicationThreadExecutor));
+        param -> new StringListCell<>(mapVersion -> mapVersion.getMap().displayName(), fxApplicationThreadExecutor));
     mapListView.getSelectionModel().selectedItemProperty().when(showing).subscribe((oldItem, newItem) -> {
                 if (newItem == null && filteredMaps.contains(oldItem)) {
                   mapListView.getSelectionModel().select(oldItem);
@@ -324,9 +322,9 @@ public class CreateGameController extends NodeController<Pane> {
 
     FilteredList<MapVersionBean> skirmishMaps = mapService.getInstalledMaps()
                                                           .filtered(mapVersion -> mapVersion.getMap()
-                                                                                            .getMapType() == MapType.SKIRMISH);
+                                                                                            .mapType() == MapType.SKIRMISH);
     filteredMaps = new FilteredList<>(skirmishMaps.sorted(
-        Comparator.comparing(mapVersion -> mapVersion.getMap().getDisplayName(), String.CASE_INSENSITIVE_ORDER)));
+        Comparator.comparing(mapVersion -> mapVersion.getMap().displayName(), String.CASE_INSENSITIVE_ORDER)));
     filteredMaps.predicateProperty().when(showing).subscribe(() -> {
       MultipleSelectionModel<MapVersionBean> selectionModel = mapListView.getSelectionModel();
       if (!filteredMaps.isEmpty() && !filteredMaps.contains(selectionModel.getSelectedItem())) {

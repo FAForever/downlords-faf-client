@@ -1,6 +1,5 @@
 package com.faforever.client.domain;
 
-import com.faforever.commons.mod.MountInfo;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -38,12 +37,10 @@ public class ModVersionBean extends AbstractEntityBean {
   private final BooleanProperty selectable = new SimpleBooleanProperty();
   private final ObjectProperty<ComparableVersion> version = new SimpleObjectProperty<>();
   private final ObjectProperty<URL> thumbnailUrl = new SimpleObjectProperty<>();
-  ObservableList<String> comments = FXCollections.observableArrayList();
+  private final ObservableList<String> comments = FXCollections.observableArrayList();
   private final BooleanProperty selected = new SimpleBooleanProperty();
   private final IntegerProperty played = new SimpleIntegerProperty();
   private final ObjectProperty<URL> downloadUrl = new SimpleObjectProperty<>();
-  ObservableList<MountInfo> mountPoints = FXCollections.observableArrayList();
-  ObservableList<String> hookDirectories = FXCollections.observableArrayList();
   private final ObjectProperty<ModVersionReviewsSummaryBean> reviewsSummary = new SimpleObjectProperty<>();
   private final ObjectProperty<ModType> modType = new SimpleObjectProperty<>();
   private final StringProperty filename = new SimpleStringProperty();
@@ -157,28 +154,6 @@ public class ModVersionBean extends AbstractEntityBean {
       comments = List.of();
     }
     this.comments.setAll(comments);
-  }
-
-  public ObservableList<MountInfo> getMountPoints() {
-    return mountPoints;
-  }
-
-  public void setMountPoints(List<MountInfo> mountPoints) {
-    if (mountPoints == null) {
-      mountPoints = List.of();
-    }
-    this.mountPoints.setAll(mountPoints);
-  }
-
-  public ObservableList<String> getHookDirectories() {
-    return hookDirectories;
-  }
-
-  public void setHookDirectories(List<String> hookDirectories) {
-    if (hookDirectories == null) {
-      hookDirectories = List.of();
-    }
-    this.hookDirectories.setAll(hookDirectories);
   }
 
   public String getUid() {

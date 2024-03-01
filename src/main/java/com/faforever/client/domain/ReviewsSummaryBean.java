@@ -1,6 +1,6 @@
 package com.faforever.client.domain;
 
-public sealed interface ReviewsSummaryBean<T> permits MapReviewsSummaryBean, MapVersionReviewsSummaryBean, ModReviewsSummaryBean, ModVersionReviewsSummaryBean, ReplayReviewsSummaryBean {
+public sealed interface ReviewsSummaryBean permits MapReviewsSummaryBean, MapVersionReviewsSummaryBean, ModReviewsSummaryBean, ModVersionReviewsSummaryBean, ReplayReviewsSummaryBean {
   Integer id();
 
   float positive();
@@ -14,7 +14,5 @@ public sealed interface ReviewsSummaryBean<T> permits MapReviewsSummaryBean, Map
   int numReviews();
 
   float lowerBound();
-
-  T subject();
 
 }

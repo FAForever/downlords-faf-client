@@ -30,7 +30,7 @@ import java.util.function.Consumer;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ReviewController<R extends ReviewBean<R, ?>> extends NodeController<Pane> {
+public class ReviewController<R extends ReviewBean<R>> extends NodeController<Pane> {
   private static final String[] STARS_TIP_KEYS = {"review.starsTip.one", "review.starsTip.two", "review.starsTip.three", "review.starsTip.four", "review.starsTip.five"};
 
   private final I18n i18n;

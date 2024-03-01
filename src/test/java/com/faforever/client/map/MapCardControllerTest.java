@@ -1,7 +1,7 @@
 package com.faforever.client.map;
 
-import com.faforever.client.builders.MapBeanBuilder;
 import com.faforever.client.builders.MapVersionBeanBuilder;
+import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.fx.ImageViewHelper;
@@ -20,6 +20,7 @@ import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.image.Image;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -82,8 +83,7 @@ public class MapCardControllerTest extends PlatformTest {
     lenient().when(mapService.downloadAndInstallMap(any(), isNull(), isNull())).thenReturn(Mono.empty());
     lenient().when(mapService.uninstallMap(any())).thenReturn(Mono.empty());
     mapBean = MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().get())
+        .defaultValues().map(Instancio.create(MapBean.class))
         .folderName("testMap")
         .ranked(true)
         .id(23)
@@ -115,8 +115,8 @@ public class MapCardControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.setEntity(mapBean));
 
-    assertThat(instance.nameLabel.getText(), is("test"));
-    assertThat(instance.authorLabel.getText(), is("junit"));
+    assertThat(instance.nameLabel.getText(), is(mapBean.getMap().displayName()));
+    assertThat(instance.authorLabel.getText(), is(mapBean.getMap().author().getUsername()));
     assertThat(instance.versionLabel.getText(), is("v10"));
     assertThat(instance.thumbnailImageView.getImage(), is(notNullValue()));
   }

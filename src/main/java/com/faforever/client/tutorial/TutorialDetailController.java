@@ -68,8 +68,7 @@ public class TutorialDetailController extends NodeController<Node> {
     this.tutorial = tutorial;
     titleLabel.setText(tutorial.title());
     if (tutorial.mapVersion() != null) {
-      mapNameLabel.textProperty().bind(tutorial.mapVersion().mapProperty()
-              .flatMap(MapBean::displayNameProperty)
+      mapNameLabel.textProperty().bind(tutorial.mapVersion().mapProperty().map(MapBean::displayName)
               .map(displayName -> i18n.get("tutorial.mapName", displayName)));
 
       mapImage.setImage(mapService.loadPreview(tutorial.mapVersion(), PreviewSize.LARGE));

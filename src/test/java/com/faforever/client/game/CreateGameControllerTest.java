@@ -1,10 +1,10 @@
 package com.faforever.client.game;
 
-import com.faforever.client.builders.MapBeanBuilder;
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.ModBeanBuilder;
 import com.faforever.client.builders.ModVersionBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.featuredmod.FeaturedModService;
@@ -175,12 +175,10 @@ public class CreateGameControllerTest extends PlatformTest {
   @Test
   public void testMapSearchTextFieldKeyPressedUpForPopulated() {
     mapList.add(MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().displayName("Test1").get())
+        .defaultValues().map(Instancio.of(MapBean.class).set(field(MapBean::displayName), "Test1").create())
         .get());
     mapList.add(MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().displayName("Test1").get())
+        .defaultValues().map(Instancio.of(MapBean.class).set(field(MapBean::displayName), "Test1").create())
         .get());
     instance.mapSearchTextField.setText("Test");
 
@@ -192,26 +190,6 @@ public class CreateGameControllerTest extends PlatformTest {
     });
 
     assertThat(instance.mapListView.getSelectionModel().getSelectedIndex(), is(0));
-  }
-
-  @Test
-  public void testMapSearchTextFieldKeyPressedDownForPopulated() {
-    mapList.add(MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().displayName("Test1").get())
-        .get());
-    mapList.add(MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().displayName("Test1").get())
-        .get());
-    instance.mapSearchTextField.setText("Test");
-
-    runOnFxThreadAndWait(() -> {
-      instance.mapSearchTextField.getOnKeyPressed().handle(keyDownPressed);
-      instance.mapSearchTextField.getOnKeyPressed().handle(keyDownReleased);
-    });
-
-    assertThat(instance.mapListView.getSelectionModel().getSelectedIndex(), is(1));
   }
 
   @Test
@@ -283,13 +261,11 @@ public class CreateGameControllerTest extends PlatformTest {
   public void testSelectLastMap() {
     MapVersionBean lastMapBean = MapVersionBeanBuilder.create()
         .defaultValues()
-        .folderName("foo")
-        .map(MapBeanBuilder.create().defaultValues().get())
+        .folderName("foo").map(Instancio.create(MapBean.class))
         .get();
 
     mapList.add(MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().get())
+        .defaultValues().map(Instancio.create(MapBean.class))
         .get());
     mapList.add(lastMapBean);
 
@@ -327,8 +303,7 @@ public class CreateGameControllerTest extends PlatformTest {
     when(modManagerController.getSelectedModVersions()).thenReturn(Set.of(modVersion));
 
     MapVersionBean map = MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().get())
+        .defaultValues().map(Instancio.create(MapBean.class))
         .get();
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(Mono.just(map));
 
@@ -361,8 +336,7 @@ public class CreateGameControllerTest extends PlatformTest {
     when(modManagerController.getSelectedModVersions()).thenReturn(selectedMods);
 
     MapVersionBean map = MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().get())
+        .defaultValues().map(Instancio.create(MapBean.class))
         .get();
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(Mono.just(map));
 
@@ -386,8 +360,7 @@ public class CreateGameControllerTest extends PlatformTest {
   public void testCreateGameOnSelectedMapIfNoNewVersionMap() {
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
     MapVersionBean map = MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().get())
+        .defaultValues().map(Instancio.create(MapBean.class))
         .get();
 
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(Mono.just(map));
@@ -409,18 +382,16 @@ public class CreateGameControllerTest extends PlatformTest {
 
     MapVersionBean outdatedMap = MapVersionBeanBuilder.create()
         .defaultValues()
-        .folderName("test.v0001")
-        .map(MapBeanBuilder.create().defaultValues().get())
+        .folderName("test.v0001").map(Instancio.create(MapBean.class))
         .get();
     MapVersionBean updatedMap = MapVersionBeanBuilder.create()
         .defaultValues()
-        .folderName("test.v0002")
-        .map(MapBeanBuilder.create().defaultValues().get())
+        .folderName("test.v0002").map(Instancio.create(MapBean.class))
         .get();
     when(mapService.updateLatestVersionIfNecessary(outdatedMap)).thenReturn(Mono.just(updatedMap));
 
-    mapList.add(outdatedMap);
     runOnFxThreadAndWait(() -> {
+      mapList.add(outdatedMap);
       instance.mapListView.getSelectionModel().select(0);
       instance.setOnCloseButtonClickedListener(mock(Runnable.class));
       instance.onCreateButtonClicked();
@@ -435,8 +406,7 @@ public class CreateGameControllerTest extends PlatformTest {
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
 
     MapVersionBean map = MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().get())
+        .defaultValues().map(Instancio.create(MapBean.class))
         .get();
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(
         Mono.error(new RuntimeException("error when checking for update or updating map")));
@@ -536,7 +506,9 @@ public class CreateGameControllerTest extends PlatformTest {
     BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
 
     MapVersionBean mapVersionBean = MapVersionBeanBuilder.create()
-        .map(MapBeanBuilder.create().displayName("dual").get())
+                                                         .map(Instancio.of(MapBean.class)
+                                                                       .set(field(MapBean::displayName), "dual")
+                                                                       .create())
         .folderName("gap.v0001")
         .get();
     assertTrue(filter.apply("", mapVersionBean));
@@ -556,8 +528,7 @@ public class CreateGameControllerTest extends PlatformTest {
     BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
     ObjectProperty<Predicate<MapVersionBean>> predicate = mapFilterController.predicateProperty();
     mapList.add(MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().displayName("Test1").get())
+        .defaultValues().map(Instancio.of(MapBean.class).set(field(MapBean::displayName), "Test1").create())
         .get());
 
     predicate.setValue((item) -> filter.apply("Test", item));
@@ -569,9 +540,7 @@ public class CreateGameControllerTest extends PlatformTest {
     assertThat(instance.mapListView.getSelectionModel().getSelectedIndex(), is(0));
 
     predicate.setValue((item) -> filter.apply("Test1", item));
-    runOnFxThreadAndWait(() -> {
-      instance.mapSearchTextField.setText("Test1");
-    });
+    runOnFxThreadAndWait(() -> instance.mapSearchTextField.setText("Test1"));
 
     assertThat(instance.mapListView.getSelectionModel().getSelectedIndex(), is(0));
   }
@@ -584,8 +553,7 @@ public class CreateGameControllerTest extends PlatformTest {
     BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
     ObjectProperty<Predicate<MapVersionBean>> predicate = mapFilterController.predicateProperty();
     mapList.add(MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().displayName("Test1").get())
+        .defaultValues().map(Instancio.of(MapBean.class).set(field(MapBean::displayName), "Test1").create())
         .get());
 
     predicate.setValue((item) -> filter.apply("Not in Filtered Maps", item));

@@ -62,20 +62,18 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
             .when(showing));
 
     ObservableValue<MapBean> mapObservable = entity.flatMap(MapVersionBean::mapProperty);
-    nameLabel.textProperty().bind(mapObservable.flatMap(MapBean::displayNameProperty).when(showing));
+    nameLabel.textProperty().bind(mapObservable.map(MapBean::displayName).when(showing));
     versionLabel.textProperty()
         .bind(entity.flatMap(MapVersionBean::versionProperty)
             .map(ComparableVersion::getCanonical)
             .map(version -> i18n.get("versionFormat", version))
             .when(showing));
-    authorLabel.textProperty()
-        .bind(mapObservable.flatMap(MapBean::authorProperty)
+    authorLabel.textProperty().bind(mapObservable.map(MapBean::author)
             .flatMap(PlayerBean::usernameProperty)
             .orElse(i18n.get("map.unknownAuthor"))
             .when(showing));
 
-    numberOfPlaysLabel.textProperty()
-        .bind(mapObservable.flatMap(MapBean::gamesPlayedProperty).map(i18n::number).when(showing));
+    numberOfPlaysLabel.textProperty().bind(mapObservable.map(MapBean::gamesPlayed).map(i18n::number).when(showing));
 
     sizeLabel.textProperty()
         .bind(entity.flatMap(MapVersionBean::sizeProperty)
@@ -92,12 +90,11 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
     uninstallButton.visibleProperty().bind(isOfficialMap.not().and(isMapInstalled).when(showing));
 
     numberOfReviewsLabel.textProperty()
-        .bind(mapObservable.flatMap(MapBean::mapReviewsSummaryProperty).map(MapReviewsSummaryBean::numReviews)
+                        .bind(mapObservable.map(MapBean::mapReviewsSummary).map(MapReviewsSummaryBean::numReviews)
             .orElse(0)
             .map(i18n::number)
             .when(showing));
-    starsController.valueProperty()
-        .bind(mapObservable.flatMap(MapBean::mapReviewsSummaryProperty)
+    starsController.valueProperty().bind(mapObservable.map(MapBean::mapReviewsSummary)
                            .map(reviewsSummary -> reviewsSummary.score() / reviewsSummary.numReviews())
             .when(showing));
   }
@@ -107,7 +104,8 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
     mapService.downloadAndInstallMap(mapVersionBean, null, null).subscribe(null, throwable -> {
       log.error("Map installation failed", throwable);
       notificationService.addImmediateErrorNotification(throwable, "mapVault.installationFailed", mapVersionBean.getMap()
-          .getDisplayName(), throwable.getLocalizedMessage());
+                                                                                                                .displayName(),
+                                                        throwable.getLocalizedMessage());
     });
   }
 
@@ -116,7 +114,8 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
     mapService.uninstallMap(mapVersionBean).subscribe(null, throwable -> {
       log.error("Could not delete map", throwable);
       notificationService.addImmediateErrorNotification(throwable, "mapVault.couldNotDeleteMap", mapVersionBean.getMap()
-          .getDisplayName(), throwable.getLocalizedMessage());
+                                                                                                               .displayName(),
+                                                        throwable.getLocalizedMessage());
     });
   }
 

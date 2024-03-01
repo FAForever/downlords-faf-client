@@ -9,4 +9,4 @@ public record ReplayReviewsSummaryBean(
     int numReviews,
     float lowerBound,
     ReplayBean subject
-) implements ReviewsSummaryBean<ReplayBean> {}
+) implements ReviewsSummaryBean {}

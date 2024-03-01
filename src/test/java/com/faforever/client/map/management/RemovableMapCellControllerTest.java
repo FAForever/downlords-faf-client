@@ -1,12 +1,13 @@
 package com.faforever.client.map.management;
 
-import com.faforever.client.builders.MapBeanBuilder;
 import com.faforever.client.builders.MapVersionBeanBuilder;
+import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.PlatformTest;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -31,15 +32,14 @@ public class RemovableMapCellControllerTest extends PlatformTest {
                                                                   .defaultValues()
                                                                   .folderName("SCMP_001")
                                                                   .id(0)
-                                                                  .version(null)
-                                                                  .map(MapBeanBuilder.create().defaultValues().get())
+                                                                  .version(null).map(Instancio.create(MapBean.class))
                                                                   .get();
   private final MapVersionBean customMap = MapVersionBeanBuilder.create()
                                                                 .defaultValues()
                                                                 .folderName("palaneum.v0001")
                                                                 .id(1)
                                                                 .version(new ComparableVersion("1"))
-                                                                .map(MapBeanBuilder.create().defaultValues().get())
+                                                                .map(Instancio.create(MapBean.class))
                                                                 .get();
 
   @InjectMocks

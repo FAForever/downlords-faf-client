@@ -228,8 +228,7 @@ public class ChatUserItemController extends NodeController<Node> {
       if (mapGeneratorService.isGeneratedMap(mapFolderName)) {
         return "Neroxis Generated Map";
       } else {
-        return mapService.getMapLocallyFromName(mapFolderName)
-            .map(mapVersion -> mapVersion.getMap().getDisplayName())
+        return mapService.getMapLocallyFromName(mapFolderName).map(mapVersion -> mapVersion.getMap().displayName())
             .orElseGet(() -> mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName));
       }
     }).map(mapName -> i18n.get("game.onMapFormat", mapName)).when(showing));

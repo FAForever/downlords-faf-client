@@ -4,7 +4,7 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 
 public record ReplayReviewBean(
     Integer id, String text, PlayerBean player, Integer score, ReplayBean subject
-) implements ReviewBean<ReplayReviewBean, ReplayBean> {
+) implements ReviewBean<ReplayReviewBean> {
 
   @Override
   public ComparableVersion version() {

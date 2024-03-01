@@ -131,7 +131,7 @@ public class MapUploadController extends NodeController<Node> {
   private void setMapInfo(MapVersionBean mapInfo) {
     enterMapInfoState();
 
-    mapNameLabel.setText(mapInfo.getMap().getDisplayName());
+    mapNameLabel.setText(mapInfo.getMap().displayName());
     descriptionLabel.setText(mapInfo.getDescription());
     versionLabel.setText(Optional.ofNullable(mapInfo.getVersion()).map(ComparableVersion::toString).orElse(""));
     MapSize mapSize = mapInfo.getSize();

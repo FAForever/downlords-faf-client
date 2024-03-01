@@ -291,11 +291,10 @@ public class MapService implements InitializingBean, DisposableBean {
       LuaValue size = scenarioInfo.get("size");
 
       MapVersionBean mapVersion = new MapVersionBean();
-      MapBean map = new MapBean();
+      MapBean map = new MapBean(null, scenarioInfo.get("name").toString(), 0, null, false,
+                                MapType.fromValue(scenarioInfo.get("type").toString()), null);
       mapVersion.setFolderName(mapFolder.getFileName().toString());
-      map.setDisplayName(scenarioInfo.get("name").toString());
       mapVersion.setDescription(FaStrings.removeLocalizationTag(scenarioInfo.get("description").toString()));
-      map.setMapType(MapType.fromString(scenarioInfo.get("type").toString()));
       mapVersion.setSize(MapSize.valueOf(size.get(1).toint(), size.get(2).toint()));
       mapVersion.setMaxPlayers(
           scenarioInfo.get("Configurations").get("standard").get("teams").get(1).get("armies").length());
@@ -601,8 +600,10 @@ public class MapService implements InitializingBean, DisposableBean {
                                                               .setFilter(qBuilder().string("versions.folderName")
                                                                                    .eq(folderName))
                                                               .pageSize(1);
-    return fafApiAccessor.getMany(navigator).next().map(dto -> mapMapper.map(dto, new CycleAvoidingMappingContext()))
-                         .map(MapBean::getLatestVersion)
+    return fafApiAccessor.getMany(navigator)
+                         .next()
+                         .map(Map::getLatestVersion)
+                         .map(dto -> mapMapper.map(dto, new CycleAvoidingMappingContext()))
                          .defaultIfEmpty(mapVersion);
 
   }
@@ -657,7 +658,7 @@ public class MapService implements InitializingBean, DisposableBean {
                                                                                     MapVersionBean::getMap,
                                                                                     Comparator.nullsLast(
                                                                                         Comparator.comparing(
-                                                                                            MapBean::getDisplayName,
+                                                                                            MapBean::displayName,
                                                                                             Comparator.nullsLast(
                                                                                                 String.CASE_INSENSITIVE_ORDER)))))));
     return Mono.zip(matchmakerMapsFlux.skip((long) (page - 1) * count).take(count).collectList(),

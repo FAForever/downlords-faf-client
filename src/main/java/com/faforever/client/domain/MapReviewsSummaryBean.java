@@ -9,4 +9,4 @@ public record MapReviewsSummaryBean(
     int numReviews,
     float lowerBound,
     MapBean subject
-) implements ReviewsSummaryBean<MapBean> {}
+) implements ReviewsSummaryBean {}

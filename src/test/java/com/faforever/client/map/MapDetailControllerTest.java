@@ -1,8 +1,8 @@
 package com.faforever.client.map;
 
-import com.faforever.client.builders.MapBeanBuilder;
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.domain.PlayerBean;
@@ -106,12 +106,10 @@ public class MapDetailControllerTest extends PlatformTest {
     currentPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").id(100).get();
     testMap = MapVersionBeanBuilder.create()
         .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().get())
         .createTime(OffsetDateTime.now())
         .get();
     ownedMap = MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().author(currentPlayer).get())
+        .defaultValues().map(Instancio.of(MapBean.class).set(field(MapBean::author), currentPlayer).create())
         .get();
     review = Instancio.of(MapVersionReviewBean.class).set(field(MapVersionReviewBean::player), currentPlayer).create();
 
@@ -213,8 +211,8 @@ public class MapDetailControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
 
     verify(reviewsController).setCanWriteReview(true);
-    assertEquals(testMap.getMap().getDisplayName(), instance.nameLabel.getText());
-    assertEquals(testMap.getMap().getAuthor().getUsername(), instance.authorLabel.getText());
+    assertEquals(testMap.getMap().displayName(), instance.nameLabel.getText());
+    assertEquals(testMap.getMap().author().getUsername(), instance.authorLabel.getText());
     assertEquals(String.valueOf(testMap.getMaxPlayers()), instance.maxPlayersLabel.getText());
     assertEquals(String.valueOf(testMap.getId()), instance.mapIdLabel.getText());
     assertEquals("map size", instance.dimensionsLabel.getText());

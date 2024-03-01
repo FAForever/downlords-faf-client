@@ -18,7 +18,6 @@ public interface ModMapper {
     @Mapping(target = "uid", source = "modInfo.uid")
     @Mapping(target = "mod.author", source = "modInfo.author")
     @Mapping(target = "modType", source = "modInfo.uiOnly")
-    @Mapping(target = "mountPoints", source = "modInfo.mountInfos")
     @Mapping(target = "mod", expression = "java(new ModBean())")
     @Mapping(target = "mod.displayName", source = "modInfo.name")
     @Mapping(target = "imagePath", expression = "java(mapImagePath(modInfo, basePath))")

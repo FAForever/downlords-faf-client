@@ -73,7 +73,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -235,10 +234,6 @@ public class ModServiceTest extends PlatformTest {
     assertThat(modVersion.getId(), is(nullValue()));
     assertThat(modVersion.getUid(), is("9e8ea941-c306-4751-b367-a11000000502"));
     assertThat(modVersion.getModType(), equalTo(ModType.SIM));
-    assertThat(modVersion.getMountPoints(), hasSize(10));
-    assertThat(modVersion.getMountPoints().get(3).getFile(), is(Path.of("effects")));
-    assertThat(modVersion.getMountPoints().get(3).getMountPoint(), is("/effects"));
-    assertThat(modVersion.getHookDirectories(), contains("/blackops"));
   }
 
   @Test

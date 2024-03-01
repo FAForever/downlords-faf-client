@@ -4,6 +4,7 @@ import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.map.MapSize;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.instancio.Instancio;
 
 import java.net.URL;
 import java.time.OffsetDateTime;
@@ -26,7 +27,7 @@ public class MapVersionBeanBuilder {
     hidden(false);
     ranked(true);
     id(0);
-    map(MapBeanBuilder.create().defaultValues().latestVersion(mapVersionBean).get());
+    map(Instancio.create(MapBean.class));
     return this;
   }
 

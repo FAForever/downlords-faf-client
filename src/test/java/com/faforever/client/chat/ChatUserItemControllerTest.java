@@ -200,13 +200,13 @@ public class ChatUserItemControllerTest extends PlatformTest {
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(new Image(InputStream.nullInputStream()));
     when(mapService.getMapLocallyFromName(mapFolderName)).thenReturn(Optional.of(mapVersion));
     when(mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName)).thenReturn("map id");
-    when(i18n.get(eq("game.onMapFormat"), anyString())).thenReturn(mapVersion.getMap()
-        .getDisplayName(), "map id", "Neroxis Generated Map");
+    when(i18n.get(eq("game.onMapFormat"), anyString())).thenReturn(mapVersion.getMap().displayName(), "map id",
+                                                                   "Neroxis Generated Map");
 
     runOnFxThreadAndWait(() -> instance.setChatUser(defaultUser));
     assertNotNull(instance.gameStatusImageView.getImage());
     assertNotNull(instance.mapImageView.getImage());
-    assertEquals(mapVersion.getMap().getDisplayName(), instance.mapNameLabel.getText());
+    assertEquals(mapVersion.getMap().displayName(), instance.mapNameLabel.getText());
   }
 
   @Test

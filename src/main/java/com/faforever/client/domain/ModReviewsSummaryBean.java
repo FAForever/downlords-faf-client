@@ -9,4 +9,4 @@ public record ModReviewsSummaryBean(
     int numReviews,
     float lowerBound,
     ModBean subject
-) implements ReviewsSummaryBean<ModBean> {}
+) implements ReviewsSummaryBean {}

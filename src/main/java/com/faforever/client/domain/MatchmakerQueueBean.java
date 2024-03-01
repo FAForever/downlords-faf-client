@@ -18,7 +18,7 @@ import java.time.OffsetDateTime;
 public class MatchmakerQueueBean extends AbstractEntityBean {
   @ToString.Include
   private final StringProperty technicalName = new SimpleStringProperty();
-  ObjectProperty<OffsetDateTime> queuePopTime= new SimpleObjectProperty<OffsetDateTime>();
+  ObjectProperty<OffsetDateTime> queuePopTime = new SimpleObjectProperty<OffsetDateTime>();
   private final IntegerProperty teamSize = new SimpleIntegerProperty(0);
   private final IntegerProperty playersInQueue = new SimpleIntegerProperty(0);
   private final IntegerProperty activeGames = new SimpleIntegerProperty(0);

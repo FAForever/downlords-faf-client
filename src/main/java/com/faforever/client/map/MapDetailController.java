@@ -124,9 +124,8 @@ public class MapDetailController extends NodeController<Node> {
                       .bind(mapVersion.map(map -> mapService.loadPreview(map, PreviewSize.SMALL))
                                       .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
                                       .when(showing));
-    nameLabel.textProperty().bind(mapObservable.flatMap(MapBean::displayNameProperty).when(showing));
-    authorLabel.textProperty()
-               .bind(mapObservable.flatMap(MapBean::authorProperty)
+    nameLabel.textProperty().bind(mapObservable.map(MapBean::displayName).when(showing));
+    authorLabel.textProperty().bind(mapObservable.map(MapBean::author)
                                   .flatMap(PlayerBean::usernameProperty)
                                   .orElse(i18n.get("map.unknownAuthor"))
                                   .when(showing));
@@ -134,8 +133,7 @@ public class MapDetailController extends NodeController<Node> {
                    .bind(mapVersion.flatMap(MapVersionBean::maxPlayersProperty).map(i18n::number).when(showing));
     mapIdLabel.textProperty()
               .bind(mapVersion.flatMap(MapVersionBean::idProperty).map(id -> i18n.get("map.id", id)).when(showing));
-    mapPlaysLabel.textProperty()
-                 .bind(mapObservable.flatMap(MapBean::gamesPlayedProperty).map(i18n::number).when(showing));
+    mapPlaysLabel.textProperty().bind(mapObservable.map(MapBean::gamesPlayed).map(i18n::number).when(showing));
     versionPlaysLabel.textProperty()
                      .bind(mapVersion.flatMap(MapVersionBean::gamesPlayedProperty).map(i18n::number).when(showing));
     dimensionsLabel.textProperty()
@@ -160,8 +158,8 @@ public class MapDetailController extends NodeController<Node> {
 
     BooleanExpression playerIsAuthor = BooleanExpression.booleanExpression(playerService.currentPlayerProperty()
                                                                                         .flatMap(
-                                                                                            currentPlayer -> mapObservable.flatMap(
-                                                                                                                              MapBean::authorProperty)
+                                                                                            currentPlayer -> mapObservable.map(
+                                                                                                                              MapBean::author)
                                                                                                                           .map(
                                                                                                                               author -> Objects.equals(
                                                                                                                                   currentPlayer,
@@ -211,7 +209,7 @@ public class MapDetailController extends NodeController<Node> {
     }
 
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
-    if (!currentPlayer.equals(newValue.getMap().getAuthor())) {
+    if (!currentPlayer.equals(newValue.getMap().author())) {
       mapService.hasPlayedMap(currentPlayer, newValue)
                 .publishOn(fxApplicationThreadExecutor.asScheduler())
                 .subscribe(reviewsController::setCanWriteReview,
@@ -282,7 +280,7 @@ public class MapDetailController extends NodeController<Node> {
                      .doOnError(throwable -> {
                        log.error("Map installation failed", throwable);
                        notificationService.addImmediateErrorNotification(throwable, "mapVault.installationFailed",
-                                                                         mapVersion.getMap().getDisplayName(),
+                                                                         mapVersion.getMap().displayName(),
                                                                          throwable.getLocalizedMessage());
                      });
   }
@@ -295,7 +293,7 @@ public class MapDetailController extends NodeController<Node> {
     mapService.uninstallMap(mapVersion).subscribe(null, throwable -> {
       log.error("Could not delete map", throwable);
       notificationService.addImmediateErrorNotification(throwable, "mapVault.couldNotDeleteMap",
-                                                        mapVersion.getMap().getDisplayName(),
+                                                        mapVersion.getMap().displayName(),
                                                         throwable.getLocalizedMessage());
     });
   }

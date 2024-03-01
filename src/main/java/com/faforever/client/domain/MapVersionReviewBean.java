@@ -4,7 +4,7 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 
 public record MapVersionReviewBean(
     Integer id, String text, PlayerBean player, Integer score, MapVersionBean subject
-) implements ReviewBean<MapVersionReviewBean, MapVersionBean> {
+) implements ReviewBean<MapVersionReviewBean> {
 
   @Override
   public ComparableVersion version() {

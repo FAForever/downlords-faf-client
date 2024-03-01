@@ -1,7 +1,6 @@
 package com.faforever.client.map;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.MapBeanBuilder;
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
@@ -184,7 +183,7 @@ public class MapServiceTest extends PlatformTest {
     MapVersionBean mapBean = localMapBeans.getFirst();
     assertThat(mapBean, notNullValue());
     assertThat(mapBean.getFolderName(), is("SCMP_001"));
-    assertThat(mapBean.getMap().getDisplayName(), is("Burial Mounds"));
+    assertThat(mapBean.getMap().displayName(), is("Burial Mounds"));
     assertThat(mapBean.getSize(), equalTo(MapSize.valueOf(1024, 1024)));
   }
 
@@ -238,7 +237,9 @@ public class MapServiceTest extends PlatformTest {
   @Test
   public void testGetRecommendedMaps() {
     MapVersionBean mapVersionBean = MapVersionBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mapMapper.map(mapVersionBean.getMap(), new CycleAvoidingMappingContext())), 1);
+    Map map = mapMapper.map(mapVersionBean.getMap(), new CycleAvoidingMappingContext());
+    map.setLatestVersion(mapMapper.map(mapVersionBean, new CycleAvoidingMappingContext()));
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(map), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getRecommendedMapsWithPageCount(10, 0))
                 .expectNext(Tuples.of(List.of(mapVersionBean), 1))
@@ -250,7 +251,9 @@ public class MapServiceTest extends PlatformTest {
   @Test
   public void testGetHighestRatedMaps() {
     MapVersionBean mapVersionBean = MapVersionBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mapMapper.map(mapVersionBean.getMap(), new CycleAvoidingMappingContext())), 1);
+    Map map = mapMapper.map(mapVersionBean.getMap(), new CycleAvoidingMappingContext());
+    map.setLatestVersion(mapMapper.map(mapVersionBean, new CycleAvoidingMappingContext()));
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(map), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getHighestRatedMapsWithPageCount(10, 0))
                 .expectNext(Tuples.of(List.of(mapVersionBean), 1))
@@ -262,7 +265,9 @@ public class MapServiceTest extends PlatformTest {
   @Test
   public void testGetNewestMaps() {
     MapVersionBean mapVersionBean = MapVersionBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mapMapper.map(mapVersionBean.getMap(), new CycleAvoidingMappingContext())), 1);
+    Map map = mapMapper.map(mapVersionBean.getMap(), new CycleAvoidingMappingContext());
+    map.setLatestVersion(mapMapper.map(mapVersionBean, new CycleAvoidingMappingContext()));
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(map), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getNewestMapsWithPageCount(10, 0))
                 .expectNext(Tuples.of(List.of(mapVersionBean), 1))
@@ -274,7 +279,9 @@ public class MapServiceTest extends PlatformTest {
   @Test
   public void testGetMostPlayedMaps() {
     MapVersionBean mapVersionBean = MapVersionBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mapMapper.map(mapVersionBean.getMap(), new CycleAvoidingMappingContext())), 1);
+    Map map = mapMapper.map(mapVersionBean.getMap(), new CycleAvoidingMappingContext());
+    map.setLatestVersion(mapMapper.map(mapVersionBean, new CycleAvoidingMappingContext()));
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(map), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getMostPlayedMapsWithPageCount(10, 0))
                 .expectNext(Tuples.of(List.of(mapVersionBean), 1))
@@ -310,7 +317,7 @@ public class MapServiceTest extends PlatformTest {
     MapVersionBean oldestMap = MapVersionBeanBuilder.create().folderName("unitMap v1").version(null).get();
     StepVerifier.create(instance.getMapLatestVersion(oldestMap)).expectNext(oldestMap).verifyComplete();
 
-    MapBean mapBean = MapBeanBuilder.create().defaultValues().get();
+    MapBean mapBean = Instancio.create(MapBean.class);
     MapVersionBean mapVersionBean = MapVersionBeanBuilder.create()
         .defaultValues()
         .map(mapBean)
@@ -323,8 +330,8 @@ public class MapServiceTest extends PlatformTest {
         .folderName("junit_map1.v0003")
         .version(new ComparableVersion("3"))
         .get();
-    mapBean.setLatestVersion(sameMap);
     Map map = mapMapper.map(mapBean, new CycleAvoidingMappingContext());
+    map.setLatestVersion(mapMapper.map(sameMap, new CycleAvoidingMappingContext()));
 
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(map));
     StepVerifier.create(instance.getMapLatestVersion(mapVersionBean).map(MapVersionBean::getId))
@@ -346,8 +353,8 @@ public class MapServiceTest extends PlatformTest {
         .folderName("junit_map2.v0002")
         .version(new ComparableVersion("2"))
         .get();
-    mapBean.setLatestVersion(newMap);
     map = mapMapper.map(mapBean, new CycleAvoidingMappingContext());
+    map.setLatestVersion(mapMapper.map(newMap, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(map));
     StepVerifier.create(instance.getMapLatestVersion(outdatedMap).map(MapVersionBean::getId))
                 .expectNext(newMap.getId())
@@ -356,7 +363,7 @@ public class MapServiceTest extends PlatformTest {
 
   @Test
   public void testUpdateMapToLatestVersionIfNewVersionExist() throws Exception {
-    MapBean mapBean = MapBeanBuilder.create().defaultValues().get();
+    MapBean mapBean = Instancio.create(MapBean.class);
     MapVersionBean outdatedMap = MapVersionBeanBuilder.create()
         .defaultValues()
         .map(mapBean)
@@ -369,8 +376,8 @@ public class MapServiceTest extends PlatformTest {
         .folderName("palaneum.v0002")
         .version(new ComparableVersion("2"))
         .get();
-    mapBean.setLatestVersion(updatedMap);
     Map map = mapMapper.map(mapBean, new CycleAvoidingMappingContext());
+    map.setLatestVersion(mapMapper.map(updatedMap, new CycleAvoidingMappingContext()));
 
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(map));
 
@@ -515,10 +522,11 @@ public class MapServiceTest extends PlatformTest {
                                                              MapVersionBeanBuilder.create()
                                                                                   .defaultValues()
                                                                                   .id(1)
-                                                                                  .map(MapBeanBuilder.create()
-                                                                                                     .defaultValues()
-                                                                                                     .displayName("a")
-                                                                                                     .get())
+                                                                                  .map(Instancio.of(MapBean.class)
+                                                                                                .set(field(
+                                                                                                         MapBean::displayName),
+                                                                                                     "a")
+                                                                                                .create())
                                                                                   .size(MapSize.valueOf(512, 512))
                                                                                   .get())
                                                         .create();
@@ -527,10 +535,11 @@ public class MapServiceTest extends PlatformTest {
                                                              MapVersionBeanBuilder.create()
                                                                                   .defaultValues()
                                                                                   .id(2)
-                                                                                  .map(MapBeanBuilder.create()
-                                                                                                     .defaultValues()
-                                                                                                     .displayName("b")
-                                                                                                     .get())
+                                                                                  .map(Instancio.of(MapBean.class)
+                                                                                                .set(field(
+                                                                                                         MapBean::displayName),
+                                                                                                     "b")
+                                                                                                .create())
                                                                                   .size(MapSize.valueOf(512, 512))
                                                                                   .get())
                                                         .create();
@@ -539,10 +548,11 @@ public class MapServiceTest extends PlatformTest {
                                                              MapVersionBeanBuilder.create()
                                                                                   .defaultValues()
                                                                                   .id(3)
-                                                                                  .map(MapBeanBuilder.create()
-                                                                                                     .defaultValues()
-                                                                                                     .displayName("c")
-                                                                                                     .get())
+                                                                                  .map(Instancio.of(MapBean.class)
+                                                                                                .set(field(
+                                                                                                         MapBean::displayName),
+                                                                                                     "c")
+                                                                                                .create())
                                                                                   .size(MapSize.valueOf(1024, 1024))
                                                                                   .get())
                                                         .create();
@@ -598,7 +608,9 @@ public class MapServiceTest extends PlatformTest {
   @Test
   public void testFindByQuery() throws Exception {
     MapVersionBean mapVersionBean = MapVersionBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mapMapper.map(mapVersionBean.getMap(), new CycleAvoidingMappingContext())), 1);
+    Map map = mapMapper.map(mapVersionBean.getMap(), new CycleAvoidingMappingContext());
+    map.setLatestVersion(mapMapper.map(mapVersionBean, new CycleAvoidingMappingContext()));
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(map), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
     SearchConfig searchConfig = new SearchConfig(new SortConfig("testSort", SortOrder.ASC), "testQuery");

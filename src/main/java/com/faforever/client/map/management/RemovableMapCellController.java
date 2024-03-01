@@ -39,8 +39,7 @@ public class RemovableMapCellController extends NodeController<HBox> {
     previewMapView.imageProperty()
                   .bind(mapVersion.flatMap(MapVersionBean::folderNameProperty)
                                   .map(folderName -> mapService.loadPreview(folderName, PreviewSize.SMALL)));
-    mapNameLabel.textProperty()
-                .bind(mapVersion.flatMap(MapVersionBean::mapProperty).flatMap(MapBean::displayNameProperty));
+    mapNameLabel.textProperty().bind(mapVersion.flatMap(MapVersionBean::mapProperty).map(MapBean::displayName));
     removeButton.disableProperty().bind(mapVersion.map(mapService::isCustomMap).map(isCustom -> !isCustom));
     removeButton.onMouseClickedProperty()
                 .bind(mapVersion.map(

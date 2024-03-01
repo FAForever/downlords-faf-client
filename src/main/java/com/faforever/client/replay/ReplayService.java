@@ -288,13 +288,12 @@ public class ReplayService {
         .stream()
         .map(replayMapper::map)).toList();
 
-    MapVersionBean mapVersion = new MapVersionBean();
-    MapBean map = new MapBean();
-    mapVersion.setMap(map);
     String mapFolderName = parseMapFolderName(replayDataParser);
+    MapVersionBean mapVersion = new MapVersionBean();
+    MapBean map = new MapBean(null, mapFolderName, 0, null, false, null, null);
+    mapVersion.setMap(map);
     mapVersion.setFolderName(mapFolderName);
     mapVersion.setMap(map);
-    map.setDisplayName(mapFolderName);
 
     return new ReplayDetails(chatMessages, gameOptions, mapVersion);
   }

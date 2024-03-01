@@ -43,11 +43,11 @@ public interface MapMapper {
   List<MapVersion> mapVersionBeans(List<MapVersionBean> bean, @Context CycleAvoidingMappingContext context);
 
   default MapType mapStringToMapType(String string) {
-    return MapType.fromString(string);
+    return MapType.fromValue(string);
   }
 
   default String mapMapTypeToString(MapType mapType) {
-    return mapType.getString();
+    return mapType.getValue();
   }
 
   default MapVersionBean mapFromPoolAssignment(MapPoolAssignment dto, @Context CycleAvoidingMappingContext context) {
@@ -61,11 +61,12 @@ public interface MapMapper {
   }
 
   default MapVersionBean map(NeroxisGeneratorParams params) {
-    MapBean mapBean = new MapBean();
-    mapBean.setId(-(params.getSpawns() + params.getSize()));
-    mapBean.setDisplayName(String.format("neroxis_map_generator_%s_mapSize=%dkm_spawns=%d", params.getVersion(), (int) (params.getSize() / 51.2), params.getSpawns()));
+    MapBean mapBean = new MapBean(null,
+                                  String.format("neroxis_map_generator_%s_mapSize=%dkm_spawns=%d", params.getVersion(),
+                                                (int) (params.getSize() / 51.2), params.getSpawns()), 0, null, false,
+                                  MapType.SKIRMISH, null);
     MapVersionBean mapVersionBean = new MapVersionBean();
-    mapVersionBean.setFolderName(mapBean.getDisplayName());
+    mapVersionBean.setFolderName(mapBean.displayName());
     mapVersionBean.setDescription("");
     mapVersionBean.setSize(MapSize.valueOf(params.getSize(), params.getSize()));
     mapVersionBean.setMaxPlayers(params.getSpawns());

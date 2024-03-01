@@ -25,7 +25,7 @@ import org.mapstruct.Mapping;
 @Mapper(uses = {ReplayMapper.class, ModMapper.class, MapMapper.class, PlayerMapper.class}, config = MapperConfiguration.class)
 public interface ReviewMapper {
 
-  default ReviewBean<?, ?> map(Review dto, @Context CycleAvoidingMappingContext context) {
+  default ReviewBean<?> map(Review dto, @Context CycleAvoidingMappingContext context) {
     return switch (dto) {
       case GameReview replayReview -> map(replayReview, context);
       case MapVersionReview mapReview -> map(mapReview, context);
@@ -34,7 +34,7 @@ public interface ReviewMapper {
     };
   }
 
-  default Review map(ReviewBean<?, ?> bean, @Context CycleAvoidingMappingContext context) {
+  default Review map(ReviewBean<?> bean, @Context CycleAvoidingMappingContext context) {
     return switch (bean) {
       case ReplayReviewBean replayReview -> map(replayReview, context);
       case MapVersionReviewBean mapReview -> map(mapReview, context);

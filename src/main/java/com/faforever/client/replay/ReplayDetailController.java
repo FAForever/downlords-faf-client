@@ -223,8 +223,7 @@ public class ReplayDetailController extends NodeController<Node> {
                                                    .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
                                                    .when(showing));
     onMapLabel.textProperty()
-              .bind(mapVersionObservable.flatMap(MapVersionBean::mapProperty)
-                                        .flatMap(MapBean::displayNameProperty)
+              .bind(mapVersionObservable.flatMap(MapVersionBean::mapProperty).map(MapBean::displayName)
                                         .orElse(i18n.get("game.onUnknownMap"))
                                         .when(showing));
     durationLabel.visibleProperty()
