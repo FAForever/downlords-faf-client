@@ -118,8 +118,7 @@ public class ReviewService {
   }
 
   public Flux<ModVersionReviewBean> getModReviews(ModBean mod) {
-    ElideNavigatorOnCollection<ModVersion> versionsNavigator = ElideNavigator.of(Mod.class)
-        .id(String.valueOf(mod.getId()))
+    ElideNavigatorOnCollection<ModVersion> versionsNavigator = ElideNavigator.of(Mod.class).id(String.valueOf(mod.id()))
         .navigateRelationship(ModVersion.class, "versions")
         .collection()
         .addInclude("reviews")

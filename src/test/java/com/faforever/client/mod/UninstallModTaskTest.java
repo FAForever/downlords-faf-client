@@ -1,10 +1,11 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.builders.ModBeanBuilder;
 import com.faforever.client.builders.ModVersionBeanBuilder;
+import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.io.ByteCopier;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -54,7 +55,11 @@ public class UninstallModTaskTest extends ServiceTest {
     copyMod("blackOpsSupport", BLACKOPS_SUPPORT_MOD_INFO);
     copyMod("ecoManager", ECO_MANAGER_MOD_INFO);
 
-    ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().mod(ModBeanBuilder.create().defaultValues().get()).uid("b2cde810-15d0-4bfa-af66-ec2d6ecd561b").get();
+    ModVersionBean modVersion = ModVersionBeanBuilder.create()
+                                                     .defaultValues()
+                                                     .mod(Instancio.create(ModBean.class))
+                                                     .uid("b2cde810-15d0-4bfa-af66-ec2d6ecd561b")
+                                                     .get();
 
     Path ecoManagerPath = Files.createDirectories(modsDirectory.resolve("ecoManager"));
     when(modService.getPathForMod(modVersion)).thenReturn(ecoManagerPath);

@@ -109,13 +109,11 @@ public class ModDetailController extends NodeController<Node> {
         .bind(modVersion.map(modService::loadThumbnail)
             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
             .when(showing));
-    nameLabel.textProperty().bind(modObservable.flatMap(ModBean::displayNameProperty).when(showing));
-    authorLabel.textProperty()
-        .bind(modObservable.flatMap(ModBean::authorProperty)
+    nameLabel.textProperty().bind(modObservable.map(ModBean::displayName).when(showing));
+    authorLabel.textProperty().bind(modObservable.map(ModBean::author)
             .map(author -> i18n.get("modVault.details.author", author))
             .when(showing));
-    uploaderLabel.textProperty()
-        .bind(modObservable.flatMap(ModBean::uploaderProperty)
+    uploaderLabel.textProperty().bind(modObservable.map(ModBean::uploader)
             .flatMap(PlayerBean::usernameProperty)
             .map(author -> i18n.get("modVault.details.uploader", author))
             .when(showing));
@@ -164,10 +162,8 @@ public class ModDetailController extends NodeController<Node> {
 
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
     reviewsController.setCanWriteReview(modService.isInstalled(newValue.getUid())
-        && !currentPlayer.getUsername()
-        .equals(newValue.getMod().getAuthor()) && !currentPlayer.equals(newValue
-        .getMod()
-        .getUploader()));
+        && !currentPlayer.getUsername().equals(newValue.getMod().author()) && !currentPlayer.equals(newValue
+        .getMod().uploader()));
 
     reviewService.getModReviews(newValue.getMod())
         .collectList()
@@ -226,7 +222,8 @@ public class ModDetailController extends NodeController<Node> {
                                    progressLabel.textProperty()).subscribe(null, throwable -> {
           log.error("Could not install mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed",
-              modVersion.getMod().getDisplayName(), throwable.getLocalizedMessage());
+                                                            modVersion.getMod().displayName(),
+                                                            throwable.getLocalizedMessage());
         });
   }
 
@@ -239,7 +236,8 @@ public class ModDetailController extends NodeController<Node> {
         .exceptionally(throwable -> {
           log.error("Could not delete mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod",
-              modVersion.getMod().getDisplayName(), throwable.getLocalizedMessage());
+                                                            modVersion.getMod().displayName(),
+                                                            throwable.getLocalizedMessage());
           return null;
         });
   }

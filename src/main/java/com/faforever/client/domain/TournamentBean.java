@@ -16,8 +16,7 @@ public record TournamentBean(
     OffsetDateTime completedAt,
     String challongeUrl,
     String liveImageUrl,
-    String signUpUrl,
-    boolean openForSignUp
+    String signUpUrl, boolean openForSignup
 ) {
 
   public Status status() {
@@ -25,7 +24,7 @@ public record TournamentBean(
         return Status.FINISHED;
     } else if (startingAt() != null && startingAt().isBefore(OffsetDateTime.now())) {
         return Status.RUNNING;
-    } else if (openForSignUp()) {
+    } else if (openForSignup()) {
         return Status.OPEN_FOR_REGISTRATION;
       } else {
         return Status.CLOSED_FOR_REGISTRATION;

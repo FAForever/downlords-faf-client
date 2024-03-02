@@ -1,7 +1,6 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.ModBeanBuilder;
 import com.faforever.client.builders.ModVersionBeanBuilder;
 import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
@@ -27,6 +26,7 @@ import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
+import com.faforever.commons.api.dto.Mod;
 import com.faforever.commons.api.dto.ModVersion;
 import com.faforever.commons.api.elide.ElideEntity;
 import com.faforever.commons.io.ByteCopier;
@@ -37,6 +37,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.hamcrest.Matchers;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -220,13 +221,13 @@ public class ModServiceTest extends PlatformTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     ArrayList<ModVersionBean> installedMods = new ArrayList<>(instance.getInstalledMods());
-    installedMods.sort(Comparator.comparing(modVersionBean -> modVersionBean.getMod().getDisplayName()));
+    installedMods.sort(Comparator.comparing(modVersionBean -> modVersionBean.getMod().displayName()));
 
     ModVersionBean modVersion = installedMods.getFirst();
 
-    assertThat(modVersion.getMod().getDisplayName(), is("BlackOps Unleashed"));
+    assertThat(modVersion.getMod().displayName(), is("BlackOps Unleashed"));
     assertThat(modVersion.getVersion(), is(new ComparableVersion("8")));
-    assertThat(modVersion.getMod().getAuthor(), is("Lt_hawkeye"));
+    assertThat(modVersion.getMod().author(), is("Lt_hawkeye"));
     assertThat(modVersion.getDescription(),
                is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
     assertThat(modVersion.getImagePath(), is(modsDirectory.resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
@@ -303,10 +304,8 @@ public class ModServiceTest extends PlatformTest {
 
   @Test
   public void testUpdateModsWithUpdatedMod() throws IOException, ExecutionException, InterruptedException {
-    ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().get();
-    ModBean mod = new ModBean();
-    modVersion.setMod(mod);
-    mod.setLatestVersion(modVersion);
+    ModBean mod = Instancio.create(ModBean.class);
+    ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().mod(mod).get();
 
     ModVersion dto = modMapper.map(modVersion, new CycleAvoidingMappingContext());
 
@@ -335,7 +334,7 @@ public class ModServiceTest extends PlatformTest {
   @Disabled("flaky")
   public void testUpdateModsWithOutdatedMod() throws IOException, ExecutionException, InterruptedException {
     ModVersionBean latestVersion = ModVersionBeanBuilder.create().defaultValues().uid("latest").id(100).get();
-    ModBean mod = ModBeanBuilder.create().defaultValues().latestVersion(latestVersion).get();
+    ModBean mod = Instancio.create(ModBean.class);
     ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().mod(mod).get();
 
     ModVersion dto = modMapper.map(modVersion, new CycleAvoidingMappingContext());
@@ -363,8 +362,9 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testGetRecommendedMods() {
     ModVersionBean modVersionBean = ModVersionBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
-        List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
+    Mod mod = modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext());
+    mod.setLatestVersion(modMapper.map(modVersionBean, new CycleAvoidingMappingContext()));
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mod), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getRecommendedModsWithPageCount(10, 0))
                 .expectNext(Tuples.of(List.of(modVersionBean), 1))
@@ -376,8 +376,9 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testFindByQuery() throws Exception {
     ModVersionBean modVersionBean = ModVersionBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
-        List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
+    Mod mod = modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext());
+    mod.setLatestVersion(modMapper.map(modVersionBean, new CycleAvoidingMappingContext()));
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mod), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
     SearchConfig searchConfig = new SearchConfig(new SortConfig("testSort", SortOrder.ASC), "testQuery");
@@ -393,8 +394,9 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testGetHighestRated() {
     ModVersionBean modVersionBean = ModVersionBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
-        List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
+    Mod mod = modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext());
+    mod.setLatestVersion(modMapper.map(modVersionBean, new CycleAvoidingMappingContext()));
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mod), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getHighestRatedModsWithPageCount(10, 1))
                 .expectNext(Tuples.of(List.of(modVersionBean), 1))
@@ -410,8 +412,9 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testGetHighestRatedUI() {
     ModVersionBean modVersionBean = ModVersionBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
-        List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
+    Mod mod = modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext());
+    mod.setLatestVersion(modMapper.map(modVersionBean, new CycleAvoidingMappingContext()));
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mod), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getHighestRatedUiModsWithPageCount(10, 1))
                 .expectNext(Tuples.of(List.of(modVersionBean), 1))
@@ -427,8 +430,9 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testGetNewest() {
     ModVersionBean modVersionBean = ModVersionBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
-        List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
+    Mod mod = modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext());
+    mod.setLatestVersion(modMapper.map(modVersionBean, new CycleAvoidingMappingContext()));
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mod), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getNewestModsWithPageCount(10, 1))
                 .expectNext(Tuples.of(List.of(modVersionBean), 1))

@@ -108,8 +108,13 @@ public class ModManagerController extends NodeController<Parent> {
   }
 
   private Predicate<ModVersionBean> getCombinedFilter(){
-      return modVersion -> (viewToggleGroup.getSelectedToggle() == uiModsButton ? modVersion.getModType() == ModType.UI : modVersion.getModType() == ModType.SIM)
-          && (modSearchTextField.getText().isEmpty() || modVersion.getMod().getDisplayName().toLowerCase().contains(modSearchTextField.getText().toLowerCase()));
+      return modVersion -> (viewToggleGroup.getSelectedToggle() == uiModsButton ? modVersion.getModType() == ModType.UI : modVersion.getModType() == ModType.SIM) && (modSearchTextField.getText()
+                                                                                                                                                                                        .isEmpty() || modVersion.getMod()
+                                                                                                                                                                                                                .displayName()
+                                                                                                                                                                                                                .toLowerCase()
+                                                                                                                                                                                                                .contains(
+                                                                                                                                                                                                                    modSearchTextField.getText()
+                                                                                                                                                                                                                                      .toLowerCase()));
   }
 
   private void loadActivatedMods() {
@@ -138,8 +143,8 @@ public class ModManagerController extends NodeController<Parent> {
   @NotNull
   private Callback<ListView<ModVersionBean>, ListCell<ModVersionBean>> modListCellFactory() {
     return param -> {
-      ListCell<ModVersionBean> cell = new StringListCell<>(modVersion -> modVersion.getMod()
-          .getDisplayName(), fxApplicationThreadExecutor);
+      ListCell<ModVersionBean> cell = new StringListCell<>(modVersion -> modVersion.getMod().displayName(),
+                                                           fxApplicationThreadExecutor);
       cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
         modListView.requestFocus();
         MultipleSelectionModel<ModVersionBean> selectionModel = modListView.getSelectionModel();

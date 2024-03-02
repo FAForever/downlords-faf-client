@@ -6,6 +6,7 @@ import com.faforever.client.domain.ModVersionBean.ModType;
 import com.faforever.client.domain.ModVersionReviewsSummaryBean;
 import javafx.collections.FXCollections;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.instancio.Instancio;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -22,7 +23,7 @@ public class ModVersionBeanBuilder {
   private final ModVersionBean modVersionBean = new ModVersionBean();
 
   public ModVersionBeanBuilder defaultValues() {
-    mod(ModBeanBuilder.create().defaultValues().latestVersion(modVersionBean).get());
+    mod(Instancio.create(ModBean.class));
     imagePath(Path.of("."));
     id(0);
     uid("id");

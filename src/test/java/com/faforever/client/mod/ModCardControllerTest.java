@@ -1,7 +1,7 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.builders.ModBeanBuilder;
 import com.faforever.client.builders.ModVersionBeanBuilder;
+import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
 import com.faforever.client.fx.ImageViewHelper;
@@ -15,6 +15,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -69,8 +70,7 @@ public class ModCardControllerTest extends PlatformTest {
     lenient().when(i18n.get(ModType.UI.getI18nKey())).thenReturn(ModType.UI.name());
 
     modVersion = ModVersionBeanBuilder.create()
-        .defaultValues()
-        .mod(ModBeanBuilder.create().defaultValues().get())
+        .defaultValues().mod(Instancio.create(ModBean.class))
         .get();
 
     loadFxml("theme/vault/mod/mod_card.fxml", clazz -> {
@@ -89,8 +89,8 @@ public class ModCardControllerTest extends PlatformTest {
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
     runOnFxThreadAndWait(() -> instance.setEntity(modVersion));
 
-    assertEquals(modVersion.getMod().getDisplayName(), instance.nameLabel.getText());
-    assertEquals(modVersion.getMod().getAuthor(), instance.authorLabel.getText());
+    assertEquals(modVersion.getMod().displayName(), instance.nameLabel.getText());
+    assertEquals(modVersion.getMod().author(), instance.authorLabel.getText());
     assertNotNull(instance.thumbnailImageView.getImage());
     verify(modService).loadThumbnail(modVersion);
   }

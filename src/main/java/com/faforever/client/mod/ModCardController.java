@@ -54,12 +54,11 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
     JavaFxUtil.bindManagedToVisible(installButton, uninstallButton);
     ObservableValue<ModBean> modObservable = entity.flatMap(ModVersionBean::modProperty);
     numberOfReviewsLabel.textProperty()
-        .bind(modObservable.flatMap(ModBean::modReviewsSummaryProperty).map(ModReviewsSummaryBean::numReviews)
+                        .bind(modObservable.map(ModBean::modReviewsSummary).map(ModReviewsSummaryBean::numReviews)
             .orElse(0)
             .map(i18n::number)
             .when(showing));
-    starsController.valueProperty()
-        .bind(modObservable.flatMap(ModBean::modReviewsSummaryProperty)
+    starsController.valueProperty().bind(modObservable.map(ModBean::modReviewsSummary)
                            .map(reviewsSummary -> reviewsSummary.score() / reviewsSummary.numReviews())
             .when(showing));
 
@@ -73,8 +72,8 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
             .when(showing));
 
-    nameLabel.textProperty().bind(modObservable.flatMap(ModBean::displayNameProperty).when(showing));
-    authorLabel.textProperty().bind(modObservable.flatMap(ModBean::authorProperty).when(showing));
+    nameLabel.textProperty().bind(modObservable.map(ModBean::displayName).when(showing));
+    authorLabel.textProperty().bind(modObservable.map(ModBean::author).when(showing));
     typeLabel.textProperty()
         .bind(entity.flatMap(ModVersionBean::modTypeProperty).map(ModType::getI18nKey).map(i18n::get).when(showing));
   }
@@ -84,7 +83,8 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
     modService.downloadIfNecessary(modVersionBean, null, null).subscribe(null, throwable -> {
       log.error("Could not install mod", throwable);
       notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed", modVersionBean.getMod()
-          .getDisplayName(), throwable.getLocalizedMessage());
+                                                                                                                .displayName(),
+                                                        throwable.getLocalizedMessage());
     });
   }
 
@@ -93,7 +93,8 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
     modService.uninstallMod(modVersionBean).exceptionally(throwable -> {
       log.error("Could not delete mod", throwable);
       notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod", modVersionBean.getMod()
-          .getDisplayName(), throwable.getLocalizedMessage());
+                                                                                                               .displayName(),
+                                                        throwable.getLocalizedMessage());
       return null;
     });
   }

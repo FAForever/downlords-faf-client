@@ -2,7 +2,6 @@ package com.faforever.client.mod;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
@@ -219,7 +218,8 @@ public class ModService implements InitializingBean, DisposableBean {
       return Mono.empty();
     }
 
-    return getModVersionByUid(uid).flatMap(modVersion -> {
+    return getModVersionByUid(uid).map(dto -> modMapper.map(dto, new CycleAvoidingMappingContext()))
+                                  .flatMap(modVersion -> {
       if (modVersion == null) {
         throw new IllegalArgumentException("Mod with uid %s could not be found".formatted(uid));
       }
@@ -403,27 +403,27 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   private Mono<ModVersionBean> updateModIfNecessary(ModVersionBean installedModVersion) {
-    return getModVersionByUid(installedModVersion.getUid()).map(ModVersionBean::getMod)
-                                                           .map(ModBean::getLatestVersion)
+    return getModVersionByUid(installedModVersion.getUid()).map(
+                                                               dto -> modMapper.map(dto.getMod().getLatestVersion(), new CycleAvoidingMappingContext()))
                                                            .filter(latestModVersion -> !Objects.equals(latestModVersion,
                                                                                                        installedModVersion))
                                                            .flatMap(latestModVersion -> downloadIfNecessary(
                                                                latestModVersion).thenReturn(latestModVersion))
                                                            .doOnError(throwable -> log.info(
                                                                "Failed fetching info about mod `{}` from the api.",
-                                                               installedModVersion.getMod().getDisplayName(),
+                                                               installedModVersion.getMod().displayName(),
                                                                throwable))
                                                            .onErrorReturn(installedModVersion)
                                                            .defaultIfEmpty(installedModVersion);
   }
 
-  private Mono<ModVersionBean> getModVersionByUid(String uid) {
+  private Mono<ModVersion> getModVersionByUid(String uid) {
     ElideNavigatorOnCollection<ModVersion> navigator = ElideNavigator.of(ModVersion.class)
                                                                      .collection()
                                                                      .setFilter(qBuilder().string("uid").eq(uid))
                                                                      .pageSize(1)
                                                                      .pageNumber(1);
-    return fafApiAccessor.getMany(navigator).next().map(dto -> modMapper.map(dto, new CycleAvoidingMappingContext()));
+    return fafApiAccessor.getMany(navigator).next();
   }
 
   @Cacheable(value = CacheNames.MODS, sync = true)

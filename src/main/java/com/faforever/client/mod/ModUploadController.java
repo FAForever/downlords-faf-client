@@ -112,7 +112,7 @@ public class ModUploadController extends NodeController<Node> {
     this.modVersionInfo = modVersion;
     fxApplicationThreadExecutor.execute(() -> {
       enterModInfoState();
-      modNameLabel.textProperty().bind(modVersion.modProperty().flatMap(ModBean::displayNameProperty));
+      modNameLabel.textProperty().bind(modVersion.modProperty().map(ModBean::displayName));
       descriptionLabel.textProperty().bind(modVersion.descriptionProperty());
       versionLabel.textProperty().bind(modVersion.versionProperty().asString());
       uidLabel.textProperty().bind(modVersion.uidProperty());

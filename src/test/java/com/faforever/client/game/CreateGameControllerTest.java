@@ -1,11 +1,11 @@
 package com.faforever.client.game;
 
 import com.faforever.client.builders.MapVersionBeanBuilder;
-import com.faforever.client.builders.ModBeanBuilder;
 import com.faforever.client.builders.ModVersionBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.filter.MapFilterController;
@@ -296,8 +296,7 @@ public class CreateGameControllerTest extends PlatformTest {
     ArgumentCaptor<NewGameInfo> newGameInfoArgumentCaptor = ArgumentCaptor.forClass(NewGameInfo.class);
     ModVersionBean modVersion = ModVersionBeanBuilder.create()
         .defaultValues()
-        .uid("junit-mod")
-        .mod(ModBeanBuilder.create().defaultValues().get())
+        .uid("junit-mod").mod(Instancio.create(ModBean.class))
         .get();
 
     when(modManagerController.getSelectedModVersions()).thenReturn(Set.of(modVersion));
@@ -307,8 +306,8 @@ public class CreateGameControllerTest extends PlatformTest {
         .get();
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(Mono.just(map));
 
-    mapList.add(map);
     runOnFxThreadAndWait(() -> {
+      mapList.add(map);
       instance.mapListView.getSelectionModel().select(0);
       instance.setOnCloseButtonClickedListener(mock(Runnable.class));
       instance.onCreateButtonClicked();

@@ -280,8 +280,7 @@ public class CreateGameController extends NodeController<Pane> {
 
   protected void initMapSelection() {
     mapNameLabel.textProperty()
-                .bind(selectedMap.flatMap(MapVersionBean::mapProperty).map(MapBean::displayName)
-                                 .when(showing));
+                .bind(selectedMap.flatMap(MapVersionBean::mapProperty).map(MapBean::displayName).when(showing));
     mapSizeLabel.textProperty()
                 .bind(selectedMap.flatMap(MapVersionBean::sizeProperty)
                                  .map(mapSize -> i18n.get("mapPreview.size", mapSize.getWidthInKm(),
@@ -313,12 +312,12 @@ public class CreateGameController extends NodeController<Pane> {
     mapListView.setCellFactory(
         param -> new StringListCell<>(mapVersion -> mapVersion.getMap().displayName(), fxApplicationThreadExecutor));
     mapListView.getSelectionModel().selectedItemProperty().when(showing).subscribe((oldItem, newItem) -> {
-                if (newItem == null && filteredMaps.contains(oldItem)) {
-                  mapListView.getSelectionModel().select(oldItem);
-                } else {
-                  selectedMap.set(newItem);
-                }
-               });
+      if (newItem == null && filteredMaps.contains(oldItem)) {
+        mapListView.getSelectionModel().select(oldItem);
+      } else {
+        selectedMap.set(newItem);
+      }
+    });
 
     FilteredList<MapVersionBean> skirmishMaps = mapService.getInstalledMaps()
                                                           .filtered(mapVersion -> mapVersion.getMap()
@@ -466,11 +465,11 @@ public class CreateGameController extends NodeController<Pane> {
                                                                   .onErrorReturn(selectedMap)
                                                                   .toFuture();
     CompletableFuture<List<ModVersionBean>> modUpdateFuture = modService.updateAndActivateModVersions(
-        selectedModVersions).toFuture().exceptionally(throwable -> {
+        selectedModVersions).onErrorResume(throwable -> {
       log.error("Error when updating selected mods", throwable);
       notificationService.addImmediateErrorNotification(throwable, "game.create.errorUpdatingMods");
-      return List.copyOf(selectedModVersions);
-    });
+      return Mono.just(List.copyOf(selectedModVersions));
+    }).toFuture();
 
     mapUpdateFuture.thenAcceptBoth(modUpdateFuture, this::hostGame).exceptionally(throwable -> {
       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
