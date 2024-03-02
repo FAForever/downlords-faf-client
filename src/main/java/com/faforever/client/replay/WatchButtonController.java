@@ -1,6 +1,6 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.contextmenu.CancelActionNotifyMeMenuItem;
@@ -46,7 +46,7 @@ public class WatchButtonController extends NodeController<Node> {
   private final ContextMenuBuilder contextMenuBuilder;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
+  private final ObjectProperty<GameInfo> game = new SimpleObjectProperty<>();
   private final Timeline watchTimeTimeline = new Timeline(new KeyFrame(Duration.ZERO, event -> updateDisplay()), new KeyFrame(Duration.seconds(1)));
 
   public Button watchButton;
@@ -57,13 +57,12 @@ public class WatchButtonController extends NodeController<Node> {
   protected void onInitialize() {
     watchTimeTimeline.setCycleCount(Timeline.INDEFINITE);
 
-    game.flatMap(GameBean::startTimeProperty)
+    game.flatMap(GameInfo::startTimeProperty)
         .when(showing)
         .subscribe(this::checkGameTimeline);
 
     liveReplayService.trackingLiveReplayProperty()
-        .map(TrackingLiveReplay::gameId)
-                     .flatMap(trackedId -> game.flatMap(GameBean::idProperty).map(trackedId::equals))
+        .map(TrackingLiveReplay::gameId).flatMap(trackedId -> game.flatMap(GameInfo::idProperty).map(trackedId::equals))
                      .orElse(false)
         .when(showing)
                      .subscribe(this::updateButtonTrackingClass);
@@ -80,7 +79,7 @@ public class WatchButtonController extends NodeController<Node> {
 
   @Override
   public void onShow() {
-    GameBean game = this.game.get();
+    GameInfo game = this.game.get();
     OffsetDateTime startTime = game == null ? null : game.getStartTime();
     if (startTime != null) {
       checkGameTimeline(startTime);
@@ -92,7 +91,7 @@ public class WatchButtonController extends NodeController<Node> {
     watchTimeTimeline.stop();
   }
 
-  public void setGame(GameBean game) {
+  public void setGame(GameInfo game) {
     this.game.set(game);
   }
 
@@ -109,25 +108,25 @@ public class WatchButtonController extends NodeController<Node> {
     }
   }
 
-  public GameBean getGame() {
+  public GameInfo getGame() {
     return game.get();
   }
 
-  public ObjectProperty<GameBean> gameProperty() {
+  public ObjectProperty<GameInfo> gameProperty() {
     return game;
   }
 
   private void showContextMenu() {
-    GameBean gameBean = getGame();
-    if (gameBean == null) {
+    GameInfo gameInfo = getGame();
+    if (gameInfo == null) {
       return;
     }
 
     contextMenu = contextMenuBuilder.newBuilder()
-        .addItem(NotifyMeMenuItem.class, gameBean)
-        .addItem(CancelActionNotifyMeMenuItem.class, gameBean)
-        .addItem(RunReplayImmediatelyMenuItem.class, gameBean)
-        .addItem(CancelActionRunReplayImmediatelyMenuItem.class, gameBean)
+                                    .addItem(NotifyMeMenuItem.class, gameInfo)
+                                    .addItem(CancelActionNotifyMeMenuItem.class, gameInfo)
+                                    .addItem(RunReplayImmediatelyMenuItem.class, gameInfo)
+                                    .addItem(CancelActionRunReplayImmediatelyMenuItem.class, gameInfo)
         .build();
     Bounds screenBounds = watchButton.localToScreen(watchButton.getBoundsInLocal());
     contextMenu.show(watchButton.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());

@@ -1,12 +1,12 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.ReplayBean.ChatMessage;
-import com.faforever.client.domain.ReplayBean.GameOption;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.Replay.ChatMessage;
+import com.faforever.client.domain.api.Replay.GameOption;
 
 import java.util.List;
 
-public record ReplayDetails(List<ChatMessage> chatMessages, List<GameOption> gameOptions, MapVersionBean mapVersion) {
+public record ReplayDetails(List<ChatMessage> chatMessages, List<GameOption> gameOptions, MapVersion mapVersion) {
 
   public ReplayDetails {
     chatMessages = List.copyOf(chatMessages);

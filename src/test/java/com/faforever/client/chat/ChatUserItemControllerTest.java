@@ -2,12 +2,11 @@ package com.faforever.client.chat;
 
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.ChatChannelUserBuilder;
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.MapVersionBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -26,6 +25,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -132,10 +132,10 @@ public class ChatUserItemControllerTest extends PlatformTest {
     doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
         .createPlaceholderImageOnErrorObservable(any());
 
-    PlayerBean player = PlayerBeanBuilder.create()
-        .defaultValues()
-        .game(GameBeanBuilder.create().defaultValues().get())
-        .get();
+    PlayerInfo player = PlayerInfoBuilder.create()
+                                         .defaultValues()
+                                         .game(GameInfoBuilder.create().defaultValues().get())
+                                         .get();
     defaultUser.setPlayer(player);
 
     when(i18n.get(anyString(), anyString())).thenReturn("name");
@@ -167,10 +167,8 @@ public class ChatUserItemControllerTest extends PlatformTest {
 
     boolean visible = chatPrefs.isShowMapPreview();
     instance.setChatUser(defaultUser);
-    defaultUser.setPlayer(PlayerBeanBuilder.create()
-        .defaultValues()
-        .game(GameBeanBuilder.create().status(GameStatus.OPEN).get())
-        .get());
+    defaultUser.setPlayer(
+        PlayerInfoBuilder.create().defaultValues().game(GameInfoBuilder.create().status(GameStatus.OPEN).get()).get());
     assertEquals(instance.mapImageView.isVisible(), visible);
 
     runOnFxThreadAndWait(() -> chatPrefs.setShowMapPreview(!visible));
@@ -185,14 +183,10 @@ public class ChatUserItemControllerTest extends PlatformTest {
     doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
         .createPlaceholderImageOnErrorObservable(any());
 
-    GameBean game = GameBeanBuilder.create().defaultValues().host("junit").get();
-    PlayerBean player = PlayerBeanBuilder.create()
-        .defaultValues()
-        .username("junit")
-        .game(game)
-        .get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().host("junit").get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().username("junit").game(game).get();
     String mapFolderName = player.getGame().getMapFolderName();
-    MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().get();
+    MapVersion mapVersion = Instancio.create(MapVersion.class);
     defaultUser.setPlayer(player);
 
     when(themeService.getThemeImage(ThemeService.CHAT_LIST_STATUS_HOSTING)).thenReturn(
@@ -200,13 +194,13 @@ public class ChatUserItemControllerTest extends PlatformTest {
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(new Image(InputStream.nullInputStream()));
     when(mapService.getMapLocallyFromName(mapFolderName)).thenReturn(Optional.of(mapVersion));
     when(mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName)).thenReturn("map id");
-    when(i18n.get(eq("game.onMapFormat"), anyString())).thenReturn(mapVersion.getMap()
-        .getDisplayName(), "map id", "Neroxis Generated Map");
+    when(i18n.get(eq("game.onMapFormat"), anyString())).thenReturn(mapVersion.map().displayName(), "map id",
+                                                                   "Neroxis Generated Map");
 
     runOnFxThreadAndWait(() -> instance.setChatUser(defaultUser));
     assertNotNull(instance.gameStatusImageView.getImage());
     assertNotNull(instance.mapImageView.getImage());
-    assertEquals(mapVersion.getMap().getDisplayName(), instance.mapNameLabel.getText());
+    assertEquals(mapVersion.map().displayName(), instance.mapNameLabel.getText());
   }
 
   @Test
@@ -217,11 +211,11 @@ public class ChatUserItemControllerTest extends PlatformTest {
   @Test
   @Disabled("Flaky test due to race condition with tooltip installation")
   public void testPlayerNoteTooltip() throws Exception {
-    defaultUser.setPlayer(PlayerBeanBuilder.create()
-        .defaultValues()
-        .game(GameBeanBuilder.create().defaultValues().get())
-        .note("Player 1")
-        .get());
+    defaultUser.setPlayer(PlayerInfoBuilder.create()
+                                           .defaultValues()
+                                           .game(GameInfoBuilder.create().defaultValues().get())
+                                           .note("Player 1")
+                                           .get());
     runOnFxThreadAndWait(() -> instance.setChatUser(defaultUser));
     assertEquals("Player 1", TooltipHelper.getTooltipText(instance.userContainer));
 

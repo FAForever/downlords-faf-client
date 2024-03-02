@@ -1,15 +1,15 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.GamePlayerStatsBean;
-import com.faforever.client.domain.MapBean;
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.ReplayBean;
-import com.faforever.client.domain.ReplayBean.ChatMessage;
-import com.faforever.client.domain.ReplayBean.GameOption;
-import com.faforever.client.domain.ReplayReviewBean;
+import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.domain.api.GamePlayerStats;
+import com.faforever.client.domain.api.Map;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.Replay;
+import com.faforever.client.domain.api.Replay.ChatMessage;
+import com.faforever.client.domain.api.Replay.GameOption;
+import com.faforever.client.domain.api.ReplayReview;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
@@ -79,7 +79,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -107,10 +106,10 @@ public class ReplayDetailController extends NodeController<Node> {
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
-  private final ObjectProperty<ReplayBean> replay = new SimpleObjectProperty<>();
-  private final ObservableList<ReplayReviewBean> replayReviews = FXCollections.observableArrayList();
-  private final ObjectProperty<Map<String, List<GamePlayerStatsBean>>> teams = new SimpleObjectProperty<>();
-  private final SimpleChangeListener<Map<String, List<GamePlayerStatsBean>>> teamsListener = this::populateTeamsContainer;
+  private final ObjectProperty<Replay> replay = new SimpleObjectProperty<>();
+  private final ObservableList<ReplayReview> replayReviews = FXCollections.observableArrayList();
+  private final ObjectProperty<java.util.Map<String, List<GamePlayerStats>>> teams = new SimpleObjectProperty<>();
+  private final SimpleChangeListener<java.util.Map<String, List<GamePlayerStats>>> teamsListener = this::populateTeamsContainer;
 
   public Pane replayDetailRoot;
   public Label titleLabel;
@@ -128,7 +127,7 @@ public class ReplayDetailController extends NodeController<Node> {
   public Pane teamsContainer;
   public Separator ratingSeparator;
   public Pane reviewsContainer;
-  public ReviewsController<ReplayReviewBean> reviewsController;
+  public ReviewsController<ReplayReview> reviewsController;
   public Separator reviewSeparator;
   public TableView<ChatMessage> chatTable;
   public TableColumn<ChatMessage, Duration> chatGameTimeColumn;
@@ -154,7 +153,7 @@ public class ReplayDetailController extends NodeController<Node> {
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(downloadMoreInfoButton, moreInformationPane, teamsInfoBox, reviewsContainer,
                                     ratingSeparator, reviewSeparator, deleteButton, getRoot());
-    
+
     JavaFxUtil.bindManagedToVisible(notRatedReasonLabel, showRatingChangeButton);
     contextMenuBuilder.addCopyLabelContextMenu(onMapLabel, titleLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
@@ -172,12 +171,12 @@ public class ReplayDetailController extends NodeController<Node> {
 
     copyButton.setText(i18n.get("replay.copyUrl"));
 
-    teams.orElse(Map.of()).addListener(teamsListener);
-    replay.addListener((SimpleChangeListener<ReplayBean>) this::onReplayChanged);
+    teams.orElse(java.util.Map.of()).addListener(teamsListener);
+    replay.addListener((SimpleChangeListener<Replay>) this::onReplayChanged);
   }
 
   private void bindProperties() {
-    ObservableValue<Validity> validityObservable = replay.flatMap(ReplayBean::validityProperty);
+    ObservableValue<Validity> validityObservable = replay.map(Replay::validity);
     BooleanExpression isValidObservable = BooleanExpression.booleanExpression(
         validityObservable.map(Validity.VALID::equals));
     BooleanExpression changedRatingObservable = BooleanExpression.booleanExpression(
@@ -193,9 +192,8 @@ public class ReplayDetailController extends NodeController<Node> {
                                                .orElse(i18n.get("game.notRatedYet")));
 
     BooleanExpression hasReplayFileObservable = BooleanExpression.booleanExpression(
-        replay.flatMap(ReplayBean::replayFileProperty).map(Objects::nonNull).orElse(false));
-    BooleanExpression replayAvailableOnline = BooleanExpression.booleanExpression(
-        replay.flatMap(ReplayBean::replayAvailableProperty));
+        replay.map(Replay::replayFile).map(Objects::nonNull).orElse(false));
+    BooleanExpression replayAvailableOnline = BooleanExpression.booleanExpression(replay.map(Replay::replayAvailable));
     BooleanExpression replayAvailable = Bindings.or(hasReplayFileObservable, replayAvailableOnline);
 
     watchButton.disableProperty().bind(replayAvailable.not().when(showing));
@@ -209,13 +207,11 @@ public class ReplayDetailController extends NodeController<Node> {
                               available -> available ? i18n.get("game.downloadMoreInfoNoSize") : i18n.get(
                                   "game.replayFileMissing")).when(showing));
 
-    replayIdField.textProperty()
-                 .bind(replay.flatMap(ReplayBean::idProperty).map(id -> i18n.get("game.idFormat", id)).when(showing));
-    titleLabel.textProperty().bind(replay.flatMap(ReplayBean::titleProperty).when(showing));
-    dateLabel.textProperty().bind(replay.flatMap(ReplayBean::startTimeProperty).map(timeService::asDate).when(showing));
-    timeLabel.textProperty()
-             .bind(replay.flatMap(ReplayBean::startTimeProperty).map(timeService::asShortTime).when(showing));
-    ObservableValue<MapVersionBean> mapVersionObservable = replay.flatMap(ReplayBean::mapVersionProperty);
+    replayIdField.textProperty().bind(replay.map(Replay::id).map(id -> i18n.get("game.idFormat", id)).when(showing));
+    titleLabel.textProperty().bind(replay.map(Replay::title).when(showing));
+    dateLabel.textProperty().bind(replay.map(Replay::startTime).map(timeService::asDate).when(showing));
+    timeLabel.textProperty().bind(replay.map(Replay::startTime).map(timeService::asShortTime).when(showing));
+    ObservableValue<MapVersion> mapVersionObservable = replay.map(Replay::mapVersion);
     mapThumbnailImageView.imageProperty()
                          .bind(mapVersionObservable.flatMap(mapVersion -> Bindings.createObjectBinding(
                                                        () -> mapService.loadPreview(mapVersion, PreviewSize.SMALL),
@@ -223,34 +219,29 @@ public class ReplayDetailController extends NodeController<Node> {
                                                    .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
                                                    .when(showing));
     onMapLabel.textProperty()
-              .bind(mapVersionObservable.flatMap(MapVersionBean::mapProperty)
-                                        .flatMap(MapBean::displayNameProperty)
+              .bind(mapVersionObservable.map(MapVersion::map)
+                                        .map(Map::displayName)
                                         .orElse(i18n.get("game.onUnknownMap"))
                                         .when(showing));
-    durationLabel.visibleProperty()
-                 .bind(replay.flatMap(ReplayBean::endTimeProperty).map(Objects::nonNull).orElse(false).when(showing));
-    durationLabel.textProperty().bind(replay.flatMap(replayValue -> Bindings.createObjectBinding(() -> {
-      OffsetDateTime startTime = replayValue.getStartTime();
-      OffsetDateTime endTime = replayValue.getEndTime();
+    durationLabel.visibleProperty().bind(replay.map(Replay::endTime).map(Objects::nonNull).orElse(false).when(showing));
+    durationLabel.textProperty().bind(replay.map(replayValue -> {
+      OffsetDateTime startTime = replayValue.startTime();
+      OffsetDateTime endTime = replayValue.endTime();
       return startTime == null || endTime == null ? null : Duration.between(startTime, endTime);
-    }, replayValue.startTimeProperty(), replayValue.endTimeProperty()).map(timeService::shortDuration)).when(showing));
+    }).map(timeService::shortDuration).when(showing));
 
     replayDurationLabel.visibleProperty()
-                       .bind(replay.flatMap(ReplayBean::replayTicksProperty)
-                                   .map(Objects::nonNull)
-                                   .orElse(false)
-                                   .when(showing));
+                       .bind(replay.map(Replay::replayTicks).map(Objects::nonNull).orElse(false).when(showing));
 
-    replayDurationLabel.textProperty()
-                       .bind(replay.flatMap(ReplayBean::replayTicksProperty)
+    replayDurationLabel.textProperty().bind(replay.map(Replay::replayTicks)
                                    .map(ticks -> ticks * 100)
                                    .map(Duration::ofMillis)
                                    .map(timeService::shortDuration)
                                    .when(showing));
 
     modLabel.textProperty()
-            .bind(replay.flatMap(ReplayBean::featuredModProperty)
-                        .flatMap(FeaturedModBean::displayNameProperty)
+            .bind(replay.map(Replay::featuredMod)
+                        .map(FeaturedMod::displayName)
                         .orElse(i18n.get("unknown"))
                         .when(showing));
 
@@ -266,60 +257,39 @@ public class ReplayDetailController extends NodeController<Node> {
                                                    .map(quality -> i18n.get("percentage", quality))))
                               .when(showing));
 
-    playerCountLabel.textProperty()
-                    .bind(replay.flatMap(ReplayBean::teamsProperty)
-                                .map(teams -> teams.values().stream().mapToInt(Collection::size).sum())
-                                .map(i18n::number)
-                                .when(showing));
+    playerCountLabel.textProperty().bind(replay.map(Replay::numPlayers).map(i18n::number).when(showing));
 
-    ratingLabel.textProperty()
-               .bind(replay.flatMap(ReplayBean::teamPlayerStatsProperty)
-                           .map(teamStats -> teamStats.values()
-                                                      .stream()
-                                                      .flatMapToInt(playerStats -> playerStats.stream()
-                                                                                              .map(
-                                                                                                  GamePlayerStatsBean::getLeaderboardRatingJournals)
-                                                                                              .mapToInt(
-                                                                                                  journals -> journals.stream()
-                                                                                                                      .map(
-                                                                                                                          RatingUtil::getRating)
-                                                                                                                      .findFirst()
-                                                                                                                      .orElse(
-                                                                                                                          0)))
-                                                      .average()
-                                                      .orElse(Double.NaN))
+    ratingLabel.textProperty().bind(replay.map(Replay::averageRating)
                            .map(average -> average.isNaN() ? "-" : i18n.number(average))
                            .when(showing));
 
     BooleanExpression hasChatMessages = BooleanExpression.booleanExpression(
-        replay.flatMap(ReplayBean::chatMessagesProperty).map(Collection::isEmpty)).not();
+        replay.map(Replay::chatMessages).map(Collection::isEmpty)).not();
     BooleanExpression hasGameOptions = BooleanExpression.booleanExpression(
-        replay.flatMap(ReplayBean::gameOptionsProperty).map(Collection::isEmpty)).not();
+        replay.map(Replay::gameOptions).map(Collection::isEmpty)).not();
     moreInformationPane.visibleProperty().bind(Bindings.or(hasChatMessages, hasGameOptions).when(showing));
 
     ratingSeparator.visibleProperty().bind(reviewsContainer.visibleProperty().when(showing));
     reviewSeparator.visibleProperty().bind(reviewsContainer.visibleProperty().when(showing));
 
-    BooleanExpression localObservable = BooleanExpression.booleanExpression(replay.flatMap(ReplayBean::localProperty));
+    BooleanExpression localObservable = BooleanExpression.booleanExpression(replay.map(Replay::local));
     reviewsContainer.visibleProperty().bind(localObservable.not().when(showing));
     deleteButton.visibleProperty().bind(localObservable.when(showing));
-    teams.bind(replay.flatMap(ReplayBean::teamPlayerStatsProperty).when(showing));
+    teams.bind(replay.map(Replay::teamPlayerStats).when(showing));
 
-    optionsTable.itemsProperty()
-                .bind(replay.flatMap(ReplayBean::gameOptionsProperty).map(FXCollections::observableList).when(showing));
-    chatTable.itemsProperty()
-             .bind(replay.flatMap(ReplayBean::chatMessagesProperty).map(FXCollections::observableList).when(showing));
+    optionsTable.itemsProperty().bind(replay.map(Replay::gameOptions).map(FXCollections::observableList).when(showing));
+    chatTable.itemsProperty().bind(replay.map(Replay::chatMessages).map(FXCollections::observableList).when(showing));
   }
 
-  private void onReplayChanged(ReplayBean newValue) {
+  private void onReplayChanged(Replay newValue) {
     if (newValue == null) {
       reviewsController.setCanWriteReview(false);
       replayReviews.clear();
       return;
     }
 
-    if (newValue.getReplayFile() != null) {
-      enrichReplayLater(newValue.getReplayFile(), newValue);
+    if (newValue.replayFile() != null) {
+      enrichReplayLater(newValue.replayFile(), newValue);
     }
 
     reviewsController.setCanWriteReview(true);
@@ -330,7 +300,7 @@ public class ReplayDetailController extends NodeController<Node> {
                  .subscribe(replayReviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
   }
 
-  public void setReplay(ReplayBean replay) {
+  public void setReplay(Replay replay) {
     this.replay.set(replay);
   }
 
@@ -368,17 +338,14 @@ public class ReplayDetailController extends NodeController<Node> {
     reviewsController.setOnSendReviewListener(this::onSendReview);
     reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
     reviewsController.setReviewSupplier(() -> {
-      ReplayReviewBean review = new ReplayReviewBean();
-      review.setPlayer(playerService.getCurrentPlayer());
-      review.setReplay(replay.get());
-      return review;
+      return new ReplayReview(null, null, playerService.getCurrentPlayer(), null, replay.get());
     });
     reviewsController.bindReviews(replayReviews);
   }
 
   @VisibleForTesting
-  void onDeleteReview(ReplayReviewBean review) {
-    reviewService.deleteGameReview(review)
+  void onDeleteReview(ReplayReview review) {
+    reviewService.deleteReview(review)
                  .publishOn(fxApplicationThreadExecutor.asScheduler())
                  .subscribe(null, throwable -> {
                    log.error("Review could not be saved", throwable);
@@ -387,8 +354,8 @@ public class ReplayDetailController extends NodeController<Node> {
   }
 
   @VisibleForTesting
-  void onSendReview(ReplayReviewBean review) {
-    reviewService.saveReplayReview(review)
+  void onSendReview(ReplayReview review) {
+    reviewService.saveReview(review)
                  .filter(savedReview -> !replayReviews.contains(savedReview))
                  .publishOn(fxApplicationThreadExecutor.asScheduler())
                  .subscribe(savedReview -> {
@@ -402,12 +369,11 @@ public class ReplayDetailController extends NodeController<Node> {
 
   public void onDownloadMoreInfoClicked() {
     // TODO display loading indicator
-    ReplayBean replayValue = replay.get();
-    replayService.downloadReplay(replayValue.getId()).thenCompose(path -> enrichReplayLater(path, replayValue));
+    Replay replayValue = replay.get();
+    replayService.downloadReplay(replayValue.id()).thenCompose(path -> enrichReplayLater(path, replayValue));
   }
 
-  private CompletableFuture<Void> enrichReplayLater(Path path, ReplayBean replay) {
-    replay.setReplayFile(path);
+  private CompletableFuture<Void> enrichReplayLater(Path path, Replay replay) {
     CompletableFuture<ReplayDetails> replayDetailsFuture = CompletableFuture.supplyAsync(() -> {
       try {
         return replayService.loadReplayDetails(path);
@@ -417,32 +383,27 @@ public class ReplayDetailController extends NodeController<Node> {
     });
 
     replayDetailsFuture.thenAccept(replayDetails -> {
-      MapVersionBean mapVersion = replayDetails.mapVersion();
-      if (mapGeneratorService.isGeneratedMap(mapVersion.getFolderName())) {
-        mapService.generateIfNotInstalled(mapVersion.getFolderName());
+      MapVersion mapVersion = replayDetails.mapVersion();
+      if (mapGeneratorService.isGeneratedMap(mapVersion.folderName())) {
+        mapService.generateIfNotInstalled(mapVersion.folderName()).subscribe();
       }
     });
 
-    return replayDetailsFuture.thenAcceptAsync(replayDetails -> {
-      if (replay.getMapVersion() == null) {
-        replay.setMapVersion(replayDetails.mapVersion());
-      }
-
-      replay.setChatMessages(replayDetails.chatMessages());
-      replay.setGameOptions(replayDetails.gameOptions());
-    }, fxApplicationThreadExecutor).exceptionally(throwable -> {
-      if (throwable.getCause() instanceof FileNotFoundException) {
-        log.warn("Replay file not available", throwable);
-        notificationService.addImmediateWarnNotification("replayNotAvailable", replay.getId());
-      } else {
-        log.error("Replay could not be enriched", throwable);
-        notificationService.addImmediateErrorNotification(throwable, "replay.enrich.error");
-      }
-      return null;
-    });
+    return replayDetailsFuture.thenAcceptAsync(
+                                  replayDetails -> this.replay.set(replay.withReplayDetails(replayDetails, path)), fxApplicationThreadExecutor)
+                              .exceptionally(throwable -> {
+                                if (throwable.getCause() instanceof FileNotFoundException) {
+                                  log.warn("Replay file not available", throwable);
+                                  notificationService.addImmediateWarnNotification("replayNotAvailable", replay.id());
+                                } else {
+                                  log.error("Replay could not be enriched", throwable);
+                                  notificationService.addImmediateErrorNotification(throwable, "replay.enrich.error");
+                                }
+                                return null;
+                              });
   }
 
-  private void populateTeamsContainer(Map<String, List<GamePlayerStatsBean>> newValue) {
+  private void populateTeamsContainer(java.util.Map<String, List<GamePlayerStats>> newValue) {
     CompletableFuture.supplyAsync(() -> createTeamCardControllers(newValue)).thenAcceptAsync(controllers -> {
       teamCardControllers.clear();
       teamCardControllers.addAll(controllers);
@@ -450,15 +411,15 @@ public class ReplayDetailController extends NodeController<Node> {
     }, fxApplicationThreadExecutor);
   }
 
-  private List<TeamCardController> createTeamCardControllers(Map<String, List<GamePlayerStatsBean>> teamsValue) {
+  private List<TeamCardController> createTeamCardControllers(java.util.Map<String, List<GamePlayerStats>> teamsValue) {
     return teamsValue.entrySet().stream().map(entry -> {
       String team = entry.getKey();
-      List<GamePlayerStatsBean> playerStats = entry.getValue();
+      List<GamePlayerStats> playerStats = entry.getValue();
 
-      Map<PlayerBean, GamePlayerStatsBean> statsByPlayer = playerStats.stream()
-                                                                      .collect(Collectors.toMap(
-                                                                          GamePlayerStatsBean::getPlayer,
-                                                                          Function.identity()));
+      java.util.Map<PlayerInfo, GamePlayerStats> statsByPlayer = playerStats.stream()
+                                                                            .collect(Collectors.toMap(
+                                                                                GamePlayerStats::player,
+                                                                                           Function.identity()));
 
       TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
 
@@ -472,18 +433,18 @@ public class ReplayDetailController extends NodeController<Node> {
     }).toList();
   }
 
-  private Faction getPlayerFaction(PlayerBean player, Map<PlayerBean, GamePlayerStatsBean> statsByPlayerId) {
-    GamePlayerStatsBean playerStats = statsByPlayerId.get(player);
-    return playerStats == null ? null : playerStats.getFaction();
+  private Faction getPlayerFaction(PlayerInfo player, java.util.Map<PlayerInfo, GamePlayerStats> statsByPlayerId) {
+    GamePlayerStats playerStats = statsByPlayerId.get(player);
+    return playerStats == null ? null : playerStats.faction();
   }
 
-  private Integer getPlayerRating(PlayerBean player, Map<PlayerBean, GamePlayerStatsBean> statsByPlayerId) {
-    GamePlayerStatsBean playerStats = statsByPlayerId.get(player);
-    return playerStats == null ? null : playerStats.getLeaderboardRatingJournals()
+  private Integer getPlayerRating(PlayerInfo player, java.util.Map<PlayerInfo, GamePlayerStats> statsByPlayerId) {
+    GamePlayerStats playerStats = statsByPlayerId.get(player);
+    return playerStats == null ? null : playerStats.leaderboardRatingJournals()
                                                    .stream()
                                                    .findFirst()
-                                                   .filter(ratingJournal -> ratingJournal.getMeanBefore() != null)
-                                                   .filter(ratingJournal -> ratingJournal.getDeviationBefore() != null)
+                                                   .filter(ratingJournal -> ratingJournal.meanBefore() != null)
+                                                   .filter(ratingJournal -> ratingJournal.deviationBefore() != null)
                                                    .map(RatingUtil::getRating)
                                                    .orElse(null);
   }
@@ -500,7 +461,7 @@ public class ReplayDetailController extends NodeController<Node> {
 
   public void onDeleteButtonClicked() {
     notificationService.addNotification(
-        new ImmediateNotification(i18n.get("replay.deleteNotification.heading", replay.get().getTitle()),
+        new ImmediateNotification(i18n.get("replay.deleteNotification.heading", replay.get().title()),
                                   i18n.get("replay.deleteNotification.info"), Severity.INFO,
                                   Arrays.asList(new Action(i18n.get("cancel")),
                                                 new Action(i18n.get("delete"), this::deleteReplay))));
@@ -511,7 +472,7 @@ public class ReplayDetailController extends NodeController<Node> {
   }
 
   private void deleteReplay() {
-    if (replayService.deleteReplayFile(replay.get().getReplayFile()) && onDeleteListener != null) {
+    if (replayService.deleteReplayFile(replay.get().replayFile()) && onDeleteListener != null) {
       onDeleteListener.run();
     }
     onCloseButtonClicked();
@@ -540,22 +501,21 @@ public class ReplayDetailController extends NodeController<Node> {
 
 
   public void copyLink() {
-    String replayUrl = ReplayBean.getReplayUrl(replay.get().getId(),
-                                               clientProperties.getVault().getReplayDownloadUrlFormat());
+    String replayUrl = clientProperties.getVault().getReplayDownloadUrlFormat().formatted(replay.get().id());
     ClipboardUtil.copyToClipboard(replayUrl);
   }
 
   public void showRatingChange() {
-    Map<String, List<GamePlayerStatsBean>> teamsValue = teams.get();
+    java.util.Map<String, List<GamePlayerStats>> teamsValue = teams.get();
 
     teamCardControllers.forEach(teamCardController -> teamCardController.setStats(
         teamsValue.get(String.valueOf(teamCardController.getTeamId()))));
   }
 
   public void onMapPreviewImageClicked() {
-    ReplayBean replayValue = replay.get();
-    if (replayValue != null && replayValue.getMapVersion() != null) {
-      PopupUtil.showImagePopup(mapService.loadPreview(replayValue.getMapVersion(), PreviewSize.LARGE));
+    Replay replayValue = replay.get();
+    if (replayValue != null && replayValue.mapVersion() != null) {
+      PopupUtil.showImagePopup(mapService.loadPreview(replayValue.mapVersion(), PreviewSize.LARGE));
     }
   }
 }

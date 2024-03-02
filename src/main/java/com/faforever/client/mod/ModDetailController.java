@@ -1,9 +1,9 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.domain.ModBean;
-import com.faforever.client.domain.ModVersionBean;
-import com.faforever.client.domain.ModVersionReviewBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.Mod;
+import com.faforever.client.domain.api.ModVersion;
+import com.faforever.client.domain.api.ModVersionReview;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.FaStrings;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
@@ -60,8 +60,8 @@ public class ModDetailController extends NodeController<Node> {
   private final ContextMenuBuilder contextMenuBuilder;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  private final ObjectProperty<ModVersionBean> modVersion = new SimpleObjectProperty<>();
-  private final ObservableList<ModVersionReviewBean> modReviews = FXCollections.observableArrayList();
+  private final ObjectProperty<ModVersion> modVersion = new SimpleObjectProperty<>();
+  private final ObservableList<ModVersionReview> modReviews = FXCollections.observableArrayList();
 
   public Label updatedLabel;
   public Label sizeLabel;
@@ -79,7 +79,7 @@ public class ModDetailController extends NodeController<Node> {
   public ProgressBar progressBar;
   public Label modDescriptionLabel;
   public Node modDetailRoot;
-  public ReviewsController<ModVersionReviewBean> reviewsController;
+  public ReviewsController<ModVersionReview> reviewsController;
   public Label authorLabel;
 
   @Override
@@ -96,7 +96,7 @@ public class ModDetailController extends NodeController<Node> {
 
     initializeReviewsController();
     bindProperties();
-    modVersion.addListener((SimpleChangeListener<ModVersionBean>) this::onModVersionChanged);
+    modVersion.addListener((SimpleChangeListener<ModVersion>) this::onModVersionChanged);
 
     // TODO hidden until dependencies are available
     dependenciesTitle.setManaged(false);
@@ -104,34 +104,29 @@ public class ModDetailController extends NodeController<Node> {
   }
 
   private void bindProperties() {
-    ObservableValue<ModBean> modObservable = modVersion.flatMap(ModVersionBean::modProperty);
+    ObservableValue<Mod> modObservable = modVersion.map(ModVersion::mod);
     thumbnailImageView.imageProperty()
         .bind(modVersion.map(modService::loadThumbnail)
             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
             .when(showing));
-    nameLabel.textProperty().bind(modObservable.flatMap(ModBean::displayNameProperty).when(showing));
-    authorLabel.textProperty()
-        .bind(modObservable.flatMap(ModBean::authorProperty)
+    nameLabel.textProperty().bind(modObservable.map(Mod::displayName).when(showing));
+    authorLabel.textProperty().bind(modObservable.map(Mod::author)
             .map(author -> i18n.get("modVault.details.author", author))
             .when(showing));
-    uploaderLabel.textProperty()
-        .bind(modObservable.flatMap(ModBean::uploaderProperty)
-            .flatMap(PlayerBean::usernameProperty)
+    uploaderLabel.textProperty().bind(modObservable.map(Mod::uploader).flatMap(PlayerInfo::usernameProperty)
             .map(author -> i18n.get("modVault.details.uploader", author))
             .when(showing));
-    idLabel.textProperty()
-        .bind(modVersion.flatMap(ModVersionBean::idProperty).map(id -> i18n.get("mod.idNumber", id)).when(showing));
+    idLabel.textProperty().bind(modVersion.map(ModVersion::id).map(id -> i18n.get("mod.idNumber", id)).when(showing));
 
-    updatedLabel.textProperty()
-        .bind(modVersion.flatMap(ModVersionBean::createTimeProperty).map(timeService::asDate).when(showing));
+    updatedLabel.textProperty().bind(modVersion.map(ModVersion::createTime).map(timeService::asDate).when(showing));
 
-    modDescriptionLabel.textProperty().bind(modVersion.flatMap(ModVersionBean::descriptionProperty)
+    modDescriptionLabel.textProperty().bind(modVersion.map(ModVersion::description)
         .map(FaStrings::removeLocalizationTag)
         .map(description -> StringUtils.isBlank(description) ? i18n.get("map.noDescriptionAvailable") : description)
         .when(showing));
 
     versionLabel.textProperty()
-        .bind(modVersion.flatMap(ModVersionBean::versionProperty).map(ComparableVersion::toString).when(showing));
+                .bind(modVersion.map(ModVersion::version).map(ComparableVersion::toString).when(showing));
 
     BooleanExpression installed = modService.isInstalledBinding(modVersion);
     installButton.visibleProperty().bind(installed.not().when(showing));
@@ -150,11 +145,11 @@ public class ModDetailController extends NodeController<Node> {
     return modDetailRoot;
   }
 
-  public void setModVersion(ModVersionBean modVersion) {
+  public void setModVersion(ModVersion modVersion) {
     this.modVersion.set(modVersion);
   }
 
-  private void onModVersionChanged(ModVersionBean newValue) {
+  private void onModVersionChanged(ModVersion newValue) {
     if (newValue == null) {
       reviewsController.setCanWriteReview(false);
       modReviews.clear();
@@ -162,14 +157,13 @@ public class ModDetailController extends NodeController<Node> {
       return;
     }
 
-    PlayerBean currentPlayer = playerService.getCurrentPlayer();
-    reviewsController.setCanWriteReview(modService.isInstalled(newValue.getUid())
-        && !currentPlayer.getUsername()
-        .equals(newValue.getMod().getAuthor()) && !currentPlayer.equals(newValue
-        .getMod()
-        .getUploader()));
+    PlayerInfo currentPlayer = playerService.getCurrentPlayer();
+    reviewsController.setCanWriteReview(modService.isInstalled(newValue.uid()) && !currentPlayer.getUsername()
+                                                                                                .equals(newValue.mod()
+                                                                                                                .author()) && !currentPlayer.equals(
+        newValue.mod().uploader()));
 
-    reviewService.getModReviews(newValue.getMod())
+    reviewService.getModReviews(newValue.mod())
         .collectList()
         .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(modReviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
@@ -191,18 +185,14 @@ public class ModDetailController extends NodeController<Node> {
     reviewsController.setCanWriteReview(false);
     reviewsController.setOnSendReviewListener(this::onSendReview);
     reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
-    reviewsController.setReviewSupplier(() -> {
-      ModVersionReviewBean review = new ModVersionReviewBean();
-      review.setPlayer(playerService.getCurrentPlayer());
-      review.setModVersion(modVersion.get());
-      return review;
-    });
+    reviewsController.setReviewSupplier(
+        () -> new ModVersionReview(null, null, playerService.getCurrentPlayer(), null, modVersion.get()));
     reviewsController.bindReviews(modReviews);
   }
 
   @VisibleForTesting
-  void onDeleteReview(ModVersionReviewBean review) {
-    reviewService.deleteModVersionReview(review)
+  void onDeleteReview(ModVersionReview review) {
+    reviewService.deleteReview(review)
         .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(null, throwable -> {
           log.error("Review could not be deleted", throwable);
@@ -211,8 +201,8 @@ public class ModDetailController extends NodeController<Node> {
   }
 
   @VisibleForTesting
-  void onSendReview(ModVersionReviewBean review) {
-    reviewService.saveModVersionReview(review)
+  void onSendReview(ModVersionReview review) {
+    reviewService.saveReview(review)
         .filter(savedReview -> !modReviews.contains(savedReview))
         .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(savedReview -> {
@@ -225,12 +215,13 @@ public class ModDetailController extends NodeController<Node> {
   }
 
   public void onInstallButtonClicked() {
-    ModVersionBean modVersion = this.modVersion.get();
+    ModVersion modVersion = this.modVersion.get();
     modService.downloadIfNecessary(modVersion, progressBar.progressProperty(),
                                    progressLabel.textProperty()).subscribe(null, throwable -> {
           log.error("Could not install mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed",
-              modVersion.getMod().getDisplayName(), throwable.getLocalizedMessage());
+                                                            modVersion.mod().displayName(),
+                                                            throwable.getLocalizedMessage());
         });
   }
 
@@ -238,12 +229,13 @@ public class ModDetailController extends NodeController<Node> {
     progressBar.progressProperty().unbind();
     progressBar.setProgress(-1);
 
-    ModVersionBean modVersion = this.modVersion.get();
+    ModVersion modVersion = this.modVersion.get();
     modService.uninstallMod(modVersion)
         .exceptionally(throwable -> {
           log.error("Could not delete mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod",
-              modVersion.getMod().getDisplayName(), throwable.getLocalizedMessage());
+                                                            modVersion.mod().displayName(),
+                                                            throwable.getLocalizedMessage());
           return null;
         });
   }

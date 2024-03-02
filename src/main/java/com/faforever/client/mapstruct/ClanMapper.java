@@ -1,7 +1,6 @@
 package com.faforever.client.mapstruct;
 
-import com.faforever.client.domain.ClanBean;
-import com.faforever.commons.api.dto.Clan;
+import com.faforever.client.domain.api.Clan;
 import com.faforever.commons.api.dto.ClanMembership;
 import com.faforever.commons.api.dto.Player;
 import org.mapstruct.Context;
@@ -19,19 +18,21 @@ public abstract class ClanMapper {
   private PlayerMapper playerMapper;
 
   @Mapping(target = "members", source = "memberships")
-  public abstract ClanBean map(Clan dto, @Context CycleAvoidingMappingContext context);
+  public abstract Clan map(com.faforever.commons.api.dto.Clan dto, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "memberships", source = "bean")
-  public abstract Clan map(ClanBean bean, @Context CycleAvoidingMappingContext context);
+  public abstract com.faforever.commons.api.dto.Clan map(Clan bean, @Context CycleAvoidingMappingContext context);
 
   public Player map(ClanMembership dto, @Context CycleAvoidingMappingContext context) {
     return dto.getPlayer();
   }
 
-  public List<ClanMembership> mapMembership(ClanBean bean, @Context CycleAvoidingMappingContext context) {
-    Clan clan = map(bean, context);
+  public List<ClanMembership> mapMembership(Clan bean, @Context CycleAvoidingMappingContext context) {
+    com.faforever.commons.api.dto.Clan clan = map(bean, context);
     List<ClanMembership> memberships = new ArrayList<>();
-    bean.getMembers().forEach(playerBean -> memberships.add(new ClanMembership().setClan(clan).setPlayer(playerMapper.map(playerBean, context))));
+    bean.members()
+        .forEach(playerBean -> memberships.add(
+            new ClanMembership().setClan(clan).setPlayer(playerMapper.map(playerBean, context))));
     return memberships;
   }
 }

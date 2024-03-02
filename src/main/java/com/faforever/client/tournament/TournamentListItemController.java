@@ -1,6 +1,6 @@
 package com.faforever.client.tournament;
 
-import com.faforever.client.domain.TournamentBean;
+import com.faforever.client.domain.api.Tournament;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.TimeService;
@@ -35,13 +35,14 @@ public class TournamentListItemController extends NodeController<Node> {
     return tournamentItemRoot;
   }
 
-  void setTournamentItem(TournamentBean tournamentBean) {
-    nameLabel.setText(tournamentBean.getName());
-    if (tournamentBean.getStartingAt() == null) {
+  void setTournamentItem(Tournament tournament) {
+    nameLabel.setText(tournament.name());
+    if (tournament.startingAt() == null) {
       startingLabel.setText(i18n.get("unknown"));
     } else {
-      startingLabel.setText(MessageFormat.format("{0} {1}", timeService.asDate(tournamentBean.getStartingAt()), timeService.asShortTime(tournamentBean.getStartingAt())));
+      startingLabel.setText(MessageFormat.format("{0} {1}", timeService.asDate(tournament.startingAt()),
+                                                 timeService.asShortTime(tournament.startingAt())));
     }
-    statusLabel.setText(i18n.get(tournamentBean.getStatus().getMessageKey()));
+    statusLabel.setText(i18n.get(tournament.status().getMessageKey()));
   }
 }

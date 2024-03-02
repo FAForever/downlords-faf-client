@@ -2,11 +2,10 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.chat.ChatService;
-import com.faforever.client.domain.MatchingStatus;
-import com.faforever.client.domain.MatchmakerQueueBean;
-import com.faforever.client.domain.PartyBean;
-import com.faforever.client.domain.PartyBean.PartyMember;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.MatchmakerQueueInfo;
+import com.faforever.client.domain.server.PartyInfo;
+import com.faforever.client.domain.server.PartyInfo.PartyMember;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
@@ -47,7 +46,6 @@ import com.faforever.commons.lobby.MatchmakerInfo;
 import com.faforever.commons.lobby.MatchmakerMatchCancelledResponse;
 import com.faforever.commons.lobby.MatchmakerMatchFoundResponse;
 import com.faforever.commons.lobby.MatchmakerState;
-import com.faforever.commons.lobby.PartyInfo;
 import com.faforever.commons.lobby.PartyInvite;
 import com.faforever.commons.lobby.PartyKick;
 import com.faforever.commons.lobby.SearchInfo;
@@ -115,19 +113,19 @@ public class TeamMatchmakingService implements InitializingBean {
   private final GamePathHandler gamePathHandler;
 
   @Getter
-  private final PartyBean party = new PartyBean();
-  private final ObservableMap<String, MatchmakerQueueBean> nameToQueue = FXCollections.synchronizedObservableMap(
+  private final PartyInfo party = new PartyInfo();
+  private final ObservableMap<String, MatchmakerQueueInfo> nameToQueue = FXCollections.synchronizedObservableMap(
       FXCollections.observableHashMap());
   @Getter
-  private final ObservableList<MatchmakerQueueBean> queues = JavaFxUtil.attachListToMap(
+  private final ObservableList<MatchmakerQueueInfo> queues = JavaFxUtil.attachListToMap(
       FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
           queue -> new Observable[]{queue.selectedProperty(), queue.matchingStatusProperty()})), nameToQueue);
-  private final FilteredList<MatchmakerQueueBean> selectedQueues = new FilteredList<>(queues,
-                                                                                      MatchmakerQueueBean::isSelected);
-  private final FilteredList<MatchmakerQueueBean> validQueues = new FilteredList<>(selectedQueues);
+  private final FilteredList<MatchmakerQueueInfo> selectedQueues = new FilteredList<>(queues,
+                                                                                      MatchmakerQueueInfo::isSelected);
+  private final FilteredList<MatchmakerQueueInfo> validQueues = new FilteredList<>(selectedQueues);
   private final BooleanBinding anyQueueSelected = Bindings.isNotEmpty(selectedQueues);
   private final ReadOnlyBooleanWrapper partyMembersNotReady = new ReadOnlyBooleanWrapper();
-  private final SetProperty<PlayerBean> playersInGame = new SimpleSetProperty<>(FXCollections.observableSet());
+  private final SetProperty<PlayerInfo> playersInGame = new SimpleSetProperty<>(FXCollections.observableSet());
 
   private final AtomicBoolean matchFoundAndWaitingForGameLaunch = new AtomicBoolean();
   private final ReadOnlyBooleanWrapper inQueue = new ReadOnlyBooleanWrapper();
@@ -148,7 +146,7 @@ public class TeamMatchmakingService implements InitializingBean {
                                                   party.getMembers()));
 
     inQueue.bind(Bindings.createBooleanBinding(
-        () -> queues.stream().map(MatchmakerQueueBean::getMatchingStatus).anyMatch(MatchingStatus.SEARCHING::equals),
+        () -> queues.stream().map(MatchmakerQueueInfo::getMatchingStatus).anyMatch(MatchingStatus.SEARCHING::equals),
         queues));
 
     inQueue.addListener(((SimpleChangeListener<Boolean>) this::onInQueueChange));
@@ -175,7 +173,7 @@ public class TeamMatchmakingService implements InitializingBean {
                      .retry()
                      .subscribe();
 
-    fafServerAccessor.getEvents(PartyInfo.class)
+    fafServerAccessor.getEvents(com.faforever.commons.lobby.PartyInfo.class)
                      .publishOn(fxApplicationThreadExecutor.asScheduler())
                      .doOnNext(this::onPartyInfo)
                      .doOnError(throwable -> log.error("Error processing party info", throwable))
@@ -223,8 +221,7 @@ public class TeamMatchmakingService implements InitializingBean {
                      .flatMapIterable(MatchmakerInfo::getQueues)
                      .concatMap(matchmakerQueue -> Mono.zip(Mono.just(matchmakerQueue),
                                                             Mono.justOrEmpty(nameToQueue.get(matchmakerQueue.getName()))
-                                                                .switchIfEmpty(Mono.defer(
-                                                                    () -> getQueueFromApi(matchmakerQueue)))))
+                                                                .switchIfEmpty(getQueueFromApi(matchmakerQueue))))
                      .publishOn(fxApplicationThreadExecutor.asScheduler())
                      .map(TupleUtils.function(matchmakerMapper::update))
                      .doOnError(throwable -> log.error("Error updating queue", throwable))
@@ -257,7 +254,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void onSearchInfo(SearchInfo message) {
-    MatchmakerQueueBean matchmakingQueue = nameToQueue.get(message.getQueueName());
+    MatchmakerQueueInfo matchmakingQueue = nameToQueue.get(message.getQueueName());
     if (matchmakingQueue != null) {
       boolean searchStarted = message.getState().equals(MatchmakerState.START);
       matchmakingQueue.setMatchingStatus(searchStarted ? MatchingStatus.SEARCHING : null);
@@ -282,42 +279,42 @@ public class TeamMatchmakingService implements InitializingBean {
     }
   }
 
-  private void onSelectedQueueChange(Change<? extends MatchmakerQueueBean> change) {
+  private void onSelectedQueueChange(Change<? extends MatchmakerQueueInfo> change) {
     ObservableSet<Integer> unselectedQueueIds = matchmakerPrefs.getUnselectedQueueIds();
     while (change.next()) {
       if (change.wasRemoved()) {
-        List<MatchmakerQueueBean> removed = List.copyOf(change.getRemoved());
-        removed.stream().map(MatchmakerQueueBean::getId).forEach(unselectedQueueIds::add);
+        List<MatchmakerQueueInfo> removed = List.copyOf(change.getRemoved());
+        removed.stream().map(MatchmakerQueueInfo::getId).forEach(unselectedQueueIds::add);
       }
 
       if (change.wasAdded()) {
-        List<MatchmakerQueueBean> added = List.copyOf(change.getAddedSubList());
-        added.stream().map(MatchmakerQueueBean::getId).forEach(unselectedQueueIds::remove);
+        List<MatchmakerQueueInfo> added = List.copyOf(change.getAddedSubList());
+        added.stream().map(MatchmakerQueueInfo::getId).forEach(unselectedQueueIds::remove);
       }
     }
   }
 
-  private void onValidQueueChange(Change<? extends MatchmakerQueueBean> change) {
+  private void onValidQueueChange(Change<? extends MatchmakerQueueInfo> change) {
     if (!isSearching() || !Objects.equals(party.getOwner(), playerService.getCurrentPlayer())) {
       return;
     }
 
     while (change.next()) {
       if (change.wasRemoved()) {
-        List<MatchmakerQueueBean> removed = List.copyOf(change.getRemoved());
+        List<MatchmakerQueueInfo> removed = List.copyOf(change.getRemoved());
         removed.stream()
                .filter(queue -> queue.getMatchingStatus() == MatchingStatus.SEARCHING)
                .forEach(this::leaveQueue);
       }
 
       if (change.wasAdded()) {
-        List<MatchmakerQueueBean> added = List.copyOf(change.getAddedSubList());
+        List<MatchmakerQueueInfo> added = List.copyOf(change.getAddedSubList());
         added.stream().filter(queue -> queue.getMatchingStatus() != MatchingStatus.SEARCHING).forEach(this::joinQueue);
       }
     }
   }
 
-  private void sendInviteNotifications(PlayerBean player) {
+  private void sendInviteNotifications(PlayerInfo player) {
     Runnable callback = () -> this.acceptPartyInvite(player);
 
     notificationService.addNotification(new TransientNotification(i18n.get("teammatchmaking.notification.invite.title"),
@@ -339,7 +336,7 @@ public class TeamMatchmakingService implements InitializingBean {
               matchmakingQueue -> setTimedOutMatchingStatus(matchmakingQueue, matchingStatus, Duration.ofSeconds(60)));
   }
 
-  private void setTimedOutMatchingStatus(MatchmakerQueueBean queue, MatchingStatus status, Duration timeout) {
+  private void setTimedOutMatchingStatus(MatchmakerQueueInfo queue, MatchingStatus status, Duration timeout) {
     queue.setMatchingStatus(status);
     taskScheduler.schedule(() -> {
       if (queue.getMatchingStatus() == status) {
@@ -355,7 +352,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void setFoundStatusForQueue(MatchmakerMatchFoundResponse message) {
-    MatchmakerQueueBean matchedQueue = nameToQueue.get(message.getQueueName());
+    MatchmakerQueueInfo matchedQueue = nameToQueue.get(message.getQueueName());
     if (matchedQueue == null) {
       return;
     }
@@ -363,8 +360,8 @@ public class TeamMatchmakingService implements InitializingBean {
     setTimedOutMatchingStatus(matchedQueue, MatchingStatus.MATCH_FOUND, Duration.ofSeconds(60));
   }
 
-  private void updateMatchmakerGameCount(MatchmakerQueueBean matchmakerQueue) {
-    String leaderboard = matchmakerQueue.getLeaderboard().getTechnicalName();
+  private void updateMatchmakerGameCount(MatchmakerQueueInfo matchmakerQueue) {
+    String leaderboard = matchmakerQueue.getLeaderboard().technicalName();
     int activeGames = (int) gameService.getGames()
                                        .stream()
                                        .filter(game -> GameStatus.CLOSED != game.getStatus())
@@ -374,7 +371,7 @@ public class TeamMatchmakingService implements InitializingBean {
     matchmakerQueue.setActiveGames(activeGames);
   }
 
-  private Mono<MatchmakerQueueBean> getQueueFromApi(MatchmakerInfo.MatchmakerQueue matchmakerQueue) {
+  private Mono<MatchmakerQueueInfo> getQueueFromApi(MatchmakerInfo.MatchmakerQueue matchmakerQueue) {
     ElideNavigatorOnCollection<MatchmakerQueue> navigator = ElideNavigator.of(MatchmakerQueue.class)
                                                                           .collection()
                                                                           .setFilter(qBuilder().string("technicalName")
@@ -435,7 +432,7 @@ public class TeamMatchmakingService implements InitializingBean {
     queues.stream().filter(queue -> queue.getMatchingStatus() == MatchingStatus.SEARCHING).forEach(this::leaveQueue);
   }
 
-  private CompletableFuture<Boolean> joinQueue(MatchmakerQueueBean queue) {
+  private CompletableFuture<Boolean> joinQueue(MatchmakerQueueInfo queue) {
     return mapService.downloadAllMatchmakerMaps(queue)
                      .then(Mono.fromRunnable(() -> fafServerAccessor.gameMatchmaking(queue, MatchmakerState.START)))
                      .thenReturn(true)
@@ -449,12 +446,12 @@ public class TeamMatchmakingService implements InitializingBean {
                      .toFuture();
   }
 
-  private void leaveQueue(MatchmakerQueueBean queue) {
+  private void leaveQueue(MatchmakerQueueInfo queue) {
     fafServerAccessor.gameMatchmaking(queue, MatchmakerState.STOP);
   }
 
-  public void onPartyInfo(PartyInfo message) {
-    PlayerBean currentPlayer = playerService.getCurrentPlayer();
+  public void onPartyInfo(com.faforever.commons.lobby.PartyInfo message) {
+    PlayerInfo currentPlayer = playerService.getCurrentPlayer();
     if (message.getMembers().stream().noneMatch(partyMember -> partyMember.getPlayerId() == currentPlayer.getId())) {
       initializeParty();
       return;
@@ -463,7 +460,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   @VisibleForTesting
-  void acceptPartyInvite(PlayerBean player) {
+  void acceptPartyInvite(PlayerInfo player) {
     if (isInQueue() || isSearching()) {
       notificationService.addImmediateWarnNotification("teammatchmaking.notification.joinAlreadyInQueue.message");
       return;
@@ -502,7 +499,7 @@ public class TeamMatchmakingService implements InitializingBean {
     playerService.getPlayerByNameIfOnline(player).ifPresent(fafServerAccessor::inviteToParty);
   }
 
-  public void kickPlayerFromParty(PlayerBean player) {
+  public void kickPlayerFromParty(PlayerInfo player) {
     fafServerAccessor.kickPlayerFromParty(player);
     playersInGame.remove(player);
   }
@@ -513,7 +510,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void initializeParty() {
-    PlayerBean currentPlayer = playerService.getCurrentPlayer();
+    PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
     fxApplicationThreadExecutor.execute(() -> {
       PartyMember newPartyMember = new PartyMember(currentPlayer);
@@ -556,16 +553,16 @@ public class TeamMatchmakingService implements InitializingBean {
     return inQueue.getReadOnlyProperty();
   }
 
-  private synchronized void setPartyFromInfoMessage(PartyInfo message) {
+  private synchronized void setPartyFromInfoMessage(com.faforever.commons.lobby.PartyInfo message) {
     setOwnerFromInfoMessage(message);
     setMembersFromInfoMessage(message);
   }
 
-  private synchronized void setOwnerFromInfoMessage(PartyInfo message) {
+  private synchronized void setOwnerFromInfoMessage(com.faforever.commons.lobby.PartyInfo message) {
     playerService.getPlayerByIdIfOnline(message.getOwner()).ifPresent(party::setOwner);
   }
 
-  private synchronized void setMembersFromInfoMessage(PartyInfo message) {
+  private synchronized void setMembersFromInfoMessage(com.faforever.commons.lobby.PartyInfo message) {
     playersInGame.clear();
     List<PartyMember> members = message.getMembers()
                                        .stream()
@@ -579,7 +576,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void checkMemberGameStatus(PartyMember partyMember) {
-    PlayerBean memberPlayer = partyMember.getPlayer();
+    PlayerInfo memberPlayer = partyMember.getPlayer();
     if (memberPlayer.getGameStatus() != PlayerGameStatus.IDLE) {
       playersInGame.add(memberPlayer);
     } else {
@@ -587,7 +584,7 @@ public class TeamMatchmakingService implements InitializingBean {
     }
   }
 
-  private PartyMember createPartyMemberFromOnlinePLayers(PartyInfo.PartyMember member) {
+  private PartyMember createPartyMemberFromOnlinePLayers(com.faforever.commons.lobby.PartyInfo.PartyMember member) {
     return playerService.getPlayerByIdIfOnline(member.getPlayerId())
                         .map(player -> new PartyMember(player, member.getFactions()))
                         .orElseGet(() -> {

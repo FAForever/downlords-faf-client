@@ -1,8 +1,8 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.LeagueSeasonBean;
-import com.faforever.client.domain.SubdivisionBean;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.api.LeagueSeason;
+import com.faforever.client.domain.api.Subdivision;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -48,7 +48,7 @@ public class LeaderboardController extends NodeController<StackPane> {
   public LeaderboardPlayerDetailsController leaderboardPlayerDetailsController;
   public LeaderboardDistributionController leaderboardDistributionController;
 
-  private final ObjectProperty<LeagueSeasonBean> leagueSeason = new SimpleObjectProperty<>();
+  private final ObjectProperty<LeagueSeason> leagueSeason = new SimpleObjectProperty<>();
 
   @Override
   protected void onInitialize() {
@@ -56,16 +56,16 @@ public class LeaderboardController extends NodeController<StackPane> {
     connectionProgressPane.visibleProperty().bind(contentPane.visibleProperty().not());
 
     seasonLabel.textProperty()
-               .bind(leagueSeason.map(seasonBean -> i18n.getOrDefault(seasonBean.getNameKey(),
+               .bind(leagueSeason.map(seasonBean -> i18n.getOrDefault(seasonBean.nameKey(),
                                                                       "leaderboard.season.%s".formatted(
-                                                                          seasonBean.getNameKey()),
-                                                                      seasonBean.getSeasonNumber()))
+                                                                          seasonBean.nameKey()),
+                                                                      seasonBean.seasonNumber()))
                                  .map(String::toUpperCase)
                                  .when(showing));
 
     seasonDateLabel.textProperty().bind(leagueSeason.map(seasonBean -> {
-      String startDate = timeService.asDate(seasonBean.getStartDate(), FormatStyle.MEDIUM);
-      String endDate = timeService.asDate(seasonBean.getEndDate(), FormatStyle.MEDIUM);
+      String startDate = timeService.asDate(seasonBean.startDate(), FormatStyle.MEDIUM);
+      String endDate = timeService.asDate(seasonBean.endDate(), FormatStyle.MEDIUM);
       return i18n.get("leaderboard.seasonDate", startDate, endDate);
     }).when(showing));
 
@@ -81,48 +81,48 @@ public class LeaderboardController extends NodeController<StackPane> {
         return;
       }
 
-      Mono<LeagueEntryBean> playerLeagueEntry = leaderboardService.getLeagueEntryForPlayer(
+      Mono<LeagueEntry> playerLeagueEntry = leaderboardService.getLeagueEntryForPlayer(
                                                                       playerService.getCurrentPlayer(), newSeason)
-                                                                  .publishOn(fxApplicationThreadExecutor.asScheduler())
-                                                                  .doOnNext(
+                                                              .publishOn(fxApplicationThreadExecutor.asScheduler())
+                                                              .doOnNext(
                                                                       leaderboardPlayerDetailsController::setLeagueEntry)
-                                                                  .switchIfEmpty(Mono.fromRunnable(
+                                                              .switchIfEmpty(Mono.fromRunnable(
                                                                       () -> leaderboardPlayerDetailsController.setLeagueEntry(
                                                                           null)))
-                                                                  .doOnError(throwable -> {
+                                                              .doOnError(throwable -> {
                                                                     log.error("Error while loading player league entry",
                                                                               throwable);
                                                                     notificationService.addImmediateErrorNotification(
                                                                         throwable, "leaderboard.failedToLoadEntry");
                                                                   });
 
-      Mono<List<LeagueEntryBean>> activeEntries = leaderboardService.getActiveEntries(newSeason)
-                                                                    .collectList()
-                                                                    .publishOn(
+      Mono<List<LeagueEntry>> activeEntries = leaderboardService.getActiveEntries(newSeason)
+                                                                .collectList()
+                                                                .publishOn(
                                                                         fxApplicationThreadExecutor.asScheduler())
-                                                                    .doOnNext(leagueEntries -> {
+                                                                .doOnNext(leagueEntries -> {
                                                                       leaderboardRankingsController.setLeagueEntries(
                                                                           leagueEntries);
                                                                       leaderboardDistributionController.setLeagueEntries(
                                                                           leagueEntries);
                                                                     })
-                                                                    .doOnError(throwable -> {
+                                                                .doOnError(throwable -> {
                                                                       log.error("Error while loading league entries",
                                                                                 throwable);
                                                                       notificationService.addImmediateErrorNotification(
                                                                           throwable, "leaderboard.failedToLoadEntries");
                                                                     });
 
-      Mono<List<SubdivisionBean>> subdivisions = leaderboardService.getAllSubdivisions(newSeason)
-                                                                   .collectList()
-                                                                   .publishOn(fxApplicationThreadExecutor.asScheduler())
-                                                                   .doOnNext(subdivs -> {
+      Mono<List<Subdivision>> subdivisions = leaderboardService.getAllSubdivisions(newSeason)
+                                                               .collectList()
+                                                               .publishOn(fxApplicationThreadExecutor.asScheduler())
+                                                               .doOnNext(subdivs -> {
                                                                      leaderboardRankingsController.setSubdivisions(
                                                                          subdivs);
                                                                      leaderboardDistributionController.setSubdivisions(
                                                                          subdivs);
                                                                    })
-                                                                   .doOnError(throwable -> {
+                                                               .doOnError(throwable -> {
                                                                      log.error(
                                                                          "Error while loading league sub divisions",
                                                                          throwable);
@@ -135,7 +135,7 @@ public class LeaderboardController extends NodeController<StackPane> {
     });
   }
 
-  public void setLeagueSeason(LeagueSeasonBean leagueSeason) {
+  public void setLeagueSeason(LeagueSeason leagueSeason) {
     this.leagueSeason.set(leagueSeason);
   }
 

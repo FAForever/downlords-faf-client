@@ -1,8 +1,8 @@
 package com.faforever.client.fa;
 
-import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.GameInfoBuilder;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameRunner;
 import com.faforever.client.i18n.I18n;
@@ -46,7 +46,7 @@ public class GameFullNotifierTest extends ServiceTest {
 
   @Test
   public void testNotifyUserWhenGameLobbyWindowIsNotFocused() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(gameRunner.getRunningGame()).thenReturn(game);
     when(gameRunner.getRunningProcessId()).thenReturn(1L);
     when(platformService.getFocusedWindowProcessId()).thenReturn(2L);
@@ -57,7 +57,7 @@ public class GameFullNotifierTest extends ServiceTest {
 
   @Test
   public void testDoNotNotifyUserWhenGameLobbyWindowIsFocused() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(gameRunner.getRunningGame()).thenReturn(game);
     when(gameRunner.getRunningProcessId()).thenReturn(1L);
     when(platformService.getFocusedWindowProcessId()).thenReturn(1L);
@@ -68,7 +68,7 @@ public class GameFullNotifierTest extends ServiceTest {
 
   @Test
   public void testFocusToFaWindowFromNonFaWindow() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(gameRunner.getRunningGame()).thenReturn(game);
     when(gameRunner.getRunningProcessId()).thenReturn(1L);
     when(platformService.getFocusedWindowProcessId()).thenReturn(2L);
@@ -84,7 +84,7 @@ public class GameFullNotifierTest extends ServiceTest {
 
   @Test
   public void testFocusToFaWindowFromAnotherFaWindow() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(gameRunner.getRunningGame()).thenReturn(game);
     when(gameRunner.getRunningProcessId()).thenReturn(1L);
     when(platformService.getFocusedWindowProcessId()).thenReturn(2L);
@@ -101,7 +101,7 @@ public class GameFullNotifierTest extends ServiceTest {
 
   @Test
   public void testStartFlashingFaWindow() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(gameRunner.getRunningGame()).thenReturn(game);
     when(gameRunner.getRunningProcessId()).thenReturn(1L);
     when(platformService.getFocusedWindowProcessId()).thenReturn(2L);
@@ -113,7 +113,7 @@ public class GameFullNotifierTest extends ServiceTest {
 
   @Test
   public void testStopFlashingFaWindow() throws Exception {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(gameRunner.getRunningGame()).thenReturn(game);
     when(gameRunner.getRunningProcessId()).thenReturn(1L);
     when(platformService.getFocusedWindowProcessId()).thenReturn(2L);

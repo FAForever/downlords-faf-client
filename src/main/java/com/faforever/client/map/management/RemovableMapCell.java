@@ -1,6 +1,6 @@
 package com.faforever.client.map.management;
 
-import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.theme.UiService;
 import javafx.scene.control.ListCell;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-public class RemovableMapCell extends ListCell<MapVersionBean> {
+public class RemovableMapCell extends ListCell<MapVersion> {
 
   private final UiService uiService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -22,7 +22,7 @@ public class RemovableMapCell extends ListCell<MapVersionBean> {
   private RemovableMapCellController removableMapCellController;
 
   @Override
-  protected void updateItem(MapVersionBean mapVersion, boolean empty) {
+  protected void updateItem(MapVersion mapVersion, boolean empty) {
     super.updateItem(mapVersion, empty);
     setText(null);
 

@@ -1,9 +1,7 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.builders.ModBeanBuilder;
-import com.faforever.client.builders.ModVersionBeanBuilder;
-import com.faforever.client.domain.ModVersionBean;
-import com.faforever.client.domain.ModVersionBean.ModType;
+import com.faforever.client.domain.api.ModType;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -15,6 +13,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -24,6 +23,7 @@ import org.mockito.Mockito;
 import java.io.InputStream;
 import java.util.function.Consumer;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -53,7 +53,7 @@ public class ModCardControllerTest extends PlatformTest {
 
   @InjectMocks
   private ModCardController instance;
-  private ModVersionBean modVersion;
+  private ModVersion modVersion;
 
   private final SimpleBooleanProperty installed = new SimpleBooleanProperty();
 
@@ -68,10 +68,7 @@ public class ModCardControllerTest extends PlatformTest {
     lenient().when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
     lenient().when(i18n.get(ModType.UI.getI18nKey())).thenReturn(ModType.UI.name());
 
-    modVersion = ModVersionBeanBuilder.create()
-        .defaultValues()
-        .mod(ModBeanBuilder.create().defaultValues().get())
-        .get();
+    modVersion = Instancio.create(ModVersion.class);
 
     loadFxml("theme/vault/mod/mod_card.fxml", clazz -> {
       if (clazz == StarsController.class) {
@@ -89,8 +86,8 @@ public class ModCardControllerTest extends PlatformTest {
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
     runOnFxThreadAndWait(() -> instance.setEntity(modVersion));
 
-    assertEquals(modVersion.getMod().getDisplayName(), instance.nameLabel.getText());
-    assertEquals(modVersion.getMod().getAuthor(), instance.authorLabel.getText());
+    assertEquals(modVersion.mod().displayName(), instance.nameLabel.getText());
+    assertEquals(modVersion.mod().author(), instance.authorLabel.getText());
     assertNotNull(instance.thumbnailImageView.getImage());
     verify(modService).loadThumbnail(modVersion);
   }
@@ -113,7 +110,7 @@ public class ModCardControllerTest extends PlatformTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testShowModDetail() {
-    Consumer<ModVersionBean> listener = mock(Consumer.class);
+    Consumer<ModVersion> listener = mock(Consumer.class);
     instance.setOnOpenDetailListener(listener);
     instance.onShowModDetail();
     verify(listener).accept(any());
@@ -121,6 +118,7 @@ public class ModCardControllerTest extends PlatformTest {
 
   @Test
   public void testUiModLabel() {
+    ModVersion modVersion = Instancio.of(ModVersion.class).set(field(ModVersion::modType), ModType.UI).create();
     runOnFxThreadAndWait(() -> instance.setEntity(modVersion));
     assertEquals(ModType.UI.name(), instance.typeLabel.getText());
   }

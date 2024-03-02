@@ -1,8 +1,8 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.game.GameRunner;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.PlatformTest;
@@ -31,8 +31,11 @@ public class JoinGameMenuItemTest extends PlatformTest {
 
   @Test
   public void testJoinGame() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username("junit")
-        .game(GameBeanBuilder.create().host("junit").status(GameStatus.OPEN).get()).get();
+    PlayerInfo player = PlayerInfoBuilder.create()
+                                         .defaultValues()
+                                         .username("junit")
+                                         .game(GameInfoBuilder.create().host("junit").status(GameStatus.OPEN).get())
+                                         .get();
 
     instance.setObject(player);
     instance.onClicked();
@@ -42,21 +45,28 @@ public class JoinGameMenuItemTest extends PlatformTest {
 
   @Test
   public void testVisibleItemWhenPlayerIsHosting() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().username("junit")
-        .game(GameBeanBuilder.create().host("junit").status(GameStatus.OPEN).get()).get());
+    instance.setObject(PlayerInfoBuilder.create()
+                                        .defaultValues()
+                                        .username("junit")
+                                        .game(GameInfoBuilder.create().host("junit").status(GameStatus.OPEN).get())
+                                        .get());
     assertTrue(instance.isVisible());
   }
 
   @Test
   public void testVisibleItemWhenPlayerIsInLobby() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().username("junit")
-        .game(GameBeanBuilder.create().host("anotherJunit").status(GameStatus.OPEN).get()).get());
+    instance.setObject(PlayerInfoBuilder.create()
+                                        .defaultValues()
+                                        .username("junit")
+                                        .game(
+                                            GameInfoBuilder.create().host("anotherJunit").status(GameStatus.OPEN).get())
+                                        .get());
     assertTrue(instance.isVisible());
   }
 
   @Test
   public void testInvisibleItemWhenPlayerIsIdle() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().get());
     assertFalse(instance.isVisible());
   }
 

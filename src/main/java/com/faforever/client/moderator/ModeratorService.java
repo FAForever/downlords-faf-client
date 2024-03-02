@@ -1,6 +1,6 @@
 package com.faforever.client.moderator;
 
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.user.LoginService;
 import lombok.RequiredArgsConstructor;
@@ -18,11 +18,11 @@ public class ModeratorService {
     return loginService.getOwnUser().getPermissions();
   }
 
-  public void closePlayersGame(PlayerBean player) {
+  public void closePlayersGame(PlayerInfo player) {
     fafServerAccessor.closePlayersGame(player.getId());
   }
 
-  public void closePlayersLobby(PlayerBean player) {
+  public void closePlayersLobby(PlayerInfo player) {
     fafServerAccessor.closePlayersLobby(player.getId());
   }
 

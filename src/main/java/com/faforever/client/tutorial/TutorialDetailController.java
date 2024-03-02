@@ -1,8 +1,6 @@
 package com.faforever.client.tutorial;
 
-import com.faforever.client.domain.MapBean;
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.TutorialBean;
+import com.faforever.client.domain.api.Tutorial;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
@@ -33,7 +31,7 @@ public class TutorialDetailController extends NodeController<Node> {
   public WebView descriptionWebView;
   public Label titleLabel;
   public Button launchButton;
-  private TutorialBean tutorial;
+  private Tutorial tutorial;
 
   public TutorialDetailController(I18n i18n, MapService mapService, WebViewConfigurer webViewConfigurer, TutorialService tutorialService) {
     this.i18n = i18n;
@@ -61,27 +59,23 @@ public class TutorialDetailController extends NodeController<Node> {
     }
   }
 
-  public TutorialBean getTutorial() {
+  public Tutorial getTutorial() {
     return tutorial;
   }
 
-  public void setTutorial(TutorialBean tutorial) {
+  public void setTutorial(Tutorial tutorial) {
     this.tutorial = tutorial;
-    titleLabel.textProperty().bind(tutorial.titleProperty());
-    if (tutorial.getMapVersion() != null) {
-      mapNameLabel.textProperty()
-          .bind(tutorial.mapVersionProperty()
-              .flatMap(MapVersionBean::mapProperty)
-              .flatMap(MapBean::displayNameProperty)
-              .map(displayName -> i18n.get("tutorial.mapName", displayName)));
+    titleLabel.setText(tutorial.title());
+    if (tutorial.mapVersion() != null) {
+      mapNameLabel.setText(i18n.get("tutorial.mapName", tutorial.mapVersion().map().displayName()));
 
-      mapImage.setImage(mapService.loadPreview(tutorial.getMapVersion(), PreviewSize.LARGE));
+      mapImage.setImage(mapService.loadPreview(tutorial.mapVersion(), PreviewSize.LARGE));
       mapContainer.setVisible(true);
     } else {
       mapContainer.setVisible(false);
     }
 
-    descriptionWebView.getEngine().loadContent(tutorial.getDescription());
-    launchButton.visibleProperty().bind(tutorial.launchableProperty());
+    descriptionWebView.getEngine().loadContent(tutorial.description());
+    launchButton.setVisible(tutorial.launchable());
   }
 }

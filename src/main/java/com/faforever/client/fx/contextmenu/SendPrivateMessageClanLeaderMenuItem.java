@@ -2,8 +2,8 @@ package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.clan.ClanService;
-import com.faforever.client.domain.ClanBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.Clan;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.Assert;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class SendPrivateMessageClanLeaderMenuItem extends AbstractMenuItem<PlayerBean> {
+public class SendPrivateMessageClanLeaderMenuItem extends AbstractMenuItem<PlayerInfo> {
 
   private final I18n i18n;
   private final ClanService clanService;
@@ -24,9 +24,7 @@ public class SendPrivateMessageClanLeaderMenuItem extends AbstractMenuItem<Playe
   protected void onClicked() {
     Assert.checkNullIllegalState(object, "no player has been set");
 
-    clanService.getClanByTag(object.getClan())
-               .map(ClanBean::getLeader)
-               .map(PlayerBean::getUsername)
+    clanService.getClanByTag(object.getClan()).map(Clan::leader).map(PlayerInfo::getUsername)
                .subscribe(chatService::joinPrivateChat);
   }
 

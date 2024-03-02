@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
@@ -61,7 +61,7 @@ public class GamesTilesContainerControllerTest extends PlatformTest {
 
   @Test
   public void testCreateTiledFlowPaneWithEmptyList() {
-    ObservableList<GameBean> observableList = FXCollections.observableArrayList();
+    ObservableList<GameInfo> observableList = FXCollections.observableArrayList();
 
     runOnFxThreadAndWait(() -> instance.createTiledFlowPane(observableList));
     assertThat(instance.tiledFlowPane.getChildren(), empty());
@@ -70,8 +70,8 @@ public class GamesTilesContainerControllerTest extends PlatformTest {
   @Test
   public void testCreateTiledFlowPaneWithPopulatedList() {
     when(gameTileController.getRoot()).thenReturn(new Pane());
-    ObservableList<GameBean> observableList = FXCollections.observableArrayList();
-    observableList.add(new GameBean());
+    ObservableList<GameInfo> observableList = FXCollections.observableArrayList();
+    observableList.add(new GameInfo());
 
     runOnFxThreadAndWait(() -> instance.createTiledFlowPane(observableList));
     assertThat(instance.tiledFlowPane.getChildren(), hasSize(1));
@@ -80,11 +80,11 @@ public class GamesTilesContainerControllerTest extends PlatformTest {
   @Test
   public void testCreateTiledFlowPaneWithPostInstantiatedGameInfoBean() {
     doAnswer(invocation -> new Pane()).when(gameTileController).getRoot();
-    ObservableList<GameBean> observableList = FXCollections.observableArrayList();
+    ObservableList<GameInfo> observableList = FXCollections.observableArrayList();
 
     runOnFxThreadAndWait(() -> {
       instance.createTiledFlowPane(observableList);
-      observableList.add(new GameBean());
+      observableList.add(new GameInfo());
     });
     assertThat(instance.tiledFlowPane.getChildren(), hasSize(1));
   }
@@ -94,11 +94,11 @@ public class GamesTilesContainerControllerTest extends PlatformTest {
     ObservableList<Node> children = instance.tiledFlowPane.getChildren();
     doAnswer(invocation -> new Pane()).when(gameTileController).getRoot();
 
-    ObservableList<GameBean> observableList = FXCollections.observableArrayList();
+    ObservableList<GameInfo> observableList = FXCollections.observableArrayList();
     runOnFxThreadAndWait(() -> {
-      observableList.add(GameBeanBuilder.create().defaultValues().id(1).get());
+      observableList.add(GameInfoBuilder.create().defaultValues().id(1).get());
       instance.createTiledFlowPane(observableList);
-      observableList.add(GameBeanBuilder.create().defaultValues().id(2).get());
+      observableList.add(GameInfoBuilder.create().defaultValues().id(2).get());
     });
     assertThat(children, hasSize(2));
   }
@@ -110,9 +110,9 @@ public class GamesTilesContainerControllerTest extends PlatformTest {
 
   @Test
   public void testSorting() {
-    ObservableList<GameBean> observableList = FXCollections.observableArrayList();
-    GameBean game1 = GameBeanBuilder.create().defaultValues().get();
-    GameBean game2 = GameBeanBuilder.create().defaultValues().title("xyz").get();
+    ObservableList<GameInfo> observableList = FXCollections.observableArrayList();
+    GameInfo game1 = GameInfoBuilder.create().defaultValues().get();
+    GameInfo game2 = GameInfoBuilder.create().defaultValues().title("xyz").get();
 
     game1.setTeams(Map.of(1, List.of(1, 2)));
     game1.setId(234);

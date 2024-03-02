@@ -1,12 +1,10 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.builders.DivisionBeanBuilder;
-import com.faforever.client.builders.LeagueEntryBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.SubdivisionBeanBuilder;
-import com.faforever.client.domain.DivisionBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.SubdivisionBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.Division;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.api.Subdivision;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
@@ -14,6 +12,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.scene.chart.XYChart.Series;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -26,6 +25,8 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
+import static org.instancio.Select.field;
+import static org.instancio.Select.scope;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 
@@ -39,11 +40,12 @@ public class LeaderboardDistributionControllerTest extends PlatformTest {
   @Mock
   private PlayerService playerService;
 
+  private final PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
+
   @BeforeEach
   public void setup() throws Exception {
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
-    lenient().when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(playerBean));
-    lenient().when(playerService.getCurrentPlayer()).thenReturn(playerBean);
+    lenient().when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(player));
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
     lenient().when(i18n.get(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
     loadFxml("theme/leaderboard/leaderboard_distribution.fxml", clazz -> instance);
@@ -51,32 +53,26 @@ public class LeaderboardDistributionControllerTest extends PlatformTest {
 
   @Test
   public void testSetData() {
-    DivisionBean divisionBean1 = DivisionBeanBuilder.create().defaultValues().index(1).get();
-    DivisionBean divisionBean2 = DivisionBeanBuilder.create().defaultValues().index(2).get();
-    SubdivisionBean subdivision1 = SubdivisionBeanBuilder.create()
-                                                         .defaultValues()
-                                                         .id(1)
-                                                         .division(divisionBean1)
-                                                         .index(1)
-                                                         .get();
-    SubdivisionBean subdivision2 = SubdivisionBeanBuilder.create()
-                                                         .defaultValues()
-                                                         .id(2)
-                                                         .division(divisionBean1)
-                                                         .index(2)
-                                                         .get();
-    SubdivisionBean subdivision3 = SubdivisionBeanBuilder.create()
-                                                         .defaultValues()
-                                                         .id(3)
-                                                         .division(divisionBean2)
-                                                         .index(1)
-                                                         .get();
-    SubdivisionBean subdivision4 = SubdivisionBeanBuilder.create()
-                                                         .defaultValues()
-                                                         .id(4)
-                                                         .division(divisionBean2)
-                                                         .index(2)
-                                                         .get();
+    Subdivision subdivision1 = Instancio.of(Subdivision.class)
+                                        .set(field(Division::index).within(scope(Division.class)), 1)
+                                        .set(field(Subdivision::id), 1)
+                                        .set(field(Subdivision::index), 1)
+                                        .create();
+    Subdivision subdivision2 = Instancio.of(Subdivision.class)
+                                        .set(field(Division::index).within(scope(Division.class)), 1)
+                                        .set(field(Subdivision::id), 2)
+                                        .set(field(Subdivision::index), 2)
+                                        .create();
+    Subdivision subdivision3 = Instancio.of(Subdivision.class)
+                                        .set(field(Division::index).within(scope(Division.class)), 2)
+                                        .set(field(Subdivision::id), 3)
+                                        .set(field(Subdivision::index), 1)
+                                        .create();
+    Subdivision subdivision4 = Instancio.of(Subdivision.class)
+                                        .set(field(Division::index).within(scope(Division.class)), 2)
+                                        .set(field(Subdivision::id), 4)
+                                        .set(field(Subdivision::index), 2)
+                                        .create();
     instance.setSubdivisions(List.of(subdivision1, subdivision2, subdivision3, subdivision4));
 
     ObservableList<Series<String, Integer>> series = instance.ratingDistributionChart.getData();
@@ -86,8 +82,11 @@ public class LeaderboardDistributionControllerTest extends PlatformTest {
 
     PseudoClass highlighted = PseudoClass.getPseudoClass("highlighted-bar");
 
-    instance.setLeagueEntries(
-        List.of(LeagueEntryBeanBuilder.create().defaultValues().id(1).subdivision(subdivision1).get()));
+    instance.setLeagueEntries(List.of(Instancio.of(LeagueEntry.class)
+                                               .set(field(LeagueEntry::subdivision), subdivision1)
+                                               .set(field(LeagueEntry::id), 1)
+                                               .set(field(LeagueEntry::player), player)
+                                               .create()));
 
     assertThat(series.getFirst().getData().getFirst().getYValue(), equalTo(1));
     assertThat(series.getFirst().getData().getLast().getYValue(), equalTo(0));
@@ -99,8 +98,11 @@ public class LeaderboardDistributionControllerTest extends PlatformTest {
     assertThat(series.getLast().getData().getFirst().getNode().getPseudoClassStates(), not(contains(highlighted)));
     assertThat(series.getLast().getData().getLast().getNode().getPseudoClassStates(), not(contains(highlighted)));
 
-    instance.setLeagueEntries(
-        List.of(LeagueEntryBeanBuilder.create().defaultValues().id(2).subdivision(subdivision2).get()));
+    instance.setLeagueEntries(List.of(Instancio.of(LeagueEntry.class)
+                                               .set(field(LeagueEntry::subdivision), subdivision2)
+                                               .set(field(LeagueEntry::id), 2)
+                                               .set(field(LeagueEntry::player), player)
+                                               .create()));
 
     assertThat(series.getFirst().getData().getFirst().getYValue(), equalTo(0));
     assertThat(series.getFirst().getData().getLast().getYValue(), equalTo(0));
@@ -112,8 +114,11 @@ public class LeaderboardDistributionControllerTest extends PlatformTest {
     assertThat(series.getLast().getData().getFirst().getNode().getPseudoClassStates(), contains(highlighted));
     assertThat(series.getLast().getData().getLast().getNode().getPseudoClassStates(), not(contains(highlighted)));
 
-    instance.setLeagueEntries(
-        List.of(LeagueEntryBeanBuilder.create().defaultValues().id(3).subdivision(subdivision3).get()));
+    instance.setLeagueEntries(List.of(Instancio.of(LeagueEntry.class)
+                                               .set(field(LeagueEntry::subdivision), subdivision3)
+                                               .set(field(LeagueEntry::id), 3)
+                                               .set(field(LeagueEntry::player), player)
+                                               .create()));
 
     assertThat(series.getFirst().getData().getFirst().getYValue(), equalTo(0));
     assertThat(series.getFirst().getData().getLast().getYValue(), equalTo(1));
@@ -125,8 +130,11 @@ public class LeaderboardDistributionControllerTest extends PlatformTest {
     assertThat(series.getLast().getData().getFirst().getNode().getPseudoClassStates(), not(contains(highlighted)));
     assertThat(series.getLast().getData().getLast().getNode().getPseudoClassStates(), not(contains(highlighted)));
 
-    instance.setLeagueEntries(
-        List.of(LeagueEntryBeanBuilder.create().defaultValues().id(4).subdivision(subdivision4).get()));
+    instance.setLeagueEntries(List.of(Instancio.of(LeagueEntry.class)
+                                               .set(field(LeagueEntry::subdivision), subdivision4)
+                                               .set(field(LeagueEntry::id), 4)
+                                               .set(field(LeagueEntry::player), player)
+                                               .create()));
 
     assertThat(series.getFirst().getData().getFirst().getYValue(), equalTo(0));
     assertThat(series.getFirst().getData().getLast().getYValue(), equalTo(0));

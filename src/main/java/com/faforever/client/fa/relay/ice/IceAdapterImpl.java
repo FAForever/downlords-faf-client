@@ -1,6 +1,6 @@
 package com.faforever.client.fa.relay.ice;
 
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.GameFullNotifier;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.os.OperatingSystem;
@@ -212,7 +212,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   @VisibleForTesting
   List<String> buildCommand(Path workDirectory, int adapterPort, int gpgPort, int gameId) {
-    PlayerBean currentPlayer = playerService.getCurrentPlayer();
+    PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
     String classpath = getBinaryName(workDirectory) + JavaUtil.CLASSPATH_SEPARATOR + getJavaFXClassPathJars();
 

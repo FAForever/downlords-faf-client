@@ -1,12 +1,10 @@
 package com.faforever.client.map.management;
 
-import com.faforever.client.builders.MapBeanBuilder;
-import com.faforever.client.builders.MapVersionBeanBuilder;
-import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.PlatformTest;
-import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -27,20 +25,8 @@ public class RemovableMapCellControllerTest extends PlatformTest {
   @Mock
   private NotificationService notificationService;
 
-  private final MapVersionBean officialMap = MapVersionBeanBuilder.create()
-                                                                  .defaultValues()
-                                                                  .folderName("SCMP_001")
-                                                                  .id(0)
-                                                                  .version(null)
-                                                                  .map(MapBeanBuilder.create().defaultValues().get())
-                                                                  .get();
-  private final MapVersionBean customMap = MapVersionBeanBuilder.create()
-                                                                .defaultValues()
-                                                                .folderName("palaneum.v0001")
-                                                                .id(1)
-                                                                .version(new ComparableVersion("1"))
-                                                                .map(MapBeanBuilder.create().defaultValues().get())
-                                                                .get();
+  private final MapVersion officialMap = Instancio.create(MapVersion.class);
+  private final MapVersion customMap = Instancio.create(MapVersion.class);
 
   @InjectMocks
   private RemovableMapCellController instance;
@@ -48,7 +34,7 @@ public class RemovableMapCellControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     lenient().when(mapService.isCustomMap(customMap)).thenReturn(true);
-
+    lenient().when(mapService.isOfficialMap(officialMap)).thenReturn(true);
     loadFxml("theme/vault/map/removable_map_cell.fxml", param -> instance);
   }
 

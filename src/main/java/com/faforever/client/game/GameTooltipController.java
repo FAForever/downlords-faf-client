@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
 
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -38,11 +38,11 @@ public class GameTooltipController extends NodeController<Node> {
   private final UiService uiService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
+  private final ObjectProperty<GameInfo> game = new SimpleObjectProperty<>();
   private final BooleanProperty showMods = new SimpleBooleanProperty(true);
-  private final ObservableValue<Map<Integer, List<Integer>>> teams = game.flatMap(GameBean::teamsProperty)
+  private final ObservableValue<Map<Integer, List<Integer>>> teams = game.flatMap(GameInfo::teamsProperty)
                                                                          .orElse(Map.of());
-  private final ObservableValue<String> leaderboard = game.flatMap(GameBean::leaderboardProperty);
+  private final ObservableValue<String> leaderboard = game.flatMap(GameInfo::leaderboardProperty);
   private final SimpleChangeListener<Map<Integer, List<Integer>>> teamsListener = this::populateTeamsContainer;
 
   public TitledPane modsPane;
@@ -54,8 +54,7 @@ public class GameTooltipController extends NodeController<Node> {
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(modsPane);
     modsPane.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
-    modsLabel.textProperty()
-             .bind(game.flatMap(GameBean::simModsProperty)
+    modsLabel.textProperty().bind(game.flatMap(GameInfo::simModsProperty)
                        .map(mods -> Joiner.on(System.getProperty("line.separator")).join(mods.values()))
                        .flatMap(mods -> showMods.map(show -> show ? mods : ""))
                        .when(showing));
@@ -82,7 +81,7 @@ public class GameTooltipController extends NodeController<Node> {
       controller.setRatingPrecision(RatingPrecision.ROUNDED);
       controller.ratingProviderProperty()
                 .bind(leaderboard.map(
-                                     name -> (Function<PlayerBean, Integer>) player -> RatingUtil.getLeaderboardRating(player, name))
+                                     name -> (Function<PlayerInfo, Integer>) player -> RatingUtil.getLeaderboardRating(player, name))
                                  .when(showing));
       controller.setTeamId(team);
       controller.setPlayerIds(playerIds);
@@ -92,15 +91,15 @@ public class GameTooltipController extends NodeController<Node> {
     }).toList();
   }
 
-  public void setGame(GameBean game) {
+  public void setGame(GameInfo game) {
     this.game.set(game);
   }
 
-  public GameBean getGame() {
+  public GameInfo getGame() {
     return game.get();
   }
 
-  public ObjectProperty<GameBean> gameProperty() {
+  public ObjectProperty<GameInfo> gameProperty() {
     return game;
   }
 

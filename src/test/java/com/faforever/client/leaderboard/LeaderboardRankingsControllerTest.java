@@ -1,18 +1,16 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.builders.DivisionBeanBuilder;
-import com.faforever.client.builders.LeagueEntryBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.SubdivisionBeanBuilder;
-import com.faforever.client.domain.DivisionBean;
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.SubdivisionBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.Division;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.api.Subdivision;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
 import javafx.beans.property.SimpleObjectProperty;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -24,6 +22,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 
@@ -39,11 +38,12 @@ public class LeaderboardRankingsControllerTest extends PlatformTest {
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
 
+  private final PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
+
   @BeforeEach
   public void setup() throws Exception {
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
-    lenient().when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(playerBean));
-    lenient().when(playerService.getCurrentPlayer()).thenReturn(playerBean);
+    lenient().when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(player));
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
     lenient().when(i18n.get(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
     loadFxml("theme/leaderboard/leaderboard_rankings.fxml", clazz -> instance);
@@ -51,46 +51,46 @@ public class LeaderboardRankingsControllerTest extends PlatformTest {
 
   @Test
   public void testSetRankings() {
-    DivisionBean divisionBean1 = DivisionBeanBuilder.create().defaultValues().id(1).index(1).get();
-    DivisionBean divisionBean2 = DivisionBeanBuilder.create().defaultValues().id(2).index(2).get();
-    SubdivisionBean subdivision1 = SubdivisionBeanBuilder.create()
-                                                         .defaultValues()
-                                                         .id(1)
-                                                         .division(divisionBean1)
-                                                         .index(1)
-                                                         .get();
-    SubdivisionBean subdivision2 = SubdivisionBeanBuilder.create()
-                                                         .defaultValues()
-                                                         .id(2)
-                                                         .division(divisionBean1)
-                                                         .index(2)
-                                                         .get();
-    SubdivisionBean subdivision3 = SubdivisionBeanBuilder.create()
-                                                         .defaultValues()
-                                                         .id(3)
-                                                         .division(divisionBean2)
-                                                         .index(1)
-                                                         .get();
-    SubdivisionBean subdivision4 = SubdivisionBeanBuilder.create()
-                                                         .defaultValues()
-                                                         .id(4)
-                                                         .division(divisionBean2)
-                                                         .index(2)
-                                                         .get();
+    Division division1 = Instancio.of(Division.class).set(field(Division::index), 1).create();
+    Division division2 = Instancio.of(Division.class).set(field(Division::index), 2).create();
+    Subdivision subdivision1 = Instancio.of(Subdivision.class)
+                                        .set(field(Subdivision::division), division1)
+                                        .set(field(Subdivision::id), 1)
+                                        .set(field(Subdivision::index), 1)
+                                        .create();
+    Subdivision subdivision2 = Instancio.of(Subdivision.class)
+                                        .set(field(Subdivision::division), division1)
+                                        .set(field(Subdivision::id), 2)
+                                        .set(field(Subdivision::index), 2)
+                                        .create();
+    Subdivision subdivision3 = Instancio.of(Subdivision.class)
+                                        .set(field(Subdivision::division), division2)
+                                        .set(field(Subdivision::id), 3)
+                                        .set(field(Subdivision::index), 1)
+                                        .create();
+    Subdivision subdivision4 = Instancio.of(Subdivision.class)
+                                        .set(field(Subdivision::division), division2)
+                                        .set(field(Subdivision::id), 4)
+                                        .set(field(Subdivision::index), 2)
+                                        .create();
 
     instance.setSubdivisions(List.of(subdivision1, subdivision2, subdivision3, subdivision4));
 
-    assertThat(instance.divisionPicker.getItems(), contains(divisionBean2, divisionBean1));
-    assertThat(instance.divisionPicker.getSelectionModel().getSelectedItem(), is(divisionBean2));
+    assertThat(instance.divisionPicker.getItems(), contains(division2, division1));
+    assertThat(instance.divisionPicker.getSelectionModel().getSelectedItem(), is(division2));
     assertThat(instance.subdivisionButtons.getChildren(), hasSize(2));
     assertThat(instance.subdivisionToggleGroup.getSelectedToggle(),
                is(instance.subdivisionButtons.getChildren().getLast()));
 
-    LeagueEntryBean leagueEntry = LeagueEntryBeanBuilder.create().defaultValues().id(1).subdivision(subdivision1).get();
+    LeagueEntry leagueEntry = Instancio.of(LeagueEntry.class)
+                                       .set(field(LeagueEntry::id), 1)
+                                       .set(field(LeagueEntry::subdivision), subdivision1)
+                                       .set(field(LeagueEntry::player), player)
+                                       .create();
     instance.setLeagueEntries(List.of(leagueEntry));
 
-    assertThat(instance.divisionPicker.getItems(), contains(divisionBean2, divisionBean1));
-    assertThat(instance.divisionPicker.getSelectionModel().getSelectedItem(), is(divisionBean1));
+    assertThat(instance.divisionPicker.getItems(), contains(division2, division1));
+    assertThat(instance.divisionPicker.getSelectionModel().getSelectedItem(), is(division1));
     assertThat(instance.subdivisionButtons.getChildren(), hasSize(2));
     assertThat(instance.subdivisionToggleGroup.getSelectedToggle(),
                is(instance.subdivisionButtons.getChildren().getFirst()));

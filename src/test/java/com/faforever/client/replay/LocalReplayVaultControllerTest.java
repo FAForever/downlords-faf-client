@@ -1,7 +1,6 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.builders.ReplayBeanBuilder;
-import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.domain.api.Replay;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.VaultPrefs;
@@ -12,6 +11,7 @@ import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
 import javafx.scene.layout.Pane;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -88,7 +88,7 @@ public class LocalReplayVaultControllerTest extends PlatformTest {
   @Test
   @Disabled("I will deal with this later")
   public void testShowLocalReplayDetail() {
-    ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
+    Replay replay = Instancio.create(Replay.class);
     runOnFxThreadAndWait(() -> instance.onDisplayDetails(replay));
     WaitForAsyncUtils.waitForFxEvents();
 

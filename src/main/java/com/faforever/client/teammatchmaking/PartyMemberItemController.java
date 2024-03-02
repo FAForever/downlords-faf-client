@@ -1,9 +1,9 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.PartyBean.PartyMember;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.server.PartyInfo.PartyMember;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -75,7 +75,7 @@ public class PartyMemberItemController extends NodeController<Node> {
   public HBox playerCard;
   public ImageView playerStatusImageView;
 
-  private PlayerBean player;
+  private PlayerInfo player;
   private final SimpleInvalidationListener playerStatusInvalidationListener = this::setMemberGameStatus;
   private final SimpleInvalidationListener playerPropertiesInvalidationListener = this::setPlayerProperties;
   private final SimpleInvalidationListener partyOwnerInvalidationListener = this::setPartyOwnerProperties;
@@ -117,8 +117,8 @@ public class PartyMemberItemController extends NodeController<Node> {
   }
 
   private void setPartyOwnerProperties() {
-    PlayerBean currentPlayer = playerService.getCurrentPlayer();
-    PlayerBean owner = teamMatchmakingService.getParty().getOwner();
+    PlayerInfo currentPlayer = playerService.getCurrentPlayer();
+    PlayerInfo owner = teamMatchmakingService.getParty().getOwner();
     fxApplicationThreadExecutor.execute(() -> {
       crownLabel.setVisible(owner == player);
       kickPlayerButton.setVisible(owner == currentPlayer && player != currentPlayer);
@@ -143,16 +143,15 @@ public class PartyMemberItemController extends NodeController<Node> {
 
   @VisibleForTesting
   protected void setLeagueInfo() {
-    leaderboardService.getHighestActiveLeagueEntryForPlayer(player)
-                      .mapNotNull(LeagueEntryBean::getSubdivision)
+    leaderboardService.getHighestActiveLeagueEntryForPlayer(player).mapNotNull(LeagueEntry::subdivision)
                       .publishOn(fxApplicationThreadExecutor.asScheduler())
                       .subscribe(subdivision -> {
-                        leagueLabel.setText(i18n.get("leaderboard.divisionName",
-                                                     i18n.getOrDefault(subdivision.getDivision().getNameKey(),
-                                                                       "leagues.divisionName.%s".formatted(
-                                                                           subdivision.getDivision().getNameKey())),
-                                                     subdivision.getNameKey()).toUpperCase());
-                        leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
+                        String divisionNameKey = subdivision.division().nameKey();
+                        leagueLabel.setText(i18n.get("leaderboard.divisionName", i18n.getOrDefault(divisionNameKey,
+                                                                                                   "leagues.divisionName.%s".formatted(
+                                                                                                       divisionNameKey)),
+                                                     subdivision.nameKey()).toUpperCase());
+                        leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.mediumImageUrl()));
                         leagueImageView.setVisible(true);
                       });
   }

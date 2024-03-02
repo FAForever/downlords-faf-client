@@ -1,6 +1,6 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.domain.api.Replay;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
@@ -26,7 +26,7 @@ import java.util.List;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class LocalReplayVaultController extends VaultEntityController<ReplayBean> {
+public class LocalReplayVaultController extends VaultEntityController<Replay> {
 
   private final ReplayService replayService;
   private final VaultPrefs vaultPrefs;
@@ -53,7 +53,7 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
   }
 
   @Override
-  protected void onDisplayDetails(ReplayBean replay) {
+  protected void onDisplayDetails(Replay replay) {
     JavaFxUtil.assertApplicationThread();
     replayDetailController.setReplay(replay);
     replayDetailController.getRoot().setVisible(true);
@@ -87,7 +87,7 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
     return controller;
   }
   @Override
-  protected List<ShowRoomCategory<ReplayBean>> getShowRoomCategories() {
+  protected List<ShowRoomCategory<Replay>> getShowRoomCategories() {
     return List.of();
   }
 

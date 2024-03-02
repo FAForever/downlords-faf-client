@@ -1,9 +1,9 @@
 package com.faforever.client.map;
 
-import com.faforever.client.domain.MapBean;
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.MapVersionReviewBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.Map;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.MapVersionReview;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.FaStrings;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
@@ -17,7 +17,6 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewService;
@@ -60,7 +59,6 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class MapDetailController extends NodeController<Node> {
 
-  private final UiService uiService;
   private final MapService mapService;
   private final NotificationService notificationService;
   private final I18n i18n;
@@ -72,8 +70,8 @@ public class MapDetailController extends NodeController<Node> {
   private final NavigationHandler navigationHandler;
   private final ContextMenuBuilder contextMenuBuilder;
 
-  private final ObjectProperty<MapVersionBean> mapVersion = new SimpleObjectProperty<>();
-  private final ObservableList<MapVersionReviewBean> mapReviews = FXCollections.observableArrayList();
+  private final ObjectProperty<MapVersion> mapVersion = new SimpleObjectProperty<>();
+  private final ObservableList<MapVersionReview> mapReviews = FXCollections.observableArrayList();
 
   public Label progressLabel;
   public Button uninstallButton;
@@ -93,7 +91,7 @@ public class MapDetailController extends NodeController<Node> {
   public Label isRankedLabel;
   public Label mapPlaysLabel;
   public Label versionPlaysLabel;
-  public ReviewsController<MapVersionReviewBean> reviewsController;
+  public ReviewsController<MapVersionReview> reviewsController;
   public VBox loadingContainer;
   public RowConstraints hideRow;
   public Button hideButton;
@@ -112,67 +110,56 @@ public class MapDetailController extends NodeController<Node> {
         onCloseButtonClicked();
       }
     });
-    mapVersion.addListener((SimpleChangeListener<MapVersionBean>) this::onMapVersionChanged);
+    mapVersion.addListener((SimpleChangeListener<MapVersion>) this::onMapVersionChanged);
 
     initializeReviewsController();
     bindProperties();
   }
 
   private void bindProperties() {
-    ObservableValue<MapBean> mapObservable = mapVersion.flatMap(MapVersionBean::mapProperty);
+    ObservableValue<Map> mapObservable = mapVersion.map(MapVersion::map);
     thumbnailImageView.imageProperty()
                       .bind(mapVersion.map(map -> mapService.loadPreview(map, PreviewSize.SMALL))
                                       .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
                                       .when(showing));
-    nameLabel.textProperty().bind(mapObservable.flatMap(MapBean::displayNameProperty).when(showing));
-    authorLabel.textProperty()
-               .bind(mapObservable.flatMap(MapBean::authorProperty)
-                                  .flatMap(PlayerBean::usernameProperty)
+    nameLabel.textProperty().bind(mapObservable.map(Map::displayName).when(showing));
+    authorLabel.textProperty().bind(mapObservable.map(Map::author).flatMap(PlayerInfo::usernameProperty)
                                   .orElse(i18n.get("map.unknownAuthor"))
                                   .when(showing));
-    maxPlayersLabel.textProperty()
-                   .bind(mapVersion.flatMap(MapVersionBean::maxPlayersProperty).map(i18n::number).when(showing));
-    mapIdLabel.textProperty()
-              .bind(mapVersion.flatMap(MapVersionBean::idProperty).map(id -> i18n.get("map.id", id)).when(showing));
-    mapPlaysLabel.textProperty()
-                 .bind(mapObservable.flatMap(MapBean::gamesPlayedProperty).map(i18n::number).when(showing));
-    versionPlaysLabel.textProperty()
-                     .bind(mapVersion.flatMap(MapVersionBean::gamesPlayedProperty).map(i18n::number).when(showing));
-    dimensionsLabel.textProperty()
-                   .bind(mapVersion.flatMap(MapVersionBean::sizeProperty)
-                                   .map(mapSize -> i18n.get("mapPreview.size", mapSize.getWidthInKm(),
-                                                            mapSize.getHeightInKm()))
+    maxPlayersLabel.textProperty().bind(mapVersion.map(MapVersion::maxPlayers).map(i18n::number).when(showing));
+    mapIdLabel.textProperty().bind(mapVersion.map(MapVersion::id).map(id -> i18n.get("map.id", id)).when(showing));
+    mapPlaysLabel.textProperty().bind(mapObservable.map(Map::gamesPlayed).map(i18n::number).when(showing));
+    versionPlaysLabel.textProperty().bind(mapVersion.map(MapVersion::gamesPlayed).map(i18n::number).when(showing));
+    dimensionsLabel.textProperty().bind(mapVersion.map(MapVersion::size)
+                                                  .map(mapSize -> i18n.get("mapPreview.size", mapSize.widthInKm(),
+                                                                           mapSize.heightInKm()))
                                    .when(showing));
-    dateLabel.textProperty()
-             .bind(mapVersion.flatMap(MapVersionBean::createTimeProperty).map(timeService::asDate).when(showing));
+    dateLabel.textProperty().bind(mapVersion.map(MapVersion::createTime).map(timeService::asDate).when(showing));
 
-    mapDescriptionLabel.textProperty()
-                       .bind(mapVersion.flatMap(MapVersionBean::descriptionProperty)
+    mapDescriptionLabel.textProperty().bind(mapVersion.map(MapVersion::description)
                                        .map(FaStrings::removeLocalizationTag)
                                        .map(description -> StringUtils.isBlank(description) ? i18n.get(
                                            "map.noDescriptionAvailable") : description)
                                        .when(showing));
 
-    mapVersionLabel.textProperty()
-                   .bind(mapVersion.flatMap(MapVersionBean::versionProperty)
+    mapVersionLabel.textProperty().bind(mapVersion.map(MapVersion::version)
                                    .map(ComparableVersion::toString)
                                    .when(showing));
 
     BooleanExpression playerIsAuthor = BooleanExpression.booleanExpression(playerService.currentPlayerProperty()
                                                                                         .flatMap(
-                                                                                            currentPlayer -> mapObservable.flatMap(
-                                                                                                                              MapBean::authorProperty)
+                                                                                            currentPlayer -> mapObservable.map(
+                                                                                                                              Map::author)
                                                                                                                           .map(
                                                                                                                               author -> Objects.equals(
                                                                                                                                   currentPlayer,
                                                                                                                                   author)))
                                                                                         .when(showing));
-    BooleanExpression hidden = BooleanExpression.booleanExpression(mapVersion.flatMap(MapVersionBean::hiddenProperty));
+    BooleanExpression hidden = BooleanExpression.booleanExpression(mapVersion.map(MapVersion::hidden));
     hideButton.visibleProperty().bind(Bindings.and(playerIsAuthor, hidden.not()).when(showing));
     isHiddenLabel.textProperty()
                  .bind(hidden.map(isHidden -> isHidden ? i18n.get("yes") : i18n.get("no")).when(showing));
-    isRankedLabel.textProperty()
-                 .bind(mapVersion.flatMap(MapVersionBean::rankedProperty)
+    isRankedLabel.textProperty().bind(mapVersion.map(MapVersion::ranked)
                                  .map(isRanked -> isRanked ? i18n.get("yes") : i18n.get("no")));
     hideBox.visibleProperty().bind(playerIsAuthor.when(showing));
 
@@ -197,16 +184,12 @@ public class MapDetailController extends NodeController<Node> {
     reviewsController.setCanWriteReview(false);
     reviewsController.setOnSendReviewListener(this::onSendReview);
     reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
-    reviewsController.setReviewSupplier(() -> {
-      MapVersionReviewBean review = new MapVersionReviewBean();
-      review.setPlayer(playerService.getCurrentPlayer());
-      review.setMapVersion(mapVersion.get());
-      return review;
-    });
+    reviewsController.setReviewSupplier(
+        () -> new MapVersionReview(null, null, playerService.getCurrentPlayer(), null, mapVersion.get()));
     reviewsController.bindReviews(mapReviews);
   }
 
-  private void onMapVersionChanged(MapVersionBean newValue) {
+  private void onMapVersionChanged(MapVersion newValue) {
     if (newValue == null) {
       reviewsController.setCanWriteReview(false);
       mapReviews.clear();
@@ -214,8 +197,8 @@ public class MapDetailController extends NodeController<Node> {
       return;
     }
 
-    PlayerBean currentPlayer = playerService.getCurrentPlayer();
-    if (!currentPlayer.equals(newValue.getMap().getAuthor())) {
+    PlayerInfo currentPlayer = playerService.getCurrentPlayer();
+    if (!currentPlayer.equals(newValue.map().author())) {
       mapService.hasPlayedMap(currentPlayer, newValue)
                 .publishOn(fxApplicationThreadExecutor.asScheduler())
                 .subscribe(reviewsController::setCanWriteReview,
@@ -224,7 +207,7 @@ public class MapDetailController extends NodeController<Node> {
       reviewsController.setCanWriteReview(false);
     }
 
-    reviewService.getMapReviews(newValue.getMap())
+    reviewService.getMapReviews(newValue.map())
                  .collectList()
                  .publishOn(fxApplicationThreadExecutor.asScheduler())
                  .subscribe(mapReviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
@@ -239,7 +222,7 @@ public class MapDetailController extends NodeController<Node> {
     }, fxApplicationThreadExecutor);
   }
 
-  public void setMapVersion(MapVersionBean mapVersion) {
+  public void setMapVersion(MapVersion mapVersion) {
     this.mapVersion.set(mapVersion);
   }
 
@@ -253,8 +236,8 @@ public class MapDetailController extends NodeController<Node> {
   }
 
   @VisibleForTesting
-  void onDeleteReview(MapVersionReviewBean review) {
-    reviewService.deleteMapVersionReview(review)
+  void onDeleteReview(MapVersionReview review) {
+    reviewService.deleteReview(review)
                  .publishOn(fxApplicationThreadExecutor.asScheduler())
                  .subscribe(null, throwable -> {
                    log.error("Review could not be deleted", throwable);
@@ -263,8 +246,8 @@ public class MapDetailController extends NodeController<Node> {
   }
 
   @VisibleForTesting
-  void onSendReview(MapVersionReviewBean review) {
-    reviewService.saveMapVersionReview(review)
+  void onSendReview(MapVersionReview review) {
+    reviewService.saveReview(review)
                  .filter(savedReview -> !mapReviews.contains(savedReview))
                  .publishOn(fxApplicationThreadExecutor.asScheduler())
                  .subscribe(savedReview -> {
@@ -281,12 +264,12 @@ public class MapDetailController extends NodeController<Node> {
   }
 
   public Mono<Void> installMap() {
-    MapVersionBean mapVersion = this.mapVersion.get();
+    MapVersion mapVersion = this.mapVersion.get();
     return mapService.downloadAndInstallMap(mapVersion, progressBar.progressProperty(), progressLabel.textProperty())
                      .doOnError(throwable -> {
                        log.error("Map installation failed", throwable);
                        notificationService.addImmediateErrorNotification(throwable, "mapVault.installationFailed",
-                                                                         mapVersion.getMap().getDisplayName(),
+                                                                         mapVersion.map().displayName(),
                                                                          throwable.getLocalizedMessage());
                      });
   }
@@ -295,11 +278,11 @@ public class MapDetailController extends NodeController<Node> {
     progressBar.progressProperty().unbind();
     progressBar.setProgress(-1);
 
-    MapVersionBean mapVersion = this.mapVersion.get();
+    MapVersion mapVersion = this.mapVersion.get();
     mapService.uninstallMap(mapVersion).subscribe(null, throwable -> {
       log.error("Could not delete map", throwable);
       notificationService.addImmediateErrorNotification(throwable, "mapVault.couldNotDeleteMap",
-                                                        mapVersion.getMap().getDisplayName(),
+                                                        mapVersion.map().displayName(),
                                                         throwable.getLocalizedMessage());
     });
   }
@@ -313,27 +296,26 @@ public class MapDetailController extends NodeController<Node> {
   }
 
   public void onCreateGameButtonClicked() {
-    MapVersionBean mapVersion = this.mapVersion.get();
-    if (!mapService.isInstalled(mapVersion.getFolderName())) {
+    MapVersion mapVersion = this.mapVersion.get();
+    if (!mapService.isInstalled(mapVersion.folderName())) {
       installMap().subscribe(null, null,
-                             () -> navigationHandler.navigateTo(new HostGameEvent(mapVersion.getFolderName())));
+                             () -> navigationHandler.navigateTo(new HostGameEvent(mapVersion.folderName())));
     } else {
-      navigationHandler.navigateTo(new HostGameEvent(mapVersion.getFolderName()));
+      navigationHandler.navigateTo(new HostGameEvent(mapVersion.folderName()));
     }
   }
 
   public void hideMap() {
-    MapVersionBean mapVersion = this.mapVersion.get();
+    MapVersion mapVersion = this.mapVersion.get();
     mapService.hideMapVersion(mapVersion)
-              .publishOn(fxApplicationThreadExecutor.asScheduler())
-              .subscribe(null, throwable -> {
+              .publishOn(fxApplicationThreadExecutor.asScheduler()).subscribe(this.mapVersion::set, throwable -> {
                 log.error("Could not hide map", throwable);
                 notificationService.addImmediateErrorNotification(throwable, "map.couldNotHide");
-              }, () -> mapVersion.setHidden(true));
+              });
   }
 
   public void onMapPreviewImageClicked() {
-    MapVersionBean map = mapVersion.get();
+    MapVersion map = mapVersion.get();
     if (map != null) {
       PopupUtil.showImagePopup(mapService.loadPreview(map, PreviewSize.LARGE));
     }

@@ -14,7 +14,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.core.io.ClassPathResource;
 
 import java.util.function.Consumer;
 
@@ -55,7 +54,6 @@ public class ReactionControllerTest extends PlatformTest {
   public void testSetReaction() {
     Emoticon emoticon = EmoticonBuilder.create()
                                        .defaultValues()
-                                       .image(new Image(new ClassPathResource("/images/hydro.png").getPath()))
                                        .get();
     runOnFxThreadAndWait(() -> instance.setReaction(emoticon));
     assertNotNull(instance.emoticonImageView.getImage());

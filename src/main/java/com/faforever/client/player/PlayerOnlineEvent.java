@@ -1,5 +1,5 @@
 package com.faforever.client.player;
 
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 
-public record PlayerOnlineEvent(PlayerBean player) {}
+public record PlayerOnlineEvent(PlayerInfo player) {}

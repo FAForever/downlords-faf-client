@@ -1,7 +1,7 @@
 package com.faforever.client.fa;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameRunner;
@@ -41,7 +41,7 @@ public class GameFullNotifier {
       throw new ProgrammingError("Got a GameFull notification but player is not in a game");
     }
     Long processId = gameRunner.getRunningProcessId();
-    GameBean runningGame = gameRunner.getRunningGame();
+    GameInfo runningGame = gameRunner.getRunningGame();
 
     if (platformService.getFocusedWindowProcessId() == processId) {
       log.debug("Game lobby window is focused. No need notify the user");

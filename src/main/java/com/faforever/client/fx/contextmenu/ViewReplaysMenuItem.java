@@ -1,6 +1,6 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.navigation.NavigationHandler;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ViewReplaysMenuItem extends AbstractMenuItem<PlayerBean> {
+public class ViewReplaysMenuItem extends AbstractMenuItem<PlayerInfo> {
 
   private final I18n i18n;
   private final NavigationHandler navigationHandler;

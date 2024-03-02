@@ -1,6 +1,6 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.replay.LiveReplayService;
 import com.faforever.client.replay.TrackingLiveReplay;
@@ -16,7 +16,7 @@ import static com.faforever.client.replay.TrackingLiveReplayAction.NOTIFY_ME;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class CancelActionNotifyMeMenuItem extends AbstractMenuItem<GameBean> {
+public class CancelActionNotifyMeMenuItem extends AbstractMenuItem<GameInfo> {
 
   private final I18n i18n;
   private final LiveReplayService liveReplayService;

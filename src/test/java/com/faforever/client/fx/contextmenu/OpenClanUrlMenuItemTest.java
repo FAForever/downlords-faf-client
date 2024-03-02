@@ -1,16 +1,20 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.builders.ClanBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.clan.ClanService;
+import com.faforever.client.domain.api.Clan;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.PlatformTest;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
+
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,18 +39,21 @@ public class OpenClanUrlMenuItemTest extends PlatformTest {
   }
 
   @Test
-  public void testOpenClanUrl() {
+  public void testOpenClanUrl() throws Exception {
     when(clanService.getClanByTag(anyString())).thenReturn(
-        Mono.just(ClanBeanBuilder.create().defaultValues().websiteUrl("https://site.com").get()));
+        Mono.just(Instancio.of(Clan.class).set(field(Clan::websiteUrl),
+                                                                                   URI.create("https://site.com")
+                                                                                      .toURL())
+                                                                              .create()));
 
-    instance.setObject(PlayerBeanBuilder.create().clan("clan").get());
+    instance.setObject(PlayerInfoBuilder.create().clan("clan").get());
     instance.onClicked();
     verify(platformService).showDocument("https://site.com");
   }
 
   @Test
   public void testVisibleItem() {
-    instance.setObject(PlayerBeanBuilder.create().clan("clan").get());
+    instance.setObject(PlayerInfoBuilder.create().clan("clan").get());
     assertTrue(instance.isVisible());
   }
 
@@ -58,7 +65,7 @@ public class OpenClanUrlMenuItemTest extends PlatformTest {
 
   @Test
   public void testInvisibleItemWhenNoClan() {
-    instance.setObject(PlayerBeanBuilder.create().get());
+    instance.setObject(PlayerInfoBuilder.create().get());
     assertFalse(instance.isVisible());
   }
 

@@ -1,10 +1,10 @@
 package com.faforever.client.game;
 
-import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.MapBean;
-import com.faforever.client.domain.MapBean.MapType;
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.domain.api.Map;
+import com.faforever.client.domain.api.MapType;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fa.FaStrings;
 import com.faforever.client.featuredmod.FeaturedModService;
@@ -120,8 +120,8 @@ public class CreateGameController extends NodeController<Pane> {
   public TextField minRankingTextField;
   public TextField maxRankingTextField;
   public CheckBox enforceRankingCheckBox;
-  public ListView<FeaturedModBean> featuredModListView;
-  public ListView<MapVersionBean> mapListView;
+  public ListView<FeaturedMod> featuredModListView;
+  public ListView<MapVersion> mapListView;
   public StackPane gamesRoot;
   public Pane createGameRoot;
   public Button createGameButton;
@@ -132,11 +132,11 @@ public class CreateGameController extends NodeController<Pane> {
   public ToggleButton mapFilterButton;
   public Popup mapFilterPopup;
   @VisibleForTesting
-  FilteredList<MapVersionBean> filteredMaps;
+  FilteredList<MapVersion> filteredMaps;
   private Runnable onCloseButtonClickedListener;
   private MapFilterController mapFilterController;
 
-  private final ObjectProperty<MapVersionBean> selectedMap = new SimpleObjectProperty<>();
+  private final ObjectProperty<MapVersion> selectedMap = new SimpleObjectProperty<>();
   private final SimpleInvalidationListener createButtonStateListener = this::setCreateGameButtonState;
 
   @Override
@@ -146,7 +146,7 @@ public class CreateGameController extends NodeController<Pane> {
     JavaFxUtil.bind(mapPreviewPane.prefHeightProperty(), mapPreviewPane.widthProperty());
     modManagerController.setCloseable(false);
     mapSearchTextField.setOnKeyPressed(event -> {
-      MultipleSelectionModel<MapVersionBean> selectionModel = mapListView.getSelectionModel();
+      MultipleSelectionModel<MapVersion> selectionModel = mapListView.getSelectionModel();
       int currentMapIndex = selectionModel.getSelectedIndex();
       int newMapIndex = currentMapIndex;
       if (KeyCode.DOWN == event.getCode()) {
@@ -163,13 +163,13 @@ public class CreateGameController extends NodeController<Pane> {
       event.consume();
     });
 
-    Function<FeaturedModBean, String> isDefaultModString = mod -> Objects.equals(mod.getTechnicalName(),
-                                                                                 KnownFeaturedMod.DEFAULT.getTechnicalName()) ? " " + i18n.get(
+    Function<FeaturedMod, String> isDefaultModString = mod -> Objects.equals(mod.technicalName(),
+                                                                             KnownFeaturedMod.DEFAULT.getTechnicalName()) ? " " + i18n.get(
         "game.create.defaultGameTypeMarker") : null;
 
     featuredModListView.setCellFactory(
-        param -> new DualStringListCell<>(FeaturedModBean::getDisplayName, isDefaultModString,
-                                          FeaturedModBean::getDescription, STYLE_CLASS_DUAL_LIST_CELL, uiService,
+        param -> new DualStringListCell<>(FeaturedMod::displayName, isDefaultModString, FeaturedMod::description,
+                                          STYLE_CLASS_DUAL_LIST_CELL, uiService,
                                           fxApplicationThreadExecutor));
 
     JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH, true);
@@ -178,11 +178,10 @@ public class CreateGameController extends NodeController<Pane> {
     featuredModService.getFeaturedMods()
                       .collectList()
                       .map(FXCollections::observableList)
-                      .map(observableList -> observableList.filtered(FeaturedModBean::getVisible))
+                      .map(observableList -> observableList.filtered(FeaturedMod::visible))
                       .publishOn(fxApplicationThreadExecutor.asScheduler())
                       .subscribe(featuredModBeans -> {
-                        featuredModListView.setItems(
-                            FXCollections.observableList(featuredModBeans).filtered(FeaturedModBean::getVisible));
+                        featuredModListView.setItems(featuredModBeans);
                         selectLastOrDefaultGameType();
                       });
 
@@ -245,11 +244,10 @@ public class CreateGameController extends NodeController<Pane> {
   private void initMapFilterPopup() {
     mapFilterController = uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class);
     mapFilterController.addExternalFilter(mapSearchTextField.textProperty().when(showing),
-                                          (text, mapVersion) -> text.isEmpty() || mapVersion.getMap()
-                                                                                            .getDisplayName()
+                                          (text, mapVersion) -> text.isEmpty() || mapVersion.map().displayName()
                                                                                             .toLowerCase()
                                                                                             .contains(
-                                                                                                text.toLowerCase()) || mapVersion.getFolderName()
+                                                                                                text.toLowerCase()) || mapVersion.folderName()
                                                                                                                                  .toLowerCase()
                                                                                                                                  .contains(
                                                                                                                                      text.toLowerCase()));
@@ -281,63 +279,49 @@ public class CreateGameController extends NodeController<Pane> {
   }
 
   protected void initMapSelection() {
-    mapNameLabel.textProperty()
-                .bind(selectedMap.flatMap(MapVersionBean::mapProperty)
-                                 .flatMap(MapBean::displayNameProperty)
-                                 .when(showing));
-    mapSizeLabel.textProperty()
-                .bind(selectedMap.flatMap(MapVersionBean::sizeProperty)
-                                 .map(mapSize -> i18n.get("mapPreview.size", mapSize.getWidthInKm(),
-                                                          mapSize.getHeightInKm()))
+    mapNameLabel.textProperty().bind(selectedMap.map(MapVersion::map).map(Map::displayName).when(showing));
+    mapSizeLabel.textProperty().bind(selectedMap.map(MapVersion::size)
+                                                .map(mapSize -> i18n.get("mapPreview.size", mapSize.widthInKm(),
+                                                                         mapSize.heightInKm()))
                                  .when(showing));
     BackgroundSize backgroundSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true,
                                                        false);
-    mapPreviewPane.backgroundProperty()
-                  .bind(selectedMap.flatMap(MapVersionBean::folderNameProperty)
+    mapPreviewPane.backgroundProperty().bind(selectedMap.map(MapVersion::folderName)
                                    .map(folderName -> mapService.loadPreview(folderName, PreviewSize.LARGE))
                                    .map(preview -> new BackgroundImage(preview, NO_REPEAT, NO_REPEAT, CENTER,
                                                                        backgroundSize))
                                    .map(Background::new)
                                    .when(showing));
-    mapPlayersLabel.textProperty()
-                   .bind(selectedMap.flatMap(MapVersionBean::maxPlayersProperty).map(i18n::number).when(showing));
-    mapDescriptionLabel.textProperty()
-                       .bind(selectedMap.flatMap(MapVersionBean::descriptionProperty)
+    mapPlayersLabel.textProperty().bind(selectedMap.map(MapVersion::maxPlayers).map(i18n::number).when(showing));
+    mapDescriptionLabel.textProperty().bind(selectedMap.map(MapVersion::description)
                                         .map(Strings::emptyToNull)
                                         .map(FaStrings::removeLocalizationTag)
                                         .orElse(i18n.get("map.noDescriptionAvailable"))
                                         .when(showing));
-    versionLabel.textProperty()
-                .bind(selectedMap.flatMap(MapVersionBean::versionProperty)
+    versionLabel.textProperty().bind(selectedMap.map(MapVersion::version)
                                  .map(version -> i18n.get("versionFormat", version))
                                  .when(showing));
     versionLabel.visibleProperty().bind(versionLabel.textProperty().isNotEmpty());
 
     mapListView.setCellFactory(
-        param -> new StringListCell<>(mapVersion -> mapVersion.getMap().getDisplayName(), fxApplicationThreadExecutor));
+        param -> new StringListCell<>(mapVersion -> mapVersion.map().displayName(), fxApplicationThreadExecutor));
     mapListView.getSelectionModel().selectedItemProperty().when(showing).subscribe((oldItem, newItem) -> {
-                if (newItem == null && filteredMaps.contains(oldItem)) {
-                  mapListView.getSelectionModel().select(oldItem);
-                } else {
-                  selectedMap.set(newItem);
-                }
-               });
-
-    FilteredList<MapVersionBean> skirmishMaps = mapService.getInstalledMaps()
-                                                          .filtered(mapVersion -> mapVersion.getMap()
-                                                                                            .getMapType() == MapType.SKIRMISH);
-    filteredMaps = new FilteredList<>(skirmishMaps.sorted(
-        Comparator.comparing(mapVersion -> mapVersion.getMap().getDisplayName(), String.CASE_INSENSITIVE_ORDER)));
-    filteredMaps.predicateProperty().when(showing).subscribe(() -> {
-      MultipleSelectionModel<MapVersionBean> selectionModel = mapListView.getSelectionModel();
-      if (!filteredMaps.isEmpty() && !filteredMaps.contains(selectionModel.getSelectedItem())) {
-        selectionModel.select(0);
+      if (newItem == null && filteredMaps.contains(oldItem)) {
+        mapListView.getSelectionModel().select(oldItem);
+      } else {
+        selectedMap.set(newItem);
       }
     });
-    skirmishMaps.addListener((ListChangeListener<MapVersionBean>) change -> {
+
+    FilteredList<MapVersion> skirmishMaps = mapService.getInstalledMaps()
+                                                      .filtered(
+                                                          mapVersion -> mapVersion.map().mapType() == MapType.SKIRMISH);
+    filteredMaps = new FilteredList<>(skirmishMaps.sorted(
+        Comparator.comparing(mapVersion -> mapVersion.map().displayName(), String.CASE_INSENSITIVE_ORDER)));
+    skirmishMaps.addListener((ListChangeListener<MapVersion>) change -> {
       while (change.next()) {
         if (change.wasAdded()) {
-          MapVersionBean map = change.getAddedSubList().getFirst();
+          MapVersion map = change.getAddedSubList().getFirst();
           fxApplicationThreadExecutor.execute(() -> {
             mapListView.getSelectionModel().select(map);
             mapListView.scrollTo(map);
@@ -350,8 +334,7 @@ public class CreateGameController extends NodeController<Pane> {
   }
 
   private void initFeaturedModList() {
-    featuredModListView.getSelectionModel().selectedItemProperty()
-                       .map(FeaturedModBean::getTechnicalName)
+    featuredModListView.getSelectionModel().selectedItemProperty().map(FeaturedMod::technicalName)
                        .when(showing)
                        .subscribe(lastGamePrefs::setLastGameType);
   }
@@ -390,8 +373,8 @@ public class CreateGameController extends NodeController<Pane> {
 
   private void selectLastMap() {
     String lastMap = lastGamePrefs.getLastMap();
-    for (MapVersionBean mapVersion : mapListView.getItems()) {
-      if (mapVersion.getFolderName().equalsIgnoreCase(lastMap)) {
+    for (MapVersion mapVersion : mapListView.getItems()) {
+      if (mapVersion.folderName().equalsIgnoreCase(lastMap)) {
         mapListView.getSelectionModel().select(mapVersion);
         mapListView.scrollTo(mapVersion);
         return;
@@ -413,8 +396,8 @@ public class CreateGameController extends NodeController<Pane> {
       lastGameMod = KnownFeaturedMod.DEFAULT.getTechnicalName();
     }
 
-    for (FeaturedModBean mod : featuredModListView.getItems()) {
-      if (Objects.equals(mod.getTechnicalName(), lastGameMod)) {
+    for (FeaturedMod mod : featuredModListView.getItems()) {
+      if (Objects.equals(mod.technicalName(), lastGameMod)) {
         featuredModListView.getSelectionModel().select(mod);
         featuredModListView.scrollTo(mod);
         break;
@@ -461,20 +444,20 @@ public class CreateGameController extends NodeController<Pane> {
   }
 
   private void hostGameAfterMapAndModUpdate() {
-    MapVersionBean selectedMap = mapListView.getSelectionModel().getSelectedItem();
-    Collection<ModVersionBean> selectedModVersions = modManagerController.getSelectedModVersions();
+    MapVersion selectedMap = mapListView.getSelectionModel().getSelectedItem();
+    Collection<ModVersion> selectedModVersions = modManagerController.getSelectedModVersions();
 
-    CompletableFuture<MapVersionBean> mapUpdateFuture = mapService.updateLatestVersionIfNecessary(selectedMap)
-                                                                  .doOnError(throwable -> log.error(
+    CompletableFuture<MapVersion> mapUpdateFuture = mapService.updateLatestVersionIfNecessary(selectedMap)
+                                                              .doOnError(throwable -> log.error(
                                                                       "Error when updating the map", throwable))
-                                                                  .onErrorReturn(selectedMap)
-                                                                  .toFuture();
-    CompletableFuture<List<ModVersionBean>> modUpdateFuture = modService.updateAndActivateModVersions(
-        selectedModVersions).toFuture().exceptionally(throwable -> {
+                                                              .onErrorReturn(selectedMap)
+                                                              .toFuture();
+    CompletableFuture<List<ModVersion>> modUpdateFuture = modService.updateAndActivateModVersions(
+        selectedModVersions).onErrorResume(throwable -> {
       log.error("Error when updating selected mods", throwable);
       notificationService.addImmediateErrorNotification(throwable, "game.create.errorUpdatingMods");
-      return List.copyOf(selectedModVersions);
-    });
+      return Mono.just(List.copyOf(selectedModVersions));
+    }).toFuture();
 
     mapUpdateFuture.thenAcceptBoth(modUpdateFuture, this::hostGame).exceptionally(throwable -> {
       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
@@ -490,11 +473,11 @@ public class CreateGameController extends NodeController<Pane> {
   }
 
   @NotNull
-  private Set<String> getUUIDsFromModVersions(Collection<ModVersionBean> modVersions) {
-    return modVersions.stream().map(ModVersionBean::getUid).collect(Collectors.toSet());
+  private Set<String> getUUIDsFromModVersions(Collection<ModVersion> modVersions) {
+    return modVersions.stream().map(ModVersion::uid).collect(Collectors.toSet());
   }
 
-  private void hostGame(MapVersionBean mapVersion, Collection<ModVersionBean> mods) {
+  private void hostGame(MapVersion mapVersion, Collection<ModVersion> mods) {
     Integer minRating = null;
     Integer maxRating = null;
     boolean enforceRating;
@@ -509,10 +492,10 @@ public class CreateGameController extends NodeController<Pane> {
 
     enforceRating = enforceRankingCheckBox.isSelected();
 
-    String featuredModName = featuredModListView.getSelectionModel().getSelectedItem().getTechnicalName();
+    String featuredModName = featuredModListView.getSelectionModel().getSelectedItem().technicalName();
     NewGameInfo newGameInfo = new NewGameInfo(titleTextField.getText().trim(),
                                               Strings.emptyToNull(passwordTextField.getText()), featuredModName,
-                                              mapVersion.getFolderName(), getUUIDsFromModVersions(mods),
+                                              mapVersion.folderName(), getUUIDsFromModVersions(mods),
                                               onlyForFriendsCheckBox.isSelected() ? GameVisibility.PRIVATE : GameVisibility.PUBLIC,
                                               minRating, maxRating, enforceRating);
 
@@ -532,11 +515,11 @@ public class CreateGameController extends NodeController<Pane> {
    * @return returns true if the map was found and false if not
    */
   boolean selectMap(String mapFolderName) {
-    Optional<MapVersionBean> mapBeanOptional = mapListView.getItems()
-                                                          .stream()
-                                                          .filter(mapBean -> mapBean.getFolderName()
+    Optional<MapVersion> mapBeanOptional = mapListView.getItems()
+                                                      .stream()
+                                                      .filter(mapBean -> mapBean.folderName()
                                                                                     .equalsIgnoreCase(mapFolderName))
-                                                          .findAny();
+                                                      .findAny();
     if (mapBeanOptional.isEmpty()) {
       return false;
     }
@@ -566,7 +549,7 @@ public class CreateGameController extends NodeController<Pane> {
     if (mouseEvent.getButton() == MouseButton.PRIMARY) {
       Optional.ofNullable(mapListView.getSelectionModel())
               .map(SelectionModel::getSelectedItem)
-              .map(MapVersionBean::getFolderName)
+              .map(MapVersion::folderName)
               .ifPresent(mapName -> PopupUtil.showImagePopup(mapService.loadPreview(mapName, PreviewSize.LARGE)));
     }
   }

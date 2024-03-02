@@ -1,6 +1,6 @@
 package com.faforever.client.map.management;
 
-import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
@@ -32,7 +32,7 @@ public class MapsManagementController extends NodeController<Node> {
 
   public GridPane root;
   public ChoiceBox<MapFilter> filterMapsChoiceBox;
-  public ListView<MapVersionBean> listView;
+  public ListView<MapVersion> listView;
   public Button closeButton;
 
   private final MapService mapService;
@@ -40,7 +40,7 @@ public class MapsManagementController extends NodeController<Node> {
   private final I18n i18n;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  private FilteredList<MapVersionBean> filteredMaps;
+  private FilteredList<MapVersion> filteredMaps;
   private Runnable closeButtonAction;
 
   @Override
@@ -76,7 +76,7 @@ public class MapsManagementController extends NodeController<Node> {
     filterMapsChoiceBox.setValue(MapFilter.CUSTOM_MAPS);
   }
 
-  private Predicate<MapVersionBean> getPredicateBy(MapFilter filter) {
+  private Predicate<MapVersion> getPredicateBy(MapFilter filter) {
     return switch (filter) {
       case OFFICIAL_MAPS -> mapService::isOfficialMap;
       case CUSTOM_MAPS -> mapService::isCustomMap;

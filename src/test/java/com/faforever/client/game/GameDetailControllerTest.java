@@ -1,9 +1,8 @@
 package com.faforever.client.game;
 
-import com.faforever.client.builders.FeaturedModBeanBuilder;
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -26,6 +25,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -41,13 +41,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -83,31 +84,36 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @InjectMocks
   private GameDetailController instance;
-  private GameBean game;
+  private GameInfo game;
 
 
   @BeforeEach
   public void setUp() throws Exception {
-    game = GameBeanBuilder.create().defaultValues().get();
+    game = GameInfoBuilder.create().defaultValues().get();
 
-    doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
+    lenient().doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
         .createPlaceholderImageOnErrorObservable(any());
-    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
-    when(watchButtonController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(watchButtonController.getRoot()).thenReturn(new Button());
-    when(teamCardController.getRoot()).then(invocation -> new Pane());
-    when(teamCardController.ratingProviderProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(teamCardController.playerIdsProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(teamCardController.teamIdProperty()).thenReturn(new SimpleIntegerProperty());
-    when(featuredModService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
-                                                                                                              .defaultValues()
-                                                                                                              .get()));
-    when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
-    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(new Image(InputStream.nullInputStream()));
-    when(timeService.shortDuration(any())).thenReturn("duration");
-    when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
-    when(i18n.get("game.detail.players.format", game.getNumActivePlayers(), game.getMaxPlayers())).thenReturn(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()));
-    when(i18n.get("unknown")).thenReturn("unknown");
+    lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
+    lenient().when(watchButtonController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(watchButtonController.getRoot()).thenReturn(new Button());
+    lenient().when(teamCardController.getRoot()).then(invocation -> new Pane());
+    lenient().when(teamCardController.ratingProviderProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(teamCardController.playerIdsProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(teamCardController.teamIdProperty()).thenReturn(new SimpleIntegerProperty());
+    lenient().when(featuredModService.getFeaturedMod(game.getFeaturedMod()))
+             .thenReturn(Mono.just(
+                 Instancio.of(FeaturedMod.class).set(field(FeaturedMod::displayName), "Forged Alliance Forever")
+                                            .create()));
+    lenient().when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
+    lenient().when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE))
+             .thenReturn(new Image(InputStream.nullInputStream()));
+    lenient().when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL))
+             .thenReturn(new Image(InputStream.nullInputStream()));
+    lenient().when(timeService.shortDuration(any())).thenReturn("duration");
+    lenient().when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
+    lenient().when(i18n.get("game.detail.players.format", game.getNumActivePlayers(), game.getMaxPlayers()))
+             .thenReturn(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()));
+    lenient().when(i18n.get("unknown")).thenReturn("unknown");
 
     loadFxml("theme/play/game_detail.fxml", clazz -> {
       if (clazz == WatchButtonController.class) {
@@ -152,8 +158,6 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testGamePropertyListener() {
-    when(i18n.get("unknown")).thenReturn("unknown");
-
     assertEquals(game.getTitle(), instance.gameTitleLabel.getText());
     assertEquals(game.getHost(), instance.hostLabel.getText());
     assertEquals(game.getMapFolderName(), instance.mapLabel.getText());
@@ -181,14 +185,13 @@ public class GameDetailControllerTest extends PlatformTest {
   @Test
   public void testModListener() {
     assertEquals("Forged Alliance Forever", instance.gameTypeLabel.getText());
-    FeaturedModBean mod = FeaturedModBeanBuilder.create()
-        .defaultValues()
-        .technicalName("ladder")
-        .displayName("LADDER")
-        .get();
-    when(featuredModService.getFeaturedMod(mod.getTechnicalName())).thenReturn(Mono.just(mod));
-    runOnFxThreadAndWait(() -> game.setFeaturedMod(mod.getTechnicalName()));
-    assertEquals(mod.getDisplayName(), instance.gameTypeLabel.getText());
+    FeaturedMod mod = Instancio.of(FeaturedMod.class)
+                               .set(field(FeaturedMod::technicalName), "ladder")
+                               .set(field(FeaturedMod::displayName), "LADDER")
+                               .create();
+    when(featuredModService.getFeaturedMod(mod.technicalName())).thenReturn(Mono.just(mod));
+    runOnFxThreadAndWait(() -> game.setFeaturedMod(mod.technicalName()));
+    assertEquals(mod.displayName(), instance.gameTypeLabel.getText());
   }
 
   @Test
@@ -223,7 +226,7 @@ public class GameDetailControllerTest extends PlatformTest {
   public void testNoPlaytimeWhenGameIsClosed() {
     runOnFxThreadAndWait(() -> {
       instance.setPlaytimeVisible(true);
-      instance.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get());
+      instance.setGame(GameInfoBuilder.create().defaultValues().status(GameStatus.CLOSED).get());
     });
     assertFalse(instance.playtimeLabel.isVisible());
     assertNotSame(instance.getPlayTimeTimeline().getStatus(), Status.RUNNING);
@@ -233,7 +236,7 @@ public class GameDetailControllerTest extends PlatformTest {
   public void testNoPlaytimeWhenPlayerIsInLobby() {
     runOnFxThreadAndWait(() -> {
       instance.setPlaytimeVisible(true);
-      instance.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).get());
+      instance.setGame(GameInfoBuilder.create().defaultValues().status(GameStatus.OPEN).get());
     });
     assertFalse(instance.playtimeLabel.isVisible());
     assertNotSame(instance.getPlayTimeTimeline().getStatus(), Status.RUNNING);
@@ -243,11 +246,8 @@ public class GameDetailControllerTest extends PlatformTest {
   public void testShowPlaytimeWhenGameIsRunning() {
     runOnFxThreadAndWait(() -> {
       instance.setPlaytimeVisible(true);
-      instance.setGame(GameBeanBuilder.create()
-          .defaultValues()
-          .status(GameStatus.PLAYING)
-          .startTime(OffsetDateTime.now())
-          .get());
+      instance.setGame(
+          GameInfoBuilder.create().defaultValues().status(GameStatus.PLAYING).startTime(OffsetDateTime.now()).get());
     });
     assertTrue(instance.playtimeLabel.isVisible());
     assertEquals(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
@@ -255,11 +255,11 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testHidePlaytimeWhenGameHasJustEnded() throws Exception {
-    GameBean game = GameBeanBuilder.create()
-        .defaultValues()
-        .status(GameStatus.PLAYING)
-        .startTime(OffsetDateTime.now())
-        .get();
+    GameInfo game = GameInfoBuilder.create()
+                                   .defaultValues()
+                                   .status(GameStatus.PLAYING)
+                                   .startTime(OffsetDateTime.now())
+                                   .get();
 
     runOnFxThreadAndWait(() -> {
       instance.setPlaytimeVisible(true);
@@ -275,7 +275,7 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testGenerateMapButtonIsVisible() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(true);
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(false);
 
@@ -286,7 +286,7 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testGenerateMapButtonIsInvisible() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(false);
 
     runOnFxThreadAndWait(() -> instance.setGame(game));
@@ -296,7 +296,7 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testGenerateMapButtonIsInvisibleWhenMapIsInstalled() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(true);
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
 
@@ -307,7 +307,7 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnGenerateMapClickedAndFailed() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(true);
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(false);
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(
@@ -324,7 +324,7 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnGenerateMapClickedAndInProcess() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(i18n.get("game.mapGeneration.notification.title")).thenReturn("in process");
 
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenAnswer(invocation -> {
@@ -344,7 +344,7 @@ public class GameDetailControllerTest extends PlatformTest {
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
   public void testOnGenerateMapClickedAndCompleted(boolean succeed) {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(i18n.get("game.create.generatedMap")).thenReturn("text");
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(
         succeed ? Mono.just(game.getMapFolderName()) : Mono.error(new RuntimeException("failed")));
@@ -360,8 +360,8 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnGenerateMapClickedAndDoNotSetImageIfGameIsAnother() {
-    GameBean game = GameBeanBuilder.create().defaultValues().mapFolderName("neroxis").get();
-    GameBean anotherGame = GameBeanBuilder.create().defaultValues().mapFolderName("non_neroxis").get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().mapFolderName("neroxis").get();
+    GameInfo anotherGame = GameInfoBuilder.create().defaultValues().mapFolderName("non_neroxis").get();
     Image image = new Image(InputStream.nullInputStream());
     Image anotherImage = new Image(InputStream.nullInputStream());
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(image);

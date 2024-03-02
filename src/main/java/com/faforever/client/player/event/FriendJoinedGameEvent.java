@@ -1,6 +1,6 @@
 package com.faforever.client.player.event;
 
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 
-public record FriendJoinedGameEvent(PlayerBean player, GameBean game) {}
+public record FriendJoinedGameEvent(PlayerInfo player, GameInfo game) {}

@@ -1,7 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
@@ -24,7 +24,7 @@ public class FriendOfflineNotifier implements InitializingBean {
   private final AudioService audioService;
   private final NotificationPrefs notificationPrefs;
 
-  private void onPlayerOffline(PlayerBean player) {
+  private void onPlayerOffline(PlayerInfo player) {
     if (player.getSocialStatus() != SocialStatus.FRIEND) {
       return;
     }

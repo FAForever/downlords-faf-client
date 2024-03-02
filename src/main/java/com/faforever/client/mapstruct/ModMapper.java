@@ -1,10 +1,8 @@
 package com.faforever.client.mapstruct;
 
-import com.faforever.client.domain.ModBean;
-import com.faforever.client.domain.ModVersionBean;
-import com.faforever.client.domain.ModVersionBean.ModType;
-import com.faforever.commons.api.dto.Mod;
-import com.faforever.commons.api.dto.ModVersion;
+import com.faforever.client.domain.api.Mod;
+import com.faforever.client.domain.api.ModType;
+import com.faforever.client.domain.api.ModVersion;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -18,11 +16,9 @@ public interface ModMapper {
     @Mapping(target = "uid", source = "modInfo.uid")
     @Mapping(target = "mod.author", source = "modInfo.author")
     @Mapping(target = "modType", source = "modInfo.uiOnly")
-    @Mapping(target = "mountPoints", source = "modInfo.mountInfos")
     @Mapping(target = "mod", expression = "java(new ModBean())")
     @Mapping(target = "mod.displayName", source = "modInfo.name")
-    @Mapping(target = "imagePath", expression = "java(mapImagePath(modInfo, basePath))")
-    ModVersionBean map(com.faforever.commons.mod.Mod modInfo, Path basePath);
+    ModVersion map(com.faforever.commons.mod.Mod modInfo, Path basePath);
 
     default ModType mapModType(boolean isUIOnly) {
         return isUIOnly ? ModType.UI : ModType.SIM;
@@ -36,11 +32,14 @@ public interface ModMapper {
         .orElse(null);
     }
 
-    ModBean map(Mod dto, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "reviewsSummary", source = "modReviewsSummary")
+  Mod map(com.faforever.commons.api.dto.Mod dto, @Context CycleAvoidingMappingContext context);
 
-    Mod map(ModBean bean, @Context CycleAvoidingMappingContext context);
+  com.faforever.commons.api.dto.Mod map(Mod bean, @Context CycleAvoidingMappingContext context);
 
-    ModVersionBean map(ModVersion dto, @Context CycleAvoidingMappingContext context);
+    @Mapping(target = "modType", source = "type")
+    ModVersion map(com.faforever.commons.api.dto.ModVersion dto, @Context CycleAvoidingMappingContext context);
 
-    ModVersion map(ModVersionBean bean, @Context CycleAvoidingMappingContext context);
+    @Mapping(target = "type", source = "modType")
+    com.faforever.commons.api.dto.ModVersion map(ModVersion bean, @Context CycleAvoidingMappingContext context);
 }

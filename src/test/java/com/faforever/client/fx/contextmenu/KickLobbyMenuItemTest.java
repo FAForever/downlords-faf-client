@@ -1,8 +1,8 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.moderator.ModeratorService;
 import com.faforever.client.player.SocialStatus;
@@ -35,10 +35,10 @@ public class KickLobbyMenuItemTest extends PlatformTest {
 
   @Test
   public void testKickLobby() {
-    PlayerBean player = PlayerBeanBuilder.create()
-        .defaultValues()
-        .game(GameBeanBuilder.create().defaultValues().get())
-        .get();
+    PlayerInfo player = PlayerInfoBuilder.create()
+                                         .defaultValues()
+                                         .game(GameInfoBuilder.create().defaultValues().get())
+                                         .get();
 
     instance.setObject(player);
     instance.onClicked();
@@ -49,14 +49,14 @@ public class KickLobbyMenuItemTest extends PlatformTest {
   @Test
   public void testVisibleItem() {
     when(moderatorService.getPermissions()).thenReturn(Set.of(GroupPermission.ADMIN_KICK_SERVER));
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().get());
 
     assertTrue(instance.isVisible());
   }
 
   @Test
   public void testInvisibleItemIfPlayerIsSelf() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get());
 
     assertFalse(instance.isVisible());
   }
@@ -64,7 +64,7 @@ public class KickLobbyMenuItemTest extends PlatformTest {
   @Test
   public void testInvisibleItemIfNoPermissions() {
     when(moderatorService.getPermissions()).thenReturn(Set.of(""));
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().get());
 
     assertFalse(instance.isVisible());
   }

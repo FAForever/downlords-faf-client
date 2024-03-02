@@ -3,8 +3,8 @@ package com.faforever.client.remote;
 import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Server;
-import com.faforever.client.domain.MatchmakerQueueBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.MatchmakerQueueInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.exception.UIDException;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -299,19 +299,19 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
     lobbyClient.restoreGameSession(id);
   }
 
-  public void gameMatchmaking(MatchmakerQueueBean queue, MatchmakerState state) {
+  public void gameMatchmaking(MatchmakerQueueInfo queue, MatchmakerState state) {
     lobbyClient.gameMatchmaking(queue.getTechnicalName(), state);
   }
 
-  public void inviteToParty(PlayerBean recipient) {
+  public void inviteToParty(PlayerInfo recipient) {
     lobbyClient.inviteToParty(recipient.getId());
   }
 
-  public void acceptPartyInvite(PlayerBean sender) {
+  public void acceptPartyInvite(PlayerInfo sender) {
     lobbyClient.acceptPartyInvite(sender.getId());
   }
 
-  public void kickPlayerFromParty(PlayerBean kickedPlayer) {
+  public void kickPlayerFromParty(PlayerInfo kickedPlayer) {
     lobbyClient.kickPlayerFromParty(kickedPlayer.getId());
   }
 

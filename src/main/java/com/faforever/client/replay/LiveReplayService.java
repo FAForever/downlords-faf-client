@@ -1,7 +1,7 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.game.GameRunner;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
@@ -59,7 +59,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
     return clientProperties.getReplay().getWatchDelaySeconds();
   }
 
-  public boolean canWatchReplay(GameBean game) {
+  public boolean canWatchReplay(GameInfo game) {
     Duration duration = getWatchDelayTime(game);
     return duration.isZero() || duration.isNegative();
   }
@@ -69,12 +69,12 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
     return duration.isZero() || duration.isNegative();
   }
 
-  public Duration getWatchDelayTime(GameBean game) {
+  public Duration getWatchDelayTime(GameInfo game) {
     Assert.notNull(game.getStartTime(), "Game's start time is null, in which case it shouldn't even be listed: " + game);
     return Duration.between(OffsetDateTime.now(), game.getStartTime().plusSeconds(getWatchDelaySeconds()));
   }
 
-  public void performActionWhenAvailable(GameBean game, TrackingLiveReplayAction action) {
+  public void performActionWhenAvailable(GameInfo game, TrackingLiveReplayAction action) {
     checkNullIllegalState(game.getId(), "No game id to schedule future task");
     stopTrackingLiveReplay();
     trackingLiveReplayProperty.set(new TrackingLiveReplay(game.getId(), action));
@@ -85,7 +85,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
     }
   }
 
-  private void notifyUserWhenReplayAvailable(GameBean game) {
+  private void notifyUserWhenReplayAvailable(GameInfo game) {
     replayAvailableTask = taskScheduler.schedule(() -> {
       clearTrackingLiveReplayProperty();
       notificationService.addNotification(new PersistentNotification(
@@ -94,7 +94,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
     }, Instant.from(game.getStartTime().plusSeconds(getWatchDelaySeconds())));
   }
 
-  private void runLiveReplayWhenAvailable(GameBean game) {
+  private void runLiveReplayWhenAvailable(GameInfo game) {
     replayAvailableTask = taskScheduler.schedule(() -> {
       notificationService.addNotification(new TransientNotification(
           i18n.get("vault.liveReplays.replayAvailable", game.getTitle()),

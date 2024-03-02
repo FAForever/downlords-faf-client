@@ -1,6 +1,6 @@
 package com.faforever.client.mapstruct;
 
-import com.faforever.client.domain.LeaderboardRatingBean;
+import com.faforever.client.player.LeaderboardRating;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -9,5 +9,5 @@ import org.mapstruct.Mapping;
 public interface LeaderboardStatsMapper {
   @Mapping(target = "deviation", source = "rating.deviation")
   @Mapping(target = "mean", source = "rating.mean")
-  LeaderboardRatingBean map(LeaderboardStats dto);
+  LeaderboardRating map(LeaderboardStats dto);
 }

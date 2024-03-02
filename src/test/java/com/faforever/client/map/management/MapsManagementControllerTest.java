@@ -1,13 +1,12 @@
 package com.faforever.client.map.management;
 
-import com.faforever.client.builders.MapVersionBeanBuilder;
-import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.collections.FXCollections;
-import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -28,12 +27,9 @@ public class MapsManagementControllerTest extends PlatformTest {
   @Mock
   private UiService uiService;
 
-  private final MapVersionBean officialMap = MapVersionBeanBuilder.create().folderName("SCMP_001").id(0)
-      .version(null).get();
-  private final MapVersionBean customMap1 = MapVersionBeanBuilder.create().folderName("palaneum.v0001").id(1)
-      .version(new ComparableVersion("1")).get();
-  private final MapVersionBean customMap2 = MapVersionBeanBuilder.create().folderName("palaneum.v0002").id(2)
-      .version(new ComparableVersion("2")).get();
+  private final MapVersion officialMap = Instancio.create(MapVersion.class);
+  private final MapVersion customMap1 = Instancio.create(MapVersion.class);
+  private final MapVersion customMap2 = Instancio.create(MapVersion.class);
 
   @InjectMocks
   private MapsManagementController instance;
@@ -66,7 +62,7 @@ public class MapsManagementControllerTest extends PlatformTest {
     verifyItemsInList(customMap1, customMap2, officialMap);
   }
 
-  private void verifyItemsInList(MapVersionBean... items) {
+  private void verifyItemsInList(MapVersion... items) {
     Arrays.stream(items).forEach(item -> assertThat(instance.listView.getItems().contains(item), is(true)));
   }
 

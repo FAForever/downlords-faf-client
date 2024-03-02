@@ -1,10 +1,10 @@
 package com.faforever.client.player;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.game.GameRunner;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -42,8 +42,8 @@ public class FriendJoinedGameNotifierTest extends ServiceTest {
 
   @Test
   public void onFriendJoinedGame() throws Exception {
-    GameBean game = GameBeanBuilder.create().defaultValues().title("My Game").get();
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username("junit").id(1).game(game).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().title("My Game").get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().username("junit").id(1).game(game).get();
     notificationPrefs.setFriendJoinsGameToastEnabled(true);
     when(i18n.get("friend.joinedGameNotification.title", "junit", "My Game")).thenReturn("junit joined My Game");
     when(i18n.get("friend.joinedGameNotification.action")).thenReturn("Click to join");
@@ -63,8 +63,8 @@ public class FriendJoinedGameNotifierTest extends ServiceTest {
   public void testNoNotificationIfDisabledInPreferences() throws Exception {
     notificationPrefs.setFriendJoinsGameToastEnabled(false);
 
-    instance.onFriendJoinedGame(PlayerBeanBuilder.create().defaultValues().username("junit").get(),
-                                GameBeanBuilder.create().defaultValues().get());
+    instance.onFriendJoinedGame(PlayerInfoBuilder.create().defaultValues().username("junit").get(),
+                                GameInfoBuilder.create().defaultValues().get());
 
     verify(notificationService, never()).addNotification(any(TransientNotification.class));
   }

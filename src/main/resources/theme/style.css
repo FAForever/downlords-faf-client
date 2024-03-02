@@ -791,7 +791,7 @@
   -fx-graphic-text-gap: 1em;
 }
 
-/***************** League leaderboard *****************/
+/***************** League leagueLeaderboard *****************/
 
 .score-arc {
   -fx-fill: transparent;

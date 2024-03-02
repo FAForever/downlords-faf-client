@@ -1,20 +1,15 @@
 package com.faforever.client.mapstruct;
 
-import com.faforever.client.domain.DivisionBean;
-import com.faforever.client.domain.LeaderboardBean;
-import com.faforever.client.domain.LeaderboardEntryBean;
-import com.faforever.client.domain.LeaderboardRatingBean;
-import com.faforever.client.domain.LeaderboardRatingJournalBean;
-import com.faforever.client.domain.LeagueBean;
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.LeagueSeasonBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.SubdivisionBean;
-import com.faforever.commons.api.dto.Leaderboard;
-import com.faforever.commons.api.dto.LeaderboardEntry;
-import com.faforever.commons.api.dto.LeaderboardRatingJournal;
-import com.faforever.commons.api.dto.League;
-import com.faforever.commons.api.dto.LeagueSeason;
+import com.faforever.client.domain.api.Division;
+import com.faforever.client.domain.api.Leaderboard;
+import com.faforever.client.domain.api.LeaderboardEntry;
+import com.faforever.client.domain.api.LeaderboardRatingJournal;
+import com.faforever.client.domain.api.League;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.api.LeagueSeason;
+import com.faforever.client.domain.api.Subdivision;
+import com.faforever.client.domain.server.PlayerInfo;
+import com.faforever.client.player.LeaderboardRating;
 import com.faforever.commons.api.dto.LeagueSeasonDivision;
 import com.faforever.commons.api.dto.LeagueSeasonDivisionSubdivision;
 import com.faforever.commons.api.dto.LeagueSeasonScore;
@@ -27,61 +22,66 @@ import java.util.List;
 
 @Mapper(uses = {ReplayMapper.class, PlayerMapper.class, UrlMapper.class}, config = MapperConfiguration.class)
 public interface LeaderboardMapper {
-  LeaderboardBean map(Leaderboard dto, @Context CycleAvoidingMappingContext context);
+  Leaderboard map(com.faforever.commons.api.dto.Leaderboard dto, @Context CycleAvoidingMappingContext context);
 
-  Leaderboard map(LeaderboardBean bean, @Context CycleAvoidingMappingContext context);
+  com.faforever.commons.api.dto.Leaderboard map(Leaderboard bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "gamesPlayed", source = "totalGames")
-  LeaderboardEntryBean map(LeaderboardEntry dto, @Context CycleAvoidingMappingContext context);
+  LeaderboardEntry map(com.faforever.commons.api.dto.LeaderboardEntry dto,
+                       @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "totalGames", source = "gamesPlayed")
-  LeaderboardEntry map(LeaderboardEntryBean bean, @Context CycleAvoidingMappingContext context);
+  com.faforever.commons.api.dto.LeaderboardEntry map(LeaderboardEntry bean,
+                                                     @Context CycleAvoidingMappingContext context);
 
-  LeaderboardRatingJournalBean map(LeaderboardRatingJournal dto, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "scoreTime", source = "gamePlayerStats.scoreTime")
+  LeaderboardRatingJournal map(com.faforever.commons.api.dto.LeaderboardRatingJournal dto,
+                               @Context CycleAvoidingMappingContext context);
 
-  LeaderboardRatingJournal map(LeaderboardRatingJournalBean bean, @Context CycleAvoidingMappingContext context);
+  com.faforever.commons.api.dto.LeaderboardRatingJournal map(LeaderboardRatingJournal bean,
+                                                             @Context CycleAvoidingMappingContext context);
 
-  List<LeaderboardRatingJournalBean> mapDtoJournals(List<LeaderboardRatingJournal> dtos, @Context CycleAvoidingMappingContext context);
+  List<LeaderboardRatingJournal> mapDtoJournals(List<com.faforever.commons.api.dto.LeaderboardRatingJournal> dtos,
+                                                @Context CycleAvoidingMappingContext context);
 
-  List<LeaderboardRatingJournal> mapBeanJournals(List<LeaderboardRatingJournalBean> beans, @Context CycleAvoidingMappingContext context);
+  List<com.faforever.commons.api.dto.LeaderboardRatingJournal> mapBeanJournals(List<LeaderboardRatingJournal> beans,
+                                                                               @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "deviation", source = "rating.deviation")
   @Mapping(target = "mean", source = "rating.mean")
-  LeaderboardRatingBean map(LeaderboardStats dto);
+  LeaderboardRating map(LeaderboardStats dto);
 
-  LeagueBean map(League dto, @Context CycleAvoidingMappingContext context);
+  League map(com.faforever.commons.api.dto.League dto, @Context CycleAvoidingMappingContext context);
 
-  League map(LeagueBean bean, @Context CycleAvoidingMappingContext context);
+  com.faforever.commons.api.dto.League map(League bean, @Context CycleAvoidingMappingContext context);
 
-  @Mapping(target = "leaderboard", source = "leagueLeaderboard")
-  LeagueSeasonBean map(LeagueSeason dto, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "leagueLeaderboard", source = "leagueLeaderboard")
+  LeagueSeason map(com.faforever.commons.api.dto.LeagueSeason dto, @Context CycleAvoidingMappingContext context);
 
-  @Mapping(target = "leagueLeaderboard", source = "leaderboard")
-  LeagueSeason map(LeagueSeasonBean bean, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "leagueLeaderboard", source = "leagueLeaderboard")
+  com.faforever.commons.api.dto.LeagueSeason map(LeagueSeason bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "index", source = "divisionIndex")
-  DivisionBean map(LeagueSeasonDivision dto, @Context CycleAvoidingMappingContext context);
+  Division map(LeagueSeasonDivision dto, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "divisionIndex", source = "index")
-  LeagueSeasonDivision map (DivisionBean bean, @Context CycleAvoidingMappingContext context);
+  LeagueSeasonDivision map(Division bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "index", source = "subdivisionIndex")
   @Mapping(target = "division", source = "leagueSeasonDivision")
-  SubdivisionBean map(LeagueSeasonDivisionSubdivision dto, @Context CycleAvoidingMappingContext context);
+  Subdivision map(LeagueSeasonDivisionSubdivision dto, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "subdivisionIndex", source = "index")
   @Mapping(target = "leagueSeasonDivision", source = "division")
-  LeagueSeasonDivisionSubdivision map(SubdivisionBean bean, @Context CycleAvoidingMappingContext context);
+  LeagueSeasonDivisionSubdivision map(Subdivision bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "gamesPlayed", source = "source.gameCount")
   @Mapping(target = "subdivision", source = "source.leagueSeasonDivisionSubdivision")
   @Mapping(target = "id", source = "source.id")
-  @Mapping(target = "createTime", source = "source.createTime")
-  @Mapping(target = "updateTime", source = "source.updateTime")
-  LeagueEntryBean map(LeagueSeasonScore source, PlayerBean player, @Context CycleAvoidingMappingContext context);
+  LeagueEntry map(LeagueSeasonScore source, PlayerInfo player, Long rank, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "loginId", source = "player.id")
   @Mapping(target = "gameCount", source = "gamesPlayed")
   @Mapping(target = "leagueSeasonDivisionSubdivision", source = "subdivision")
-  LeagueSeasonScore map(LeagueEntryBean bean, @Context CycleAvoidingMappingContext context);
+  LeagueSeasonScore map(LeagueEntry bean, @Context CycleAvoidingMappingContext context);
 }

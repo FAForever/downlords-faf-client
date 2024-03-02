@@ -1,7 +1,7 @@
 package com.faforever.client.fa;
 
 import com.faforever.client.builders.GameParametersBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.game.error.GameLaunchException;
 import com.faforever.client.logging.LoggingService;
 import com.faforever.client.player.PlayerService;
@@ -52,7 +52,7 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
 
   @Test
   public void testStartGameOnline() throws Exception {
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().defaultValues().get());
     GameParameters gameParameters = GameParametersBuilder.create().defaultValues().get();
     GameLaunchException throwable = assertThrows(GameLaunchException.class,
                                                  () -> instance.launchOnlineGame(gameParameters, 0, 0));
@@ -74,7 +74,7 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
 
   @Test
   public void testStartOnlineReplay() throws Exception {
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().defaultValues().get());
     GameLaunchException throwable = assertThrows(GameLaunchException.class,
                                                  () -> instance.startReplay(URI.create("google.com"), 0));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));

@@ -1,7 +1,7 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
@@ -39,7 +39,7 @@ public class AddEditPlayerNoteMenuItemTest extends PlatformTest {
 
   @Test
   public void testAddNoteText() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
     when(i18n.get("chat.userContext.addNote")).thenReturn("add");
 
     instance.setObject(player);
@@ -48,7 +48,7 @@ public class AddEditPlayerNoteMenuItemTest extends PlatformTest {
 
   @Test
   public void testEditNoteText() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().note("junit").get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().note("junit").get();
     when(i18n.get("chat.userContext.editNote")).thenReturn("edit");
 
     instance.setObject(player);
@@ -57,7 +57,7 @@ public class AddEditPlayerNoteMenuItemTest extends PlatformTest {
 
   @Test
   public void testVisibleItem() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().get());
     assertTrue(instance.isVisible());
   }
 
@@ -69,7 +69,7 @@ public class AddEditPlayerNoteMenuItemTest extends PlatformTest {
 
   @Test
   public void testInvisibleItemIfOwnPlayer() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
     when(playerService.getCurrentPlayer()).thenReturn(player);
 
     instance.setObject(player);

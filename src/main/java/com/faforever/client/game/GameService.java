@@ -1,13 +1,12 @@
 package com.faforever.client.game;
 
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.mapstruct.GameMapper;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.FafServerAccessor;
-import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameStatus;
 import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
@@ -41,17 +40,17 @@ public class GameService implements InitializingBean {
   private final GameMapper gameMapper;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  private final ObservableMap<Integer, GameBean> gameIdToGame = FXCollections.synchronizedObservableMap(
+  private final ObservableMap<Integer, GameInfo> gameIdToGame = FXCollections.synchronizedObservableMap(
       FXCollections.observableHashMap());
   @Getter
-  private final ObservableList<GameBean> games = JavaFxUtil.attachListToMap(FXCollections.synchronizedObservableList(
+  private final ObservableList<GameInfo> games = JavaFxUtil.attachListToMap(FXCollections.synchronizedObservableList(
                                                                                 FXCollections.observableArrayList(
                                                                                     game -> new Observable[]{game.statusProperty(), game.teamsProperty(), game.titleProperty(), game.mapFolderNameProperty(), game.simModsProperty(), game.passwordProtectedProperty()})),
                                                                             gameIdToGame);
 
   @Override
   public void afterPropertiesSet() {
-    fafServerAccessor.getEvents(GameInfo.class)
+    fafServerAccessor.getEvents(com.faforever.commons.lobby.GameInfo.class)
                      .flatMap(gameInfo -> gameInfo.getGames() == null ? Flux.just(
                                                          gameInfo) : Flux.fromIterable(gameInfo.getGames()))
                      .flatMap(gameInfo -> Mono.zip(Mono.just(gameInfo), Mono.justOrEmpty(getByUid(
@@ -63,8 +62,8 @@ public class GameService implements InitializingBean {
                      .map(TupleUtils.function(gameMapper::update))
                      .doOnError(throwable -> log.error("Error processing game", throwable))
                      .filter(game -> game.getStatus() == GameStatus.CLOSED)
-                     .doOnNext(GameBean::removeListeners)
-                     .map(GameBean::getId)
+                     .doOnNext(GameInfo::removeListeners)
+                     .map(GameInfo::getId)
                      .publishOn(fxApplicationThreadExecutor.asScheduler())
                      .doOnNext(gameIdToGame::remove)
                      .doOnError(throwable -> log.error("Error closing game", throwable))
@@ -78,9 +77,9 @@ public class GameService implements InitializingBean {
     });
   }
 
-  private Mono<GameBean> initializeGameBean(GameInfo gameInfo) {
+  private Mono<GameInfo> initializeGameBean(com.faforever.commons.lobby.GameInfo gameInfo) {
     return Mono.fromCallable(() -> {
-                 GameBean newGame = new GameBean();
+                 GameInfo newGame = new GameInfo();
                  newGame.setId(gameInfo.getUid());
                  newGame.addPlayerChangeListener(generatePlayerChangeListener(newGame));
                  return newGame;
@@ -89,7 +88,7 @@ public class GameService implements InitializingBean {
                .doOnNext(game -> gameIdToGame.put(game.getId(), game));
   }
 
-  private ChangeListener<Set<Integer>> generatePlayerChangeListener(GameBean newGame) {
+  private ChangeListener<Set<Integer>> generatePlayerChangeListener(GameInfo newGame) {
     return (observable, oldValue, newValue) -> {
       oldValue.stream()
               .filter(player -> !newValue.contains(player))
@@ -106,7 +105,7 @@ public class GameService implements InitializingBean {
     };
   }
 
-  public Optional<GameBean> getByUid(Integer uid) {
+  public Optional<GameInfo> getByUid(Integer uid) {
     return Optional.ofNullable(gameIdToGame.get(uid));
   }
 }

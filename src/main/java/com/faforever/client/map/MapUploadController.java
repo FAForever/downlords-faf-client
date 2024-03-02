@@ -1,7 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -128,15 +128,15 @@ public class MapUploadController extends NodeController<Node> {
     }
   }
 
-  private void setMapInfo(MapVersionBean mapInfo) {
+  private void setMapInfo(MapVersion mapInfo) {
     enterMapInfoState();
 
-    mapNameLabel.setText(mapInfo.getMap().getDisplayName());
-    descriptionLabel.setText(mapInfo.getDescription());
-    versionLabel.setText(Optional.ofNullable(mapInfo.getVersion()).map(ComparableVersion::toString).orElse(""));
-    MapSize mapSize = mapInfo.getSize();
-    sizeLabel.setText(i18n.get("mapVault.upload.sizeFormat", mapSize.getWidthInKm(), mapSize.getHeightInKm()));
-    playersLabel.setText(i18n.get("mapVault.upload.playersFormat", mapInfo.getMaxPlayers()));
+    mapNameLabel.setText(mapInfo.map().displayName());
+    descriptionLabel.setText(mapInfo.description());
+    versionLabel.setText(Optional.ofNullable(mapInfo.version()).map(ComparableVersion::toString).orElse(""));
+    MapSize mapSize = mapInfo.size();
+    sizeLabel.setText(i18n.get("mapVault.upload.sizeFormat", mapSize.widthInKm(), mapSize.heightInKm()));
+    playersLabel.setText(i18n.get("mapVault.upload.playersFormat", mapInfo.maxPlayers()));
 
     thumbnailImageView.setImage(generatePreview(mapPath));
   }
