@@ -8,7 +8,7 @@ public record ModVersionReviewBean(
 
   @Override
   public ComparableVersion version() {
-    return subject().getVersion();
+    return subject().version();
   }
   @Override
   public ModVersionReviewBean withScoreAndText(int score, String text) {

@@ -630,6 +630,7 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   @Cacheable(value = CacheNames.MATCHMAKER_POOLS, sync = true)
+  @SuppressWarnings({"rawtypes", "unchecked"})
   public Mono<Tuple2<List<MapVersionBean>, Integer>> getMatchmakerMapsWithPageCount(
       MatchmakerQueueBean matchmakerQueue, int count, int page) {
     PlayerBean player = playerService.getCurrentPlayer();

@@ -480,7 +480,7 @@ public class CreateGameController extends NodeController<Pane> {
 
   @NotNull
   private Set<String> getUUIDsFromModVersions(Collection<ModVersionBean> modVersions) {
-    return modVersions.stream().map(ModVersionBean::getUid).collect(Collectors.toSet());
+    return modVersions.stream().map(ModVersionBean::uid).collect(Collectors.toSet());
   }
 
   private void hostGame(MapVersionBean mapVersion, Collection<ModVersionBean> mods) {

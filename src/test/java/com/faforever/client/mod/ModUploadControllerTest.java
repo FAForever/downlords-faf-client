@@ -10,6 +10,7 @@ import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.PlatformTest;
 import org.hamcrest.Matchers;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -80,7 +81,7 @@ public class ModUploadControllerTest extends PlatformTest {
 
   @Test
   public void testSetModPath() throws Exception {
-    when(modService.extractModInfo(any())).thenReturn(new ModVersionBean());
+    when(modService.extractModInfo(any())).thenReturn(Instancio.create(ModVersionBean.class));
 
     instance.setModPath(modFolder);
 

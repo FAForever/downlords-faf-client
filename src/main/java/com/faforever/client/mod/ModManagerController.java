@@ -39,9 +39,6 @@ import java.util.function.Predicate;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ModManagerController extends NodeController<Parent> {
 
-  private static final Predicate<ModVersionBean> UI_FILTER = modVersion -> modVersion.getModType() == ModType.UI;
-  private static final Predicate<ModVersionBean> SIM_FILTER = modVersion -> modVersion.getModType() == ModType.SIM;
-
   private final ModService modService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
@@ -108,8 +105,8 @@ public class ModManagerController extends NodeController<Parent> {
   }
 
   private Predicate<ModVersionBean> getCombinedFilter(){
-      return modVersion -> (viewToggleGroup.getSelectedToggle() == uiModsButton ? modVersion.getModType() == ModType.UI : modVersion.getModType() == ModType.SIM) && (modSearchTextField.getText()
-                                                                                                                                                                                        .isEmpty() || modVersion.getMod()
+    return modVersion -> (viewToggleGroup.getSelectedToggle() == uiModsButton ? modVersion.modType() == ModType.UI : modVersion.modType() == ModType.SIM) && (modSearchTextField.getText()
+                                                                                                                                                                                .isEmpty() || modVersion.mod()
                                                                                                                                                                                                                 .displayName()
                                                                                                                                                                                                                 .toLowerCase()
                                                                                                                                                                                                                 .contains(
@@ -143,7 +140,7 @@ public class ModManagerController extends NodeController<Parent> {
   @NotNull
   private Callback<ListView<ModVersionBean>, ListCell<ModVersionBean>> modListCellFactory() {
     return param -> {
-      ListCell<ModVersionBean> cell = new StringListCell<>(modVersion -> modVersion.getMod().displayName(),
+      ListCell<ModVersionBean> cell = new StringListCell<>(modVersion -> modVersion.mod().displayName(),
                                                            fxApplicationThreadExecutor);
       cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
         modListView.requestFocus();

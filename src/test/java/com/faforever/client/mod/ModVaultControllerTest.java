@@ -1,6 +1,5 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.builders.ModVersionBeanBuilder;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
@@ -17,6 +16,7 @@ import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import javafx.scene.layout.Pane;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -114,7 +114,7 @@ public class ModVaultControllerTest extends PlatformTest {
 
   @Test
   public void testShowModDetail() throws MalformedURLException {
-    ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().get();
+    ModVersionBean modVersion = Instancio.create(ModVersionBean.class);
     runOnFxThreadAndWait(() -> instance.onDisplayDetails(modVersion));
 
     verify(modDetailController).setModVersion(modVersion);

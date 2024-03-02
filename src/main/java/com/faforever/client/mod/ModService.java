@@ -223,7 +223,7 @@ public class ModService implements InitializingBean, DisposableBean {
       if (modVersion == null) {
         throw new IllegalArgumentException("Mod with uid %s could not be found".formatted(uid));
       }
-      return downloadMod(modVersion.getDownloadUrl(), null, null);
+                                    return downloadMod(modVersion.downloadUrl(), null, null);
     });
   }
 
@@ -238,7 +238,7 @@ public class ModService implements InitializingBean, DisposableBean {
       return Mono.empty();
     }
 
-    return downloadMod(modVersion.getDownloadUrl(), progressProperty, titleProperty);
+    return downloadMod(modVersion.downloadUrl(), progressProperty, titleProperty);
   }
 
   private Mono<Void> downloadMod(URL url, @Nullable DoubleProperty progressProperty,
@@ -288,7 +288,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   public boolean isInstalled(ModVersionBean modVersion) {
-    return modVersion != null && isInstalled(modVersion.getUid());
+    return modVersion != null && isInstalled(modVersion.uid());
   }
 
   public boolean isInstalled(String uid) {
@@ -309,8 +309,7 @@ public class ModService implements InitializingBean, DisposableBean {
 
   public Path getPathForMod(ModVersionBean modVersionToFind) {
     return pathToMod.entrySet()
-                    .stream()
-                    .filter(pathModEntry -> pathModEntry.getValue().getUid().equals(modVersionToFind.getUid()))
+                    .stream().filter(pathModEntry -> pathModEntry.getValue().uid().equals(modVersionToFind.uid()))
                     .findFirst()
                     .map(Entry::getKey)
                     .orElse(null);
@@ -346,21 +345,21 @@ public class ModService implements InitializingBean, DisposableBean {
 
   @Cacheable(value = CacheNames.MODS, sync = true)
   public Image loadThumbnail(ModVersionBean modVersion) {
-    return assetService.loadAndCacheImage(modVersion.getThumbnailUrl(), Path.of("mods"),
+    return assetService.loadAndCacheImage(modVersion.thumbnailUrl(), Path.of("mods"),
                                           () -> themeService.getThemeImage(ThemeService.NO_IMAGE_AVAILABLE));
   }
 
   public CompletableFuture<Integer> getFileSize(ModVersionBean modVersion) {
-    return fileSizeReader.getFileSize(modVersion.getDownloadUrl());
+    return fileSizeReader.getFileSize(modVersion.downloadUrl());
   }
 
   public Collection<ModVersionBean> getActivatedSimAndUIMods() throws IOException {
     Set<String> activeMods = gamePrefsService.readActiveModUIDs();
-    return installedMods.stream().filter(mod -> activeMods.contains(mod.getUid())).collect(Collectors.toSet());
+    return installedMods.stream().filter(mod -> activeMods.contains(mod.uid())).collect(Collectors.toSet());
   }
 
   public void overrideActivatedMods(Collection<ModVersionBean> modVersions) {
-    Set<String> modStates = modVersions.stream().map(ModVersionBean::getUid).collect(Collectors.toSet());
+    Set<String> modStates = modVersions.stream().map(ModVersionBean::uid).collect(Collectors.toSet());
     try {
       gamePrefsService.writeActiveModUIDs(modStates);
     } catch (IOException exception) {
@@ -372,15 +371,15 @@ public class ModService implements InitializingBean, DisposableBean {
     log.trace("Removing mod: `{}`", path);
     ModVersionBean modVersion = pathToMod.remove(path);
     if (modVersion != null) {
-      modsByUid.remove(modVersion.getUid());
+      modsByUid.remove(modVersion.uid());
     }
   }
 
   private void addInstalledMod(Path modFolder) {
     ModVersionBean modVersion = extractModInfo(modFolder);
     pathToMod.put(modFolder, modVersion);
-    if (!modsByUid.containsKey(modVersion.getUid())) {
-      fxApplicationThreadExecutor.execute(() -> modsByUid.put(modVersion.getUid(), modVersion));
+    if (!modsByUid.containsKey(modVersion.uid())) {
+      fxApplicationThreadExecutor.execute(() -> modsByUid.put(modVersion.uid(), modVersion));
       log.debug("Added mod from {}", modFolder);
     }
   }
@@ -403,7 +402,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   private Mono<ModVersionBean> updateModIfNecessary(ModVersionBean installedModVersion) {
-    return getModVersionByUid(installedModVersion.getUid()).map(
+    return getModVersionByUid(installedModVersion.uid()).map(
                                                                dto -> modMapper.map(dto.getMod().getLatestVersion(), new CycleAvoidingMappingContext()))
                                                            .filter(latestModVersion -> !Objects.equals(latestModVersion,
                                                                                                        installedModVersion))
@@ -411,7 +410,7 @@ public class ModService implements InitializingBean, DisposableBean {
                                                                latestModVersion).thenReturn(latestModVersion))
                                                            .doOnError(throwable -> log.info(
                                                                "Failed fetching info about mod `{}` from the api.",
-                                                               installedModVersion.getMod().displayName(),
+                                                               installedModVersion.mod().displayName(),
                                                                throwable))
                                                            .onErrorReturn(installedModVersion)
                                                            .defaultIfEmpty(installedModVersion);

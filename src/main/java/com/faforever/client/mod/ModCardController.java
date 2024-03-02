@@ -52,7 +52,7 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
   @Override
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(installButton, uninstallButton);
-    ObservableValue<ModBean> modObservable = entity.flatMap(ModVersionBean::modProperty);
+    ObservableValue<ModBean> modObservable = entity.map(ModVersionBean::mod);
     numberOfReviewsLabel.textProperty()
                         .bind(modObservable.map(ModBean::modReviewsSummary).map(ModReviewsSummaryBean::numReviews)
             .orElse(0)
@@ -75,14 +75,14 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
     nameLabel.textProperty().bind(modObservable.map(ModBean::displayName).when(showing));
     authorLabel.textProperty().bind(modObservable.map(ModBean::author).when(showing));
     typeLabel.textProperty()
-        .bind(entity.flatMap(ModVersionBean::modTypeProperty).map(ModType::getI18nKey).map(i18n::get).when(showing));
+             .bind(entity.map(ModVersionBean::modType).map(ModType::getI18nKey).map(i18n::get).when(showing));
   }
 
   public void onInstallButtonClicked() {
     ModVersionBean modVersionBean = entity.get();
     modService.downloadIfNecessary(modVersionBean, null, null).subscribe(null, throwable -> {
       log.error("Could not install mod", throwable);
-      notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed", modVersionBean.getMod()
+      notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed", modVersionBean.mod()
                                                                                                                 .displayName(),
                                                         throwable.getLocalizedMessage());
     });
@@ -92,7 +92,7 @@ public class ModCardController extends VaultEntityCardController<ModVersionBean>
     ModVersionBean modVersionBean = entity.get();
     modService.uninstallMod(modVersionBean).exceptionally(throwable -> {
       log.error("Could not delete mod", throwable);
-      notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod", modVersionBean.getMod()
+      notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod", modVersionBean.mod()
                                                                                                                .displayName(),
                                                         throwable.getLocalizedMessage());
       return null;

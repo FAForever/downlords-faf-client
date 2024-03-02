@@ -1,7 +1,5 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.builders.ModVersionBeanBuilder;
-import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
 import com.faforever.client.fx.ImageViewHelper;
@@ -25,6 +23,7 @@ import org.mockito.Mockito;
 import java.io.InputStream;
 import java.util.function.Consumer;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -69,9 +68,7 @@ public class ModCardControllerTest extends PlatformTest {
     lenient().when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
     lenient().when(i18n.get(ModType.UI.getI18nKey())).thenReturn(ModType.UI.name());
 
-    modVersion = ModVersionBeanBuilder.create()
-        .defaultValues().mod(Instancio.create(ModBean.class))
-        .get();
+    modVersion = Instancio.create(ModVersionBean.class);
 
     loadFxml("theme/vault/mod/mod_card.fxml", clazz -> {
       if (clazz == StarsController.class) {
@@ -89,8 +86,8 @@ public class ModCardControllerTest extends PlatformTest {
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
     runOnFxThreadAndWait(() -> instance.setEntity(modVersion));
 
-    assertEquals(modVersion.getMod().displayName(), instance.nameLabel.getText());
-    assertEquals(modVersion.getMod().author(), instance.authorLabel.getText());
+    assertEquals(modVersion.mod().displayName(), instance.nameLabel.getText());
+    assertEquals(modVersion.mod().author(), instance.authorLabel.getText());
     assertNotNull(instance.thumbnailImageView.getImage());
     verify(modService).loadThumbnail(modVersion);
   }
@@ -121,6 +118,9 @@ public class ModCardControllerTest extends PlatformTest {
 
   @Test
   public void testUiModLabel() {
+    ModVersionBean modVersion = Instancio.of(ModVersionBean.class)
+                                         .set(field(ModVersionBean::modType), ModType.UI)
+                                         .create();
     runOnFxThreadAndWait(() -> instance.setEntity(modVersion));
     assertEquals(ModType.UI.name(), instance.typeLabel.getText());
   }

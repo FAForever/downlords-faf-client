@@ -1,6 +1,5 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.builders.ModVersionBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
@@ -91,9 +90,7 @@ public class ModDetailControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     currentPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").get();
-    modVersion = ModVersionBeanBuilder.create().defaultValues().mod(Instancio.create(ModBean.class))
-        .get();
-    modVersion.setMod(Instancio.create(ModBean.class));
+    modVersion = Instancio.create(ModVersionBean.class);
 
     lenient().when(imageViewHelper.createPlaceholderImageOnErrorObservable(any()))
              .thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
@@ -105,8 +102,8 @@ public class ModDetailControllerTest extends PlatformTest {
     lenient().when(modService.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
     lenient().when(i18n.get(eq("modVault.details.author"), anyString()))
              .thenAnswer(invocation -> invocation.getArgument(1));
-    lenient().when(i18n.get("modVault.details.uploader", modVersion.getMod().uploader().getUsername()))
-             .thenReturn(modVersion.getMod().uploader().getUsername());
+    lenient().when(i18n.get("modVault.details.uploader", modVersion.mod().uploader().getUsername()))
+             .thenReturn(modVersion.mod().uploader().getUsername());
     lenient().when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
 
     loadFxml("theme/vault/mod/mod_detail.fxml", clazz -> {
@@ -133,9 +130,9 @@ public class ModDetailControllerTest extends PlatformTest {
 
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals(modVersion.getMod().displayName(), instance.nameLabel.getText());
-    assertEquals(modVersion.getMod().author(), instance.authorLabel.getText());
-    assertEquals(modVersion.getMod().uploader().getUsername(), instance.uploaderLabel.getText());
+    assertEquals(modVersion.mod().displayName(), instance.nameLabel.getText());
+    assertEquals(modVersion.mod().author(), instance.authorLabel.getText());
+    assertEquals(modVersion.mod().uploader().getUsername(), instance.uploaderLabel.getText());
     assertNotNull(instance.thumbnailImageView.getImage());
     verify(modService).getFileSize(modVersion);
     verify(modService).loadThumbnail(modVersion);
@@ -143,20 +140,18 @@ public class ModDetailControllerTest extends PlatformTest {
 
   @Test
   public void testSetModWithNoUploader() {
-    ModVersionBean modVersion = ModVersionBeanBuilder.create()
-                                                     .defaultValues()
-                                                     .mod(Instancio.of(ModBean.class)
-                                                                   .set(field(ModBean::uploader), null)
-                                                                   .create())
-                                                     .get();
+    ModVersionBean modVersion = Instancio.of(ModVersionBean.class)
+                                         .set(field(ModVersionBean::mod),
+                                              Instancio.of(ModBean.class).set(field(ModBean::uploader), null).create())
+                                         .create();
 
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
 
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals(modVersion.getMod().displayName(), instance.nameLabel.getText());
-    assertEquals(modVersion.getMod().author(), instance.authorLabel.getText());
+    assertEquals(modVersion.mod().displayName(), instance.nameLabel.getText());
+    assertEquals(modVersion.mod().author(), instance.authorLabel.getText());
     assertNull(instance.uploaderLabel.getText());
     assertNotNull(instance.thumbnailImageView.getImage());
     verify(modService).loadThumbnail(modVersion);
@@ -164,7 +159,6 @@ public class ModDetailControllerTest extends PlatformTest {
 
   @Test
   public void testSetModNoThumbnailLoadsDefault() {
-    modVersion.setThumbnailUrl(null);
     Image image = new Image(InputStream.nullInputStream());
     when(modService.loadThumbnail(modVersion)).thenReturn(image);
 
@@ -188,7 +182,6 @@ public class ModDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnInstallButtonClickedInstallingModThrowsException() {
-    modVersion.setMod(Instancio.create(ModBean.class));
     when(modService.downloadIfNecessary(any(ModVersionBean.class), any(), any())).thenReturn(
         Mono.error(new FakeTestException()));
 
@@ -226,7 +219,6 @@ public class ModDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnUninstallButtonClickedThrowsException() {
-    modVersion.setMod(Instancio.create(ModBean.class));
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
 
     CompletableFuture<Void> future = new CompletableFuture<>();
@@ -255,7 +247,7 @@ public class ModDetailControllerTest extends PlatformTest {
   @Test
   public void testSetInstalledMod() {
     installed.set(true);
-    when(modService.isInstalled(modVersion.getUid())).thenReturn(true);
+    when(modService.isInstalled(modVersion.uid())).thenReturn(true);
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
 
     verify(reviewsController).setCanWriteReview(true);
@@ -265,7 +257,7 @@ public class ModDetailControllerTest extends PlatformTest {
 
   @Test
   public void testSetUninstalledMod() {
-    when(modService.isInstalled(modVersion.getUid())).thenReturn(false);
+    when(modService.isInstalled(modVersion.uid())).thenReturn(false);
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
 
     verify(reviewsController, times(2)).setCanWriteReview(false);
@@ -280,7 +272,14 @@ public class ModDetailControllerTest extends PlatformTest {
                                .set(field(ModBean::uploader), currentPlayer)
                                .set(field(ModBean::author), currentPlayer.getUsername())
                                .create();
-    modVersion.setMod(modBean);
+    ModVersionBean modVersion = Instancio.of(ModVersionBean.class)
+                                         .set(field(ModVersionBean::mod), Instancio.of(ModBean.class)
+                                                                                   .set(field(ModBean::uploader),
+                                                                                        currentPlayer)
+                                                                                   .set(field(ModBean::author),
+                                                                                        currentPlayer.getUsername())
+                                                                                   .create())
+                                         .create();
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
 
     verify(reviewsController, times(2)).setCanWriteReview(false);
@@ -290,7 +289,7 @@ public class ModDetailControllerTest extends PlatformTest {
 
   @Test
   public void testChangeInstalledStateWhenModIsUninstalled() {
-    when(modService.isInstalled(modVersion.getUid())).thenReturn(true);
+    when(modService.isInstalled(modVersion.uid())).thenReturn(true);
     installed.set(true);
 
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
@@ -306,7 +305,7 @@ public class ModDetailControllerTest extends PlatformTest {
 
   @Test
   public void testChangeInstalledStateWhenModIsInstalled() {
-    when(modService.isInstalled(modVersion.getUid())).thenReturn(false);
+    when(modService.isInstalled(modVersion.uid())).thenReturn(false);
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
 
     assertTrue(instance.installButton.isVisible());

@@ -104,7 +104,7 @@ public class ModDetailController extends NodeController<Node> {
   }
 
   private void bindProperties() {
-    ObservableValue<ModBean> modObservable = modVersion.flatMap(ModVersionBean::modProperty);
+    ObservableValue<ModBean> modObservable = modVersion.map(ModVersionBean::mod);
     thumbnailImageView.imageProperty()
         .bind(modVersion.map(modService::loadThumbnail)
             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
@@ -118,18 +118,17 @@ public class ModDetailController extends NodeController<Node> {
             .map(author -> i18n.get("modVault.details.uploader", author))
             .when(showing));
     idLabel.textProperty()
-        .bind(modVersion.flatMap(ModVersionBean::idProperty).map(id -> i18n.get("mod.idNumber", id)).when(showing));
+           .bind(modVersion.map(ModVersionBean::id).map(id -> i18n.get("mod.idNumber", id)).when(showing));
 
-    updatedLabel.textProperty()
-        .bind(modVersion.flatMap(ModVersionBean::createTimeProperty).map(timeService::asDate).when(showing));
+    updatedLabel.textProperty().bind(modVersion.map(ModVersionBean::createTime).map(timeService::asDate).when(showing));
 
-    modDescriptionLabel.textProperty().bind(modVersion.flatMap(ModVersionBean::descriptionProperty)
+    modDescriptionLabel.textProperty().bind(modVersion.map(ModVersionBean::description)
         .map(FaStrings::removeLocalizationTag)
         .map(description -> StringUtils.isBlank(description) ? i18n.get("map.noDescriptionAvailable") : description)
         .when(showing));
 
     versionLabel.textProperty()
-        .bind(modVersion.flatMap(ModVersionBean::versionProperty).map(ComparableVersion::toString).when(showing));
+                .bind(modVersion.map(ModVersionBean::version).map(ComparableVersion::toString).when(showing));
 
     BooleanExpression installed = modService.isInstalledBinding(modVersion);
     installButton.visibleProperty().bind(installed.not().when(showing));
@@ -161,11 +160,12 @@ public class ModDetailController extends NodeController<Node> {
     }
 
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
-    reviewsController.setCanWriteReview(modService.isInstalled(newValue.getUid())
-        && !currentPlayer.getUsername().equals(newValue.getMod().author()) && !currentPlayer.equals(newValue
-        .getMod().uploader()));
+    reviewsController.setCanWriteReview(modService.isInstalled(newValue.uid()) && !currentPlayer.getUsername()
+                                                                                                .equals(newValue.mod()
+                                                                                                                .author()) && !currentPlayer.equals(
+        newValue.mod().uploader()));
 
-    reviewService.getModReviews(newValue.getMod())
+    reviewService.getModReviews(newValue.mod())
         .collectList()
         .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(modReviews::setAll, throwable -> log.error("Unable to populate reviews", throwable));
@@ -222,7 +222,7 @@ public class ModDetailController extends NodeController<Node> {
                                    progressLabel.textProperty()).subscribe(null, throwable -> {
           log.error("Could not install mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed",
-                                                            modVersion.getMod().displayName(),
+                                                            modVersion.mod().displayName(),
                                                             throwable.getLocalizedMessage());
         });
   }
@@ -236,7 +236,7 @@ public class ModDetailController extends NodeController<Node> {
         .exceptionally(throwable -> {
           log.error("Could not delete mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod",
-                                                            modVersion.getMod().displayName(),
+                                                            modVersion.mod().displayName(),
                                                             throwable.getLocalizedMessage());
           return null;
         });

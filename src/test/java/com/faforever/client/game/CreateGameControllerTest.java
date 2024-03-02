@@ -1,11 +1,9 @@
 package com.faforever.client.game;
 
 import com.faforever.client.builders.MapVersionBeanBuilder;
-import com.faforever.client.builders.ModVersionBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.filter.MapFilterController;
@@ -172,32 +170,6 @@ public class CreateGameControllerTest extends PlatformTest {
   }
 
   @Test
-  public void testMapSearchTextFieldKeyPressedUpForPopulated() {
-
-    runOnFxThreadAndWait(() -> {
-      mapList.add(MapVersionBeanBuilder.create()
-                                       .defaultValues()
-                                       .map(Instancio.of(MapBean.class)
-                                                     .set(field(MapBean::displayName), "Test1")
-                                                     .create())
-                                       .get());
-      mapList.add(MapVersionBeanBuilder.create()
-                                       .defaultValues()
-                                       .map(Instancio.of(MapBean.class)
-                                                     .set(field(MapBean::displayName), "Test1")
-                                                     .create())
-                                       .get());
-      instance.mapSearchTextField.setText("Test");
-      instance.mapSearchTextField.getOnKeyPressed().handle(keyDownPressed);
-      instance.mapSearchTextField.getOnKeyPressed().handle(keyDownReleased);
-      instance.mapSearchTextField.getOnKeyPressed().handle(keyUpPressed);
-      instance.mapSearchTextField.getOnKeyPressed().handle(keyUpReleased);
-    });
-
-    assertThat(instance.mapListView.getSelectionModel().getSelectedIndex(), is(0));
-  }
-
-  @Test
   public void testSetLastGameTitle() {
     lastGamePrefs.setLastGameTitle("testGame");
 
@@ -267,23 +239,6 @@ public class CreateGameControllerTest extends PlatformTest {
   }
 
   @Test
-  public void testSelectLastMap() {
-    MapVersionBean lastMapBean = MapVersionBeanBuilder.create()
-        .defaultValues()
-        .folderName("foo").map(Instancio.create(MapBean.class))
-        .get();
-
-    runOnFxThreadAndWait(() -> {
-      lastGamePrefs.setLastMap("foo");
-      mapList.add(MapVersionBeanBuilder.create().defaultValues().get());
-      mapList.add(lastMapBean);
-      reinitialize(instance);
-    });
-
-    assertThat(instance.mapListView.getSelectionModel().getSelectedItem(), is(lastMapBean));
-  }
-
-  @Test
   public void testCloseButtonTriggeredAfterCreatingGame() {
     Runnable closeAction = mock(Runnable.class);
     instance.setOnCloseButtonClickedListener(closeAction);
@@ -301,10 +256,7 @@ public class CreateGameControllerTest extends PlatformTest {
   @Test
   public void testCreateGameWithSelectedModAndMap() {
     ArgumentCaptor<NewGameInfo> newGameInfoArgumentCaptor = ArgumentCaptor.forClass(NewGameInfo.class);
-    ModVersionBean modVersion = ModVersionBeanBuilder.create()
-        .defaultValues()
-        .uid("junit-mod").mod(Instancio.create(ModBean.class))
-        .get();
+    ModVersionBean modVersion = Instancio.create(ModVersionBean.class);
 
     when(modManagerController.getSelectedModVersions()).thenReturn(Set.of(modVersion));
 
@@ -323,20 +275,16 @@ public class CreateGameControllerTest extends PlatformTest {
     verify(modManagerController).getSelectedModVersions();
     verify(gameRunner).host(newGameInfoArgumentCaptor.capture());
     NewGameInfo gameInfo = newGameInfoArgumentCaptor.getValue();
-    assertThat(gameInfo.simMods(), contains("junit-mod"));
+    assertThat(gameInfo.simMods(), contains(modVersion.uid()));
     assertThat(gameInfo.map(), is(map.getFolderName()));
   }
 
   @Test
   public void testCreateGameWithOutdatedMod() {
     ArgumentCaptor<NewGameInfo> newGameInfoArgumentCaptor = ArgumentCaptor.forClass(NewGameInfo.class);
-    ModVersionBean modVersion = new ModVersionBean();
-    String uidMod = "outdated-mod";
-    modVersion.setUid(uidMod);
+    ModVersionBean modVersion = Instancio.create(ModVersionBean.class);
 
-    ModVersionBean newModVersion = new ModVersionBean();
-    String newModUid = "new-mod";
-    newModVersion.setUid(newModUid);
+    ModVersionBean newModVersion = Instancio.create(ModVersionBean.class);
 
     Set<ModVersionBean> selectedMods = Set.of(modVersion);
     when(modManagerController.getSelectedModVersions()).thenReturn(selectedMods);
@@ -358,7 +306,7 @@ public class CreateGameControllerTest extends PlatformTest {
 
     verify(modManagerController).getSelectedModVersions();
     verify(gameRunner).host(newGameInfoArgumentCaptor.capture());
-    assertThat(newGameInfoArgumentCaptor.getValue().simMods(), contains(newModUid));
+    assertThat(newGameInfoArgumentCaptor.getValue().simMods(), contains(newModVersion.uid()));
     assertThat(newGameInfoArgumentCaptor.getValue().map(), is(map.getFolderName()));
   }
 

@@ -20,7 +20,6 @@ public interface ModMapper {
     @Mapping(target = "modType", source = "modInfo.uiOnly")
     @Mapping(target = "mod", expression = "java(new ModBean())")
     @Mapping(target = "mod.displayName", source = "modInfo.name")
-    @Mapping(target = "imagePath", expression = "java(mapImagePath(modInfo, basePath))")
     ModVersionBean map(com.faforever.commons.mod.Mod modInfo, Path basePath);
 
     default ModType mapModType(boolean isUIOnly) {
@@ -39,7 +38,9 @@ public interface ModMapper {
 
     Mod map(ModBean bean, @Context CycleAvoidingMappingContext context);
 
+    @Mapping(target = "modType", source = "type")
     ModVersionBean map(ModVersion dto, @Context CycleAvoidingMappingContext context);
 
+    @Mapping(target = "type", source = "modType")
     ModVersion map(ModVersionBean bean, @Context CycleAvoidingMappingContext context);
 }
