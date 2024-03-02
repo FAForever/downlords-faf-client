@@ -1,6 +1,5 @@
 package com.faforever.client.reporting;
 
-import com.faforever.client.builders.ModerationReportBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.domain.ModerationReportBean;
@@ -11,9 +10,9 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.PlatformTest;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -45,8 +44,6 @@ public class ReportDialogControllerTest extends PlatformTest {
   @Mock
   private I18n i18n;
   @Mock
-  private UiService uiService;
-  @Mock
   private TimeService timeService;
   @Mock
   private PlayerService playerService;
@@ -72,7 +69,7 @@ public class ReportDialogControllerTest extends PlatformTest {
     lenient().when(replayService.findById(replay.getId())).thenReturn(Mono.just(replay));
     lenient().when(moderationService.getModerationReports()).thenReturn(Flux.just());
     lenient().when(moderationService.postModerationReport(any()))
-             .thenReturn(Mono.just(ModerationReportBeanBuilder.create().defaultValues().get()));
+             .thenReturn(Mono.just(Instancio.create(ModerationReportBean.class)));
 
     loadFxml("theme/reporting/report_dialog.fxml", clazz -> instance);
 

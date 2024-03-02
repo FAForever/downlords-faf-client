@@ -1,7 +1,6 @@
 package com.faforever.client.reporting;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.ModerationReportBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.ModerationReportBean;
 import com.faforever.client.domain.PlayerBean;
@@ -13,6 +12,7 @@ import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.ModerationReport;
 import com.faforever.commons.api.elide.ElideEntity;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -55,7 +55,7 @@ public class ModerationServiceTest extends ServiceTest {
 
   @Test
   public void testGetModerationReports() {
-    ModerationReportBean report = ModerationReportBeanBuilder.create().defaultValues().get();
+    ModerationReportBean report = Instancio.create(ModerationReportBean.class);
     Flux<ElideEntity> resultFlux = Flux.just(moderationReportMapper.map(report, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getModerationReports()).expectNext(report).verifyComplete();
@@ -67,7 +67,7 @@ public class ModerationServiceTest extends ServiceTest {
 
   @Test
   public void testPostModerationReport() {
-    ModerationReportBean report = ModerationReportBeanBuilder.create().defaultValues().get();
+    ModerationReportBean report = Instancio.create(ModerationReportBean.class);
     ModerationReport moderationReport = moderationReportMapper.map(report, new CycleAvoidingMappingContext());
     Mono<ElideEntity> resultMono = Mono.just(moderationReport);
     when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);

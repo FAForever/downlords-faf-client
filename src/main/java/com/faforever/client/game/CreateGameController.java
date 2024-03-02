@@ -324,12 +324,6 @@ public class CreateGameController extends NodeController<Pane> {
                                                                                             .mapType() == MapType.SKIRMISH);
     filteredMaps = new FilteredList<>(skirmishMaps.sorted(
         Comparator.comparing(mapVersion -> mapVersion.getMap().displayName(), String.CASE_INSENSITIVE_ORDER)));
-    filteredMaps.predicateProperty().when(showing).subscribe(() -> {
-      MultipleSelectionModel<MapVersionBean> selectionModel = mapListView.getSelectionModel();
-      if (!filteredMaps.isEmpty() && !filteredMaps.contains(selectionModel.getSelectedItem())) {
-        selectionModel.select(0);
-      }
-    });
     skirmishMaps.addListener((ListChangeListener<MapVersionBean>) change -> {
       while (change.next()) {
         if (change.wasAdded()) {

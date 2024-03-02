@@ -39,7 +39,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -174,15 +173,21 @@ public class CreateGameControllerTest extends PlatformTest {
 
   @Test
   public void testMapSearchTextFieldKeyPressedUpForPopulated() {
-    mapList.add(MapVersionBeanBuilder.create()
-        .defaultValues().map(Instancio.of(MapBean.class).set(field(MapBean::displayName), "Test1").create())
-        .get());
-    mapList.add(MapVersionBeanBuilder.create()
-        .defaultValues().map(Instancio.of(MapBean.class).set(field(MapBean::displayName), "Test1").create())
-        .get());
-    instance.mapSearchTextField.setText("Test");
 
     runOnFxThreadAndWait(() -> {
+      mapList.add(MapVersionBeanBuilder.create()
+                                       .defaultValues()
+                                       .map(Instancio.of(MapBean.class)
+                                                     .set(field(MapBean::displayName), "Test1")
+                                                     .create())
+                                       .get());
+      mapList.add(MapVersionBeanBuilder.create()
+                                       .defaultValues()
+                                       .map(Instancio.of(MapBean.class)
+                                                     .set(field(MapBean::displayName), "Test1")
+                                                     .create())
+                                       .get());
+      instance.mapSearchTextField.setText("Test");
       instance.mapSearchTextField.getOnKeyPressed().handle(keyDownPressed);
       instance.mapSearchTextField.getOnKeyPressed().handle(keyDownReleased);
       instance.mapSearchTextField.getOnKeyPressed().handle(keyUpPressed);
@@ -217,8 +222,10 @@ public class CreateGameControllerTest extends PlatformTest {
   @Test
   public void testButtonBindingIfTitleNotAscii() {
     when(i18n.get("game.create.titleNotAscii")).thenReturn("title not ascii");
-    instance.titleTextField.setText("ты");
-    runOnFxThreadAndWait(() -> reinitialize(instance));
+    runOnFxThreadAndWait(() -> {
+      instance.titleTextField.setText("ты");
+      reinitialize(instance);
+    });
 
     assertThat(instance.titleTextField.getText(), is("ты"));
     assertThat(instance.createGameButton.getText(), is("title not ascii"));
@@ -227,9 +234,11 @@ public class CreateGameControllerTest extends PlatformTest {
   @Test
   public void testButtonBindingIfPasswordNotAscii() {
     when(i18n.get("game.create.passwordNotAscii")).thenReturn("password not ascii");
-    instance.titleTextField.setText("Test");
-    instance.passwordTextField.setText("ты");
-    runOnFxThreadAndWait(() -> reinitialize(instance));
+    runOnFxThreadAndWait(() -> {
+      instance.titleTextField.setText("Test");
+      instance.passwordTextField.setText("ты");
+      reinitialize(instance);
+    });
 
     assertThat(instance.passwordTextField.getText(), is("ты"));
     assertThat(instance.createGameButton.getText(), is("password not ascii"));
@@ -264,14 +273,12 @@ public class CreateGameControllerTest extends PlatformTest {
         .folderName("foo").map(Instancio.create(MapBean.class))
         .get();
 
-    mapList.add(MapVersionBeanBuilder.create()
-        .defaultValues().map(Instancio.create(MapBean.class))
-        .get());
-    mapList.add(lastMapBean);
-
-    lastGamePrefs.setLastMap("foo");
-
-    runOnFxThreadAndWait(() -> reinitialize(instance));
+    runOnFxThreadAndWait(() -> {
+      lastGamePrefs.setLastMap("foo");
+      mapList.add(MapVersionBeanBuilder.create().defaultValues().get());
+      mapList.add(lastMapBean);
+      reinitialize(instance);
+    });
 
     assertThat(instance.mapListView.getSelectionModel().getSelectedItem(), is(lastMapBean));
   }
@@ -285,7 +292,7 @@ public class CreateGameControllerTest extends PlatformTest {
     when(mapService.updateLatestVersionIfNecessary(latestVersion)).thenReturn(Mono.just(latestVersion));
 
     mapList.add(latestVersion);
-    instance.mapListView.getSelectionModel().select(0);
+    instance.mapListView.getSelectionModel().select(latestVersion);
     instance.onCreateButtonClicked();
 
     verify(closeAction).run();
@@ -308,7 +315,7 @@ public class CreateGameControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> {
       mapList.add(map);
-      instance.mapListView.getSelectionModel().select(0);
+      instance.mapListView.getSelectionModel().select(map);
       instance.setOnCloseButtonClickedListener(mock(Runnable.class));
       instance.onCreateButtonClicked();
     });
@@ -343,7 +350,7 @@ public class CreateGameControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> {
       mapList.add(map);
-      instance.mapListView.getSelectionModel().select(0);
+      instance.mapListView.getSelectionModel().select(map);
       instance.setOnCloseButtonClickedListener(mock(Runnable.class));
     });
 
@@ -364,9 +371,9 @@ public class CreateGameControllerTest extends PlatformTest {
 
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(Mono.just(map));
 
-    mapList.add(map);
     runOnFxThreadAndWait(() -> {
-      instance.mapListView.getSelectionModel().select(0);
+      mapList.add(map);
+      instance.mapListView.getSelectionModel().select(map);
       instance.setOnCloseButtonClickedListener(mock(Runnable.class));
       instance.onCreateButtonClicked();
     });
@@ -391,7 +398,7 @@ public class CreateGameControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> {
       mapList.add(outdatedMap);
-      instance.mapListView.getSelectionModel().select(0);
+      instance.mapListView.getSelectionModel().select(outdatedMap);
       instance.setOnCloseButtonClickedListener(mock(Runnable.class));
       instance.onCreateButtonClicked();
     });
@@ -407,12 +414,12 @@ public class CreateGameControllerTest extends PlatformTest {
     MapVersionBean map = MapVersionBeanBuilder.create()
         .defaultValues().map(Instancio.create(MapBean.class))
         .get();
-    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(
+    when(mapService.updateLatestVersionIfNecessary(any())).thenReturn(
         Mono.error(new RuntimeException("error when checking for update or updating map")));
 
-    mapList.add(map);
     runOnFxThreadAndWait(() -> {
-      instance.mapListView.getSelectionModel().select(0);
+      mapList.add(map);
+      instance.mapListView.getSelectionModel().select(map);
       instance.setOnCloseButtonClickedListener(mock(Runnable.class));
       instance.onCreateButtonClicked();
     });
@@ -429,8 +436,7 @@ public class CreateGameControllerTest extends PlatformTest {
                                                .create();
     when(featuredModService.getFeaturedMods()).thenReturn(Flux.just(featuredModBean));
 
-    WaitForAsyncUtils.asyncFx(() -> reinitialize(instance));
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> reinitialize(instance));
 
     assertThat(instance.featuredModListView.getItems(), contains(featuredModBean));
   }
@@ -507,9 +513,7 @@ public class CreateGameControllerTest extends PlatformTest {
     MapVersionBean mapVersionBean = MapVersionBeanBuilder.create()
                                                          .map(Instancio.of(MapBean.class)
                                                                        .set(field(MapBean::displayName), "dual")
-                                                                       .create())
-        .folderName("gap.v0001")
-        .get();
+                                                                       .create()).folderName("gap.v0001").get();
     assertTrue(filter.apply("", mapVersionBean));
     assertTrue(filter.apply("Gap", mapVersionBean));
     assertFalse(filter.apply("duel", mapVersionBean));
@@ -521,27 +525,33 @@ public class CreateGameControllerTest extends PlatformTest {
 
   @Test
   public void testMapNameSearchKeepsSelectedIfInMaps() {
-    ArgumentCaptor<BiFunction<String, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<String, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.captor();
     verify(mapFilterController).addExternalFilter(any(ObservableValue.class),
                                                   argumentCaptor.capture());
+
     BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
     ObjectProperty<Predicate<MapVersionBean>> predicate = mapFilterController.predicateProperty();
-    mapList.add(MapVersionBeanBuilder.create()
-        .defaultValues().map(Instancio.of(MapBean.class).set(field(MapBean::displayName), "Test1").create())
-        .get());
-
-    predicate.setValue((item) -> filter.apply("Test", item));
+    MapVersionBean map = MapVersionBeanBuilder.create()
+                                              .defaultValues()
+                                              .map(Instancio.of(MapBean.class)
+                                                            .set(field(MapBean::displayName), "Test1")
+                                                            .create())
+                                              .get();
     runOnFxThreadAndWait(() -> {
-      instance.mapListView.getSelectionModel().select(0);
+      mapList.add(map);
+      predicate.setValue((item) -> filter.apply("Test", item));
+      instance.mapListView.getSelectionModel().select(map);
       instance.mapSearchTextField.setText("Test");
     });
 
-    assertThat(instance.mapListView.getSelectionModel().getSelectedIndex(), is(0));
+    assertThat(instance.mapListView.getSelectionModel().getSelectedItem(), is(map));
 
-    predicate.setValue((item) -> filter.apply("Test1", item));
-    runOnFxThreadAndWait(() -> instance.mapSearchTextField.setText("Test1"));
+    runOnFxThreadAndWait(() -> {
+      predicate.setValue((item) -> filter.apply("Test1", item));
+      instance.mapSearchTextField.setText("Test1");
+    });
 
-    assertThat(instance.mapListView.getSelectionModel().getSelectedIndex(), is(0));
+    assertThat(instance.mapListView.getSelectionModel().getSelectedItem(), is(map));
   }
 
   @Test
