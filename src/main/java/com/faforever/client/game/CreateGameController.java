@@ -281,8 +281,8 @@ public class CreateGameController extends NodeController<Pane> {
   protected void initMapSelection() {
     mapNameLabel.textProperty().bind(selectedMap.map(MapVersionBean::map).map(MapBean::displayName).when(showing));
     mapSizeLabel.textProperty().bind(selectedMap.map(MapVersionBean::size)
-                                 .map(mapSize -> i18n.get("mapPreview.size", mapSize.getWidthInKm(),
-                                                          mapSize.getHeightInKm()))
+                                                .map(mapSize -> i18n.get("mapPreview.size", mapSize.widthInKm(),
+                                                                         mapSize.heightInKm()))
                                  .when(showing));
     BackgroundSize backgroundSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true,
                                                        false);

@@ -75,7 +75,7 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
     numberOfPlaysLabel.textProperty().bind(mapObservable.map(MapBean::gamesPlayed).map(i18n::number).when(showing));
 
     sizeLabel.textProperty().bind(entity.map(MapVersionBean::size)
-            .map(size -> i18n.get("mapPreview.size", size.getWidthInKm(), size.getHeightInKm()))
+                                        .map(size -> i18n.get("mapPreview.size", size.widthInKm(), size.heightInKm()))
             .when(showing));
 
     maxPlayersLabel.textProperty().bind(entity.map(MapVersionBean::maxPlayers).map(i18n::number).when(showing));

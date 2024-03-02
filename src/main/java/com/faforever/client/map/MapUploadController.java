@@ -135,7 +135,7 @@ public class MapUploadController extends NodeController<Node> {
     descriptionLabel.setText(mapInfo.description());
     versionLabel.setText(Optional.ofNullable(mapInfo.version()).map(ComparableVersion::toString).orElse(""));
     MapSize mapSize = mapInfo.size();
-    sizeLabel.setText(i18n.get("mapVault.upload.sizeFormat", mapSize.getWidthInKm(), mapSize.getHeightInKm()));
+    sizeLabel.setText(i18n.get("mapVault.upload.sizeFormat", mapSize.widthInKm(), mapSize.heightInKm()));
     playersLabel.setText(i18n.get("mapVault.upload.playersFormat", mapInfo.maxPlayers()));
 
     thumbnailImageView.setImage(generatePreview(mapPath));

@@ -35,7 +35,7 @@ public interface MapMapper {
     if (dto.getWidth() == null || dto.getHeight() == null) {
       return null;
     }
-    return MapSize.valueOf(dto.getWidth(), dto.getHeight());
+    return new MapSize(dto.getWidth(), dto.getHeight());
   }
 
   List<MapVersionBean> mapVersionDtos(List<MapVersion> dto, @Context CycleAvoidingMappingContext context);
@@ -66,7 +66,7 @@ public interface MapMapper {
                                       (int) (params.getSize() / 51.2), maxPlayers);
     MapBean mapBean = new MapBean(null, folderName, 0, null, false,
                                   MapType.SKIRMISH, null);
-    MapSize mapSize = MapSize.valueOf(params.getSize(), params.getSize());
+    MapSize mapSize = new MapSize(params.getSize(), params.getSize());
     return new MapVersionBean(null, folderName, 0, null, maxPlayers, mapSize, null, false, true, null, null, null,
                               mapBean, null);
   }

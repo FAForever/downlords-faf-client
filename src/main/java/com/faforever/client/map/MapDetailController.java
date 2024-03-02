@@ -132,8 +132,8 @@ public class MapDetailController extends NodeController<Node> {
     mapPlaysLabel.textProperty().bind(mapObservable.map(MapBean::gamesPlayed).map(i18n::number).when(showing));
     versionPlaysLabel.textProperty().bind(mapVersion.map(MapVersionBean::gamesPlayed).map(i18n::number).when(showing));
     dimensionsLabel.textProperty().bind(mapVersion.map(MapVersionBean::size)
-                                   .map(mapSize -> i18n.get("mapPreview.size", mapSize.getWidthInKm(),
-                                                            mapSize.getHeightInKm()))
+                                                  .map(mapSize -> i18n.get("mapPreview.size", mapSize.widthInKm(),
+                                                                           mapSize.heightInKm()))
                                    .when(showing));
     dateLabel.textProperty().bind(mapVersion.map(MapVersionBean::createTime).map(timeService::asDate).when(showing));
 

@@ -184,7 +184,7 @@ public class MapServiceTest extends PlatformTest {
     assertThat(mapBean, notNullValue());
     assertThat(mapBean.folderName(), is("SCMP_001"));
     assertThat(mapBean.map().displayName(), is("Burial Mounds"));
-    assertThat(mapBean.size(), equalTo(MapSize.valueOf(1024, 1024)));
+    assertThat(mapBean.size(), equalTo(new MapSize(1024, 1024)));
   }
 
   @Test
@@ -207,7 +207,7 @@ public class MapServiceTest extends PlatformTest {
     assertThat(mapBean, notNullValue());
     assertThat(mapBean.id(), nullValue());
     assertThat(mapBean.description(), startsWith("Initial scans of the planet"));
-    assertThat(mapBean.size(), is(MapSize.valueOf(1024, 1024)));
+    assertThat(mapBean.size(), is(new MapSize(1024, 1024)));
     assertThat(mapBean.version(), is(new ComparableVersion("1")));
     assertThat(mapBean.folderName(), is("SCMP_001"));
   }
@@ -471,19 +471,19 @@ public class MapServiceTest extends PlatformTest {
   public void testGetMatchMakerMapsWithPagination() throws Exception {
     MapPoolAssignmentBean mapPoolAssignment1 = Instancio.of(MapPoolAssignmentBean.class)
                                                         .set(field(MapVersionBean::size).within(
-                                                            scope(MapVersionBean.class)), MapSize.valueOf(512, 512))
+                                                            scope(MapVersionBean.class)), new MapSize(512, 512))
                                                         .set(field(MapBean::displayName).within(scope(MapBean.class)),
                                                              "a")
                                                         .create();
     MapPoolAssignmentBean mapPoolAssignment2 = Instancio.of(MapPoolAssignmentBean.class)
                                                         .set(field(MapVersionBean::size).within(
-                                                            scope(MapVersionBean.class)), MapSize.valueOf(512, 512))
+                                                            scope(MapVersionBean.class)), new MapSize(512, 512))
                                                         .set(field(MapBean::displayName).within(scope(MapBean.class)),
                                                              "b")
                                                         .create();
     MapPoolAssignmentBean mapPoolAssignment3 = Instancio.of(MapPoolAssignmentBean.class)
                                                         .set(field(MapVersionBean::size).within(
-                                                            scope(MapVersionBean.class)), MapSize.valueOf(1024, 1024))
+                                                            scope(MapVersionBean.class)), new MapSize(1024, 1024))
                                                         .set(field(MapBean::displayName).within(scope(MapBean.class)),
                                                              "c")
                                                         .create();

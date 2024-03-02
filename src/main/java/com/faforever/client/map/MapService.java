@@ -294,7 +294,7 @@ public class MapService implements InitializingBean, DisposableBean {
                                 MapType.fromValue(scenarioInfo.get("type").toString()), null);
       String folderName = mapFolder.getFileName().toString();
       String description = FaStrings.removeLocalizationTag(scenarioInfo.get("description").toString());
-      MapSize mapSize = MapSize.valueOf(size.get(1).toint(), size.get(2).toint());
+      MapSize mapSize = new MapSize(size.get(1).toint(), size.get(2).toint());
       int maxPlayers = scenarioInfo.get("Configurations").get("standard").get("teams").get(1).get("armies").length();
 
       ComparableVersion comparableVersion = null;
