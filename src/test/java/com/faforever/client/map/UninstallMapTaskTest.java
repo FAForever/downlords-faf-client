@@ -1,6 +1,6 @@
 package com.faforever.client.map;
 
-import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.io.ByteCopier;
 import org.instancio.Instancio;
@@ -51,7 +51,7 @@ public class UninstallMapTaskTest extends ServiceTest {
   public void testCall() throws Exception {
     copyMap("theta_passage_5.v0001", THETA_PASSAGE);
 
-    MapVersionBean map = Instancio.create(MapVersionBean.class);
+    MapVersion map = Instancio.create(MapVersion.class);
 
     Path mapPath = mapsDirectory.resolve("theta_passage_5.v0001");
     when(mapService.getPathForMap(map)).thenReturn(mapPath);

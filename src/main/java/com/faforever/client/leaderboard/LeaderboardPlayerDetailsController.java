@@ -1,8 +1,8 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.LeagueSeasonBean;
-import com.faforever.client.domain.SubdivisionBean;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.api.LeagueSeason;
+import com.faforever.client.domain.api.Subdivision;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
@@ -39,8 +39,8 @@ public class LeaderboardPlayerDetailsController extends NodeController<HBox> {
   public ImageView playerDivisionImageView;
   public Label placementLabel;
 
-  private final ObjectProperty<LeagueEntryBean> leagueEntry = new SimpleObjectProperty<>();
-  private final ObjectProperty<LeagueSeasonBean> leagueSeason = new SimpleObjectProperty<>();
+  private final ObjectProperty<LeagueEntry> leagueEntry = new SimpleObjectProperty<>();
+  private final ObjectProperty<LeagueSeason> leagueSeason = new SimpleObjectProperty<>();
 
   @Override
   protected void onInitialize() {
@@ -49,20 +49,20 @@ public class LeaderboardPlayerDetailsController extends NodeController<HBox> {
 
     scoreLabel.setText(i18n.get("leaderboard.score").toUpperCase());
 
-    playerDivisionNameLabel.textProperty().bind(leagueEntry.map(LeagueEntryBean::subdivision).map(subdivision -> {
+    playerDivisionNameLabel.textProperty().bind(leagueEntry.map(LeagueEntry::subdivision).map(subdivision -> {
       String divisionName = i18n.get("leagues.divisionName.%s".formatted(subdivision.division().nameKey()));
       return i18n.get("leaderboard.divisionName", divisionName, subdivision.nameKey());
     }).map(String::toUpperCase));
 
-    playerScoreLabel.textProperty().bind(leagueEntry.map(LeagueEntryBean::score).map(i18n::number).orElse("/"));
+    playerScoreLabel.textProperty().bind(leagueEntry.map(LeagueEntry::score).map(i18n::number).orElse("/"));
 
     placementLabel.visibleProperty()
-                  .bind(leagueEntry.map(LeagueEntryBean::subdivision).map(Objects::isNull).orElse(true).when(showing));
+                  .bind(leagueEntry.map(LeagueEntry::subdivision).map(Objects::isNull).orElse(true).when(showing));
 
     IntegerExpression returningGames = IntegerExpression.integerExpression(
-        leagueSeason.map(LeagueSeasonBean::placementGamesReturningPlayer));
+        leagueSeason.map(LeagueSeason::placementGamesReturningPlayer));
     IntegerExpression defaultGames = IntegerExpression.integerExpression(
-        leagueSeason.map(LeagueSeasonBean::placementGames));
+        leagueSeason.map(LeagueSeason::placementGames));
     placementLabel.textProperty().bind(leagueEntry.flatMap(leagueEntry -> {
       IntegerExpression gamesNeeded = leagueEntry.returningPlayer() ? returningGames : defaultGames;
       return gamesNeeded.map(needed -> i18n.get("leaderboard.placement", leagueEntry.gamesPlayed(), needed))
@@ -70,9 +70,7 @@ public class LeaderboardPlayerDetailsController extends NodeController<HBox> {
                         .when(showing);
     }));
 
-    playerDivisionImageView.imageProperty()
-                           .bind(leagueEntry.map(LeagueEntryBean::subdivision)
-                                            .map(SubdivisionBean::imageUrl)
+    playerDivisionImageView.imageProperty().bind(leagueEntry.map(LeagueEntry::subdivision).map(Subdivision::imageUrl)
                                             .map(leaderboardService::loadDivisionImage));
 
     scoreArc.lengthProperty()
@@ -81,27 +79,27 @@ public class LeaderboardPlayerDetailsController extends NodeController<HBox> {
                              .when(showing));
   }
 
-  public LeagueEntryBean getLeagueEntry() {
+  public LeagueEntry getLeagueEntry() {
     return leagueEntry.get();
   }
 
-  public ObjectProperty<LeagueEntryBean> leagueEntryProperty() {
+  public ObjectProperty<LeagueEntry> leagueEntryProperty() {
     return leagueEntry;
   }
 
-  public void setLeagueEntry(LeagueEntryBean leagueEntry) {
+  public void setLeagueEntry(LeagueEntry leagueEntry) {
     this.leagueEntry.set(leagueEntry);
   }
 
-  public LeagueSeasonBean getLeagueSeason() {
+  public LeagueSeason getLeagueSeason() {
     return leagueSeason.get();
   }
 
-  public ObjectProperty<LeagueSeasonBean> leagueSeasonProperty() {
+  public ObjectProperty<LeagueSeason> leagueSeasonProperty() {
     return leagueSeason;
   }
 
-  public void setLeagueSeason(LeagueSeasonBean leagueSeason) {
+  public void setLeagueSeason(LeagueSeason leagueSeason) {
     this.leagueSeason.set(leagueSeason);
   }
 

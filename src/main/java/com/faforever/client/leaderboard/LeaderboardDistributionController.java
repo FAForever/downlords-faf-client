@@ -1,9 +1,9 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.domain.DivisionBean;
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.SubdivisionBean;
+import com.faforever.client.domain.api.Division;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.api.Subdivision;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.ToStringOnlyConverter;
 import com.faforever.client.i18n.I18n;
@@ -58,9 +58,9 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
   public CategoryAxis xAxis;
   public NumberAxis yAxis;
 
-  private final ObjectProperty<List<LeagueEntryBean>> leagueEntries = new SimpleObjectProperty<>(List.of());
-  private final ObjectProperty<List<SubdivisionBean>> subdivisions = new SimpleObjectProperty<>(List.of());
-  private final Map<SubdivisionBean, Data<String, Integer>> subdivisionData = new HashMap<>();
+  private final ObjectProperty<List<LeagueEntry>> leagueEntries = new SimpleObjectProperty<>(List.of());
+  private final ObjectProperty<List<Subdivision>> subdivisions = new SimpleObjectProperty<>(List.of());
+  private final Map<Subdivision, Data<String, Integer>> subdivisionData = new HashMap<>();
 
   @Override
   protected void onInitialize() {
@@ -82,22 +82,22 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
     return distributionRoot;
   }
 
-  private void updateChartData(List<LeagueEntryBean> leagueEntries) {
-    Map<SubdivisionBean, Long> dataCountMap = leagueEntries.stream()
-                                                           .collect(Collectors.groupingBy(LeagueEntryBean::subdivision,
+  private void updateChartData(List<LeagueEntry> leagueEntries) {
+    Map<Subdivision, Long> dataCountMap = leagueEntries.stream().collect(Collectors.groupingBy(LeagueEntry::subdivision,
                                                                                           Collectors.counting()));
     subdivisionData.forEach(
         (subdivision, data) -> data.setYValue(dataCountMap.getOrDefault(subdivision, 0L).intValue()));
   }
 
-  private void updateSubdivisions(List<SubdivisionBean> subdivisions) {
+  private void updateSubdivisions(List<Subdivision> subdivisions) {
     subdivisionData.clear();
     subdivisions.forEach(subdivision -> subdivisionData.put(subdivision, createSubdivisionData(subdivision)));
 
-    List<String> categories = subdivisions.stream().map(SubdivisionBean::division)
+    List<String> categories = subdivisions.stream()
+                                          .map(Subdivision::division)
                                           .distinct()
-                                          .sorted(Comparator.comparing(DivisionBean::index))
-                                          .map(DivisionBean::nameKey)
+                                          .sorted(Comparator.comparing(Division::index))
+                                          .map(Division::nameKey)
                                           .map(nameKey -> i18n.get("leagues.divisionName.%s".formatted(nameKey)))
                                           .toList();
     xAxis.setCategories(FXCollections.observableList(categories));
@@ -105,12 +105,11 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
     SequencedCollection<Series<String, Integer>> series = subdivisionData.entrySet()
                                                                          .stream()
                                                                          .sorted(Entry.comparingByKey(
-                                                                             Comparator.comparing(
-                                                                                           SubdivisionBean::division,
+                                                                             Comparator.comparing(Subdivision::division,
                                                                                            Comparator.comparing(
-                                                                                               DivisionBean::index))
+                                                                                               Division::index))
                                                                                        .thenComparing(
-                                                                                           SubdivisionBean::index)))
+                                                                                           Subdivision::index)))
                                                                          .collect(Collectors.groupingBy(
                                                                              entry -> entry.getKey().index(),
                                                                              LinkedHashMap::new,
@@ -128,14 +127,14 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
   }
 
   private void updateHighlightedSubdivision() {
-    PlayerBean currentPlayer = playerService.getCurrentPlayer();
-    SubdivisionBean currentPlayerSubdivision = leagueEntries.getValue()
-                                                            .stream()
-                                                            .filter(leagueEntry -> leagueEntry.player()
+    PlayerInfo currentPlayer = playerService.getCurrentPlayer();
+    Subdivision currentPlayerSubdivision = leagueEntries.getValue()
+                                                        .stream()
+                                                        .filter(leagueEntry -> leagueEntry.player()
                                                                                               .equals(currentPlayer))
-                                                            .map(LeagueEntryBean::subdivision)
-                                                            .findFirst()
-                                                            .orElse(null);
+                                                        .map(LeagueEntry::subdivision)
+                                                        .findFirst()
+                                                        .orElse(null);
     subdivisionData.forEach((subdivision, data) -> {
       Node node = data.getNode();
       if (node != null) {
@@ -146,7 +145,7 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
 
   }
 
-  private Data<String, Integer> createSubdivisionData(SubdivisionBean subdivision) {
+  private Data<String, Integer> createSubdivisionData(Subdivision subdivision) {
     Data<String, Integer> data = new Data<>();
     data.setXValue(i18n.get("leagues.divisionName.%s".formatted(subdivision.division().nameKey())));
     data.setYValue(0);
@@ -169,27 +168,27 @@ public class LeaderboardDistributionController extends NodeController<AnchorPane
     return data;
   }
 
-  public List<LeagueEntryBean> getLeagueEntries() {
+  public List<LeagueEntry> getLeagueEntries() {
     return leagueEntries.get();
   }
 
-  public ObjectProperty<List<LeagueEntryBean>> leagueEntriesProperty() {
+  public ObjectProperty<List<LeagueEntry>> leagueEntriesProperty() {
     return leagueEntries;
   }
 
-  public void setLeagueEntries(List<LeagueEntryBean> leagueEntries) {
+  public void setLeagueEntries(List<LeagueEntry> leagueEntries) {
     this.leagueEntries.set(List.copyOf(leagueEntries));
   }
 
-  public List<SubdivisionBean> getSubdivisions() {
+  public List<Subdivision> getSubdivisions() {
     return subdivisions.get();
   }
 
-  public ObjectProperty<List<SubdivisionBean>> subdivisionsProperty() {
+  public ObjectProperty<List<Subdivision>> subdivisionsProperty() {
     return subdivisions;
   }
 
-  public void setSubdivisions(List<SubdivisionBean> subdivisions) {
+  public void setSubdivisions(List<Subdivision> subdivisions) {
     this.subdivisions.set(subdivisions);
   }
 }

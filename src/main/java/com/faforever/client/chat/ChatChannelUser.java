@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.player.SocialStatus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -41,11 +41,11 @@ public class ChatChannelUser {
   private final BooleanProperty away = new SimpleBooleanProperty();
   private final BooleanProperty moderator = new SimpleBooleanProperty();
   private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
-  private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
-  private final ObservableValue<SocialStatus> playerSocialStatus = player.flatMap(PlayerBean::socialStatusProperty);
+  private final ObjectProperty<PlayerInfo> player = new SimpleObjectProperty<>();
+  private final ObservableValue<SocialStatus> playerSocialStatus = player.flatMap(PlayerInfo::socialStatusProperty);
   private final ObservableValue<ChatUserCategory> category = away.flatMap(
       away -> away ? AWAY_PROPERTY : moderator.flatMap(
-          moderator -> moderator ? MODERATOR_PROPERTY : player.flatMap(PlayerBean::socialStatusProperty)
+          moderator -> moderator ? MODERATOR_PROPERTY : player.flatMap(PlayerInfo::socialStatusProperty)
                                                               .map(socialStatus -> switch (socialStatus) {
                                                                 case FRIEND -> ChatUserCategory.FRIEND;
                                                                 case FOE -> ChatUserCategory.FOE;
@@ -54,15 +54,15 @@ public class ChatChannelUser {
                                                               })
                                                               .orElse(ChatUserCategory.CHAT_ONLY)));
 
-  public Optional<PlayerBean> getPlayer() {
+  public Optional<PlayerInfo> getPlayer() {
     return Optional.ofNullable(player.get());
   }
 
-  public void setPlayer(PlayerBean player) {
+  public void setPlayer(PlayerInfo player) {
     this.player.set(player);
   }
 
-  public ObjectProperty<PlayerBean> playerProperty() {
+  public ObjectProperty<PlayerInfo> playerProperty() {
     return player;
   }
 

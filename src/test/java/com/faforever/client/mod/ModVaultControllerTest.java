@@ -1,6 +1,6 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -114,7 +114,7 @@ public class ModVaultControllerTest extends PlatformTest {
 
   @Test
   public void testShowModDetail() throws MalformedURLException {
-    ModVersionBean modVersion = Instancio.create(ModVersionBean.class);
+    ModVersion modVersion = Instancio.create(ModVersion.class);
     runOnFxThreadAndWait(() -> instance.onDisplayDetails(modVersion));
 
     verify(modDetailController).setModVersion(modVersion);

@@ -1,7 +1,7 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.featuredmod.FeaturedModService;
@@ -121,7 +121,7 @@ public class ReplayRunner implements InitializingBean {
     });
   }
 
-  public void runWithLiveReplay(GameBean game) {
+  public void runWithLiveReplay(GameInfo game) {
     if (isRunning()) {
       log.info("Another replay is already running, not starting replay");
       notificationService.addImmediateWarnNotification("replay.replayRunning");

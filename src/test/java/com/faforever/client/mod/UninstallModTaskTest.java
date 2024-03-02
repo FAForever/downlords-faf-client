@@ -1,6 +1,6 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.io.ByteCopier;
 import org.instancio.Instancio;
@@ -53,7 +53,7 @@ public class UninstallModTaskTest extends ServiceTest {
     copyMod("blackOpsSupport", BLACKOPS_SUPPORT_MOD_INFO);
     copyMod("ecoManager", ECO_MANAGER_MOD_INFO);
 
-    ModVersionBean modVersion = Instancio.create(ModVersionBean.class);
+    ModVersion modVersion = Instancio.create(ModVersion.class);
 
     Path ecoManagerPath = Files.createDirectories(modsDirectory.resolve("ecoManager"));
     when(modService.getPathForMod(modVersion)).thenReturn(ecoManagerPath);

@@ -1,9 +1,9 @@
 package com.faforever.client.vault.review;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.MapBean;
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.MapVersionReviewBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.Map;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.MapVersionReview;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 public class ReviewControllerTest extends PlatformTest {
 
   @InjectMocks
-  private ReviewController<MapVersionReviewBean> instance;
+  private ReviewController<MapVersionReview> instance;
 
   @Mock
   private I18n i18n;
@@ -39,9 +39,8 @@ public class ReviewControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(PlayerBeanBuilder.create()
-        .defaultValues()
-        .get()));
+    when(playerService.currentPlayerProperty()).thenReturn(
+        new SimpleObjectProperty<>(PlayerInfoBuilder.create().defaultValues().get()));
     when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
 
     loadFxml("theme/vault/review/review.fxml", param -> {
@@ -58,10 +57,10 @@ public class ReviewControllerTest extends PlatformTest {
   @Test
   public void testSetReviewWithVersion() throws Exception {
     when(i18n.get(eq("review.version"), any())).thenAnswer(invocation -> invocation.getArgument(1));
-    MapVersionBean mapVersion = Instancio.create(MapVersionBean.class);
-    MapVersionReviewBean review = Instancio.of(MapVersionReviewBean.class)
-                                           .set(field(MapVersionReviewBean::subject), mapVersion)
-                                           .create();
+    MapVersion mapVersion = Instancio.create(MapVersion.class);
+    MapVersionReview review = Instancio.of(MapVersionReview.class)
+                                       .set(field(MapVersionReview::subject), mapVersion)
+                                       .create();
 
     runOnFxThreadAndWait(() -> instance.setReview(review));
 
@@ -71,11 +70,11 @@ public class ReviewControllerTest extends PlatformTest {
 
   @Test
   public void testSetReviewNoVersion() throws Exception {
-    MapBean map = Instancio.create(MapBean.class);
-    MapVersionBean mapVersion = Instancio.of(MapVersionBean.class).ignore(field(MapVersionBean::version)).create();
-    MapVersionReviewBean review = Instancio.of(MapVersionReviewBean.class)
-                                           .set(field(MapVersionReviewBean::subject), mapVersion)
-                                           .create();
+    Map map = Instancio.create(Map.class);
+    MapVersion mapVersion = Instancio.of(MapVersion.class).ignore(field(MapVersion::version)).create();
+    MapVersionReview review = Instancio.of(MapVersionReview.class)
+                                       .set(field(MapVersionReview::subject), mapVersion)
+                                       .create();
 
     runOnFxThreadAndWait(() -> instance.setReview(review));
 

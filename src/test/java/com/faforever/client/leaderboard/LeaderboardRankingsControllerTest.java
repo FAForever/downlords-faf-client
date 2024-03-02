@@ -1,10 +1,10 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.DivisionBean;
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.SubdivisionBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.Division;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.api.Subdivision;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
@@ -38,7 +38,7 @@ public class LeaderboardRankingsControllerTest extends PlatformTest {
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
 
-  private final PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+  private final PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
 
   @BeforeEach
   public void setup() throws Exception {
@@ -51,46 +51,46 @@ public class LeaderboardRankingsControllerTest extends PlatformTest {
 
   @Test
   public void testSetRankings() {
-    DivisionBean divisionBean1 = Instancio.of(DivisionBean.class).set(field(DivisionBean::index), 1).create();
-    DivisionBean divisionBean2 = Instancio.of(DivisionBean.class).set(field(DivisionBean::index), 2).create();
-    SubdivisionBean subdivision1 = Instancio.of(SubdivisionBean.class)
-                                            .set(field(SubdivisionBean::division), divisionBean1)
-                                            .set(field(SubdivisionBean::id), 1)
-                                            .set(field(SubdivisionBean::index), 1)
-                                            .create();
-    SubdivisionBean subdivision2 = Instancio.of(SubdivisionBean.class)
-                                            .set(field(SubdivisionBean::division), divisionBean1)
-                                            .set(field(SubdivisionBean::id), 2)
-                                            .set(field(SubdivisionBean::index), 2)
-                                            .create();
-    SubdivisionBean subdivision3 = Instancio.of(SubdivisionBean.class)
-                                            .set(field(SubdivisionBean::division), divisionBean2)
-                                            .set(field(SubdivisionBean::id), 3)
-                                            .set(field(SubdivisionBean::index), 1)
-                                            .create();
-    SubdivisionBean subdivision4 = Instancio.of(SubdivisionBean.class)
-                                            .set(field(SubdivisionBean::division), divisionBean2)
-                                            .set(field(SubdivisionBean::id), 4)
-                                            .set(field(SubdivisionBean::index), 2)
-                                            .create();
+    Division division1 = Instancio.of(Division.class).set(field(Division::index), 1).create();
+    Division division2 = Instancio.of(Division.class).set(field(Division::index), 2).create();
+    Subdivision subdivision1 = Instancio.of(Subdivision.class)
+                                        .set(field(Subdivision::division), division1)
+                                        .set(field(Subdivision::id), 1)
+                                        .set(field(Subdivision::index), 1)
+                                        .create();
+    Subdivision subdivision2 = Instancio.of(Subdivision.class)
+                                        .set(field(Subdivision::division), division1)
+                                        .set(field(Subdivision::id), 2)
+                                        .set(field(Subdivision::index), 2)
+                                        .create();
+    Subdivision subdivision3 = Instancio.of(Subdivision.class)
+                                        .set(field(Subdivision::division), division2)
+                                        .set(field(Subdivision::id), 3)
+                                        .set(field(Subdivision::index), 1)
+                                        .create();
+    Subdivision subdivision4 = Instancio.of(Subdivision.class)
+                                        .set(field(Subdivision::division), division2)
+                                        .set(field(Subdivision::id), 4)
+                                        .set(field(Subdivision::index), 2)
+                                        .create();
 
     instance.setSubdivisions(List.of(subdivision1, subdivision2, subdivision3, subdivision4));
 
-    assertThat(instance.divisionPicker.getItems(), contains(divisionBean2, divisionBean1));
-    assertThat(instance.divisionPicker.getSelectionModel().getSelectedItem(), is(divisionBean2));
+    assertThat(instance.divisionPicker.getItems(), contains(division2, division1));
+    assertThat(instance.divisionPicker.getSelectionModel().getSelectedItem(), is(division2));
     assertThat(instance.subdivisionButtons.getChildren(), hasSize(2));
     assertThat(instance.subdivisionToggleGroup.getSelectedToggle(),
                is(instance.subdivisionButtons.getChildren().getLast()));
 
-    LeagueEntryBean leagueEntry = Instancio.of(LeagueEntryBean.class)
-                                           .set(field(LeagueEntryBean::id), 1)
-                                           .set(field(LeagueEntryBean::subdivision), subdivision1)
-                                           .set(field(LeagueEntryBean::player), player)
-                                           .create();
+    LeagueEntry leagueEntry = Instancio.of(LeagueEntry.class)
+                                       .set(field(LeagueEntry::id), 1)
+                                       .set(field(LeagueEntry::subdivision), subdivision1)
+                                       .set(field(LeagueEntry::player), player)
+                                       .create();
     instance.setLeagueEntries(List.of(leagueEntry));
 
-    assertThat(instance.divisionPicker.getItems(), contains(divisionBean2, divisionBean1));
-    assertThat(instance.divisionPicker.getSelectionModel().getSelectedItem(), is(divisionBean1));
+    assertThat(instance.divisionPicker.getItems(), contains(division2, division1));
+    assertThat(instance.divisionPicker.getSelectionModel().getSelectedItem(), is(division1));
     assertThat(instance.subdivisionButtons.getChildren(), hasSize(2));
     assertThat(instance.subdivisionToggleGroup.getSelectedToggle(),
                is(instance.subdivisionButtons.getChildren().getFirst()));

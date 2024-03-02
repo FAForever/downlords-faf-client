@@ -1,6 +1,6 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.domain.api.Replay;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -85,7 +85,7 @@ public class OnlineReplayVaultControllerTest extends PlatformTest {
   private ArgumentCaptor<Consumer<SearchConfig>> searchListenerCaptor;
   private SortConfig sortOrder;
   private SearchConfig standardSearchConfig;
-  private final ReplayBean testReplay = Instancio.create(ReplayBean.class);
+  private final Replay testReplay = Instancio.create(Replay.class);
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -94,12 +94,12 @@ public class OnlineReplayVaultControllerTest extends PlatformTest {
     lenient().when(featuredModService.getFeaturedMods()).thenReturn(Flux.empty());
     lenient().when(leaderboardService.getLeaderboards()).thenReturn(Flux.empty());
     lenient().when(replayService.getNewestReplaysWithPageCount(anyInt(), anyInt()))
-             .thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)));
+             .thenReturn(Mono.zip(Mono.just(List.<Replay>of()), Mono.just(0)));
     lenient().when(replayService.getHighestRatedReplaysWithPageCount(anyInt(), anyInt()))
-             .thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)));
+             .thenReturn(Mono.zip(Mono.just(List.<Replay>of()), Mono.just(0)));
     lenient().when(replayService.findById(anyInt())).thenReturn(Mono.just(testReplay));
     lenient().when(replayService.getOwnReplaysWithPageCount(anyInt(), anyInt()))
-             .thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)));
+             .thenReturn(Mono.zip(Mono.just(List.<Replay>of()), Mono.just(0)));
     lenient().when(uiService.loadFxml("theme/vault/replay/replay_detail.fxml")).thenReturn(replayDetailController);
     lenient().when(uiService.loadFxml("theme/vault/vault_entity_show_room.fxml"))
              .thenReturn(vaultEntityShowRoomController);

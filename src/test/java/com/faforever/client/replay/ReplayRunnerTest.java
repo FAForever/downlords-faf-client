@@ -1,9 +1,9 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
@@ -82,7 +82,7 @@ public class ReplayRunnerTest extends ServiceTest {
     clientProperties.getReplay().setRemoteHost("localhost");
     clientProperties.getReplay().setRemotePort(15000);
 
-    lenient().when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().defaultValues().get());
     lenient().doAnswer(invocation -> {
       invocation.getArgument(0, Runnable.class).run();
       return null;
@@ -191,7 +191,7 @@ public class ReplayRunnerTest extends ServiceTest {
     verify(forgedAllianceLaunchService).startReplay(any(Path.class), any());
   }
 
-  private void mockStartLiveReplayProcess(GameBean game) {
+  private void mockStartLiveReplayProcess(GameInfo game) {
     lenient().when(preferencesService.hasValidGamePath()).thenReturn(true);
     lenient().when(gameService.getByUid(any())).thenReturn(Optional.of(game));
     lenient().when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
@@ -204,7 +204,7 @@ public class ReplayRunnerTest extends ServiceTest {
 
   @Test
   public void runWithLiveReplay() {
-    GameBean game = GameBeanBuilder.create().defaultValues().simMods(Map.of("a", "name")).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().simMods(Map.of("a", "name")).get();
     mockStartLiveReplayProcess(game);
 
     instance.runWithLiveReplay(game);
@@ -218,9 +218,9 @@ public class ReplayRunnerTest extends ServiceTest {
 
   @Test
   public void runWithLiveReplayAlreadyRunning() {
-    mockStartLiveReplayProcess(GameBeanBuilder.create().defaultValues().get());
+    mockStartLiveReplayProcess(GameInfoBuilder.create().defaultValues().get());
 
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     instance.runWithLiveReplay(game);
     instance.runWithLiveReplay(game);
 
@@ -230,13 +230,13 @@ public class ReplayRunnerTest extends ServiceTest {
 
   @Test
   public void runWithLiveReplayIfNoGameSet() {
-    mockStartLiveReplayProcess(GameBeanBuilder.create().defaultValues().get());
+    mockStartLiveReplayProcess(GameInfoBuilder.create().defaultValues().get());
 
     when(preferencesService.hasValidGamePath()).thenReturn(false);
     CompletableFuture<Void> chosenFuture = new CompletableFuture<>();
     when(gamePathHandler.chooseAndValidateGameDirectory()).thenReturn(chosenFuture);
 
-    instance.runWithLiveReplay(GameBeanBuilder.create().defaultValues().get());
+    instance.runWithLiveReplay(GameInfoBuilder.create().defaultValues().get());
 
     verify(gamePathHandler).chooseAndValidateGameDirectory();
 

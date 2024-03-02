@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -76,8 +76,8 @@ public class GamesTableControllerTest extends PlatformTest {
   @Test
   public void testInitializeGameTable() {
     runOnFxThreadAndWait(() -> instance.initializeGameTable(FXCollections.observableArrayList(
-        GameBeanBuilder.create().defaultValues().get(),
-        GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
+        GameInfoBuilder.create().defaultValues().get(),
+        GameInfoBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
     )));
     assertEquals(2, instance.gamesTable.getItems().size());
   }
@@ -86,9 +86,12 @@ public class GamesTableControllerTest extends PlatformTest {
   public void testPrivateGameColumnIsHidden() {
     runOnFxThreadAndWait(() -> {
       preferences.setHidePrivateGames(true);
-      instance.initializeGameTable(FXCollections.observableArrayList(
-          GameBeanBuilder.create().defaultValues().get(),
-          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).passwordProtected(true).get()
+      instance.initializeGameTable(FXCollections.observableArrayList(GameInfoBuilder.create().defaultValues().get(),
+                                                                     GameInfoBuilder.create()
+                                                                                    .defaultValues()
+                                                                                    .status(GameStatus.CLOSED)
+                                                                                    .passwordProtected(true)
+                                                                                    .get()
       ));
     });
     assertFalse(instance.passwordProtectionColumn.isVisible());
@@ -100,9 +103,12 @@ public class GamesTableControllerTest extends PlatformTest {
   public void testModdedGameColumnIsHidden() {
     runOnFxThreadAndWait(() -> {
       preferences.setHideModdedGames(true);
-      instance.initializeGameTable(FXCollections.observableArrayList(
-          GameBeanBuilder.create().defaultValues().get(),
-          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).passwordProtected(true).get()
+      instance.initializeGameTable(FXCollections.observableArrayList(GameInfoBuilder.create().defaultValues().get(),
+                                                                     GameInfoBuilder.create()
+                                                                                    .defaultValues()
+                                                                                    .status(GameStatus.CLOSED)
+                                                                                    .passwordProtected(true)
+                                                                                    .get()
       ));
     });
     assertFalse(instance.modsColumn.isVisible());
@@ -114,9 +120,12 @@ public class GamesTableControllerTest extends PlatformTest {
   public void testPrivateGameColumnIsShownWithCoop() {
     runOnFxThreadAndWait(() -> {
       preferences.setHidePrivateGames(false);
-      instance.initializeGameTable(FXCollections.observableArrayList(
-          GameBeanBuilder.create().defaultValues().get(),
-          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).passwordProtected(true).get()
+      instance.initializeGameTable(FXCollections.observableArrayList(GameInfoBuilder.create().defaultValues().get(),
+                                                                     GameInfoBuilder.create()
+                                                                                    .defaultValues()
+                                                                                    .status(GameStatus.CLOSED)
+                                                                                    .passwordProtected(true)
+                                                                                    .get()
       ), string -> string, false);
     });
     assertTrue(instance.passwordProtectionColumn.isVisible());
@@ -126,9 +135,12 @@ public class GamesTableControllerTest extends PlatformTest {
   public void testModdedGameColumnIsShownWithCoop() {
     runOnFxThreadAndWait(() -> {
       preferences.setHideModdedGames(false);
-      instance.initializeGameTable(FXCollections.observableArrayList(
-          GameBeanBuilder.create().defaultValues().get(),
-          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).passwordProtected(true).get()
+      instance.initializeGameTable(FXCollections.observableArrayList(GameInfoBuilder.create().defaultValues().get(),
+                                                                     GameInfoBuilder.create()
+                                                                                    .defaultValues()
+                                                                                    .status(GameStatus.CLOSED)
+                                                                                    .passwordProtected(true)
+                                                                                    .get()
       ), string -> string, false);
     });
     assertTrue(instance.modsColumn.isVisible());
@@ -138,9 +150,11 @@ public class GamesTableControllerTest extends PlatformTest {
   public void testKeepsSorting() {
     runOnFxThreadAndWait(() -> {
       preferences.getGameTableSorting().put("hostColumn", SortType.DESCENDING);
-      instance.initializeGameTable(FXCollections.observableArrayList(
-          GameBeanBuilder.create().defaultValues().get(),
-          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
+      instance.initializeGameTable(FXCollections.observableArrayList(GameInfoBuilder.create().defaultValues().get(),
+                                                                     GameInfoBuilder.create()
+                                                                                    .defaultValues()
+                                                                                    .status(GameStatus.CLOSED)
+                                                                                    .get()
       ));
     });
 
@@ -154,11 +168,13 @@ public class GamesTableControllerTest extends PlatformTest {
     assertThat(preferences.getGameTableSorting().entrySet(), hasSize(0));
 
     runOnFxThreadAndWait(() -> {
-      instance.initializeGameTable(FXCollections.observableArrayList(
-          GameBeanBuilder.create().defaultValues().get(),
-          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
+      instance.initializeGameTable(FXCollections.observableArrayList(GameInfoBuilder.create().defaultValues().get(),
+                                                                     GameInfoBuilder.create()
+                                                                                    .defaultValues()
+                                                                                    .status(GameStatus.CLOSED)
+                                                                                    .get()
       ));
-      TableColumn<GameBean, ?> column = instance.gamesTable.getColumns().getFirst();
+      TableColumn<GameInfo, ?> column = instance.gamesTable.getColumns().getFirst();
       column.setSortType(SortType.ASCENDING);
       instance.gamesTable.getSortOrder().add(column);
     });

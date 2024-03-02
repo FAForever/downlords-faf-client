@@ -1,16 +1,16 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PartyBuilder;
-import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.AvatarBean;
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.PartyBean;
-import com.faforever.client.domain.PartyBean.PartyMember;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.SubdivisionBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.builders.PartyInfoBuilder;
+import com.faforever.client.builders.PartyInfoBuilder.PartyMemberBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.Avatar;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.api.Subdivision;
+import com.faforever.client.domain.server.PartyInfo;
+import com.faforever.client.domain.server.PartyInfo.PartyMember;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -64,15 +64,15 @@ public class PartyMemberItemControllerTest extends PlatformTest {
 
   @InjectMocks
   private PartyMemberItemController instance;
-  private PlayerBean owner;
-  private PlayerBean player;
-  private PartyBean party;
+  private PlayerInfo owner;
+  private PlayerInfo player;
+  private PartyInfo party;
 
   @BeforeEach
   public void setUp() throws Exception {
-    party = PartyBuilder.create().defaultValues().get();
+    party = PartyInfoBuilder.create().defaultValues().get();
     owner = party.getOwner();
-    player = PlayerBeanBuilder.create().defaultValues().username("player").id(100).defaultValues().get();
+    player = PlayerInfoBuilder.create().defaultValues().username("player").id(100).defaultValues().get();
     PartyMember partyMember = PartyMemberBuilder.create(player).defaultValues().get();
     party.getMembers().add(partyMember);
     lenient().when(i18n.get(anyString())).thenReturn("");
@@ -96,9 +96,7 @@ public class PartyMemberItemControllerTest extends PlatformTest {
 
   @Test
   public void testLeagueSet() {
-    LeagueEntryBean leagueEntry = Instancio.of(LeagueEntryBean.class)
-                                           .set(field(SubdivisionBean::nameKey), "V")
-                                           .create();
+    LeagueEntry leagueEntry = Instancio.of(LeagueEntry.class).set(field(Subdivision::nameKey), "V").create();
     when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(Mono.just(leagueEntry));
 
     runOnFxThreadAndWait(() -> instance.setLeagueInfo());
@@ -113,7 +111,7 @@ public class PartyMemberItemControllerTest extends PlatformTest {
     assertFalse(instance.playerStatusImageView.isVisible());
     assertFalse(instance.playerCard.getPseudoClassStates().contains(PLAYING_PSEUDO_CLASS));
 
-    player.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get());
+    player.setGame(GameInfoBuilder.create().defaultValues().status(GameStatus.PLAYING).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.playerStatusImageView.isVisible());
@@ -151,7 +149,7 @@ public class PartyMemberItemControllerTest extends PlatformTest {
     assertThat(instance.clanLabel.getText(), is(String.format("[%s]", player.getClan())));
 
     player.setCountry("DE");
-    player.setAvatar(Instancio.create(AvatarBean.class));
+    player.setAvatar(Instancio.create(Avatar.class));
     player.setClan("");
     player.setUsername("player");
     player.setLeaderboardRatings(new HashMap<>());

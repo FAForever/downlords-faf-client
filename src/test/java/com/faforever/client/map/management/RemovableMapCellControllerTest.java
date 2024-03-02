@@ -1,6 +1,6 @@
 package com.faforever.client.map.management;
 
-import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.PlatformTest;
@@ -25,8 +25,8 @@ public class RemovableMapCellControllerTest extends PlatformTest {
   @Mock
   private NotificationService notificationService;
 
-  private final MapVersionBean officialMap = Instancio.create(MapVersionBean.class);
-  private final MapVersionBean customMap = Instancio.create(MapVersionBean.class);
+  private final MapVersion officialMap = Instancio.create(MapVersion.class);
+  private final MapVersion customMap = Instancio.create(MapVersion.class);
 
   @InjectMocks
   private RemovableMapCellController instance;

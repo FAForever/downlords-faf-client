@@ -5,14 +5,14 @@ import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.builders.AchievementDefinitionBuilder;
 import com.faforever.client.builders.LeaderboardRatingMapBuilder;
 import com.faforever.client.builders.PlayerAchievementBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.LeaderboardBean;
-import com.faforever.client.domain.LeaderboardEntryBean;
-import com.faforever.client.domain.LeaderboardRatingBean;
-import com.faforever.client.domain.LeaderboardRatingJournalBean;
-import com.faforever.client.domain.LeagueLeaderboardBean;
-import com.faforever.client.domain.LeagueSeasonBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.Leaderboard;
+import com.faforever.client.domain.api.LeaderboardEntry;
+import com.faforever.client.domain.api.LeaderboardRating;
+import com.faforever.client.domain.api.LeaderboardRatingJournal;
+import com.faforever.client.domain.api.LeagueLeaderboard;
+import com.faforever.client.domain.api.LeagueSeason;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.notification.NotificationService;
@@ -79,13 +79,13 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
   @Mock
   private LeaderboardService leaderboardService;
 
-  private LeaderboardBean leaderboard;
-  private PlayerBean player;
+  private Leaderboard leaderboard;
+  private PlayerInfo player;
 
   @BeforeEach
   public void setUp() throws Exception {
-    leaderboard = Instancio.create(LeaderboardBean.class);
-    player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
+    leaderboard = Instancio.create(Leaderboard.class);
+    player = PlayerInfoBuilder.create().defaultValues().username("junit").get();
 
     lenient().when(i18n.getOrDefault(leaderboard.technicalName(), leaderboard.nameKey()))
              .thenReturn(leaderboard.technicalName());
@@ -97,12 +97,12 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
     lenient().when(playerService.getPlayerNames(any())).thenReturn(Flux.empty());
     lenient().when(leaderboardService.getLeaderboards()).thenReturn(Flux.just(leaderboard));
     lenient().when(leaderboardService.getEntriesForPlayer(eq(player)))
-             .thenReturn(Flux.just(Instancio.create(LeaderboardEntryBean.class)));
+             .thenReturn(Flux.just(Instancio.create(LeaderboardEntry.class)));
     lenient().when(statisticsService.getRatingHistory(eq(player), any()))
-             .thenReturn(Flux.fromIterable(Instancio.ofList(LeaderboardRatingJournalBean.class)
+             .thenReturn(Flux.fromIterable(Instancio.ofList(LeaderboardRatingJournal.class)
                                                     .size(2)
-                                                    .set(field(LeaderboardRatingJournalBean::meanBefore), 1500d)
-                                                    .set(field(LeaderboardRatingJournalBean::deviationBefore), 50d)
+                                                    .set(field(LeaderboardRatingJournal::meanBefore), 1500d)
+                                                    .set(field(LeaderboardRatingJournal::deviationBefore), 50d)
                                                     .create()));
 
     loadFxml("theme/user_info_window.fxml", clazz -> instance);
@@ -146,24 +146,23 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
                                 .state(AchievementState.UNLOCKED)
                                 .get()));
     when(eventService.getPlayerEvents(player.getId())).thenReturn(Flux.empty());
-    when(leaderboardService.getActiveSeasons()).thenReturn(Flux.just(Instancio.of(LeagueSeasonBean.class)
-                                                                              .set(field(
-                                                                                       LeagueLeaderboardBean::id).within(
-                                                                                       scope(LeagueLeaderboardBean.class)),
+    when(leaderboardService.getActiveSeasons()).thenReturn(Flux.just(Instancio.of(LeagueSeason.class)
+                                                                              .set(field(LeagueLeaderboard::id).within(
+                                                                                       scope(LeagueLeaderboard.class)),
                                                                                    leaderboard.id())
                                                                               .set(field(
-                                                                                       LeagueLeaderboardBean::technicalName).within(
-                                                                                       scope(LeagueLeaderboardBean.class)),
+                                                                                       LeagueLeaderboard::technicalName).within(
+                                                                                       scope(LeagueLeaderboard.class)),
                                                                                    leaderboard.technicalName())
                                                                               .create()));
     when(leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard.technicalName())).thenReturn(
         Mono.empty());
     when(userLeaderboardInfoController.getRoot()).thenReturn(new VBox());
-    final LeaderboardRatingBean leaderboardRating = Instancio.of(LeaderboardRatingBean.class)
-                                                             .set(field(LeaderboardRatingBean::mean), 500)
-                                                             .set(field(LeaderboardRatingBean::deviation), 100)
-                                                             .set(field(LeaderboardRatingBean::numberOfGames), 47)
-                                                             .create();
+    final LeaderboardRating leaderboardRating = Instancio.of(LeaderboardRating.class)
+                                                         .set(field(LeaderboardRating::mean), 500)
+                                                         .set(field(LeaderboardRating::deviation), 100)
+                                                         .set(field(LeaderboardRating::numberOfGames), 47)
+                                                         .create();
     player.setLeaderboardRatings(
         LeaderboardRatingMapBuilder.create().put(leaderboard.technicalName(), leaderboardRating).get());
 

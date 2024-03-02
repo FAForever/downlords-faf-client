@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.fx.DecimalCell;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.IconCell;
@@ -57,7 +57,7 @@ public class GamesTableController extends NodeController<Node> {
 
   private static final PseudoClass FRIEND_IN_GAME_PSEUDO_CLASS = PseudoClass.getPseudoClass("friendInGame");
 
-  private final ObjectProperty<GameBean> selectedGame = new SimpleObjectProperty<>();
+  private final ObjectProperty<GameInfo> selectedGame = new SimpleObjectProperty<>();
   private final MapService mapService;
   private final GameRunner gameRunner;
   private final I18n i18n;
@@ -69,21 +69,21 @@ public class GamesTableController extends NodeController<Node> {
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
 
-  public TableView<GameBean> gamesTable;
-  public TableColumn<GameBean, Image> mapPreviewColumn;
-  public TableColumn<GameBean, String> gameTitleColumn;
-  public TableColumn<GameBean, PlayerFill> playersColumn;
-  public TableColumn<GameBean, Double> averageRatingColumn;
-  public TableColumn<GameBean, RatingRange> ratingRangeColumn;
-  public TableColumn<GameBean, Map<String, String>> modsColumn;
-  public TableColumn<GameBean, String> hostColumn;
-  public TableColumn<GameBean, Boolean> passwordProtectionColumn;
-  public TableColumn<GameBean, String> coopMissionName;
+  public TableView<GameInfo> gamesTable;
+  public TableColumn<GameInfo, Image> mapPreviewColumn;
+  public TableColumn<GameInfo, String> gameTitleColumn;
+  public TableColumn<GameInfo, PlayerFill> playersColumn;
+  public TableColumn<GameInfo, Double> averageRatingColumn;
+  public TableColumn<GameInfo, RatingRange> ratingRangeColumn;
+  public TableColumn<GameInfo, Map<String, String>> modsColumn;
+  public TableColumn<GameInfo, String> hostColumn;
+  public TableColumn<GameInfo, Boolean> passwordProtectionColumn;
+  public TableColumn<GameInfo, String> coopMissionName;
   public GameTooltipController gameTooltipController;
 
   private Tooltip tooltip;
 
-  public ObjectProperty<GameBean> selectedGameProperty() {
+  public ObjectProperty<GameInfo> selectedGameProperty() {
     return selectedGame;
   }
 
@@ -92,16 +92,16 @@ public class GamesTableController extends NodeController<Node> {
     return gamesTable;
   }
 
-  public void initializeGameTable(ObservableList<GameBean> games) {
+  public void initializeGameTable(ObservableList<GameInfo> games) {
     initializeGameTable(games, null, true);
   }
 
-  public void initializeGameTable(ObservableList<GameBean> games, Function<String, String> coopMissionNameProvider,
+  public void initializeGameTable(ObservableList<GameInfo> games, Function<String, String> coopMissionNameProvider,
                                   boolean listenToFilterPreferences) {
 
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
 
-    SortedList<GameBean> sortedList = new SortedList<>(games);
+    SortedList<GameInfo> sortedList = new SortedList<>(games);
     sortedList.comparatorProperty().bind(gamesTable.comparatorProperty());
     gamesTable.setPlaceholder(new Label(i18n.get("games.noGamesAvailable")));
     gamesTable.setRowFactory(param1 -> gamesRowFactory());
@@ -171,9 +171,9 @@ public class GamesTableController extends NodeController<Node> {
     gamesTable.getSelectionModel().selectFirst();
   }
 
-  private void applyLastSorting(TableView<GameBean> gamesTable) {
+  private void applyLastSorting(TableView<GameInfo> gamesTable) {
     final Map<String, SortType> lookup = new HashMap<>(preferences.getGameTableSorting());
-    final ObservableList<TableColumn<GameBean, ?>> sortOrder = gamesTable.getSortOrder();
+    final ObservableList<TableColumn<GameInfo, ?>> sortOrder = gamesTable.getSortOrder();
     sortOrder.clear();
     gamesTable.getColumns().forEach(gameTableColumn -> {
       if (lookup.containsKey(gameTableColumn.getId())) {
@@ -183,7 +183,7 @@ public class GamesTableController extends NodeController<Node> {
     });
   }
 
-  private void onColumnSorted(@NotNull SortEvent<TableView<GameBean>> event) {
+  private void onColumnSorted(@NotNull SortEvent<TableView<GameInfo>> event) {
     ObservableMap<String, SortType> gameListSorting = preferences.getGameTableSorting();
 
     gameListSorting.clear();
@@ -201,10 +201,10 @@ public class GamesTableController extends NodeController<Node> {
   }
 
   @NotNull
-  private TableRow<GameBean> gamesRowFactory() {
-    TableRow<GameBean> row = new TableRow<>() {
+  private TableRow<GameInfo> gamesRowFactory() {
+    TableRow<GameInfo> row = new TableRow<>() {
       @Override
-      protected void updateItem(GameBean game, boolean empty) {
+      protected void updateItem(GameInfo game, boolean empty) {
         super.updateItem(game, empty);
         if (empty || game == null) {
           setTooltip(null);
@@ -218,14 +218,14 @@ public class GamesTableController extends NodeController<Node> {
     };
     row.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
-        GameBean game = row.getItem();
+        GameInfo game = row.getItem();
         gameRunner.join(game);
       }
     });
     row.setOnMouseEntered(event -> gameTooltipController.setGame(row.getItem()));
 
     row.setOnMouseExited(event -> {
-      GameBean game = row.getItem();
+      GameInfo game = row.getItem();
       if (Objects.equals(game, gameTooltipController.getGame())) {
         gameTooltipController.setGame(null);
       }
@@ -233,15 +233,15 @@ public class GamesTableController extends NodeController<Node> {
     return row;
   }
 
-  private TableCell<GameBean, Boolean> passwordIndicatorColumn() {
+  private TableCell<GameInfo, Boolean> passwordIndicatorColumn() {
     return new IconCell<>(isPasswordProtected -> isPasswordProtected ? "lock-icon" : "");
   }
 
-  private TableCell<GameBean, PlayerFill> playersCell() {
+  private TableCell<GameInfo, PlayerFill> playersCell() {
     return new StringCell<>(playerFill -> i18n.get("game.players.format", playerFill.getPlayers(), playerFill.getMaxPlayers()));
   }
 
-  private TableCell<GameBean, RatingRange> ratingTableCell() {
+  private TableCell<GameInfo, RatingRange> ratingTableCell() {
     return new StringCell<>(ratingRange -> {
       if (ratingRange.min() == null && ratingRange.max() == null) {
         return "";
@@ -259,11 +259,11 @@ public class GamesTableController extends NodeController<Node> {
     });
   }
 
-  public TableColumn<GameBean, Image> getMapPreviewColumn() {
+  public TableColumn<GameInfo, Image> getMapPreviewColumn() {
     return mapPreviewColumn;
   }
 
-  public TableColumn<GameBean, RatingRange> getRatingRangeColumn() {
+  public TableColumn<GameInfo, RatingRange> getRatingRangeColumn() {
     return ratingRangeColumn;
   }
 

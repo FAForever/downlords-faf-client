@@ -1,7 +1,7 @@
 package com.faforever.client.teammatchmaking;
 
-import com.faforever.client.domain.MatchingStatus;
-import com.faforever.client.domain.MatchmakerQueueBean;
+import com.faforever.client.domain.api.MatchingStatus;
+import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
@@ -58,8 +58,8 @@ public class MatchmakingQueueItemController extends NodeController<VBox> {
   public Label matchCancelledLabel;
   public Button mapPoolButton;
 
-  private final ObjectProperty<MatchmakerQueueBean> queue = new SimpleObjectProperty<>();
-  private final ObservableValue<OffsetDateTime> popTime = queue.flatMap(MatchmakerQueueBean::queuePopTimeProperty);
+  private final ObjectProperty<MatchmakerQueueInfo> queue = new SimpleObjectProperty<>();
+  private final ObservableValue<OffsetDateTime> popTime = queue.flatMap(MatchmakerQueueInfo::queuePopTimeProperty);
   private Timeline queuePopTimeUpdater;
 
   @Override
@@ -79,7 +79,7 @@ public class MatchmakingQueueItemController extends NodeController<VBox> {
     selectButton.setTextOverrun(OverrunStyle.WORD_ELLIPSIS);
     mapPoolButton.setText(i18n.get("teammatchmaking.mapPool").toUpperCase());
 
-    ObservableValue<MatchingStatus> matchingStatus = queue.flatMap(MatchmakerQueueBean::matchingStatusProperty);
+    ObservableValue<MatchingStatus> matchingStatus = queue.flatMap(MatchmakerQueueInfo::matchingStatusProperty);
     searchingLabel.visibleProperty()
                   .bind(matchingStatus.map(status -> status == MatchingStatus.SEARCHING).orElse(false).when(showing));
     matchFoundLabel.visibleProperty()
@@ -94,27 +94,24 @@ public class MatchmakingQueueItemController extends NodeController<VBox> {
                                            .orElse(false)
                                            .when(showing));
 
-    selectButton.textProperty()
-                .bind(queue.flatMap(MatchmakerQueueBean::technicalNameProperty)
+    selectButton.textProperty().bind(queue.flatMap(MatchmakerQueueInfo::technicalNameProperty)
                            .map(technicalName -> i18n.getOrDefault(technicalName,
                                                                    QUEUE_I18N_PATTERN.formatted(technicalName)))
                            .when(showing));
 
-    playersInQueueLabel.textProperty()
-                       .bind(queue.flatMap(MatchmakerQueueBean::playersInQueueProperty)
+    playersInQueueLabel.textProperty().bind(queue.flatMap(MatchmakerQueueInfo::playersInQueueProperty)
                                   .map(numPlayers -> i18n.get("teammatchmaking.playersInQueue", numPlayers))
                                   .map(String::toUpperCase)
                                   .when(showing));
 
-    activeGamesLabel.textProperty()
-                    .bind(queue.flatMap(MatchmakerQueueBean::activeGamesProperty)
+    activeGamesLabel.textProperty().bind(queue.flatMap(MatchmakerQueueInfo::activeGamesProperty)
                                .map(numPlayers -> i18n.get("teammatchmaking.activeGames", numPlayers))
                                .map(String::toUpperCase)
                                .when(showing));
 
     BooleanBinding partyTooBig = Bindings.size(teamMatchmakingService.getParty().getMembers())
                                          .greaterThan(IntegerBinding.integerExpression(
-                                             queue.flatMap(MatchmakerQueueBean::teamSizeProperty)));
+                                             queue.flatMap(MatchmakerQueueInfo::teamSizeProperty)));
 
     BooleanExpression notPartyOwner = BooleanBinding.booleanExpression(teamMatchmakingService.getParty()
                                                                                              .ownerProperty()
@@ -153,7 +150,7 @@ public class MatchmakingQueueItemController extends NodeController<VBox> {
     return queueItemRoot;
   }
 
-  public void setQueue(MatchmakerQueueBean queue) {
+  public void setQueue(MatchmakerQueueInfo queue) {
     this.queue.set(queue);
   }
 
@@ -178,11 +175,11 @@ public class MatchmakingQueueItemController extends NodeController<VBox> {
     navigationHandler.navigateTo(new ShowMapPoolEvent(getQueue()));
   }
 
-  public MatchmakerQueueBean getQueue() {
+  public MatchmakerQueueInfo getQueue() {
     return queue.get();
   }
 
-  public ObjectProperty<MatchmakerQueueBean> queueProperty() {
+  public ObjectProperty<MatchmakerQueueInfo> queueProperty() {
     return queue;
   }
 }

@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
@@ -46,14 +46,14 @@ public class GameTooltipControllerTest extends PlatformTest {
     lenient().when(teamCardController.teamIdProperty()).thenReturn(new SimpleIntegerProperty());
     lenient().when(teamCardController.ratingProviderProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(playerService.getPlayerByNameIfOnline(Mockito.anyString()))
-             .thenReturn(Optional.of(PlayerBeanBuilder.create().defaultValues().get()));
+             .thenReturn(Optional.of(PlayerInfoBuilder.create().defaultValues().get()));
 
     loadFxml("theme/play/game_tooltip.fxml", clazz -> instance);
   }
   
   @Test
   public void testSetGame() {
-    GameBean game = GameBeanBuilder.create().defaultValues().simMods(Map.of()).teams(Map.of()).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().simMods(Map.of()).teams(Map.of()).get();
 
     instance.setGame(game);
     WaitForAsyncUtils.waitForFxEvents();

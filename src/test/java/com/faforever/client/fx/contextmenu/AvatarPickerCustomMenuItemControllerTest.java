@@ -1,8 +1,8 @@
 package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.AvatarBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.Avatar;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.PlatformTest;
@@ -38,10 +38,11 @@ public class AvatarPickerCustomMenuItemControllerTest extends PlatformTest {
 
   @Test
   public void testVisibleItemIfThereAvailableAvatars() throws Exception {
-    List<AvatarBean> avatars = Instancio.createList(AvatarBean.class);
+    List<Avatar> avatars = Instancio.createList(Avatar.class);
     when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(avatars));
 
-    runOnFxThreadAndWait(() -> instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get()));
+    runOnFxThreadAndWait(
+        () -> instance.setObject(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get()));
 
     assertTrue(instance.getRoot().isVisible());
     assertTrue(instance.avatarComboBox.isVisible());
@@ -50,7 +51,8 @@ public class AvatarPickerCustomMenuItemControllerTest extends PlatformTest {
 
   @Test
   public void testInvisibleItemIfPlayerIsNotSelf() {
-    runOnFxThreadAndWait(() -> instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.OTHER).get()));
+    runOnFxThreadAndWait(
+        () -> instance.setObject(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.OTHER).get()));
 
     assertFalse(instance.getRoot().isVisible());
   }
@@ -59,17 +61,19 @@ public class AvatarPickerCustomMenuItemControllerTest extends PlatformTest {
   public void testInvisibleItemIfNoAvailableAvatars() {
     when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
 
-    runOnFxThreadAndWait(() -> instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get()));
+    runOnFxThreadAndWait(
+        () -> instance.setObject(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get()));
 
     assertFalse(instance.getRoot().isVisible());
   }
 
   @Test
   public void testSelectAvatar() throws Exception {
-    AvatarBean avatar = Instancio.create(AvatarBean.class);
+    Avatar avatar = Instancio.create(Avatar.class);
     when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(avatar)));
 
-    runOnFxThreadAndWait(() -> instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get()));
+    runOnFxThreadAndWait(
+        () -> instance.setObject(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get()));
     runOnFxThreadAndWait(() -> instance.avatarComboBox.getSelectionModel().select(1)); // 0 index - no avatar
 
     verify(avatarService).changeAvatar(avatar);
@@ -77,11 +81,12 @@ public class AvatarPickerCustomMenuItemControllerTest extends PlatformTest {
 
   @Test
   public void testSelectNoAvatar() throws Exception {
-    AvatarBean avatar = Instancio.create(AvatarBean.class);
+    Avatar avatar = Instancio.create(Avatar.class);
     when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(avatar)));
     when(i18n.get("chat.userContext.noAvatar")).thenReturn("no avatar");
 
-    runOnFxThreadAndWait(() -> instance.setObject(PlayerBeanBuilder.create().defaultValues().avatar(avatar).socialStatus(SocialStatus.SELF).get()));
+    runOnFxThreadAndWait(() -> instance.setObject(
+        PlayerInfoBuilder.create().defaultValues().avatar(avatar).socialStatus(SocialStatus.SELF).get()));
     assertEquals(avatar, instance.avatarComboBox.getSelectionModel().getSelectedItem());
 
     runOnFxThreadAndWait(() -> instance.avatarComboBox.getSelectionModel().select(0)); // 0 index - no avatar

@@ -1,11 +1,11 @@
 package com.faforever.client.game;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.AvatarBean;
-import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.Avatar;
+import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.MouseEvents;
@@ -64,10 +64,10 @@ public class GameTileControllerTest extends PlatformTest {
 
   private GameTileController instance;
 
-  private GameBean game;
+  private GameInfo game;
 
   @Mock
-  private Consumer<GameBean> onSelectedConsumer;
+  private Consumer<GameInfo> onSelectedConsumer;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -75,11 +75,11 @@ public class GameTileControllerTest extends PlatformTest {
                                       avatarService,
                                       socialService, imageViewHelper, fxApplicationThreadExecutor);
 
-    game = GameBeanBuilder.create().defaultValues().get();
+    game = GameInfoBuilder.create().defaultValues().get();
 
     lenient().when(i18n.get(anyString())).thenReturn("test");
     lenient().when(featuredModService.getFeaturedMod(game.getFeaturedMod())).thenReturn(
-        Mono.just(Instancio.create(FeaturedModBean.class)));
+        Mono.just(Instancio.create(FeaturedMod.class)));
     lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
     lenient().when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
     lenient().when(imageViewHelper.createPlaceholderImageOnErrorObservable(any())).thenAnswer(
@@ -143,7 +143,7 @@ public class GameTileControllerTest extends PlatformTest {
   @Test
   public void testShowAvatarInsteadOfDefaultHostIcon() {
     when(playerService.getPlayerByNameIfOnline(anyString())).thenReturn(
-        Optional.of(PlayerBeanBuilder.create().avatar(Instancio.create(AvatarBean.class)).get()));
+        Optional.of(PlayerInfoBuilder.create().avatar(Instancio.create(Avatar.class)).get()));
     when(avatarService.loadAvatar(any())).thenReturn(new Image(InputStream.nullInputStream()));
 
     runOnFxThreadAndWait(() -> instance.setGame(game));
@@ -154,7 +154,7 @@ public class GameTileControllerTest extends PlatformTest {
 
   @Test
   public void testShowDefaultHostIconIfNoAvatar() {
-    when(playerService.getPlayerByNameIfOnline(anyString())).thenReturn(Optional.of(PlayerBeanBuilder.create().get()));
+    when(playerService.getPlayerByNameIfOnline(anyString())).thenReturn(Optional.of(PlayerInfoBuilder.create().get()));
 
     runOnFxThreadAndWait(() -> instance.setGame(game));
 

@@ -3,11 +3,11 @@ package com.faforever.client.player;
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
-import com.faforever.client.domain.LeaderboardBean;
-import com.faforever.client.domain.LeaderboardRatingBean;
-import com.faforever.client.domain.LeaderboardRatingJournalBean;
-import com.faforever.client.domain.NameRecordBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.Leaderboard;
+import com.faforever.client.domain.api.LeaderboardRating;
+import com.faforever.client.domain.api.LeaderboardRatingJournal;
+import com.faforever.client.domain.api.NameRecord;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -129,17 +129,17 @@ public class PlayerInfoWindowController extends NodeController<Node> {
   public PlayerRatingChart ratingHistoryChart;
   public VBox loadingHistoryPane;
   public ComboBox<TimePeriod> timePeriodComboBox;
-  public ComboBox<LeaderboardBean> ratingTypeComboBox;
+  public ComboBox<Leaderboard> ratingTypeComboBox;
   public Label usernameLabel;
   public Label countryLabel;
   public ImageView countryImageView;
   public Pane userInfoRoot;
-  public TableView<NameRecordBean> nameHistoryTable;
-  public TableColumn<NameRecordBean, OffsetDateTime> changeDateColumn;
-  public TableColumn<NameRecordBean, String> nameColumn;
-  private PlayerBean player;
+  public TableView<NameRecord> nameHistoryTable;
+  public TableColumn<NameRecord, OffsetDateTime> changeDateColumn;
+  public TableColumn<NameRecord, String> nameColumn;
+  private PlayerInfo player;
   private Window ownerWindow;
-  private List<LeaderboardRatingJournalBean> ratingData;
+  private List<LeaderboardRatingJournal> ratingData;
 
   private static boolean isUnlocked(PlayerAchievement playerAchievement) {
     return AchievementState.UNLOCKED == AchievementState.valueOf(playerAchievement.getState().name());
@@ -215,7 +215,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
     });
   }
 
-  public void setPlayer(PlayerBean player) {
+  public void setPlayer(PlayerInfo player) {
     if (player.getLeaderboardRatings().isEmpty()) {
       updateRatings(player).publishOn(fxApplicationThreadExecutor.asScheduler()).subscribe(this::setOnlinePlayer);
     } else {
@@ -223,7 +223,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
     }
   }
 
-  public void setOnlinePlayer(PlayerBean player) {
+  public void setOnlinePlayer(PlayerInfo player) {
     this.player = player;
 
     usernameLabel.setText(player.getUsername());
@@ -247,12 +247,12 @@ public class PlayerInfoWindowController extends NodeController<Node> {
     });
   }
 
-  public Mono<PlayerBean> updateRatings(PlayerBean player) {
+  public Mono<PlayerInfo> updateRatings(PlayerInfo player) {
     return leaderboardService.getEntriesForPlayer(player).collectList().doOnNext(leaderboardEntryBeans -> {
-      Map<String, LeaderboardRatingBean> ratingMap = new HashMap<>();
+      Map<String, LeaderboardRating> ratingMap = new HashMap<>();
       leaderboardEntryBeans.forEach(leaderboardEntryBean -> {
-        LeaderboardRatingBean rating = new LeaderboardRatingBean(0, leaderboardEntryBean.rating(),
-                                                                 leaderboardEntryBean.gamesPlayed());
+        LeaderboardRating rating = new LeaderboardRating(0, leaderboardEntryBean.rating(),
+                                                         leaderboardEntryBean.gamesPlayed());
         ratingMap.put(leaderboardEntryBean.leaderboard().technicalName(), rating);
       });
       player.setLeaderboardRatings(ratingMap);
@@ -266,8 +266,8 @@ public class PlayerInfoWindowController extends NodeController<Node> {
                                                                    .collectList()
                                                                    .subscribe(leagueSeasonBeans -> leaderboards.forEach(
                                                                        leaderboard -> {
-                                                                         LeaderboardRatingBean leaderboardRating = player.getLeaderboardRatings()
-                                                                                                                         .get(
+                                                                         LeaderboardRating leaderboardRating = player.getLeaderboardRatings()
+                                                                                                                     .get(
                                                                                                                              leaderboard.technicalName());
                                                                          if (leaderboardRating != null) {
                                                                            UserLeaderboardInfoController controller = uiService.loadFxml(
@@ -472,7 +472,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
     }
   }
 
-  private Mono<Void> loadStatistics(LeaderboardBean leaderboard) {
+  private Mono<Void> loadStatistics(Leaderboard leaderboard) {
     return statisticsService.getRatingHistory(player, leaderboard)
                             .collectList()
                             .doOnNext(ratingHistory -> ratingData = ratingHistory)
@@ -516,15 +516,15 @@ public class PlayerInfoWindowController extends NodeController<Node> {
   }
 
   @NotNull
-  private StringConverter<LeaderboardBean> leaderboardStringConverter() {
+  private StringConverter<Leaderboard> leaderboardStringConverter() {
     return new StringConverter<>() {
       @Override
-      public String toString(LeaderboardBean leaderboard) {
+      public String toString(Leaderboard leaderboard) {
         return i18n.getOrDefault(leaderboard.technicalName(), leaderboard.nameKey());
       }
 
       @Override
-      public LeaderboardBean fromString(String string) {
+      public Leaderboard fromString(String string) {
         return null;
       }
     };

@@ -1,14 +1,14 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.GameInfoBuilder;
 import com.faforever.client.builders.GameLaunchMessageBuilder;
-import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.MatchingStatus;
-import com.faforever.client.domain.MatchmakerQueueBean;
-import com.faforever.client.domain.PartyBean.PartyMember;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.PartyInfoBuilder.PartyMemberBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.MatchingStatus;
+import com.faforever.client.domain.server.MatchmakerQueueInfo;
+import com.faforever.client.domain.server.PartyInfo.PartyMember;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.game.GameRunner;
@@ -123,8 +123,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Spy
   private MatchmakerPrefs matchmakerPrefs = new MatchmakerPrefs();
 
-  private PlayerBean player;
-  private PlayerBean otherPlayer;
+  private PlayerInfo player;
+  private PlayerInfo otherPlayer;
   @InjectMocks
   private TeamMatchmakingService instance;
   @Spy
@@ -147,8 +147,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(matchmakerMapper);
-    player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
-    otherPlayer = PlayerBeanBuilder.create().defaultValues().username("junit2").id(2).get();
+    player = PlayerInfoBuilder.create().defaultValues().username("junit").get();
+    otherPlayer = PlayerInfoBuilder.create().defaultValues().username("junit2").id(2).get();
     lenient().when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(otherPlayer));
     lenient().when(playerService.getPlayerByIdIfOnline(1)).thenReturn(Optional.of(player));
     lenient().when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
@@ -184,11 +184,11 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
   private void setPartyMembers() {
     ObservableList<PartyMember> testMembers = FXCollections.observableArrayList();
-    testMembers.add(PartyMemberBuilder.create(PlayerBeanBuilder.create().defaultValues().username("member1").get())
+    testMembers.add(PartyMemberBuilder.create(PlayerInfoBuilder.create().defaultValues().username("member1").get())
         .get());
-    testMembers.add(PartyMemberBuilder.create(PlayerBeanBuilder.create().defaultValues().username("member2").get())
+    testMembers.add(PartyMemberBuilder.create(PlayerInfoBuilder.create().defaultValues().username("member2").get())
         .get());
-    testMembers.add(PartyMemberBuilder.create(PlayerBeanBuilder.create().defaultValues().username("member3").get())
+    testMembers.add(PartyMemberBuilder.create(PlayerInfoBuilder.create().defaultValues().username("member3").get())
         .get());
     testMembers.add(new PartyMember(player));
     instance.getParty().setMembers(testMembers);
@@ -235,7 +235,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   public void testOnKickedFromPartyMessageWhenInGame() {
     setPartyMembers();
     setOwnerByName("member2");
-    player.setGame(GameBeanBuilder.create().defaultValues().get());
+    player.setGame(GameInfoBuilder.create().defaultValues().get());
 
     kickTestPublisher.next(new PartyKick());
 
@@ -285,7 +285,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     assertThat(instance.partyMembersNotReady(), is(false));
 
-    instance.getParty().getMembers().getFirst().getPlayer().setGame(GameBeanBuilder.create().defaultValues().get());
+    instance.getParty().getMembers().getFirst().getPlayer().setGame(GameInfoBuilder.create().defaultValues().get());
 
     assertThat(instance.partyMembersNotReady(), is(true));
   }
@@ -560,7 +560,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
   @Test
   public void testJoinQueuesFailed() {
-    MatchmakerQueueBean queue = new MatchmakerQueueBean();
+    MatchmakerQueueInfo queue = new MatchmakerQueueInfo();
     when(featuredModService.updateFeaturedModToLatest(anyString(), anyBoolean())).thenReturn(
         CompletableFuture.failedFuture(new Exception()));
     when(gameRunner.isRunning()).thenReturn(false);

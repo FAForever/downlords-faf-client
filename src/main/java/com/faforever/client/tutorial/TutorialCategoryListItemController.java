@@ -1,7 +1,7 @@
 package com.faforever.client.tutorial;
 
 
-import com.faforever.client.domain.TutorialCategoryBean;
+import com.faforever.client.domain.api.TutorialCategory;
 import com.faforever.client.fx.NodeController;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -23,7 +23,7 @@ public class TutorialCategoryListItemController extends NodeController<Node> {
     return root;
   }
 
-  public void setCategory(TutorialCategoryBean category) {
+  public void setCategory(TutorialCategory category) {
     titleLabel.setText(category.category());
   }
 }

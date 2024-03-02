@@ -1,8 +1,8 @@
 package com.faforever.client.player;
 
-import com.faforever.client.domain.LeaderboardBean;
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.Leaderboard;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -60,7 +60,7 @@ public class UserLeaderboardInfoController extends NodeController<Node> {
     return root;
   }
 
-  public void setLeaderboardInfo(PlayerBean player, LeaderboardBean leaderboard) {
+  public void setLeaderboardInfo(PlayerInfo player, Leaderboard leaderboard) {
     String leaderboardName = i18n.getOrDefault(leaderboard.technicalName(), leaderboard.nameKey());
     String gameNumber = i18n.get("leaderboard.gameNumber",
                                  player.getNumberOfGamesForLeaderboard(leaderboard.technicalName()));
@@ -73,7 +73,7 @@ public class UserLeaderboardInfoController extends NodeController<Node> {
     });
   }
 
-  public void setLeagueInfo(LeagueEntryBean leagueEntry) {
+  public void setLeagueInfo(LeagueEntry leagueEntry) {
     Image image = leaderboardService.loadDivisionImage(leagueEntry.subdivision().imageUrl());
     String divisionNameKey = leagueEntry.subdivision().division().nameKey();
     String divisionName = i18n.get("leaderboard.divisionName", i18n.getOrDefault(divisionNameKey,

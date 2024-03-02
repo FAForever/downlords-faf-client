@@ -1,6 +1,6 @@
 package com.faforever.client.tutorial;
 
-import com.faforever.client.domain.TutorialBean;
+import com.faforever.client.domain.api.Tutorial;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
@@ -31,7 +31,7 @@ public class TutorialDetailController extends NodeController<Node> {
   public WebView descriptionWebView;
   public Label titleLabel;
   public Button launchButton;
-  private TutorialBean tutorial;
+  private Tutorial tutorial;
 
   public TutorialDetailController(I18n i18n, MapService mapService, WebViewConfigurer webViewConfigurer, TutorialService tutorialService) {
     this.i18n = i18n;
@@ -59,11 +59,11 @@ public class TutorialDetailController extends NodeController<Node> {
     }
   }
 
-  public TutorialBean getTutorial() {
+  public Tutorial getTutorial() {
     return tutorial;
   }
 
-  public void setTutorial(TutorialBean tutorial) {
+  public void setTutorial(Tutorial tutorial) {
     this.tutorial = tutorial;
     titleLabel.setText(tutorial.title());
     if (tutorial.mapVersion() != null) {

@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -84,12 +84,12 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @InjectMocks
   private GameDetailController instance;
-  private GameBean game;
+  private GameInfo game;
 
 
   @BeforeEach
   public void setUp() throws Exception {
-    game = GameBeanBuilder.create().defaultValues().get();
+    game = GameInfoBuilder.create().defaultValues().get();
 
     lenient().doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
         .createPlaceholderImageOnErrorObservable(any());
@@ -101,8 +101,8 @@ public class GameDetailControllerTest extends PlatformTest {
     lenient().when(teamCardController.playerIdsProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(teamCardController.teamIdProperty()).thenReturn(new SimpleIntegerProperty());
     lenient().when(featuredModService.getFeaturedMod(game.getFeaturedMod()))
-             .thenReturn(Mono.just(Instancio.of(FeaturedModBean.class)
-                                            .set(field(FeaturedModBean::displayName), "Forged Alliance Forever")
+             .thenReturn(Mono.just(
+                 Instancio.of(FeaturedMod.class).set(field(FeaturedMod::displayName), "Forged Alliance Forever")
                                             .create()));
     lenient().when(mapService.isInstalledBinding(anyString())).thenReturn(new SimpleBooleanProperty());
     lenient().when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE))
@@ -185,10 +185,10 @@ public class GameDetailControllerTest extends PlatformTest {
   @Test
   public void testModListener() {
     assertEquals("Forged Alliance Forever", instance.gameTypeLabel.getText());
-    FeaturedModBean mod = Instancio.of(FeaturedModBean.class)
-                                   .set(field(FeaturedModBean::technicalName), "ladder")
-                                   .set(field(FeaturedModBean::displayName), "LADDER")
-                                   .create();
+    FeaturedMod mod = Instancio.of(FeaturedMod.class)
+                               .set(field(FeaturedMod::technicalName), "ladder")
+                               .set(field(FeaturedMod::displayName), "LADDER")
+                               .create();
     when(featuredModService.getFeaturedMod(mod.technicalName())).thenReturn(Mono.just(mod));
     runOnFxThreadAndWait(() -> game.setFeaturedMod(mod.technicalName()));
     assertEquals(mod.displayName(), instance.gameTypeLabel.getText());
@@ -226,7 +226,7 @@ public class GameDetailControllerTest extends PlatformTest {
   public void testNoPlaytimeWhenGameIsClosed() {
     runOnFxThreadAndWait(() -> {
       instance.setPlaytimeVisible(true);
-      instance.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get());
+      instance.setGame(GameInfoBuilder.create().defaultValues().status(GameStatus.CLOSED).get());
     });
     assertFalse(instance.playtimeLabel.isVisible());
     assertNotSame(instance.getPlayTimeTimeline().getStatus(), Status.RUNNING);
@@ -236,7 +236,7 @@ public class GameDetailControllerTest extends PlatformTest {
   public void testNoPlaytimeWhenPlayerIsInLobby() {
     runOnFxThreadAndWait(() -> {
       instance.setPlaytimeVisible(true);
-      instance.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).get());
+      instance.setGame(GameInfoBuilder.create().defaultValues().status(GameStatus.OPEN).get());
     });
     assertFalse(instance.playtimeLabel.isVisible());
     assertNotSame(instance.getPlayTimeTimeline().getStatus(), Status.RUNNING);
@@ -246,11 +246,8 @@ public class GameDetailControllerTest extends PlatformTest {
   public void testShowPlaytimeWhenGameIsRunning() {
     runOnFxThreadAndWait(() -> {
       instance.setPlaytimeVisible(true);
-      instance.setGame(GameBeanBuilder.create()
-          .defaultValues()
-          .status(GameStatus.PLAYING)
-          .startTime(OffsetDateTime.now())
-          .get());
+      instance.setGame(
+          GameInfoBuilder.create().defaultValues().status(GameStatus.PLAYING).startTime(OffsetDateTime.now()).get());
     });
     assertTrue(instance.playtimeLabel.isVisible());
     assertEquals(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
@@ -258,11 +255,11 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testHidePlaytimeWhenGameHasJustEnded() throws Exception {
-    GameBean game = GameBeanBuilder.create()
-        .defaultValues()
-        .status(GameStatus.PLAYING)
-        .startTime(OffsetDateTime.now())
-        .get();
+    GameInfo game = GameInfoBuilder.create()
+                                   .defaultValues()
+                                   .status(GameStatus.PLAYING)
+                                   .startTime(OffsetDateTime.now())
+                                   .get();
 
     runOnFxThreadAndWait(() -> {
       instance.setPlaytimeVisible(true);
@@ -278,7 +275,7 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testGenerateMapButtonIsVisible() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(true);
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(false);
 
@@ -289,7 +286,7 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testGenerateMapButtonIsInvisible() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(false);
 
     runOnFxThreadAndWait(() -> instance.setGame(game));
@@ -299,7 +296,7 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testGenerateMapButtonIsInvisibleWhenMapIsInstalled() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(true);
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
 
@@ -310,7 +307,7 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnGenerateMapClickedAndFailed() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(true);
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(false);
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(
@@ -327,7 +324,7 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnGenerateMapClickedAndInProcess() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(i18n.get("game.mapGeneration.notification.title")).thenReturn("in process");
 
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenAnswer(invocation -> {
@@ -347,7 +344,7 @@ public class GameDetailControllerTest extends PlatformTest {
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
   public void testOnGenerateMapClickedAndCompleted(boolean succeed) {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(i18n.get("game.create.generatedMap")).thenReturn("text");
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(
         succeed ? Mono.just(game.getMapFolderName()) : Mono.error(new RuntimeException("failed")));
@@ -363,8 +360,8 @@ public class GameDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnGenerateMapClickedAndDoNotSetImageIfGameIsAnother() {
-    GameBean game = GameBeanBuilder.create().defaultValues().mapFolderName("neroxis").get();
-    GameBean anotherGame = GameBeanBuilder.create().defaultValues().mapFolderName("non_neroxis").get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().mapFolderName("neroxis").get();
+    GameInfo anotherGame = GameInfoBuilder.create().defaultValues().mapFolderName("non_neroxis").get();
     Image image = new Image(InputStream.nullInputStream());
     Image anotherImage = new Image(InputStream.nullInputStream());
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(image);

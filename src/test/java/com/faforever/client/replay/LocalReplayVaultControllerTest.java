@@ -1,6 +1,6 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.domain.api.Replay;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.VaultPrefs;
@@ -88,7 +88,7 @@ public class LocalReplayVaultControllerTest extends PlatformTest {
   @Test
   @Disabled("I will deal with this later")
   public void testShowLocalReplayDetail() {
-    ReplayBean replay = Instancio.create(ReplayBean.class);
+    Replay replay = Instancio.create(Replay.class);
     runOnFxThreadAndWait(() -> instance.onDisplayDetails(replay));
     WaitForAsyncUtils.waitForFxEvents();
 

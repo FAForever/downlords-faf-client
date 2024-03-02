@@ -1,5 +1,5 @@
 package com.faforever.client.avatar.event;
 
-import com.faforever.client.domain.AvatarBean;
+import com.faforever.client.domain.api.Avatar;
 
-public record AvatarChangedEvent (AvatarBean avatar) {}
+public record AvatarChangedEvent(Avatar avatar) {}

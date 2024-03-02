@@ -1,7 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -128,7 +128,7 @@ public class MapUploadController extends NodeController<Node> {
     }
   }
 
-  private void setMapInfo(MapVersionBean mapInfo) {
+  private void setMapInfo(MapVersion mapInfo) {
     enterMapInfoState();
 
     mapNameLabel.setText(mapInfo.map().displayName());

@@ -2,12 +2,10 @@ package com.faforever.client.coop;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.domain.CoopMissionBean;
-import com.faforever.client.domain.CoopResultBean;
+import com.faforever.client.domain.api.CoopMission;
+import com.faforever.client.domain.api.CoopResult;
 import com.faforever.client.mapstruct.CoopMapper;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
-import com.faforever.commons.api.dto.CoopMission;
-import com.faforever.commons.api.dto.CoopResult;
 import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GamePlayerStats;
 import com.faforever.commons.api.dto.Player;
@@ -36,22 +34,26 @@ public class CoopService {
   private final CoopMapper coopMapper;
 
   @Cacheable(value = CacheNames.COOP_MAPS, sync = true)
-  public Flux<CoopMissionBean> getMissions() {
-    ElideNavigatorOnCollection<CoopMission> navigator = ElideNavigator.of(CoopMission.class).collection()
-        .pageSize(1000);
+  public Flux<CoopMission> getMissions() {
+    ElideNavigatorOnCollection<com.faforever.commons.api.dto.CoopMission> navigator = ElideNavigator.of(
+        com.faforever.commons.api.dto.CoopMission.class).collection().pageSize(1000);
     return fafApiAccessor.getMany(navigator).map(dto -> coopMapper.map(dto, new CycleAvoidingMappingContext())).cache();
   }
 
   @Cacheable(value = CacheNames.COOP_LEADERBOARD, sync = true)
-  public Flux<CoopResultBean> getLeaderboard(CoopMissionBean mission, int numberOfPlayers) {
+  public Flux<CoopResult> getLeaderboard(CoopMission mission, int numberOfPlayers) {
     Condition<?> filterCondition = qBuilder().intNum("mission").eq(mission.id());
     if (numberOfPlayers > 0) {
       filterCondition = filterCondition.and().intNum("playerCount").eq(numberOfPlayers);
     }
-    ElideNavigatorOnCollection<CoopResult> navigator = ElideNavigator.of(CoopResult.class).collection()
-        .setFilter(filterCondition)
-        .addSortingRule("duration", true)
-        .pageSize(1000);
+    ElideNavigatorOnCollection<com.faforever.commons.api.dto.CoopResult> navigator = ElideNavigator.of(
+                                                                                                       com.faforever.commons.api.dto.CoopResult.class)
+                                                                                                   .collection()
+                                                                                                   .setFilter(
+                                                                                                       filterCondition)
+                                                                                                   .addSortingRule(
+                                                                                                       "duration", true)
+                                                                                                   .pageSize(1000);
     return fafApiAccessor.getMany(navigator)
                          .distinct(this::getAllPlayerNamesFromTeams)
                          .index(
@@ -59,7 +61,7 @@ public class CoopService {
                          .cache();
   }
 
-  private Set<String> getAllPlayerNamesFromTeams(CoopResult coopResult) {
+  private Set<String> getAllPlayerNamesFromTeams(com.faforever.commons.api.dto.CoopResult coopResult) {
     Game game = coopResult.getGame();
     List<GamePlayerStats> playerStats = game == null ? null : game.getPlayerStats();
     return playerStats == null ? Set.of() : playerStats.stream()

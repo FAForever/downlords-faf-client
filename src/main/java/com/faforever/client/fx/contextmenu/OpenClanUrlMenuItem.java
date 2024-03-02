@@ -1,8 +1,8 @@
 package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.clan.ClanService;
-import com.faforever.client.domain.ClanBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.Clan;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.Assert;
@@ -17,7 +17,7 @@ import java.net.URL;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class OpenClanUrlMenuItem extends AbstractMenuItem<PlayerBean> {
+public class OpenClanUrlMenuItem extends AbstractMenuItem<PlayerInfo> {
 
   private final I18n i18n;
   private final PlatformService platformService;
@@ -27,8 +27,7 @@ public class OpenClanUrlMenuItem extends AbstractMenuItem<PlayerBean> {
   protected void onClicked() {
     Assert.checkNullIllegalState(object, "no player has been set");
 
-    clanService.getClanByTag(object.getClan())
-               .map(ClanBean::websiteUrl)
+    clanService.getClanByTag(object.getClan()).map(Clan::websiteUrl)
                .map(URL::toExternalForm)
                .subscribe(platformService::showDocument);
   }

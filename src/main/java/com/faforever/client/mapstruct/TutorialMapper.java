@@ -1,19 +1,19 @@
 package com.faforever.client.mapstruct;
 
-import com.faforever.client.domain.TutorialBean;
-import com.faforever.client.domain.TutorialCategoryBean;
-import com.faforever.commons.api.dto.Tutorial;
-import com.faforever.commons.api.dto.TutorialCategory;
+import com.faforever.client.domain.api.Tutorial;
+import com.faforever.client.domain.api.TutorialCategory;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 
 @Mapper(uses = {MapMapper.class}, config = MapperConfiguration.class)
 public interface TutorialMapper {
-     TutorialBean map(Tutorial dto, @Context CycleAvoidingMappingContext context);
+  Tutorial map(com.faforever.commons.api.dto.Tutorial dto, @Context CycleAvoidingMappingContext context);
 
-     Tutorial map(TutorialBean bean, @Context CycleAvoidingMappingContext context);
+  com.faforever.commons.api.dto.Tutorial map(Tutorial bean, @Context CycleAvoidingMappingContext context);
 
-     TutorialCategoryBean map(TutorialCategory dto, @Context CycleAvoidingMappingContext context);
+  TutorialCategory map(com.faforever.commons.api.dto.TutorialCategory dto,
+                       @Context CycleAvoidingMappingContext context);
 
-     TutorialCategory map(TutorialCategoryBean bean, @Context CycleAvoidingMappingContext context);
+  com.faforever.commons.api.dto.TutorialCategory map(TutorialCategory bean,
+                                                     @Context CycleAvoidingMappingContext context);
 }

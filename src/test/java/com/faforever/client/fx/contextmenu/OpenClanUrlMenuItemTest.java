@@ -1,8 +1,8 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.clan.ClanService;
-import com.faforever.client.domain.ClanBean;
+import com.faforever.client.domain.api.Clan;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.PlatformTest;
@@ -40,20 +40,20 @@ public class OpenClanUrlMenuItemTest extends PlatformTest {
 
   @Test
   public void testOpenClanUrl() throws Exception {
-    when(clanService.getClanByTag(anyString())).thenReturn(Mono.just(Instancio.of(ClanBean.class)
-                                                                              .set(field(ClanBean::websiteUrl),
+    when(clanService.getClanByTag(anyString())).thenReturn(
+        Mono.just(Instancio.of(Clan.class).set(field(Clan::websiteUrl),
                                                                                    URI.create("https://site.com")
                                                                                       .toURL())
                                                                               .create()));
 
-    instance.setObject(PlayerBeanBuilder.create().clan("clan").get());
+    instance.setObject(PlayerInfoBuilder.create().clan("clan").get());
     instance.onClicked();
     verify(platformService).showDocument("https://site.com");
   }
 
   @Test
   public void testVisibleItem() {
-    instance.setObject(PlayerBeanBuilder.create().clan("clan").get());
+    instance.setObject(PlayerInfoBuilder.create().clan("clan").get());
     assertTrue(instance.isVisible());
   }
 
@@ -65,7 +65,7 @@ public class OpenClanUrlMenuItemTest extends PlatformTest {
 
   @Test
   public void testInvisibleItemWhenNoClan() {
-    instance.setObject(PlayerBeanBuilder.create().get());
+    instance.setObject(PlayerInfoBuilder.create().get());
     assertFalse(instance.isVisible());
   }
 

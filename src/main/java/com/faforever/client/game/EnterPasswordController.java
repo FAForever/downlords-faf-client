@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.util.Assert;
@@ -35,7 +35,7 @@ public class EnterPasswordController extends NodeController<Node> {
   public Button joinButton;
   public Button cancelButton;
   private PasswordEnteredListener listener;
-  private GameBean game;
+  private GameInfo game;
   private boolean ignoreRating;
 
   @Override
@@ -65,7 +65,7 @@ public class EnterPasswordController extends NodeController<Node> {
     getRoot().getScene().getWindow().hide();
   }
 
-  public void setGame(GameBean game) {
+  public void setGame(GameInfo game) {
     this.game = game;
   }
 
@@ -86,6 +86,6 @@ public class EnterPasswordController extends NodeController<Node> {
   @FunctionalInterface
   interface PasswordEnteredListener {
 
-    void onPasswordEntered(GameBean game, String password, boolean ignoreRating);
+    void onPasswordEntered(GameInfo game, String password, boolean ignoreRating);
   }
 }

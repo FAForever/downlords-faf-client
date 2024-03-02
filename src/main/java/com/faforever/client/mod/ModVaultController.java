@@ -1,7 +1,7 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.domain.ModVersionBean;
-import com.faforever.client.domain.ModVersionBean.ModType;
+import com.faforever.client.domain.api.ModType;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
@@ -31,7 +31,7 @@ import java.util.Random;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class ModVaultController extends VaultEntityController<ModVersionBean> {
+public class ModVaultController extends VaultEntityController<ModVersion> {
 
   private final ModService modService;
   private final PlatformService platformService;
@@ -66,7 +66,7 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
   }
 
   @Override
-  protected void onDisplayDetails(ModVersionBean modVersion) {
+  protected void onDisplayDetails(ModVersion modVersion) {
     fxApplicationThreadExecutor.execute(() -> {
       modDetailController.setModVersion(modVersion);
       modDetailController.getRoot().setVisible(true);
@@ -91,14 +91,14 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
   }
 
   @Override
-  protected VaultEntityCardController<ModVersionBean> createEntityCard() {
+  protected VaultEntityCardController<ModVersion> createEntityCard() {
     ModCardController controller = uiService.loadFxml("theme/vault/mod/mod_card.fxml");
     controller.setOnOpenDetailListener(this::onDisplayDetails);
     return controller;
   }
 
   @Override
-  protected List<ShowRoomCategory<ModVersionBean>> getShowRoomCategories() {
+  protected List<ShowRoomCategory<ModVersion>> getShowRoomCategories() {
     return List.of(
         new ShowRoomCategory<>(() -> {
           int recommendedPage;

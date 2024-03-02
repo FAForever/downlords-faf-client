@@ -1,7 +1,7 @@
 package com.faforever.client.featuredmod;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.domain.api.FeaturedMod;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.FeaturedModMapper;
 import com.faforever.client.mapstruct.MapperSetup;
@@ -46,7 +46,7 @@ public class FeaturedModServiceTest extends ServiceTest {
   @Test
   public void testGetFeaturedFiles() {
     when(fafApiAccessor.getMaxPageSize()).thenReturn(100);
-    FeaturedModBean featuredMod = Instancio.create(FeaturedModBean.class);
+    FeaturedMod featuredMod = Instancio.create(FeaturedMod.class);
     when(fafApiAccessor.getMany(eq(FeaturedModFile.class), anyString(), anyInt(), any())).thenReturn(
         Flux.just(new FeaturedModFile()));
 
@@ -58,7 +58,7 @@ public class FeaturedModServiceTest extends ServiceTest {
 
   @Test
   public void testGetFeaturedMod() {
-    FeaturedModBean featuredMod = Instancio.create(FeaturedModBean.class);
+    FeaturedMod featuredMod = Instancio.create(FeaturedMod.class);
     Flux<ElideEntity> resultFlux = Flux.just(featuredModMapper.map(featuredMod, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getFeaturedMod("test")).expectNext(featuredMod).verifyComplete();

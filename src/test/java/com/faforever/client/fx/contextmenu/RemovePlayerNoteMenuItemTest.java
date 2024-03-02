@@ -1,7 +1,7 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.social.SocialService;
@@ -32,7 +32,7 @@ public class RemovePlayerNoteMenuItemTest extends PlatformTest {
 
   @Test
   public void testOnItemClicked() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().note("junit").get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().note("junit").get();
     instance.setObject(player);
     instance.onClicked();
     verify(socialService).removeNote(player);
@@ -40,13 +40,13 @@ public class RemovePlayerNoteMenuItemTest extends PlatformTest {
 
   @Test
   public void testVisibleItem() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().note("junit").get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().note("junit").get());
     assertTrue(instance.isVisible());
   }
 
   @Test
   public void testInvisibleItemIfNoteIsBlank() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().get());
     assertFalse(instance.isVisible());
   }
 
@@ -58,7 +58,7 @@ public class RemovePlayerNoteMenuItemTest extends PlatformTest {
 
   @Test
   public void testInvisibleItemIfOwnPlayer() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
 
     instance.setObject(player);
     assertFalse(instance.isVisible());

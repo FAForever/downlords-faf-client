@@ -1,7 +1,7 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.domain.ModVersionBean;
-import com.faforever.client.domain.ModVersionBean.ModType;
+import com.faforever.client.domain.api.ModType;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -53,7 +53,7 @@ public class ModCardControllerTest extends PlatformTest {
 
   @InjectMocks
   private ModCardController instance;
-  private ModVersionBean modVersion;
+  private ModVersion modVersion;
 
   private final SimpleBooleanProperty installed = new SimpleBooleanProperty();
 
@@ -68,7 +68,7 @@ public class ModCardControllerTest extends PlatformTest {
     lenient().when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
     lenient().when(i18n.get(ModType.UI.getI18nKey())).thenReturn(ModType.UI.name());
 
-    modVersion = Instancio.create(ModVersionBean.class);
+    modVersion = Instancio.create(ModVersion.class);
 
     loadFxml("theme/vault/mod/mod_card.fxml", clazz -> {
       if (clazz == StarsController.class) {
@@ -110,7 +110,7 @@ public class ModCardControllerTest extends PlatformTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testShowModDetail() {
-    Consumer<ModVersionBean> listener = mock(Consumer.class);
+    Consumer<ModVersion> listener = mock(Consumer.class);
     instance.setOnOpenDetailListener(listener);
     instance.onShowModDetail();
     verify(listener).accept(any());
@@ -118,9 +118,7 @@ public class ModCardControllerTest extends PlatformTest {
 
   @Test
   public void testUiModLabel() {
-    ModVersionBean modVersion = Instancio.of(ModVersionBean.class)
-                                         .set(field(ModVersionBean::modType), ModType.UI)
-                                         .create();
+    ModVersion modVersion = Instancio.of(ModVersion.class).set(field(ModVersion::modType), ModType.UI).create();
     runOnFxThreadAndWait(() -> instance.setEntity(modVersion));
     assertEquals(ModType.UI.name(), instance.typeLabel.getText());
   }

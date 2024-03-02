@@ -1,7 +1,7 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.LeagueSeasonBean;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.api.LeagueSeason;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.PlatformTest;
 import javafx.scene.image.Image;
@@ -37,8 +37,8 @@ public class LeaderboardPlayerDetailsControllerTest extends PlatformTest {
 
   @Test
   public void testDetailsPlaced() {
-    LeagueSeasonBean leagueSeason = Instancio.create(LeagueSeasonBean.class);
-    LeagueEntryBean leagueEntry = Instancio.create(LeagueEntryBean.class);
+    LeagueSeason leagueSeason = Instancio.create(LeagueSeason.class);
+    LeagueEntry leagueEntry = Instancio.create(LeagueEntry.class);
     instance.setLeagueEntry(leagueEntry);
     instance.setLeagueSeason(leagueSeason);
 
@@ -48,9 +48,8 @@ public class LeaderboardPlayerDetailsControllerTest extends PlatformTest {
 
   @Test
   public void testDetailsNotPlaced() {
-    LeagueSeasonBean leagueSeason = Instancio.create(LeagueSeasonBean.class);
-    LeagueEntryBean leagueEntry = Instancio.of(LeagueEntryBean.class).ignore(field(LeagueEntryBean::subdivision))
-                                           .create();
+    LeagueSeason leagueSeason = Instancio.create(LeagueSeason.class);
+    LeagueEntry leagueEntry = Instancio.of(LeagueEntry.class).ignore(field(LeagueEntry::subdivision)).create();
     instance.setLeagueEntry(leagueEntry);
     instance.setLeagueSeason(leagueSeason);
 

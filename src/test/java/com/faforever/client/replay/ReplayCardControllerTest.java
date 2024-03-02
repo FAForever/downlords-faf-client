@@ -1,7 +1,7 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.Replay;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.game.PlayerCardController;
@@ -85,33 +85,33 @@ public class ReplayCardControllerTest extends PlatformTest {
   private StarsController starsController;
 
   @Mock
-  private Consumer<ReplayBean> onOpenDetailListener;
+  private Consumer<Replay> onOpenDetailListener;
 
-  private ReplayBean onlineReplay;
-  private ReplayBean localReplay;
-  private MapVersionBean mapBean;
+  private Replay onlineReplay;
+  private Replay localReplay;
+  private MapVersion mapBean;
 
   private final BooleanProperty installed = new SimpleBooleanProperty();
 
   @BeforeEach
   public void setUp() throws Exception {
-    mapBean = Instancio.create(MapVersionBean.class);
-    onlineReplay = Instancio.of(ReplayBean.class)
-                            .set(field(ReplayBean::validity), Validity.VALID)
-                            .set(field(ReplayBean::title), "test")
-                            .set(field(ReplayBean::mapVersion), mapBean)
-                            .ignore(field(ReplayBean::replayFile))
+    mapBean = Instancio.create(MapVersion.class);
+    onlineReplay = Instancio.of(Replay.class)
+                            .set(field(Replay::validity), Validity.VALID)
+                            .set(field(Replay::title), "test")
+                            .set(field(Replay::mapVersion), mapBean)
+                            .ignore(field(Replay::replayFile))
                             .create();
-    localReplay = Instancio.of(ReplayBean.class)
-                           .set(field(ReplayBean::local), true)
-                           .set(field(ReplayBean::title), "test")
-                           .set(field(ReplayBean::mapVersion), mapBean)
-                           .set(field(ReplayBean::replayFile), Path.of("foo.tmp"))
-                           .ignore(field(ReplayBean::validity))
+    localReplay = Instancio.of(Replay.class)
+                           .set(field(Replay::local), true)
+                           .set(field(Replay::title), "test")
+                           .set(field(Replay::mapVersion), mapBean)
+                           .set(field(Replay::replayFile), Path.of("foo.tmp"))
+                           .ignore(field(Replay::validity))
                            .create();
     lenient().when(uiService.loadFxml("theme/player_card.fxml")).thenReturn(playerCardController);
     lenient().when(replayService.loadReplayDetails(any())).thenReturn(new ReplayDetails(List.of(), List.of(), mapBean));
-    lenient().when(mapService.isInstalledBinding(Mockito.<MapVersionBean>any())).thenReturn(installed);
+    lenient().when(mapService.isInstalledBinding(Mockito.<MapVersion>any())).thenReturn(installed);
     lenient().when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE)))
              .thenReturn(new Image(InputStream.nullInputStream()));
     lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
@@ -204,10 +204,10 @@ public class ReplayCardControllerTest extends PlatformTest {
 
   @Test
   public void setReplayNoEndTime() {
-    ReplayBean onlineReplay = Instancio.of(ReplayBean.class)
-                                       .ignore(field(ReplayBean::endTime))
-                                       .ignore(field(ReplayBean::replayTicks))
-                                       .create();
+    Replay onlineReplay = Instancio.of(Replay.class)
+                                   .ignore(field(Replay::endTime))
+                                   .ignore(field(Replay::replayTicks))
+                                   .create();
 
     runOnFxThreadAndWait(() -> instance.setEntity(onlineReplay));
 
@@ -217,7 +217,7 @@ public class ReplayCardControllerTest extends PlatformTest {
 
   @Test
   public void tickTimeNotDisplayedWhenRealTimeIs() {
-    ReplayBean onlineReplay = Instancio.of(ReplayBean.class).set(field(ReplayBean::replayTicks), 1000).create();
+    Replay onlineReplay = Instancio.of(Replay.class).set(field(Replay::replayTicks), 1000).create();
     runOnFxThreadAndWait(() -> instance.setEntity(onlineReplay));
 
     assertTrue(instance.realTimeDurationLabel.isVisible());
@@ -226,10 +226,10 @@ public class ReplayCardControllerTest extends PlatformTest {
 
   @Test
   public void tickTimeDisplayedWhenRealTimeIsNot() {
-    ReplayBean onlineReplay = Instancio.of(ReplayBean.class)
-                                       .ignore(field(ReplayBean::endTime))
-                                       .set(field(ReplayBean::replayTicks), 1000)
-                                       .create();
+    Replay onlineReplay = Instancio.of(Replay.class)
+                                   .ignore(field(Replay::endTime))
+                                   .set(field(Replay::replayTicks), 1000)
+                                   .create();
     runOnFxThreadAndWait(() -> instance.setEntity(onlineReplay));
 
     assertFalse(instance.realTimeDurationLabel.isVisible());
@@ -238,7 +238,7 @@ public class ReplayCardControllerTest extends PlatformTest {
 
   @Test
   public void setReplayNoTeamStats() {
-    ReplayBean onlineReplay = Instancio.of(ReplayBean.class).ignore(field(ReplayBean::teamPlayerStats)).create();
+    Replay onlineReplay = Instancio.of(Replay.class).ignore(field(Replay::teamPlayerStats)).create();
 
     runOnFxThreadAndWait(() -> instance.setEntity(onlineReplay));
     WaitForAsyncUtils.waitForFxEvents();
@@ -248,10 +248,10 @@ public class ReplayCardControllerTest extends PlatformTest {
 
   @Test
   public void setReplayMissing() {
-    ReplayBean onlineReplay = Instancio.of(ReplayBean.class)
-                                       .ignore(field(ReplayBean::replayAvailable))
-                                       .set(field(ReplayBean::startTime), OffsetDateTime.now().minusDays(2))
-                                       .create();
+    Replay onlineReplay = Instancio.of(Replay.class)
+                                   .ignore(field(Replay::replayAvailable))
+                                   .set(field(Replay::startTime), OffsetDateTime.now().minusDays(2))
+                                   .create();
 
     runOnFxThreadAndWait(() -> instance.setEntity(onlineReplay));
 

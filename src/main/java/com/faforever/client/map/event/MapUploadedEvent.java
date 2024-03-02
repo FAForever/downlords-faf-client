@@ -1,5 +1,5 @@
 package com.faforever.client.map.event;
 
-import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.api.MapVersion;
 
-public record MapUploadedEvent(MapVersionBean mapInfo) {}
+public record MapUploadedEvent(MapVersion mapInfo) {}

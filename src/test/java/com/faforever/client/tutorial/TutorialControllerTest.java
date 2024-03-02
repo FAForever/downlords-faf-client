@@ -1,6 +1,6 @@
 package com.faforever.client.tutorial;
 
-import com.faforever.client.domain.TutorialCategoryBean;
+import com.faforever.client.domain.api.TutorialCategory;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.test.PlatformTest;
@@ -41,7 +41,7 @@ public class TutorialControllerTest extends PlatformTest {
       }
       return instance;
     });
-    TutorialCategoryBean tutorialCategory = Instancio.create(TutorialCategoryBean.class);
+    TutorialCategory tutorialCategory = Instancio.create(TutorialCategory.class);
     when(tutorialService.getTutorialCategories()).thenReturn(Flux.just(tutorialCategory));
     when(tutorialListItemController.getRoot()).thenAnswer(invocation -> new Pane());
     when(tutorialsCategoryListItemController.getRoot()).thenAnswer(invocation -> new Pane());

@@ -1,11 +1,11 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.DivisionBean;
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.LeagueSeasonBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.SubdivisionBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.Division;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.api.LeagueSeason;
+import com.faforever.client.domain.api.Subdivision;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
@@ -57,60 +57,52 @@ public class LeaderboardControllerTest extends PlatformTest {
   @Mock
   private LeaderboardDistributionController leaderboardDistributionController;
 
-  private final ObjectProperty<LeagueSeasonBean> leagueSeasonProperty = new SimpleObjectProperty<>();
+  private final ObjectProperty<LeagueSeason> leagueSeasonProperty = new SimpleObjectProperty<>();
 
-  private PlayerBean player;
-  private final LeagueSeasonBean season = Instancio.of(LeagueSeasonBean.class)
-                                                   .set(field(LeagueSeasonBean::nameKey), "seasonName")
-                                                   .set(field(LeagueSeasonBean::seasonNumber), 1)
-                                                   .create();
+  private PlayerInfo player;
+  private final LeagueSeason season = Instancio.of(LeagueSeason.class)
+                                               .set(field(LeagueSeason::nameKey), "seasonName")
+                                               .set(field(LeagueSeason::seasonNumber), 1)
+                                               .create();
   ;
-  private final DivisionBean division = Instancio.of(DivisionBean.class)
-                                                 .set(field(DivisionBean::nameKey), "silver")
-                                                 .set(field(DivisionBean::index), 2)
-                                                 .create();
+  private final Division division = Instancio.of(Division.class)
+                                             .set(field(Division::nameKey), "silver")
+                                             .set(field(Division::index), 2)
+                                             .create();
 
-  private final SubdivisionBean subdivisionBean2 = Instancio.of(SubdivisionBean.class)
-                                                            .set(field(SubdivisionBean::id), 2)
-                                                            .set(field(SubdivisionBean::division), division)
-                                                            .set(field(SubdivisionBean::index), 1)
-                                                            .create();
+  private final Subdivision subdivision2 = Instancio.of(Subdivision.class)
+                                                    .set(field(Subdivision::id), 2)
+                                                    .set(field(Subdivision::division), division)
+                                                    .set(field(Subdivision::index), 1)
+                                                    .create();
   ;
-  private final SubdivisionBean subdivisionBean1 = Instancio.of(SubdivisionBean.class)
-                                                            .set(field(SubdivisionBean::id), 1)
-                                                            .set(field(SubdivisionBean::index), 1)
-                                                            .create();
-  private final LeagueEntryBean leagueEntryBean2 = Instancio.of(LeagueEntryBean.class)
-                                                            .set(field(LeagueEntryBean::subdivision), subdivisionBean1)
-                                                            .set(field(LeagueEntryBean::id), 1)
-                                                            .set(field(LeagueEntryBean::player),
-                                                                 PlayerBeanBuilder.create()
-                                                                                  .defaultValues()
-                                                                                  .username("2")
-                                                                                  .get())
-                                                            .create();
-  private final LeagueEntryBean leagueEntryBean1 = Instancio.of(LeagueEntryBean.class)
-                                                            .set(field(LeagueEntryBean::subdivision), subdivisionBean1)
-                                                            .set(field(LeagueEntryBean::id), 0)
-                                                            .set(field(LeagueEntryBean::player),
-                                                                 PlayerBeanBuilder.create()
-                                                                                  .defaultValues()
-                                                                                  .username("1")
-                                                                                  .get())
-                                                            .create();
+  private final Subdivision subdivision1 = Instancio.of(Subdivision.class)
+                                                    .set(field(Subdivision::id), 1)
+                                                    .set(field(Subdivision::index), 1)
+                                                    .create();
+  private final LeagueEntry leagueEntry2 = Instancio.of(LeagueEntry.class)
+                                                    .set(field(LeagueEntry::subdivision), subdivision1)
+                                                    .set(field(LeagueEntry::id), 1)
+                                                    .set(field(LeagueEntry::player),
+                                                         PlayerInfoBuilder.create().defaultValues().username("2").get())
+                                                    .create();
+  private final LeagueEntry leagueEntry1 = Instancio.of(LeagueEntry.class)
+                                                    .set(field(LeagueEntry::subdivision), subdivision1)
+                                                    .set(field(LeagueEntry::id), 0)
+                                                    .set(field(LeagueEntry::player),
+                                                         PlayerInfoBuilder.create().defaultValues().username("1").get())
+                                                    .create();
 
 
   @BeforeEach
   public void setUp() throws Exception {
-    player = PlayerBeanBuilder.create().defaultValues().id(3).username("junit").get();
+    player = PlayerInfoBuilder.create().defaultValues().id(3).username("junit").get();
     lenient().when(i18n.getOrDefault("seasonName", "leagueLeaderboard.season.seasonName", 1))
              .thenReturn("seasonName 1");
     lenient().when(i18n.get("leaderboard.seasonDate", null, null)).thenReturn("-");
 
-    lenient().when(leaderboardService.getAllSubdivisions(season))
-             .thenReturn(Flux.just(subdivisionBean1, subdivisionBean2));
-    lenient().when(leaderboardService.getActiveEntries(season))
-             .thenReturn(Flux.just(leagueEntryBean1, leagueEntryBean2));
+    lenient().when(leaderboardService.getAllSubdivisions(season)).thenReturn(Flux.just(subdivision1, subdivision2));
+    lenient().when(leaderboardService.getActiveEntries(season)).thenReturn(Flux.just(leagueEntry1, leagueEntry2));
     lenient().when(leaderboardService.getLeagueEntryForPlayer(player, season)).thenReturn(Mono.empty());
     lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
 
@@ -141,10 +133,10 @@ public class LeaderboardControllerTest extends PlatformTest {
     verifyNoInteractions(notificationService);
 
     assertEquals(season, leagueSeasonProperty.get());
-    verify(leaderboardDistributionController).setSubdivisions(List.of(subdivisionBean1, subdivisionBean2));
-    verify(leaderboardRankingsController).setSubdivisions(List.of(subdivisionBean1, subdivisionBean2));
-    verify(leaderboardDistributionController).setLeagueEntries(List.of(leagueEntryBean1, leagueEntryBean2));
-    verify(leaderboardRankingsController).setLeagueEntries(List.of(leagueEntryBean1, leagueEntryBean2));
+    verify(leaderboardDistributionController).setSubdivisions(List.of(subdivision1, subdivision2));
+    verify(leaderboardRankingsController).setSubdivisions(List.of(subdivision1, subdivision2));
+    verify(leaderboardDistributionController).setLeagueEntries(List.of(leagueEntry1, leagueEntry2));
+    verify(leaderboardRankingsController).setLeagueEntries(List.of(leagueEntry1, leagueEntry2));
     verify(leaderboardPlayerDetailsController, times(2)).setLeagueEntry(null);
   }
 

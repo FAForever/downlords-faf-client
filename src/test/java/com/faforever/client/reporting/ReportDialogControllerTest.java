@@ -1,9 +1,9 @@
 package com.faforever.client.reporting;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.ModerationReportBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.ModerationReport;
+import com.faforever.client.domain.api.Replay;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
@@ -52,14 +52,13 @@ public class ReportDialogControllerTest extends PlatformTest {
   @Mock
   private ReplayService replayService;
 
-  private PlayerBean player;
-  private ReplayBean replay;
+  private PlayerInfo player;
+  private Replay replay;
 
   @BeforeEach
   public void setUp() throws Exception {
-    player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
-    replay = Instancio.of(ReplayBean.class)
-                      .set(field(ReplayBean::teams),
+    player = PlayerInfoBuilder.create().defaultValues().username("junit").get();
+    replay = Instancio.of(Replay.class).set(field(Replay::teams),
                            FXCollections.observableMap(new HashMap<>(Map.of("1", List.of(player.getUsername())))))
                       .create();
 
@@ -70,7 +69,7 @@ public class ReportDialogControllerTest extends PlatformTest {
     lenient().when(replayService.findById(replay.id())).thenReturn(Mono.just(replay));
     lenient().when(moderationService.getModerationReports()).thenReturn(Flux.just());
     lenient().when(moderationService.postModerationReport(any()))
-             .thenReturn(Mono.just(Instancio.create(ModerationReportBean.class)));
+             .thenReturn(Mono.just(Instancio.create(ModerationReport.class)));
 
     loadFxml("theme/reporting/report_dialog.fxml", clazz -> instance);
 
@@ -86,7 +85,7 @@ public class ReportDialogControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.onReportButtonClicked());
 
-    verify(moderationService).postModerationReport(any(ModerationReportBean.class));
+    verify(moderationService).postModerationReport(any(ModerationReport.class));
     verify(notificationService).addImmediateInfoNotification("report.success");
     assertEquals("submit", instance.reportButton.getText());
     assertFalse(instance.reportDialogRoot.isDisabled());
@@ -119,7 +118,7 @@ public class ReportDialogControllerTest extends PlatformTest {
 
     instance.onReportButtonClicked();
 
-    verify(moderationService).postModerationReport(any(ModerationReportBean.class));
+    verify(moderationService).postModerationReport(any(ModerationReport.class));
     assertTrue(instance.offender.getText().isBlank());
     assertTrue(instance.reportDescription.getText().isBlank());
     assertTrue(instance.gameTime.getText().isBlank());
@@ -155,7 +154,7 @@ public class ReportDialogControllerTest extends PlatformTest {
 
   @Test
   public void testOnReportOffenderNotInGame() {
-    ReplayBean replay = Instancio.of(ReplayBean.class).ignore(field(ReplayBean::teams)).create();
+    Replay replay = Instancio.of(Replay.class).ignore(field(Replay::teams)).create();
     lenient().when(replayService.findById(replay.id())).thenReturn(Mono.just(replay));
     instance.gameId.setText(String.valueOf(replay.id()));
 

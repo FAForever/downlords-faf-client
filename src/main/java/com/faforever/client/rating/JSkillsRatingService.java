@@ -2,8 +2,8 @@ package com.faforever.client.rating;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.TrueSkill;
-import com.faforever.client.domain.GamePlayerStatsBean;
-import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.domain.api.GamePlayerStats;
+import com.faforever.client.domain.api.Replay;
 import jskills.GameInfo;
 import jskills.Rating;
 import jskills.Team;
@@ -25,8 +25,8 @@ public class JSkillsRatingService implements RatingService {
   }
 
   @Override
-  public double calculateQuality(ReplayBean replay) {
-    Collection<List<GamePlayerStatsBean>> teams = replay.teamPlayerStats().values();
+  public double calculateQuality(Replay replay) {
+    Collection<List<GamePlayerStats>> teams = replay.teamPlayerStats().values();
     if (teams.size() != 2) {
       return Double.NaN;
     }

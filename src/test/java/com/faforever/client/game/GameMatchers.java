@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import org.hamcrest.FeatureMatcher;
 import org.hamcrest.Matcher;
 
@@ -11,19 +11,19 @@ import static org.hamcrest.Matchers.equalTo;
  */
 public class GameMatchers {
 
-  static Matcher<GameBean> hasId(Integer id) {
+  static Matcher<GameInfo> hasId(Integer id) {
     return new FeatureMatcher<>(equalTo(id), "Integer", "id") {
       @Override
-      protected Integer featureValueOf(GameBean actual) {
+      protected Integer featureValueOf(GameInfo actual) {
         return actual.getId();
       }
     };
   }
 
-  static Matcher<GameBean> hasTitle(String title) {
+  static Matcher<GameInfo> hasTitle(String title) {
     return new FeatureMatcher<>(equalTo(title), "String", "title") {
       @Override
-      protected String featureValueOf(GameBean actual) {
+      protected String featureValueOf(GameInfo actual) {
         return actual.getTitle();
       }
     };

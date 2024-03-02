@@ -1,7 +1,7 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
@@ -69,7 +69,7 @@ public class ModUploadController extends NodeController<Node> {
   public Label rulesLabel;
   private Path modPath;
   private CompletableTask<Void> modUploadTask;
-  private ModVersionBean modVersionInfo;
+  private ModVersion modVersionInfo;
   private Runnable cancelButtonClickedListener;
   private Runnable uploadListener;
 
@@ -106,7 +106,7 @@ public class ModUploadController extends NodeController<Node> {
     uploadCompletePane.setVisible(false);
   }
 
-  private void setModVersionInfo(ModVersionBean modVersion) {
+  private void setModVersionInfo(ModVersion modVersion) {
     this.modVersionInfo = modVersion;
     fxApplicationThreadExecutor.execute(() -> {
       enterModInfoState();

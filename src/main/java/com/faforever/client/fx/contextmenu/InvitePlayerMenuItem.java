@@ -1,6 +1,6 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.teammatchmaking.TeamMatchmakingService;
@@ -15,7 +15,7 @@ import static com.faforever.client.player.SocialStatus.SELF;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class InvitePlayerMenuItem extends AbstractMenuItem<PlayerBean> {
+public class InvitePlayerMenuItem extends AbstractMenuItem<PlayerInfo> {
 
   private final I18n i18n;
   private final TeamMatchmakingService teamMatchmakingService;

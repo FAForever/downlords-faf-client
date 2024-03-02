@@ -1,7 +1,7 @@
 package com.faforever.client.tutorial;
 
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.TutorialBean;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.Tutorial;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -40,11 +40,11 @@ public class TutorialDetailControllerTest extends PlatformTest {
 
   @Test
   public void loadExampleTutorial(){
-    MapVersionBean mapVersion = Instancio.create(MapVersionBean.class);
-    TutorialBean tutorial = Instancio.of(TutorialBean.class)
-                                     .set(field(TutorialBean::mapVersion), mapVersion)
-                                     .set(field(TutorialBean::launchable), true)
-                                     .create();
+    MapVersion mapVersion = Instancio.create(MapVersion.class);
+    Tutorial tutorial = Instancio.of(Tutorial.class)
+                                 .set(field(Tutorial::mapVersion), mapVersion)
+                                 .set(field(Tutorial::launchable), true)
+                                 .create();
 
     Image image = new Image("http://example.com");
     when(mapService.loadPreview(mapVersion, PreviewSize.LARGE)).thenReturn(image);

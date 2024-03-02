@@ -1,10 +1,10 @@
 package com.faforever.client.game;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.domain.AvatarBean;
-import com.faforever.client.domain.GamePlayerStatsBean;
-import com.faforever.client.domain.LeaderboardRatingJournalBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.Avatar;
+import com.faforever.client.domain.api.GamePlayerStats;
+import com.faforever.client.domain.api.LeaderboardRatingJournal;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
@@ -75,8 +75,8 @@ public class PlayerCardController extends NodeController<Node> {
   public Label noteIcon;
   public Label ratingChange;
 
-  private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
-  private final ObjectProperty<GamePlayerStatsBean> playerStats = new SimpleObjectProperty<>();
+  private final ObjectProperty<PlayerInfo> player = new SimpleObjectProperty<>();
+  private final ObjectProperty<GamePlayerStats> playerStats = new SimpleObjectProperty<>();
   private final ObjectProperty<Integer> rating = new SimpleObjectProperty<>();
   private final ObjectProperty<Faction> faction = new SimpleObjectProperty<>();
   private final Tooltip noteTooltip = new Tooltip();
@@ -92,31 +92,27 @@ public class PlayerCardController extends NodeController<Node> {
     factionImage.visibleProperty().bind(faction.map(value -> value == Faction.RANDOM));
     factionIcon.visibleProperty().bind(faction.map(value -> value != Faction.RANDOM && value != Faction.CIVILIAN));
 
-    countryImageView.imageProperty()
-        .bind(player.flatMap(PlayerBean::countryProperty)
+    countryImageView.imageProperty().bind(player.flatMap(PlayerInfo::countryProperty)
             .map(country -> countryFlagService.loadCountryFlag(country).orElse(null))
             .when(showing));
     avatarImageView.imageProperty()
-        .bind(player.flatMap(PlayerBean::avatarProperty).map(avatarService::loadAvatar).when(showing));
-    playerInfo.textProperty()
-        .bind(player.flatMap(PlayerBean::usernameProperty)
+                   .bind(player.flatMap(PlayerInfo::avatarProperty).map(avatarService::loadAvatar).when(showing));
+    playerInfo.textProperty().bind(player.flatMap(PlayerInfo::usernameProperty)
             .flatMap(username -> rating.map(value -> i18n.get("userInfo.tooltipFormat.withRating", username, value))
                 .orElse(i18n.get("userInfo.tooltipFormat.noRating", username)))
             .when(showing));
-    foeIconText.visibleProperty()
-        .bind(player.flatMap(PlayerBean::socialStatusProperty)
+    foeIconText.visibleProperty().bind(player.flatMap(PlayerInfo::socialStatusProperty)
             .map(socialStatus -> socialStatus == SocialStatus.FOE)
             .when(showing));
-    friendIconText.visibleProperty()
-        .bind(player.flatMap(PlayerBean::socialStatusProperty)
+    friendIconText.visibleProperty().bind(player.flatMap(PlayerInfo::socialStatusProperty)
             .map(socialStatus -> socialStatus == SocialStatus.FRIEND)
             .when(showing));
-    player.flatMap(PlayerBean::noteProperty)
+    player.flatMap(PlayerInfo::noteProperty)
         .when(showing)
         .addListener((SimpleChangeListener<String>) this::onNoteChanged);
 
     ratingChange.visibleProperty().bind(playerStats.isNotNull());
-    ObservableValue<Integer> ratingChangeObservable = playerStats.map(GamePlayerStatsBean::leaderboardRatingJournals)
+    ObservableValue<Integer> ratingChangeObservable = playerStats.map(GamePlayerStats::leaderboardRatingJournals)
                                                                  .map(
                                                                      journals -> journals.isEmpty() ? null : journals.getFirst())
         .map(this::getRatingChange);
@@ -125,13 +121,13 @@ public class PlayerCardController extends NodeController<Node> {
 
     faction.addListener(((observable, oldValue, newValue) -> onFactionChanged(oldValue, newValue)));
 
-    noteTooltip.textProperty().bind(player.flatMap(PlayerBean::noteProperty).when(showing));
+    noteTooltip.textProperty().bind(player.flatMap(PlayerInfo::noteProperty).when(showing));
     noteTooltip.setShowDelay(Duration.ZERO);
     noteTooltip.setShowDuration(Duration.seconds(30));
     noteIcon.visibleProperty().bind(noteTooltip.textProperty().isNotEmpty());
 
     avatarTooltip.textProperty()
-                 .bind(player.flatMap(PlayerBean::avatarProperty).map(AvatarBean::description).when(showing));
+                 .bind(player.flatMap(PlayerInfo::avatarProperty).map(Avatar::description).when(showing));
     avatarTooltip.setShowDelay(Duration.ZERO);
     avatarTooltip.setShowDuration(Duration.seconds(30));
     Tooltip.install(avatarImageView, avatarTooltip);
@@ -151,24 +147,24 @@ public class PlayerCardController extends NodeController<Node> {
   }
 
   public void openContextMenu(MouseEvent event) {
-    PlayerBean playerBean = player.get();
-    if (playerBean != null) {
+    PlayerInfo playerInfo = player.get();
+    if (playerInfo != null) {
       contextMenuBuilder.newBuilder()
-          .addItem(ShowPlayerInfoMenuItem.class, playerBean)
-          .addItem(SendPrivateMessageMenuItem.class, playerBean.getUsername())
-          .addItem(CopyUsernameMenuItem.class, playerBean.getUsername())
+                        .addItem(ShowPlayerInfoMenuItem.class, playerInfo)
+                        .addItem(SendPrivateMessageMenuItem.class, playerInfo.getUsername())
+                        .addItem(CopyUsernameMenuItem.class, playerInfo.getUsername())
           .addSeparator()
-          .addItem(AddFriendMenuItem.class, playerBean)
-          .addItem(RemoveFriendMenuItem.class, playerBean)
-          .addItem(AddFoeMenuItem.class, playerBean)
-          .addItem(RemoveFoeMenuItem.class, playerBean)
+                        .addItem(AddFriendMenuItem.class, playerInfo)
+                        .addItem(RemoveFriendMenuItem.class, playerInfo)
+                        .addItem(AddFoeMenuItem.class, playerInfo)
+                        .addItem(RemoveFoeMenuItem.class, playerInfo)
           .addSeparator()
-          .addItem(AddEditPlayerNoteMenuItem.class, playerBean)
-          .addItem(RemovePlayerNoteMenuItem.class, playerBean)
+                        .addItem(AddEditPlayerNoteMenuItem.class, playerInfo)
+                        .addItem(RemovePlayerNoteMenuItem.class, playerInfo)
           .addSeparator()
-          .addItem(ReportPlayerMenuItem.class, playerBean)
+                        .addItem(ReportPlayerMenuItem.class, playerInfo)
           .addSeparator()
-          .addItem(ViewReplaysMenuItem.class, playerBean)
+                        .addItem(ViewReplaysMenuItem.class, playerInfo)
           .build()
           .show(getRoot().getScene().getWindow(), event.getScreenX(), event.getScreenY());
     }
@@ -206,7 +202,7 @@ public class PlayerCardController extends NodeController<Node> {
     }
   }
 
-  private Integer getRatingChange(LeaderboardRatingJournalBean ratingJournal) {
+  private Integer getRatingChange(LeaderboardRatingJournal ratingJournal) {
     if (ratingJournal.meanAfter() != null && ratingJournal.deviationAfter() != null) {
       int newRating = RatingUtil.getRating(ratingJournal.meanAfter(), ratingJournal.deviationAfter());
       int oldRating = RatingUtil.getRating(ratingJournal.meanBefore(), ratingJournal.deviationBefore());
@@ -221,15 +217,15 @@ public class PlayerCardController extends NodeController<Node> {
     this.avatarStackPane.setVisible(false);
   }
 
-  public PlayerBean getPlayer() {
+  public PlayerInfo getPlayer() {
     return player.get();
   }
 
-  public ObjectProperty<PlayerBean> playerProperty() {
+  public ObjectProperty<PlayerInfo> playerProperty() {
     return player;
   }
 
-  public void setPlayer(PlayerBean player) {
+  public void setPlayer(PlayerInfo player) {
     this.player.set(player);
   }
 
@@ -257,15 +253,15 @@ public class PlayerCardController extends NodeController<Node> {
     this.faction.set(faction);
   }
 
-  public GamePlayerStatsBean getPlayerStats() {
+  public GamePlayerStats getPlayerStats() {
     return playerStats.get();
   }
 
-  public ObjectProperty<GamePlayerStatsBean> playerStatsProperty() {
+  public ObjectProperty<GamePlayerStats> playerStatsProperty() {
     return playerStats;
   }
 
-  public void setPlayerStats(GamePlayerStatsBean playerStats) {
+  public void setPlayerStats(GamePlayerStats playerStats) {
     this.playerStats.set(playerStats);
   }
 }

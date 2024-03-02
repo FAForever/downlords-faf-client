@@ -1,8 +1,8 @@
 package com.faforever.client.coop;
 
-import com.faforever.client.domain.CoopMissionBean;
-import com.faforever.client.domain.CoopResultBean;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.api.CoopMission;
+import com.faforever.client.domain.api.CoopResult;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.fx.ControllerTableCell;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
@@ -71,7 +71,7 @@ import static com.faforever.client.game.KnownFeaturedMod.COOP;
 @RequiredArgsConstructor
 public class CoopController extends NodeController<Node> {
 
-  private static final Predicate<GameBean> OPEN_COOP_GAMES_PREDICATE = gameInfoBean -> gameInfoBean.getStatus() == GameStatus.OPEN && gameInfoBean.getGameType() == GameType.COOP;
+  private static final Predicate<GameInfo> OPEN_COOP_GAMES_PREDICATE = gameInfoBean -> gameInfoBean.getStatus() == GameStatus.OPEN && gameInfoBean.getGameType() == GameType.COOP;
 
   private final GameRunner gameRunner;
   private final ReplayService replayService;
@@ -85,11 +85,11 @@ public class CoopController extends NodeController<Node> {
   private final MapService mapService;
   private final WebViewConfigurer webViewConfigurer;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
-  private final ObservableList<CoopResultBean> leaderboardUnFilteredList = FXCollections.observableArrayList();
-  private final FilteredList<CoopResultBean> leaderboardFilteredList = new FilteredList<>(leaderboardUnFilteredList);
+  private final ObservableList<CoopResult> leaderboardUnFilteredList = FXCollections.observableArrayList();
+  private final FilteredList<CoopResult> leaderboardFilteredList = new FilteredList<>(leaderboardUnFilteredList);
 
   public GridPane coopRoot;
-  public ComboBox<CoopMissionBean> missionComboBox;
+  public ComboBox<CoopMission> missionComboBox;
   public WebView descriptionWebView;
   public Pane gameViewContainer;
   public TextField titleTextField;
@@ -98,15 +98,15 @@ public class CoopController extends NodeController<Node> {
   public PasswordField passwordTextField;
   public ImageView mapPreviewImageView;
   public Region leaderboardInfoIcon;
-  public TableView<CoopResultBean> leaderboardTable;
+  public TableView<CoopResult> leaderboardTable;
   public ComboBox<Integer> numberOfPlayersComboBox;
-  public TableColumn<CoopResultBean, Number> rankColumn;
-  public TableColumn<CoopResultBean, Number> playerCountColumn;
-  public TableColumn<CoopResultBean, String> playerNamesColumn;
-  public TableColumn<CoopResultBean, Boolean> secondaryObjectivesColumn;
-  public TableColumn<CoopResultBean, OffsetDateTime> dateColumn;
-  public TableColumn<CoopResultBean, Duration> timeColumn;
-  public TableColumn<CoopResultBean, String> replayColumn;
+  public TableColumn<CoopResult, Number> rankColumn;
+  public TableColumn<CoopResult, Number> playerCountColumn;
+  public TableColumn<CoopResult, String> playerNamesColumn;
+  public TableColumn<CoopResult, Boolean> secondaryObjectivesColumn;
+  public TableColumn<CoopResult, OffsetDateTime> dateColumn;
+  public TableColumn<CoopResult, Duration> timeColumn;
+  public TableColumn<CoopResult, String> replayColumn;
   public GamesTableController gamesTableController;
 
   @Override
@@ -116,8 +116,7 @@ public class CoopController extends NodeController<Node> {
     missionComboBox.getSelectionModel().selectedItemProperty().when(showing).subscribe(this::setSelectedMission);
 
     mapPreviewImageView.imageProperty()
-                       .bind(missionComboBox.getSelectionModel()
-                                            .selectedItemProperty().map(CoopMissionBean::mapFolderName)
+                       .bind(missionComboBox.getSelectionModel().selectedItemProperty().map(CoopMission::mapFolderName)
                                             .map(folderName -> mapService.loadPreview(folderName, PreviewSize.LARGE))
                                             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
                                             .when(showing));
@@ -183,7 +182,7 @@ public class CoopController extends NodeController<Node> {
     descriptionWebView.getEngine().loadContent("<html></html>");
     webViewConfigurer.configureWebView(descriptionWebView);
 
-    FilteredList<GameBean> filteredItems = new FilteredList<>(gameService.getGames());
+    FilteredList<GameInfo> filteredItems = new FilteredList<>(gameService.getGames());
     filteredItems.setPredicate(OPEN_COOP_GAMES_PREDICATE);
 
     coopService.getMissions()
@@ -201,7 +200,7 @@ public class CoopController extends NodeController<Node> {
                  gamesTableController.getRatingRangeColumn().setVisible(false);
 
 
-                 SingleSelectionModel<CoopMissionBean> selectionModel = missionComboBox.getSelectionModel();
+                 SingleSelectionModel<CoopMission> selectionModel = missionComboBox.getSelectionModel();
                  if (selectionModel.isEmpty()) {
                    selectionModel.selectFirst();
                  }
@@ -209,9 +208,10 @@ public class CoopController extends NodeController<Node> {
                                                                                   throwable.getLocalizedMessage()));
   }
 
-  private String coopMissionFromFolderName(List<CoopMissionBean> coopMaps, String mapFolderName) {
+  private String coopMissionFromFolderName(List<CoopMission> coopMaps, String mapFolderName) {
     return coopMaps.stream().filter(coopMission -> coopMission.mapFolderName().equalsIgnoreCase(mapFolderName))
-                   .findFirst().map(CoopMissionBean::name)
+                   .findFirst()
+                   .map(CoopMission::name)
                    .orElse(i18n.get("coop.unknownMission"));
   }
 
@@ -232,8 +232,8 @@ public class CoopController extends NodeController<Node> {
     }, fxApplicationThreadExecutor);
   }
 
-  private ListCell<CoopMissionBean> missionListCell() {
-    return new StringListCell<>(fxApplicationThreadExecutor, CoopMissionBean::name, mission -> {
+  private ListCell<CoopMission> missionListCell() {
+    return new StringListCell<>(fxApplicationThreadExecutor, CoopMission::name, mission -> {
       Label label = new Label();
       Region iconRegion = new Region();
       label.setGraphic(iconRegion);
@@ -251,7 +251,7 @@ public class CoopController extends NodeController<Node> {
   }
 
   private void loadLeaderboard() {
-    CoopMissionBean selectedMission = getSelectedMission();
+    CoopMission selectedMission = getSelectedMission();
     Integer numberOfPlayers = numberOfPlayersComboBox.getSelectionModel().getSelectedItem();
     if (selectedMission == null || numberOfPlayers == null) {
       return;
@@ -266,7 +266,7 @@ public class CoopController extends NodeController<Node> {
                });
   }
 
-  private Set<String> getAllPlayerNamesFromTeams(CoopResultBean coopResult) {
+  private Set<String> getAllPlayerNamesFromTeams(CoopResult coopResult) {
     return coopResult.replay().teams()
                      .values()
                      .stream()
@@ -275,11 +275,11 @@ public class CoopController extends NodeController<Node> {
   }
 
 
-  private CoopMissionBean getSelectedMission() {
+  private CoopMission getSelectedMission() {
     return missionComboBox.getSelectionModel().getSelectedItem();
   }
 
-  private void setSelectedMission(CoopMissionBean mission) {
+  private void setSelectedMission(CoopMission mission) {
     if (mission == null) {
       return;
     }

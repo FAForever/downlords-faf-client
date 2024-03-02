@@ -1,10 +1,9 @@
 package com.faforever.client.mapstruct;
 
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.fa.GameParameters;
 import com.faforever.client.fa.GameParameters.League;
 import com.faforever.client.util.TimeUtil;
-import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameInfo.TeamIds;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import org.mapstruct.CollectionMappingStrategy;
@@ -30,7 +29,7 @@ public abstract class GameMapper {
   @Mapping(target = "enforceRating", source = "enforceRatingRange")
   @Mapping(target = "startTime", source = "launchedAt")
   @Mapping(target = "teams", source = "teamIds")
-  public abstract GameBean update(GameInfo dto, @MappingTarget GameBean bean);
+  public abstract GameInfo update(com.faforever.commons.lobby.GameInfo dto, @MappingTarget GameInfo bean);
 
   public Map<Integer, List<Integer>> map(List<TeamIds> teamIds) {
     if (teamIds == null || teamIds.isEmpty()) {

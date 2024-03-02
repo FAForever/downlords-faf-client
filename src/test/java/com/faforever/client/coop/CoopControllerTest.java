@@ -1,6 +1,6 @@
 package com.faforever.client.coop;
 
-import com.faforever.client.domain.CoopMissionBean;
+import com.faforever.client.domain.api.CoopMission;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -89,7 +89,7 @@ public class CoopControllerTest extends PlatformTest {
 
   @Test
   public void onPlayButtonClicked() {
-    CoopMissionBean coopMission = Instancio.create(CoopMissionBean.class);
+    CoopMission coopMission = Instancio.create(CoopMission.class);
     when(coopService.getMissions()).thenReturn(Flux.just(coopMission));
     runOnFxThreadAndWait(() -> reinitialize(instance));
 

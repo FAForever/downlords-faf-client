@@ -1,10 +1,10 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.ReplayBean;
-import com.faforever.client.domain.ReplayReviewBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.Replay;
+import com.faforever.client.domain.api.ReplayReview;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.game.TeamCardController;
@@ -95,9 +95,9 @@ public class ReplayDetailControllerTest extends PlatformTest {
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
   @Mock
-  private ReviewsController<ReplayReviewBean> reviewsController;
+  private ReviewsController<ReplayReview> reviewsController;
   @Mock
-  private ReviewController<ReplayReviewBean> reviewController;
+  private ReviewController<ReplayReview> reviewController;
   @Mock
   private StarsController starsController;
   @Mock
@@ -106,36 +106,36 @@ public class ReplayDetailControllerTest extends PlatformTest {
   private TeamCardController teamCardController;
   @Mock
   private ReportDialogController reportDialogController;
-  private PlayerBean currentPlayer;
-  private ReplayBean onlineReplay;
-  private ReplayBean localReplay;
-  private MapVersionBean mapBean;
+  private PlayerInfo currentPlayer;
+  private Replay onlineReplay;
+  private Replay localReplay;
+  private MapVersion mapBean;
 
   private final BooleanProperty installed = new SimpleBooleanProperty();
 
   @BeforeEach
   public void setUp() throws Exception {
-    currentPlayer = PlayerBeanBuilder.create().defaultValues().get();
-    mapBean = Instancio.create(MapVersionBean.class);
-    onlineReplay = Instancio.of(ReplayBean.class)
-                            .set(field(ReplayBean::validity), Validity.VALID)
-                            .set(field(ReplayBean::title), "test")
-                            .set(field(ReplayBean::mapVersion), mapBean)
-                            .set(field(ReplayBean::replayAvailable), true)
-                            .ignore(field(ReplayBean::replayFile))
-                            .ignore(field(ReplayBean::local))
+    currentPlayer = PlayerInfoBuilder.create().defaultValues().get();
+    mapBean = Instancio.create(MapVersion.class);
+    onlineReplay = Instancio.of(Replay.class)
+                            .set(field(Replay::validity), Validity.VALID)
+                            .set(field(Replay::title), "test")
+                            .set(field(Replay::mapVersion), mapBean)
+                            .set(field(Replay::replayAvailable), true)
+                            .ignore(field(Replay::replayFile))
+                            .ignore(field(Replay::local))
                             .create();
 
-    localReplay = Instancio.of(ReplayBean.class)
-                           .set(field(ReplayBean::local), true)
-                           .set(field(ReplayBean::title), "test")
-                           .set(field(ReplayBean::replayFile), Path.of("foo.tmp"))
-                           .ignore(field(ReplayBean::validity))
+    localReplay = Instancio.of(Replay.class)
+                           .set(field(Replay::local), true)
+                           .set(field(Replay::title), "test")
+                           .set(field(Replay::replayFile), Path.of("foo.tmp"))
+                           .ignore(field(Replay::validity))
                            .create();
 
     lenient().when(i18n.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
     lenient().when(replayService.loadReplayDetails(any())).thenReturn(new ReplayDetails(List.of(), List.of(), mapBean));
-    lenient().when(mapService.isInstalledBinding(Mockito.<MapVersionBean>any())).thenReturn(installed);
+    lenient().when(mapService.isInstalledBinding(Mockito.<MapVersion>any())).thenReturn(installed);
     lenient().when(imageViewHelper.createPlaceholderImageOnErrorObservable(any()))
              .thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
     lenient().when(reviewService.getReplayReviews(any())).thenReturn(Flux.empty());
@@ -145,9 +145,9 @@ public class ReplayDetailControllerTest extends PlatformTest {
     lenient().when(reviewsController.getRoot()).thenReturn(new Pane());
     lenient().when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE)))
              .thenReturn(new Image(InputStream.nullInputStream()));
-    lenient().when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
+    lenient().when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().defaultValues().get());
     lenient().when(playerService.getPlayersByIds(any()))
-             .thenReturn(Flux.just(PlayerBeanBuilder.create().defaultValues().get()));
+             .thenReturn(Flux.just(PlayerInfoBuilder.create().defaultValues().get()));
     lenient().when(replayService.getFileSize(onlineReplay)).thenReturn(CompletableFuture.completedFuture(12));
     lenient().when(replayService.replayChangedRating(onlineReplay)).thenReturn(true);
     lenient().when(timeService.asDate(onlineReplay.startTime())).thenReturn("Min Date");
@@ -235,7 +235,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void setReplayNoEndTime() {
-    ReplayBean onlineReplay = Instancio.of(ReplayBean.class).ignore(field(ReplayBean::endTime)).create();
+    Replay onlineReplay = Instancio.of(Replay.class).ignore(field(Replay::endTime)).create();
 
     runOnFxThreadAndWait(() -> instance.setReplay(onlineReplay));
 
@@ -244,7 +244,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void setReplayNoTeamStats() {
-    ReplayBean onlineReplay = Instancio.of(ReplayBean.class).ignore(field(ReplayBean::teamPlayerStats)).create();
+    Replay onlineReplay = Instancio.of(Replay.class).ignore(field(Replay::teamPlayerStats)).create();
 
     runOnFxThreadAndWait(() -> instance.setReplay(onlineReplay));
     WaitForAsyncUtils.waitForFxEvents();
@@ -254,10 +254,10 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void setReplayMissing() {
-    ReplayBean onlineReplay = Instancio.of(ReplayBean.class)
-                                       .ignore(field(ReplayBean::replayFile))
-                                       .ignore(field(ReplayBean::replayAvailable))
-                                       .create();
+    Replay onlineReplay = Instancio.of(Replay.class)
+                                   .ignore(field(Replay::replayFile))
+                                   .ignore(field(Replay::replayAvailable))
+                                   .create();
 
 
     when(i18n.get("game.replayFileMissing")).thenReturn("missing");
@@ -272,10 +272,10 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void setReplayNotAvailable() {
-    ReplayBean onlineReplay = Instancio.of(ReplayBean.class)
-                                       .ignore(field(ReplayBean::replayFile))
-                                       .set(field(ReplayBean::replayAvailable), false)
-                                       .create();
+    Replay onlineReplay = Instancio.of(Replay.class)
+                                   .ignore(field(Replay::replayFile))
+                                   .set(field(Replay::replayAvailable), false)
+                                   .create();
 
     when(i18n.get("game.replayFileMissing")).thenReturn("not available");
 
@@ -288,7 +288,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void setReplayNoRatingChange() {
-    ReplayBean onlineReplay = Instancio.of(ReplayBean.class).ignore(field(ReplayBean::validity)).create();
+    Replay onlineReplay = Instancio.of(Replay.class).ignore(field(Replay::validity)).create();
 
     runOnFxThreadAndWait(() -> instance.setReplay(onlineReplay));
 
@@ -299,7 +299,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void testReasonShownNotRated() {
-    ReplayBean replay = Instancio.of(ReplayBean.class).set(field(ReplayBean::validity), Validity.HAS_AI).create();
+    Replay replay = Instancio.of(Replay.class).set(field(Replay::validity), Validity.HAS_AI).create();
 
     when(i18n.getOrDefault(replay.validity().toString(), "game.reasonNotValid", i18n.get(replay.validity()
         .getI18nKey()))).thenReturn("Reason: HAS_AI");
@@ -314,7 +314,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
   @Test
   public void tickTimeDisplayed() {
     when(timeService.shortDuration(any())).thenReturn("16min 40s");
-    ReplayBean replay = Instancio.of(ReplayBean.class).set(field(ReplayBean::replayTicks), 10000).create();
+    Replay replay = Instancio.of(Replay.class).set(field(Replay::replayTicks), 10000).create();
 
     runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
@@ -326,7 +326,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void onDownloadMoreInfoClicked() throws Exception {
-    ReplayBean replay = Instancio.of(ReplayBean.class).ignore(field(ReplayBean::replayFile)).create();
+    Replay replay = Instancio.of(Replay.class).ignore(field(Replay::replayFile)).create();
 
     runOnFxThreadAndWait(() -> instance.setReplay(replay));
     WaitForAsyncUtils.waitForFxEvents();
@@ -356,7 +356,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnWatchButtonClicked() {
-    ReplayBean onlineReplay = Instancio.of(ReplayBean.class).ignore(field(ReplayBean::teamPlayerStats)).create();
+    Replay onlineReplay = Instancio.of(Replay.class).ignore(field(Replay::teamPlayerStats)).create();
 
     runOnFxThreadAndWait(() -> {
       instance.setReplay(onlineReplay);
@@ -393,10 +393,8 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnDeleteReview() {
-    ReplayBean replay = Instancio.create(ReplayBean.class);
-    ReplayReviewBean review = Instancio.of(ReplayReviewBean.class)
-                                       .set(field(ReplayReviewBean::subject), replay)
-                                       .create();
+    Replay replay = Instancio.create(Replay.class);
+    ReplayReview review = Instancio.of(ReplayReview.class).set(field(ReplayReview::subject), replay).create();
 
     runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
@@ -410,10 +408,8 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnDeleteReviewThrowsException() {
-    ReplayBean replay = Instancio.create(ReplayBean.class);
-    ReplayReviewBean review = Instancio.of(ReplayReviewBean.class)
-                                       .set(field(ReplayReviewBean::subject), replay)
-                                       .create();
+    Replay replay = Instancio.create(Replay.class);
+    ReplayReview review = Instancio.of(ReplayReview.class).set(field(ReplayReview::subject), replay).create();
 
     runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
@@ -427,10 +423,11 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnSendReviewNew() {
-    ReplayBean replay = Instancio.create(ReplayBean.class);
-    ReplayReviewBean review = Instancio.of(ReplayReviewBean.class).ignore(field(ReplayReviewBean::id))
-                                       .set(field(ReplayReviewBean::subject), replay)
-                                       .create();
+    Replay replay = Instancio.create(Replay.class);
+    ReplayReview review = Instancio.of(ReplayReview.class)
+                                   .ignore(field(ReplayReview::id))
+                                   .set(field(ReplayReview::subject), replay)
+                                   .create();
 
     runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
@@ -444,10 +441,8 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnSendReviewUpdate() {
-    ReplayBean replay = Instancio.create(ReplayBean.class);
-    ReplayReviewBean review = Instancio.of(ReplayReviewBean.class)
-                                       .set(field(ReplayReviewBean::subject), replay)
-                                       .create();
+    Replay replay = Instancio.create(Replay.class);
+    ReplayReview review = Instancio.of(ReplayReview.class).set(field(ReplayReview::subject), replay).create();
 
     runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
@@ -461,10 +456,8 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnSendReviewThrowsException() {
-    ReplayBean replay = Instancio.create(ReplayBean.class);
-    ReplayReviewBean review = Instancio.of(ReplayReviewBean.class)
-                                       .set(field(ReplayReviewBean::subject), replay)
-                                       .create();
+    Replay replay = Instancio.create(Replay.class);
+    ReplayReview review = Instancio.of(ReplayReview.class).set(field(ReplayReview::subject), replay).create();
 
     runOnFxThreadAndWait(() -> instance.setReplay(replay));
 
@@ -478,7 +471,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
 
   @Test
   public void testReport() {
-    ReplayBean onlineReplay = Instancio.of(ReplayBean.class).ignore(field(ReplayBean::replayFile)).create();
+    Replay onlineReplay = Instancio.of(Replay.class).ignore(field(Replay::replayFile)).create();
 
     runOnFxThreadAndWait(() -> {
       instance.setReplay(onlineReplay);

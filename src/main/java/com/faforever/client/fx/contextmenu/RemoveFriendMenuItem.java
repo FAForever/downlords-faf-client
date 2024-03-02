@@ -1,6 +1,6 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.social.SocialService;
 import com.faforever.client.util.Assert;
@@ -14,7 +14,7 @@ import static com.faforever.client.player.SocialStatus.FRIEND;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class RemoveFriendMenuItem extends AbstractMenuItem<PlayerBean> {
+public class RemoveFriendMenuItem extends AbstractMenuItem<PlayerInfo> {
 
   private final I18n i18n;
   private final SocialService socialService;

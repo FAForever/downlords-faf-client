@@ -1,9 +1,9 @@
 package com.faforever.client.game;
 
-import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.MapBean;
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.domain.api.Map;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.filter.MapFilterController;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -96,7 +96,7 @@ public class CreateGameControllerTest extends PlatformTest {
   private LastGamePrefs lastGamePrefs;
 
   private CreateGameController instance;
-  private ObservableList<MapVersionBean> mapList;
+  private ObservableList<MapVersion> mapList;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -107,9 +107,9 @@ public class CreateGameControllerTest extends PlatformTest {
     mapList = FXCollections.observableArrayList();
 
     lenient().when(featuredModService.getFeaturedMods())
-             .thenReturn(Flux.just(Instancio.of(FeaturedModBean.class)
-                                            .set(field(FeaturedModBean::technicalName), "faf")
-                                            .set(field(FeaturedModBean::visible), true)
+             .thenReturn(Flux.just(Instancio.of(FeaturedMod.class)
+                                            .set(field(FeaturedMod::technicalName), "faf")
+                                            .set(field(FeaturedMod::visible), true)
                                             .create()));
 
     lenient().when(mapGeneratorService.downloadGeneratorIfNecessary(any())).thenReturn(Mono.empty());
@@ -243,7 +243,7 @@ public class CreateGameControllerTest extends PlatformTest {
     Runnable closeAction = mock(Runnable.class);
     instance.setOnCloseButtonClickedListener(closeAction);
 
-    MapVersionBean latestVersion = Instancio.create(MapVersionBean.class);
+    MapVersion latestVersion = Instancio.create(MapVersion.class);
     when(mapService.updateLatestVersionIfNecessary(latestVersion)).thenReturn(Mono.just(latestVersion));
 
     mapList.add(latestVersion);
@@ -256,11 +256,11 @@ public class CreateGameControllerTest extends PlatformTest {
   @Test
   public void testCreateGameWithSelectedModAndMap() {
     ArgumentCaptor<NewGameInfo> newGameInfoArgumentCaptor = ArgumentCaptor.forClass(NewGameInfo.class);
-    ModVersionBean modVersion = Instancio.create(ModVersionBean.class);
+    ModVersion modVersion = Instancio.create(ModVersion.class);
 
     when(modManagerController.getSelectedModVersions()).thenReturn(Set.of(modVersion));
 
-    MapVersionBean map = Instancio.create(MapVersionBean.class);
+    MapVersion map = Instancio.create(MapVersion.class);
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(Mono.just(map));
 
     runOnFxThreadAndWait(() -> {
@@ -280,14 +280,14 @@ public class CreateGameControllerTest extends PlatformTest {
   @Test
   public void testCreateGameWithOutdatedMod() {
     ArgumentCaptor<NewGameInfo> newGameInfoArgumentCaptor = ArgumentCaptor.forClass(NewGameInfo.class);
-    ModVersionBean modVersion = Instancio.create(ModVersionBean.class);
+    ModVersion modVersion = Instancio.create(ModVersion.class);
 
-    ModVersionBean newModVersion = Instancio.create(ModVersionBean.class);
+    ModVersion newModVersion = Instancio.create(ModVersion.class);
 
-    Set<ModVersionBean> selectedMods = Set.of(modVersion);
+    Set<ModVersion> selectedMods = Set.of(modVersion);
     when(modManagerController.getSelectedModVersions()).thenReturn(selectedMods);
 
-    MapVersionBean map = Instancio.create(MapVersionBean.class);
+    MapVersion map = Instancio.create(MapVersion.class);
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(Mono.just(map));
 
     when(modService.updateAndActivateModVersions(selectedMods)).thenReturn(Mono.just(List.of(newModVersion)));
@@ -309,7 +309,7 @@ public class CreateGameControllerTest extends PlatformTest {
   @Test
   public void testCreateGameOnSelectedMapIfNoNewVersionMap() {
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
-    MapVersionBean map = Instancio.create(MapVersionBean.class);
+    MapVersion map = Instancio.create(MapVersion.class);
 
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(Mono.just(map));
 
@@ -328,12 +328,8 @@ public class CreateGameControllerTest extends PlatformTest {
   public void testCreateGameOnUpdatedMapIfNewVersionMapExist() {
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
 
-    MapVersionBean outdatedMap = Instancio.of(MapVersionBean.class)
-                                          .set(field(MapVersionBean::folderName), "test.v0001")
-                                          .create();
-    MapVersionBean updatedMap = Instancio.of(MapVersionBean.class)
-                                         .set(field(MapVersionBean::folderName), "test.v0002")
-                                         .create();
+    MapVersion outdatedMap = Instancio.of(MapVersion.class).set(field(MapVersion::folderName), "test.v0001").create();
+    MapVersion updatedMap = Instancio.of(MapVersion.class).set(field(MapVersion::folderName), "test.v0002").create();
     when(mapService.updateLatestVersionIfNecessary(outdatedMap)).thenReturn(Mono.just(updatedMap));
 
     runOnFxThreadAndWait(() -> {
@@ -351,7 +347,7 @@ public class CreateGameControllerTest extends PlatformTest {
   public void testCreateGameOnSelectedMapImmediatelyIfThrowExceptionWhenUpdatingMap() {
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
 
-    MapVersionBean map = Instancio.create(MapVersionBean.class);
+    MapVersion map = Instancio.create(MapVersion.class);
     when(mapService.updateLatestVersionIfNecessary(any())).thenReturn(
         Mono.error(new RuntimeException("error when checking for update or updating map")));
 
@@ -368,37 +364,37 @@ public class CreateGameControllerTest extends PlatformTest {
 
   @Test
   public void testInitGameTypeComboBoxPostPopulated() {
-    FeaturedModBean featuredModBean = Instancio.of(FeaturedModBean.class)
-                                               .set(field(FeaturedModBean::technicalName), "faf")
-                                               .set(field(FeaturedModBean::visible), true)
-                                               .create();
-    when(featuredModService.getFeaturedMods()).thenReturn(Flux.just(featuredModBean));
+    FeaturedMod featuredMod = Instancio.of(FeaturedMod.class)
+                                       .set(field(FeaturedMod::technicalName), "faf")
+                                       .set(field(FeaturedMod::visible), true)
+                                       .create();
+    when(featuredModService.getFeaturedMods()).thenReturn(Flux.just(featuredMod));
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
-    assertThat(instance.featuredModListView.getItems(), contains(featuredModBean));
+    assertThat(instance.featuredModListView.getItems(), contains(featuredMod));
   }
 
   @Test
   public void testSelectLastOrDefaultSelectLast() {
-    FeaturedModBean featuredModBean = Instancio.of(FeaturedModBean.class)
-                                               .set(field(FeaturedModBean::technicalName), "last")
-                                               .set(field(FeaturedModBean::visible), true)
-                                               .create();
-    FeaturedModBean featuredModBean2 = Instancio.of(FeaturedModBean.class)
-                                                .set(field(FeaturedModBean::technicalName), "faf")
-                                                .set(field(FeaturedModBean::visible), true)
-                                                .create();
+    FeaturedMod featuredMod = Instancio.of(FeaturedMod.class)
+                                       .set(field(FeaturedMod::technicalName), "last")
+                                       .set(field(FeaturedMod::visible), true)
+                                       .create();
+    FeaturedMod featuredMod2 = Instancio.of(FeaturedMod.class)
+                                        .set(field(FeaturedMod::technicalName), "faf")
+                                        .set(field(FeaturedMod::visible), true)
+                                        .create();
 
-    when(featuredModService.getFeaturedMods()).thenReturn(Flux.just(featuredModBean, featuredModBean2));
+    when(featuredModService.getFeaturedMods()).thenReturn(Flux.just(featuredMod, featuredMod2));
 
     runOnFxThreadAndWait(() -> {
       reinitialize(instance);
-      instance.featuredModListView.getSelectionModel().select(featuredModBean);
+      instance.featuredModListView.getSelectionModel().select(featuredMod);
       reinitialize(instance);
     });
 
-    assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredModBean));
+    assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredMod));
   }
 
   @Test
@@ -443,35 +439,35 @@ public class CreateGameControllerTest extends PlatformTest {
   @SuppressWarnings("unchecked")
   @Test
   public void testMapNameSearchFilter() {
-    ArgumentCaptor<BiFunction<String, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<String, MapVersion, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
     verify(mapFilterController).addExternalFilter(any(ObservableValue.class),
                                                   argumentCaptor.capture());
-    BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
+    BiFunction<String, MapVersion, Boolean> filter = argumentCaptor.getValue();
 
-    MapVersionBean mapVersionBean = Instancio.of(MapVersionBean.class)
-                                             .set(field(MapBean::displayName).within(scope(MapBean.class)), "dual")
-                                             .set(field(MapVersionBean::folderName), "gap.v0001")
-                                             .create();
-    assertTrue(filter.apply("", mapVersionBean));
-    assertTrue(filter.apply("Gap", mapVersionBean));
-    assertFalse(filter.apply("duel", mapVersionBean));
-    assertTrue(filter.apply("aP", mapVersionBean));
-    assertTrue(filter.apply("Dual", mapVersionBean));
-    assertTrue(filter.apply("ua", mapVersionBean));
-    assertFalse(filter.apply("ap.v1000", mapVersionBean));
+    MapVersion mapVersion = Instancio.of(MapVersion.class)
+                                     .set(field(Map::displayName).within(scope(Map.class)), "dual")
+                                     .set(field(MapVersion::folderName), "gap.v0001")
+                                     .create();
+    assertTrue(filter.apply("", mapVersion));
+    assertTrue(filter.apply("Gap", mapVersion));
+    assertFalse(filter.apply("duel", mapVersion));
+    assertTrue(filter.apply("aP", mapVersion));
+    assertTrue(filter.apply("Dual", mapVersion));
+    assertTrue(filter.apply("ua", mapVersion));
+    assertFalse(filter.apply("ap.v1000", mapVersion));
   }
 
   @Test
   public void testMapNameSearchKeepsSelectedIfInMaps() {
-    ArgumentCaptor<BiFunction<String, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.captor();
+    ArgumentCaptor<BiFunction<String, MapVersion, Boolean>> argumentCaptor = ArgumentCaptor.captor();
     verify(mapFilterController).addExternalFilter(any(ObservableValue.class),
                                                   argumentCaptor.capture());
 
-    BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
-    ObjectProperty<Predicate<MapVersionBean>> predicate = mapFilterController.predicateProperty();
-    MapVersionBean map = Instancio.of(MapVersionBean.class)
-                                  .set(field(MapBean::displayName).within(scope(MapBean.class)), "Test1")
-                                  .create();
+    BiFunction<String, MapVersion, Boolean> filter = argumentCaptor.getValue();
+    ObjectProperty<Predicate<MapVersion>> predicate = mapFilterController.predicateProperty();
+    MapVersion map = Instancio.of(MapVersion.class)
+                              .set(field(Map::displayName).within(scope(Map.class)), "Test1")
+                              .create();
     runOnFxThreadAndWait(() -> {
       mapList.add(map);
       predicate.setValue((item) -> filter.apply("Test", item));
@@ -491,13 +487,12 @@ public class CreateGameControllerTest extends PlatformTest {
 
   @Test
   public void testMapNameSearchClearsSelected() {
-    ArgumentCaptor<BiFunction<String, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.captor();
+    ArgumentCaptor<BiFunction<String, MapVersion, Boolean>> argumentCaptor = ArgumentCaptor.captor();
     verify(mapFilterController).addExternalFilter(any(ObservableValue.class),
                                                   argumentCaptor.capture());
-    BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
-    ObjectProperty<Predicate<MapVersionBean>> predicate = mapFilterController.predicateProperty();
-    mapList.add(Instancio.of(MapVersionBean.class)
-                         .set(field(MapBean::displayName).within(scope(MapBean.class)), "Test1")
+    BiFunction<String, MapVersion, Boolean> filter = argumentCaptor.getValue();
+    ObjectProperty<Predicate<MapVersion>> predicate = mapFilterController.predicateProperty();
+    mapList.add(Instancio.of(MapVersion.class).set(field(Map::displayName).within(scope(Map.class)), "Test1")
                          .create());
 
     predicate.setValue((item) -> filter.apply("Not in Filtered Maps", item));

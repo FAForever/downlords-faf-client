@@ -1,7 +1,7 @@
 package com.faforever.client.avatar;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.AvatarBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.Avatar;
 import com.faforever.client.mapstruct.AvatarMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.player.PlayerService;
@@ -52,14 +52,12 @@ public class AvatarServiceTest extends ServiceTest {
 
   @Test
   public void testLoadAvatar() throws Exception {
-    AvatarBean avatarBean = Instancio.of(AvatarBean.class)
-                                     .set(field(AvatarBean::url),
+    Avatar avatar = Instancio.of(Avatar.class).set(field(Avatar::url),
                                           getClass().getResource("/theme/images/default_achievement.png")
                                                     .toURI()
-                                                    .toURL())
-                                     .create();
-    instance.loadAvatar(avatarBean);
-    verify(assetService).loadAndCacheImage(avatarBean.url(), Path.of("avatars"));
+                                                    .toURL()).create();
+    instance.loadAvatar(avatar);
+    verify(assetService).loadAndCacheImage(avatar.url(), Path.of("avatars"));
   }
 
   @Test
@@ -77,10 +75,10 @@ public class AvatarServiceTest extends ServiceTest {
 
   @Test
   public void changeAvatar() throws Exception {
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().get());
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().get());
 
     URL url = URI.create("https://example.com").toURL();
-    instance.changeAvatar(Instancio.of(AvatarBean.class).set(field(AvatarBean::url), url).create());
+    instance.changeAvatar(Instancio.of(Avatar.class).set(field(Avatar::url), url).create());
 
     verify(fafServerAccessor).selectAvatar(url);
   }

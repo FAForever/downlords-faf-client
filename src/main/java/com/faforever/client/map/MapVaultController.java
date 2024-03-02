@@ -1,7 +1,7 @@
 package com.faforever.client.map;
 
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.MatchmakerQueueBean;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
@@ -34,7 +34,7 @@ import java.util.Random;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class MapVaultController extends VaultEntityController<MapVersionBean> {
+public class MapVaultController extends VaultEntityController<MapVersion> {
 
   private final MapService mapService;
   private final PlatformService platformService;
@@ -43,7 +43,7 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
 
   private MapDetailController mapDetailController;
   private Integer recommendedShowRoomPageCount;
-  private MatchmakerQueueBean matchmakerQueue;
+  private MatchmakerQueueInfo matchmakerQueue;
 
   public MapVaultController(MapService mapService, I18n i18n,
                             UiService uiService, NotificationService notificationService,
@@ -97,7 +97,7 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
   }
 
   @Override
-  protected void onDisplayDetails(MapVersionBean mapBean) {
+  protected void onDisplayDetails(MapVersion mapBean) {
     JavaFxUtil.assertApplicationThread();
     mapDetailController.setMapVersion(mapBean);
     mapDetailController.getRoot().setVisible(true);
@@ -120,14 +120,14 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
   }
 
   @Override
-  protected VaultEntityCardController<MapVersionBean> createEntityCard() {
+  protected VaultEntityCardController<MapVersion> createEntityCard() {
     MapCardController controller = uiService.loadFxml("theme/vault/map/map_card.fxml");
     controller.setOnOpenDetailListener(this::onDisplayDetails);
     return controller;
   }
 
   @Override
-  protected List<ShowRoomCategory<MapVersionBean>> getShowRoomCategories() {
+  protected List<ShowRoomCategory<MapVersion>> getShowRoomCategories() {
 return List.of(
     new ShowRoomCategory<>(() -> {
       int recommendedPage;

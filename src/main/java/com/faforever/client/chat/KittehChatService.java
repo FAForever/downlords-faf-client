@@ -15,7 +15,7 @@ import com.faforever.client.chat.kitteh.listener.WhoAwayListener.WhoComplete;
 import com.faforever.client.chat.kitteh.network.WebsocketNetworkHandler;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
@@ -242,7 +242,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @VisibleForTesting
-  void onPlayerOnline(PlayerBean player) {
+  void onPlayerOnline(PlayerInfo player) {
     channels.values()
             .stream()
             .map(channel -> channel.getUser(player.getUsername()))
@@ -251,7 +251,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @VisibleForTesting
-  void onPlayerOffline(PlayerBean player) {
+  void onPlayerOffline(PlayerInfo player) {
     channels.values()
             .stream()
             .map(channel -> channel.getUser(player.getUsername()))
@@ -475,7 +475,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     ChatChannelUser sender = switch (event) {
       case ChannelMessageEvent channelMessageEvent -> getOrCreateChatUser(user, channelMessageEvent.getChannel());
       case PrivateMessageEvent privateMessageEvent when playerService.getPlayerByNameIfOnline(senderNick)
-                                                                     .map(PlayerBean::getSocialStatus)
+                                                                     .map(PlayerInfo::getSocialStatus)
                                                                      .map(SocialStatus.FOE::equals)
                                                                      .map(isFoe -> !(hideFoeMessages && isFoe))
                                                                      .orElse(true) -> {
@@ -547,8 +547,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       channel.setNumUnreadMessages(channel.getNumUnreadMessages() + 1);
 
       if (notificationPrefs.isPrivateMessageToastEnabled()) {
-        String identIconSource = sender.getPlayer()
-                                       .map(PlayerBean::getId)
+        String identIconSource = sender.getPlayer().map(PlayerInfo::getId)
                                        .map(String::valueOf)
                                        .orElse(sender.getUsername());
         notificationService.addNotification(
@@ -566,8 +565,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       channel.setNumUnreadMessages(channel.getNumUnreadMessages() + 1);
 
       if (notificationPrefs.isPrivateMessageToastEnabled()) {
-        String identIconSource = sender.getPlayer()
-                                       .map(PlayerBean::getId)
+        String identIconSource = sender.getPlayer().map(PlayerInfo::getId)
                                        .map(String::valueOf)
                                        .orElse(sender.getUsername());
         notificationService.addNotification(new TransientNotification(sender.getUsername(), chatMessage.getContent(),

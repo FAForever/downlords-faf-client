@@ -2,14 +2,14 @@ package com.faforever.client.player;
 
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.builders.ChatChannelUserBuilder;
-import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.GameInfoBuilder;
 import com.faforever.client.builders.LeaderboardRatingMapBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.chat.ChatChannel;
 import com.faforever.client.chat.ChatChannelUser;
-import com.faforever.client.domain.LeaderboardBean;
-import com.faforever.client.domain.LeaderboardRatingBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.Leaderboard;
+import com.faforever.client.domain.api.LeaderboardRating;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -57,14 +57,14 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
 
   @InjectMocks
   private PrivatePlayerInfoController instance;
-  private PlayerBean player;
+  private PlayerInfo player;
   private ChatChannelUser chatChannelUser;
-  private LeaderboardBean leaderboard;
+  private Leaderboard leaderboard;
 
   @BeforeEach
   public void setUp() throws Exception {
-    leaderboard = Instancio.of(LeaderboardBean.class).set(field(LeaderboardBean::technicalName), "global").create();
-    player = PlayerBeanBuilder.create().defaultValues().game(null).get();
+    leaderboard = Instancio.of(Leaderboard.class).set(field(Leaderboard::technicalName), "global").create();
+    player = PlayerInfoBuilder.create().defaultValues().game(null).get();
     chatChannelUser = ChatChannelUserBuilder.create(USERNAME, new ChatChannel("testChannel"))
                                             .defaultValues()
                                             .player(player)
@@ -95,7 +95,7 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
   public void testSetChatUserWithPlayerNoGame() {
     player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create()
                                                             .put(leaderboard.technicalName(),
-                                                                 Instancio.create(LeaderboardRatingBean.class))
+                                                                 Instancio.create(LeaderboardRating.class))
                                                             .get());
 
     instance.setChatUser(chatChannelUser);
@@ -120,7 +120,7 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
 
   @Test
   public void testSetChatUserWithPlayerWithGame() {
-    player.setGame(GameBeanBuilder.create().defaultValues().get());
+    player.setGame(GameInfoBuilder.create().defaultValues().get());
     instance.setChatUser(chatChannelUser);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -134,7 +134,7 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
 
     assertFalse(instance.gameDetailWrapper.isVisible());
 
-    player.setGame(GameBeanBuilder.create().defaultValues().get());
+    player.setGame(GameInfoBuilder.create().defaultValues().get());
 
     assertTrue(instance.gameDetailWrapper.isVisible());
   }
@@ -142,7 +142,7 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
   @Test
   public void testSetChatUserLeavesGame() {
     instance.setChatUser(chatChannelUser);
-    player.setGame(GameBeanBuilder.create().defaultValues().get());
+    player.setGame(GameInfoBuilder.create().defaultValues().get());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.gameDetailWrapper.isVisible());
@@ -157,7 +157,7 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
     instance.setChatUser(chatChannelUser);
     WaitForAsyncUtils.waitForFxEvents();
 
-    player.setLeaderboardRatings(Map.of("test", Instancio.create(LeaderboardRatingBean.class)));
+    player.setLeaderboardRatings(Map.of("test", Instancio.create(LeaderboardRating.class)));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(leaderboardService).getLeaderboards();
@@ -196,7 +196,7 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
 
     player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create()
                                                             .put(leaderboard.technicalName(),
-                                                                 Instancio.create(LeaderboardRatingBean.class))
+                                                                 Instancio.create(LeaderboardRating.class))
                                                             .get());
     chatChannelUser.setPlayer(player);
     WaitForAsyncUtils.waitForFxEvents();

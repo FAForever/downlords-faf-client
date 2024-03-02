@@ -1,10 +1,10 @@
 package com.faforever.client.stats;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.LeaderboardBean;
-import com.faforever.client.domain.LeaderboardRatingJournalBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.Leaderboard;
+import com.faforever.client.domain.api.LeaderboardRatingJournal;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.LeaderboardMapper;
 import com.faforever.client.mapstruct.MapperSetup;
@@ -34,7 +34,7 @@ public class StatisticsServiceTest extends ServiceTest {
 
   @InjectMocks
   private StatisticsService instance;
-  private LeaderboardBean leaderboard;
+  private Leaderboard leaderboard;
   @Spy
   private LeaderboardMapper leaderboardMapper = Mappers.getMapper(LeaderboardMapper.class);
 
@@ -42,14 +42,15 @@ public class StatisticsServiceTest extends ServiceTest {
   public void setUp() throws Exception {
     MapperSetup.injectMappers(leaderboardMapper);
     when(fafApiAccessor.getMaxPageSize()).thenReturn(10000);
-    leaderboard = Instancio.create(LeaderboardBean.class);
+    leaderboard = Instancio.create(Leaderboard.class);
   }
 
   @Test
   public void testGetStatisticsForPlayer() throws Exception {
-    LeaderboardRatingJournalBean leaderboardRatingJournalBean = Instancio.create(LeaderboardRatingJournalBean.class);
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
-    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboardRatingJournalBean, new CycleAvoidingMappingContext()));
+    LeaderboardRatingJournal leaderboardRatingJournal = Instancio.create(LeaderboardRatingJournal.class);
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().username("junit").get();
+    Flux<ElideEntity> resultFlux = Flux.just(
+        leaderboardMapper.map(leaderboardRatingJournal, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getRatingHistory(player, leaderboard)).expectNextCount(1)
                 .expectComplete()

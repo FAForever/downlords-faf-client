@@ -1,7 +1,7 @@
 package com.faforever.client.vault.review;
 
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.ReviewBean;
+import com.faforever.client.domain.api.ReviewBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
@@ -75,7 +75,7 @@ public class ReviewController<R extends ReviewBean<R>> extends NodeController<Pa
 
     BooleanExpression reviewCreated = BooleanExpression.booleanExpression(review.map(ReviewBean::id)
         .map(Objects::nonNull));
-    ObservableValue<PlayerBean> reviewerObservable = review.map(ReviewBean::player);
+    ObservableValue<PlayerInfo> reviewerObservable = review.map(ReviewBean::player);
     BooleanExpression ownedByPlayer = BooleanExpression.booleanExpression(playerService.currentPlayerProperty()
                                                                                        .flatMap(
                                                                                            player -> reviewerObservable.map(
@@ -95,8 +95,7 @@ public class ReviewController<R extends ReviewBean<R>> extends NodeController<Pa
     sendButton.disableProperty()
         .bind(selectionStarsController.valueProperty().map(score -> score.intValue() < 1).when(showing));
     displayStarsController.valueProperty().bind(scoreObservable.when(showing));
-    usernameLabel.textProperty()
-        .bind(reviewerObservable.flatMap(PlayerBean::usernameProperty).when(showing));
+    usernameLabel.textProperty().bind(reviewerObservable.flatMap(PlayerInfo::usernameProperty).when(showing));
     reviewTextLabel.textProperty().bind(review.map(ReviewBean::text).when(showing));
     versionLabel.textProperty().bind(review.map(ReviewBean::version).map(version -> {
       if (version == null || version.toString().isBlank()) {

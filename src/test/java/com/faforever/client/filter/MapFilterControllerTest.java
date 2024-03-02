@@ -1,6 +1,6 @@
 package com.faforever.client.filter;
 
-import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapSize;
 import com.faforever.client.test.PlatformTest;
@@ -32,11 +32,11 @@ public class MapFilterControllerTest extends PlatformTest {
   private UiService uiService;
 
   @Mock
-  private RangeSliderFilterController<MapVersionBean> mapWidthFilter;
+  private RangeSliderFilterController<MapVersion> mapWidthFilter;
   @Mock
-  private RangeSliderFilterController<MapVersionBean> mapHeightFilter;
+  private RangeSliderFilterController<MapVersion> mapHeightFilter;
   @Mock
-  private RangeSliderFilterController<MapVersionBean> numberOfPlayersFilter;
+  private RangeSliderFilterController<MapVersion> numberOfPlayersFilter;
 
   @InjectMocks
   private MapFilterController instance;
@@ -51,54 +51,57 @@ public class MapFilterControllerTest extends PlatformTest {
 
   @Test
   public void testMapWidthFilter() {
-    ArgumentCaptor<BiFunction<Range<Integer>, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<Range<Integer>, MapVersion, Boolean>> argumentCaptor = ArgumentCaptor.forClass(
+        BiFunction.class);
     verify(mapWidthFilter).registerListener(argumentCaptor.capture());
 
-    BiFunction<Range<Integer>, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
+    BiFunction<Range<Integer>, MapVersion, Boolean> filter = argumentCaptor.getValue();
 
-    assertTrue(filter.apply(Range.of(5, 100), Instancio.of(MapVersionBean.class)
-                                                       .set(field(MapVersionBean::size), new MapSize(512, 512))
+    assertTrue(filter.apply(Range.of(5, 100),
+                            Instancio.of(MapVersion.class).set(field(MapVersion::size), new MapSize(512, 512))
                                                        .create()));
-    assertFalse(filter.apply(Range.of(30, 100), Instancio.of(MapVersionBean.class)
-                                                         .set(field(MapVersionBean::size), new MapSize(1024, 1024))
+    assertFalse(filter.apply(Range.of(30, 100),
+                             Instancio.of(MapVersion.class).set(field(MapVersion::size), new MapSize(1024, 1024))
                                                          .create()));
-    assertTrue(filter.apply(AbstractRangeSliderFilterController.NO_CHANGE, Instancio.of(MapVersionBean.class)
-                                                                                    .set(field(MapVersionBean::size),
+    assertTrue(filter.apply(AbstractRangeSliderFilterController.NO_CHANGE,
+                            Instancio.of(MapVersion.class).set(field(MapVersion::size),
                                                                                          new MapSize(256, 256))
                                                                                     .create()));
   }
 
   @Test
   public void testMapHeightFilter() {
-    ArgumentCaptor<BiFunction<Range<Integer>, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<Range<Integer>, MapVersion, Boolean>> argumentCaptor = ArgumentCaptor.forClass(
+        BiFunction.class);
     verify(mapHeightFilter).registerListener(argumentCaptor.capture());
 
-    BiFunction<Range<Integer>, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
+    BiFunction<Range<Integer>, MapVersion, Boolean> filter = argumentCaptor.getValue();
 
-    assertTrue(filter.apply(Range.of(5, 100), Instancio.of(MapVersionBean.class)
-                                                       .set(field(MapVersionBean::size), new MapSize(512, 512))
+    assertTrue(filter.apply(Range.of(5, 100),
+                            Instancio.of(MapVersion.class).set(field(MapVersion::size), new MapSize(512, 512))
                                                        .create()));
-    assertFalse(filter.apply(Range.of(30, 100), Instancio.of(MapVersionBean.class)
-                                                         .set(field(MapVersionBean::size), new MapSize(1024, 1024))
+    assertFalse(filter.apply(Range.of(30, 100),
+                             Instancio.of(MapVersion.class).set(field(MapVersion::size), new MapSize(1024, 1024))
                                                          .create()));
-    assertTrue(filter.apply(AbstractRangeSliderFilterController.NO_CHANGE, Instancio.of(MapVersionBean.class)
-                                                                                    .set(field(MapVersionBean::size),
+    assertTrue(filter.apply(AbstractRangeSliderFilterController.NO_CHANGE,
+                            Instancio.of(MapVersion.class).set(field(MapVersion::size),
                                                                                          new MapSize(256, 256))
                                                                                     .create()));
   }
 
   @Test
   public void testMapNumberOfPlayerFilter() {
-    ArgumentCaptor<BiFunction<Range<Integer>, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<Range<Integer>, MapVersion, Boolean>> argumentCaptor = ArgumentCaptor.forClass(
+        BiFunction.class);
     verify(numberOfPlayersFilter).registerListener(argumentCaptor.capture());
 
-    BiFunction<Range<Integer>, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
+    BiFunction<Range<Integer>, MapVersion, Boolean> filter = argumentCaptor.getValue();
 
     assertTrue(filter.apply(Range.of(1, 16),
-                            Instancio.of(MapVersionBean.class).set(field(MapVersionBean::maxPlayers), 10).create()));
+                            Instancio.of(MapVersion.class).set(field(MapVersion::maxPlayers), 10).create()));
     assertFalse(filter.apply(Range.of(8, 100),
-                             Instancio.of(MapVersionBean.class).set(field(MapVersionBean::maxPlayers), 4).create()));
+                             Instancio.of(MapVersion.class).set(field(MapVersion::maxPlayers), 4).create()));
     assertTrue(filter.apply(AbstractRangeSliderFilterController.NO_CHANGE,
-                            Instancio.of(MapVersionBean.class).set(field(MapVersionBean::maxPlayers), 16).create()));
+                            Instancio.of(MapVersion.class).set(field(MapVersion::maxPlayers), 16).create()));
   }
 }

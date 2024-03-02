@@ -1,7 +1,7 @@
 package com.faforever.client.moderator;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.LoginService;
@@ -34,14 +34,14 @@ public class ModeratorServiceTest extends ServiceTest {
 
   @Test
   public void testClosePlayersGame() throws Exception {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
     instance.closePlayersGame(player);
     verify(fafServerAccessor).closePlayersGame(player.getId());
   }
 
   @Test
   public void testClosePlayersLobby() throws Exception {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
     instance.closePlayersLobby(player);
     verify(fafServerAccessor).closePlayersLobby(player.getId());
   }

@@ -2,7 +2,7 @@ package com.faforever.client.builders;
 
 import com.faforever.client.chat.ChatChannel;
 import com.faforever.client.chat.ChatChannelUser;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import javafx.scene.paint.Color;
 
 public final class ChatChannelUserBuilder {
@@ -24,7 +24,7 @@ public final class ChatChannelUserBuilder {
     return chatChannelUser;
   }
 
-  public ChatChannelUserBuilder player(PlayerBean player) {
+  public ChatChannelUserBuilder player(PlayerInfo player) {
     chatChannelUser.setPlayer(player);
     return this;
   }

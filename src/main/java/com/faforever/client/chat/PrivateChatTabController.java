@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PrivatePlayerInfoController;
 import javafx.beans.value.ObservableValue;
@@ -52,7 +52,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
     avatarImageView.imageProperty().bind(chatUser
                                              .flatMap(ChatChannelUser::playerProperty)
-                                             .flatMap(PlayerBean::avatarProperty)
+                                             .flatMap(PlayerInfo::avatarProperty)
                                              .map(avatarService::loadAvatar).when(showing));
   }
 

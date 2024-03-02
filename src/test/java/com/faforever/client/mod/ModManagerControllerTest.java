@@ -1,7 +1,7 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.domain.ModVersionBean;
-import com.faforever.client.domain.ModVersionBean.ModType;
+import com.faforever.client.domain.api.ModType;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.test.PlatformTest;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -28,13 +28,13 @@ public class ModManagerControllerTest extends PlatformTest {
   private ModManagerController instance;
   @Mock
   private ModService modService;
-  private ModVersionBean modSIM;
-  private ModVersionBean modUI;
+  private ModVersion modSIM;
+  private ModVersion modUI;
 
   @BeforeEach
   public void setUp() throws Exception {
-    modUI = Instancio.of(ModVersionBean.class).set(field(ModVersionBean::modType), ModType.UI).create();
-    modSIM = Instancio.of(ModVersionBean.class).set(field(ModVersionBean::modType), ModType.SIM).create();
+    modUI = Instancio.of(ModVersion.class).set(field(ModVersion::modType), ModType.UI).create();
+    modSIM = Instancio.of(ModVersion.class).set(field(ModVersion::modType), ModType.SIM).create();
     when(modService.getInstalledMods()).thenReturn(FXCollections.observableArrayList(modUI, modSIM));
 
     when(modService.getActivatedSimAndUIMods()).thenReturn(Collections.singletonList(modUI));

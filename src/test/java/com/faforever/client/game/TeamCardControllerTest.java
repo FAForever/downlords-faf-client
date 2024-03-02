@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.GamePlayerStatsBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.GamePlayerStats;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
@@ -39,14 +39,14 @@ public class TeamCardControllerTest extends PlatformTest {
   @Mock
   private PlayerCardController playerCardController;
 
-  private final ArrayList<PlayerBean> playerList = new ArrayList<>();
+  private final ArrayList<PlayerInfo> playerList = new ArrayList<>();
 
-  private ObservableMap<String, List<GamePlayerStatsBean>> teams;
-  private GamePlayerStatsBean playerStats;
+  private ObservableMap<String, List<GamePlayerStats>> teams;
+  private GamePlayerStats playerStats;
 
   @BeforeEach
   public void setUp() throws Exception {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().id(1).get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().id(1).get();
     playerList.add(player);
     teams = FXCollections.observableHashMap();
 
@@ -55,7 +55,7 @@ public class TeamCardControllerTest extends PlatformTest {
     lenient().when(playerCardController.factionProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(playerCardController.playerProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(playerCardController.getRoot()).thenReturn(new Label());
-    playerStats = Instancio.of(GamePlayerStatsBean.class).set(field(GamePlayerStatsBean::player), player).create();
+    playerStats = Instancio.of(GamePlayerStats.class).set(field(GamePlayerStats::player), player).create();
 
     teams.put("2", Collections.singletonList(playerStats));
 

@@ -1,9 +1,9 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.domain.DivisionBean;
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.SubdivisionBean;
+import com.faforever.client.domain.api.Division;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.api.Subdivision;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.ObservableConstant;
 import com.faforever.client.fx.StringCell;
@@ -63,19 +63,19 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
   public HBox subdivisionButtons;
   public ToggleGroup subdivisionToggleGroup;
   public TextField searchTextField;
-  public ComboBox<DivisionBean> divisionPicker;
-  public TableColumn<LeagueEntryBean, Number> rankColumn;
-  public TableColumn<LeagueEntryBean, String> nameColumn;
-  public TableColumn<LeagueEntryBean, Number> gamesPlayedColumn;
-  public TableColumn<LeagueEntryBean, Integer> scoreColumn;
-  public TableView<LeagueEntryBean> ratingTable;
+  public ComboBox<Division> divisionPicker;
+  public TableColumn<LeagueEntry, Number> rankColumn;
+  public TableColumn<LeagueEntry, String> nameColumn;
+  public TableColumn<LeagueEntry, Number> gamesPlayedColumn;
+  public TableColumn<LeagueEntry, Integer> scoreColumn;
+  public TableView<LeagueEntry> ratingTable;
 
-  private final ObjectProperty<List<LeagueEntryBean>> leagueEntries = new SimpleObjectProperty<>(List.of());
-  private final ObjectProperty<List<SubdivisionBean>> subdivisions = new SimpleObjectProperty<>(List.of());
-  private final ObjectProperty<LeagueEntryBean> selectedLeagueEntry = new SimpleObjectProperty<>();
+  private final ObjectProperty<List<LeagueEntry>> leagueEntries = new SimpleObjectProperty<>(List.of());
+  private final ObjectProperty<List<Subdivision>> subdivisions = new SimpleObjectProperty<>(List.of());
+  private final ObjectProperty<LeagueEntry> selectedLeagueEntry = new SimpleObjectProperty<>();
   private final SuggestionProvider<String> usernameSuggestionProvider = SuggestionProvider.create(List.of());
-  private final Map<Toggle, SubdivisionBean> toggleSubdivisionMap = new HashMap<>();
-  private final Map<SubdivisionBean, Toggle> subdivisionToggleMap = new HashMap<>();
+  private final Map<Toggle, Subdivision> toggleSubdivisionMap = new HashMap<>();
+  private final Map<Subdivision, Toggle> subdivisionToggleMap = new HashMap<>();
 
   @Override
   protected void onInitialize() {
@@ -88,9 +88,9 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
 
     subdivisions.map(this::getDivisions).map(FXCollections::observableList).when(showing).subscribe(divisions -> {
       divisionPicker.setItems(divisions);
-      DivisionBean selectedDivision = selectedLeagueEntry.map(LeagueEntryBean::subdivision)
-                                                         .map(SubdivisionBean::division)
-                                                         .getValue();
+      Division selectedDivision = selectedLeagueEntry.map(LeagueEntry::subdivision)
+                                                     .map(Subdivision::division)
+                                                     .getValue();
       divisions.stream()
                .filter(division -> division.equals(selectedDivision))
                .findFirst()
@@ -108,7 +108,7 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
       usernameSuggestionProvider.addPossibleSuggestions(newNames);
     });
 
-    ObservableValue<List<SubdivisionBean>> selectedSubdivisions = subdivisions.flatMap(
+    ObservableValue<List<Subdivision>> selectedSubdivisions = subdivisions.flatMap(
         subdivisions -> divisionPicker.getSelectionModel()
                                       .selectedItemProperty()
                                       .map(division -> subdivisions.stream()
@@ -174,7 +174,7 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
     scoreColumn.setCellFactory(param -> new StringCell<>(i18n::number));
   }
 
-  private void createSubdivisionButtons(List<SubdivisionBean> subdivisions) {
+  private void createSubdivisionButtons(List<Subdivision> subdivisions) {
     subdivisionToggleGroup.getToggles().clear();
     toggleSubdivisionMap.clear();
     subdivisionToggleMap.clear();
@@ -194,7 +194,7 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
       subdivisionButtons.getChildren().add(toggleButton);
     });
 
-    SubdivisionBean selectedSubdivision = selectedLeagueEntry.map(LeagueEntryBean::subdivision).getValue();
+    Subdivision selectedSubdivision = selectedLeagueEntry.map(LeagueEntry::subdivision).getValue();
     subdivisions.stream()
                 .filter(subdivision -> subdivision.equals(selectedSubdivision))
                 .findFirst()
@@ -203,14 +203,14 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
                     () -> subdivisionToggleGroup.selectToggle(subdivisionToggleMap.get(subdivisions.getLast())));
   }
 
-  private TableRow<LeagueEntryBean> entriesRowFactory() {
-    TableRow<LeagueEntryBean> row = new TableRow<>();
+  private TableRow<LeagueEntry> entriesRowFactory() {
+    TableRow<LeagueEntry> row = new TableRow<>();
     row.setOnContextMenuRequested(event -> {
-      LeagueEntryBean leagueEntry = row.getItem();
+      LeagueEntry leagueEntry = row.getItem();
       if (leagueEntry == null) {
         return;
       }
-      PlayerBean player = leagueEntry.player();
+      PlayerInfo player = leagueEntry.player();
       contextMenuBuilder.newBuilder()
                         .addItem(ShowPlayerInfoMenuItem.class, player)
                         .addItem(CopyUsernameMenuItem.class, player.getUsername())
@@ -228,13 +228,15 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
     return row;
   }
 
-  private Set<String> getPlayerNames(List<LeagueEntryBean> entries) {
-    return entries.stream().map(LeagueEntryBean::player).map(PlayerBean::getUsername).collect(Collectors.toSet());
+  private Set<String> getPlayerNames(List<LeagueEntry> entries) {
+    return entries.stream().map(LeagueEntry::player).map(PlayerInfo::getUsername).collect(Collectors.toSet());
   }
 
-  private List<DivisionBean> getDivisions(List<SubdivisionBean> subdivisions) {
-    return subdivisions.stream().map(SubdivisionBean::division)
-                       .distinct().sorted(Comparator.comparing(DivisionBean::index).reversed())
+  private List<Division> getDivisions(List<Subdivision> subdivisions) {
+    return subdivisions.stream()
+                       .map(Subdivision::division)
+                       .distinct()
+                       .sorted(Comparator.comparing(Division::index).reversed())
                        .toList();
   }
 
@@ -255,27 +257,27 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
     return rankingsRoot;
   }
 
-  public List<LeagueEntryBean> getLeagueEntries() {
+  public List<LeagueEntry> getLeagueEntries() {
     return leagueEntries.get();
   }
 
-  public ObjectProperty<List<LeagueEntryBean>> leagueEntriesProperty() {
+  public ObjectProperty<List<LeagueEntry>> leagueEntriesProperty() {
     return leagueEntries;
   }
 
-  public void setLeagueEntries(List<LeagueEntryBean> leagueEntries) {
+  public void setLeagueEntries(List<LeagueEntry> leagueEntries) {
     this.leagueEntries.set(leagueEntries);
   }
 
-  public List<SubdivisionBean> getSubdivisions() {
+  public List<Subdivision> getSubdivisions() {
     return subdivisions.get();
   }
 
-  public ObjectProperty<List<SubdivisionBean>> subdivisionsProperty() {
+  public ObjectProperty<List<Subdivision>> subdivisionsProperty() {
     return subdivisions;
   }
 
-  public void setSubdivisions(List<SubdivisionBean> subdivisions) {
+  public void setSubdivisions(List<Subdivision> subdivisions) {
     this.subdivisions.set(subdivisions);
   }
 }

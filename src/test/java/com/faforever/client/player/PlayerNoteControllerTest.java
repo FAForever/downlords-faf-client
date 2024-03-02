@@ -1,7 +1,7 @@
 package com.faforever.client.player;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.social.SocialService;
 import com.faforever.client.test.PlatformTest;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -32,7 +32,7 @@ public class PlayerNoteControllerTest extends PlatformTest {
 
   @Test
   public void testSetPlayer() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().note("junit").get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().note("junit").get();
     runOnFxThreadAndWait(() -> instance.setPlayer(player));
 
     assertEquals("junit", instance.textArea.getText());
@@ -40,7 +40,10 @@ public class PlayerNoteControllerTest extends PlatformTest {
 
   @Test
   public void testCharacterLimit() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().note(RandomStringUtils.randomAlphanumeric(CHARACTER_LIMIT)).get();
+    PlayerInfo player = PlayerInfoBuilder.create()
+                                         .defaultValues()
+                                         .note(RandomStringUtils.randomAlphanumeric(CHARACTER_LIMIT))
+                                         .get();
     runOnFxThreadAndWait(() -> instance.setPlayer(player));
     assertEquals(CHARACTER_LIMIT, instance.textArea.getLength());
 
@@ -50,7 +53,7 @@ public class PlayerNoteControllerTest extends PlatformTest {
 
   @Test
   public void testOnOkButtonClicked() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().note("junit").get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().note("junit").get();
     runOnFxThreadAndWait(() -> {
       instance.setPlayer(player);
       instance.textArea.setText("updated");

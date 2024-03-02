@@ -1,7 +1,7 @@
 package com.faforever.client.fa;
 
-import com.faforever.client.domain.LeaderboardRatingBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.LeaderboardRating;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.GameParameters.League;
 import com.faforever.client.game.error.GameLaunchException;
 import com.faforever.client.logging.LoggingService;
@@ -50,14 +50,13 @@ public class ForgedAllianceLaunchService {
   }
 
   public Process launchOnlineGame(GameParameters gameParameters, int gpgPort, int replayPort) {
-    PlayerBean currentPlayer = playerService.getCurrentPlayer();
+    PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
-    Optional<LeaderboardRatingBean> leaderboardRating = Optional.of(currentPlayer.getLeaderboardRatings())
-                                                                .map(
+    Optional<LeaderboardRating> leaderboardRating = Optional.of(currentPlayer.getLeaderboardRatings()).map(
                                                                     rating -> rating.get(gameParameters.leaderboard()));
 
-    double mean = leaderboardRating.map(LeaderboardRatingBean::mean).orElse(0d);
-    double deviation = leaderboardRating.map(LeaderboardRatingBean::deviation).orElse(0d);
+    double mean = leaderboardRating.map(LeaderboardRating::mean).orElse(0d);
+    double deviation = leaderboardRating.map(LeaderboardRating::deviation).orElse(0d);
 
     int uid = gameParameters.uid();
 

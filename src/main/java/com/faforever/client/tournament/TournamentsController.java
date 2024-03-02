@@ -1,8 +1,8 @@
 package com.faforever.client.tournament;
 
 
-import com.faforever.client.domain.TournamentBean;
-import com.faforever.client.domain.TournamentBean.Status;
+import com.faforever.client.domain.api.Tournament;
+import com.faforever.client.domain.api.Tournament.Status;
 import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.NodeController;
@@ -48,7 +48,7 @@ public class TournamentsController extends NodeController<Node> {
   public WebView tournamentDetailWebView;
   public Pane loadingIndicator;
   public Node contentPane;
-  public ListView<TournamentBean> tournamentListView;
+  public ListView<Tournament> tournamentListView;
 
   @Override
   public Node getRoot() {
@@ -87,8 +87,8 @@ public class TournamentsController extends NodeController<Node> {
     webViewConfigurer.configureWebView(tournamentDetailWebView);
 
     tournamentService.getAllTournaments()
-                     .sort(Comparator.<TournamentBean, Status>comparing(TournamentBean::status)
-                                     .thenComparing(TournamentBean::createdAt)
+                     .sort(Comparator.<Tournament, Status>comparing(Tournament::status)
+                                     .thenComparing(Tournament::createdAt)
                                      .reversed())
                      .collectList()
                      .map(FXCollections::observableList)
@@ -100,28 +100,28 @@ public class TournamentsController extends NodeController<Node> {
                      }, throwable -> log.error("Tournaments could not be loaded", throwable));
   }
 
-  private void displayTournamentItem(TournamentBean tournamentBean) {
+  private void displayTournamentItem(Tournament tournament) {
     String startingDate = i18n.get("tournament.noStartingDate");
-    if (tournamentBean.startingAt() != null) {
-      startingDate = MessageFormat.format(i18n.get("dateWithTime"), timeService.asDate(tournamentBean.startingAt()),
-                                          timeService.asShortTime(tournamentBean.startingAt()));
+    if (tournament.startingAt() != null) {
+      startingDate = MessageFormat.format(i18n.get("dateWithTime"), timeService.asDate(tournament.startingAt()),
+                                          timeService.asShortTime(tournament.startingAt()));
     }
 
     String completedDate = i18n.get("tournament.noCompletionDate");
-    if (tournamentBean.completedAt() != null) {
-      completedDate = MessageFormat.format(i18n.get("dateWithTime"), timeService.asDate(tournamentBean.completedAt()),
-                                           timeService.asShortTime(tournamentBean.completedAt()));
+    if (tournament.completedAt() != null) {
+      completedDate = MessageFormat.format(i18n.get("dateWithTime"), timeService.asDate(tournament.completedAt()),
+                                           timeService.asShortTime(tournament.completedAt()));
     }
 
     try (Reader reader = new InputStreamReader(TOURNAMENT_DETAIL_HTML_RESOURCE.getInputStream())) {
       String html = CharStreams.toString(reader)
-                               .replace("{name}", tournamentBean.name())
-                               .replace("{challonge-url}", tournamentBean.challongeUrl())
-                               .replace("{tournament-type}", tournamentBean.tournamentType())
+                               .replace("{name}", tournament.name())
+                               .replace("{challonge-url}", tournament.challongeUrl())
+                               .replace("{tournament-type}", tournament.tournamentType())
           .replace("{starting-date}", startingDate)
           .replace("{completed-date}", completedDate)
-                               .replace("{description}", tournamentBean.description())
-                               .replace("{tournament-image}", tournamentBean.liveImageUrl())
+                               .replace("{description}", tournament.description())
+                               .replace("{tournament-image}", tournament.liveImageUrl())
           .replace("{open-on-challonge-label}", i18n.get("tournament.openOnChallonge"))
           .replace("{game-type-label}", i18n.get("tournament.gameType"))
           .replace("{starting-at-label}", i18n.get("tournament.startingAt"))

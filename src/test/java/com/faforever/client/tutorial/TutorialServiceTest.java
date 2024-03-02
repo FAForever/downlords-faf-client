@@ -1,7 +1,7 @@
 package com.faforever.client.tutorial;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.domain.TutorialCategoryBean;
+import com.faforever.client.domain.api.TutorialCategory;
 import com.faforever.client.game.GameService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
@@ -45,10 +45,10 @@ public class TutorialServiceTest extends ServiceTest {
 
   @Test
   public void testGetTutorialCategories() throws Exception {
-    TutorialCategoryBean tutorialCategoryBean = Instancio.create(TutorialCategoryBean.class);
-    Flux<ElideEntity> resultFlux = Flux.just(tutorialMapper.map(tutorialCategoryBean, new CycleAvoidingMappingContext()));
+    TutorialCategory tutorialCategory = Instancio.create(TutorialCategory.class);
+    Flux<ElideEntity> resultFlux = Flux.just(tutorialMapper.map(tutorialCategory, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    StepVerifier.create(instance.getTutorialCategories()).expectNext(tutorialCategoryBean).verifyComplete();
+    StepVerifier.create(instance.getTutorialCategories()).expectNext(tutorialCategory).verifyComplete();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1000)));
   }
 }

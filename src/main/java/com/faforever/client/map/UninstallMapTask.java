@@ -1,6 +1,6 @@
 package com.faforever.client.map;
 
-import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.task.CompletableTask;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ public class UninstallMapTask extends CompletableTask<Void> {
 
   private final MapService mapService;
 
-  private MapVersionBean map;
+  private MapVersion map;
 
   @Autowired
   public UninstallMapTask(MapService mapService) {
@@ -27,7 +27,7 @@ public class UninstallMapTask extends CompletableTask<Void> {
     this.mapService = mapService;
   }
 
-  public void setMap(MapVersionBean map) {
+  public void setMap(MapVersion map) {
     this.map = map;
   }
 

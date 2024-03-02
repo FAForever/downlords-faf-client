@@ -1,14 +1,13 @@
 package com.faforever.client.mapstruct;
 
-import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.GamePlayerStatsBean;
-import com.faforever.client.domain.LeaderboardRatingJournalBean;
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.domain.api.GamePlayerStats;
+import com.faforever.client.domain.api.LeaderboardRatingJournal;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.Replay;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.commons.api.dto.Faction;
 import com.faforever.commons.api.dto.Game;
-import com.faforever.commons.api.dto.GamePlayerStats;
 import com.faforever.commons.replay.ChatMessage;
 import com.faforever.commons.replay.GameOption;
 import com.faforever.commons.replay.ReplayDataParser;
@@ -46,11 +45,11 @@ public interface ReplayMapper {
   @Mapping(target = "title", source = "name")
   @Mapping(target = "teamPlayerStats", source = "dto", qualifiedBy = MapTeamStats.class)
   @Mapping(target = "teams", source = "dto", qualifiedBy = MapTeams.class)
-  ReplayBean map(Game dto, @Context CycleAvoidingMappingContext context);
+  Replay map(Game dto, @Context CycleAvoidingMappingContext context);
 
   @MapTeams
   default Map<String, List<String>> mapToTeams(Game dto, @Context CycleAvoidingMappingContext context) {
-    List<GamePlayerStats> playerStats = dto.getPlayerStats();
+    List<com.faforever.commons.api.dto.GamePlayerStats> playerStats = dto.getPlayerStats();
 
     if (playerStats == null) {
       return Map.of();
@@ -65,9 +64,9 @@ public interface ReplayMapper {
   }
 
   @MapTeamStats
-  default Map<String, List<GamePlayerStatsBean>> mapToTeamPlayerStats(Game dto,
-                                                                      @Context CycleAvoidingMappingContext context) {
-    List<GamePlayerStats> playerStats = dto.getPlayerStats();
+  default Map<String, List<GamePlayerStats>> mapToTeamPlayerStats(Game dto,
+                                                                  @Context CycleAvoidingMappingContext context) {
+    List<com.faforever.commons.api.dto.GamePlayerStats> playerStats = dto.getPlayerStats();
 
     if (playerStats == null) {
       return Map.of();
@@ -84,21 +83,20 @@ public interface ReplayMapper {
   @Mapping(target = "id", source = "parser.metadata.uid")
   @Mapping(target = "title", source = "parser.metadata.title")
   @Mapping(target = "replayAvailable", constant = "true")
-  @Mapping(target = "featuredMod", source = "featuredModBean")
-  @Mapping(target = "mapVersion", source = "mapVersionBean")
+  @Mapping(target = "featuredMod", source = "featuredMod")
+  @Mapping(target = "mapVersion", source = "mapVersion")
   @Mapping(target = "replayFile", source = "replayFile")
   @Mapping(target = "startTime", source = "parser", qualifiedBy = MapStartTime.class)
   @Mapping(target = "endTime", source = "parser", qualifiedBy = MapEndTime.class)
   @Mapping(target = "teamPlayerStats", source = "parser", qualifiedBy = MapTeamStats.class)
   @Mapping(target = "teams", source = "parser", qualifiedBy = MapTeams.class)
   @Mapping(target = "host", ignore = true)
-  ReplayBean map(ReplayDataParser parser, Path replayFile, FeaturedModBean featuredModBean,
-                 MapVersionBean mapVersionBean);
+  Replay map(ReplayDataParser parser, Path replayFile, FeaturedMod featuredMod, MapVersion mapVersion);
 
-  ReplayBean.ChatMessage map(ChatMessage chatMessage);
+  Replay.ChatMessage map(ChatMessage chatMessage);
 
   @Mapping(target = "value", expression = "java(gameOption.getValue().toString())")
-  ReplayBean.GameOption map(GameOption gameOption);
+  Replay.GameOption map(GameOption gameOption);
 
   @MapStartTime
   default OffsetDateTime mapStartFromParser(ReplayDataParser parser) {
@@ -123,24 +121,24 @@ public interface ReplayMapper {
   }
 
   @MapTeamStats
-  default HashMap<String, List<GamePlayerStatsBean>> mapTeamStatsFromParser(ReplayDataParser parser) {
-    HashMap<String, List<GamePlayerStatsBean>> teams = new HashMap<>();
+  default HashMap<String, List<GamePlayerStats>> mapTeamStatsFromParser(ReplayDataParser parser) {
+    HashMap<String, List<GamePlayerStats>> teams = new HashMap<>();
     parser.getArmies().values().forEach(armyInfo -> {
       if (!(boolean) armyInfo.get("Human")) {
         byte team = ((Float) armyInfo.get("Team")).byteValue();
         String teamString = String.valueOf(team);
-        PlayerBean player = new PlayerBean();
+        PlayerInfo player = new PlayerInfo();
         player.setId(Integer.parseInt((String) armyInfo.get("OwnerID")));
         player.setUsername((String) armyInfo.get("PlayerName"));
         player.setCountry((String) armyInfo.get("Country"));
         double mean = ((Float) armyInfo.get("MEAN")).doubleValue();
         double deviation = ((Float) armyInfo.get("DEV")).doubleValue();
-        LeaderboardRatingJournalBean ratingJournal = new LeaderboardRatingJournalBean(null, null, null, mean, deviation,
-                                                                                      null, null);
+        LeaderboardRatingJournal ratingJournal = new LeaderboardRatingJournal(null, null, null, mean, deviation, null,
+                                                                              null);
         Float factionFloat = (Float) armyInfo.get("Faction");
         Faction faction = Faction.fromFaValue(factionFloat.intValue());
-        GamePlayerStatsBean stats = new GamePlayerStatsBean(player, (byte) 0, team, faction, null, null,
-                                                            List.of(ratingJournal));
+        GamePlayerStats stats = new GamePlayerStats(player, (byte) 0, team, faction, null, null,
+                                                    List.of(ratingJournal));
         teams.computeIfAbsent(teamString, key -> new ArrayList<>()).add(stats);
       }
     });
@@ -149,17 +147,18 @@ public interface ReplayMapper {
 
   @Mapping(target = "name", source = "title")
   @Mapping(target = "playerStats", source = "teamPlayerStats")
-  Game map(ReplayBean bean, @Context CycleAvoidingMappingContext context);
+  Game map(Replay bean, @Context CycleAvoidingMappingContext context);
 
-  default List<GamePlayerStatsBean> mapToTeamPlayerStats(Map<String, List<GamePlayerStatsBean>> teamPlayerStats) {
+  default List<GamePlayerStats> mapToTeamPlayerStats(Map<String, List<GamePlayerStats>> teamPlayerStats) {
     return teamPlayerStats.values().stream().flatMap(Collection::stream).toList();
   }
 
-  GamePlayerStatsBean map(GamePlayerStats dto, @Context CycleAvoidingMappingContext context);
+  GamePlayerStats map(com.faforever.commons.api.dto.GamePlayerStats dto, @Context CycleAvoidingMappingContext context);
 
-  GamePlayerStats map(GamePlayerStatsBean bean, @Context CycleAvoidingMappingContext context);
+  com.faforever.commons.api.dto.GamePlayerStats map(GamePlayerStats bean, @Context CycleAvoidingMappingContext context);
 
-  List<GamePlayerStats> map(Collection<GamePlayerStatsBean> beans, @Context CycleAvoidingMappingContext context);
+  List<com.faforever.commons.api.dto.GamePlayerStats> map(Collection<GamePlayerStats> beans,
+                                                          @Context CycleAvoidingMappingContext context);
 
   @Qualifier
   @Target(ElementType.METHOD)

@@ -1,8 +1,8 @@
 package com.faforever.client.filter;
 
 import com.faforever.client.chat.ChatListItem;
-import com.faforever.client.domain.LeaderboardBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.Leaderboard;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
@@ -53,15 +53,15 @@ public class ChatUserFilterController extends AbstractFilterController<ChatListI
     }
   };
 
-  private final StringConverter<LeaderboardBean> leaderboardConverter = new StringConverter<>() {
+  private final StringConverter<Leaderboard> leaderboardConverter = new StringConverter<>() {
     @Override
-    public String toString(LeaderboardBean object) {
+    public String toString(Leaderboard object) {
       String rating = i18n.getOrDefault(object.technicalName(), object.nameKey());
       return i18n.get("leaderboard.rating", rating);
     }
 
     @Override
-    public LeaderboardBean fromString(String string) {
+    public Leaderboard fromString(String string) {
       throw new UnsupportedOperationException("Not supported");
     }
   };
@@ -79,8 +79,7 @@ public class ChatUserFilterController extends AbstractFilterController<ChatListI
 
     filterBuilder.textField(i18n.get("chat.filter.clan"),
         (text, item) -> text.isEmpty() || item.user() == null || item.user()
-            .getPlayer()
-            .map(PlayerBean::getClan)
+            .getPlayer().map(PlayerInfo::getClan)
             .map(clan -> StringUtils.containsIgnoreCase(clan, text))
             .orElse(false));
 
@@ -89,13 +88,13 @@ public class ChatUserFilterController extends AbstractFilterController<ChatListI
         playerStatusConverter, (selectedStatus, item) -> selectedStatus.isEmpty() || item.user() == null || item.user()
                                                                                                                 .getPlayer()
                                                                                                                 .map(
-                                                                                                                    PlayerBean::getGameStatus)
+                                                                                                                    PlayerInfo::getGameStatus)
                                                                                                                 .map(
                                                                                                                     selectedStatus::contains)
                                                                                                                 .orElse(
                                                                                                                     false));
 
-    RangeSliderWithChoiceFilterController<LeaderboardBean, ChatListItem> ratingFilter = filterBuilder.rangeSliderWithCombobox(
+    RangeSliderWithChoiceFilterController<Leaderboard, ChatListItem> ratingFilter = filterBuilder.rangeSliderWithCombobox(
         i18n.get("game.rating"), leaderboardConverter, MIN_RATING, MAX_RATING, (ratingWithRange, item) -> {
           if (ratingWithRange.range() == AbstractRangeSliderFilterController.NO_CHANGE) {
             return true;
@@ -106,8 +105,7 @@ public class ChatUserFilterController extends AbstractFilterController<ChatListI
           }
 
           return item.user()
-                     .getPlayer()
-                     .map(PlayerBean::getLeaderboardRatings)
+                     .getPlayer().map(PlayerInfo::getLeaderboardRatings)
                      .map(ratingMap -> ratingMap.get(ratingWithRange.item().technicalName()))
                      .map(RatingUtil::getRating)
                      .map(rating -> ratingWithRange.range().contains(rating))
@@ -118,8 +116,7 @@ public class ChatUserFilterController extends AbstractFilterController<ChatListI
 
     filterBuilder.multiCheckbox(i18n.get("country"), countryFlagService.getCountries(), countryConverter,
         (countries, item) -> countries.isEmpty() || item.user() == null ||
-            item.user().getPlayer()
-                .map(PlayerBean::getCountry)
+            item.user().getPlayer().map(PlayerInfo::getCountry)
                 .map(countryCode -> countries.stream().map(Country::code).toList().contains(countryCode))
                 .orElse(false));
   }

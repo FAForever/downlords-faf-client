@@ -1,13 +1,13 @@
 package com.faforever.client.filter;
 
 import com.faforever.client.builders.ChatChannelUserBuilder;
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.chat.ChatChannel;
 import com.faforever.client.chat.ChatListItem;
 import com.faforever.client.chat.ChatUserCategory;
-import com.faforever.client.domain.LeaderboardBean;
-import com.faforever.client.domain.LeaderboardRatingBean;
+import com.faforever.client.domain.api.Leaderboard;
+import com.faforever.client.domain.api.LeaderboardRating;
 import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -57,16 +57,16 @@ public class ChatUserFilterControllerTest extends PlatformTest {
   @Mock
   private FilterMultiCheckboxController<PlayerGameStatus, ChatListItem> playerStatusFilter;
   @Mock
-  private RangeSliderWithChoiceFilterController<LeaderboardBean, ChatListItem> playerRatingFilter;
+  private RangeSliderWithChoiceFilterController<Leaderboard, ChatListItem> playerRatingFilter;
   @Mock
   private FilterMultiCheckboxController<Country, ChatListItem> countryFilter;
 
-  private final LeaderboardBean ladder = Instancio.of(LeaderboardBean.class)
-                                                  .set(field(LeaderboardBean::technicalName), "ladder")
-                                                  .create();
-  private final LeaderboardBean global = Instancio.of(LeaderboardBean.class)
-                                                  .set(field(LeaderboardBean::technicalName), "global")
-                                                  .create();
+  private final Leaderboard ladder = Instancio.of(Leaderboard.class)
+                                              .set(field(Leaderboard::technicalName), "ladder")
+                                              .create();
+  private final Leaderboard global = Instancio.of(Leaderboard.class)
+                                              .set(field(Leaderboard::technicalName), "global")
+                                              .create();
 
   @InjectMocks
   private ChatUserFilterController instance;
@@ -91,7 +91,7 @@ public class ChatUserFilterControllerTest extends PlatformTest {
     ChatListItem category = new ChatListItem(null, ChatUserCategory.FRIEND, null, null);
     ChatListItem user1 = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
                                                                 .player(
-                                                                    PlayerBeanBuilder.create().clan("clan_lenta").get())
+                                                                    PlayerInfoBuilder.create().clan("clan_lenta").get())
                                                                 .get(), ChatUserCategory.FRIEND, null, null);
     ChatListItem user2 = new ChatListItem(ChatChannelUserBuilder.create("user2", CHANNEL).get(),
                                           ChatUserCategory.FRIEND, null, null);
@@ -118,16 +118,16 @@ public class ChatUserFilterControllerTest extends PlatformTest {
 
     ChatListItem category = new ChatListItem(null, ChatUserCategory.FRIEND, null, null);
     ChatListItem idleUser = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
-                                                                   .player(PlayerBeanBuilder.create()
+                                                                   .player(PlayerInfoBuilder.create()
                                                                                             .defaultValues()
                                                                                             .game(null)
                                                                                             .get())
                                                                    .get(), ChatUserCategory.FRIEND, null, null);
     ChatListItem busyUser = new ChatListItem(ChatChannelUserBuilder.create("user2", CHANNEL)
-                                                                   .player(PlayerBeanBuilder.create()
+                                                                   .player(PlayerInfoBuilder.create()
                                                                                             .defaultValues()
                                                                                             .game(
-                                                                                                GameBeanBuilder.create()
+                                                                                                GameInfoBuilder.create()
                                                                                                                .defaultValues()
                                                                                                                .status(
                                                                                                                    GameStatus.PLAYING)
@@ -154,82 +154,82 @@ public class ChatUserFilterControllerTest extends PlatformTest {
 
   @Test
   public void testPlayerRatingFilter() {
-    ArgumentCaptor<BiFunction<ItemWithRange<LeaderboardBean, Integer>, ChatListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(
+    ArgumentCaptor<BiFunction<ItemWithRange<Leaderboard, Integer>, ChatListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(
         BiFunction.class);
     verify(playerRatingFilter).registerListener(argumentCaptor.capture());
 
     ChatListItem category = new ChatListItem(null, ChatUserCategory.FRIEND, null, null);
     ChatListItem user1 = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
-                                                                .player(PlayerBeanBuilder.create()
+                                                                .player(PlayerInfoBuilder.create()
                                                                                          .defaultValues()
                                                                                          .leaderboardRatings(
                                                                                              Map.of("ladder",
                                                                                                     Instancio.of(
-                                                                                                                 LeaderboardRatingBean.class)
+                                                                                                                 LeaderboardRating.class)
                                                                                                              .set(field(
-                                                                                                                      LeaderboardRatingBean::mean),
+                                                                                                                      LeaderboardRating::mean),
                                                                                                                   2000)
                                                                                                              .set(field(
-                                                                                                                      LeaderboardRatingBean::deviation),
+                                                                                                                      LeaderboardRating::deviation),
                                                                                                                   0)
                                                                                                              .create(),
                                                                                                     "global",
                                                                                                     Instancio.of(
-                                                                                                                 LeaderboardRatingBean.class)
+                                                                                                                 LeaderboardRating.class)
                                                                                                              .set(field(
-                                                                                                                      LeaderboardRatingBean::mean),
+                                                                                                                      LeaderboardRating::mean),
                                                                                                                   1500)
                                                                                                              .set(field(
-                                                                                                                      LeaderboardRatingBean::deviation),
+                                                                                                                      LeaderboardRating::deviation),
                                                                                                                   0)
                                                                                                              .create()))
                                                                                          .get())
                                                                 .get(), ChatUserCategory.FRIEND, null, null);
     ChatListItem user2 = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
-                                                                .player(PlayerBeanBuilder.create()
+                                                                .player(PlayerInfoBuilder.create()
                                                                                          .defaultValues()
                                                                                          .leaderboardRatings(
                                                                                              Map.of("ladder",
                                                                                                     Instancio.of(
-                                                                                                                 LeaderboardRatingBean.class)
+                                                                                                                 LeaderboardRating.class)
                                                                                                              .set(field(
-                                                                                                                      LeaderboardRatingBean::mean),
+                                                                                                                      LeaderboardRating::mean),
                                                                                                                   1500)
                                                                                                              .set(field(
-                                                                                                                      LeaderboardRatingBean::deviation),
+                                                                                                                      LeaderboardRating::deviation),
                                                                                                                   0)
                                                                                                              .create(),
                                                                                                     "global",
                                                                                                     Instancio.of(
-                                                                                                                 LeaderboardRatingBean.class)
+                                                                                                                 LeaderboardRating.class)
                                                                                                              .set(field(
-                                                                                                                      LeaderboardRatingBean::mean),
+                                                                                                                      LeaderboardRating::mean),
                                                                                                                   1500)
                                                                                                              .set(field(
-                                                                                                                      LeaderboardRatingBean::deviation),
+                                                                                                                      LeaderboardRating::deviation),
                                                                                                                   0)
                                                                                                              .create()))
                                                                                          .get())
                                                                 .get(), ChatUserCategory.FRIEND, null, null);
-    BiFunction<ItemWithRange<LeaderboardBean, Integer>, ChatListItem, Boolean> filter = argumentCaptor.getValue();
+    BiFunction<ItemWithRange<Leaderboard, Integer>, ChatListItem, Boolean> filter = argumentCaptor.getValue();
 
-    ItemWithRange<LeaderboardBean, Integer> noChange = new ItemWithRange<>(ladder,
-                                                                           AbstractRangeSliderFilterController.NO_CHANGE);
+    ItemWithRange<Leaderboard, Integer> noChange = new ItemWithRange<>(ladder,
+                                                                       AbstractRangeSliderFilterController.NO_CHANGE);
     assertTrue(filter.apply(noChange, category));
     assertTrue(filter.apply(noChange, user1));
     assertTrue(filter.apply(noChange, user2));
 
-    ItemWithRange<LeaderboardBean, Integer> ladderFilter = new ItemWithRange<>(ladder, Range.of(1700, 4000));
+    ItemWithRange<Leaderboard, Integer> ladderFilter = new ItemWithRange<>(ladder, Range.of(1700, 4000));
     assertTrue(filter.apply(ladderFilter, category));
     assertTrue(filter.apply(ladderFilter, user1));
     assertFalse(filter.apply(ladderFilter, user2));
 
-    ItemWithRange<LeaderboardBean, Integer> godFilter = new ItemWithRange<>(ladder, Range.of(3000, 4000));
+    ItemWithRange<Leaderboard, Integer> godFilter = new ItemWithRange<>(ladder, Range.of(3000, 4000));
     assertTrue(filter.apply(godFilter, category));
     assertFalse(filter.apply(godFilter, user1));
     assertFalse(filter.apply(godFilter, user2));
 
-    ItemWithRange<LeaderboardBean, Integer> globalFilter = new ItemWithRange<>(global, Range.of(800, 2000));
+    ItemWithRange<Leaderboard, Integer> globalFilter = new ItemWithRange<>(global, Range.of(800, 2000));
     assertTrue(filter.apply(globalFilter, category));
     assertTrue(filter.apply(globalFilter, user1));
     assertTrue(filter.apply(globalFilter, user2));
@@ -243,13 +243,13 @@ public class ChatUserFilterControllerTest extends PlatformTest {
 
     ChatListItem category = new ChatListItem(null, ChatUserCategory.FRIEND, null, null);
     ChatListItem russiaUser = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
-                                                                     .player(PlayerBeanBuilder.create()
+                                                                     .player(PlayerInfoBuilder.create()
                                                                                               .defaultValues()
                                                                                               .country("ru")
                                                                                               .get())
                                                                      .get(), ChatUserCategory.FRIEND, null, null);
     ChatListItem americanUser = new ChatListItem(ChatChannelUserBuilder.create("user1", CHANNEL)
-                                                                       .player(PlayerBeanBuilder.create()
+                                                                       .player(PlayerInfoBuilder.create()
                                                                                                 .defaultValues()
                                                                                                 .country("us")
                                                                                                 .get())

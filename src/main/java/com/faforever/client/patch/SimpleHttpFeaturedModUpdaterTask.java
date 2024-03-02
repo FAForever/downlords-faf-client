@@ -1,6 +1,6 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.domain.api.FeaturedMod;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ChecksumMismatchException;
@@ -60,7 +60,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
 
   @Override
   protected PatchResult call() throws Exception {
-    FeaturedModBean featuredMod = featuredModService.getFeaturedMod(featuredModName).blockOptional().orElseThrow();
+    FeaturedMod featuredMod = featuredModService.getFeaturedMod(featuredModName).blockOptional().orElseThrow();
 
     String initFileName = "init_" + featuredMod.technicalName() + ".lua";
 

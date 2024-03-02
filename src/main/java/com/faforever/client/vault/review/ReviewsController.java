@@ -1,8 +1,8 @@
 package com.faforever.client.vault.review;
 
 
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.ReviewBean;
+import com.faforever.client.domain.api.ReviewBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
@@ -135,7 +135,7 @@ public class ReviewsController<R extends ReviewBean<R>> extends NodeController<P
                                            .when(showing));
 
     ObservableValue<R> ownReviewBinding = Bindings.when(canWriteReview).then(Bindings.createObjectBinding(() -> {
-      PlayerBean currentPlayer = playerService.getCurrentPlayer();
+      PlayerInfo currentPlayer = playerService.getCurrentPlayer();
       return reviews.stream()
                     .filter(review -> Objects.equals(currentPlayer, review.player()))
                     .max(Comparator.comparing(ReviewBean::version))

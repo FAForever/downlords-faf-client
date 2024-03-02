@@ -1,6 +1,6 @@
 package com.faforever.client.builders;
 
-import com.faforever.client.domain.ReplayBean.GameOption;
+import com.faforever.client.domain.api.Replay.GameOption;
 
 import java.util.ArrayList;
 import java.util.List;

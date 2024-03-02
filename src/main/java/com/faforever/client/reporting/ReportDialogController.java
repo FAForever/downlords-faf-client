@@ -1,9 +1,9 @@
 package com.faforever.client.reporting;
 
 import ch.micheljung.fxwindow.FxStage;
-import com.faforever.client.domain.ModerationReportBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.domain.api.ModerationReport;
+import com.faforever.client.domain.api.Replay;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.ObservableConstant;
@@ -67,15 +67,15 @@ public class ReportDialogController extends NodeController<Node> {
   public TextArea reportDescription;
   public TextField gameId;
   public TextField gameTime;
-  public TableView<ModerationReportBean> reportTable;
-  public TableColumn<ModerationReportBean, Integer> idColumn;
-  public TableColumn<ModerationReportBean, OffsetDateTime> createTimeColumn;
-  public TableColumn<ModerationReportBean, Set<PlayerBean>> offenderColumn;
-  public TableColumn<ModerationReportBean, Integer> gameColumn;
-  public TableColumn<ModerationReportBean, String> descriptionColumn;
-  public TableColumn<ModerationReportBean, PlayerBean> moderatorColumn;
-  public TableColumn<ModerationReportBean, String> noticeColumn;
-  public TableColumn<ModerationReportBean, ModerationReportStatus> statusColumn;
+  public TableView<ModerationReport> reportTable;
+  public TableColumn<ModerationReport, Integer> idColumn;
+  public TableColumn<ModerationReport, OffsetDateTime> createTimeColumn;
+  public TableColumn<ModerationReport, Set<PlayerInfo>> offenderColumn;
+  public TableColumn<ModerationReport, Integer> gameColumn;
+  public TableColumn<ModerationReport, String> descriptionColumn;
+  public TableColumn<ModerationReport, PlayerInfo> moderatorColumn;
+  public TableColumn<ModerationReport, String> noticeColumn;
+  public TableColumn<ModerationReport, ModerationReportStatus> statusColumn;
   private Window ownerWindow;
 
   @Override
@@ -87,17 +87,18 @@ public class ReportDialogController extends NodeController<Node> {
     createTimeColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().createTime()));
     createTimeColumn.setCellFactory(param -> new StringCell<>(timeService::asDateTime));
     offenderColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().reportedUsers()));
-    offenderColumn.setCellFactory(param -> new WrappingStringCell<>((players ->
-        players.stream().map(PlayerBean::getUsername).collect(Collectors.joining(", ")))));
-    gameColumn.setCellValueFactory(param -> Optional.ofNullable(param.getValue().game())
-                                                    .map(ReplayBean::id)
+    offenderColumn.setCellFactory(param -> new WrappingStringCell<>((players -> players.stream()
+                                                                                       .map(PlayerInfo::getUsername)
+                                                                                       .collect(
+                                                                                           Collectors.joining(", ")))));
+    gameColumn.setCellValueFactory(param -> Optional.ofNullable(param.getValue().game()).map(Replay::id)
                                                     .map(ObservableConstant::valueOf)
                                                     .orElse(ObservableConstant.valueOf(null)));
     gameColumn.setCellFactory(param -> new StringCell<>(Number::toString));
     descriptionColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().reportDescription()));
     descriptionColumn.setCellFactory(param -> new WrappingStringCell<>(String::toString));
     moderatorColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().lastModerator()));
-    moderatorColumn.setCellFactory(param -> new StringCell<>(PlayerBean::getUsername));
+    moderatorColumn.setCellFactory(param -> new StringCell<>(PlayerInfo::getUsername));
     noticeColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().moderatorNotice()));
     noticeColumn.setCellFactory(param -> new WrappingStringCell<>(String::toString));
     statusColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().reportStatus()));
@@ -133,14 +134,14 @@ public class ReportDialogController extends NodeController<Node> {
       }
     }
 
-    Mono<PlayerBean> playerMono = playerService.getPlayerByName(offender.getText())
+    Mono<PlayerInfo> playerMono = playerService.getPlayerByName(offender.getText())
                                                .switchIfEmpty(Mono.fromRunnable(this::warnNoPlayer));
 
-    Mono<ModerationReportBean> reportMono;
+    Mono<ModerationReport> reportMono;
     if (!gameId.getText().isBlank()) {
-      Mono<ReplayBean> replayMono = replayService.findById(Integer.parseInt(gameId.getText()))
-                                                 .switchIfEmpty(Mono.fromRunnable(this::warnNoGame))
-                                                 .flatMap(replay -> {
+      Mono<Replay> replayMono = replayService.findById(Integer.parseInt(gameId.getText()))
+                                             .switchIfEmpty(Mono.fromRunnable(this::warnNoGame))
+                                             .flatMap(replay -> {
                                                    if (replay.teams()
                                                              .values()
                                                              .stream()
@@ -151,17 +152,17 @@ public class ReportDialogController extends NodeController<Node> {
                                                    }
                                                    return Mono.just(replay);
                                                  })
-                                                 .switchIfEmpty(Mono.fromRunnable(this::warnOffenderNotInGame));
+                                             .switchIfEmpty(Mono.fromRunnable(this::warnOffenderNotInGame));
       reportMono = Mono.zip(playerMono, replayMono)
                        .map(TupleUtils.function(
-                           (player, replay) -> new ModerationReportBean(null, reportDescription.getText(), null,
-                                                                        gameTime.getText(), null, null,
-                                                                        playerService.getCurrentPlayer(),
-                                                                        Set.of(player), replay, null)));
+                           (player, replay) -> new ModerationReport(null, reportDescription.getText(), null,
+                                                                    gameTime.getText(), null, null,
+                                                                    playerService.getCurrentPlayer(), Set.of(player),
+                                                                    replay, null)));
     } else {
       reportMono = playerMono.map(
-          player -> new ModerationReportBean(null, reportDescription.getText(), null, gameTime.getText(), null, null,
-                                             playerService.getCurrentPlayer(), Set.of(player), null, null));
+          player -> new ModerationReport(null, reportDescription.getText(), null, gameTime.getText(), null, null,
+                                         playerService.getCurrentPlayer(), Set.of(player), null, null));
     }
 
     reportMono.doOnNext(reportBean -> setSendingReport(true))
@@ -217,7 +218,7 @@ public class ReportDialogController extends NodeController<Node> {
     notificationService.addImmediateWarnNotification("report.warning.noGame");
   }
 
-  public void setOffender(PlayerBean player) {
+  public void setOffender(PlayerInfo player) {
     offender.setText(player.getUsername());
   }
 
@@ -225,7 +226,7 @@ public class ReportDialogController extends NodeController<Node> {
     offender.setText(username);
   }
 
-  public void setReplay(ReplayBean replay) {
+  public void setReplay(Replay replay) {
     TextFields.bindAutoCompletion(offender, replay.teams().values().stream().flatMap(Collection::stream)
         .collect(Collectors.toList()));
     gameId.setText(String.valueOf(replay.id()));

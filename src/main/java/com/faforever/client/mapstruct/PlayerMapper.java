@@ -1,8 +1,7 @@
 package com.faforever.client.mapstruct;
 
-import com.faforever.client.domain.NameRecordBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.commons.api.dto.NameRecord;
+import com.faforever.client.domain.api.NameRecord;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.commons.api.dto.Player;
 import org.mapstruct.CollectionMappingStrategy;
 import org.mapstruct.Context;
@@ -18,31 +17,33 @@ import java.util.Set;
     config = MapperConfiguration.class)
 public interface PlayerMapper {
      @Mapping(target = "username", source = "login")
-     PlayerBean map(Player dto, @Context CycleAvoidingMappingContext context);
+     PlayerInfo map(Player dto, @Context CycleAvoidingMappingContext context);
 
      @Mapping(target = "login", source = "username")
-     Player map(PlayerBean bean, @Context CycleAvoidingMappingContext context);
+     Player map(PlayerInfo bean, @Context CycleAvoidingMappingContext context);
 
-     List<PlayerBean> mapDtos(List<Player> dtos, @Context CycleAvoidingMappingContext context);
+  List<PlayerInfo> mapDtos(List<Player> dtos, @Context CycleAvoidingMappingContext context);
 
-     List<Player> mapBeans(List<PlayerBean> beans, @Context CycleAvoidingMappingContext context);
+  List<Player> mapBeans(List<PlayerInfo> beans, @Context CycleAvoidingMappingContext context);
 
-     Set<PlayerBean> mapDtos(Set<Player> dtos, @Context CycleAvoidingMappingContext context);
+  Set<PlayerInfo> mapDtos(Set<Player> dtos, @Context CycleAvoidingMappingContext context);
 
-     Set<Player> mapBeans(Set<PlayerBean> beans, @Context CycleAvoidingMappingContext context);
+  Set<Player> mapBeans(Set<PlayerInfo> beans, @Context CycleAvoidingMappingContext context);
 
-     NameRecordBean map(NameRecord dto, @Context CycleAvoidingMappingContext context);
+  NameRecord map(com.faforever.commons.api.dto.NameRecord dto, @Context CycleAvoidingMappingContext context);
 
-     NameRecord map(NameRecordBean bean, @Context CycleAvoidingMappingContext context);
+  com.faforever.commons.api.dto.NameRecord map(NameRecord bean, @Context CycleAvoidingMappingContext context);
 
-     List<NameRecordBean> mapNameDtos(List<NameRecord> dtos, @Context CycleAvoidingMappingContext context);
+  List<NameRecord> mapNameDtos(List<com.faforever.commons.api.dto.NameRecord> dtos,
+                               @Context CycleAvoidingMappingContext context);
 
-     List<NameRecord> mapNameBeans(List<NameRecordBean> beans, @Context CycleAvoidingMappingContext context);
+  List<com.faforever.commons.api.dto.NameRecord> mapNameBeans(List<NameRecord> beans,
+                                                              @Context CycleAvoidingMappingContext context);
 
      @Mapping(target = "username", source = "login")
      @Mapping(target = "leaderboardRatings", source = "ratings")
      @Mapping(target = "serverStatus", source = "state")
-     PlayerBean update(com.faforever.commons.lobby.Player dto, @MappingTarget PlayerBean bean,
+     PlayerInfo update(com.faforever.commons.lobby.Player dto, @MappingTarget PlayerInfo bean,
                        @Context CycleAvoidingMappingContext context);
 
 

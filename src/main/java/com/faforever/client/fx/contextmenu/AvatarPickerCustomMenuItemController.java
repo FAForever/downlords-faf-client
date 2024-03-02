@@ -1,8 +1,8 @@
 package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.domain.AvatarBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.Avatar;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleInvalidationListener;
@@ -25,7 +25,7 @@ import static com.faforever.client.player.SocialStatus.SELF;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItemController<PlayerBean> {
+public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItemController<PlayerInfo> {
 
   private final AvatarService avatarService;
   private final I18n i18n;
@@ -33,9 +33,9 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
 
   private final SimpleInvalidationListener selectedItemPropertyListener = this::setAvatar;
 
-  public ComboBox<AvatarBean> avatarComboBox;
+  public ComboBox<Avatar> avatarComboBox;
 
-  private AvatarBean noAvatar;
+  private Avatar noAvatar;
 
   @Override
   public void afterSetObject() {
@@ -43,13 +43,13 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
       avatarComboBox.setCellFactory(param -> avatarCell());
       avatarComboBox.setButtonCell(avatarCell());
 
-      noAvatar = new AvatarBean(null, null, i18n.get("chat.userContext.noAvatar"));
+      noAvatar = new Avatar(null, null, i18n.get("chat.userContext.noAvatar"));
       loadAvailableAvatars();
     }
   }
 
-  private StringListCell<AvatarBean> avatarCell() {
-    return new StringListCell<>(AvatarBean::description,
+  private StringListCell<Avatar> avatarCell() {
+    return new StringListCell<>(Avatar::description,
         avatarBean -> new ImageView(avatarService.loadAvatar(avatarBean)), fxApplicationThreadExecutor);
   }
 
@@ -61,10 +61,10 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
 
   private void loadAvailableAvatars() {
     avatarService.getAvailableAvatars().thenAcceptAsync(avatars -> {
-      ObservableList<AvatarBean> items = FXCollections.observableArrayList(avatars);
+      ObservableList<Avatar> items = FXCollections.observableArrayList(avatars);
       items.addFirst(noAvatar);
 
-      AvatarBean currentAvatar = object.getAvatar();
+      Avatar currentAvatar = object.getAvatar();
       avatarComboBox.getItems().setAll(items);
       avatarComboBox.getSelectionModel().select(items.stream()
           .filter(avatarBean -> Objects.equals(avatarBean, currentAvatar))
@@ -80,7 +80,7 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
   }
 
   private void setAvatar() {
-    AvatarBean selectedAvatar = avatarComboBox.getSelectionModel().getSelectedItem();
+    Avatar selectedAvatar = avatarComboBox.getSelectionModel().getSelectedItem();
     object.setAvatar(selectedAvatar);
     avatarService.changeAvatar(Objects.requireNonNullElse(selectedAvatar, noAvatar));
   }

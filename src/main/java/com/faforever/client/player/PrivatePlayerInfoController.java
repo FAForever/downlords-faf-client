@@ -2,9 +2,9 @@ package com.faforever.client.player;
 
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.chat.ChatChannelUser;
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.LeaderboardBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.Leaderboard;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -65,7 +65,7 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
 
   private final ObjectProperty<ChatChannelUser> chatUser = new SimpleObjectProperty<>();
 
-  private final ChangeListener<PlayerBean> playerChangeListener = (observable, oldValue, newValue) -> {
+  private final ChangeListener<PlayerInfo> playerChangeListener = (observable, oldValue, newValue) -> {
     if (newValue != null && !Objects.equals(oldValue, newValue)) {
       loadReceiverRatingInformation(newValue);
       populateUnlockedAchievementsLabel(newValue);
@@ -96,21 +96,20 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
     unlockedAchievements.visibleProperty().bind(playerExistsProperty);
     unlockedAchievementsLabel.visibleProperty().bind(playerExistsProperty);
 
-    ObservableValue<PlayerBean> playerObservable = chatUser.flatMap(ChatChannelUser::playerProperty);
+    ObservableValue<PlayerInfo> playerObservable = chatUser.flatMap(ChatChannelUser::playerProperty);
 
     gamesPlayed.textProperty()
-               .bind(playerObservable.flatMap(PlayerBean::numberOfGamesProperty).map(i18n::number).when(showing));
+               .bind(playerObservable.flatMap(PlayerInfo::numberOfGamesProperty).map(i18n::number).when(showing));
 
     username.textProperty().bind(chatUser.map(ChatChannelUser::getUsername).when(showing));
     country.textProperty()
            .bind(
-               playerObservable.flatMap(PlayerBean::countryProperty).map(i18n::getCountryNameLocalized).when(showing));
+               playerObservable.flatMap(PlayerInfo::countryProperty).map(i18n::getCountryNameLocalized).when(showing));
     userImageView.imageProperty()
-                 .bind(playerObservable.map(PlayerBean::getId).map(IdenticonUtil::createIdenticon).when(showing));
-    ObservableValue<GameBean> gameObservable = playerObservable.flatMap(PlayerBean::gameProperty);
+                 .bind(playerObservable.map(PlayerInfo::getId).map(IdenticonUtil::createIdenticon).when(showing));
+    ObservableValue<GameInfo> gameObservable = playerObservable.flatMap(PlayerInfo::gameProperty);
     gameDetailController.gameProperty().bind(gameObservable.when(showing));
-    gameDetailWrapper.visibleProperty()
-                     .bind(gameObservable.flatMap(GameBean::statusProperty)
+    gameDetailWrapper.visibleProperty().bind(gameObservable.flatMap(GameInfo::statusProperty)
                                          .map(status -> status == GameStatus.OPEN || status == GameStatus.PLAYING)
                                          .orElse(false)
                                          .when(showing));
@@ -129,7 +128,7 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
     return chatUser;
   }
 
-  private void populateUnlockedAchievementsLabel(PlayerBean player) {
+  private void populateUnlockedAchievementsLabel(PlayerInfo player) {
     Mono<Long> totalAchievementsMono = achievementService.getAchievementDefinitions().count();
     Mono<Long> numAchievementsUnlockedMono = achievementService.getPlayerAchievements(player.getId())
                                                                .map(PlayerAchievement::getState)
@@ -142,12 +141,12 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
                    throwable -> log.error("Could not load achievements for player '" + player.getId(), throwable));
   }
 
-  private void loadReceiverRatingInformation(PlayerBean player) {
-    Flux<LeaderboardBean> leaderboardFlux = leaderboardService.getLeaderboards()
-                                                              .filter(leaderboard -> player.getLeaderboardRatings()
+  private void loadReceiverRatingInformation(PlayerInfo player) {
+    Flux<Leaderboard> leaderboardFlux = leaderboardService.getLeaderboards()
+                                                          .filter(leaderboard -> player.getLeaderboardRatings()
                                                                                            .containsKey(
                                                                                                leaderboard.technicalName()))
-                                                              .cache();
+                                                          .cache();
 
     leaderboardFlux.map(leaderboard -> i18n.getOrDefault(leaderboard.technicalName(), leaderboard.nameKey()))
                    .collect(Collectors.joining("\n\n"))
