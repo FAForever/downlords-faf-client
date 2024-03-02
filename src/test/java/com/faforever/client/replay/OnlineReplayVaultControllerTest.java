@@ -20,6 +20,7 @@ import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import javafx.scene.layout.Pane;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -84,7 +85,7 @@ public class OnlineReplayVaultControllerTest extends PlatformTest {
   private ArgumentCaptor<Consumer<SearchConfig>> searchListenerCaptor;
   private SortConfig sortOrder;
   private SearchConfig standardSearchConfig;
-  private final ReplayBean testReplay = new ReplayBean();
+  private final ReplayBean testReplay = Instancio.create(ReplayBean.class);
 
   @BeforeEach
   public void setUp() throws Exception {

@@ -133,8 +133,7 @@ public class CoopController extends NodeController<Node> {
                              if (newValue.isEmpty()) {
                                return true;
                              }
-                             return coopResultBean.replay()
-                                                  .getTeams()
+                             return coopResultBean.replay().teams()
                                                   .values()
                                                   .stream()
                                                   .flatMap(Collection::stream)
@@ -149,13 +148,11 @@ public class CoopController extends NodeController<Node> {
     playerCountColumn.setCellValueFactory(param -> ObservableConstant.valueOf((param.getValue().playerCount())));
     playerCountColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
 
-    playerNamesColumn.setCellValueFactory(param -> param.getValue().replay().teamsProperty()
-                                                        .map(teams -> teams.values()
+    playerNamesColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().replay().teams().values()
                                                                            .stream()
                                                                            .flatMap(Collection::stream)
                                                                            .collect(Collectors.joining(
-                                                                               i18n.get("textSeparator"))))
-                                                        .when(showing));
+                                                                               i18n.get("textSeparator")))));
 
     playerNamesColumn.setCellFactory(param -> new StringCell<>(Function.identity()));
 
@@ -164,13 +161,13 @@ public class CoopController extends NodeController<Node> {
     secondaryObjectivesColumn.setCellFactory(
         param -> new StringCell<>(aBoolean -> aBoolean ? i18n.get("yes") : i18n.get("no")));
 
-    dateColumn.setCellValueFactory(param -> param.getValue().replay().endTimeProperty().when(showing));
+    dateColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().replay().endTime()));
     dateColumn.setCellFactory(param -> new StringCell<>(timeService::asDate));
 
     timeColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().duration()));
     timeColumn.setCellFactory(param -> new StringCell<>(timeService::shortDuration));
 
-    replayColumn.setCellValueFactory(param -> param.getValue().replay().idProperty().asString().when(showing));
+    replayColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().replay().id().toString()));
     replayColumn.setCellFactory(param -> {
       ReplayButtonController controller = uiService.loadFxml("theme/play/coop/replay_button.fxml");
       controller.setOnClickedAction(this::onReplayButtonClicked);
@@ -270,8 +267,7 @@ public class CoopController extends NodeController<Node> {
   }
 
   private Set<String> getAllPlayerNamesFromTeams(CoopResultBean coopResult) {
-    return coopResult.replay()
-                     .getTeams()
+    return coopResult.replay().teams()
                      .values()
                      .stream()
                      .flatMap(List::stream)

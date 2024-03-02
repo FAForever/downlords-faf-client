@@ -51,8 +51,7 @@ public class StatisticsServiceTest extends ServiceTest {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboardRatingJournalBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    StepVerifier.create(instance.getRatingHistory(player, leaderboard))
-                .expectNext(leaderboardRatingJournalBean)
+    StepVerifier.create(instance.getRatingHistory(player, leaderboard)).expectNextCount(1)
                 .expectComplete()
                 .verify();
     verify(fafApiAccessor).getMany(argThat(

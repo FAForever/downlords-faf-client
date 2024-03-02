@@ -1,7 +1,6 @@
 package com.faforever.client.reporting;
 
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.domain.ModerationReportBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReplayBean;
@@ -26,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -58,15 +58,16 @@ public class ReportDialogControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
-    replay = ReplayBeanBuilder.create().defaultValues()
-        .teams(FXCollections.observableMap(new HashMap<>(Map.of("1", List.of(player.getUsername())))))
-        .get();
+    replay = Instancio.of(ReplayBean.class)
+                      .set(field(ReplayBean::teams),
+                           FXCollections.observableMap(new HashMap<>(Map.of("1", List.of(player.getUsername())))))
+                      .create();
 
     lenient().when(i18n.get("report.noReports")).thenReturn("noReports");
 
     lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
     lenient().when(playerService.getPlayerByName(player.getUsername())).thenReturn(Mono.just(player));
-    lenient().when(replayService.findById(replay.getId())).thenReturn(Mono.just(replay));
+    lenient().when(replayService.findById(replay.id())).thenReturn(Mono.just(replay));
     lenient().when(moderationService.getModerationReports()).thenReturn(Flux.just());
     lenient().when(moderationService.postModerationReport(any()))
              .thenReturn(Mono.just(Instancio.create(ModerationReportBean.class)));
@@ -74,7 +75,7 @@ public class ReportDialogControllerTest extends PlatformTest {
     loadFxml("theme/reporting/report_dialog.fxml", clazz -> instance);
 
     instance.offender.setText(player.getUsername());
-    instance.gameId.setText(String.valueOf(replay.getId()));
+    instance.gameId.setText(String.valueOf(replay.id()));
     instance.gameTime.setText("now");
     instance.reportDescription.setText("Testing");
   }
@@ -114,7 +115,7 @@ public class ReportDialogControllerTest extends PlatformTest {
 
   @Test
   public void testOnReportGameIdHasHashTag() {
-    instance.gameId.setText("#" + replay.getId());
+    instance.gameId.setText("#" + replay.id());
 
     instance.onReportButtonClicked();
 
@@ -136,7 +137,7 @@ public class ReportDialogControllerTest extends PlatformTest {
 
   @Test
   public void testOnReportNoGame() {
-    when(replayService.findById(replay.getId())).thenReturn(Mono.empty());
+    when(replayService.findById(replay.id())).thenReturn(Mono.empty());
 
     instance.onReportButtonClicked();
 
@@ -154,7 +155,9 @@ public class ReportDialogControllerTest extends PlatformTest {
 
   @Test
   public void testOnReportOffenderNotInGame() {
-    replay.setTeams(Map.of());
+    ReplayBean replay = Instancio.of(ReplayBean.class).ignore(field(ReplayBean::teams)).create();
+    lenient().when(replayService.findById(replay.id())).thenReturn(Mono.just(replay));
+    instance.gameId.setText(String.valueOf(replay.id()));
 
     instance.onReportButtonClicked();
 
@@ -209,6 +212,6 @@ public class ReportDialogControllerTest extends PlatformTest {
   @Test
   public void testSetGame() {
     instance.setReplay(replay);
-    assertEquals(String.valueOf(replay.getId()), instance.gameId.getText());
+    assertEquals(String.valueOf(replay.id()), instance.gameId.getText());
   }
 }

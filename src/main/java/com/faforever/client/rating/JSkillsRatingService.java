@@ -26,7 +26,7 @@ public class JSkillsRatingService implements RatingService {
 
   @Override
   public double calculateQuality(ReplayBean replay) {
-    Collection<List<GamePlayerStatsBean>> teams = replay.getTeamPlayerStats().values();
+    Collection<List<GamePlayerStatsBean>> teams = replay.teamPlayerStats().values();
     if (teams.size() != 2) {
       return Double.NaN;
     }

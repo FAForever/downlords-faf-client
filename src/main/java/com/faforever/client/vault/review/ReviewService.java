@@ -132,7 +132,7 @@ public class ReviewService {
 
   public Flux<ReplayReviewBean> getReplayReviews(ReplayBean replay) {
     ElideNavigatorOnCollection<GameReview> versionsNavigator = ElideNavigator.of(Game.class)
-        .id(String.valueOf(replay.getId()))
+                                                                             .id(String.valueOf(replay.id()))
         .navigateRelationship(GameReview.class, "reviews")
         .collection()
         .addInclude("player");

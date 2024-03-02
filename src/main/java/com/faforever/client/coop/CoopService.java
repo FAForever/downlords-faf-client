@@ -8,6 +8,7 @@ import com.faforever.client.mapstruct.CoopMapper;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.commons.api.dto.CoopMission;
 import com.faforever.commons.api.dto.CoopResult;
+import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GamePlayerStats;
 import com.faforever.commons.api.dto.Player;
 import com.faforever.commons.api.elide.ElideNavigator;
@@ -59,7 +60,8 @@ public class CoopService {
   }
 
   private Set<String> getAllPlayerNamesFromTeams(CoopResult coopResult) {
-    List<GamePlayerStats> playerStats = coopResult.getGame().getPlayerStats();
+    Game game = coopResult.getGame();
+    List<GamePlayerStats> playerStats = game == null ? null : game.getPlayerStats();
     return playerStats == null ? Set.of() : playerStats.stream()
                                                        .map(GamePlayerStats::getPlayer)
                                                        .map(Player::getLogin)

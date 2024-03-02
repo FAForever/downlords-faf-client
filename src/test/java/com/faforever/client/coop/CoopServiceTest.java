@@ -58,7 +58,10 @@ public class CoopServiceTest extends ServiceTest {
 
   @Test
   public void testGetLeaderboard() throws Exception {
-    CoopResultBean coopResultBean = Instancio.of(CoopResultBean.class).set(field(CoopResultBean::ranking), 0).create();
+    CoopResultBean coopResultBean = Instancio.of(CoopResultBean.class)
+                                             .set(field(CoopResultBean::ranking), 0)
+                                             .ignore(field(CoopResultBean::replay))
+                                             .create();
 
     CoopResult result = coopMapper.map(coopResultBean, new CycleAvoidingMappingContext());
     Flux<ElideEntity> resultFlux = Flux.just(result, result);

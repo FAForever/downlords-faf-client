@@ -255,15 +255,15 @@ public class ReplayService {
   }
 
   public void runReplay(ReplayBean item) {
-    if (item.getReplayFile() != null) {
+    if (item.replayFile() != null) {
       try {
-        runReplayFile(item.getReplayFile());
+        runReplayFile(item.replayFile());
       } catch (Exception e) {
-        log.error("Could not read replay file `{}`", item.getReplayFile(), e);
+        log.error("Could not read replay file `{}`", item.replayFile(), e);
         notificationService.addImmediateErrorNotification(e, "replay.couldNotParse");
       }
     } else {
-      runOnlineReplay(item.getId());
+      runOnlineReplay(item.id());
     }
   }
 
@@ -298,8 +298,8 @@ public class ReplayService {
 
   public CompletableFuture<Integer> getFileSize(ReplayBean replay) {
     try {
-      return fileSizeReader.getFileSize(new URL(String.format(clientProperties.getVault()
-          .getReplayDownloadUrlFormat(), replay.getId())));
+      return fileSizeReader.getFileSize(new URL(String.format(clientProperties.getVault().getReplayDownloadUrlFormat(),
+                                                              replay.id())));
     } catch (MalformedURLException e) {
       log.error("Could not open connection to download replay", e);
       return CompletableFuture.completedFuture(-1);
@@ -308,7 +308,7 @@ public class ReplayService {
 
 
   public boolean replayChangedRating(ReplayBean replay) {
-    return replay.getTeamPlayerStats()
+    return replay.teamPlayerStats()
         .values()
         .stream()
         .flatMap(Collection::stream).flatMap(playerStats -> playerStats.leaderboardRatingJournals().stream())

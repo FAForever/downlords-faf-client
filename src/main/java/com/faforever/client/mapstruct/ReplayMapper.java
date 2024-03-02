@@ -26,6 +26,7 @@ import java.lang.annotation.Target;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,11 @@ import java.util.stream.Collectors;
 
 import static com.faforever.client.util.TimeUtil.fromPythonTime;
 
-@Mapper(collectionMappingStrategy = CollectionMappingStrategy.TARGET_IMMUTABLE, uses = {ModMapper.class, PlayerMapper.class, MapMapper.class, LeaderboardMapper.class, ReviewMapper.class}, config = MapperConfiguration.class)
+@Mapper(
+    collectionMappingStrategy = CollectionMappingStrategy.TARGET_IMMUTABLE,
+    uses = {ModMapper.class, PlayerMapper.class, MapMapper.class, LeaderboardMapper.class, ReviewMapper.class},
+    config = MapperConfiguration.class
+)
 public interface ReplayMapper {
 
   @Mapping(target = "local", ignore = true)
@@ -52,9 +57,11 @@ public interface ReplayMapper {
     }
 
     return playerStats.stream()
-        .filter(gamePlayerStats -> Objects.nonNull(gamePlayerStats.getPlayer()))
-        .collect(Collectors.groupingBy(gamePlayerStats -> String.valueOf(gamePlayerStats.getTeam()), Collectors.mapping(gamePlayerStats -> gamePlayerStats.getPlayer()
-            .getLogin(), Collectors.toList())));
+                      .filter(gamePlayerStats -> Objects.nonNull(gamePlayerStats.getPlayer()))
+                      .collect(Collectors.groupingBy(gamePlayerStats -> String.valueOf(gamePlayerStats.getTeam()),
+                                                     Collectors.mapping(
+                                                         gamePlayerStats -> gamePlayerStats.getPlayer().getLogin(),
+                                                         Collectors.toList())));
   }
 
   @MapTeamStats
@@ -67,7 +74,10 @@ public interface ReplayMapper {
     }
 
     return playerStats.stream()
-        .collect(Collectors.groupingBy(gamePlayerStats -> String.valueOf(gamePlayerStats.getTeam()), Collectors.mapping(gamePlayerStats -> map(gamePlayerStats, context), Collectors.toList())));
+                      .collect(Collectors.groupingBy(gamePlayerStats -> String.valueOf(gamePlayerStats.getTeam()),
+                                                     Collectors.mapping(
+                                                         gamePlayerStats -> map(gamePlayerStats, context),
+                                                         Collectors.toList())));
   }
 
   @Mapping(target = "local", constant = "true")
@@ -104,10 +114,12 @@ public interface ReplayMapper {
   @MapTeams
   default Map<String, List<String>> mapTeamsFromParser(ReplayDataParser parser) {
     return parser.getArmies()
-        .values()
-        .stream()
-        .filter(armyInfo -> !((boolean) armyInfo.get("Human")))
-        .collect(Collectors.groupingBy(armyInfo -> String.valueOf(((Float) armyInfo.get("Team")).intValue()), Collectors.mapping(armyInfo -> (String) armyInfo.get("PlayerName"), Collectors.toList())));
+                 .values()
+                 .stream()
+                 .filter(armyInfo -> !((boolean) armyInfo.get("Human")))
+                 .collect(Collectors.groupingBy(armyInfo -> String.valueOf(((Float) armyInfo.get("Team")).intValue()),
+                                                Collectors.mapping(armyInfo -> (String) armyInfo.get("PlayerName"),
+                                                                   Collectors.toList())));
   }
 
   @MapTeamStats
@@ -136,11 +148,18 @@ public interface ReplayMapper {
   }
 
   @Mapping(target = "name", source = "title")
+  @Mapping(target = "playerStats", source = "teamPlayerStats")
   Game map(ReplayBean bean, @Context CycleAvoidingMappingContext context);
+
+  default List<GamePlayerStatsBean> mapToTeamPlayerStats(Map<String, List<GamePlayerStatsBean>> teamPlayerStats) {
+    return teamPlayerStats.values().stream().flatMap(Collection::stream).toList();
+  }
 
   GamePlayerStatsBean map(GamePlayerStats dto, @Context CycleAvoidingMappingContext context);
 
   GamePlayerStats map(GamePlayerStatsBean bean, @Context CycleAvoidingMappingContext context);
+
+  List<GamePlayerStats> map(Collection<GamePlayerStatsBean> beans, @Context CycleAvoidingMappingContext context);
 
   @Qualifier
   @Target(ElementType.METHOD)

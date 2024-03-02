@@ -1,8 +1,5 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.builders.PlayerStatsMapBuilder;
-import com.faforever.client.builders.ReplayBeanBuilder;
-import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
@@ -21,7 +18,6 @@ import com.faforever.commons.api.dto.Validity;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
-import javafx.collections.FXCollections;
 import javafx.scene.image.Image;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +35,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -99,21 +96,19 @@ public class ReplayCardControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     mapBean = Instancio.create(MapVersionBean.class);
-    onlineReplay = ReplayBeanBuilder.create()
-                                    .defaultValues()
-                                    .validity(Validity.VALID).featuredMod(Instancio.create(FeaturedModBean.class))
-                                    .title("test")
-                                    .mapVersion(mapBean)
-                                    .teamPlayerStats(PlayerStatsMapBuilder.create().defaultValues().get())
-                                    .get();
-    localReplay = ReplayBeanBuilder.create()
-                                   .defaultValues()
-                                   .local(true)
-                                   .validity(null).featuredMod(Instancio.create(FeaturedModBean.class))
-                                   .title("test")
-                                   .mapVersion(mapBean)
-                                   .replayFile(Path.of("foo.tmp"))
-                                   .get();
+    onlineReplay = Instancio.of(ReplayBean.class)
+                            .set(field(ReplayBean::validity), Validity.VALID)
+                            .set(field(ReplayBean::title), "test")
+                            .set(field(ReplayBean::mapVersion), mapBean)
+                            .ignore(field(ReplayBean::replayFile))
+                            .create();
+    localReplay = Instancio.of(ReplayBean.class)
+                           .set(field(ReplayBean::local), true)
+                           .set(field(ReplayBean::title), "test")
+                           .set(field(ReplayBean::mapVersion), mapBean)
+                           .set(field(ReplayBean::replayFile), Path.of("foo.tmp"))
+                           .ignore(field(ReplayBean::validity))
+                           .create();
     lenient().when(uiService.loadFxml("theme/player_card.fxml")).thenReturn(playerCardController);
     lenient().when(replayService.loadReplayDetails(any())).thenReturn(new ReplayDetails(List.of(), List.of(), mapBean));
     lenient().when(mapService.isInstalledBinding(Mockito.<MapVersionBean>any())).thenReturn(installed);
@@ -121,16 +116,17 @@ public class ReplayCardControllerTest extends PlatformTest {
              .thenReturn(new Image(InputStream.nullInputStream()));
     lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
     lenient().when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
-    lenient().when(timeService.asDate(onlineReplay.getStartTime())).thenReturn("Min Date");
-    lenient().when(timeService.asShortTime(onlineReplay.getStartTime())).thenReturn("Min Time");
-    lenient().when(timeService.asDate(localReplay.getStartTime())).thenReturn("Min Date");
-    lenient().when(timeService.asShortTime(localReplay.getStartTime())).thenReturn("Min Time");
+    lenient().when(timeService.asDate(onlineReplay.startTime())).thenReturn("Min Date");
+    lenient().when(timeService.asShortTime(onlineReplay.startTime())).thenReturn("Min Time");
+    lenient().when(timeService.asDate(localReplay.startTime())).thenReturn("Min Date");
+    lenient().when(timeService.asShortTime(localReplay.startTime())).thenReturn("Min Time");
     lenient().when(timeService.shortDuration(any(Duration.class))).thenReturn("Forever");
     lenient().when(i18n.get("game.onUnknownMap")).thenReturn("unknown map");
     lenient().when(i18n.get("unknown")).thenReturn("unknown");
     lenient().when(i18n.number(anyInt())).thenReturn("1234");
-    lenient().when(i18n.get("game.idFormat", onlineReplay.getId())).thenReturn(String.valueOf(onlineReplay.getId()));
-    lenient().when(i18n.get("game.onMapFormat", mapBean.map().displayName())).thenReturn(mapBean.map().displayName());
+    lenient().when(i18n.get(eq("game.idFormat"), anyInt()))
+             .thenAnswer(invocation -> invocation.getArgument(1).toString());
+    lenient().when(i18n.get(eq("game.onMapFormat"), anyString())).thenAnswer(invocation -> invocation.getArgument(1));
     loadFxml("theme/vault/replay/replay_card.fxml", param -> {
       if (param == StarsController.class) {
         return starsController;
@@ -168,11 +164,11 @@ public class ReplayCardControllerTest extends PlatformTest {
     assertEquals("-", instance.ratingLabel.getText());
     assertEquals("Min Date", instance.dateLabel.getText());
     assertEquals("Min Time", instance.timeLabel.getText());
-    assertEquals(onlineReplay.getFeaturedMod().displayName(), instance.modLabel.getText());
+    assertEquals(onlineReplay.featuredMod().displayName(), instance.modLabel.getText());
     assertEquals("1234", instance.playerCountLabel.getText());
     assertEquals("42", instance.qualityLabel.getText());
     assertEquals(mapBean.map().displayName(), instance.onMapLabel.getText());
-    assertEquals(String.valueOf(onlineReplay.getId()), instance.replayIdField.getText());
+    assertEquals(String.valueOf(onlineReplay.id()), instance.replayIdField.getText());
   }
 
   @Test
@@ -200,15 +196,18 @@ public class ReplayCardControllerTest extends PlatformTest {
     assertEquals("-", instance.ratingLabel.getText());
     assertEquals("Min Date", instance.dateLabel.getText());
     assertEquals("Min Time", instance.timeLabel.getText());
-    assertEquals(localReplay.getFeaturedMod().displayName(), instance.modLabel.getText());
+    assertEquals(localReplay.featuredMod().displayName(), instance.modLabel.getText());
     assertEquals("1234", instance.playerCountLabel.getText());
     assertEquals(mapBean.map().displayName(), instance.onMapLabel.getText());
-    assertEquals(String.valueOf(localReplay.getId()), instance.replayIdField.getText());
+    assertEquals(String.valueOf(localReplay.id()), instance.replayIdField.getText());
   }
 
   @Test
   public void setReplayNoEndTime() {
-    onlineReplay.setEndTime(null);
+    ReplayBean onlineReplay = Instancio.of(ReplayBean.class)
+                                       .ignore(field(ReplayBean::endTime))
+                                       .ignore(field(ReplayBean::replayTicks))
+                                       .create();
 
     runOnFxThreadAndWait(() -> instance.setEntity(onlineReplay));
 
@@ -218,7 +217,7 @@ public class ReplayCardControllerTest extends PlatformTest {
 
   @Test
   public void tickTimeNotDisplayedWhenRealTimeIs() {
-    onlineReplay.setReplayTicks(1000);
+    ReplayBean onlineReplay = Instancio.of(ReplayBean.class).set(field(ReplayBean::replayTicks), 1000).create();
     runOnFxThreadAndWait(() -> instance.setEntity(onlineReplay));
 
     assertTrue(instance.realTimeDurationLabel.isVisible());
@@ -227,8 +226,10 @@ public class ReplayCardControllerTest extends PlatformTest {
 
   @Test
   public void tickTimeDisplayedWhenRealTimeIsNot() {
-    onlineReplay.setEndTime(null);
-    onlineReplay.setReplayTicks(1000);
+    ReplayBean onlineReplay = Instancio.of(ReplayBean.class)
+                                       .ignore(field(ReplayBean::endTime))
+                                       .set(field(ReplayBean::replayTicks), 1000)
+                                       .create();
     runOnFxThreadAndWait(() -> instance.setEntity(onlineReplay));
 
     assertFalse(instance.realTimeDurationLabel.isVisible());
@@ -237,7 +238,7 @@ public class ReplayCardControllerTest extends PlatformTest {
 
   @Test
   public void setReplayNoTeamStats() {
-    onlineReplay.setTeamPlayerStats(FXCollections.emptyObservableMap());
+    ReplayBean onlineReplay = Instancio.of(ReplayBean.class).ignore(field(ReplayBean::teamPlayerStats)).create();
 
     runOnFxThreadAndWait(() -> instance.setEntity(onlineReplay));
     WaitForAsyncUtils.waitForFxEvents();
@@ -247,10 +248,10 @@ public class ReplayCardControllerTest extends PlatformTest {
 
   @Test
   public void setReplayMissing() {
-    onlineReplay.setReplayAvailable(false);
-    onlineReplay.setStartTime(OffsetDateTime.now().minusDays(2));
-
-    when(i18n.get("game.replayFileMissing")).thenReturn("missing");
+    ReplayBean onlineReplay = Instancio.of(ReplayBean.class)
+                                       .ignore(field(ReplayBean::replayAvailable))
+                                       .set(field(ReplayBean::startTime), OffsetDateTime.now().minusDays(2))
+                                       .create();
 
     runOnFxThreadAndWait(() -> instance.setEntity(onlineReplay));
 

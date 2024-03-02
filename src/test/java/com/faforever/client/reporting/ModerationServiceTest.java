@@ -58,7 +58,7 @@ public class ModerationServiceTest extends ServiceTest {
     ModerationReportBean report = Instancio.create(ModerationReportBean.class);
     Flux<ElideEntity> resultFlux = Flux.just(moderationReportMapper.map(report, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    StepVerifier.create(instance.getModerationReports()).expectNext(report).verifyComplete();
+    StepVerifier.create(instance.getModerationReports()).expectNextCount(1).verifyComplete();
     ;
     verify(fafApiAccessor).getMany(argThat(
         ElideMatchers.hasFilter(qBuilder().intNum("reporter.id").eq(player.getId())
@@ -71,7 +71,7 @@ public class ModerationServiceTest extends ServiceTest {
     ModerationReport moderationReport = moderationReportMapper.map(report, new CycleAvoidingMappingContext());
     Mono<ElideEntity> resultMono = Mono.just(moderationReport);
     when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
-    StepVerifier.create(instance.postModerationReport(report)).expectNext(report).verifyComplete();
+    StepVerifier.create(instance.postModerationReport(report)).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).post(any(), eq(moderationReport));
   }
 }

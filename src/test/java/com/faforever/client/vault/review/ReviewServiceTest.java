@@ -1,7 +1,6 @@
 package com.faforever.client.vault.review;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.domain.ModVersionBean;
@@ -51,8 +50,6 @@ public class ReviewServiceTest extends ServiceTest {
     when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
 
     StepVerifier.create(instance.saveReview(Instancio.of(ReplayReviewBean.class).ignore(field(ReplayReviewBean::id))
-                                                     .set(field(ReplayReviewBean::subject),
-                                                          ReplayBeanBuilder.create().defaultValues().get())
                                                      .create())).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).post(argThat(
         ElideMatchers.hasRelationship("reviews")
@@ -97,8 +94,6 @@ public class ReviewServiceTest extends ServiceTest {
     when(fafApiAccessor.patch(any(), any())).thenReturn(Mono.empty());
 
     StepVerifier.create(instance.saveReview(Instancio.of(ReplayReviewBean.class)
-                                                     .set(field(ReplayReviewBean::subject),
-                                                          ReplayBeanBuilder.create().defaultValues().get())
                                                      .create())).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).patch(any(ElideNavigatorOnId.class), any());
   }

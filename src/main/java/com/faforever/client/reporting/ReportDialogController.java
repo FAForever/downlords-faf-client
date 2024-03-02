@@ -17,7 +17,6 @@ import com.faforever.client.theme.ThemeService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.api.dto.ModerationReportStatus;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -91,8 +90,9 @@ public class ReportDialogController extends NodeController<Node> {
     offenderColumn.setCellFactory(param -> new WrappingStringCell<>((players ->
         players.stream().map(PlayerBean::getUsername).collect(Collectors.joining(", ")))));
     gameColumn.setCellValueFactory(param -> Optional.ofNullable(param.getValue().game())
-                                                    .map(replay -> replay.idProperty().asObject())
-                                                    .orElse(new SimpleObjectProperty<>()));
+                                                    .map(ReplayBean::id)
+                                                    .map(ObservableConstant::valueOf)
+                                                    .orElse(ObservableConstant.valueOf(null)));
     gameColumn.setCellFactory(param -> new StringCell<>(Number::toString));
     descriptionColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().reportDescription()));
     descriptionColumn.setCellFactory(param -> new WrappingStringCell<>(String::toString));
@@ -141,7 +141,7 @@ public class ReportDialogController extends NodeController<Node> {
       Mono<ReplayBean> replayMono = replayService.findById(Integer.parseInt(gameId.getText()))
                                                  .switchIfEmpty(Mono.fromRunnable(this::warnNoGame))
                                                  .flatMap(replay -> {
-                                                   if (replay.getTeams()
+                                                   if (replay.teams()
                                                              .values()
                                                              .stream()
                                                              .flatMap(Collection::stream)
@@ -226,9 +226,9 @@ public class ReportDialogController extends NodeController<Node> {
   }
 
   public void setReplay(ReplayBean replay) {
-    TextFields.bindAutoCompletion(offender, replay.getTeams().values().stream().flatMap(Collection::stream)
+    TextFields.bindAutoCompletion(offender, replay.teams().values().stream().flatMap(Collection::stream)
         .collect(Collectors.toList()));
-    gameId.setText(String.valueOf(replay.getId()));
+    gameId.setText(String.valueOf(replay.id()));
   }
 
   public void setAutoCompleteWithOnlinePlayers() {
