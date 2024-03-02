@@ -29,7 +29,7 @@ public class StubDownloadMapTask extends DownloadMapTask {
   }
 
   private void imitateMapDownload() throws Exception {
-    String folder = mapToDownload.getFolderName();
+    String folder = mapToDownload.folderName();
       FileSystemUtils.copyRecursively(
           Path.of(getClass().getResource("/maps/" + folder).toURI()),
           Files.createDirectories(customMapsDirectory.resolve(folder))

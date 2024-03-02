@@ -1,11 +1,9 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PlayerStatsMapBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReplayBean;
@@ -122,7 +120,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     currentPlayer = PlayerBeanBuilder.create().defaultValues().get();
-    mapBean = MapVersionBeanBuilder.create().defaultValues().map(Instancio.create(MapBean.class)).get();
+    mapBean = Instancio.create(MapVersionBean.class);
     onlineReplay = ReplayBeanBuilder.create().defaultValues()
         .validity(Validity.VALID).featuredMod(Instancio.create(FeaturedModBean.class))
         .title("test")
@@ -163,8 +161,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
     lenient().when(i18n.get("unknown")).thenReturn("unknown");
     lenient().when(i18n.number(anyInt())).thenReturn("1234");
     lenient().when(i18n.get("game.idFormat", onlineReplay.getId())).thenReturn(String.valueOf(onlineReplay.getId()));
-    lenient().when(i18n.get("game.onMapFormat", mapBean.getMap().displayName()))
-             .thenReturn(mapBean.getMap().displayName());
+    lenient().when(i18n.get("game.onMapFormat", mapBean.map().displayName())).thenReturn(mapBean.map().displayName());
     lenient().when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
     lenient().when(teamCardController.getRoot()).thenReturn(new HBox());
     lenient().when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
@@ -213,7 +210,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
     assertEquals("test", instance.titleLabel.getText());
     assertEquals("1234", instance.playerCountLabel.getText());
     assertEquals("42", instance.qualityLabel.getText());
-    assertEquals(mapBean.getMap().displayName(), instance.onMapLabel.getText());
+    assertEquals(mapBean.map().displayName(), instance.onMapLabel.getText());
   }
 
   @Test

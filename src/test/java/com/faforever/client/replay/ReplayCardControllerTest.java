@@ -1,10 +1,8 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.PlayerStatsMapBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
@@ -100,7 +98,7 @@ public class ReplayCardControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    mapBean = MapVersionBeanBuilder.create().defaultValues().map(Instancio.create(MapBean.class)).get();
+    mapBean = Instancio.create(MapVersionBean.class);
     onlineReplay = ReplayBeanBuilder.create()
                                     .defaultValues()
                                     .validity(Validity.VALID).featuredMod(Instancio.create(FeaturedModBean.class))
@@ -132,8 +130,7 @@ public class ReplayCardControllerTest extends PlatformTest {
     lenient().when(i18n.get("unknown")).thenReturn("unknown");
     lenient().when(i18n.number(anyInt())).thenReturn("1234");
     lenient().when(i18n.get("game.idFormat", onlineReplay.getId())).thenReturn(String.valueOf(onlineReplay.getId()));
-    lenient().when(i18n.get("game.onMapFormat", mapBean.getMap().displayName()))
-             .thenReturn(mapBean.getMap().displayName());
+    lenient().when(i18n.get("game.onMapFormat", mapBean.map().displayName())).thenReturn(mapBean.map().displayName());
     loadFxml("theme/vault/replay/replay_card.fxml", param -> {
       if (param == StarsController.class) {
         return starsController;
@@ -149,7 +146,7 @@ public class ReplayCardControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.setEntity(onlineReplay));
 
-    verify(mapService).loadPreview(mapBean.getFolderName(), PreviewSize.SMALL);
+    verify(mapService).loadPreview(mapBean.folderName(), PreviewSize.SMALL);
     assertTrue(instance.teamsContainer.isVisible());
     assertTrue(instance.mapThumbnailImageView.isVisible());
     assertTrue(instance.gameTitleLabel.isVisible());
@@ -174,7 +171,7 @@ public class ReplayCardControllerTest extends PlatformTest {
     assertEquals(onlineReplay.getFeaturedMod().displayName(), instance.modLabel.getText());
     assertEquals("1234", instance.playerCountLabel.getText());
     assertEquals("42", instance.qualityLabel.getText());
-    assertEquals(mapBean.getMap().displayName(), instance.onMapLabel.getText());
+    assertEquals(mapBean.map().displayName(), instance.onMapLabel.getText());
     assertEquals(String.valueOf(onlineReplay.getId()), instance.replayIdField.getText());
   }
 
@@ -205,7 +202,7 @@ public class ReplayCardControllerTest extends PlatformTest {
     assertEquals("Min Time", instance.timeLabel.getText());
     assertEquals(localReplay.getFeaturedMod().displayName(), instance.modLabel.getText());
     assertEquals("1234", instance.playerCountLabel.getText());
-    assertEquals(mapBean.getMap().displayName(), instance.onMapLabel.getText());
+    assertEquals(mapBean.map().displayName(), instance.onMapLabel.getText());
     assertEquals(String.valueOf(localReplay.getId()), instance.replayIdField.getText());
   }
 

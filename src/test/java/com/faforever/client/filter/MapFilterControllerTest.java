@@ -1,12 +1,12 @@
 package com.faforever.client.filter;
 
-import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapSize;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import org.apache.commons.lang3.Range;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -15,6 +15,7 @@ import org.mockito.Mock;
 
 import java.util.function.BiFunction;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -55,15 +56,16 @@ public class MapFilterControllerTest extends PlatformTest {
 
     BiFunction<Range<Integer>, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
 
-    assertTrue(filter.apply(Range.between(5, 100), MapVersionBeanBuilder.create()
-        .size(MapSize.valueOf(512, 512))
-        .get()));
-    assertFalse(filter.apply(Range.between(30, 100), MapVersionBeanBuilder.create()
-        .size(MapSize.valueOf(1024, 1024))
-        .get()));
-    assertTrue(filter.apply(AbstractRangeSliderFilterController.NO_CHANGE, MapVersionBeanBuilder.create()
-        .size(MapSize.valueOf(256, 256))
-        .get()));
+    assertTrue(filter.apply(Range.of(5, 100), Instancio.of(MapVersionBean.class)
+                                                       .set(field(MapVersionBean::size), MapSize.valueOf(512, 512))
+                                                       .create()));
+    assertFalse(filter.apply(Range.of(30, 100), Instancio.of(MapVersionBean.class)
+                                                         .set(field(MapVersionBean::size), MapSize.valueOf(1024, 1024))
+                                                         .create()));
+    assertTrue(filter.apply(AbstractRangeSliderFilterController.NO_CHANGE, Instancio.of(MapVersionBean.class)
+                                                                                    .set(field(MapVersionBean::size),
+                                                                                         MapSize.valueOf(256, 256))
+                                                                                    .create()));
   }
 
   @Test
@@ -73,15 +75,16 @@ public class MapFilterControllerTest extends PlatformTest {
 
     BiFunction<Range<Integer>, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
 
-    assertTrue(filter.apply(Range.between(5, 100), MapVersionBeanBuilder.create()
-        .size(MapSize.valueOf(512, 512))
-        .get()));
-    assertFalse(filter.apply(Range.between(30, 100), MapVersionBeanBuilder.create()
-        .size(MapSize.valueOf(1024, 1024))
-        .get()));
-    assertTrue(filter.apply(AbstractRangeSliderFilterController.NO_CHANGE, MapVersionBeanBuilder.create()
-        .size(MapSize.valueOf(256, 256))
-        .get()));
+    assertTrue(filter.apply(Range.of(5, 100), Instancio.of(MapVersionBean.class)
+                                                       .set(field(MapVersionBean::size), MapSize.valueOf(512, 512))
+                                                       .create()));
+    assertFalse(filter.apply(Range.of(30, 100), Instancio.of(MapVersionBean.class)
+                                                         .set(field(MapVersionBean::size), MapSize.valueOf(1024, 1024))
+                                                         .create()));
+    assertTrue(filter.apply(AbstractRangeSliderFilterController.NO_CHANGE, Instancio.of(MapVersionBean.class)
+                                                                                    .set(field(MapVersionBean::size),
+                                                                                         MapSize.valueOf(256, 256))
+                                                                                    .create()));
   }
 
   @Test
@@ -91,10 +94,11 @@ public class MapFilterControllerTest extends PlatformTest {
 
     BiFunction<Range<Integer>, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
 
-    assertTrue(filter.apply(Range.between(1, 16), MapVersionBeanBuilder.create().maxPlayers(10).get()));
-    assertFalse(filter.apply(Range.between(8, 100), MapVersionBeanBuilder.create().maxPlayers(4).get()));
-    assertTrue(filter.apply(AbstractRangeSliderFilterController.NO_CHANGE, MapVersionBeanBuilder.create()
-        .maxPlayers(16)
-        .get()));
+    assertTrue(filter.apply(Range.of(1, 16),
+                            Instancio.of(MapVersionBean.class).set(field(MapVersionBean::maxPlayers), 10).create()));
+    assertFalse(filter.apply(Range.of(8, 100),
+                             Instancio.of(MapVersionBean.class).set(field(MapVersionBean::maxPlayers), 4).create()));
+    assertTrue(filter.apply(AbstractRangeSliderFilterController.NO_CHANGE,
+                            Instancio.of(MapVersionBean.class).set(field(MapVersionBean::maxPlayers), 16).create()));
   }
 }

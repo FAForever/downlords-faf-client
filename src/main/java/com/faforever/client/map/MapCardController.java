@@ -61,10 +61,9 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
             .when(showing));
 
-    ObservableValue<MapBean> mapObservable = entity.flatMap(MapVersionBean::mapProperty);
+    ObservableValue<MapBean> mapObservable = entity.map(MapVersionBean::map);
     nameLabel.textProperty().bind(mapObservable.map(MapBean::displayName).when(showing));
-    versionLabel.textProperty()
-        .bind(entity.flatMap(MapVersionBean::versionProperty)
+    versionLabel.textProperty().bind(entity.map(MapVersionBean::version)
             .map(ComparableVersion::getCanonical)
             .map(version -> i18n.get("versionFormat", version))
             .when(showing));
@@ -75,13 +74,11 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
 
     numberOfPlaysLabel.textProperty().bind(mapObservable.map(MapBean::gamesPlayed).map(i18n::number).when(showing));
 
-    sizeLabel.textProperty()
-        .bind(entity.flatMap(MapVersionBean::sizeProperty)
+    sizeLabel.textProperty().bind(entity.map(MapVersionBean::size)
             .map(size -> i18n.get("mapPreview.size", size.getWidthInKm(), size.getHeightInKm()))
             .when(showing));
 
-    maxPlayersLabel.textProperty()
-        .bind(entity.flatMap(MapVersionBean::maxPlayersProperty).map(i18n::number).when(showing));
+    maxPlayersLabel.textProperty().bind(entity.map(MapVersionBean::maxPlayers).map(i18n::number).when(showing));
 
     BooleanExpression isOfficialMap = BooleanExpression.booleanExpression(entity.map(mapService::isOfficialMap));
     BooleanExpression isMapInstalled = mapService.isInstalledBinding(entity);
@@ -103,7 +100,7 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
     MapVersionBean mapVersionBean = entity.get();
     mapService.downloadAndInstallMap(mapVersionBean, null, null).subscribe(null, throwable -> {
       log.error("Map installation failed", throwable);
-      notificationService.addImmediateErrorNotification(throwable, "mapVault.installationFailed", mapVersionBean.getMap()
+      notificationService.addImmediateErrorNotification(throwable, "mapVault.installationFailed", mapVersionBean.map()
                                                                                                                 .displayName(),
                                                         throwable.getLocalizedMessage());
     });
@@ -113,7 +110,7 @@ public class MapCardController extends VaultEntityCardController<MapVersionBean>
     MapVersionBean mapVersionBean = entity.get();
     mapService.uninstallMap(mapVersionBean).subscribe(null, throwable -> {
       log.error("Could not delete map", throwable);
-      notificationService.addImmediateErrorNotification(throwable, "mapVault.couldNotDeleteMap", mapVersionBean.getMap()
+      notificationService.addImmediateErrorNotification(throwable, "mapVault.couldNotDeleteMap", mapVersionBean.map()
                                                                                                                .displayName(),
                                                         throwable.getLocalizedMessage());
     });

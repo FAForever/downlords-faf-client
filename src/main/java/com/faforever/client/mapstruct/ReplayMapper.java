@@ -87,17 +87,8 @@ public interface ReplayMapper {
 
   ReplayBean.ChatMessage map(ChatMessage chatMessage);
 
-  @Mapping(target = "value", source = "value", qualifiedBy = StringMap.class)
+  @Mapping(target = "value", expression = "java(gameOption.getValue().toString())")
   ReplayBean.GameOption map(GameOption gameOption);
-
-  @StringMap
-  default String map(Object object) {
-    return switch (object) {
-      case String s -> s;
-      case null -> null;
-      default -> object.toString();
-    };
-  }
 
   @MapStartTime
   default OffsetDateTime mapStartFromParser(ReplayDataParser parser) {
@@ -170,9 +161,4 @@ public interface ReplayMapper {
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.CLASS)
   @interface MapEndTime {}
-
-  @Qualifier
-  @Target(ElementType.METHOD)
-  @Retention(RetentionPolicy.CLASS)
-  @interface StringMap {}
 }

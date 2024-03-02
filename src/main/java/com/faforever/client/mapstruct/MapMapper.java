@@ -61,18 +61,13 @@ public interface MapMapper {
   }
 
   default MapVersionBean map(NeroxisGeneratorParams params) {
-    MapBean mapBean = new MapBean(null,
-                                  String.format("neroxis_map_generator_%s_mapSize=%dkm_spawns=%d", params.getVersion(),
-                                                (int) (params.getSize() / 51.2), params.getSpawns()), 0, null, false,
+    int maxPlayers = params.getSpawns();
+    String folderName = String.format("neroxis_map_generator_%s_mapSize=%dkm_spawns=%d", params.getVersion(),
+                                      (int) (params.getSize() / 51.2), maxPlayers);
+    MapBean mapBean = new MapBean(null, folderName, 0, null, false,
                                   MapType.SKIRMISH, null);
-    MapVersionBean mapVersionBean = new MapVersionBean();
-    mapVersionBean.setFolderName(mapBean.displayName());
-    mapVersionBean.setDescription("");
-    mapVersionBean.setSize(MapSize.valueOf(params.getSize(), params.getSize()));
-    mapVersionBean.setMaxPlayers(params.getSpawns());
-    mapVersionBean.setHidden(false);
-    mapVersionBean.setRanked(true);
-    mapVersionBean.setMap(mapBean);
-    return mapVersionBean;
+    MapSize mapSize = MapSize.valueOf(params.getSize(), params.getSize());
+    return new MapVersionBean(null, folderName, 0, null, maxPlayers, mapSize, null, false, true, null, null, null,
+                              mapBean, null);
   }
 }

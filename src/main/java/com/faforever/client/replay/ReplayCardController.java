@@ -92,13 +92,11 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
     JavaFxUtil.bindManagedToVisible(deleteButton, tickDurationLabel, realTimeDurationLabel);
 
     ObservableValue<MapVersionBean> mapVersionObservable = entity.flatMap(ReplayBean::mapVersionProperty);
-    onMapLabel.textProperty()
-        .bind(mapVersionObservable.flatMap(MapVersionBean::mapProperty).map(MapBean::displayName)
+    onMapLabel.textProperty().bind(mapVersionObservable.map(MapVersionBean::map).map(MapBean::displayName)
             .map(displayName -> i18n.get("game.onMapFormat", displayName))
             .when(showing));
 
-    mapThumbnailImageView.imageProperty()
-        .bind(mapVersionObservable.flatMap(MapVersionBean::folderNameProperty)
+    mapThumbnailImageView.imageProperty().bind(mapVersionObservable.map(MapVersionBean::folderName)
             .map(folderName -> mapService.loadPreview(folderName, PreviewSize.SMALL))
             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
             .when(showing));

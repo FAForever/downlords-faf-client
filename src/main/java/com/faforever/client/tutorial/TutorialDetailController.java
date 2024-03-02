@@ -1,6 +1,5 @@
 package com.faforever.client.tutorial;
 
-import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.TutorialBean;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -68,8 +67,7 @@ public class TutorialDetailController extends NodeController<Node> {
     this.tutorial = tutorial;
     titleLabel.setText(tutorial.title());
     if (tutorial.mapVersion() != null) {
-      mapNameLabel.textProperty().bind(tutorial.mapVersion().mapProperty().map(MapBean::displayName)
-              .map(displayName -> i18n.get("tutorial.mapName", displayName)));
+      mapNameLabel.setText(i18n.get("tutorial.mapName", tutorial.mapVersion().map().displayName()));
 
       mapImage.setImage(mapService.loadPreview(tutorial.mapVersion(), PreviewSize.LARGE));
       mapContainer.setVisible(true);

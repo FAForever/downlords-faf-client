@@ -1,6 +1,5 @@
 package com.faforever.client.vault.review;
 
-import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
@@ -59,8 +58,7 @@ public class ReviewControllerTest extends PlatformTest {
   @Test
   public void testSetReviewWithVersion() throws Exception {
     when(i18n.get(eq("review.version"), any())).thenAnswer(invocation -> invocation.getArgument(1));
-    MapBean map = Instancio.create(MapBean.class);
-    MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().map(map).get();
+    MapVersionBean mapVersion = Instancio.create(MapVersionBean.class);
     MapVersionReviewBean review = Instancio.of(MapVersionReviewBean.class)
                                            .set(field(MapVersionReviewBean::subject), mapVersion)
                                            .create();
@@ -74,7 +72,7 @@ public class ReviewControllerTest extends PlatformTest {
   @Test
   public void testSetReviewNoVersion() throws Exception {
     MapBean map = Instancio.create(MapBean.class);
-    MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().map(map).version(null).get();
+    MapVersionBean mapVersion = Instancio.of(MapVersionBean.class).set(field(MapVersionBean::version), null).create();
     MapVersionReviewBean review = Instancio.of(MapVersionReviewBean.class)
                                            .set(field(MapVersionReviewBean::subject), mapVersion)
                                            .create();

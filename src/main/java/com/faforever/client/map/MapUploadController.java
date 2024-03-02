@@ -131,12 +131,12 @@ public class MapUploadController extends NodeController<Node> {
   private void setMapInfo(MapVersionBean mapInfo) {
     enterMapInfoState();
 
-    mapNameLabel.setText(mapInfo.getMap().displayName());
-    descriptionLabel.setText(mapInfo.getDescription());
-    versionLabel.setText(Optional.ofNullable(mapInfo.getVersion()).map(ComparableVersion::toString).orElse(""));
-    MapSize mapSize = mapInfo.getSize();
+    mapNameLabel.setText(mapInfo.map().displayName());
+    descriptionLabel.setText(mapInfo.description());
+    versionLabel.setText(Optional.ofNullable(mapInfo.version()).map(ComparableVersion::toString).orElse(""));
+    MapSize mapSize = mapInfo.size();
     sizeLabel.setText(i18n.get("mapVault.upload.sizeFormat", mapSize.getWidthInKm(), mapSize.getHeightInKm()));
-    playersLabel.setText(i18n.get("mapVault.upload.playersFormat", mapInfo.getMaxPlayers()));
+    playersLabel.setText(i18n.get("mapVault.upload.playersFormat", mapInfo.maxPlayers()));
 
     thumbnailImageView.setImage(generatePreview(mapPath));
   }

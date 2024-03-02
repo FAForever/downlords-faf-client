@@ -222,8 +222,7 @@ public class ReplayDetailController extends NodeController<Node> {
                                                        mapService.isInstalledBinding(mapVersion)))
                                                    .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
                                                    .when(showing));
-    onMapLabel.textProperty()
-              .bind(mapVersionObservable.flatMap(MapVersionBean::mapProperty).map(MapBean::displayName)
+    onMapLabel.textProperty().bind(mapVersionObservable.map(MapVersionBean::map).map(MapBean::displayName)
                                         .orElse(i18n.get("game.onUnknownMap"))
                                         .when(showing));
     durationLabel.visibleProperty()
@@ -413,8 +412,8 @@ public class ReplayDetailController extends NodeController<Node> {
 
     replayDetailsFuture.thenAccept(replayDetails -> {
       MapVersionBean mapVersion = replayDetails.mapVersion();
-      if (mapGeneratorService.isGeneratedMap(mapVersion.getFolderName())) {
-        mapService.generateIfNotInstalled(mapVersion.getFolderName());
+      if (mapGeneratorService.isGeneratedMap(mapVersion.folderName())) {
+        mapService.generateIfNotInstalled(mapVersion.folderName()).subscribe();
       }
     });
 

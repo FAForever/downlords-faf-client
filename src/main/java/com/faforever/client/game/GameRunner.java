@@ -466,7 +466,7 @@ public class GameRunner implements InitializingBean {
       return;
     }
 
-    String mapFolderName = mapVersion.getFolderName();
+    String mapFolderName = mapVersion.folderName();
     CompletableFuture<Void> downloadMapFuture = mapService.downloadIfNecessary(mapFolderName).toFuture();
     CompletableFuture<Void> updateTutorialFuture = featuredModService.updateFeaturedModToLatest(
         TUTORIALS.getTechnicalName(), false);

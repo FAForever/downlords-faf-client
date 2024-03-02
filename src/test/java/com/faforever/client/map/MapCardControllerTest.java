@@ -1,7 +1,5 @@
 package com.faforever.client.map;
 
-import com.faforever.client.builders.MapVersionBeanBuilder;
-import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.fx.ImageViewHelper;
@@ -33,6 +31,7 @@ import java.io.InputStream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -82,15 +81,14 @@ public class MapCardControllerTest extends PlatformTest {
     lenient().when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
     lenient().when(mapService.downloadAndInstallMap(any(), isNull(), isNull())).thenReturn(Mono.empty());
     lenient().when(mapService.uninstallMap(any())).thenReturn(Mono.empty());
-    mapBean = MapVersionBeanBuilder.create()
-        .defaultValues().map(Instancio.create(MapBean.class))
-        .folderName("testMap")
-        .ranked(true)
-        .id(23)
-        .size(MapSize.valueOf(1, 1))
-        .get();
+    mapBean = Instancio.of(MapVersionBean.class)
+                       .set(field(MapVersionBean::folderName), "testMap")
+                       .set(field(MapVersionBean::ranked), true)
+                       .set(field(MapVersionBean::id), 23)
+                       .set(field(MapVersionBean::size), MapSize.valueOf(1, 1))
+                       .create();
     lenient().when(i18n.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
-    lenient().when(i18n.get("versionFormat", mapBean.getVersion().getCanonical())).thenReturn("v10");
+    lenient().when(i18n.get("versionFormat", mapBean.version().getCanonical())).thenReturn("v10");
 
     loadFxml("theme/vault/map/map_card.fxml", param -> {
       if (param == ReviewsController.class) {
@@ -115,8 +113,8 @@ public class MapCardControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.setEntity(mapBean));
 
-    assertThat(instance.nameLabel.getText(), is(mapBean.getMap().displayName()));
-    assertThat(instance.authorLabel.getText(), is(mapBean.getMap().author().getUsername()));
+    assertThat(instance.nameLabel.getText(), is(mapBean.map().displayName()));
+    assertThat(instance.authorLabel.getText(), is(mapBean.map().author().getUsername()));
     assertThat(instance.versionLabel.getText(), is("v10"));
     assertThat(instance.thumbnailImageView.getImage(), is(notNullValue()));
   }

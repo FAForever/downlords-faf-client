@@ -1,9 +1,9 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayReviewsSummaryBean;
 import com.faforever.client.featuredmod.FeaturedModService;
@@ -263,8 +263,7 @@ public class ReplayServiceTest extends ServiceTest {
     when(replayDataParser.getMetadata()).thenReturn(replayMetadata);
     when(replayFileReader.parseReplay(file1)).thenReturn(replayDataParser);
     when(featuredModService.getFeaturedMod(any())).thenReturn(Mono.empty());
-    when(mapService.findByMapFolderName(any())).thenReturn(
-        Mono.just(MapVersionBeanBuilder.create().defaultValues().get()));
+    when(mapService.findByMapFolderName(any())).thenReturn(Mono.just(Instancio.create(MapVersionBean.class)));
 
     StepVerifier.create(instance.loadLocalReplayPage(1, 1)).assertNext(result -> {
       List<ReplayBean> localReplays = result.getT1();

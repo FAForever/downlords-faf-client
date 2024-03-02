@@ -244,10 +244,10 @@ public class CreateGameController extends NodeController<Pane> {
   private void initMapFilterPopup() {
     mapFilterController = uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class);
     mapFilterController.addExternalFilter(mapSearchTextField.textProperty().when(showing),
-                                          (text, mapVersion) -> text.isEmpty() || mapVersion.getMap().displayName()
+                                          (text, mapVersion) -> text.isEmpty() || mapVersion.map().displayName()
                                                                                             .toLowerCase()
                                                                                             .contains(
-                                                                                                text.toLowerCase()) || mapVersion.getFolderName()
+                                                                                                text.toLowerCase()) || mapVersion.folderName()
                                                                                                                                  .toLowerCase()
                                                                                                                                  .contains(
                                                                                                                                      text.toLowerCase()));
@@ -279,38 +279,32 @@ public class CreateGameController extends NodeController<Pane> {
   }
 
   protected void initMapSelection() {
-    mapNameLabel.textProperty()
-                .bind(selectedMap.flatMap(MapVersionBean::mapProperty).map(MapBean::displayName).when(showing));
-    mapSizeLabel.textProperty()
-                .bind(selectedMap.flatMap(MapVersionBean::sizeProperty)
+    mapNameLabel.textProperty().bind(selectedMap.map(MapVersionBean::map).map(MapBean::displayName).when(showing));
+    mapSizeLabel.textProperty().bind(selectedMap.map(MapVersionBean::size)
                                  .map(mapSize -> i18n.get("mapPreview.size", mapSize.getWidthInKm(),
                                                           mapSize.getHeightInKm()))
                                  .when(showing));
     BackgroundSize backgroundSize = new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true,
                                                        false);
-    mapPreviewPane.backgroundProperty()
-                  .bind(selectedMap.flatMap(MapVersionBean::folderNameProperty)
+    mapPreviewPane.backgroundProperty().bind(selectedMap.map(MapVersionBean::folderName)
                                    .map(folderName -> mapService.loadPreview(folderName, PreviewSize.LARGE))
                                    .map(preview -> new BackgroundImage(preview, NO_REPEAT, NO_REPEAT, CENTER,
                                                                        backgroundSize))
                                    .map(Background::new)
                                    .when(showing));
-    mapPlayersLabel.textProperty()
-                   .bind(selectedMap.flatMap(MapVersionBean::maxPlayersProperty).map(i18n::number).when(showing));
-    mapDescriptionLabel.textProperty()
-                       .bind(selectedMap.flatMap(MapVersionBean::descriptionProperty)
+    mapPlayersLabel.textProperty().bind(selectedMap.map(MapVersionBean::maxPlayers).map(i18n::number).when(showing));
+    mapDescriptionLabel.textProperty().bind(selectedMap.map(MapVersionBean::description)
                                         .map(Strings::emptyToNull)
                                         .map(FaStrings::removeLocalizationTag)
                                         .orElse(i18n.get("map.noDescriptionAvailable"))
                                         .when(showing));
-    versionLabel.textProperty()
-                .bind(selectedMap.flatMap(MapVersionBean::versionProperty)
+    versionLabel.textProperty().bind(selectedMap.map(MapVersionBean::version)
                                  .map(version -> i18n.get("versionFormat", version))
                                  .when(showing));
     versionLabel.visibleProperty().bind(versionLabel.textProperty().isNotEmpty());
 
     mapListView.setCellFactory(
-        param -> new StringListCell<>(mapVersion -> mapVersion.getMap().displayName(), fxApplicationThreadExecutor));
+        param -> new StringListCell<>(mapVersion -> mapVersion.map().displayName(), fxApplicationThreadExecutor));
     mapListView.getSelectionModel().selectedItemProperty().when(showing).subscribe((oldItem, newItem) -> {
       if (newItem == null && filteredMaps.contains(oldItem)) {
         mapListView.getSelectionModel().select(oldItem);
@@ -319,11 +313,10 @@ public class CreateGameController extends NodeController<Pane> {
       }
     });
 
-    FilteredList<MapVersionBean> skirmishMaps = mapService.getInstalledMaps()
-                                                          .filtered(mapVersion -> mapVersion.getMap()
+    FilteredList<MapVersionBean> skirmishMaps = mapService.getInstalledMaps().filtered(mapVersion -> mapVersion.map()
                                                                                             .mapType() == MapType.SKIRMISH);
     filteredMaps = new FilteredList<>(skirmishMaps.sorted(
-        Comparator.comparing(mapVersion -> mapVersion.getMap().displayName(), String.CASE_INSENSITIVE_ORDER)));
+        Comparator.comparing(mapVersion -> mapVersion.map().displayName(), String.CASE_INSENSITIVE_ORDER)));
     skirmishMaps.addListener((ListChangeListener<MapVersionBean>) change -> {
       while (change.next()) {
         if (change.wasAdded()) {
@@ -380,7 +373,7 @@ public class CreateGameController extends NodeController<Pane> {
   private void selectLastMap() {
     String lastMap = lastGamePrefs.getLastMap();
     for (MapVersionBean mapVersion : mapListView.getItems()) {
-      if (mapVersion.getFolderName().equalsIgnoreCase(lastMap)) {
+      if (mapVersion.folderName().equalsIgnoreCase(lastMap)) {
         mapListView.getSelectionModel().select(mapVersion);
         mapListView.scrollTo(mapVersion);
         return;
@@ -501,7 +494,7 @@ public class CreateGameController extends NodeController<Pane> {
     String featuredModName = featuredModListView.getSelectionModel().getSelectedItem().technicalName();
     NewGameInfo newGameInfo = new NewGameInfo(titleTextField.getText().trim(),
                                               Strings.emptyToNull(passwordTextField.getText()), featuredModName,
-                                              mapVersion.getFolderName(), getUUIDsFromModVersions(mods),
+                                              mapVersion.folderName(), getUUIDsFromModVersions(mods),
                                               onlyForFriendsCheckBox.isSelected() ? GameVisibility.PRIVATE : GameVisibility.PUBLIC,
                                               minRating, maxRating, enforceRating);
 
@@ -522,8 +515,7 @@ public class CreateGameController extends NodeController<Pane> {
    */
   boolean selectMap(String mapFolderName) {
     Optional<MapVersionBean> mapBeanOptional = mapListView.getItems()
-                                                          .stream()
-                                                          .filter(mapBean -> mapBean.getFolderName()
+                                                          .stream().filter(mapBean -> mapBean.folderName()
                                                                                     .equalsIgnoreCase(mapFolderName))
                                                           .findAny();
     if (mapBeanOptional.isEmpty()) {
@@ -554,8 +546,7 @@ public class CreateGameController extends NodeController<Pane> {
   public void onMapPreviewImageClicked(MouseEvent mouseEvent) {
     if (mouseEvent.getButton() == MouseButton.PRIMARY) {
       Optional.ofNullable(mapListView.getSelectionModel())
-              .map(SelectionModel::getSelectedItem)
-              .map(MapVersionBean::getFolderName)
+              .map(SelectionModel::getSelectedItem).map(MapVersionBean::folderName)
               .ifPresent(mapName -> PopupUtil.showImagePopup(mapService.loadPreview(mapName, PreviewSize.LARGE)));
     }
   }

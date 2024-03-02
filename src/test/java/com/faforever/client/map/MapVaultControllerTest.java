@@ -1,6 +1,5 @@
 package com.faforever.client.map;
 
-import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
@@ -19,6 +18,7 @@ import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import javafx.scene.layout.Pane;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -131,7 +131,7 @@ public class MapVaultControllerTest extends PlatformTest {
 
   @Test
   public void testShowMapDetail() throws MalformedURLException {
-    MapVersionBean mapBean = MapVersionBeanBuilder.create().defaultValues().get();
+    MapVersionBean mapBean = Instancio.create(MapVersionBean.class);
     runOnFxThreadAndWait(() -> instance.onDisplayDetails(mapBean));
 
     verify(mapDetailController).setMapVersion(mapBean);

@@ -3,7 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.MapVersionBean;
@@ -26,6 +25,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -192,7 +192,7 @@ public class ChatUserItemControllerTest extends PlatformTest {
         .game(game)
         .get();
     String mapFolderName = player.getGame().getMapFolderName();
-    MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().get();
+    MapVersionBean mapVersion = Instancio.create(MapVersionBean.class);
     defaultUser.setPlayer(player);
 
     when(themeService.getThemeImage(ThemeService.CHAT_LIST_STATUS_HOSTING)).thenReturn(
@@ -200,13 +200,13 @@ public class ChatUserItemControllerTest extends PlatformTest {
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(new Image(InputStream.nullInputStream()));
     when(mapService.getMapLocallyFromName(mapFolderName)).thenReturn(Optional.of(mapVersion));
     when(mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName)).thenReturn("map id");
-    when(i18n.get(eq("game.onMapFormat"), anyString())).thenReturn(mapVersion.getMap().displayName(), "map id",
+    when(i18n.get(eq("game.onMapFormat"), anyString())).thenReturn(mapVersion.map().displayName(), "map id",
                                                                    "Neroxis Generated Map");
 
     runOnFxThreadAndWait(() -> instance.setChatUser(defaultUser));
     assertNotNull(instance.gameStatusImageView.getImage());
     assertNotNull(instance.mapImageView.getImage());
-    assertEquals(mapVersion.getMap().displayName(), instance.mapNameLabel.getText());
+    assertEquals(mapVersion.map().displayName(), instance.mapNameLabel.getText());
   }
 
   @Test

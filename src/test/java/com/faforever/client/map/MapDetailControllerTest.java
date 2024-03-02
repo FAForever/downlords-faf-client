@@ -1,6 +1,5 @@
 package com.faforever.client.map;
 
-import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
@@ -104,13 +103,13 @@ public class MapDetailControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     currentPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").id(100).get();
-    testMap = MapVersionBeanBuilder.create()
-        .defaultValues()
-        .createTime(OffsetDateTime.now())
-        .get();
-    ownedMap = MapVersionBeanBuilder.create()
-        .defaultValues().map(Instancio.of(MapBean.class).set(field(MapBean::author), currentPlayer).create())
-        .get();
+    testMap = Instancio.create(MapVersionBean.class);
+    ownedMap = Instancio.of(MapVersionBean.class)
+                        .set(field(MapVersionBean::map),
+                             Instancio.of(MapBean.class).set(field(MapBean::author), currentPlayer).create())
+                        .set(field(MapVersionBean::ranked), true)
+                        .set(field(MapVersionBean::hidden), false)
+                        .create();
     review = Instancio.of(MapVersionReviewBean.class).set(field(MapVersionReviewBean::player), currentPlayer).create();
 
     lenient().when(mapService.isInstalledBinding(Mockito.<ObservableValue<MapVersionBean>>any())).thenReturn(installed);
@@ -123,11 +122,11 @@ public class MapDetailControllerTest extends PlatformTest {
     lenient().when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
     lenient().when(mapService.downloadAndInstallMap(any(), any(DoubleProperty.class), any(StringProperty.class)))
              .thenReturn(Mono.empty());
-    lenient().when(i18n.number(testMap.getMaxPlayers())).thenReturn(String.valueOf(testMap.getMaxPlayers()));
-    lenient().when(i18n.get("map.id", testMap.getId())).thenReturn(String.valueOf(testMap.getId()));
+    lenient().when(i18n.number(testMap.maxPlayers())).thenReturn(String.valueOf(testMap.maxPlayers()));
+    lenient().when(i18n.get("map.id", testMap.id())).thenReturn(String.valueOf(testMap.id()));
     lenient().when(i18n.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
     lenient().when(i18n.get(eq("mapPreview.size"), anyInt(), anyInt())).thenReturn("map size");
-    lenient().when(mapService.isInstalled(testMap.getFolderName())).thenReturn(true);
+    lenient().when(mapService.isInstalled(testMap.folderName())).thenReturn(true);
     lenient().when(mapService.hasPlayedMap(eq(currentPlayer), eq(testMap))).thenReturn(Mono.just(true));
     lenient().when(mapService.getFileSize(any(MapVersionBean.class))).thenReturn(CompletableFuture.completedFuture(12));
 
@@ -150,7 +149,7 @@ public class MapDetailControllerTest extends PlatformTest {
 
   @Test
   public void onCreateButtonClickedMapNotInstalled() {
-    when(mapService.isInstalled(testMap.getFolderName())).thenReturn(false);
+    when(mapService.isInstalled(testMap.folderName())).thenReturn(false);
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
@@ -192,8 +191,14 @@ public class MapDetailControllerTest extends PlatformTest {
 
   @Test
   public void testSetHiddenOwnedMap() {
-    ownedMap.setRanked(false);
-    ownedMap.setHidden(true);
+    MapVersionBean ownedMap = Instancio.of(MapVersionBean.class)
+                                       .set(field(MapVersionBean::map), Instancio.of(MapBean.class)
+                                                                                 .set(field(MapBean::author),
+                                                                                      currentPlayer)
+                                                                                 .create())
+                                       .set(field(MapVersionBean::ranked), false)
+                                       .set(field(MapVersionBean::hidden), true)
+                                       .create();
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(ownedMap));
     WaitForAsyncUtils.waitForFxEvents();
@@ -211,13 +216,13 @@ public class MapDetailControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
 
     verify(reviewsController).setCanWriteReview(true);
-    assertEquals(testMap.getMap().displayName(), instance.nameLabel.getText());
-    assertEquals(testMap.getMap().author().getUsername(), instance.authorLabel.getText());
-    assertEquals(String.valueOf(testMap.getMaxPlayers()), instance.maxPlayersLabel.getText());
-    assertEquals(String.valueOf(testMap.getId()), instance.mapIdLabel.getText());
+    assertEquals(testMap.map().displayName(), instance.nameLabel.getText());
+    assertEquals(testMap.map().author().getUsername(), instance.authorLabel.getText());
+    assertEquals(String.valueOf(testMap.maxPlayers()), instance.maxPlayersLabel.getText());
+    assertEquals(String.valueOf(testMap.id()), instance.mapIdLabel.getText());
     assertEquals("map size", instance.dimensionsLabel.getText());
     assertEquals("test date", instance.dateLabel.getText());
-    assertEquals(testMap.getDescription(), instance.mapDescriptionLabel.getText());
+    assertEquals(testMap.description(), instance.mapDescriptionLabel.getText());
     assertEquals(0.0, instance.hideRow.getPrefHeight(), 0);
     assertTrue(instance.uninstallButton.isVisible());
     assertFalse(instance.installButton.isVisible());
@@ -277,8 +282,8 @@ public class MapDetailControllerTest extends PlatformTest {
   @Test
   public void testHideButtonClicked() {
     runOnFxThreadAndWait(() -> instance.setMapVersion(ownedMap));
-    WaitForAsyncUtils.waitForFxEvents();
-    when(mapService.hideMapVersion(ownedMap)).thenReturn(Mono.empty());
+    when(mapService.hideMapVersion(ownedMap)).thenReturn(
+        Mono.just(Instancio.of(MapVersionBean.class).set(field(MapVersionBean::hidden), true).create()));
 
     runOnFxThreadAndWait(() -> instance.hideMap());
 

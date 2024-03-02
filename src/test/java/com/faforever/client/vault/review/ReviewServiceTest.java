@@ -1,8 +1,8 @@
 package com.faforever.client.vault.review;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
+import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionReviewBean;
@@ -71,7 +71,7 @@ public class ReviewServiceTest extends ServiceTest {
     StepVerifier.create(instance.saveReview(Instancio.of(MapVersionReviewBean.class)
                                                      .set(field(MapVersionReviewBean::id), null)
                                                      .set(field(MapVersionReviewBean::subject),
-                                                          MapVersionBeanBuilder.create().defaultValues().get())
+                                                          Instancio.create(MapVersionBean.class))
                                                      .create())).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).post(argThat(
         ElideMatchers.hasRelationship("reviews")
@@ -111,7 +111,7 @@ public class ReviewServiceTest extends ServiceTest {
 
     StepVerifier.create(instance.saveReview(Instancio.of(MapVersionReviewBean.class)
                                                      .set(field(MapVersionReviewBean::subject),
-                                                          MapVersionBeanBuilder.create().defaultValues().get())
+                                                          Instancio.create(MapVersionBean.class))
                                                      .create())).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).patch(any(ElideNavigatorOnId.class), any());
   }

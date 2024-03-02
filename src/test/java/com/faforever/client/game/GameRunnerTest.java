@@ -2,7 +2,6 @@ package com.faforever.client.game;
 
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.GameLaunchMessageBuilder;
-import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.NewGameInfoBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.config.ClientProperties;
@@ -721,10 +720,10 @@ public class GameRunnerTest extends ServiceTest {
     when(process.onExit()).thenReturn(new CompletableFuture<>());
     when(process.isAlive()).thenReturn(true);
 
-    MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().get();
+    MapVersionBean mapVersion = Instancio.create(MapVersionBean.class);
     instance.launchTutorial(mapVersion, "tut");
 
-    verify(mapService).downloadIfNecessary(mapVersion.getFolderName());
+    verify(mapService).downloadIfNecessary(mapVersion.folderName());
     verify(featuredModService).updateFeaturedModToLatest(KnownFeaturedMod.TUTORIALS.getTechnicalName(), false);
     verify(forgedAllianceLaunchService).launchOfflineGame("tut");
     assertEquals(10L, instance.getRunningProcessId());
@@ -739,7 +738,7 @@ public class GameRunnerTest extends ServiceTest {
     when(process.onExit()).thenReturn(new CompletableFuture<>());
     when(process.isAlive()).thenReturn(true);
 
-    MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().get();
+    MapVersionBean mapVersion = Instancio.create(MapVersionBean.class);
     instance.launchTutorial(mapVersion, "tut");
     instance.launchTutorial(mapVersion, "tut");
 
@@ -751,7 +750,7 @@ public class GameRunnerTest extends ServiceTest {
     when(preferencesService.hasValidGamePath()).thenReturn(false);
     when(gamePathHandler.chooseAndValidateGameDirectory()).thenReturn(new CompletableFuture<>());
 
-    instance.launchTutorial(MapVersionBeanBuilder.create().defaultValues().get(), "tut");
+    instance.launchTutorial(Instancio.create(MapVersionBean.class), "tut");
 
     verify(gamePathHandler).chooseAndValidateGameDirectory();
   }

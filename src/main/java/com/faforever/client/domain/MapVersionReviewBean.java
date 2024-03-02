@@ -8,7 +8,7 @@ public record MapVersionReviewBean(
 
   @Override
   public ComparableVersion version() {
-    return subject().getVersion();
+    return subject().version();
   }
 
   @Override

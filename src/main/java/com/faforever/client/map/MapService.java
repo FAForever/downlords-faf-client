@@ -109,7 +109,7 @@ import static java.util.stream.Collectors.toCollection;
 public class MapService implements InitializingBean, DisposableBean {
 
   public static final String DEBUG = "debug";
-  private static final String MAP_VERSION_REGEX = ".*[.v](?<version>\\d{4})$"; // Matches to an string like 'adaptive_twin_rivers.v0031'
+  private static final String MAP_VERSION_REGEX = ".*[.v](\\d{4})$"; // Matches to an string like 'adaptive_twin_rivers.v0031'
 
   private final NotificationService notificationService;
   private final TaskService taskService;
@@ -264,9 +264,9 @@ public class MapService implements InitializingBean, DisposableBean {
 
   private void addInstalledMap(Path mapFolder) throws MapLoadException {
     MapVersionBean mapVersion = readMap(mapFolder);
-    if (!isInstalled(mapVersion.getFolderName())) {
+    if (!isInstalled(mapVersion.folderName())) {
       fxApplicationThreadExecutor.execute(
-          () -> mapsByFolderName.put(mapVersion.getFolderName().toLowerCase(Locale.ROOT), mapVersion));
+          () -> mapsByFolderName.put(mapVersion.folderName().toLowerCase(Locale.ROOT), mapVersion));
       log.debug("Added map from {}", mapFolder);
     }
   }
@@ -290,22 +290,21 @@ public class MapService implements InitializingBean, DisposableBean {
       LuaValue scenarioInfo = luaRoot.get("ScenarioInfo");
       LuaValue size = scenarioInfo.get("size");
 
-      MapVersionBean mapVersion = new MapVersionBean();
       MapBean map = new MapBean(null, scenarioInfo.get("name").toString(), 0, null, false,
                                 MapType.fromValue(scenarioInfo.get("type").toString()), null);
-      mapVersion.setFolderName(mapFolder.getFileName().toString());
-      mapVersion.setDescription(FaStrings.removeLocalizationTag(scenarioInfo.get("description").toString()));
-      mapVersion.setSize(MapSize.valueOf(size.get(1).toint(), size.get(2).toint()));
-      mapVersion.setMaxPlayers(
-          scenarioInfo.get("Configurations").get("standard").get("teams").get(1).get("armies").length());
-      mapVersion.setMap(map);
+      String folderName = mapFolder.getFileName().toString();
+      String description = FaStrings.removeLocalizationTag(scenarioInfo.get("description").toString());
+      MapSize mapSize = MapSize.valueOf(size.get(1).toint(), size.get(2).toint());
+      int maxPlayers = scenarioInfo.get("Configurations").get("standard").get("teams").get(1).get("armies").length();
 
+      ComparableVersion comparableVersion = null;
       LuaValue version = scenarioInfo.get("map_version");
       if (!version.isnil()) {
-        mapVersion.setVersion(new ComparableVersion(version.toString()));
+        comparableVersion = new ComparableVersion(version.toString());
       }
 
-      return mapVersion;
+      return new MapVersionBean(null, folderName, 0, description, maxPlayers, mapSize, comparableVersion, false, false,
+                                null, null, null, map, null);
     } catch (IOException e) {
       throw new MapLoadException("Could not load map due to IO error" + mapFolder.toAbsolutePath(), e,
                                  "map.load.ioError", mapFolder.toAbsolutePath());
@@ -356,7 +355,7 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   public boolean isOfficialMap(MapVersionBean mapVersion) {
-    return mapVersion != null && isOfficialMap(mapVersion.getFolderName());
+    return mapVersion != null && isOfficialMap(mapVersion.folderName());
   }
 
   public boolean isCustomMap(MapVersionBean mapVersion) {
@@ -371,7 +370,7 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   public boolean isInstalled(MapVersionBean mapVersion) {
-    return mapVersion != null && isInstalled(mapVersion.getFolderName());
+    return mapVersion != null && isInstalled(mapVersion.folderName());
   }
 
   public BooleanExpression isInstalledBinding(ObservableValue<MapVersionBean> mapVersionObservable) {
@@ -409,7 +408,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
   public Mono<Void> downloadAndInstallMap(MapVersionBean mapVersion, @Nullable DoubleProperty progressProperty,
                                           @Nullable StringProperty titleProperty) {
-    return downloadAndInstallMap(mapVersion.getFolderName(), mapVersion.getDownloadUrl(), progressProperty,
+    return downloadAndInstallMap(mapVersion.folderName(), mapVersion.downloadUrl(), progressProperty,
                                  titleProperty);
   }
 
@@ -420,14 +419,14 @@ public class MapService implements InitializingBean, DisposableBean {
   @Cacheable(value = CacheNames.MAP_PREVIEW, unless = "#result.equals(@mapService.getGeneratedMapPreviewImage())")
   public Image loadPreview(MapVersionBean mapVersion, PreviewSize previewSize) {
     URL url = switch (previewSize) {
-      case SMALL -> mapVersion.getThumbnailUrlSmall();
-      case LARGE -> mapVersion.getThumbnailUrlLarge();
+      case SMALL -> mapVersion.thumbnailUrlSmall();
+      case LARGE -> mapVersion.thumbnailUrlLarge();
     };
 
     if (url != null) {
       return loadPreview(url, previewSize);
     } else {
-      return loadPreview(mapVersion.getFolderName(), previewSize);
+      return loadPreview(mapVersion.folderName(), previewSize);
     }
   }
 
@@ -438,7 +437,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
 
   public Mono<Void> uninstallMap(MapVersionBean mapVersion) {
-    if (isOfficialMap(mapVersion.getFolderName())) {
+    if (isOfficialMap(mapVersion.folderName())) {
       throw new IllegalArgumentException("Attempt to uninstall an official map");
     }
     UninstallMapTask task = uninstallMapTaskFactory.getObject();
@@ -448,7 +447,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
 
   public Path getPathForMap(MapVersionBean mapVersion) {
-    return getPathForMapCaseInsensitive(mapVersion.getFolderName());
+    return getPathForMapCaseInsensitive(mapVersion.folderName());
   }
 
   private Path getMapsDirectory(String technicalName) {
@@ -494,7 +493,7 @@ public class MapService implements InitializingBean, DisposableBean {
     }
     return getMapLatestVersion(mapVersion).flatMap(latestMap -> {
       Mono<Void> downloadFuture;
-      if (!isInstalled(latestMap.getFolderName())) {
+      if (!isInstalled(latestMap.folderName())) {
         downloadFuture = downloadAndInstallMap(latestMap, null, null);
       } else {
         downloadFuture = Mono.empty();
@@ -502,7 +501,7 @@ public class MapService implements InitializingBean, DisposableBean {
       return downloadFuture.thenReturn(latestMap);
     }).flatMap(latestMap -> {
       Mono<Void> uninstallFuture;
-      if (!latestMap.getFolderName().equals(mapVersion.getFolderName())) {
+      if (!latestMap.folderName().equals(mapVersion.folderName())) {
         uninstallFuture = uninstallMap(mapVersion);
       } else {
         uninstallFuture = Mono.empty();
@@ -512,7 +511,7 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<Integer> getFileSize(MapVersionBean mapVersion) {
-    return fileSizeReader.getFileSize(mapVersion.getDownloadUrl());
+    return fileSizeReader.getFileSize(mapVersion.downloadUrl());
   }
 
   private Mono<Void> downloadAndInstallMap(String folderName, URL downloadUrl,
@@ -562,13 +561,15 @@ public class MapService implements InitializingBean, DisposableBean {
     }
   }
 
-  public Mono<Void> hideMapVersion(MapVersionBean map) {
-    String id = String.valueOf(map.getId());
+  public Mono<MapVersionBean> hideMapVersion(MapVersionBean map) {
+    String id = String.valueOf(map.id());
     MapVersion mapVersion = new MapVersion();
     mapVersion.setHidden(true);
     mapVersion.setId(id);
     ElideNavigatorOnId<MapVersion> navigator = ElideNavigator.of(mapVersion);
-    return fafApiAccessor.patch(navigator, mapVersion);
+    return fafApiAccessor.patch(navigator, mapVersion)
+                         .then(fafApiAccessor.getOne(navigator))
+                         .map(dto -> mapMapper.map(dto, new CycleAvoidingMappingContext()));
   }
 
   /**
@@ -589,7 +590,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
   @VisibleForTesting
   Mono<MapVersionBean> getMapLatestVersion(MapVersionBean mapVersion) {
-    String folderName = mapVersion.getFolderName();
+    String folderName = mapVersion.folderName();
 
     if (!containsVersionControl(folderName)) {
       return Mono.just(mapVersion);
@@ -618,12 +619,12 @@ public class MapService implements InitializingBean, DisposableBean {
                          .map(mapPoolAssignment -> mapMapper.mapFromPoolAssignment(mapPoolAssignment,
                                                                                    new CycleAvoidingMappingContext()))
                          .distinct()
-                         .filter(mapVersion -> !mapGeneratorService.isGeneratedMap(mapVersion.getFolderName()))
+                         .filter(mapVersion -> !mapGeneratorService.isGeneratedMap(mapVersion.folderName()))
                          .flatMap(
                              mapVersion -> downloadAndInstallMap(mapVersion, null, null).onErrorResume(throwable -> {
-                               log.warn("Unable to download map `{}`", mapVersion.getFolderName(), throwable);
+                               log.warn("Unable to download map `{}`", mapVersion.folderName(), throwable);
                                notificationService.addPersistentErrorNotification("map.download.error",
-                                                                                  mapVersion.getFolderName());
+                                                                                  mapVersion.folderName());
                                return Mono.empty();
                              }))
                          .then();
@@ -653,10 +654,10 @@ public class MapService implements InitializingBean, DisposableBean {
                                                                 mapPoolAssignment, new CycleAvoidingMappingContext()))
                                                             .distinct()
                                                             .sort(Comparator.nullsLast(
-                                                                                Comparator.comparing(MapVersionBean::getSize))
+                                                                                Comparator.comparing(MapVersionBean::size))
                                                                             .thenComparing(Comparator.nullsLast(
                                                                                 Comparator.comparing(
-                                                                                    MapVersionBean::getMap,
+                                                                                    MapVersionBean::map,
                                                                                     Comparator.nullsLast(
                                                                                         Comparator.comparing(
                                                                                             MapBean::displayName,
@@ -670,7 +671,7 @@ public class MapService implements InitializingBean, DisposableBean {
     ElideNavigatorOnCollection<Game> navigator = ElideNavigator.of(Game.class)
                                                                .collection()
                                                                .setFilter(qBuilder().intNum("mapVersion.id")
-                                                                                    .eq(mapVersion.getId())
+                                                                                    .eq(mapVersion.id())
                                                                                     .and()
                                                                                     .intNum("playerStats.player.id")
                                                                                     .eq(player.getId()))
