@@ -1,6 +1,5 @@
 package com.faforever.client.teammatchmaking;
 
-import com.faforever.client.domain.api.MatchingStatus;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;

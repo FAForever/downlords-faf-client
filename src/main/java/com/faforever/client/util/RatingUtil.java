@@ -1,9 +1,9 @@
 package com.faforever.client.util;
 
 import com.faforever.client.domain.api.Leaderboard;
-import com.faforever.client.domain.api.LeaderboardRating;
 import com.faforever.client.domain.api.LeaderboardRatingJournal;
 import com.faforever.client.domain.server.PlayerInfo;
+import com.faforever.client.player.LeaderboardRating;
 
 import java.util.Optional;
 

@@ -21,6 +21,7 @@ public interface MatchmakerMapper {
 
     @Mapping(target = "playersInQueue", source = "numberOfPlayers")
     @Mapping(target = "queuePopTime", source = "popTime")
+    @Mapping(target = "technicalName", source = "name")
     MatchmakerQueueInfo update(MatchmakerInfo.MatchmakerQueue dto, @MappingTarget MatchmakerQueueInfo bean);
 
     MapPoolAssignment map(com.faforever.commons.api.dto.MapPoolAssignment dto,

@@ -1,8 +1,8 @@
 package com.faforever.client.fx.contextmenu;
 
+import com.faforever.client.avatar.Avatar;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.PlayerInfoBuilder;
-import com.faforever.client.domain.api.Avatar;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.PlatformTest;

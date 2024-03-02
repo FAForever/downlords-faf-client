@@ -8,7 +8,6 @@ import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.chat.ChatChannel;
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.domain.api.Leaderboard;
-import com.faforever.client.domain.api.LeaderboardRating;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;

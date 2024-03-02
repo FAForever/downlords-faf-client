@@ -8,7 +8,6 @@ import com.faforever.client.builders.PlayerAchievementBuilder;
 import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.domain.api.Leaderboard;
 import com.faforever.client.domain.api.LeaderboardEntry;
-import com.faforever.client.domain.api.LeaderboardRating;
 import com.faforever.client.domain.api.LeaderboardRatingJournal;
 import com.faforever.client.domain.api.LeagueLeaderboard;
 import com.faforever.client.domain.api.LeagueSeason;

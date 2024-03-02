@@ -1,7 +1,6 @@
 package com.faforever.client.avatar;
 
 import com.faforever.client.builders.PlayerInfoBuilder;
-import com.faforever.client.domain.api.Avatar;
 import com.faforever.client.mapstruct.AvatarMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.player.PlayerService;

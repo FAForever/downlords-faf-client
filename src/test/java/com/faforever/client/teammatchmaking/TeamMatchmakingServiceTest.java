@@ -5,7 +5,6 @@ import com.faforever.client.builders.GameInfoBuilder;
 import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.PartyInfoBuilder.PartyMemberBuilder;
 import com.faforever.client.builders.PlayerInfoBuilder;
-import com.faforever.client.domain.api.MatchingStatus;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.domain.server.PartyInfo.PartyMember;
 import com.faforever.client.domain.server.PlayerInfo;

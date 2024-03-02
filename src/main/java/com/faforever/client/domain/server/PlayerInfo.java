@@ -1,8 +1,8 @@
 package com.faforever.client.domain.server;
 
-import com.faforever.client.domain.api.Avatar;
-import com.faforever.client.domain.api.LeaderboardRating;
+import com.faforever.client.avatar.Avatar;
 import com.faforever.client.game.PlayerGameStatus;
+import com.faforever.client.player.LeaderboardRating;
 import com.faforever.client.player.ServerStatus;
 import com.faforever.client.player.SocialStatus;
 import javafx.beans.property.ObjectProperty;

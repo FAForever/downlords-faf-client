@@ -1,6 +1,6 @@
 package com.faforever.client.mapstruct;
 
-import com.faforever.client.domain.api.LeaderboardRating;
+import com.faforever.client.player.LeaderboardRating;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -1,8 +1,8 @@
 package com.faforever.client.builders;
 
 import com.faforever.client.domain.api.Leaderboard;
-import com.faforever.client.domain.api.MatchingStatus;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
+import com.faforever.client.teammatchmaking.MatchingStatus;
 import org.instancio.Instancio;
 
 import java.time.OffsetDateTime;

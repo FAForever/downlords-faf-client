@@ -1,4 +1,4 @@
-package com.faforever.client.domain.api;
+package com.faforever.client.avatar;
 
 import java.net.URL;
 

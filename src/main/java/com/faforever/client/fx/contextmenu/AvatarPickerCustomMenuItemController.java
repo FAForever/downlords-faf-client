@@ -1,7 +1,7 @@
 package com.faforever.client.fx.contextmenu;
 
+import com.faforever.client.avatar.Avatar;
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.domain.api.Avatar;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;

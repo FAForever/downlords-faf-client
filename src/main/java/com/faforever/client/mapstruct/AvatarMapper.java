@@ -1,6 +1,6 @@
 package com.faforever.client.mapstruct;
 
-import com.faforever.client.domain.api.Avatar;
+import com.faforever.client.avatar.Avatar;
 import com.faforever.commons.lobby.Player;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;

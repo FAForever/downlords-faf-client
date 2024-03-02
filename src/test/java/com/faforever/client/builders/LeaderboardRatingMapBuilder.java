@@ -1,6 +1,6 @@
 package com.faforever.client.builders;
 
-import com.faforever.client.domain.api.LeaderboardRating;
+import com.faforever.client.player.LeaderboardRating;
 import org.instancio.Instancio;
 
 import java.util.HashMap;

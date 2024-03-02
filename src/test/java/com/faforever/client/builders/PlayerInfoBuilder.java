@@ -1,9 +1,9 @@
 package com.faforever.client.builders;
 
-import com.faforever.client.domain.api.Avatar;
-import com.faforever.client.domain.api.LeaderboardRating;
+import com.faforever.client.avatar.Avatar;
 import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.domain.server.PlayerInfo;
+import com.faforever.client.player.LeaderboardRating;
 import com.faforever.client.player.SocialStatus;
 import org.instancio.Instancio;
 

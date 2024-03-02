@@ -1,10 +1,10 @@
 package com.faforever.client.fa;
 
-import com.faforever.client.domain.api.LeaderboardRating;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.GameParameters.League;
 import com.faforever.client.game.error.GameLaunchException;
 import com.faforever.client.logging.LoggingService;
+import com.faforever.client.player.LeaderboardRating;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;

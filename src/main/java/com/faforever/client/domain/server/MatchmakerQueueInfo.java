@@ -1,8 +1,7 @@
 package com.faforever.client.domain.server;
 
-import com.faforever.client.domain.api.FeaturedMod;
 import com.faforever.client.domain.api.Leaderboard;
-import com.faforever.client.domain.api.MatchingStatus;
+import com.faforever.client.teammatchmaking.MatchingStatus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -31,7 +30,6 @@ public class MatchmakerQueueInfo {
   private final BooleanProperty selected = new SimpleBooleanProperty(true);
   private final ObjectProperty<MatchingStatus> matchingStatus = new SimpleObjectProperty<>();
   private final ObjectProperty<Leaderboard> leaderboard = new SimpleObjectProperty<>();
-  private final ObjectProperty<FeaturedMod> featuredMod = new SimpleObjectProperty<>();
 
   public Integer getId() {
     return id.get();
@@ -91,18 +89,6 @@ public class MatchmakerQueueInfo {
 
   public ObjectProperty<Leaderboard> leaderboardProperty() {
     return leaderboard;
-  }
-
-  public FeaturedMod getFeaturedMod() {
-    return featuredMod.get();
-  }
-
-  public ObjectProperty<FeaturedMod> featuredModProperty() {
-    return featuredMod;
-  }
-
-  public void setFeaturedMod(FeaturedMod featuredMod) {
-    this.featuredMod.set(featuredMod);
   }
 
   public int getTeamSize() {

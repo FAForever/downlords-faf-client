@@ -1,11 +1,11 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.avatar.Avatar;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.chat.ChatMessage.Type;
 import com.faforever.client.chat.emoticons.Emoticon;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
-import com.faforever.client.domain.api.Avatar;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;

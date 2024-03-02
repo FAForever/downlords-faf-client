@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
+import com.faforever.client.avatar.Avatar;
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.domain.api.Avatar;
 import com.faforever.client.domain.api.GamePlayerStats;
 import com.faforever.client.domain.api.LeaderboardRatingJournal;
 import com.faforever.client.domain.server.PlayerInfo;

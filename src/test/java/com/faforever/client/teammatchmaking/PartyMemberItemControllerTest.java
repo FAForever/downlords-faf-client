@@ -1,11 +1,11 @@
 package com.faforever.client.teammatchmaking;
 
+import com.faforever.client.avatar.Avatar;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.GameInfoBuilder;
 import com.faforever.client.builders.PartyInfoBuilder;
 import com.faforever.client.builders.PartyInfoBuilder.PartyMemberBuilder;
 import com.faforever.client.builders.PlayerInfoBuilder;
-import com.faforever.client.domain.api.Avatar;
 import com.faforever.client.domain.api.LeagueEntry;
 import com.faforever.client.domain.api.Subdivision;
 import com.faforever.client.domain.server.PartyInfo;

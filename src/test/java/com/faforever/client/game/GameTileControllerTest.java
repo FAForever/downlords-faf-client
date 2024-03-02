@@ -1,9 +1,9 @@
 package com.faforever.client.game;
 
+import com.faforever.client.avatar.Avatar;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.GameInfoBuilder;
 import com.faforever.client.builders.PlayerInfoBuilder;
-import com.faforever.client.domain.api.Avatar;
 import com.faforever.client.domain.api.FeaturedMod;
 import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.featuredmod.FeaturedModService;

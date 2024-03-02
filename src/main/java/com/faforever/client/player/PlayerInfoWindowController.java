@@ -4,7 +4,6 @@ import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.domain.api.Leaderboard;
-import com.faforever.client.domain.api.LeaderboardRating;
 import com.faforever.client.domain.api.LeaderboardRatingJournal;
 import com.faforever.client.domain.api.NameRecord;
 import com.faforever.client.domain.server.PlayerInfo;

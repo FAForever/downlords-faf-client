@@ -2,7 +2,6 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.chat.ChatService;
-import com.faforever.client.domain.api.MatchingStatus;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.domain.server.PartyInfo;
 import com.faforever.client.domain.server.PartyInfo.PartyMember;
