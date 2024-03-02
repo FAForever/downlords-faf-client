@@ -48,6 +48,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.core.Is.is;
 import static org.instancio.Select.field;
+import static org.instancio.Select.scope;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -448,10 +449,7 @@ public class CreateGameControllerTest extends PlatformTest {
     BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
 
     MapVersionBean mapVersionBean = Instancio.of(MapVersionBean.class)
-                                             .set(field(MapVersionBean::map), Instancio.of(MapBean.class)
-                                                                                       .set(field(MapBean::displayName),
-                                                                                            "dual")
-                                                                                       .create())
+                                             .set(field(MapBean::displayName).within(scope(MapBean.class)), "dual")
                                              .set(field(MapVersionBean::folderName), "gap.v0001")
                                              .create();
     assertTrue(filter.apply("", mapVersionBean));
@@ -472,8 +470,7 @@ public class CreateGameControllerTest extends PlatformTest {
     BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
     ObjectProperty<Predicate<MapVersionBean>> predicate = mapFilterController.predicateProperty();
     MapVersionBean map = Instancio.of(MapVersionBean.class)
-                                  .set(field(MapVersionBean::map),
-                                       Instancio.of(MapBean.class).set(field(MapBean::displayName), "Test1").create())
+                                  .set(field(MapBean::displayName).within(scope(MapBean.class)), "Test1")
                                   .create();
     runOnFxThreadAndWait(() -> {
       mapList.add(map);
@@ -500,8 +497,7 @@ public class CreateGameControllerTest extends PlatformTest {
     BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
     ObjectProperty<Predicate<MapVersionBean>> predicate = mapFilterController.predicateProperty();
     mapList.add(Instancio.of(MapVersionBean.class)
-                         .set(field(MapVersionBean::map),
-                              Instancio.of(MapBean.class).set(field(MapBean::displayName), "Test1").create())
+                         .set(field(MapBean::displayName).within(scope(MapBean.class)), "Test1")
                          .create());
 
     predicate.setValue((item) -> filter.apply("Not in Filtered Maps", item));

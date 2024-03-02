@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.util.concurrent.CompletableFuture;
 
 import static org.instancio.Select.field;
+import static org.instancio.Select.scope;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -141,8 +142,7 @@ public class ModDetailControllerTest extends PlatformTest {
   @Test
   public void testSetModWithNoUploader() {
     ModVersionBean modVersion = Instancio.of(ModVersionBean.class)
-                                         .set(field(ModVersionBean::mod),
-                                              Instancio.of(ModBean.class).set(field(ModBean::uploader), null).create())
+                                         .ignore(field(ModBean::uploader).within(scope(ModBean.class)))
                                          .create();
 
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
@@ -268,17 +268,10 @@ public class ModDetailControllerTest extends PlatformTest {
   @Test
   public void testSetOwnedMod() {
     installed.set(true);
-    ModBean modBean = Instancio.of(ModBean.class)
-                               .set(field(ModBean::uploader), currentPlayer)
-                               .set(field(ModBean::author), currentPlayer.getUsername())
-                               .create();
     ModVersionBean modVersion = Instancio.of(ModVersionBean.class)
-                                         .set(field(ModVersionBean::mod), Instancio.of(ModBean.class)
-                                                                                   .set(field(ModBean::uploader),
-                                                                                        currentPlayer)
-                                                                                   .set(field(ModBean::author),
-                                                                                        currentPlayer.getUsername())
-                                                                                   .create())
+                                         .set(field(ModBean::uploader).within(scope(ModBean.class)), currentPlayer)
+                                         .set(field(ModBean::author).within(scope(ModBean.class)),
+                                              currentPlayer.getUsername())
                                          .create();
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
 
@@ -337,7 +330,6 @@ public class ModDetailControllerTest extends PlatformTest {
   public void testOnDeleteReviewThrowsException() {
     ModVersionReviewBean review = Instancio.of(ModVersionReviewBean.class)
                                            .set(field(ModVersionReviewBean::player), currentPlayer)
-                                           .set(field(ModVersionReviewBean::player), currentPlayer)
                                            .create();
 
     runOnFxThreadAndWait(() -> instance.setModVersion(modVersion));
@@ -352,9 +344,8 @@ public class ModDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnSendReviewNew() {
-    ModVersionReviewBean review = Instancio.of(ModVersionReviewBean.class)
+    ModVersionReviewBean review = Instancio.of(ModVersionReviewBean.class).ignore(field(ModVersionReviewBean::id))
                                            .set(field(ModVersionReviewBean::player), currentPlayer)
-                                           .set(field(ModVersionReviewBean::id), null)
                                            .set(field(ModVersionReviewBean::subject), modVersion)
                                            .create();
 

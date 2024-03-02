@@ -49,8 +49,7 @@ public class LeaderboardPlayerDetailsControllerTest extends PlatformTest {
   @Test
   public void testDetailsNotPlaced() {
     LeagueSeasonBean leagueSeason = Instancio.create(LeagueSeasonBean.class);
-    LeagueEntryBean leagueEntry = Instancio.of(LeagueEntryBean.class)
-                                           .set(field(LeagueEntryBean::subdivision), null)
+    LeagueEntryBean leagueEntry = Instancio.of(LeagueEntryBean.class).ignore(field(LeagueEntryBean::subdivision))
                                            .create();
     instance.setLeagueEntry(leagueEntry);
     instance.setLeagueSeason(leagueSeason);

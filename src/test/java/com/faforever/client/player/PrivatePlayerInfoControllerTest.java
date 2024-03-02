@@ -63,7 +63,7 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    leaderboard = Instancio.of(LeaderboardBean.class).set(field(LeaderboardBean::technicalName), "gloabl").create();
+    leaderboard = Instancio.of(LeaderboardBean.class).set(field(LeaderboardBean::technicalName), "global").create();
     player = PlayerBeanBuilder.create().defaultValues().game(null).get();
     chatChannelUser = ChatChannelUserBuilder.create(USERNAME, new ChatChannel("testChannel"))
                                             .defaultValues()

@@ -1,7 +1,6 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
 import com.faforever.client.fx.PlatformService;
@@ -72,7 +71,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -293,8 +291,7 @@ public class ModServiceTest extends PlatformTest {
 
   @Test
   public void testUpdateModsWithUpdatedMod() throws IOException, ExecutionException, InterruptedException {
-    ModBean mod = Instancio.create(ModBean.class);
-    ModVersionBean modVersion = Instancio.of(ModVersionBean.class).set(field(ModVersionBean::mod), mod).create();
+    ModVersionBean modVersion = Instancio.create(ModVersionBean.class);
 
     ModVersion dto = modMapper.map(modVersion, new CycleAvoidingMappingContext());
 
@@ -323,8 +320,7 @@ public class ModServiceTest extends PlatformTest {
   @Disabled("flaky")
   public void testUpdateModsWithOutdatedMod() throws IOException, ExecutionException, InterruptedException {
     ModVersionBean latestVersion = Instancio.create(ModVersionBean.class);
-    ModBean mod = Instancio.create(ModBean.class);
-    ModVersionBean modVersion = Instancio.of(ModVersionBean.class).set(field(ModVersionBean::mod), mod).create();
+    ModVersionBean modVersion = Instancio.create(ModVersionBean.class);
 
     ModVersion dto = modMapper.map(modVersion, new CycleAvoidingMappingContext());
 

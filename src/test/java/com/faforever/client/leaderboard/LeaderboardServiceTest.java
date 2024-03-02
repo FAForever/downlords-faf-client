@@ -147,17 +147,17 @@ public class LeaderboardServiceTest extends ServiceTest {
     LeagueEntryBean leagueEntryBean1 = Instancio.of(LeagueEntryBean.class)
                                                 .set(field(LeagueEntryBean::player), player)
                                                 .set(field(LeagueEntryBean::subdivision), subdivisionBean1)
-                                                .set(field(LeagueEntryBean::rank), null)
+                                                .ignore(field(LeagueEntryBean::rank))
                                                 .create();
     LeagueEntryBean leagueEntryBean2 = Instancio.of(LeagueEntryBean.class)
                                                 .set(field(LeagueEntryBean::player), player)
                                                 .set(field(LeagueEntryBean::subdivision), subdivisionBean2)
-                                                .set(field(LeagueEntryBean::rank), null)
+                                                .ignore(field(LeagueEntryBean::rank))
                                                 .create();
     LeagueEntryBean leagueEntryBean3 = Instancio.of(LeagueEntryBean.class)
                                                 .set(field(LeagueEntryBean::player), player)
-                                                .set(field(LeagueEntryBean::subdivision), null)
-                                                .set(field(LeagueEntryBean::rank), null)
+                                                .ignore(field(LeagueEntryBean::subdivision))
+                                                .ignore(field(LeagueEntryBean::rank))
                                                 .create();
 
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leagueEntryBean1, new CycleAvoidingMappingContext()),
@@ -244,14 +244,14 @@ public class LeaderboardServiceTest extends ServiceTest {
 
   @Test
   public void testGetAllSubdivisions() {
-    LeagueSeasonBean season = Instancio.of(LeagueSeasonBean.class).set(field(LeagueSeasonBean::id), 0).create();
+    LeagueSeasonBean season = Instancio.create(LeagueSeasonBean.class);
     SubdivisionBean subdivisionBean = Instancio.create(SubdivisionBean.class);
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(subdivisionBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
     StepVerifier.create(instance.getAllSubdivisions(season)).expectNext(subdivisionBean).verifyComplete();
-    verify(fafApiAccessor).getMany(
-        argThat(ElideMatchers.hasFilter(qBuilder().string("leagueSeasonDivision.leagueSeason.id").eq("0"))));
+    verify(fafApiAccessor).getMany(argThat(
+        ElideMatchers.hasFilter(qBuilder().string("leagueSeasonDivision.leagueSeason.id").eq(season.id().toString()))));
   }
 
   @Test

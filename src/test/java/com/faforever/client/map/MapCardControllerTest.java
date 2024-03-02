@@ -31,7 +31,6 @@ import java.io.InputStream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -81,12 +80,7 @@ public class MapCardControllerTest extends PlatformTest {
     lenient().when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
     lenient().when(mapService.downloadAndInstallMap(any(), isNull(), isNull())).thenReturn(Mono.empty());
     lenient().when(mapService.uninstallMap(any())).thenReturn(Mono.empty());
-    mapBean = Instancio.of(MapVersionBean.class)
-                       .set(field(MapVersionBean::folderName), "testMap")
-                       .set(field(MapVersionBean::ranked), true)
-                       .set(field(MapVersionBean::id), 23)
-                       .set(field(MapVersionBean::size), MapSize.valueOf(1, 1))
-                       .create();
+    mapBean = Instancio.create(MapVersionBean.class);
     lenient().when(i18n.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
     lenient().when(i18n.get("versionFormat", mapBean.version().getCanonical())).thenReturn("v10");
 

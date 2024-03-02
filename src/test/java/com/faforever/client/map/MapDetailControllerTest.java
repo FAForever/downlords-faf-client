@@ -44,6 +44,7 @@ import java.time.OffsetDateTime;
 import java.util.concurrent.CompletableFuture;
 
 import static org.instancio.Select.field;
+import static org.instancio.Select.scope;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -105,8 +106,7 @@ public class MapDetailControllerTest extends PlatformTest {
     currentPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").id(100).get();
     testMap = Instancio.create(MapVersionBean.class);
     ownedMap = Instancio.of(MapVersionBean.class)
-                        .set(field(MapVersionBean::map),
-                             Instancio.of(MapBean.class).set(field(MapBean::author), currentPlayer).create())
+                        .set(field(MapBean::author).within(scope(MapBean.class)), currentPlayer)
                         .set(field(MapVersionBean::ranked), true)
                         .set(field(MapVersionBean::hidden), false)
                         .create();
@@ -192,10 +192,7 @@ public class MapDetailControllerTest extends PlatformTest {
   @Test
   public void testSetHiddenOwnedMap() {
     MapVersionBean ownedMap = Instancio.of(MapVersionBean.class)
-                                       .set(field(MapVersionBean::map), Instancio.of(MapBean.class)
-                                                                                 .set(field(MapBean::author),
-                                                                                      currentPlayer)
-                                                                                 .create())
+                                       .set(field(MapBean::author).within(scope(MapBean.class)), currentPlayer)
                                        .set(field(MapVersionBean::ranked), false)
                                        .set(field(MapVersionBean::hidden), true)
                                        .create();
@@ -365,8 +362,7 @@ public class MapDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnSendReviewNew() {
-    MapVersionReviewBean review = Instancio.of(MapVersionReviewBean.class)
-                                           .set(field(MapVersionReviewBean::id), null)
+    MapVersionReviewBean review = Instancio.of(MapVersionReviewBean.class).ignore(field(MapVersionReviewBean::id))
                                            .set(field(MapVersionReviewBean::subject), testMap)
                                            .create();
 

@@ -72,7 +72,7 @@ public class ReviewControllerTest extends PlatformTest {
   @Test
   public void testSetReviewNoVersion() throws Exception {
     MapBean map = Instancio.create(MapBean.class);
-    MapVersionBean mapVersion = Instancio.of(MapVersionBean.class).set(field(MapVersionBean::version), null).create();
+    MapVersionBean mapVersion = Instancio.of(MapVersionBean.class).ignore(field(MapVersionBean::version)).create();
     MapVersionReviewBean review = Instancio.of(MapVersionReviewBean.class)
                                            .set(field(MapVersionReviewBean::subject), mapVersion)
                                            .create();

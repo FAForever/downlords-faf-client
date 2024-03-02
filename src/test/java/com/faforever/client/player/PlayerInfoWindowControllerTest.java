@@ -34,6 +34,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.instancio.Select.field;
+import static org.instancio.Select.scope;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -97,14 +98,12 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
     lenient().when(leaderboardService.getLeaderboards()).thenReturn(Flux.just(leaderboard));
     lenient().when(leaderboardService.getEntriesForPlayer(eq(player)))
              .thenReturn(Flux.just(Instancio.create(LeaderboardEntryBean.class)));
-    lenient().when(statisticsService.getRatingHistory(eq(player), any())).thenReturn(Flux.just(
-        Instancio.of(LeaderboardRatingJournalBean.class)
-                 .set(field(LeaderboardRatingJournalBean::meanBefore), 1500d)
-                 .set(field(LeaderboardRatingJournalBean::deviationBefore), 50d)
-                 .create(), Instancio.of(LeaderboardRatingJournalBean.class)
-                                     .set(field(LeaderboardRatingJournalBean::meanBefore), 1500d)
-                                     .set(field(LeaderboardRatingJournalBean::deviationBefore), 50d)
-                                     .create()));
+    lenient().when(statisticsService.getRatingHistory(eq(player), any()))
+             .thenReturn(Flux.fromIterable(Instancio.ofList(LeaderboardRatingJournalBean.class)
+                                                    .size(2)
+                                                    .set(field(LeaderboardRatingJournalBean::meanBefore), 1500d)
+                                                    .set(field(LeaderboardRatingJournalBean::deviationBefore), 50d)
+                                                    .create()));
 
     loadFxml("theme/user_info_window.fxml", clazz -> instance);
   }
@@ -149,10 +148,13 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
     when(eventService.getPlayerEvents(player.getId())).thenReturn(Flux.empty());
     when(leaderboardService.getActiveSeasons()).thenReturn(Flux.just(Instancio.of(LeagueSeasonBean.class)
                                                                               .set(field(
-                                                                                       LeagueSeasonBean::leagueLeaderboard),
-                                                                                   new LeagueLeaderboardBean(
-                                                                                       leaderboard.id(),
-                                                                                       leaderboard.technicalName()))
+                                                                                       LeagueLeaderboardBean::id).within(
+                                                                                       scope(LeagueLeaderboardBean.class)),
+                                                                                   leaderboard.id())
+                                                                              .set(field(
+                                                                                       LeagueLeaderboardBean::technicalName).within(
+                                                                                       scope(LeagueLeaderboardBean.class)),
+                                                                                   leaderboard.technicalName())
                                                                               .create()));
     when(leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard.technicalName())).thenReturn(
         Mono.empty());

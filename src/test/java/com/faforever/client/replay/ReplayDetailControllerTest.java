@@ -424,8 +424,7 @@ public class ReplayDetailControllerTest extends PlatformTest {
   @Test
   public void testOnSendReviewNew() {
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    ReplayReviewBean review = Instancio.of(ReplayReviewBean.class)
-                                       .set(field(ReplayReviewBean::id), null)
+    ReplayReviewBean review = Instancio.of(ReplayReviewBean.class).ignore(field(ReplayReviewBean::id))
                                        .set(field(ReplayReviewBean::subject), replay)
                                        .create();
 

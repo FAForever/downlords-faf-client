@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.instancio.Select.field;
+import static org.instancio.Select.scope;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 
@@ -52,26 +53,24 @@ public class LeaderboardDistributionControllerTest extends PlatformTest {
 
   @Test
   public void testSetData() {
-    DivisionBean divisionBean1 = Instancio.of(DivisionBean.class).set(field(DivisionBean::index), 1).create();
-    DivisionBean divisionBean2 = Instancio.of(DivisionBean.class).set(field(DivisionBean::index), 2).create();
     SubdivisionBean subdivision1 = Instancio.of(SubdivisionBean.class)
+                                            .set(field(DivisionBean::index).within(scope(DivisionBean.class)), 1)
                                             .set(field(SubdivisionBean::id), 1)
-                                            .set(field(SubdivisionBean::division), divisionBean1)
                                             .set(field(SubdivisionBean::index), 1)
                                             .create();
     SubdivisionBean subdivision2 = Instancio.of(SubdivisionBean.class)
+                                            .set(field(DivisionBean::index).within(scope(DivisionBean.class)), 1)
                                             .set(field(SubdivisionBean::id), 2)
-                                            .set(field(SubdivisionBean::division), divisionBean1)
                                             .set(field(SubdivisionBean::index), 2)
                                             .create();
     SubdivisionBean subdivision3 = Instancio.of(SubdivisionBean.class)
+                                            .set(field(DivisionBean::index).within(scope(DivisionBean.class)), 2)
                                             .set(field(SubdivisionBean::id), 3)
-                                            .set(field(SubdivisionBean::division), divisionBean2)
                                             .set(field(SubdivisionBean::index), 1)
                                             .create();
     SubdivisionBean subdivision4 = Instancio.of(SubdivisionBean.class)
+                                            .set(field(DivisionBean::index).within(scope(DivisionBean.class)), 2)
                                             .set(field(SubdivisionBean::id), 4)
-                                            .set(field(SubdivisionBean::division), divisionBean2)
                                             .set(field(SubdivisionBean::index), 2)
                                             .create();
     instance.setSubdivisions(List.of(subdivision1, subdivision2, subdivision3, subdivision4));

@@ -78,6 +78,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
 import static org.instancio.Select.field;
+import static org.instancio.Select.scope;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -442,12 +443,9 @@ public class MapServiceTest extends PlatformTest {
 
   @Test
   public void testGetMatchMakerMaps() throws Exception {
-    MapPoolAssignmentBean mapPoolAssignment1 = Instancio.of(MapPoolAssignmentBean.class)
-                                                        .set(field(MapPoolAssignmentBean::mapVersion),
-                                                             Instancio.create(MapVersionBean.class))
-                                                        .create();
+    MapPoolAssignmentBean mapPoolAssignment1 = Instancio.create(MapPoolAssignmentBean.class);
     MapPoolAssignmentBean mapPoolAssignment2 = Instancio.of(MapPoolAssignmentBean.class)
-                                                        .set(field(MapPoolAssignmentBean::mapVersion), null)
+                                                        .ignore(field(MapPoolAssignmentBean::mapVersion))
                                                         .set(field(MapPoolAssignmentBean::mapParams),
                                                              new NeroxisGeneratorParams().setVersion("0.0.0")
                                                                                          .setSize(512)
@@ -472,41 +470,22 @@ public class MapServiceTest extends PlatformTest {
   @Test
   public void testGetMatchMakerMapsWithPagination() throws Exception {
     MapPoolAssignmentBean mapPoolAssignment1 = Instancio.of(MapPoolAssignmentBean.class)
-                                                        .set(field(MapPoolAssignmentBean::mapVersion),
-                                                             Instancio.of(MapVersionBean.class)
-                                                                      .set(field(MapVersionBean::map),
-                                                                           Instancio.of(MapBean.class)
-                                                                                                .set(field(
-                                                                                                         MapBean::displayName),
-                                                                                                     "a")
-                                                                                                .create())
-                                                                      .set(field(MapVersionBean::size),
-                                                                           MapSize.valueOf(512, 512))
-                                                                      .create())
+                                                        .set(field(MapVersionBean::size).within(
+                                                            scope(MapVersionBean.class)), MapSize.valueOf(512, 512))
+                                                        .set(field(MapBean::displayName).within(scope(MapBean.class)),
+                                                             "a")
                                                         .create();
     MapPoolAssignmentBean mapPoolAssignment2 = Instancio.of(MapPoolAssignmentBean.class)
-                                                        .set(field(MapPoolAssignmentBean::mapVersion),
-                                                             Instancio.of(MapVersionBean.class)
-                                                                      .set(field(MapVersionBean::map),
-                                                                           Instancio.of(MapBean.class)
-                                                                                    .set(field(MapBean::displayName),
-                                                                                         "b")
-                                                                                    .create())
-                                                                      .set(field(MapVersionBean::size),
-                                                                           MapSize.valueOf(512, 512))
-                                                                      .create())
+                                                        .set(field(MapVersionBean::size).within(
+                                                            scope(MapVersionBean.class)), MapSize.valueOf(512, 512))
+                                                        .set(field(MapBean::displayName).within(scope(MapBean.class)),
+                                                             "b")
                                                         .create();
     MapPoolAssignmentBean mapPoolAssignment3 = Instancio.of(MapPoolAssignmentBean.class)
-                                                        .set(field(MapPoolAssignmentBean::mapVersion),
-                                                             Instancio.of(MapVersionBean.class)
-                                                                      .set(field(MapVersionBean::map),
-                                                                           Instancio.of(MapBean.class)
-                                                                                    .set(field(MapBean::displayName),
-                                                                                         "c")
-                                                                                    .create())
-                                                                      .set(field(MapVersionBean::size),
-                                                                           MapSize.valueOf(1024, 1024))
-                                                                      .create())
+                                                        .set(field(MapVersionBean::size).within(
+                                                            scope(MapVersionBean.class)), MapSize.valueOf(1024, 1024))
+                                                        .set(field(MapBean::displayName).within(scope(MapBean.class)),
+                                                             "c")
                                                         .create();
 
     Flux<ElideEntity> resultFlux = Flux.fromIterable(matchmakerMapper.mapAssignmentBeans(List.of(mapPoolAssignment1, mapPoolAssignment2, mapPoolAssignment3), new CycleAvoidingMappingContext()));

@@ -46,12 +46,11 @@ public class ReviewServiceTest extends ServiceTest {
 
   @Test
   public void saveNewGameReview() throws Exception {
-    ReplayReviewBean reviewBean = Instancio.of(ReplayReviewBean.class).set(field(ReplayReviewBean::id), null).create();
+    ReplayReviewBean reviewBean = Instancio.of(ReplayReviewBean.class).ignore(field(ReplayReviewBean::id)).create();
     Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
 
-    StepVerifier.create(instance.saveReview(Instancio.of(ReplayReviewBean.class)
-                                                     .set(field(ReplayReviewBean::id), null)
+    StepVerifier.create(instance.saveReview(Instancio.of(ReplayReviewBean.class).ignore(field(ReplayReviewBean::id))
                                                      .set(field(ReplayReviewBean::subject),
                                                           ReplayBeanBuilder.create().defaultValues().get())
                                                      .create())).expectNextCount(1).verifyComplete();
@@ -62,14 +61,13 @@ public class ReviewServiceTest extends ServiceTest {
 
   @Test
   public void saveNewMapVersionReview() throws Exception {
-    MapVersionReviewBean reviewBean = Instancio.of(MapVersionReviewBean.class)
-                                               .set(field(MapVersionReviewBean::id), null)
+    MapVersionReviewBean reviewBean = Instancio.of(MapVersionReviewBean.class).ignore(field(MapVersionReviewBean::id))
                                                .create();
     Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
 
     StepVerifier.create(instance.saveReview(Instancio.of(MapVersionReviewBean.class)
-                                                     .set(field(MapVersionReviewBean::id), null)
+                                                     .ignore(field(MapVersionReviewBean::id))
                                                      .set(field(MapVersionReviewBean::subject),
                                                           Instancio.create(MapVersionBean.class))
                                                      .create())).expectNextCount(1).verifyComplete();
@@ -85,7 +83,7 @@ public class ReviewServiceTest extends ServiceTest {
     when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
 
     StepVerifier.create(instance.saveReview(Instancio.of(ModVersionReviewBean.class)
-                                                     .set(field(ModVersionReviewBean::id), null)
+                                                     .ignore(field(ModVersionReviewBean::id))
                                                      .set(field(ModVersionReviewBean::subject),
                                                           Instancio.create(ModVersionBean.class))
                                                      .create())).expectNextCount(1).verifyComplete();
@@ -109,10 +107,9 @@ public class ReviewServiceTest extends ServiceTest {
   public void updateMapVersionReview() throws Exception {
     when(fafApiAccessor.patch(any(), any())).thenReturn(Mono.empty());
 
-    StepVerifier.create(instance.saveReview(Instancio.of(MapVersionReviewBean.class)
-                                                     .set(field(MapVersionReviewBean::subject),
-                                                          Instancio.create(MapVersionBean.class))
-                                                     .create())).expectNextCount(1).verifyComplete();
+    StepVerifier.create(instance.saveReview(Instancio.create(MapVersionReviewBean.class)))
+                .expectNextCount(1)
+                .verifyComplete();
     verify(fafApiAccessor).patch(any(ElideNavigatorOnId.class), any());
   }
 
@@ -120,10 +117,9 @@ public class ReviewServiceTest extends ServiceTest {
   public void updateModVersionReview() throws Exception {
     when(fafApiAccessor.patch(any(), any())).thenReturn(Mono.empty());
 
-    StepVerifier.create(instance.saveReview(Instancio.of(ModVersionReviewBean.class)
-                                                     .set(field(ModVersionReviewBean::subject),
-                                                          Instancio.create(ModVersionBean.class))
-                                                     .create())).expectNextCount(1).verifyComplete();
+    StepVerifier.create(instance.saveReview(Instancio.of(ModVersionReviewBean.class).create()))
+                .expectNextCount(1)
+                .verifyComplete();
     verify(fafApiAccessor).patch(any(ElideNavigatorOnId.class), any());
   }
 
