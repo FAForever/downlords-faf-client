@@ -1,14 +1,10 @@
 package com.faforever.client.mapstruct;
 
-import com.faforever.client.domain.api.MapReviewsSummary;
 import com.faforever.client.domain.api.MapVersionReview;
-import com.faforever.client.domain.api.MapVersionReviewsSummary;
-import com.faforever.client.domain.api.ModReviewsSummary;
 import com.faforever.client.domain.api.ModVersionReview;
-import com.faforever.client.domain.api.ModVersionReviewsSummary;
 import com.faforever.client.domain.api.ReplayReview;
-import com.faforever.client.domain.api.ReplayReviewsSummary;
 import com.faforever.client.domain.api.ReviewBean;
+import com.faforever.client.domain.api.ReviewsSummary;
 import com.faforever.commons.api.dto.GameReview;
 import com.faforever.commons.api.dto.GameReviewsSummary;
 import com.faforever.commons.api.dto.Review;
@@ -59,50 +55,27 @@ public interface ReviewMapper {
                                                      @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "numReviews", source = "reviews")
-  @Mapping(target = "subject", source = "game")
-  ReplayReviewsSummary map(GameReviewsSummary dto, @Context CycleAvoidingMappingContext context);
+  ReviewsSummary map(GameReviewsSummary dto, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "reviews", source = "numReviews")
-  @Mapping(target = "game", source = "subject")
-  GameReviewsSummary map(ReplayReviewsSummary bean, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "game", ignore = true)
+  GameReviewsSummary mapToGame(ReviewsSummary bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "numReviews", source = "reviews")
-  @Mapping(target = "subject", source = "mapVersion")
-  MapVersionReviewsSummary map(com.faforever.commons.api.dto.MapVersionReviewsSummary dto,
-                               @Context CycleAvoidingMappingContext context);
-
-  @Mapping(target = "reviews", source = "numReviews")
-  @Mapping(target = "mapVersion", source = "subject")
-  com.faforever.commons.api.dto.MapVersionReviewsSummary map(MapVersionReviewsSummary bean,
-                                                             @Context CycleAvoidingMappingContext context);
-
-  @Mapping(target = "numReviews", source = "reviews")
-  @Mapping(target = "subject", source = "modVersion")
-  ModVersionReviewsSummary map(com.faforever.commons.api.dto.ModVersionReviewsSummary dto,
-                               @Context CycleAvoidingMappingContext context);
-
-  @Mapping(target = "reviews", source = "numReviews")
-  @Mapping(target = "modVersion", source = "subject")
-  com.faforever.commons.api.dto.ModVersionReviewsSummary map(ModVersionReviewsSummary bean,
-                                                             @Context CycleAvoidingMappingContext context);
-
-  @Mapping(target = "numReviews", source = "reviews")
-  @Mapping(target = "subject", source = "map")
-  MapReviewsSummary map(com.faforever.commons.api.dto.MapReviewsSummary dto,
+  ReviewsSummary map(com.faforever.commons.api.dto.MapReviewsSummary dto,
                         @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "reviews", source = "numReviews")
-  @Mapping(target = "map", source = "subject")
-  com.faforever.commons.api.dto.MapReviewsSummary map(MapReviewsSummary bean,
+  @Mapping(target = "map", ignore = true)
+  com.faforever.commons.api.dto.MapReviewsSummary mapToMap(ReviewsSummary bean,
                                                       @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "numReviews", source = "reviews")
-  @Mapping(target = "subject", source = "mod")
-  ModReviewsSummary map(com.faforever.commons.api.dto.ModReviewsSummary dto,
+  ReviewsSummary map(com.faforever.commons.api.dto.ModReviewsSummary dto,
                         @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "reviews", source = "numReviews")
-  @Mapping(target = "mod", source = "subject")
-  com.faforever.commons.api.dto.ModReviewsSummary map(ModReviewsSummary bean,
+  @Mapping(target = "mod", ignore = true)
+  com.faforever.commons.api.dto.ModReviewsSummary mapToMod(ReviewsSummary bean,
                                                       @Context CycleAvoidingMappingContext context);
 }

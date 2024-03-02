@@ -8,8 +8,7 @@ public record Subdivision(
     String descriptionKey,
     int index,
     int highestScore,
-    int maxRating,
-    int minRating, Division division,
+    int maxRating, int minRating, Division division,
     URL imageUrl,
     URL mediumImageUrl,
     URL smallImageUrl

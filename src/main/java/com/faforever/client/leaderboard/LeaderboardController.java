@@ -57,7 +57,7 @@ public class LeaderboardController extends NodeController<StackPane> {
 
     seasonLabel.textProperty()
                .bind(leagueSeason.map(seasonBean -> i18n.getOrDefault(seasonBean.nameKey(),
-                                                                      "leagueLeaderboard.season.%s".formatted(
+                                                                      "leaderboard.season.%s".formatted(
                                                                           seasonBean.nameKey()),
                                                                       seasonBean.seasonNumber()))
                                  .map(String::toUpperCase)

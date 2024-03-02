@@ -97,7 +97,7 @@ public class LeaderboardControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     player = PlayerInfoBuilder.create().defaultValues().id(3).username("junit").get();
-    lenient().when(i18n.getOrDefault("seasonName", "leagueLeaderboard.season.seasonName", 1))
+    lenient().when(i18n.getOrDefault("seasonName", "leaderboard.season.seasonName", 1))
              .thenReturn("seasonName 1");
     lenient().when(i18n.get("leaderboard.seasonDate", null, null)).thenReturn("-");
 

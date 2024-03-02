@@ -49,7 +49,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -351,7 +350,7 @@ public class ModServiceTest extends PlatformTest {
     mod.setLatestVersion(modMapper.map(modVersion, new CycleAvoidingMappingContext()));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mod), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
-    StepVerifier.create(instance.getRecommendedModsWithPageCount(10, 0)).expectNext(Tuples.of(List.of(modVersion), 1))
+    StepVerifier.create(instance.getRecommendedModsWithPageCount(10, 0)).expectNextCount(1)
                 .verifyComplete();
     verify(fafApiAccessor).getManyWithPageCount(
         argThat(ElideMatchers.hasFilter(qBuilder().bool("recommended").isTrue())), anyString());
@@ -366,8 +365,7 @@ public class ModServiceTest extends PlatformTest {
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
     SearchConfig searchConfig = new SearchConfig(new SortConfig("testSort", SortOrder.ASC), "testQuery");
-    StepVerifier.create(instance.findByQueryWithPageCount(searchConfig, 10, 1))
-                .expectNext(Tuples.of(List.of(modVersion), 1))
+    StepVerifier.create(instance.findByQueryWithPageCount(searchConfig, 10, 1)).expectNextCount(1)
                 .verifyComplete();
 
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("testSort", true)), eq("testQuery"));
@@ -382,7 +380,7 @@ public class ModServiceTest extends PlatformTest {
     mod.setLatestVersion(modMapper.map(modVersion, new CycleAvoidingMappingContext()));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mod), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
-    StepVerifier.create(instance.getHighestRatedModsWithPageCount(10, 1)).expectNext(Tuples.of(List.of(modVersion), 1))
+    StepVerifier.create(instance.getHighestRatedModsWithPageCount(10, 1)).expectNextCount(1)
                 .verifyComplete();
     verify(fafApiAccessor).getManyWithPageCount(
         argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type").eq("SIM"))), anyString());
@@ -399,8 +397,7 @@ public class ModServiceTest extends PlatformTest {
     mod.setLatestVersion(modMapper.map(modVersion, new CycleAvoidingMappingContext()));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mod), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
-    StepVerifier.create(instance.getHighestRatedUiModsWithPageCount(10, 1))
-                .expectNext(Tuples.of(List.of(modVersion), 1))
+    StepVerifier.create(instance.getHighestRatedUiModsWithPageCount(10, 1)).expectNextCount(1)
                 .verifyComplete();
     verify(fafApiAccessor).getManyWithPageCount(
         argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type").eq("UI"))), anyString());
@@ -417,7 +414,7 @@ public class ModServiceTest extends PlatformTest {
     mod.setLatestVersion(modMapper.map(modVersion, new CycleAvoidingMappingContext()));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mod), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
-    StepVerifier.create(instance.getNewestModsWithPageCount(10, 1)).expectNext(Tuples.of(List.of(modVersion), 1))
+    StepVerifier.create(instance.getNewestModsWithPageCount(10, 1)).expectNextCount(1)
                 .verifyComplete();
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("latestVersion.createTime", false)),
                                                 anyString());

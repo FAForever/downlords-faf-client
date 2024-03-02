@@ -5,7 +5,7 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Vault;
 import com.faforever.client.domain.api.Map;
-import com.faforever.client.domain.api.Map.MapType;
+import com.faforever.client.domain.api.MapType;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.domain.server.PlayerInfo;

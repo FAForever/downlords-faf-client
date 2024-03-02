@@ -5,7 +5,7 @@ import com.faforever.client.domain.api.GamePlayerStats;
 import com.faforever.client.domain.api.Map;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.api.Replay;
-import com.faforever.client.domain.api.ReplayReviewsSummary;
+import com.faforever.client.domain.api.ReviewsSummary;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
@@ -128,14 +128,12 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
       OffsetDateTime endTime = replayBean.endTime();
       return startTime == null || endTime == null ? null : Duration.between(startTime, endTime);
     }).map(timeService::shortDuration).orElse(i18n.get("notAvailable")).when(showing));
-    numberOfReviewsLabel.textProperty()
-                        .bind(entity.map(Replay::gameReviewsSummary)
-                                    .map(ReplayReviewsSummary::numReviews)
+    numberOfReviewsLabel.textProperty().bind(entity.map(Replay::reviewsSummary).map(ReviewsSummary::numReviews)
                                     .orElse(0)
                                     .map(i18n::number)
                                     .when(showing));
     replayIdField.textProperty().bind(entity.map(Replay::id).map(id -> i18n.get("game.idFormat", id)).when(showing));
-    starsController.valueProperty().bind(entity.map(Replay::gameReviewsSummary)
+    starsController.valueProperty().bind(entity.map(Replay::reviewsSummary)
                     .map(reviewsSummary -> reviewsSummary.score() / reviewsSummary.numReviews())
             .when(showing));
 

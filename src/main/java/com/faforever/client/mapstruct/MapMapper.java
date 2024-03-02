@@ -1,7 +1,7 @@
 package com.faforever.client.mapstruct;
 
 import com.faforever.client.domain.api.Map;
-import com.faforever.client.domain.api.Map.MapType;
+import com.faforever.client.domain.api.MapType;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.map.MapSize;
 import com.faforever.commons.api.dto.MapPoolAssignment;
@@ -14,6 +14,7 @@ import java.util.List;
 
 @Mapper(uses = {PlayerMapper.class, ReviewMapper.class}, config = MapperConfiguration.class)
 public interface MapMapper {
+  @Mapping(target = "reviewsSummary", source = "mapReviewsSummary")
   Map map(com.faforever.commons.api.dto.Map dto, @Context CycleAvoidingMappingContext context);
 
   com.faforever.commons.api.dto.Map map(Map bean, @Context CycleAvoidingMappingContext context);

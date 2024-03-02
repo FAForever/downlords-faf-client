@@ -34,6 +34,7 @@ public interface LeaderboardMapper {
   com.faforever.commons.api.dto.LeaderboardEntry map(LeaderboardEntry bean,
                                                      @Context CycleAvoidingMappingContext context);
 
+  @Mapping(target = "scoreTime", source = "gamePlayerStats.scoreTime")
   LeaderboardRatingJournal map(com.faforever.commons.api.dto.LeaderboardRatingJournal dto,
                                @Context CycleAvoidingMappingContext context);
 

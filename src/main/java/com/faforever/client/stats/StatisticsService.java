@@ -36,7 +36,8 @@ public class StatisticsService {
                                                                                                                                    "gamePlayerStats.player.id")
                                                                                                                                .eq(player.getId())
                                                                                                                                .and()
-                             .intNum("leagueLeaderboard.id")
+                                                                                                                               .intNum(
+                                                                                                                                   "leaderboard.id")
                              .eq(leaderboard.id()))
                                                                                                                  .pageSize(
                                                                                                                      fafApiAccessor.getMaxPageSize());

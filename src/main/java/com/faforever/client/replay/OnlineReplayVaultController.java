@@ -146,7 +146,7 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
                       .subscribe(featuredModFilterController::setItems);
 
     CategoryFilterController leaderboardFilterController = searchController.addCategoryFilter(
-        "playerStats.ratingChanges.leagueLeaderboard.id",
+        "playerStats.ratingChanges.leaderboard.id",
         i18n.get("leaderboard.displayName"), Map.of());
 
     leaderboardService.getLeaderboards()

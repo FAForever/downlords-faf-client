@@ -4,7 +4,7 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.api.Replay;
-import com.faforever.client.domain.api.ReplayReviewsSummary;
+import com.faforever.client.domain.api.ReviewsSummary;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
@@ -454,9 +454,9 @@ public class ReplayServiceTest extends ServiceTest {
 
   @Test
   public void testGetHighestRated() {
-    ReplayReviewsSummary replayReviewsSummary = Instancio.create(ReplayReviewsSummary.class);
+    ReviewsSummary replayReviewsSummary = Instancio.create(ReviewsSummary.class);
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
-        List.of(reviewMapper.map(replayReviewsSummary, new CycleAvoidingMappingContext())), 1);
+        List.of(reviewMapper.mapToGame(replayReviewsSummary, new CycleAvoidingMappingContext())), 1);
     when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
 
     StepVerifier.create(instance.getHighestRatedReplaysWithPageCount(10, 1)).expectNextCount(1)

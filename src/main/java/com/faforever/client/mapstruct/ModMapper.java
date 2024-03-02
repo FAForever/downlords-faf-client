@@ -32,6 +32,7 @@ public interface ModMapper {
         .orElse(null);
     }
 
+  @Mapping(target = "reviewsSummary", source = "modReviewsSummary")
   Mod map(com.faforever.commons.api.dto.Mod dto, @Context CycleAvoidingMappingContext context);
 
   com.faforever.commons.api.dto.Mod map(Mod bean, @Context CycleAvoidingMappingContext context);

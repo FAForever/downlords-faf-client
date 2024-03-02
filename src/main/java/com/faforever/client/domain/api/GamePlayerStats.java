@@ -8,8 +8,7 @@ import java.util.List;
 
 public record GamePlayerStats(
     PlayerInfo player, byte score, byte team,
-    Faction faction,
-    OffsetDateTime scoreTime, Replay game, List<LeaderboardRatingJournal> leaderboardRatingJournals
+    Faction faction, OffsetDateTime scoreTime, List<LeaderboardRatingJournal> leaderboardRatingJournals
 ) {
 
   public GamePlayerStats {

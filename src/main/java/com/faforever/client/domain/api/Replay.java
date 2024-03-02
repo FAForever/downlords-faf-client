@@ -23,8 +23,7 @@ public record Replay(
     Path replayFile,
     Integer replayTicks,
     List<ChatMessage> chatMessages,
-    List<GameOption> gameOptions,
-    Validity validity, ReplayReviewsSummary gameReviewsSummary,
+    List<GameOption> gameOptions, Validity validity, ReviewsSummary reviewsSummary,
     boolean local
 ) {
 
@@ -54,7 +53,7 @@ public record Replay(
   public Replay withReplayDetails(ReplayDetails replayDetails, Path replayFile) {
     return new Replay(id(), title(), replayAvailable(), teams(), teamPlayerStats(), host(), startTime(), endTime(),
                       featuredMod(), replayDetails.mapVersion(), replayFile, replayTicks(),
-                      replayDetails.chatMessages(), replayDetails.gameOptions(), validity(), gameReviewsSummary(),
+                      replayDetails.chatMessages(), replayDetails.gameOptions(), validity(), reviewsSummary(),
                       local());
   }
 

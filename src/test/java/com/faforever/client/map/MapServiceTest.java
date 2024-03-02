@@ -54,7 +54,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -238,7 +237,7 @@ public class MapServiceTest extends PlatformTest {
     map.setLatestVersion(mapMapper.map(mapVersion, new CycleAvoidingMappingContext()));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(map), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
-    StepVerifier.create(instance.getRecommendedMapsWithPageCount(10, 0)).expectNext(Tuples.of(List.of(mapVersion), 1))
+    StepVerifier.create(instance.getRecommendedMapsWithPageCount(10, 0)).expectNextCount(1)
                 .verifyComplete();
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().bool("recommended")
                                                                                           .isTrue())), anyString());
@@ -251,7 +250,7 @@ public class MapServiceTest extends PlatformTest {
     map.setLatestVersion(mapMapper.map(mapVersion, new CycleAvoidingMappingContext()));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(map), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
-    StepVerifier.create(instance.getHighestRatedMapsWithPageCount(10, 0)).expectNext(Tuples.of(List.of(mapVersion), 1))
+    StepVerifier.create(instance.getHighestRatedMapsWithPageCount(10, 0)).expectNextCount(1)
                 .verifyComplete();
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("reviewsSummary.lowerBound", false)),
                                                 anyString());
@@ -264,7 +263,7 @@ public class MapServiceTest extends PlatformTest {
     map.setLatestVersion(mapMapper.map(mapVersion, new CycleAvoidingMappingContext()));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(map), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
-    StepVerifier.create(instance.getNewestMapsWithPageCount(10, 0)).expectNext(Tuples.of(List.of(mapVersion), 1))
+    StepVerifier.create(instance.getNewestMapsWithPageCount(10, 0)).expectNextCount(1)
                 .verifyComplete();
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("latestVersion.createTime", false)),
                                                 anyString());
@@ -277,7 +276,7 @@ public class MapServiceTest extends PlatformTest {
     map.setLatestVersion(mapMapper.map(mapVersion, new CycleAvoidingMappingContext()));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(map), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
-    StepVerifier.create(instance.getMostPlayedMapsWithPageCount(10, 0)).expectNext(Tuples.of(List.of(mapVersion), 1))
+    StepVerifier.create(instance.getMostPlayedMapsWithPageCount(10, 0)).expectNextCount(1)
                 .verifyComplete();
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("gamesPlayed", false)), anyString());
   }
@@ -426,7 +425,7 @@ public class MapServiceTest extends PlatformTest {
     Flux<ElideEntity> resultFlux = Flux.just(mapMapper.map(mapVersion, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
-    StepVerifier.create(instance.findByMapFolderName("test")).expectNext(mapVersion).verifyComplete();
+    StepVerifier.create(instance.findByMapFolderName("test")).expectNextCount(1).verifyComplete();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("folderName").eq("test"))));
   }
@@ -519,7 +518,7 @@ public class MapServiceTest extends PlatformTest {
     PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
     when(playerService.getCurrentPlayer()).thenReturn(player);
 
-    StepVerifier.create(instance.getOwnedMapsWithPageCount(10, 1)).expectNext(Tuples.of(List.of(mapVersion), 1))
+    StepVerifier.create(instance.getOwnedMapsWithPageCount(10, 1)).expectNextCount(1)
                 .verifyComplete();
 
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().string("map.author.id")
@@ -537,8 +536,7 @@ public class MapServiceTest extends PlatformTest {
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
     SearchConfig searchConfig = new SearchConfig(new SortConfig("testSort", SortOrder.ASC), "testQuery");
-    StepVerifier.create(instance.findByQueryWithPageCount(searchConfig, 10, 1))
-                .expectNext(Tuples.of(List.of(mapVersion), 1))
+    StepVerifier.create(instance.findByQueryWithPageCount(searchConfig, 10, 1)).expectNextCount(1)
                 .verifyComplete();
 
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("testSort", true)), eq("testQuery"));

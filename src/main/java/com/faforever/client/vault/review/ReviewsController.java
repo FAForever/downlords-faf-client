@@ -138,8 +138,10 @@ public class ReviewsController<R extends ReviewBean<R>> extends NodeController<P
       PlayerInfo currentPlayer = playerService.getCurrentPlayer();
       return reviews.stream()
                     .filter(review -> Objects.equals(currentPlayer, review.player()))
-                    .max(Comparator.comparing(ReviewBean::version))
-                    .orElseGet(() -> reviewSupplier.get().get());
+                    .max(Comparator.comparing(ReviewBean::version)).orElseGet(() -> {
+            Supplier<R> supplier = reviewSupplier.get();
+            return supplier == null ? null : supplier.get();
+          });
     }, playerService.currentPlayerProperty(), reviews, reviewSupplier)).otherwise((R) null);
     ownReviewController.reviewProperty().bind(ownReviewBinding.when(showing));
 

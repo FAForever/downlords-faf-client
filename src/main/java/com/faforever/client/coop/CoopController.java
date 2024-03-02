@@ -261,7 +261,7 @@ public class CoopController extends NodeController<Node> {
                .collectList()
                .publishOn(fxApplicationThreadExecutor.asScheduler())
                .subscribe(leaderboardUnFilteredList::setAll, throwable -> {
-                 log.warn("Could not load coop leagueLeaderboard", throwable);
+                 log.warn("Could not load coop leaderboard", throwable);
                  notificationService.addImmediateErrorNotification(throwable, "coop.leaderboard.couldNotLoad");
                });
   }

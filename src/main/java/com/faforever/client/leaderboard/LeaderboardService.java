@@ -62,8 +62,12 @@ public class LeaderboardService {
   @Cacheable(value = CacheNames.LEADERBOARD, sync = true)
   public Flux<LeaderboardEntry> getEntriesForPlayer(PlayerInfo player) {
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.LeaderboardEntry> navigator = ElideNavigator.of(
-        com.faforever.commons.api.dto.LeaderboardEntry.class).collection().setFilter(qBuilder().intNum("player.id")
-                                                                                                .eq(player.getId()));
+                                                                                                             com.faforever.commons.api.dto.LeaderboardEntry.class)
+                                                                                                         .collection()
+                                                                                                         .setFilter(
+                                                                                                             qBuilder().intNum(
+                                                                                                                           "player.id")
+                                                                                                                       .eq(player.getId()));
     return fafApiAccessor.getMany(navigator)
                          .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
                          .cache();
@@ -81,15 +85,22 @@ public class LeaderboardService {
   @Cacheable(value = CacheNames.DIVISIONS, sync = true)
   public Flux<LeagueSeason> getActiveSeasons() {
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.LeagueSeason> navigator = ElideNavigator.of(
-        com.faforever.commons.api.dto.LeagueSeason.class).collection().setFilter(qBuilder().instant("startDate")
-                                                                                            .before(OffsetDateTime.now()
-                                                                                                                  .toInstant(),
-                                                                                                    false)
-                                                                                            .and()
-                                                                                            .instant("endDate")
-                                                                                            .after(OffsetDateTime.now()
-                                                                                                                 .toInstant(),
-                                                                                                   false));
+                                                                                                         com.faforever.commons.api.dto.LeagueSeason.class)
+                                                                                                     .collection()
+                                                                                                     .setFilter(
+                                                                                                         qBuilder().instant(
+                                                                                                                       "startDate")
+                                                                                                                   .before(
+                                                                                                                       OffsetDateTime.now()
+                                                                                                                                     .toInstant(),
+                                                                                                                       false)
+                                                                                                                   .and()
+                                                                                                                   .instant(
+                                                                                                                       "endDate")
+                                                                                                                   .after(
+                                                                                                                       OffsetDateTime.now()
+                                                                                                                                     .toInstant(),
+                                                                                                                       false));
     return fafApiAccessor.getMany(navigator)
                          .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
                          .cache();
@@ -103,12 +114,14 @@ public class LeaderboardService {
                                                                                                      .setFilter(
                                                                                                          qBuilder().intNum(
                                                                                                                        "league.id")
-                                                                                            .eq(league.id())
-                                                                                            .and()
-                                                                                            .instant("startDate")
-                                                                                            .before(OffsetDateTime.now()
-                                                                                                                  .toInstant(),
-                                                                                                    false))
+                                                                                                                   .eq(league.id())
+                                                                                                                   .and()
+                                                                                                                   .instant(
+                                                                                                                       "startDate")
+                                                                                                                   .before(
+                                                                                                                       OffsetDateTime.now()
+                                                                                                                                     .toInstant(),
+                                                                                                                       false))
                                                                                                      .addSortingRule(
                                                                                                          "startDate",
                                                                                                          false);
@@ -167,7 +180,7 @@ public class LeaderboardService {
                                                                                                  .eq(player.getId())
                                                                                                  .and()
                                                                                                  .string(
-                                                                                                     "leagueSeason.leagueLeaderboard.technicalName")
+                                                                                                     "leagueSeason.leaderboard.technicalName")
                                                                                                  .eq(leaderboardName)
                                                                                                  .and()
                                                                                                  .instant(
@@ -202,13 +215,10 @@ public class LeaderboardService {
                                                                                 false)
                                                                             .addSortingRule(
                                                                                 "leagueSeasonDivisionSubdivision.subdivisionIndex",
-                                                                                false)
+                                                                                false).addSortingRule("score", false)
                                                                             .pageSize(fafApiAccessor.getMaxPageSize());
 
-    return fafApiAccessor.getMany(navigator).index()
-                         .collectList()
-                         .flatMapMany(this::mapLeagueEntryDtoToBean)
-                         .cache();
+    return fafApiAccessor.getMany(navigator).index().collectList().flatMapMany(this::mapLeagueEntryDtoToBean).cache();
   }
 
   private Flux<LeagueEntry> mapLeagueEntryDtoToBean(List<Tuple2<Long, LeagueSeasonScore>> seasonScoresWithRank) {
@@ -216,12 +226,12 @@ public class LeaderboardService {
                                                                                        .collect(Collectors.toMap(
                                                                                            tuple -> tuple.getT2()
                                                                                                          .getLoginId(),
-                                                                                      Function.identity()));
+                                                                                           Function.identity()));
     return playerService.getPlayersByIds(scoresByPlayer.keySet()).map(player -> {
       Tuple2<Long, LeagueSeasonScore> seasonScoreWithRank = scoresByPlayer.get(player.getId());
       return leaderboardMapper.map(seasonScoreWithRank.getT2(), player, seasonScoreWithRank.getT1(),
                                    new CycleAvoidingMappingContext());
-    });
+    }).sort(Comparator.comparing(LeagueEntry::rank));
   }
 
   @Cacheable(value = CacheNames.DIVISIONS, sync = true)

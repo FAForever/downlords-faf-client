@@ -2,7 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.domain.api.FeaturedMod;
 import com.faforever.client.domain.api.Map;
-import com.faforever.client.domain.api.Map.MapType;
+import com.faforever.client.domain.api.MapType;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.exception.NotifiableException;

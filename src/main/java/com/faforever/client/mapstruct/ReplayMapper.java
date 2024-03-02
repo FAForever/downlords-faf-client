@@ -45,6 +45,7 @@ public interface ReplayMapper {
   @Mapping(target = "title", source = "name")
   @Mapping(target = "teamPlayerStats", source = "dto", qualifiedBy = MapTeamStats.class)
   @Mapping(target = "teams", source = "dto", qualifiedBy = MapTeams.class)
+  @Mapping(target = "reviewsSummary", source = "gameReviewsSummary")
   Replay map(Game dto, @Context CycleAvoidingMappingContext context);
 
   @MapTeams
@@ -137,7 +138,7 @@ public interface ReplayMapper {
                                                                               null);
         Float factionFloat = (Float) armyInfo.get("Faction");
         Faction faction = Faction.fromFaValue(factionFloat.intValue());
-        GamePlayerStats stats = new GamePlayerStats(player, (byte) 0, team, faction, null, null,
+        GamePlayerStats stats = new GamePlayerStats(player, (byte) 0, team, faction, null,
                                                     List.of(ratingJournal));
         teams.computeIfAbsent(teamString, key -> new ArrayList<>()).add(stats);
       }

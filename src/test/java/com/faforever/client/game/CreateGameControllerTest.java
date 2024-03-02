@@ -497,7 +497,6 @@ public class CreateGameControllerTest extends PlatformTest {
 
     predicate.setValue((item) -> filter.apply("Not in Filtered Maps", item));
     runOnFxThreadAndWait(() -> {
-      instance.mapListView.getSelectionModel().select(0);
       instance.mapSearchTextField.setText("Not in Filtered Maps");
     });
 

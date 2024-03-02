@@ -198,7 +198,7 @@ public class LeaderboardServiceTest extends ServiceTest {
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId())
                                                                              .and()
                                                                              .string(
-                                                                                 "leagueSeason.leagueLeaderboard.technicalName")
+                                                                                 "leagueSeason.leaderboard.technicalName")
                                                                              .eq(leaderboard.technicalName()))));
   }
 

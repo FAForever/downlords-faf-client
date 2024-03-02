@@ -1,9 +1,9 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.domain.api.Mod;
-import com.faforever.client.domain.api.ModReviewsSummary;
 import com.faforever.client.domain.api.ModType;
 import com.faforever.client.domain.api.ModVersion;
+import com.faforever.client.domain.api.ReviewsSummary;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
@@ -53,13 +53,11 @@ public class ModCardController extends VaultEntityCardController<ModVersion> {
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(installButton, uninstallButton);
     ObservableValue<Mod> modObservable = entity.map(ModVersion::mod);
-    numberOfReviewsLabel.textProperty()
-                        .bind(modObservable.map(Mod::modReviewsSummary)
-                                           .map(ModReviewsSummary::numReviews)
+    numberOfReviewsLabel.textProperty().bind(modObservable.map(Mod::reviewsSummary).map(ReviewsSummary::numReviews)
                                            .orElse(0)
                                            .map(i18n::number)
                                            .when(showing));
-    starsController.valueProperty().bind(modObservable.map(Mod::modReviewsSummary)
+    starsController.valueProperty().bind(modObservable.map(Mod::reviewsSummary)
                            .map(reviewsSummary -> reviewsSummary.score() / reviewsSummary.numReviews())
             .when(showing));
 

@@ -84,7 +84,7 @@ public class FafApiAccessor implements InitializingBean {
   static final java.util.Map<Class<? extends ElideEntity>, List<String>> INCLUDES = java.util.Map.ofEntries(
       java.util.Map.entry(CoopResult.class, List.of("game.playerStats.player")),
       java.util.Map.entry(Clan.class, List.of("leader", "founder", "memberships", "memberships.player")),
-      java.util.Map.entry(LeaderboardEntry.class, List.of("player", "leagueLeaderboard")),
+      java.util.Map.entry(LeaderboardEntry.class, List.of("player", "leaderboard")),
       java.util.Map.entry(LeaderboardRatingJournal.class, List.of("gamePlayerStats")),
       java.util.Map.entry(GameReviewsSummary.class,
           List.of("game", "game.featuredMod", "game.playerStats", "game.playerStats.player", "game.playerStats.ratingChanges",
@@ -92,11 +92,11 @@ public class FafApiAccessor implements InitializingBean {
       java.util.Map.entry(Game.class,
           List.of("featuredMod", "playerStats", "playerStats.player", "playerStats.ratingChanges",
               "mapVersion", "mapVersion.map", "mapVersion.map", "reviewsSummary")),
-      java.util.Map.entry(LeagueSeason.class, List.of("leagueLeaderboard", "league")),
+      java.util.Map.entry(LeagueSeason.class, List.of("leaderboard", "league")),
       java.util.Map.entry(LeagueSeasonScore.class,
-                          List.of("leagueSeason", "leagueSeason.leagueLeaderboard", "leagueSeason.league",
+                          List.of("leagueSeason", "leagueSeason.leaderboard", "leagueSeason.league",
           "leagueSeasonDivisionSubdivision", "leagueSeasonDivisionSubdivision.leagueSeasonDivision")),
-      java.util.Map.entry(LeagueSeasonDivisionSubdivision.class, List.of("leagueSeasonDivision", "leagueSeasonDivision.leagueSeason")),
+      java.util.Map.entry(LeagueSeasonDivisionSubdivision.class, List.of("leagueSeasonDivision")),
       java.util.Map.entry(MapVersion.class, List.of("map", "map.reviewsSummary", "map.author")),
       java.util.Map.entry(MapReviewsSummary.class, List.of("map.latestVersion", "map.author", "map.reviewsSummary")),
       java.util.Map.entry(Map.class, List.of("latestVersion", "author", "reviewsSummary")),
@@ -105,7 +105,7 @@ public class FafApiAccessor implements InitializingBean {
       java.util.Map.entry(ModReviewsSummary.class, List.of("mod.latestVersion", "mod.reviewsSummary", "mod.uploader")),
       java.util.Map.entry(Mod.class, List.of("latestVersion", "reviewsSummary", "uploader")),
       java.util.Map.entry(ModerationReport.class, List.of("reporter", "lastModerator", "reportedUsers", "game", "game.playerStats", "game.playerStats.player")),
-      java.util.Map.entry(MatchmakerQueue.class, List.of("leagueLeaderboard")),
+      java.util.Map.entry(MatchmakerQueue.class, List.of("leaderboard")),
       java.util.Map.entry(TutorialCategory.class, List.of("tutorials", "tutorials.mapVersion.map", "tutorials.mapVersion.map.latestVersion",
           "tutorials.mapVersion.map.author"))
   );

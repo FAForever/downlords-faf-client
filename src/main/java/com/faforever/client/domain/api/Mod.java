@@ -5,6 +5,5 @@ import com.faforever.client.domain.server.PlayerInfo;
 public record Mod(
     Integer id,
     String displayName,
-    boolean recommended,
-    String author, PlayerInfo uploader, ModReviewsSummary modReviewsSummary
+    boolean recommended, String author, PlayerInfo uploader, ReviewsSummary reviewsSummary
 ) {}

@@ -1,8 +1,8 @@
 package com.faforever.client.map;
 
 import com.faforever.client.domain.api.Map;
-import com.faforever.client.domain.api.MapReviewsSummary;
 import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.ReviewsSummary;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
@@ -85,13 +85,11 @@ public class MapCardController extends VaultEntityCardController<MapVersion> {
     installButton.visibleProperty().bind(isOfficialMap.not().and(isMapInstalled.not()).when(showing));
     uninstallButton.visibleProperty().bind(isOfficialMap.not().and(isMapInstalled).when(showing));
 
-    numberOfReviewsLabel.textProperty()
-                        .bind(mapObservable.map(Map::mapReviewsSummary)
-                                           .map(MapReviewsSummary::numReviews)
+    numberOfReviewsLabel.textProperty().bind(mapObservable.map(Map::reviewsSummary).map(ReviewsSummary::numReviews)
                                            .orElse(0)
                                            .map(i18n::number)
                                            .when(showing));
-    starsController.valueProperty().bind(mapObservable.map(Map::mapReviewsSummary)
+    starsController.valueProperty().bind(mapObservable.map(Map::reviewsSummary)
                            .map(reviewsSummary -> reviewsSummary.score() / reviewsSummary.numReviews())
             .when(showing));
   }

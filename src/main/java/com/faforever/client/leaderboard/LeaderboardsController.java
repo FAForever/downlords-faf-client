@@ -62,8 +62,7 @@ public class LeaderboardsController extends NodeController<Node> {
 
     leaderboardService.getLeagues()
                       .map(league -> {
-                        String buttonText = i18n.getOrDefault(league.technicalName(),
-                                                              String.format("leagueLeaderboard.%s",
+                        String buttonText = i18n.getOrDefault(league.technicalName(), String.format("leaderboard.%s",
                                                                             league.technicalName()));
                         ToggleButton toggleButton = new ToggleButton(buttonText);
                         toggleButton.setToggleGroup(navigation);

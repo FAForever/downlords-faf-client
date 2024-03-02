@@ -487,15 +487,14 @@ public class PlayerInfoWindowController extends NodeController<Node> {
     OffsetDateTime afterDate = OffsetDateTime.of(timePeriodComboBox.getValue().getDate(), ZoneOffset.UTC);
     List<XYChart.Data<Number, Number>> values = ratingData.stream()
                                                           .filter(ratingJournal -> {
-                                                            OffsetDateTime scoreTime = ratingJournal.gamePlayerStats()
+                                                            OffsetDateTime scoreTime = ratingJournal
                                                                                                     .scoreTime();
                                                             return scoreTime != null && scoreTime.isAfter(afterDate);
                                                           })
                                                           .sorted(Comparator.comparing(
-                                                              ratingJournal -> ratingJournal.gamePlayerStats()
-                                                                                            .scoreTime()))
+                                                              LeaderboardRatingJournal::scoreTime))
                                                           .map(ratingJournal -> new Data<>(
-                                                              (Number) ratingJournal.gamePlayerStats().scoreTime()
+                                                              (Number) ratingJournal.scoreTime()
                                                                                     .toEpochSecond(),
                                                               (Number) RatingUtil.getRating(ratingJournal)))
                                                           .collect(Collectors.toList());
