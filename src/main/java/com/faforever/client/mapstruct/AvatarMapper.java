@@ -12,12 +12,12 @@ import java.util.List;
 public interface AvatarMapper {
 
   @Mapping(target = "description", source = "tooltip")
-  Avatar map(com.faforever.commons.api.dto.Avatar dto, @Context CycleAvoidingMappingContext context);
+  Avatar map(com.faforever.commons.api.dto.Avatar dto);
 
   @Mapping(target = "tooltip", source = "description")
   com.faforever.commons.api.dto.Avatar map(Avatar bean, @Context CycleAvoidingMappingContext context);
 
-  Avatar map(Player.Avatar dto, @Context CycleAvoidingMappingContext context);
+  Avatar map(Player.Avatar dto);
 
-  List<Avatar> mapDtos(List<Player.Avatar> dtos, @Context CycleAvoidingMappingContext context);
+  List<Avatar> mapDtos(List<Player.Avatar> dtos);
 }

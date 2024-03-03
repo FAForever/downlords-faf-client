@@ -2,7 +2,6 @@ package com.faforever.client.tournament;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.domain.api.Tournament;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.TournamentMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +21,6 @@ public class TournamentService {
 
   public Flux<Tournament> getAllTournaments() {
     return fafApiAccessor.getMany(com.faforever.commons.api.dto.Tournament.class, "/challonge/v1/tournaments.json", 100,
-                                  Map.of())
-        .map(dto -> tournamentMapper.map(dto, new CycleAvoidingMappingContext())).cache();
+                                  Map.of()).map(tournamentMapper::map).cache();
   }
 }

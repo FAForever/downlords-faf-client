@@ -15,16 +15,16 @@ import java.util.List;
 @Mapper(uses = {PlayerMapper.class, ReviewMapper.class}, config = MapperConfiguration.class)
 public interface MapMapper {
   @Mapping(target = "reviewsSummary", source = "mapReviewsSummary")
-  Map map(com.faforever.commons.api.dto.Map dto, @Context CycleAvoidingMappingContext context);
+  Map map(com.faforever.commons.api.dto.Map dto);
 
   com.faforever.commons.api.dto.Map map(Map bean, @Context CycleAvoidingMappingContext context);
 
-  List<Map> mapMapDtos(List<com.faforever.commons.api.dto.Map> dto, @Context CycleAvoidingMappingContext context);
+  List<Map> mapMapDtos(List<com.faforever.commons.api.dto.Map> dto);
 
   List<com.faforever.commons.api.dto.Map> mapMapBeans(List<Map> bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "size", expression = "java(getMapSize(dto))")
-  MapVersion map(com.faforever.commons.api.dto.MapVersion dto, @Context CycleAvoidingMappingContext context);
+  MapVersion map(com.faforever.commons.api.dto.MapVersion dto);
 
   @Mapping(target = "width", source = "size.widthInPixels")
   @Mapping(target = "height", source = "size.heightInPixels")
@@ -37,8 +37,7 @@ public interface MapMapper {
     return new MapSize(dto.getWidth(), dto.getHeight());
   }
 
-  List<MapVersion> mapVersionDtos(List<com.faforever.commons.api.dto.MapVersion> dto,
-                                  @Context CycleAvoidingMappingContext context);
+  List<MapVersion> mapVersionDtos(List<com.faforever.commons.api.dto.MapVersion> dto);
 
   List<com.faforever.commons.api.dto.MapVersion> mapVersionBeans(List<MapVersion> bean,
                                                                  @Context CycleAvoidingMappingContext context);
@@ -51,9 +50,9 @@ public interface MapMapper {
     return mapType.getValue();
   }
 
-  default MapVersion mapFromPoolAssignment(MapPoolAssignment dto, @Context CycleAvoidingMappingContext context) {
+  default MapVersion mapFromPoolAssignment(MapPoolAssignment dto) {
     if (dto.getMapVersion() != null) {
-      return map(dto.getMapVersion(), context);
+      return map(dto.getMapVersion());
     } else if (dto.getMapParams() instanceof NeroxisGeneratorParams neroxisGeneratorParams) {
       return map(neroxisGeneratorParams);
     } else {

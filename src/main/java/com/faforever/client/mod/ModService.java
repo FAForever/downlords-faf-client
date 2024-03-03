@@ -8,7 +8,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GamePrefsService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.ModMapper;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
@@ -217,7 +216,7 @@ public class ModService implements InitializingBean, DisposableBean {
       return Mono.empty();
     }
 
-    return getModVersionByUid(uid).map(dto -> modMapper.map(dto, new CycleAvoidingMappingContext()))
+    return getModVersionByUid(uid).map(modMapper::map)
                                   .flatMap(modVersion -> {
       if (modVersion == null) {
         throw new IllegalArgumentException("Mod with uid %s could not be found".formatted(uid));
@@ -399,8 +398,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   private Mono<ModVersion> updateModIfNecessary(ModVersion installedModVersion) {
-    return getModVersionByUid(installedModVersion.uid()).map(
-                                                               dto -> modMapper.map(dto.getMod().getLatestVersion(), new CycleAvoidingMappingContext()))
+    return getModVersionByUid(installedModVersion.uid()).map(dto -> modMapper.map(dto.getMod().getLatestVersion()))
                                                            .filter(latestModVersion -> !Objects.equals(latestModVersion,
                                                                                                        installedModVersion))
                                                            .flatMap(latestModVersion -> downloadIfNecessary(
@@ -485,9 +483,7 @@ public class ModService implements InitializingBean, DisposableBean {
     navigator.pageNumber(page).pageSize(count);
     return fafApiAccessor.getManyWithPageCount(navigator, customFilter)
                          .map(tuple -> tuple.mapT1(mods -> mods.stream()
-                                                               .map(Mod::getLatestVersion)
-                                                               .map(dto -> modMapper.map(dto,
-                                                                                         new CycleAvoidingMappingContext()))
+                                                               .map(Mod::getLatestVersion).map(modMapper::map)
                                                                .toList()));
   }
 }

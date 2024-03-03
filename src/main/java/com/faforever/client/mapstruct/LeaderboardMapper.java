@@ -22,27 +22,24 @@ import java.util.List;
 
 @Mapper(uses = {ReplayMapper.class, PlayerMapper.class, UrlMapper.class}, config = MapperConfiguration.class)
 public interface LeaderboardMapper {
-  Leaderboard map(com.faforever.commons.api.dto.Leaderboard dto, @Context CycleAvoidingMappingContext context);
+  Leaderboard map(com.faforever.commons.api.dto.Leaderboard dto);
 
   com.faforever.commons.api.dto.Leaderboard map(Leaderboard bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "gamesPlayed", source = "totalGames")
-  LeaderboardEntry map(com.faforever.commons.api.dto.LeaderboardEntry dto,
-                       @Context CycleAvoidingMappingContext context);
+  LeaderboardEntry map(com.faforever.commons.api.dto.LeaderboardEntry dto);
 
   @Mapping(target = "totalGames", source = "gamesPlayed")
   com.faforever.commons.api.dto.LeaderboardEntry map(LeaderboardEntry bean,
                                                      @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "scoreTime", source = "gamePlayerStats.scoreTime")
-  LeaderboardRatingJournal map(com.faforever.commons.api.dto.LeaderboardRatingJournal dto,
-                               @Context CycleAvoidingMappingContext context);
+  LeaderboardRatingJournal map(com.faforever.commons.api.dto.LeaderboardRatingJournal dto);
 
   com.faforever.commons.api.dto.LeaderboardRatingJournal map(LeaderboardRatingJournal bean,
                                                              @Context CycleAvoidingMappingContext context);
 
-  List<LeaderboardRatingJournal> mapDtoJournals(List<com.faforever.commons.api.dto.LeaderboardRatingJournal> dtos,
-                                                @Context CycleAvoidingMappingContext context);
+  List<LeaderboardRatingJournal> mapDtoJournals(List<com.faforever.commons.api.dto.LeaderboardRatingJournal> dtos);
 
   List<com.faforever.commons.api.dto.LeaderboardRatingJournal> mapBeanJournals(List<LeaderboardRatingJournal> beans,
                                                                                @Context CycleAvoidingMappingContext context);
@@ -51,25 +48,25 @@ public interface LeaderboardMapper {
   @Mapping(target = "mean", source = "rating.mean")
   LeaderboardRating map(LeaderboardStats dto);
 
-  League map(com.faforever.commons.api.dto.League dto, @Context CycleAvoidingMappingContext context);
+  League map(com.faforever.commons.api.dto.League dto);
 
   com.faforever.commons.api.dto.League map(League bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "leagueLeaderboard", source = "leagueLeaderboard")
-  LeagueSeason map(com.faforever.commons.api.dto.LeagueSeason dto, @Context CycleAvoidingMappingContext context);
+  LeagueSeason map(com.faforever.commons.api.dto.LeagueSeason dto);
 
   @Mapping(target = "leagueLeaderboard", source = "leagueLeaderboard")
   com.faforever.commons.api.dto.LeagueSeason map(LeagueSeason bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "index", source = "divisionIndex")
-  Division map(LeagueSeasonDivision dto, @Context CycleAvoidingMappingContext context);
+  Division map(LeagueSeasonDivision dto);
 
   @Mapping(target = "divisionIndex", source = "index")
   LeagueSeasonDivision map(Division bean, @Context CycleAvoidingMappingContext context);
 
   @Mapping(target = "index", source = "subdivisionIndex")
   @Mapping(target = "division", source = "leagueSeasonDivision")
-  Subdivision map(LeagueSeasonDivisionSubdivision dto, @Context CycleAvoidingMappingContext context);
+  Subdivision map(LeagueSeasonDivisionSubdivision dto);
 
   @Mapping(target = "subdivisionIndex", source = "index")
   @Mapping(target = "leagueSeasonDivision", source = "division")
@@ -78,7 +75,7 @@ public interface LeaderboardMapper {
   @Mapping(target = "gamesPlayed", source = "source.gameCount")
   @Mapping(target = "subdivision", source = "source.leagueSeasonDivisionSubdivision")
   @Mapping(target = "id", source = "source.id")
-  LeagueEntry map(LeagueSeasonScore source, PlayerInfo player, Long rank, @Context CycleAvoidingMappingContext context);
+  LeagueEntry map(LeagueSeasonScore source, PlayerInfo player, Long rank);
 
   @Mapping(target = "loginId", source = "player.id")
   @Mapping(target = "gameCount", source = "gamesPlayed")

@@ -33,12 +33,12 @@ public interface ModMapper {
     }
 
   @Mapping(target = "reviewsSummary", source = "modReviewsSummary")
-  Mod map(com.faforever.commons.api.dto.Mod dto, @Context CycleAvoidingMappingContext context);
+  Mod map(com.faforever.commons.api.dto.Mod dto);
 
   com.faforever.commons.api.dto.Mod map(Mod bean, @Context CycleAvoidingMappingContext context);
 
     @Mapping(target = "modType", source = "type")
-    ModVersion map(com.faforever.commons.api.dto.ModVersion dto, @Context CycleAvoidingMappingContext context);
+    ModVersion map(com.faforever.commons.api.dto.ModVersion dto);
 
     @Mapping(target = "type", source = "modType")
     com.faforever.commons.api.dto.ModVersion map(ModVersion bean, @Context CycleAvoidingMappingContext context);

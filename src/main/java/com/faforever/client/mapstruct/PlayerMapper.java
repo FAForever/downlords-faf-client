@@ -17,25 +17,24 @@ import java.util.Set;
     config = MapperConfiguration.class)
 public interface PlayerMapper {
      @Mapping(target = "username", source = "login")
-     PlayerInfo map(Player dto, @Context CycleAvoidingMappingContext context);
+     PlayerInfo map(Player dto);
 
      @Mapping(target = "login", source = "username")
      Player map(PlayerInfo bean, @Context CycleAvoidingMappingContext context);
 
-  List<PlayerInfo> mapDtos(List<Player> dtos, @Context CycleAvoidingMappingContext context);
+  List<PlayerInfo> mapDtos(List<Player> dtos);
 
   List<Player> mapBeans(List<PlayerInfo> beans, @Context CycleAvoidingMappingContext context);
 
-  Set<PlayerInfo> mapDtos(Set<Player> dtos, @Context CycleAvoidingMappingContext context);
+  Set<PlayerInfo> mapDtos(Set<Player> dtos);
 
   Set<Player> mapBeans(Set<PlayerInfo> beans, @Context CycleAvoidingMappingContext context);
 
-  NameRecord map(com.faforever.commons.api.dto.NameRecord dto, @Context CycleAvoidingMappingContext context);
+  NameRecord map(com.faforever.commons.api.dto.NameRecord dto);
 
   com.faforever.commons.api.dto.NameRecord map(NameRecord bean, @Context CycleAvoidingMappingContext context);
 
-  List<NameRecord> mapNameDtos(List<com.faforever.commons.api.dto.NameRecord> dtos,
-                               @Context CycleAvoidingMappingContext context);
+  List<NameRecord> mapNameDtos(List<com.faforever.commons.api.dto.NameRecord> dtos);
 
   List<com.faforever.commons.api.dto.NameRecord> mapNameBeans(List<NameRecord> beans,
                                                               @Context CycleAvoidingMappingContext context);
@@ -43,8 +42,7 @@ public interface PlayerMapper {
      @Mapping(target = "username", source = "login")
      @Mapping(target = "leaderboardRatings", source = "ratings")
      @Mapping(target = "serverStatus", source = "state")
-     PlayerInfo update(com.faforever.commons.lobby.Player dto, @MappingTarget PlayerInfo bean,
-                       @Context CycleAvoidingMappingContext context);
+     PlayerInfo update(com.faforever.commons.lobby.Player dto, @MappingTarget PlayerInfo bean);
 
 
 }

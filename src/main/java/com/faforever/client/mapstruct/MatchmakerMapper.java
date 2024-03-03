@@ -15,7 +15,7 @@ import java.util.List;
 
 @Mapper(uses = {MapMapper.class, LeaderboardMapper.class}, config = MapperConfiguration.class)
 public interface MatchmakerMapper {
-    MatchmakerQueueInfo map(MatchmakerQueue dto, @Context CycleAvoidingMappingContext context);
+    MatchmakerQueueInfo map(MatchmakerQueue dto);
 
     MatchmakerQueue map(MatchmakerQueueInfo bean, @Context CycleAvoidingMappingContext context);
 
@@ -24,24 +24,21 @@ public interface MatchmakerMapper {
     @Mapping(target = "technicalName", source = "name")
     MatchmakerQueueInfo update(MatchmakerInfo.MatchmakerQueue dto, @MappingTarget MatchmakerQueueInfo bean);
 
-    MapPoolAssignment map(com.faforever.commons.api.dto.MapPoolAssignment dto,
-                          @Context CycleAvoidingMappingContext context);
+    MapPoolAssignment map(com.faforever.commons.api.dto.MapPoolAssignment dto);
 
     com.faforever.commons.api.dto.MapPoolAssignment map(MapPoolAssignment bean,
                                                         @Context CycleAvoidingMappingContext context);
 
-    List<MapPoolAssignment> mapAssignmentDtos(List<com.faforever.commons.api.dto.MapPoolAssignment> dto,
-                                              @Context CycleAvoidingMappingContext context);
+    List<MapPoolAssignment> mapAssignmentDtos(List<com.faforever.commons.api.dto.MapPoolAssignment> dto);
 
     List<com.faforever.commons.api.dto.MapPoolAssignment> mapAssignmentBeans(List<MapPoolAssignment> bean,
                                                                              @Context CycleAvoidingMappingContext context);
 
-    MapPool map(com.faforever.commons.api.dto.MapPool dto, @Context CycleAvoidingMappingContext context);
+    MapPool map(com.faforever.commons.api.dto.MapPool dto);
 
     com.faforever.commons.api.dto.MapPool map(MapPool bean, @Context CycleAvoidingMappingContext context);
 
-    MatchmakerQueueMapPool map(com.faforever.commons.api.dto.MatchmakerQueueMapPool dto,
-                               @Context CycleAvoidingMappingContext context);
+    MatchmakerQueueMapPool map(com.faforever.commons.api.dto.MatchmakerQueueMapPool dto);
 
     com.faforever.commons.api.dto.MatchmakerQueueMapPool map(MatchmakerQueueMapPool bean,
                                                              @Context CycleAvoidingMappingContext context);

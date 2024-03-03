@@ -8,12 +8,11 @@ import java.util.List;
 
 @Mapper(config = MapperConfiguration.class)
 public interface TournamentMapper {
-  Tournament map(com.faforever.commons.api.dto.Tournament dto, @Context CycleAvoidingMappingContext context);
+  Tournament map(com.faforever.commons.api.dto.Tournament dto);
 
   com.faforever.commons.api.dto.Tournament map(Tournament bean, @Context CycleAvoidingMappingContext context);
 
-  List<Tournament> mapDtos(List<com.faforever.commons.api.dto.Tournament> dto,
-                           @Context CycleAvoidingMappingContext context);
+  List<Tournament> mapDtos(List<com.faforever.commons.api.dto.Tournament> dto);
 
   List<com.faforever.commons.api.dto.Tournament> mapBeans(List<Tournament> bean,
                                                           @Context CycleAvoidingMappingContext context);

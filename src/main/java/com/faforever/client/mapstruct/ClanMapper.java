@@ -11,11 +11,11 @@ import org.mapstruct.Mapping;
 public interface ClanMapper {
 
   @Mapping(target = "members", source = "memberships")
-  Clan map(com.faforever.commons.api.dto.Clan dto, @Context CycleAvoidingMappingContext context);
+  Clan map(com.faforever.commons.api.dto.Clan dto);
 
   com.faforever.commons.api.dto.Clan map(Clan bean, @Context CycleAvoidingMappingContext context);
 
-  default Player map(ClanMembership dto, @Context CycleAvoidingMappingContext context) {
+  default Player map(ClanMembership dto) {
     return dto.getPlayer();
   }
 }

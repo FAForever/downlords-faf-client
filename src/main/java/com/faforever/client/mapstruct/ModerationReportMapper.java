@@ -10,15 +10,13 @@ import java.util.List;
 @Mapper(uses = {PlayerMapper.class, ReplayMapper.class}, config = MapperConfiguration.class)
 public interface ModerationReportMapper {
 	@Mapping(target = "gameIncidentTimeCode", source = "gameIncidentTimecode")
-  ModerationReport map(com.faforever.commons.api.dto.ModerationReport dto,
-                       @Context CycleAvoidingMappingContext context);
+  ModerationReport map(com.faforever.commons.api.dto.ModerationReport dto);
 
 	@Mapping(target = "gameIncidentTimecode", source = "gameIncidentTimeCode")
   com.faforever.commons.api.dto.ModerationReport map(ModerationReport bean,
                                                      @Context CycleAvoidingMappingContext context);
 
-  List<ModerationReport> mapDtos(List<com.faforever.commons.api.dto.ModerationReport> dtos,
-                                 @Context CycleAvoidingMappingContext context);
+  List<ModerationReport> mapDtos(List<com.faforever.commons.api.dto.ModerationReport> dtos);
 
   List<com.faforever.commons.api.dto.ModerationReport> mapBeans(List<ModerationReport> beans,
                                                                 @Context CycleAvoidingMappingContext context);

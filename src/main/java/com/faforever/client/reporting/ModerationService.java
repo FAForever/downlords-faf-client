@@ -44,8 +44,7 @@ public class ModerationService {
                                                                                                          .addSortingRule(
                                                                                                              "createTime",
                                                                                                              false);
-    return fafApiAccessor.getMany(navigator)
-        .map(dto -> moderationReportMapper.map(dto, new CycleAvoidingMappingContext())).cache();
+    return fafApiAccessor.getMany(navigator).map(moderationReportMapper::map).cache();
   }
 
   @CacheEvict(value = CacheNames.MODERATION_REPORTS)
@@ -54,7 +53,6 @@ public class ModerationService {
                                                                                           new CycleAvoidingMappingContext());
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.ModerationReport> navigator = ElideNavigator.of(
         com.faforever.commons.api.dto.ModerationReport.class).collection();
-    return fafApiAccessor.post(navigator, reportDto)
-                         .map(dto -> moderationReportMapper.map(dto, new CycleAvoidingMappingContext()));
+    return fafApiAccessor.post(navigator, reportDto).map(moderationReportMapper::map);
   }
 }

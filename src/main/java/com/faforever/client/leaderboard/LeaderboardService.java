@@ -10,7 +10,6 @@ import com.faforever.client.domain.api.LeagueEntry;
 import com.faforever.client.domain.api.LeagueSeason;
 import com.faforever.client.domain.api.Subdivision;
 import com.faforever.client.domain.server.PlayerInfo;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.LeaderboardMapper;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
@@ -54,8 +53,7 @@ public class LeaderboardService {
   public Flux<Leaderboard> getLeaderboards() {
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.Leaderboard> navigator = ElideNavigator.of(
         com.faforever.commons.api.dto.Leaderboard.class).collection();
-    return fafApiAccessor.getMany(navigator)
-                         .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
+    return fafApiAccessor.getMany(navigator).map(leaderboardMapper::map)
                          .cache();
   }
 
@@ -68,8 +66,7 @@ public class LeaderboardService {
                                                                                                              qBuilder().intNum(
                                                                                                                            "player.id")
                                                                                                                        .eq(player.getId()));
-    return fafApiAccessor.getMany(navigator)
-                         .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
+    return fafApiAccessor.getMany(navigator).map(leaderboardMapper::map)
                          .cache();
   }
 
@@ -77,8 +74,7 @@ public class LeaderboardService {
   public Flux<League> getLeagues() {
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.League> navigator = ElideNavigator.of(
         com.faforever.commons.api.dto.League.class).collection().setFilter(qBuilder().bool("enabled").isTrue());
-    return fafApiAccessor.getMany(navigator)
-                         .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
+    return fafApiAccessor.getMany(navigator).map(leaderboardMapper::map)
                          .cache();
   }
 
@@ -101,8 +97,7 @@ public class LeaderboardService {
                                                                                                                        OffsetDateTime.now()
                                                                                                                                      .toInstant(),
                                                                                                                        false));
-    return fafApiAccessor.getMany(navigator)
-                         .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
+    return fafApiAccessor.getMany(navigator).map(leaderboardMapper::map)
                          .cache();
   }
 
@@ -126,8 +121,7 @@ public class LeaderboardService {
                                                                                                          "startDate",
                                                                                                          false);
     return fafApiAccessor.getMany(navigator)
-                         .next()
-                         .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()));
+                         .next().map(leaderboardMapper::map);
   }
 
   @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
@@ -141,8 +135,7 @@ public class LeaderboardService {
                                                                                                      "leagueSeason.id")
                                                                                                  .eq(leagueSeason.id()));
     return fafApiAccessor.getMany(navigator)
-                         .next()
-                         .map(dto -> leaderboardMapper.map(dto, player, null, new CycleAvoidingMappingContext()))
+                         .next().map(dto -> leaderboardMapper.map(dto, player, null))
                          .cache();
   }
 
@@ -160,8 +153,7 @@ public class LeaderboardService {
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class)
                                                                             .collection()
                                                                             .setFilter(filter);
-    return fafApiAccessor.getMany(navigator)
-                         .map(dto -> leaderboardMapper.map(dto, player, null, new CycleAvoidingMappingContext()))
+    return fafApiAccessor.getMany(navigator).map(dto -> leaderboardMapper.map(dto, player, null))
                          .filter(leagueEntryBean -> leagueEntryBean.subdivision() != null)
                          .sort(Comparator.comparing(LeagueEntry::subdivision,
                                                     Comparator.comparing(Subdivision::division,
@@ -198,8 +190,7 @@ public class LeaderboardService {
                                                                                                      false));
     return fafApiAccessor.getMany(navigator)
                          .filter(leagueEntry -> leagueEntry.getLeagueSeasonDivisionSubdivision() != null)
-                         .next()
-                         .map(dto -> leaderboardMapper.map(dto, player, null, new CycleAvoidingMappingContext()))
+                         .next().map(dto -> leaderboardMapper.map(dto, player, null))
                          .cache();
   }
 
@@ -229,8 +220,7 @@ public class LeaderboardService {
                                                                                            Function.identity()));
     return playerService.getPlayersByIds(scoresByPlayer.keySet()).map(player -> {
       Tuple2<Long, LeagueSeasonScore> seasonScoreWithRank = scoresByPlayer.get(player.getId());
-      return leaderboardMapper.map(seasonScoreWithRank.getT2(), player, seasonScoreWithRank.getT1(),
-                                   new CycleAvoidingMappingContext());
+      return leaderboardMapper.map(seasonScoreWithRank.getT2(), player, seasonScoreWithRank.getT1());
     }).sort(Comparator.comparing(LeagueEntry::rank));
   }
 
@@ -243,8 +233,7 @@ public class LeaderboardService {
                                                                                                                    "leagueSeasonDivision.leagueSeason.id")
                                                                                                                .eq(String.valueOf(
                                                                                                                    leagueSeason.id())));
-    return fafApiAccessor.getMany(navigator)
-                         .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
+    return fafApiAccessor.getMany(navigator).map(leaderboardMapper::map)
                          .cache();
   }
 

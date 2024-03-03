@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
 public interface CoopMapper {
 
   @Mapping(target = "mapFolderName", source = "folderName")
-  CoopMission map(com.faforever.commons.api.dto.CoopMission dto, @Context CycleAvoidingMappingContext context);
+  CoopMission map(com.faforever.commons.api.dto.CoopMission dto);
 
   @Mapping(target = "folderName", source = "mapFolderName")
   com.faforever.commons.api.dto.CoopMission map(CoopMission bean, @Context CycleAvoidingMappingContext context);
@@ -18,8 +18,7 @@ public interface CoopMapper {
   @Mapping(target = "replay", source = "dto.game")
   @Mapping(target = "ranking", source = "ranking")
   @Mapping(target = ".", source = "dto")
-  CoopResult map(com.faforever.commons.api.dto.CoopResult dto, int ranking,
-                 @Context CycleAvoidingMappingContext context);
+  CoopResult map(com.faforever.commons.api.dto.CoopResult dto, int ranking);
 
   @Mapping(target = "game", source = "replay")
   com.faforever.commons.api.dto.CoopResult map(CoopResult bean, @Context CycleAvoidingMappingContext context);

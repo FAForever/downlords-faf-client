@@ -46,10 +46,10 @@ public interface ReplayMapper {
   @Mapping(target = "teamPlayerStats", source = "dto", qualifiedBy = MapTeamStats.class)
   @Mapping(target = "teams", source = "dto", qualifiedBy = MapTeams.class)
   @Mapping(target = "reviewsSummary", source = "gameReviewsSummary")
-  Replay map(Game dto, @Context CycleAvoidingMappingContext context);
+  Replay map(Game dto);
 
   @MapTeams
-  default Map<String, List<String>> mapToTeams(Game dto, @Context CycleAvoidingMappingContext context) {
+  default Map<String, List<String>> mapToTeams(Game dto) {
     List<com.faforever.commons.api.dto.GamePlayerStats> playerStats = dto.getPlayerStats();
 
     if (playerStats == null) {
@@ -65,8 +65,7 @@ public interface ReplayMapper {
   }
 
   @MapTeamStats
-  default Map<String, List<GamePlayerStats>> mapToTeamPlayerStats(Game dto,
-                                                                  @Context CycleAvoidingMappingContext context) {
+  default Map<String, List<GamePlayerStats>> mapToTeamPlayerStats(Game dto) {
     List<com.faforever.commons.api.dto.GamePlayerStats> playerStats = dto.getPlayerStats();
 
     if (playerStats == null) {
@@ -75,8 +74,7 @@ public interface ReplayMapper {
 
     return playerStats.stream()
                       .collect(Collectors.groupingBy(gamePlayerStats -> String.valueOf(gamePlayerStats.getTeam()),
-                                                     Collectors.mapping(
-                                                         gamePlayerStats -> map(gamePlayerStats, context),
+                                                     Collectors.mapping(gamePlayerStats -> map(gamePlayerStats),
                                                          Collectors.toList())));
   }
 
@@ -154,7 +152,7 @@ public interface ReplayMapper {
     return teamPlayerStats.values().stream().flatMap(Collection::stream).toList();
   }
 
-  GamePlayerStats map(com.faforever.commons.api.dto.GamePlayerStats dto, @Context CycleAvoidingMappingContext context);
+  GamePlayerStats map(com.faforever.commons.api.dto.GamePlayerStats dto);
 
   com.faforever.commons.api.dto.GamePlayerStats map(GamePlayerStats bean, @Context CycleAvoidingMappingContext context);
 

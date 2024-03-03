@@ -49,8 +49,7 @@ public class ReviewService {
           .navigateRelationship(GameReview.class, "reviews")
           .collection();
       gameReview.setGame(null);
-      return fafApiAccessor.post(navigator, gameReview)
-          .map(dto -> reviewMapper.map(dto, new CycleAvoidingMappingContext()));
+      return fafApiAccessor.post(navigator, gameReview).map(reviewMapper::map);
     } else {
       ElideNavigatorOnId<GameReview> endpointBuilder = ElideNavigator.of(gameReview);
       gameReview.setGame(null);
@@ -71,8 +70,7 @@ public class ReviewService {
                                                                                                                "reviews")
                                                                                                            .collection();
       modVersionReview.setModVersion(null);
-      return fafApiAccessor.post(navigator, modVersionReview)
-          .map(dto -> reviewMapper.map(dto, new CycleAvoidingMappingContext()));
+      return fafApiAccessor.post(navigator, modVersionReview).map(reviewMapper::map);
     } else {
       ElideNavigatorOnId<com.faforever.commons.api.dto.ModVersionReview> endpointBuilder = ElideNavigator.of(
           modVersionReview);
@@ -93,8 +91,7 @@ public class ReviewService {
                                                                                                                "reviews")
                                                                                                            .collection();
       mapVersionReview.setMapVersion(null);
-      return fafApiAccessor.post(navigator, mapVersionReview)
-          .map(dto -> reviewMapper.map(dto, new CycleAvoidingMappingContext()));
+      return fafApiAccessor.post(navigator, mapVersionReview).map(reviewMapper::map);
     } else {
       mapVersionReview.setMapVersion(null);
       ElideNavigatorOnId<com.faforever.commons.api.dto.MapVersionReview> endpointBuilder = ElideNavigator.of(
@@ -122,8 +119,7 @@ public class ReviewService {
 
     return fafApiAccessor.getMany(versionsNavigator)
         .map(MapVersion::getReviews)
-        .flatMap(Flux::fromIterable)
-        .map(mapReview -> reviewMapper.map(mapReview, new CycleAvoidingMappingContext()));
+        .flatMap(Flux::fromIterable).map(reviewMapper::map);
   }
 
   public Flux<ModVersionReview> getModReviews(Mod mod) {
@@ -138,8 +134,7 @@ public class ReviewService {
 
     return fafApiAccessor.getMany(versionsNavigator)
         .map(ModVersion::getReviews)
-        .flatMap(Flux::fromIterable)
-        .map(mapReview -> reviewMapper.map(mapReview, new CycleAvoidingMappingContext()));
+        .flatMap(Flux::fromIterable).map(reviewMapper::map);
   }
 
   public Flux<ReplayReview> getReplayReviews(Replay replay) {
@@ -149,7 +144,6 @@ public class ReviewService {
         .collection()
         .addInclude("player");
 
-    return fafApiAccessor.getMany(versionsNavigator)
-        .map(gameReview -> reviewMapper.map(gameReview, new CycleAvoidingMappingContext()));
+    return fafApiAccessor.getMany(versionsNavigator).map(reviewMapper::map);
   }
 }
