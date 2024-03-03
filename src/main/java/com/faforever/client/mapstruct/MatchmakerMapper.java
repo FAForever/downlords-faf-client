@@ -6,6 +6,7 @@ import com.faforever.client.domain.api.MatchmakerQueueMapPool;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.commons.api.dto.MatchmakerQueue;
 import com.faforever.commons.lobby.MatchmakerInfo;
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -16,6 +17,7 @@ import java.util.List;
 public interface MatchmakerMapper {
     MatchmakerQueueInfo map(MatchmakerQueue dto);
 
+    @InheritInverseConfiguration
     MatchmakerQueue map(MatchmakerQueueInfo bean);
 
     @Mapping(target = "playersInQueue", source = "numberOfPlayers")
@@ -25,6 +27,7 @@ public interface MatchmakerMapper {
 
     MapPoolAssignment map(com.faforever.commons.api.dto.MapPoolAssignment dto);
 
+    @InheritInverseConfiguration
     com.faforever.commons.api.dto.MapPoolAssignment map(MapPoolAssignment bean);
 
     List<MapPoolAssignment> mapAssignmentDtos(List<com.faforever.commons.api.dto.MapPoolAssignment> dto);
@@ -33,9 +36,11 @@ public interface MatchmakerMapper {
 
     MapPool map(com.faforever.commons.api.dto.MapPool dto);
 
+    @InheritInverseConfiguration
     com.faforever.commons.api.dto.MapPool map(MapPool bean);
 
     MatchmakerQueueMapPool map(com.faforever.commons.api.dto.MatchmakerQueueMapPool dto);
 
+    @InheritInverseConfiguration
     com.faforever.commons.api.dto.MatchmakerQueueMapPool map(MatchmakerQueueMapPool bean);
 }

@@ -13,6 +13,7 @@ import com.faforever.commons.replay.GameOption;
 import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
 import org.mapstruct.CollectionMappingStrategy;
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Qualifier;
@@ -153,6 +154,7 @@ public interface ReplayMapper {
 
   GamePlayerStats map(com.faforever.commons.api.dto.GamePlayerStats dto);
 
+  @InheritInverseConfiguration
   com.faforever.commons.api.dto.GamePlayerStats map(GamePlayerStats bean);
 
   List<com.faforever.commons.api.dto.GamePlayerStats> map(Collection<GamePlayerStats> beans);

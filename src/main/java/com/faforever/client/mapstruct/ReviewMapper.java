@@ -8,6 +8,7 @@ import com.faforever.client.domain.api.ReviewsSummary;
 import com.faforever.commons.api.dto.GameReview;
 import com.faforever.commons.api.dto.GameReviewsSummary;
 import com.faforever.commons.api.dto.Review;
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -34,39 +35,39 @@ public interface ReviewMapper {
   @Mapping(target = "subject", source = "game")
   ReplayReview map(GameReview dto);
 
-  @Mapping(target = "game", source = "subject")
+  @InheritInverseConfiguration
   GameReview map(ReplayReview bean);
 
   @Mapping(target = "subject", source = "mapVersion")
   MapVersionReview map(com.faforever.commons.api.dto.MapVersionReview dto);
 
-  @Mapping(target = "mapVersion", source = "subject")
+  @InheritInverseConfiguration
   com.faforever.commons.api.dto.MapVersionReview map(MapVersionReview bean);
 
   @Mapping(target = "subject", source = "modVersion")
   ModVersionReview map(com.faforever.commons.api.dto.ModVersionReview dto);
 
-  @Mapping(target = "modVersion", source = "subject")
+  @InheritInverseConfiguration
   com.faforever.commons.api.dto.ModVersionReview map(ModVersionReview bean);
 
   @Mapping(target = "numReviews", source = "reviews")
   ReviewsSummary map(GameReviewsSummary dto);
 
-  @Mapping(target = "reviews", source = "numReviews")
   @Mapping(target = "game", ignore = true)
+  @InheritInverseConfiguration
   GameReviewsSummary mapToGame(ReviewsSummary bean);
 
   @Mapping(target = "numReviews", source = "reviews")
   ReviewsSummary map(com.faforever.commons.api.dto.MapReviewsSummary dto);
 
-  @Mapping(target = "reviews", source = "numReviews")
+  @InheritInverseConfiguration
   @Mapping(target = "map", ignore = true)
   com.faforever.commons.api.dto.MapReviewsSummary mapToMap(ReviewsSummary bean);
 
   @Mapping(target = "numReviews", source = "reviews")
   ReviewsSummary map(com.faforever.commons.api.dto.ModReviewsSummary dto);
 
-  @Mapping(target = "reviews", source = "numReviews")
+  @InheritInverseConfiguration
   @Mapping(target = "mod", ignore = true)
   com.faforever.commons.api.dto.ModReviewsSummary mapToMod(ReviewsSummary bean);
 }

@@ -1,6 +1,7 @@
 package com.faforever.client.mapstruct;
 
 import com.faforever.client.domain.api.ModerationReport;
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -11,7 +12,7 @@ public interface ModerationReportMapper {
 	@Mapping(target = "gameIncidentTimeCode", source = "gameIncidentTimecode")
   ModerationReport map(com.faforever.commons.api.dto.ModerationReport dto);
 
-	@Mapping(target = "gameIncidentTimecode", source = "gameIncidentTimeCode")
+  @InheritInverseConfiguration
   com.faforever.commons.api.dto.ModerationReport map(ModerationReport bean);
 
   List<ModerationReport> mapDtos(List<com.faforever.commons.api.dto.ModerationReport> dtos);

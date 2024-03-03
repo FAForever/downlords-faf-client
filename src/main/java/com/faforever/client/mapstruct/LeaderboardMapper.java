@@ -14,6 +14,7 @@ import com.faforever.commons.api.dto.LeagueSeasonDivision;
 import com.faforever.commons.api.dto.LeagueSeasonDivisionSubdivision;
 import com.faforever.commons.api.dto.LeagueSeasonScore;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -23,17 +24,19 @@ import java.util.List;
 public interface LeaderboardMapper {
   Leaderboard map(com.faforever.commons.api.dto.Leaderboard dto);
 
+  @InheritInverseConfiguration
   com.faforever.commons.api.dto.Leaderboard map(Leaderboard bean);
 
   @Mapping(target = "gamesPlayed", source = "totalGames")
   LeaderboardEntry map(com.faforever.commons.api.dto.LeaderboardEntry dto);
 
-  @Mapping(target = "totalGames", source = "gamesPlayed")
+  @InheritInverseConfiguration
   com.faforever.commons.api.dto.LeaderboardEntry map(LeaderboardEntry bean);
 
   @Mapping(target = "scoreTime", source = "gamePlayerStats.scoreTime")
   LeaderboardRatingJournal map(com.faforever.commons.api.dto.LeaderboardRatingJournal dto);
 
+  @InheritInverseConfiguration
   com.faforever.commons.api.dto.LeaderboardRatingJournal map(LeaderboardRatingJournal bean);
 
   List<LeaderboardRatingJournal> mapDtoJournals(List<com.faforever.commons.api.dto.LeaderboardRatingJournal> dtos);
@@ -46,26 +49,25 @@ public interface LeaderboardMapper {
 
   League map(com.faforever.commons.api.dto.League dto);
 
+  @InheritInverseConfiguration
   com.faforever.commons.api.dto.League map(League bean);
 
-  @Mapping(target = "leagueLeaderboard", source = "leagueLeaderboard")
   LeagueSeason map(com.faforever.commons.api.dto.LeagueSeason dto);
 
-  @Mapping(target = "leagueLeaderboard", source = "leagueLeaderboard")
+  @InheritInverseConfiguration
   com.faforever.commons.api.dto.LeagueSeason map(LeagueSeason bean);
 
   @Mapping(target = "index", source = "divisionIndex")
   Division map(LeagueSeasonDivision dto);
 
-  @Mapping(target = "divisionIndex", source = "index")
+  @InheritInverseConfiguration
   LeagueSeasonDivision map(Division bean);
 
   @Mapping(target = "index", source = "subdivisionIndex")
   @Mapping(target = "division", source = "leagueSeasonDivision")
   Subdivision map(LeagueSeasonDivisionSubdivision dto);
 
-  @Mapping(target = "subdivisionIndex", source = "index")
-  @Mapping(target = "leagueSeasonDivision", source = "division")
+  @InheritInverseConfiguration
   LeagueSeasonDivisionSubdivision map(Subdivision bean);
 
   @Mapping(target = "gamesPlayed", source = "source.gameCount")
@@ -73,6 +75,7 @@ public interface LeaderboardMapper {
   @Mapping(target = "id", source = "source.id")
   LeagueEntry map(LeagueSeasonScore source, PlayerInfo player, Long rank);
 
+  @InheritInverseConfiguration
   @Mapping(target = "loginId", source = "player.id")
   @Mapping(target = "gameCount", source = "gamesPlayed")
   @Mapping(target = "leagueSeasonDivisionSubdivision", source = "subdivision")

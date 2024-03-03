@@ -6,6 +6,7 @@ import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.map.MapSize;
 import com.faforever.commons.api.dto.MapPoolAssignment;
 import com.faforever.commons.api.dto.NeroxisGeneratorParams;
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -16,6 +17,7 @@ public interface MapMapper {
   @Mapping(target = "reviewsSummary", source = "mapReviewsSummary")
   Map map(com.faforever.commons.api.dto.Map dto);
 
+  @InheritInverseConfiguration
   com.faforever.commons.api.dto.Map map(Map bean);
 
   List<Map> mapMapDtos(List<com.faforever.commons.api.dto.Map> dto);
@@ -27,6 +29,7 @@ public interface MapMapper {
 
   @Mapping(target = "width", source = "size.widthInPixels")
   @Mapping(target = "height", source = "size.heightInPixels")
+  @InheritInverseConfiguration
   com.faforever.commons.api.dto.MapVersion map(MapVersion bean);
 
   default MapSize getMapSize(com.faforever.commons.api.dto.MapVersion dto) {

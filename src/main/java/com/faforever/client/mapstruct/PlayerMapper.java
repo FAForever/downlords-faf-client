@@ -4,6 +4,7 @@ import com.faforever.client.domain.api.NameRecord;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.commons.api.dto.Player;
 import org.mapstruct.CollectionMappingStrategy;
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -19,7 +20,7 @@ public interface PlayerMapper {
   @Mapping(target = "username", source = "login")
   PlayerInfo map(Player dto);
 
-  @Mapping(target = "login", source = "username")
+  @InheritInverseConfiguration
   Player map(PlayerInfo bean);
 
   List<PlayerInfo> mapDtos(List<Player> dtos);
@@ -32,6 +33,7 @@ public interface PlayerMapper {
 
   NameRecord map(com.faforever.commons.api.dto.NameRecord dto);
 
+  @InheritInverseConfiguration
   com.faforever.commons.api.dto.NameRecord map(NameRecord bean);
 
   List<NameRecord> mapNameDtos(List<com.faforever.commons.api.dto.NameRecord> dtos);
@@ -42,6 +44,4 @@ public interface PlayerMapper {
   @Mapping(target = "leaderboardRatings", source = "ratings")
   @Mapping(target = "serverStatus", source = "state")
   PlayerInfo update(com.faforever.commons.lobby.Player dto, @MappingTarget PlayerInfo bean);
-
-
 }
