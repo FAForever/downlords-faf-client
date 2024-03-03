@@ -32,6 +32,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -268,6 +269,7 @@ public class GameDetailControllerTest extends PlatformTest {
     assertEquals(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
     runOnFxThreadAndWait(() -> game.setStatus(GameStatus.CLOSED));
     Thread.sleep(2000);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.playtimeLabel.isVisible());
     assertEquals(Status.STOPPED, instance.getPlayTimeTimeline().getStatus());

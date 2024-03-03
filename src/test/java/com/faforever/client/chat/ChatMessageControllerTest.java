@@ -83,11 +83,12 @@ public class ChatMessageControllerTest extends PlatformTest {
 
   private final ChatChannelUser user = new ChatChannelUser("junit", new ChatChannel("#testChannel"));
   private final PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
-  private final Image image = new Image("http://localhost");
+  private Image image;
 
 
   @BeforeEach
   public void setup() throws Exception {
+    image = new Image("http://localhost");
     lenient().when(avatarService.loadAvatar(any())).thenReturn(image);
     lenient().when(countryFlagService.loadCountryFlag(any())).thenReturn(Optional.empty());
     lenient().when(timeService.asShortTime(any())).thenReturn("12:00");

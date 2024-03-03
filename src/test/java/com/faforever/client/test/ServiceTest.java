@@ -10,7 +10,7 @@ import reactor.test.StepVerifier;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
-@Execution(ExecutionMode.SAME_THREAD)
+@Execution(ExecutionMode.CONCURRENT)
 @ExtendWith({MockitoExtension.class})
 public abstract class ServiceTest {
 
