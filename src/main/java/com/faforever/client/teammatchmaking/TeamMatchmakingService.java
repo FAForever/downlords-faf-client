@@ -159,7 +159,6 @@ public class TeamMatchmakingService implements InitializingBean {
                      .filter(GameType.MATCHMAKER::equals)
                      .publishOn(fxApplicationThreadExecutor.asScheduler())
                      .doOnNext(ignored -> changeLabelForQueues(MatchingStatus.GAME_LAUNCHING))
-                     .publishOn(Schedulers.single())
                      .doOnNext(ignored -> matchFoundAndWaitingForGameLaunch.set(false))
                      .doOnError(throwable -> log.error("Error processing game launch response", throwable))
                      .retry()
@@ -168,7 +167,6 @@ public class TeamMatchmakingService implements InitializingBean {
     fafServerAccessor.getEvents(SearchInfo.class)
                      .publishOn(fxApplicationThreadExecutor.asScheduler())
                      .doOnNext(this::onSearchInfo)
-                     .publishOn(Schedulers.single())
                      .doOnError(throwable -> log.error("Error processing search info", throwable))
                      .retry()
                      .subscribe();
@@ -202,7 +200,6 @@ public class TeamMatchmakingService implements InitializingBean {
                      .doOnNext(ignored -> queues.forEach(matchmakingQueue -> matchmakingQueue.setMatchingStatus(null)))
                      .doOnNext(ignored -> searching.set(false))
                      .doOnNext(this::setFoundStatusForQueue)
-                     .publishOn(Schedulers.single())
                      .doOnError(throwable -> log.error("Error processing found response", throwable))
                      .retry()
                      .subscribe();

@@ -24,7 +24,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import reactor.function.TupleUtils;
 
 import java.util.ArrayList;
@@ -69,7 +68,6 @@ public class PlayerService implements InitializingBean {
                      .publishOn(fxApplicationThreadExecutor.asScheduler())
                      .map(TupleUtils.function((player, playerBean) -> playerMapper.update(player, playerBean,
                                                                                           new CycleAvoidingMappingContext())))
-                     .publishOn(Schedulers.single())
                      .doOnError(throwable -> log.error("Error processing player", throwable))
                      .retry()
                      .subscribe();

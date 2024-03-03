@@ -17,7 +17,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +66,6 @@ public class SocialService implements InitializingBean {
                      })
                      .publishOn(fxApplicationThreadExecutor.asScheduler())
                      .doOnNext(this::updatePlayerSocialStatus)
-                     .publishOn(Schedulers.single())
                      .doOnError(throwable -> log.error("Error processing social info", throwable))
                      .retry()
                      .subscribe();
