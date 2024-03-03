@@ -3,7 +3,6 @@ package com.faforever.client.clan;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.domain.api.Clan;
 import com.faforever.client.mapstruct.ClanMapper;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
@@ -48,7 +47,7 @@ public class ClanServiceTest extends ServiceTest {
   @Test
   public void testGetClanByTag() throws Exception {
     Clan clan = Instancio.of(Clan.class).set(field(Clan::members), List.of()).create();
-    Flux<ElideEntity> resultFlux = Flux.just(clanMapper.map(clan, new CycleAvoidingMappingContext()));
+    Flux<ElideEntity> resultFlux = Flux.just(clanMapper.map(clan));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getClanByTag("test")).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("tag").eq("test"))));

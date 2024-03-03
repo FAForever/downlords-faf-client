@@ -2,8 +2,6 @@ package com.faforever.client.tutorial;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.domain.api.TutorialCategory;
-import com.faforever.client.game.GameService;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.TutorialMapper;
 import com.faforever.client.test.ElideMatchers;
@@ -31,8 +29,6 @@ public class TutorialServiceTest extends ServiceTest {
 
   @Mock
   private FafApiAccessor fafApiAccessor;
-  @Mock
-  private GameService gameService;
   @Spy
   private final TutorialMapper tutorialMapper = Mappers.getMapper(TutorialMapper.class);
   @InjectMocks
@@ -46,7 +42,7 @@ public class TutorialServiceTest extends ServiceTest {
   @Test
   public void testGetTutorialCategories() throws Exception {
     TutorialCategory tutorialCategory = Instancio.create(TutorialCategory.class);
-    Flux<ElideEntity> resultFlux = Flux.just(tutorialMapper.map(tutorialCategory, new CycleAvoidingMappingContext()));
+    Flux<ElideEntity> resultFlux = Flux.just(tutorialMapper.map(tutorialCategory));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getTutorialCategories()).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1000)));

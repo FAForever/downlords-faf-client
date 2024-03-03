@@ -5,7 +5,6 @@ import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.domain.api.Leaderboard;
 import com.faforever.client.domain.api.LeaderboardRatingJournal;
 import com.faforever.client.domain.server.PlayerInfo;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.LeaderboardMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.test.ElideMatchers;
@@ -49,8 +48,7 @@ public class StatisticsServiceTest extends ServiceTest {
   public void testGetStatisticsForPlayer() throws Exception {
     LeaderboardRatingJournal leaderboardRatingJournal = Instancio.create(LeaderboardRatingJournal.class);
     PlayerInfo player = PlayerInfoBuilder.create().defaultValues().username("junit").get();
-    Flux<ElideEntity> resultFlux = Flux.just(
-        leaderboardMapper.map(leaderboardRatingJournal, new CycleAvoidingMappingContext()));
+    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboardRatingJournal));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getRatingHistory(player, leaderboard)).expectNextCount(1)
                 .expectComplete()

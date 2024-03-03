@@ -8,7 +8,6 @@ import com.faforever.client.domain.api.ModVersionReview;
 import com.faforever.client.domain.api.Replay;
 import com.faforever.client.domain.api.ReplayReview;
 import com.faforever.client.domain.api.ReviewBean;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.ReviewMapper;
 import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GameReview;
@@ -43,7 +42,7 @@ public class ReviewService {
 
   private Mono<ReplayReview> saveReplayReview(ReplayReview review) {
     Assert.notNull(review.subject(), "Subject must be set");
-    GameReview gameReview = reviewMapper.map(review, new CycleAvoidingMappingContext());
+    GameReview gameReview = reviewMapper.map(review);
     if (gameReview.getId() == null) {
       ElideNavigatorOnCollection<GameReview> navigator = ElideNavigator.of(gameReview.getGame())
           .navigateRelationship(GameReview.class, "reviews")
@@ -60,8 +59,7 @@ public class ReviewService {
 
   private Mono<ModVersionReview> saveModVersionReview(ModVersionReview review) {
     Assert.notNull(review.subject(), "Subject must be set");
-    com.faforever.commons.api.dto.ModVersionReview modVersionReview = reviewMapper.map(review,
-                                                                                       new CycleAvoidingMappingContext());
+    com.faforever.commons.api.dto.ModVersionReview modVersionReview = reviewMapper.map(review);
     if (modVersionReview.getId() == null) {
       ElideNavigatorOnCollection<com.faforever.commons.api.dto.ModVersionReview> navigator = ElideNavigator.of(
                                                                                                                modVersionReview.getModVersion())
@@ -81,8 +79,7 @@ public class ReviewService {
 
   private Mono<MapVersionReview> saveMapVersionReview(MapVersionReview review) {
     Assert.notNull(review.subject(), "Subject must be set");
-    com.faforever.commons.api.dto.MapVersionReview mapVersionReview = reviewMapper.map(review,
-                                                                                       new CycleAvoidingMappingContext());
+    com.faforever.commons.api.dto.MapVersionReview mapVersionReview = reviewMapper.map(review);
     if (mapVersionReview.getId() == null) {
       ElideNavigatorOnCollection<com.faforever.commons.api.dto.MapVersionReview> navigator = ElideNavigator.of(
                                                                                                                mapVersionReview.getMapVersion())
@@ -102,7 +99,7 @@ public class ReviewService {
   }
 
   public Mono<Void> deleteReview(ReviewBean<?> review) {
-    Review reviewDto = reviewMapper.map(review, new CycleAvoidingMappingContext());
+    Review reviewDto = reviewMapper.map(review);
     ElideNavigatorOnId<Review> endpointBuilder = ElideNavigator.of(reviewDto);
     return fafApiAccessor.delete(endpointBuilder);
   }

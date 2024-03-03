@@ -6,7 +6,6 @@ import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GamePrefsService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.ModMapper;
 import com.faforever.client.notification.NotificationService;
@@ -292,7 +291,7 @@ public class ModServiceTest extends PlatformTest {
   public void testUpdateModsWithUpdatedMod() throws IOException, ExecutionException, InterruptedException {
     ModVersion modVersion = Instancio.create(ModVersion.class);
 
-    com.faforever.commons.api.dto.ModVersion dto = modMapper.map(modVersion, new CycleAvoidingMappingContext());
+    com.faforever.commons.api.dto.ModVersion dto = modMapper.map(modVersion);
 
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(dto));
 
@@ -321,7 +320,7 @@ public class ModServiceTest extends PlatformTest {
     ModVersion latestVersion = Instancio.create(ModVersion.class);
     ModVersion modVersion = Instancio.create(ModVersion.class);
 
-    com.faforever.commons.api.dto.ModVersion dto = modMapper.map(modVersion, new CycleAvoidingMappingContext());
+    com.faforever.commons.api.dto.ModVersion dto = modMapper.map(modVersion);
 
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(dto));
 
@@ -346,8 +345,8 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testGetRecommendedMods() {
     ModVersion modVersion = Instancio.create(ModVersion.class);
-    Mod mod = modMapper.map(modVersion.mod(), new CycleAvoidingMappingContext());
-    mod.setLatestVersion(modMapper.map(modVersion, new CycleAvoidingMappingContext()));
+    Mod mod = modMapper.map(modVersion.mod());
+    mod.setLatestVersion(modMapper.map(modVersion));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mod), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getRecommendedModsWithPageCount(10, 0)).expectNextCount(1)
@@ -359,8 +358,8 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testFindByQuery() throws Exception {
     ModVersion modVersion = Instancio.create(ModVersion.class);
-    Mod mod = modMapper.map(modVersion.mod(), new CycleAvoidingMappingContext());
-    mod.setLatestVersion(modMapper.map(modVersion, new CycleAvoidingMappingContext()));
+    Mod mod = modMapper.map(modVersion.mod());
+    mod.setLatestVersion(modMapper.map(modVersion));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mod), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
@@ -376,8 +375,8 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testGetHighestRated() {
     ModVersion modVersion = Instancio.create(ModVersion.class);
-    Mod mod = modMapper.map(modVersion.mod(), new CycleAvoidingMappingContext());
-    mod.setLatestVersion(modMapper.map(modVersion, new CycleAvoidingMappingContext()));
+    Mod mod = modMapper.map(modVersion.mod());
+    mod.setLatestVersion(modMapper.map(modVersion));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mod), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getHighestRatedModsWithPageCount(10, 1)).expectNextCount(1)
@@ -393,8 +392,8 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testGetHighestRatedUI() {
     ModVersion modVersion = Instancio.create(ModVersion.class);
-    Mod mod = modMapper.map(modVersion.mod(), new CycleAvoidingMappingContext());
-    mod.setLatestVersion(modMapper.map(modVersion, new CycleAvoidingMappingContext()));
+    Mod mod = modMapper.map(modVersion.mod());
+    mod.setLatestVersion(modMapper.map(modVersion));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mod), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getHighestRatedUiModsWithPageCount(10, 1)).expectNextCount(1)
@@ -410,8 +409,8 @@ public class ModServiceTest extends PlatformTest {
   @Test
   public void testGetNewest() {
     ModVersion modVersion = Instancio.create(ModVersion.class);
-    Mod mod = modMapper.map(modVersion.mod(), new CycleAvoidingMappingContext());
-    mod.setLatestVersion(modMapper.map(modVersion, new CycleAvoidingMappingContext()));
+    Mod mod = modMapper.map(modVersion.mod());
+    mod.setLatestVersion(modMapper.map(modVersion));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mod), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getNewestModsWithPageCount(10, 1)).expectNextCount(1)

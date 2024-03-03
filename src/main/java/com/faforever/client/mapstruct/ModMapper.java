@@ -3,7 +3,6 @@ package com.faforever.client.mapstruct;
 import com.faforever.client.domain.api.Mod;
 import com.faforever.client.domain.api.ModType;
 import com.faforever.client.domain.api.ModVersion;
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -35,11 +34,11 @@ public interface ModMapper {
   @Mapping(target = "reviewsSummary", source = "modReviewsSummary")
   Mod map(com.faforever.commons.api.dto.Mod dto);
 
-  com.faforever.commons.api.dto.Mod map(Mod bean, @Context CycleAvoidingMappingContext context);
+  com.faforever.commons.api.dto.Mod map(Mod bean);
 
     @Mapping(target = "modType", source = "type")
     ModVersion map(com.faforever.commons.api.dto.ModVersion dto);
 
     @Mapping(target = "type", source = "modType")
-    com.faforever.commons.api.dto.ModVersion map(ModVersion bean, @Context CycleAvoidingMappingContext context);
+    com.faforever.commons.api.dto.ModVersion map(ModVersion bean);
 }

@@ -12,7 +12,6 @@ import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.generator.MapGeneratorService;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.ReplayMapper;
 import com.faforever.client.mapstruct.ReviewMapper;
@@ -343,8 +342,7 @@ public class ReplayServiceTest extends ServiceTest {
   @Test
   public void testOwnReplays() throws Exception {
     Replay replay = Instancio.create(Replay.class);
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
-        List.of(replayMapper.map(replay, new CycleAvoidingMappingContext())), 1);
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(replayMapper.map(replay)), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
     when(loginService.getUserId()).thenReturn(47);
@@ -437,8 +435,7 @@ public class ReplayServiceTest extends ServiceTest {
   @Test
   public void testGetNewest() {
     Replay replay = Instancio.create(Replay.class);
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
-        List.of(replayMapper.map(replay, new CycleAvoidingMappingContext())), 1);
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(replayMapper.map(replay)), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
     StepVerifier.create(instance.getNewestReplaysWithPageCount(10, 1)).expectNextCount(1)
@@ -456,7 +453,7 @@ public class ReplayServiceTest extends ServiceTest {
   public void testGetHighestRated() {
     ReviewsSummary replayReviewsSummary = Instancio.create(ReviewsSummary.class);
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
-        List.of(reviewMapper.mapToGame(replayReviewsSummary, new CycleAvoidingMappingContext())), 1);
+        List.of(reviewMapper.mapToGame(replayReviewsSummary)), 1);
     when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
 
     StepVerifier.create(instance.getHighestRatedReplaysWithPageCount(10, 1)).expectNextCount(1)
@@ -470,8 +467,7 @@ public class ReplayServiceTest extends ServiceTest {
   @Test
   public void testGetReplaysForPlayer() {
     Replay replay = Instancio.create(Replay.class);
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
-        List.of(replayMapper.map(replay, new CycleAvoidingMappingContext())), 1);
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(replayMapper.map(replay)), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
     StepVerifier.create(instance.getReplaysForPlayerWithPageCount(0, 10, 1)).expectNextCount(1)
@@ -492,8 +488,7 @@ public class ReplayServiceTest extends ServiceTest {
   @Test
   public void testFindByQuery() {
     Replay replay = Instancio.create(Replay.class);
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
-        List.of(replayMapper.map(replay, new CycleAvoidingMappingContext())), 1);
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(replayMapper.map(replay)), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
     SearchConfig searchConfig = new SearchConfig(new SortConfig("testSort", SortOrder.ASC), "testQuery");
@@ -507,7 +502,7 @@ public class ReplayServiceTest extends ServiceTest {
   @Test
   public void testFindById() {
     Replay replay = Instancio.create(Replay.class);
-    Mono<ElideEntity> resultMono = Mono.just(replayMapper.map(replay, new CycleAvoidingMappingContext()));
+    Mono<ElideEntity> resultMono = Mono.just(replayMapper.map(replay));
     when(fafApiAccessor.getOne(any())).thenReturn(resultMono);
     StepVerifier.create(instance.findById(0)).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).getOne(any());

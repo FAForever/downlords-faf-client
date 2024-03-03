@@ -1,7 +1,6 @@
 package com.faforever.client.mapstruct;
 
 import com.faforever.client.domain.api.ModerationReport;
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -13,11 +12,9 @@ public interface ModerationReportMapper {
   ModerationReport map(com.faforever.commons.api.dto.ModerationReport dto);
 
 	@Mapping(target = "gameIncidentTimecode", source = "gameIncidentTimeCode")
-  com.faforever.commons.api.dto.ModerationReport map(ModerationReport bean,
-                                                     @Context CycleAvoidingMappingContext context);
+  com.faforever.commons.api.dto.ModerationReport map(ModerationReport bean);
 
   List<ModerationReport> mapDtos(List<com.faforever.commons.api.dto.ModerationReport> dtos);
 
-  List<com.faforever.commons.api.dto.ModerationReport> mapBeans(List<ModerationReport> beans,
-                                                                @Context CycleAvoidingMappingContext context);
+  List<com.faforever.commons.api.dto.ModerationReport> mapBeans(List<ModerationReport> beans);
 }

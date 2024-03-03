@@ -6,7 +6,6 @@ import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.map.MapSize;
 import com.faforever.commons.api.dto.MapPoolAssignment;
 import com.faforever.commons.api.dto.NeroxisGeneratorParams;
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -17,18 +16,18 @@ public interface MapMapper {
   @Mapping(target = "reviewsSummary", source = "mapReviewsSummary")
   Map map(com.faforever.commons.api.dto.Map dto);
 
-  com.faforever.commons.api.dto.Map map(Map bean, @Context CycleAvoidingMappingContext context);
+  com.faforever.commons.api.dto.Map map(Map bean);
 
   List<Map> mapMapDtos(List<com.faforever.commons.api.dto.Map> dto);
 
-  List<com.faforever.commons.api.dto.Map> mapMapBeans(List<Map> bean, @Context CycleAvoidingMappingContext context);
+  List<com.faforever.commons.api.dto.Map> mapMapBeans(List<Map> bean);
 
   @Mapping(target = "size", expression = "java(getMapSize(dto))")
   MapVersion map(com.faforever.commons.api.dto.MapVersion dto);
 
   @Mapping(target = "width", source = "size.widthInPixels")
   @Mapping(target = "height", source = "size.heightInPixels")
-  com.faforever.commons.api.dto.MapVersion map(MapVersion bean, @Context CycleAvoidingMappingContext context);
+  com.faforever.commons.api.dto.MapVersion map(MapVersion bean);
 
   default MapSize getMapSize(com.faforever.commons.api.dto.MapVersion dto) {
     if (dto.getWidth() == null || dto.getHeight() == null) {
@@ -39,8 +38,7 @@ public interface MapMapper {
 
   List<MapVersion> mapVersionDtos(List<com.faforever.commons.api.dto.MapVersion> dto);
 
-  List<com.faforever.commons.api.dto.MapVersion> mapVersionBeans(List<MapVersion> bean,
-                                                                 @Context CycleAvoidingMappingContext context);
+  List<com.faforever.commons.api.dto.MapVersion> mapVersionBeans(List<MapVersion> bean);
 
   default MapType mapStringToMapType(String string) {
     return MapType.fromValue(string);

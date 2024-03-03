@@ -6,7 +6,6 @@ import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.PlayerMapper;
 import com.faforever.client.preferences.UserPrefs;
@@ -166,7 +165,7 @@ public class PlayerServiceTest extends ServiceTest {
   @Test
   public void testGetPlayerByName() {
     PlayerInfo playerInfo = PlayerInfoBuilder.create().defaultValues().get();
-    Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerInfo, new CycleAvoidingMappingContext()));
+    Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerInfo));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getPlayerByName("test")).expectNext(playerInfo).verifyComplete();
 
@@ -183,7 +182,7 @@ public class PlayerServiceTest extends ServiceTest {
   @Test
   public void testGetPlayersByIds() {
     PlayerInfo playerInfo = PlayerInfoBuilder.create().defaultValues().username("junit4").id(4).get();
-    Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerInfo, new CycleAvoidingMappingContext()));
+    Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerInfo));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     instance.getPlayersByIds(List.of(1, 2, 3, 4)).blockLast();
 

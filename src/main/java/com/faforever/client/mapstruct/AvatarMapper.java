@@ -2,7 +2,6 @@ package com.faforever.client.mapstruct;
 
 import com.faforever.client.avatar.Avatar;
 import com.faforever.commons.lobby.Player;
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -15,7 +14,7 @@ public interface AvatarMapper {
   Avatar map(com.faforever.commons.api.dto.Avatar dto);
 
   @Mapping(target = "tooltip", source = "description")
-  com.faforever.commons.api.dto.Avatar map(Avatar bean, @Context CycleAvoidingMappingContext context);
+  com.faforever.commons.api.dto.Avatar map(Avatar bean);
 
   Avatar map(Player.Avatar dto);
 

@@ -2,7 +2,6 @@ package com.faforever.client.tournament;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.domain.api.Tournament;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.TournamentMapper;
 import com.faforever.client.test.ServiceTest;
@@ -42,8 +41,7 @@ public class TournamentServiceTest extends ServiceTest {
   @Test
   public void testAllTournaments() throws Exception {
     Tournament tournament = Instancio.create(Tournament.class);
-    Flux<com.faforever.commons.api.dto.Tournament> resultFlux = Flux.just(
-        tournamentMapper.map(tournament, new CycleAvoidingMappingContext()));
+    Flux<com.faforever.commons.api.dto.Tournament> resultFlux = Flux.just(tournamentMapper.map(tournament));
     when(fafApiAccessor.getMany(eq(com.faforever.commons.api.dto.Tournament.class), anyString(), anyInt(),
                                 any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getAllTournaments()).expectNext(tournament).verifyComplete();

@@ -12,7 +12,6 @@ import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.MatchmakerMapper;
@@ -233,8 +232,8 @@ public class MapServiceTest extends PlatformTest {
   @Test
   public void testGetRecommendedMaps() {
     MapVersion mapVersion = Instancio.create(MapVersion.class);
-    com.faforever.commons.api.dto.Map map = mapMapper.map(mapVersion.map(), new CycleAvoidingMappingContext());
-    map.setLatestVersion(mapMapper.map(mapVersion, new CycleAvoidingMappingContext()));
+    com.faforever.commons.api.dto.Map map = mapMapper.map(mapVersion.map());
+    map.setLatestVersion(mapMapper.map(mapVersion));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(map), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getRecommendedMapsWithPageCount(10, 0)).expectNextCount(1)
@@ -246,8 +245,8 @@ public class MapServiceTest extends PlatformTest {
   @Test
   public void testGetHighestRatedMaps() {
     MapVersion mapVersion = Instancio.create(MapVersion.class);
-    com.faforever.commons.api.dto.Map map = mapMapper.map(mapVersion.map(), new CycleAvoidingMappingContext());
-    map.setLatestVersion(mapMapper.map(mapVersion, new CycleAvoidingMappingContext()));
+    com.faforever.commons.api.dto.Map map = mapMapper.map(mapVersion.map());
+    map.setLatestVersion(mapMapper.map(mapVersion));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(map), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getHighestRatedMapsWithPageCount(10, 0)).expectNextCount(1)
@@ -259,8 +258,8 @@ public class MapServiceTest extends PlatformTest {
   @Test
   public void testGetNewestMaps() {
     MapVersion mapVersion = Instancio.create(MapVersion.class);
-    com.faforever.commons.api.dto.Map map = mapMapper.map(mapVersion.map(), new CycleAvoidingMappingContext());
-    map.setLatestVersion(mapMapper.map(mapVersion, new CycleAvoidingMappingContext()));
+    com.faforever.commons.api.dto.Map map = mapMapper.map(mapVersion.map());
+    map.setLatestVersion(mapMapper.map(mapVersion));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(map), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getNewestMapsWithPageCount(10, 0)).expectNextCount(1)
@@ -272,8 +271,8 @@ public class MapServiceTest extends PlatformTest {
   @Test
   public void testGetMostPlayedMaps() {
     MapVersion mapVersion = Instancio.create(MapVersion.class);
-    com.faforever.commons.api.dto.Map map = mapMapper.map(mapVersion.map(), new CycleAvoidingMappingContext());
-    map.setLatestVersion(mapMapper.map(mapVersion, new CycleAvoidingMappingContext()));
+    com.faforever.commons.api.dto.Map map = mapMapper.map(mapVersion.map());
+    map.setLatestVersion(mapMapper.map(mapVersion));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(map), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
     StepVerifier.create(instance.getMostPlayedMapsWithPageCount(10, 0)).expectNextCount(1)
@@ -311,8 +310,8 @@ public class MapServiceTest extends PlatformTest {
     MapVersion mapVersion = Instancio.of(MapVersion.class)
                                      .set(field(MapVersion::folderName), "palaneum.v0001")
                                      .create();
-    com.faforever.commons.api.dto.Map map = mapMapper.map(mapVersion.map(), new CycleAvoidingMappingContext());
-    map.setLatestVersion(mapMapper.map(mapVersion, new CycleAvoidingMappingContext()));
+    com.faforever.commons.api.dto.Map map = mapMapper.map(mapVersion.map());
+    map.setLatestVersion(mapMapper.map(mapVersion));
 
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(map));
     StepVerifier.create(instance.getMapLatestVersion(mapVersion).map(MapVersion::id)).expectNext(mapVersion.id())
@@ -322,8 +321,8 @@ public class MapServiceTest extends PlatformTest {
                                                                              .eq(mapVersion.folderName()))));
 
     MapVersion newMap = Instancio.create(MapVersion.class);
-    map = mapMapper.map(mapVersion.map(), new CycleAvoidingMappingContext());
-    map.setLatestVersion(mapMapper.map(newMap, new CycleAvoidingMappingContext()));
+    map = mapMapper.map(mapVersion.map());
+    map.setLatestVersion(mapMapper.map(newMap));
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(map));
     StepVerifier.create(instance.getMapLatestVersion(mapVersion).map(MapVersion::id)).expectNext(newMap.id())
                 .verifyComplete();
@@ -337,8 +336,8 @@ public class MapServiceTest extends PlatformTest {
     MapVersion updatedMap = Instancio.of(MapVersion.class)
                                      .set(field(MapVersion::folderName), "palaneum.v0002")
                                      .create();
-    com.faforever.commons.api.dto.Map map = mapMapper.map(outdatedMap.map(), new CycleAvoidingMappingContext());
-    map.setLatestVersion(mapMapper.map(updatedMap, new CycleAvoidingMappingContext()));
+    com.faforever.commons.api.dto.Map map = mapMapper.map(outdatedMap.map());
+    map.setLatestVersion(mapMapper.map(updatedMap));
 
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(map));
 
@@ -422,7 +421,7 @@ public class MapServiceTest extends PlatformTest {
   @Test
   public void testFindByMapFolderName() throws Exception {
     MapVersion mapVersion = Instancio.create(MapVersion.class);
-    Flux<ElideEntity> resultFlux = Flux.just(mapMapper.map(mapVersion, new CycleAvoidingMappingContext()));
+    Flux<ElideEntity> resultFlux = Flux.just(mapMapper.map(mapVersion));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
     StepVerifier.create(instance.findByMapFolderName("test")).expectNextCount(1).verifyComplete();
@@ -442,8 +441,7 @@ public class MapServiceTest extends PlatformTest {
                                                     .create();
 
     Flux<ElideEntity> resultFlux = Flux.fromIterable(
-        matchmakerMapper.mapAssignmentBeans(List.of(mapPoolAssignment1, mapPoolAssignment2),
-                                            new CycleAvoidingMappingContext()));
+        matchmakerMapper.mapAssignmentBeans(List.of(mapPoolAssignment1, mapPoolAssignment2)));
     when(fafApiAccessor.getMany(any(), anyString())).thenReturn(resultFlux);
     when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().defaultValues().get());
 
@@ -478,7 +476,8 @@ public class MapServiceTest extends PlatformTest {
                                                              "c")
                                                     .create();
 
-    Flux<ElideEntity> resultFlux = Flux.fromIterable(matchmakerMapper.mapAssignmentBeans(List.of(mapPoolAssignment1, mapPoolAssignment2, mapPoolAssignment3), new CycleAvoidingMappingContext()));
+    Flux<ElideEntity> resultFlux = Flux.fromIterable(
+        matchmakerMapper.mapAssignmentBeans(List.of(mapPoolAssignment1, mapPoolAssignment2, mapPoolAssignment3)));
     when(fafApiAccessor.getMany(any(), anyString())).thenReturn(resultFlux);
     when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().defaultValues().get());
 
@@ -512,8 +511,7 @@ public class MapServiceTest extends PlatformTest {
   @Test
   public void testGetOwnedMaps() throws Exception {
     MapVersion mapVersion = Instancio.create(MapVersion.class);
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
-        List.of(mapMapper.map(mapVersion, new CycleAvoidingMappingContext())), 1);
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(mapMapper.map(mapVersion)), 1);
     when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
     PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
     when(playerService.getCurrentPlayer()).thenReturn(player);
@@ -530,8 +528,8 @@ public class MapServiceTest extends PlatformTest {
   @Test
   public void testFindByQuery() throws Exception {
     MapVersion mapVersion = Instancio.create(MapVersion.class);
-    com.faforever.commons.api.dto.Map map = mapMapper.map(mapVersion.map(), new CycleAvoidingMappingContext());
-    map.setLatestVersion(mapMapper.map(mapVersion, new CycleAvoidingMappingContext()));
+    com.faforever.commons.api.dto.Map map = mapMapper.map(mapVersion.map());
+    map.setLatestVersion(mapMapper.map(mapVersion));
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(map), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
