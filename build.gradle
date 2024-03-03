@@ -139,6 +139,8 @@ fx2j {
 }
 
 testlogger {
+  theme = "standard-parallel"
+  showFullStackTraces = false
   showPassed = false
   showStandardStreams = false
 }
