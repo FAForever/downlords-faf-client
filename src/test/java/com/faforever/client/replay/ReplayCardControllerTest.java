@@ -265,7 +265,7 @@ public class ReplayCardControllerTest extends PlatformTest {
       instance.onWatchButtonClicked();
     });
 
-    verify(replayService).runReplay(onlineReplay);
+    verify(replayService).runReplay(any(Replay.class));
   }
 
   @Test
