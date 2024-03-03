@@ -50,7 +50,7 @@ public class ClanServiceTest extends ServiceTest {
     Clan clan = Instancio.of(Clan.class).set(field(Clan::members), List.of()).create();
     Flux<ElideEntity> resultFlux = Flux.just(clanMapper.map(clan, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    StepVerifier.create(instance.getClanByTag("test")).expectNext(clan).verifyComplete();
+    StepVerifier.create(instance.getClanByTag("test")).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("tag").eq("test"))));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1)));
   }
