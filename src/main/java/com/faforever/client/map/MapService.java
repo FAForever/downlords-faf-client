@@ -15,7 +15,6 @@ import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratorService;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapMapper;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
@@ -406,8 +405,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
   public Mono<Void> downloadAndInstallMap(MapVersion mapVersion, @Nullable DoubleProperty progressProperty,
                                           @Nullable StringProperty titleProperty) {
-    return downloadAndInstallMap(mapVersion.folderName(), mapVersion.downloadUrl(), progressProperty,
-                                 titleProperty);
+    return downloadAndInstallMap(mapVersion.folderName(), mapVersion.downloadUrl(), progressProperty, titleProperty);
   }
 
   /**
@@ -565,9 +563,7 @@ public class MapService implements InitializingBean, DisposableBean {
     mapVersion.setHidden(true);
     mapVersion.setId(id);
     ElideNavigatorOnId<com.faforever.commons.api.dto.MapVersion> navigator = ElideNavigator.of(mapVersion);
-    return fafApiAccessor.patch(navigator, mapVersion)
-                         .then(fafApiAccessor.getOne(navigator))
-                         .map(dto -> mapMapper.map(dto, new CycleAvoidingMappingContext()));
+    return fafApiAccessor.patch(navigator, mapVersion).then(fafApiAccessor.getOne(navigator)).map(mapMapper::map);
   }
 
   /**
@@ -575,10 +571,13 @@ public class MapService implements InitializingBean, DisposableBean {
    */
   public Mono<MapVersion> findByMapFolderName(String folderName) {
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.MapVersion> navigator = ElideNavigator.of(
-        com.faforever.commons.api.dto.MapVersion.class).collection().setFilter(qBuilder().string("folderName")
-                                                                                          .eq(folderName));
-    Mono<MapVersion> apiMapVersion = fafApiAccessor.getMany(navigator).next().map(dto -> mapMapper.map(dto,
-                                                                                 new CycleAvoidingMappingContext()));
+                                                                                                       com.faforever.commons.api.dto.MapVersion.class)
+                                                                                                   .collection()
+                                                                                                   .setFilter(
+                                                                                                       qBuilder().string(
+                                                                                                                     "folderName")
+                                                                                                                 .eq(folderName));
+    Mono<MapVersion> apiMapVersion = fafApiAccessor.getMany(navigator).next().map(mapMapper::map);
 
     return Mono.justOrEmpty(getMapLocallyFromName(folderName)).switchIfEmpty(apiMapVersion);
   }
@@ -592,11 +591,17 @@ public class MapService implements InitializingBean, DisposableBean {
     }
 
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.Map> navigator = ElideNavigator.of(
-        com.faforever.commons.api.dto.Map.class).collection().setFilter(qBuilder().string("versions.folderName")
-                                                                                   .eq(folderName)).pageSize(1);
+                                                                                                com.faforever.commons.api.dto.Map.class)
+                                                                                            .collection()
+                                                                                            .setFilter(
+                                                                                                qBuilder().string(
+                                                                                                              "versions.folderName")
+                                                                                                          .eq(folderName))
+                                                                                            .pageSize(1);
     return fafApiAccessor.getMany(navigator)
-                         .next().map(com.faforever.commons.api.dto.Map::getLatestVersion)
-                         .map(dto -> mapMapper.map(dto, new CycleAvoidingMappingContext()))
+                         .next()
+                         .map(com.faforever.commons.api.dto.Map::getLatestVersion)
+                         .map(mapMapper::map)
                          .defaultIfEmpty(mapVersion);
 
   }
@@ -607,9 +612,7 @@ public class MapService implements InitializingBean, DisposableBean {
                                                                             .setFilter(qBuilder().intNum(
                                                                                                      "mapPool.matchmakerQueueMapPool.matchmakerQueue.id")
                                                                                                  .eq(matchmakerQueue.getId()));
-    return fafApiAccessor.getMany(navigator)
-                         .map(mapPoolAssignment -> mapMapper.mapFromPoolAssignment(mapPoolAssignment,
-                                                                                   new CycleAvoidingMappingContext()))
+    return fafApiAccessor.getMany(navigator).map(mapMapper::mapFromPoolAssignment)
                          .distinct()
                          .filter(mapVersion -> !mapGeneratorService.isGeneratedMap(mapVersion.folderName()))
                          .flatMap(
@@ -628,7 +631,7 @@ public class MapService implements InitializingBean, DisposableBean {
                                                                                 int count, int page) {
     PlayerInfo player = playerService.getCurrentPlayer();
     double rating = Optional.ofNullable(player.getLeaderboardRatings())
-                           .map(ratings -> ratings.get(matchmakerQueue.getLeaderboard().technicalName()))
+                            .map(ratings -> ratings.get(matchmakerQueue.getLeaderboard().technicalName()))
                             .map(ratingBean -> ratingBean.mean() - 3 * ratingBean.deviation())
                             .orElse(0d);
     ElideNavigatorOnCollection<MapPoolAssignment> navigator = ElideNavigator.of(MapPoolAssignment.class).collection();
@@ -642,18 +645,17 @@ public class MapService implements InitializingBean, DisposableBean {
     // The api doesn't support the ne operation so we manually replace it with isnull which rsql does not support
     String customFilter = ((String) new QBuilder().and(conditions).query(new RSQLVisitor())).replace("ex", "isnull");
     Flux<MapVersion> matchmakerMapsFlux = fafApiAccessor.getMany(navigator, customFilter)
-                                                        .map(mapPoolAssignment -> mapMapper.mapFromPoolAssignment(
-                                                                mapPoolAssignment, new CycleAvoidingMappingContext()))
+                                                        .map(mapMapper::mapFromPoolAssignment)
                                                         .distinct()
                                                         .sort(
                                                             Comparator.nullsLast(Comparator.comparing(MapVersion::size))
-                                                                            .thenComparing(Comparator.nullsLast(
-                                                                                Comparator.comparing(MapVersion::map,
-                                                                                    Comparator.nullsLast(
-                                                                                        Comparator.comparing(
-                                                                                            Map::displayName,
-                                                                                            Comparator.nullsLast(
-                                                                                                String.CASE_INSENSITIVE_ORDER)))))));
+                                                                      .thenComparing(Comparator.nullsLast(
+                                                                          Comparator.comparing(MapVersion::map,
+                                                                                               Comparator.nullsLast(
+                                                                                                   Comparator.comparing(
+                                                                                                       Map::displayName,
+                                                                                                       Comparator.nullsLast(
+                                                                                                           String.CASE_INSENSITIVE_ORDER)))))));
     return Mono.zip(matchmakerMapsFlux.skip((long) (page - 1) * count).take(count).collectList(),
                     matchmakerMapsFlux.count().map(size -> (int) (size - 1) / count + 1));
   }
@@ -678,14 +680,12 @@ public class MapService implements InitializingBean, DisposableBean {
                                                                                                    .setFilter(
                                                                                                        qBuilder().string(
                                                                                                                      "map.author.id")
-                                                                                          .eq(String.valueOf(
-                                                                                              playerService.getCurrentPlayer()
-                                                                                                           .getId())))
+                                                                                                                 .eq(String.valueOf(
+                                                                                                                     playerService.getCurrentPlayer()
+                                                                                                                                  .getId())))
                                                                                                    .pageNumber(page)
                                                                                                    .pageSize(count);
-    return fafApiAccessor.getManyWithPageCount(navigator)
-                         .map(tuple -> tuple.mapT1(
-                             mapVersions -> mapMapper.mapVersionDtos(mapVersions, new CycleAvoidingMappingContext())));
+    return fafApiAccessor.getManyWithPageCount(navigator).map(tuple -> tuple.mapT1(mapMapper::mapVersionDtos));
   }
 
   @Cacheable(value = CacheNames.MAPS, sync = true)
@@ -693,9 +693,13 @@ public class MapService implements InitializingBean, DisposableBean {
                                                                           int page) {
     SortConfig sortConfig = searchConfig.sortConfig();
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.Map> navigator = ElideNavigator.of(
-        com.faforever.commons.api.dto.Map.class).collection().addSortingRule(sortConfig.sortProperty(),
-                                                                              sortConfig.sortOrder()
-                                                                                        .equals(SortOrder.ASC));
+                                                                                                com.faforever.commons.api.dto.Map.class)
+                                                                                            .collection()
+                                                                                            .addSortingRule(
+                                                                                                sortConfig.sortProperty(),
+                                                                                                sortConfig.sortOrder()
+                                                                                                          .equals(
+                                                                                                              SortOrder.ASC));
     return getMapPage(navigator, searchConfig.searchQuery(), count, page);
   }
 
@@ -738,8 +742,8 @@ public class MapService implements InitializingBean, DisposableBean {
     navigator.pageNumber(page).pageSize(count);
     return fafApiAccessor.getManyWithPageCount(navigator, customFilter)
                          .map(tuple -> tuple.mapT1(maps -> maps.stream()
-                                                               .map(dto -> mapMapper.map(dto.getLatestVersion(),
-                                                                                         new CycleAvoidingMappingContext()))
+                                                               .map(com.faforever.commons.api.dto.Map::getLatestVersion)
+                                                               .map(mapMapper::map)
                                                                .toList()));
   }
 }

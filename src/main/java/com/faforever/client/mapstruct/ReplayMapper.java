@@ -13,7 +13,7 @@ import com.faforever.commons.replay.GameOption;
 import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
 import org.mapstruct.CollectionMappingStrategy;
-import org.mapstruct.Context;
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Qualifier;
@@ -46,10 +46,10 @@ public interface ReplayMapper {
   @Mapping(target = "teamPlayerStats", source = "dto", qualifiedBy = MapTeamStats.class)
   @Mapping(target = "teams", source = "dto", qualifiedBy = MapTeams.class)
   @Mapping(target = "reviewsSummary", source = "gameReviewsSummary")
-  Replay map(Game dto, @Context CycleAvoidingMappingContext context);
+  Replay map(Game dto);
 
   @MapTeams
-  default Map<String, List<String>> mapToTeams(Game dto, @Context CycleAvoidingMappingContext context) {
+  default Map<String, List<String>> mapToTeams(Game dto) {
     List<com.faforever.commons.api.dto.GamePlayerStats> playerStats = dto.getPlayerStats();
 
     if (playerStats == null) {
@@ -65,8 +65,7 @@ public interface ReplayMapper {
   }
 
   @MapTeamStats
-  default Map<String, List<GamePlayerStats>> mapToTeamPlayerStats(Game dto,
-                                                                  @Context CycleAvoidingMappingContext context) {
+  default Map<String, List<GamePlayerStats>> mapToTeamPlayerStats(Game dto) {
     List<com.faforever.commons.api.dto.GamePlayerStats> playerStats = dto.getPlayerStats();
 
     if (playerStats == null) {
@@ -75,8 +74,7 @@ public interface ReplayMapper {
 
     return playerStats.stream()
                       .collect(Collectors.groupingBy(gamePlayerStats -> String.valueOf(gamePlayerStats.getTeam()),
-                                                     Collectors.mapping(
-                                                         gamePlayerStats -> map(gamePlayerStats, context),
+                                                     Collectors.mapping(gamePlayerStats -> map(gamePlayerStats),
                                                          Collectors.toList())));
   }
 
@@ -148,18 +146,18 @@ public interface ReplayMapper {
 
   @Mapping(target = "name", source = "title")
   @Mapping(target = "playerStats", source = "teamPlayerStats")
-  Game map(Replay bean, @Context CycleAvoidingMappingContext context);
+  Game map(Replay bean);
 
   default List<GamePlayerStats> mapToTeamPlayerStats(Map<String, List<GamePlayerStats>> teamPlayerStats) {
     return teamPlayerStats.values().stream().flatMap(Collection::stream).toList();
   }
 
-  GamePlayerStats map(com.faforever.commons.api.dto.GamePlayerStats dto, @Context CycleAvoidingMappingContext context);
+  GamePlayerStats map(com.faforever.commons.api.dto.GamePlayerStats dto);
 
-  com.faforever.commons.api.dto.GamePlayerStats map(GamePlayerStats bean, @Context CycleAvoidingMappingContext context);
+  @InheritInverseConfiguration
+  com.faforever.commons.api.dto.GamePlayerStats map(GamePlayerStats bean);
 
-  List<com.faforever.commons.api.dto.GamePlayerStats> map(Collection<GamePlayerStats> beans,
-                                                          @Context CycleAvoidingMappingContext context);
+  List<com.faforever.commons.api.dto.GamePlayerStats> map(Collection<GamePlayerStats> beans);
 
   @Qualifier
   @Target(ElementType.METHOD)

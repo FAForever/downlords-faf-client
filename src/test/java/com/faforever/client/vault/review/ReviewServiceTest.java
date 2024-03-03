@@ -6,7 +6,6 @@ import com.faforever.client.domain.api.MapVersionReview;
 import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.domain.api.ModVersionReview;
 import com.faforever.client.domain.api.ReplayReview;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.ReviewMapper;
 import com.faforever.client.test.ElideMatchers;
@@ -46,7 +45,7 @@ public class ReviewServiceTest extends ServiceTest {
   @Test
   public void saveNewGameReview() throws Exception {
     ReplayReview reviewBean = Instancio.of(ReplayReview.class).ignore(field(ReplayReview::id)).create();
-    Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext()));
+    Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean));
     when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
 
     StepVerifier.create(instance.saveReview(Instancio.of(ReplayReview.class).ignore(field(ReplayReview::id))
@@ -59,7 +58,7 @@ public class ReviewServiceTest extends ServiceTest {
   @Test
   public void saveNewMapVersionReview() throws Exception {
     MapVersionReview reviewBean = Instancio.of(MapVersionReview.class).ignore(field(MapVersionReview::id)).create();
-    Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext()));
+    Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean));
     when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
 
     StepVerifier.create(instance.saveReview(Instancio.of(MapVersionReview.class)
@@ -75,7 +74,7 @@ public class ReviewServiceTest extends ServiceTest {
   @Test
   public void saveNewModVersionReview() throws Exception {
     ModVersionReview reviewBean = Instancio.create(ModVersionReview.class);
-    Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext()));
+    Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean));
     when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
 
     StepVerifier.create(instance.saveReview(Instancio.of(ModVersionReview.class)

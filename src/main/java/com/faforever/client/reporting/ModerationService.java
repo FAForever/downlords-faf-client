@@ -3,7 +3,6 @@ package com.faforever.client.reporting;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.domain.api.ModerationReport;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.ModerationReportMapper;
 import com.faforever.client.player.PlayerService;
 import com.faforever.commons.api.elide.ElideNavigator;
@@ -44,17 +43,14 @@ public class ModerationService {
                                                                                                          .addSortingRule(
                                                                                                              "createTime",
                                                                                                              false);
-    return fafApiAccessor.getMany(navigator)
-        .map(dto -> moderationReportMapper.map(dto, new CycleAvoidingMappingContext())).cache();
+    return fafApiAccessor.getMany(navigator).map(moderationReportMapper::map).cache();
   }
 
   @CacheEvict(value = CacheNames.MODERATION_REPORTS)
   public Mono<ModerationReport> postModerationReport(ModerationReport report) {
-    com.faforever.commons.api.dto.ModerationReport reportDto = moderationReportMapper.map(report,
-                                                                                          new CycleAvoidingMappingContext());
+    com.faforever.commons.api.dto.ModerationReport reportDto = moderationReportMapper.map(report);
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.ModerationReport> navigator = ElideNavigator.of(
         com.faforever.commons.api.dto.ModerationReport.class).collection();
-    return fafApiAccessor.post(navigator, reportDto)
-                         .map(dto -> moderationReportMapper.map(dto, new CycleAvoidingMappingContext()));
+    return fafApiAccessor.post(navigator, reportDto).map(moderationReportMapper::map);
   }
 }

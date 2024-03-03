@@ -4,7 +4,6 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.domain.api.Clan;
 import com.faforever.client.mapstruct.ClanMapper;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import lombok.RequiredArgsConstructor;
@@ -31,8 +30,7 @@ public class ClanService {
 
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.Clan> navigator = ElideNavigator.of(
         com.faforever.commons.api.dto.Clan.class).collection().setFilter(qBuilder().string("tag").eq(tag)).pageSize(1);
-    return fafApiAccessor.getMany(navigator)
-        .next().map(dto -> clanMapper.map(dto, new CycleAvoidingMappingContext())).cache();
+    return fafApiAccessor.getMany(navigator).next().map(clanMapper::map).cache();
   }
 }
 

@@ -5,7 +5,6 @@ import com.faforever.client.domain.api.NameRecord;
 import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.PlayerMapper;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.user.LoginService;
@@ -66,8 +65,7 @@ public class PlayerService implements InitializingBean {
                      .flatMap(player -> Mono.zip(Mono.just(player), Mono.justOrEmpty(playersById.get(player.getId()))
                                                                         .switchIfEmpty(initializePlayer(player))))
                      .publishOn(fxApplicationThreadExecutor.asScheduler())
-                     .map(TupleUtils.function((player, playerBean) -> playerMapper.update(player, playerBean,
-                                                                                          new CycleAvoidingMappingContext())))
+                     .map(TupleUtils.function(playerMapper::update))
                      .doOnError(throwable -> log.error("Error processing player", throwable))
                      .retry()
                      .subscribe();
@@ -117,9 +115,9 @@ public class PlayerService implements InitializingBean {
         playerSubscriptions.computeIfAbsent(newPlayer, ignored -> ConcurrentHashMap.newKeySet())
                            .add(removeSubscription);
         playersByName.put(newPlayer.getUsername(), newPlayer);
-        return playerMapper.update(playerInfo, newPlayer, new CycleAvoidingMappingContext());
+        return playerMapper.update(playerInfo, newPlayer);
       } else {
-        return playerMapper.update(playerInfo, knownPlayer, new CycleAvoidingMappingContext());
+        return playerMapper.update(playerInfo, knownPlayer);
       }
     });
   }
@@ -185,8 +183,7 @@ public class PlayerService implements InitializingBean {
                                                                               .collection()
                                                                               .setFilter(qBuilder().intNum("id")
                                                                                                    .in(offlineIds));
-                 return fafApiAccessor.getMany(navigator)
-                                      .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()));
+                 return fafApiAccessor.getMany(navigator).map(playerMapper::map);
                }).concatWithValues(onlinePlayers.toArray(new PlayerInfo[0]));
   }
 
@@ -196,8 +193,7 @@ public class PlayerService implements InitializingBean {
                                                                  .setFilter(qBuilder().string("login").eq(playerName));
 
     Mono<PlayerInfo> apiPlayer = fafApiAccessor.getMany(navigator)
-                                               .next()
-                                               .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()));
+                                               .next().map(playerMapper::map);
 
     return Mono.justOrEmpty(getPlayerByNameIfOnline(playerName)).switchIfEmpty(apiPlayer);
   }
@@ -207,8 +203,7 @@ public class PlayerService implements InitializingBean {
         com.faforever.commons.api.dto.NameRecord.class).collection().setFilter(qBuilder().intNum("player.id")
                                                                                           .eq(player.getId()));
 
-    return fafApiAccessor.getMany(navigator)
-                         .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()))
+    return fafApiAccessor.getMany(navigator).map(playerMapper::map)
                          .sort(Comparator.comparing(NameRecord::changeTime));
   }
 

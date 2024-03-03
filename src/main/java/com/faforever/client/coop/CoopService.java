@@ -5,7 +5,6 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.domain.api.CoopMission;
 import com.faforever.client.domain.api.CoopResult;
 import com.faforever.client.mapstruct.CoopMapper;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GamePlayerStats;
 import com.faforever.commons.api.dto.Player;
@@ -37,7 +36,7 @@ public class CoopService {
   public Flux<CoopMission> getMissions() {
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.CoopMission> navigator = ElideNavigator.of(
         com.faforever.commons.api.dto.CoopMission.class).collection().pageSize(1000);
-    return fafApiAccessor.getMany(navigator).map(dto -> coopMapper.map(dto, new CycleAvoidingMappingContext())).cache();
+    return fafApiAccessor.getMany(navigator).map(coopMapper::map).cache();
   }
 
   @Cacheable(value = CacheNames.COOP_LEADERBOARD, sync = true)
@@ -56,8 +55,7 @@ public class CoopService {
                                                                                                    .pageSize(1000);
     return fafApiAccessor.getMany(navigator)
                          .distinct(this::getAllPlayerNamesFromTeams)
-                         .index(
-                             (index, dto) -> coopMapper.map(dto, index.intValue(), new CycleAvoidingMappingContext()))
+                         .index((index, dto) -> coopMapper.map(dto, index.intValue()))
                          .cache();
   }
 

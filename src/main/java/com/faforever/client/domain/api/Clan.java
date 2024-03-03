@@ -6,12 +6,10 @@ import java.net.URL;
 import java.util.List;
 
 public record Clan(
-    Integer id,
-    String description, PlayerInfo founder, PlayerInfo leader,
+    Integer id, String description, PlayerInfo founder, PlayerInfo leader,
     String name,
     String tag,
-    String tagColor,
-    URL websiteUrl, List<PlayerInfo> members
+    String tagColor, URL websiteUrl, List<PlayerInfo> members
 ) {
 
   public Clan {

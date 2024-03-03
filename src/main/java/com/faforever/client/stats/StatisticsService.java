@@ -5,7 +5,6 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.domain.api.Leaderboard;
 import com.faforever.client.domain.api.LeaderboardRatingJournal;
 import com.faforever.client.domain.server.PlayerInfo;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.LeaderboardMapper;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
@@ -41,7 +40,6 @@ public class StatisticsService {
                              .eq(leaderboard.id()))
                                                                                                                  .pageSize(
                                                                                                                      fafApiAccessor.getMaxPageSize());
-    return fafApiAccessor.getMany(navigator)
-        .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext())).cache();
+    return fafApiAccessor.getMany(navigator).map(leaderboardMapper::map).cache();
   }
 }

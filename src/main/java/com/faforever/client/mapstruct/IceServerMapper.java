@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 @Mapper(config = MapperConfiguration.class)
-public abstract class IceServerMapper {
-  public Map<String, Object> map(CoturnServer coturnServer) {
+public interface IceServerMapper {
+  default Map<String, Object> map(CoturnServer coturnServer) {
     return Map.of(
         "urls", coturnServer.getUrls().stream().map(URI::toString).toList(),
         "credential", coturnServer.getCredential(),
@@ -18,6 +18,6 @@ public abstract class IceServerMapper {
     );
   }
 
-  public abstract List<Map<String, Object>> map(Collection<CoturnServer> coturnServers);
+  List<Map<String, Object>> map(Collection<CoturnServer> coturnServers);
 
 }

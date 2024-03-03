@@ -4,7 +4,6 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.domain.api.Tutorial;
 import com.faforever.client.domain.api.TutorialCategory;
 import com.faforever.client.game.GameRunner;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.TutorialMapper;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
@@ -24,8 +23,7 @@ public class TutorialService {
   public Flux<TutorialCategory> getTutorialCategories() {
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.TutorialCategory> navigator = ElideNavigator.of(
         com.faforever.commons.api.dto.TutorialCategory.class).collection().pageSize(1000);
-    return fafApiAccessor.getMany(navigator)
-        .map(dto -> tutorialMapper.map(dto, new CycleAvoidingMappingContext())).cache();
+    return fafApiAccessor.getMany(navigator).map(tutorialMapper::map).cache();
   }
 
   public void launchTutorial(Tutorial tutorial) {

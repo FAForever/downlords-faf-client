@@ -4,7 +4,6 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.domain.api.CoopMission;
 import com.faforever.client.domain.api.CoopResult;
 import com.faforever.client.mapstruct.CoopMapper;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
@@ -49,7 +48,7 @@ public class CoopServiceTest extends ServiceTest {
   public void testGetCoopMaps() throws Exception {
     CoopMission coopMission = Instancio.create(CoopMission.class);
 
-    Flux<ElideEntity> resultFlux = Flux.just(coopMapper.map(coopMission, new CycleAvoidingMappingContext()));
+    Flux<ElideEntity> resultFlux = Flux.just(coopMapper.map(coopMission));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getMissions()).expectNext(coopMission).verifyComplete();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1000)));
@@ -62,7 +61,7 @@ public class CoopServiceTest extends ServiceTest {
                                      .ignore(field(CoopResult::replay))
                                      .create();
 
-    com.faforever.commons.api.dto.CoopResult result = coopMapper.map(coopResult, new CycleAvoidingMappingContext());
+    com.faforever.commons.api.dto.CoopResult result = coopMapper.map(coopResult);
     Flux<ElideEntity> resultFlux = Flux.just(result, result);
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     CoopMission mission = Instancio.create(CoopMission.class);

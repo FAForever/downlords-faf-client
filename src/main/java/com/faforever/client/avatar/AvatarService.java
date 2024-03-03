@@ -1,7 +1,6 @@
 package com.faforever.client.avatar;
 
 import com.faforever.client.mapstruct.AvatarMapper;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafServerAccessor;
@@ -36,8 +35,7 @@ public class AvatarService {
   }
 
   public CompletableFuture<List<Avatar>> getAvailableAvatars() {
-    return fafServerAccessor.getAvailableAvatars()
-        .thenApply(dto -> avatarMapper.mapDtos(dto, new CycleAvoidingMappingContext()));
+    return fafServerAccessor.getAvailableAvatars().thenApply(avatarMapper::mapDtos);
   }
 
   public void changeAvatar(Avatar avatar) {

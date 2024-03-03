@@ -3,7 +3,6 @@ package com.faforever.client.featuredmod;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.domain.api.FeaturedMod;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.FeaturedModMapper;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.commons.api.dto.FeaturedModFile;
@@ -66,7 +65,7 @@ public class FeaturedModService {
                          .next()
                          .switchIfEmpty(
                              Mono.error(new IllegalArgumentException("Not a valid featured mod: " + technicalName)))
-                         .map(dto -> featuredModMapper.map(dto, new CycleAvoidingMappingContext()))
+                         .map(featuredModMapper::map)
                          .cache();
   }
 
@@ -82,8 +81,7 @@ public class FeaturedModService {
                                                                                                     .addSortingRule(
                                                                                                         "order", true)
                                                                                                     .pageSize(50);
-    return fafApiAccessor.getMany(navigator)
-                         .map(dto -> featuredModMapper.map(dto, new CycleAvoidingMappingContext()))
+    return fafApiAccessor.getMany(navigator).map(featuredModMapper::map)
                          .cache();
   }
 }

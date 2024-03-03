@@ -18,7 +18,6 @@ import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
 import com.faforever.client.map.MapService;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MatchmakerMapper;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.net.ConnectionState;
@@ -374,8 +373,7 @@ public class TeamMatchmakingService implements InitializingBean {
                                                                           .setFilter(qBuilder().string("technicalName")
                                                                                                .eq(matchmakerQueue.getName()));
     return fafApiAccessor.getMany(navigator)
-                         .next()
-                         .map(dto -> matchmakerMapper.map(dto, new CycleAvoidingMappingContext()))
+                         .next().map(matchmakerMapper::map)
                          .map(queue -> matchmakerMapper.update(matchmakerQueue, queue))
                          .doOnNext(queue -> queue.setSelected(
                              !matchmakerPrefs.getUnselectedQueueIds().contains(queue.getId())))
