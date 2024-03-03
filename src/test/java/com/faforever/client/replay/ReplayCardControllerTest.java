@@ -260,10 +260,10 @@ public class ReplayCardControllerTest extends PlatformTest {
 
   @Test
   public void testOnWatchButtonClicked() {
-    runOnFxThreadAndWait(() -> instance.setEntity(onlineReplay));
-
-    instance.onWatchButtonClicked();
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> {
+      instance.setEntity(onlineReplay);
+      instance.onWatchButtonClicked();
+    });
 
     verify(replayService).runReplay(onlineReplay);
   }
