@@ -1,19 +1,18 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.builders.LeagueEntryBeanBuilder;
-import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
-import com.faforever.client.builders.PartyBuilder;
-import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.SubdivisionBeanBuilder;
+import com.faforever.client.builders.MatchmakerQueueInfoBuilder;
+import com.faforever.client.builders.PartyInfoBuilder;
+import com.faforever.client.builders.PartyInfoBuilder.PartyMemberBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.chat.ChatMessageViewController;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.MatchmakingChatController;
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
-import com.faforever.client.domain.MatchmakerQueueBean;
-import com.faforever.client.domain.PartyBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.server.MatchmakerQueueInfo;
+import com.faforever.client.domain.server.PartyInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
@@ -30,6 +29,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -87,13 +87,13 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
   private MatchmakerPrefs matchmakerPrefs;
   @InjectMocks
   private TeamMatchmakingController instance;
-  private PlayerBean player;
-  private PartyBean party;
-  private ObservableList<MatchmakerQueueBean> matchmakerQueues;
+  private PlayerInfo player;
+  private PartyInfo party;
+  private ObservableList<MatchmakerQueueInfo> matchmakerQueues;
 
   @BeforeEach
   public void setUp() throws Exception {
-    party = PartyBuilder.create().defaultValues().get();
+    party = PartyInfoBuilder.create().defaultValues().get();
     player = party.getOwner();
     matchmakerQueues = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
 
@@ -141,15 +141,15 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
 
   @Test
   public void testLeagueSet() {
-    when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
-        Mono.just(LeagueEntryBeanBuilder.create().defaultValues().get()));
+    LeagueEntry leagueEntry = Instancio.create(LeagueEntry.class);
+    when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(Mono.just(leagueEntry));
 
     reinitialize(instance);
     waitForFxEvents();
 
     assertTrue(instance.leagueImageView.isVisible());
     assertThat(instance.leagueLabel.getText(), is("DIVISION V"));
-    verify(leaderboardService).loadDivisionImage(SubdivisionBeanBuilder.create().defaultValues().get().getMediumImageUrl());
+    verify(leaderboardService).loadDivisionImage(leagueEntry.subdivision().mediumImageUrl());
   }
 
   @Test
@@ -212,21 +212,18 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
     verify(i18n, times(1)).get("teammatchmaking.playerTitle");
 
     when(teamMatchmakingService.isAnyQueueSelected()).thenReturn(false);
-    runOnFxThreadAndWait(() -> party.setOwner(PlayerBeanBuilder.create().defaultValues().get()));
+    runOnFxThreadAndWait(() -> party.setOwner(PlayerInfoBuilder.create().defaultValues().get()));
     verify(i18n).get("teammatchmaking.searchButton.noQueueSelected");
 
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(true);
     runOnFxThreadAndWait(() -> {
-      party.setOwner(PlayerBeanBuilder.create().defaultValues().username("test").id(100).get());
+      party.setOwner(PlayerInfoBuilder.create().defaultValues().username("test").id(100).get());
       party.setOwner(player);
     });
     verify(i18n).get("teammatchmaking.searchButton.memberInGame");
 
-    runOnFxThreadAndWait(() -> party.setOwner(PlayerBeanBuilder.create()
-        .defaultValues()
-        .username("test")
-        .id(100)
-        .get()));
+    runOnFxThreadAndWait(
+        () -> party.setOwner(PlayerInfoBuilder.create().defaultValues().username("test").id(100).get()));
     verify(i18n, times(2)).get("teammatchmaking.searchButton.inParty");
 
     when(teamMatchmakingService.isInQueue()).thenReturn(true);
@@ -242,14 +239,14 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
       return controller;
     });
 
-    matchmakerQueues.add(MatchmakerQueueBeanBuilder.create().defaultValues().id(1).get());
-    matchmakerQueues.add(MatchmakerQueueBeanBuilder.create().defaultValues().id(2).get());
+    matchmakerQueues.add(MatchmakerQueueInfoBuilder.create().defaultValues().id(1).get());
+    matchmakerQueues.add(MatchmakerQueueInfoBuilder.create().defaultValues().id(2).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.queuePane.getChildren().size(), is(2));
 
-    matchmakerQueues.add(MatchmakerQueueBeanBuilder.create().defaultValues().id(3).get());
-    matchmakerQueues.add(MatchmakerQueueBeanBuilder.create().defaultValues().id(4).get());
+    matchmakerQueues.add(MatchmakerQueueInfoBuilder.create().defaultValues().id(3).get());
+    matchmakerQueues.add(MatchmakerQueueInfoBuilder.create().defaultValues().id(4).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.queuePane.getChildren().size(), is(4));
@@ -265,8 +262,8 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
 
     assertFalse(instance.playerCard.getPseudoClassStates().contains(LEADER_PSEUDO_CLASS));
 
-    PlayerBean player1 = PlayerBeanBuilder.create().defaultValues().username("m1").id(101).get();
-    PlayerBean player2 = PlayerBeanBuilder.create().defaultValues().username("m2").id(102).get();
+    PlayerInfo player1 = PlayerInfoBuilder.create().defaultValues().username("m1").id(101).get();
+    PlayerInfo player2 = PlayerInfoBuilder.create().defaultValues().username("m2").id(102).get();
     party.getMembers().add(PartyMemberBuilder.create(player1).defaultValues().get());
     party.getMembers().add(PartyMemberBuilder.create(player2).defaultValues().get());
     WaitForAsyncUtils.waitForFxEvents();
@@ -274,7 +271,7 @@ public class TeamMatchmakingControllerTest extends PlatformTest {
     assertTrue(instance.playerCard.getPseudoClassStates().contains(LEADER_PSEUDO_CLASS));
     assertThat(instance.partyMemberPane.getChildren().size(), is(2));
 
-    PlayerBean player3 = PlayerBeanBuilder.create().defaultValues().username("m3").id(103).get();
+    PlayerInfo player3 = PlayerInfoBuilder.create().defaultValues().username("m3").id(103).get();
     party.getMembers().add(PartyMemberBuilder.create(player3).defaultValues().get());
     WaitForAsyncUtils.waitForFxEvents();
 

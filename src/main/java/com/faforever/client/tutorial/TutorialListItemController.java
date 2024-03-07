@@ -1,6 +1,6 @@
 package com.faforever.client.tutorial;
 
-import com.faforever.client.domain.TutorialBean;
+import com.faforever.client.domain.api.Tutorial;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -27,7 +27,7 @@ public class TutorialListItemController extends NodeController<Node> {
   public ImageView imageView;
   public Label titleLabel;
   public Label ordinalLabel;
-  private TutorialBean tutorial;
+  private Tutorial tutorial;
   private final MapService mapService;
 
   public TutorialListItemController(MapService mapService) {
@@ -39,21 +39,21 @@ public class TutorialListItemController extends NodeController<Node> {
     return root;
   }
 
-  public TutorialBean getTutorial() {
+  public Tutorial getTutorial() {
     return tutorial;
   }
 
-  public void setTutorial(final TutorialBean tutorial) {
+  public void setTutorial(final Tutorial tutorial) {
     this.tutorial = tutorial;
     imageView.setImage(getImage(tutorial));
-    titleLabel.textProperty().bind(tutorial.titleProperty());
-    ordinalLabel.textProperty().bind(tutorial.ordinalProperty().map(String::valueOf));
+    titleLabel.setText(tutorial.title());
+    ordinalLabel.setText(String.valueOf(tutorial.ordinal()));
   }
 
-  private Image getImage(TutorialBean tutorial) {
-    if (!Strings.isNullOrEmpty(tutorial.getImageUrl())) {
-      return new Image(tutorial.getImageUrl());
+  private Image getImage(Tutorial tutorial) {
+    if (!Strings.isNullOrEmpty(tutorial.imageUrl())) {
+      return new Image(tutorial.imageUrl());
     }
-    return tutorial.getMapVersion() != null ? mapService.loadPreview(tutorial.getMapVersion(), PreviewSize.SMALL) : null;
+    return tutorial.mapVersion() != null ? mapService.loadPreview(tutorial.mapVersion(), PreviewSize.SMALL) : null;
   }
 }

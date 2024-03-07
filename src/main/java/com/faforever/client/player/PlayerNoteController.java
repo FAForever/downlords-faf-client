@@ -1,6 +1,6 @@
 package com.faforever.client.player;
 
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.social.SocialService;
@@ -36,7 +36,7 @@ public class PlayerNoteController extends NodeController<VBox> {
 
   TextFormatter<String> formatter = new TextFormatter<>(change -> isCharacterLimitReached(change) ? null : change);
 
-  private PlayerBean player;
+  private PlayerInfo player;
 
   @Override
   protected void onInitialize() {
@@ -49,7 +49,7 @@ public class PlayerNoteController extends NodeController<VBox> {
     return change.getControlNewText().length() > CHARACTER_LIMIT;
   }
 
-  public void setPlayer(PlayerBean player) {
+  public void setPlayer(PlayerInfo player) {
     this.player = player;
     this.textArea.setText(player.getNote());
   }

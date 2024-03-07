@@ -1,9 +1,7 @@
 package com.faforever.client.map;
 
-import com.faforever.client.builders.MapBeanBuilder;
-import com.faforever.client.builders.MapVersionBeanBuilder;
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.MapVersionReviewBean;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.MapVersionReview;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -20,6 +18,7 @@ import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.image.Image;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -56,9 +55,9 @@ public class MapCardControllerTest extends PlatformTest {
   @Mock
   private I18n i18n;
   @Mock
-  private ReviewsController<MapVersionReviewBean> reviewsController;
+  private ReviewsController<MapVersionReview> reviewsController;
   @Mock
-  private ReviewController<MapVersionReviewBean> reviewController;
+  private ReviewController<MapVersionReview> reviewController;
   @Mock
   private StarsController starsController;
   @Mock
@@ -66,7 +65,7 @@ public class MapCardControllerTest extends PlatformTest {
 
   @InjectMocks
   private MapCardController instance;
-  private MapVersionBean mapBean;
+  private MapVersion mapBean;
 
   private final SimpleBooleanProperty installed = new SimpleBooleanProperty();
 
@@ -77,20 +76,13 @@ public class MapCardControllerTest extends PlatformTest {
 
     lenient().when(imageViewHelper.createPlaceholderImageOnErrorObservable(any()))
              .thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
-    lenient().when(mapService.isInstalledBinding(Mockito.<ObservableValue<MapVersionBean>>any())).thenReturn(installed);
+    lenient().when(mapService.isInstalledBinding(Mockito.<ObservableValue<MapVersion>>any())).thenReturn(installed);
     lenient().when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
     lenient().when(mapService.downloadAndInstallMap(any(), isNull(), isNull())).thenReturn(Mono.empty());
     lenient().when(mapService.uninstallMap(any())).thenReturn(Mono.empty());
-    mapBean = MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().get())
-        .folderName("testMap")
-        .ranked(true)
-        .id(23)
-        .size(MapSize.valueOf(1, 1))
-        .get();
+    mapBean = Instancio.create(MapVersion.class);
     lenient().when(i18n.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
-    lenient().when(i18n.get("versionFormat", mapBean.getVersion().getCanonical())).thenReturn("v10");
+    lenient().when(i18n.get("versionFormat", mapBean.version().getCanonical())).thenReturn("v10");
 
     loadFxml("theme/vault/map/map_card.fxml", param -> {
       if (param == ReviewsController.class) {
@@ -115,8 +107,8 @@ public class MapCardControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.setEntity(mapBean));
 
-    assertThat(instance.nameLabel.getText(), is("test"));
-    assertThat(instance.authorLabel.getText(), is("junit"));
+    assertThat(instance.nameLabel.getText(), is(mapBean.map().displayName()));
+    assertThat(instance.authorLabel.getText(), is(mapBean.map().author().getUsername()));
     assertThat(instance.versionLabel.getText(), is("v10"));
     assertThat(instance.thumbnailImageView.getImage(), is(notNullValue()));
   }

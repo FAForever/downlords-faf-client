@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.chat.ChatMessage.Type;
 import com.faforever.client.chat.emoticons.Emoticon;
 import com.faforever.client.chat.emoticons.EmoticonService;
@@ -9,7 +9,7 @@ import com.faforever.client.chat.kitteh.event.ChannelRedactMessageEvent;
 import com.faforever.client.chat.kitteh.event.PrivateRedactMessageEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
@@ -167,7 +167,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
   private DefaultEventManager eventManager;
   private DefaultClient spyClient;
-  private PlayerBean player1;
+  private PlayerInfo player1;
   private DefaultClient realClient;
 
   private final BooleanProperty loggedIn = new SimpleBooleanProperty();
@@ -228,7 +228,7 @@ public class KittehChatServiceTest extends ServiceTest {
                                                        .add(user2Mode)
                                                        .build()));
 
-    player1 = PlayerBeanBuilder.create().defaultValues().get();
+    player1 = PlayerInfoBuilder.create().defaultValues().get();
     lenient().when(playerService.getPlayerByNameIfOnline(user1.getNick())).thenReturn(Optional.of(player1));
     lenient().when(playerService.getPlayerByNameIfOnline(user2.getNick())).thenReturn(Optional.empty());
 
@@ -306,7 +306,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
   @Test
   public void testGroupToColorChangeFriend() {
-    PlayerBean player = PlayerBeanBuilder.create()
+    PlayerInfo player = PlayerInfoBuilder.create()
                                          .defaultValues()
                                          .username(user1.getNick())
                                          .socialStatus(SocialStatus.FRIEND)
@@ -335,7 +335,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
   @Test
   public void testGroupToColorChangeFoe() {
-    PlayerBean player = PlayerBeanBuilder.create()
+    PlayerInfo player = PlayerInfoBuilder.create()
                                          .defaultValues()
                                          .username(user1.getNick())
                                          .socialStatus(SocialStatus.FOE)
@@ -441,7 +441,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
     join(defaultChannel, user2);
 
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(user2.getNick()).get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().username(user2.getNick()).get();
 
     instance.onPlayerOnline(player);
 
@@ -504,7 +504,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
     instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
             .getUser(user1.getNick())
-            .ifPresent(chatUser -> chatUser.setPlayer(PlayerBeanBuilder.create().defaultValues().get()));
+            .ifPresent(chatUser -> chatUser.setPlayer(PlayerInfoBuilder.create().defaultValues().get()));
 
     assertThat(chatChannel1.getUsers(), hasSize(1));
     assertThat(chatChannel2.getUsers(), hasSize(1));
@@ -599,12 +599,12 @@ public class KittehChatServiceTest extends ServiceTest {
 
   @Test
   public void testChatMessageEventNotTriggeredByPrivateMessageFromFoe() {
-    PlayerBean playerBean = PlayerBeanBuilder.create()
+    PlayerInfo playerInfo = PlayerInfoBuilder.create()
                                              .defaultValues()
                                              .username(user1.getNick())
                                              .socialStatus(SocialStatus.FOE)
                                              .get();
-    when(playerService.getPlayerByNameIfOnline(user1.getNick())).thenReturn(Optional.of(playerBean));
+    when(playerService.getPlayerByNameIfOnline(user1.getNick())).thenReturn(Optional.of(playerInfo));
 
     String message = "private message";
 

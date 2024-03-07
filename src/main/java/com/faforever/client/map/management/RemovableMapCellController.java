@@ -1,7 +1,7 @@
 package com.faforever.client.map.management;
 
-import com.faforever.client.domain.MapBean;
-import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.api.Map;
+import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -32,15 +32,13 @@ public class RemovableMapCellController extends NodeController<HBox> {
   private final MapService mapService;
   private final NotificationService notificationService;
 
-  private final ObjectProperty<MapVersionBean> mapVersion = new SimpleObjectProperty<>();
+  private final ObjectProperty<MapVersion> mapVersion = new SimpleObjectProperty<>();
 
   @Override
   protected void onInitialize() {
-    previewMapView.imageProperty()
-                  .bind(mapVersion.flatMap(MapVersionBean::folderNameProperty)
+    previewMapView.imageProperty().bind(mapVersion.map(MapVersion::folderName)
                                   .map(folderName -> mapService.loadPreview(folderName, PreviewSize.SMALL)));
-    mapNameLabel.textProperty()
-                .bind(mapVersion.flatMap(MapVersionBean::mapProperty).flatMap(MapBean::displayNameProperty));
+    mapNameLabel.textProperty().bind(mapVersion.map(MapVersion::map).map(Map::displayName));
     removeButton.disableProperty().bind(mapVersion.map(mapService::isCustomMap).map(isCustom -> !isCustom));
     removeButton.onMouseClickedProperty()
                 .bind(mapVersion.map(
@@ -50,7 +48,7 @@ public class RemovableMapCellController extends NodeController<HBox> {
                     })));
   }
 
-  public void setMapVersion(MapVersionBean mapVersion) {
+  public void setMapVersion(MapVersion mapVersion) {
     this.mapVersion.set(mapVersion);
   }
 

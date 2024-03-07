@@ -2,21 +2,15 @@ package com.faforever.client.leaderboard;
 
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.LeaderboardBeanBuilder;
-import com.faforever.client.builders.LeaderboardEntryBeanBuilder;
-import com.faforever.client.builders.LeagueBeanBuilder;
-import com.faforever.client.builders.LeagueEntryBeanBuilder;
-import com.faforever.client.builders.LeagueSeasonBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.SubdivisionBeanBuilder;
-import com.faforever.client.domain.LeaderboardBean;
-import com.faforever.client.domain.LeaderboardEntryBean;
-import com.faforever.client.domain.LeagueBean;
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.LeagueSeasonBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.SubdivisionBean;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.Division;
+import com.faforever.client.domain.api.Leaderboard;
+import com.faforever.client.domain.api.LeaderboardEntry;
+import com.faforever.client.domain.api.League;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.api.LeagueSeason;
+import com.faforever.client.domain.api.Subdivision;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.mapstruct.LeaderboardMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.player.PlayerService;
@@ -24,6 +18,7 @@ import com.faforever.client.remote.AssetService;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.elide.ElideEntity;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -36,6 +31,7 @@ import reactor.test.StepVerifier;
 import java.nio.file.Path;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
+import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -56,44 +52,43 @@ public class LeaderboardServiceTest extends ServiceTest {
 
   @Spy
   private final LeaderboardMapper leaderboardMapper = Mappers.getMapper(LeaderboardMapper.class);
-  private PlayerBean player;
+  private final PlayerInfo player = PlayerInfoBuilder.create().defaultValues().id(1).username("junit").get();
 
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(leaderboardMapper);
-    player = PlayerBeanBuilder.create().defaultValues().id(1).username("junit").get();
   }
 
   @Test
   public void testGetLeaderboards() {
-    LeaderboardBean leaderboardBean = LeaderboardBeanBuilder.create().defaultValues().get();
+    Leaderboard leaderboard = Instancio.create(Leaderboard.class);
 
-    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboardBean, new CycleAvoidingMappingContext()));
+    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboard));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
-    StepVerifier.create(instance.getLeaderboards()).expectNext(leaderboardBean).verifyComplete();
+    StepVerifier.create(instance.getLeaderboards()).expectNext(leaderboard).verifyComplete();
 
     verify(fafApiAccessor).getMany(any());
   }
 
   @Test
   public void testGetEntriesForPlayer() {
-    LeaderboardEntryBean leaderboardEntryBean = LeaderboardEntryBeanBuilder.create().defaultValues().get();
-    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboardEntryBean, new CycleAvoidingMappingContext()));
+    LeaderboardEntry leaderboardEntry = Instancio.create(LeaderboardEntry.class);
+    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboardEntry));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
-    StepVerifier.create(instance.getEntriesForPlayer(player)).expectNext(leaderboardEntryBean).verifyComplete();
+    StepVerifier.create(instance.getEntriesForPlayer(player)).expectNext(leaderboardEntry).verifyComplete();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("player.id").eq(player.getId()))));
   }
 
   @Test
   public void testGetLeagues() {
-    LeagueBean leagueBean = LeagueBeanBuilder.create().defaultValues().get();
+    League league = Instancio.create(League.class);
 
-    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leagueBean, new CycleAvoidingMappingContext()));
+    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(league));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
-    StepVerifier.create(instance.getLeagues()).expectNext(leagueBean).verifyComplete();
+    StepVerifier.create(instance.getLeagues()).expectNext(league).verifyComplete();
 
     verify(fafApiAccessor).getMany(any());
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().bool("enabled").isTrue())));
@@ -101,19 +96,18 @@ public class LeaderboardServiceTest extends ServiceTest {
 
   @Test
   public void testGetActiveSeasons() {
-    LeagueSeasonBean leagueSeasonBean = LeagueSeasonBeanBuilder.create().defaultValues().get();
+    LeagueSeason leagueSeason = Instancio.create(LeagueSeason.class);
 
-    Flux<ElideEntity> resultFlux = Flux.just(
-        leaderboardMapper.map(leagueSeasonBean, new CycleAvoidingMappingContext()));
+    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leagueSeason));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
-    StepVerifier.create(instance.getActiveSeasons()).expectNext(leagueSeasonBean).verifyComplete();
+    StepVerifier.create(instance.getActiveSeasons()).expectNext(leagueSeason).verifyComplete();
   }
 
   @Test
   public void testGetLatestSeason() {
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
-    LeagueBean league = LeagueBeanBuilder.create().defaultValues().get();
+    League league = Instancio.create(League.class);
 
     StepVerifier.create(instance.getLatestSeason(league)).verifyComplete();
 
@@ -123,33 +117,51 @@ public class LeaderboardServiceTest extends ServiceTest {
 
   @Test
   public void testGetLeagueEntryForPlayer() {
-    LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().get();
-    LeagueSeasonBean season = LeagueSeasonBeanBuilder.create().defaultValues().id(2).get();
-    Flux<ElideEntity> resultFlux = Flux.just(
-        leaderboardMapper.map(leagueEntryBean, new CycleAvoidingMappingContext()));
+    LeagueEntry leagueEntry = Instancio.of(LeagueEntry.class)
+                                       .set(field(LeagueEntry::player), player)
+                                       .set(field(LeagueEntry::rank), null)
+                                       .create();
+    LeagueSeason season = Instancio.of(LeagueSeason.class).set(field(LeagueSeason::id), 2).create();
+    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leagueEntry));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
-    StepVerifier.create(instance.getLeagueEntryForPlayer(player, season)).expectNext(leagueEntryBean).verifyComplete();
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId())
-        .and().intNum("leagueSeason.id").eq(2))));
+    StepVerifier.create(instance.getLeagueEntryForPlayer(player, season)).expectNext(leagueEntry).verifyComplete();
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(
+        qBuilder().intNum("loginId").eq(player.getId()).and().intNum("leagueSeason.id").eq(2))));
   }
 
   @Test
   public void testGetHighestActiveLeagueEntryForPlayer() {
-    SubdivisionBean subdivisionBean1 = SubdivisionBeanBuilder.create().defaultValues().index(2).get();
-    SubdivisionBean subdivisionBean2 = SubdivisionBeanBuilder.create().defaultValues().index(3).get();
-    LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean1).get();
-    LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean2).get();
-    LeagueEntryBean leagueEntryBean3 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(null).get();
+    Division division = Instancio.create(Division.class);
+    Subdivision subdivision1 = Instancio.of(Subdivision.class)
+                                        .set(field(Subdivision::index), 2)
+                                        .set(field(Subdivision::division), division)
+                                        .create();
+    Subdivision subdivision2 = Instancio.of(Subdivision.class)
+                                        .set(field(Subdivision::index), 3)
+                                        .set(field(Subdivision::division), division)
+                                        .create();
+    LeagueEntry leagueEntry1 = Instancio.of(LeagueEntry.class)
+                                        .set(field(LeagueEntry::player), player)
+                                        .set(field(LeagueEntry::subdivision), subdivision1)
+                                        .ignore(field(LeagueEntry::rank))
+                                        .create();
+    LeagueEntry leagueEntry2 = Instancio.of(LeagueEntry.class)
+                                        .set(field(LeagueEntry::player), player)
+                                        .set(field(LeagueEntry::subdivision), subdivision2)
+                                        .ignore(field(LeagueEntry::rank))
+                                        .create();
+    LeagueEntry leagueEntry3 = Instancio.of(LeagueEntry.class)
+                                        .set(field(LeagueEntry::player), player)
+                                        .ignore(field(LeagueEntry::subdivision))
+                                        .ignore(field(LeagueEntry::rank))
+                                        .create();
 
-    Flux<ElideEntity> resultFlux = Flux.just(
-        leaderboardMapper.map(leagueEntryBean1, new CycleAvoidingMappingContext()),
-        leaderboardMapper.map(leagueEntryBean2, new CycleAvoidingMappingContext()),
-        leaderboardMapper.map(leagueEntryBean3, new CycleAvoidingMappingContext()));
+    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leagueEntry1), leaderboardMapper.map(leagueEntry2),
+                                             leaderboardMapper.map(leagueEntry3));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
-    StepVerifier.create(instance.getHighestActiveLeagueEntryForPlayer(player))
-                .expectNext(leagueEntryBean2)
+    StepVerifier.create(instance.getHighestActiveLeagueEntryForPlayer(player)).expectNext(leagueEntry2)
                 .verifyComplete();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId()))));
@@ -157,29 +169,38 @@ public class LeaderboardServiceTest extends ServiceTest {
 
   @Test
   public void testGetActiveLeagueEntryForPlayer() {
-    LeaderboardBean leaderboard = LeaderboardBeanBuilder.create().defaultValues().id(2).technicalName("ladder").get();
-    LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().get();
-    LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().get();
+    Leaderboard leaderboard = Instancio.of(Leaderboard.class)
+                                       .set(field(Leaderboard::technicalName), "ladder")
+                                       .set(field(Leaderboard::id), 2)
+                                       .create();
+    LeagueEntry leagueEntry1 = Instancio.of(LeagueEntry.class)
+                                        .set(field(LeagueEntry::rank), null)
+                                        .set(field(LeagueEntry::subdivision), null)
+                                        .set(field(LeagueEntry::player), player)
+                                        .create();
+    LeagueEntry leagueEntry2 = Instancio.of(LeagueEntry.class)
+                                        .set(field(LeagueEntry::rank), null)
+                                        .set(field(LeagueEntry::player), player)
+                                        .create();
 
-    Flux<ElideEntity> resultFlux = Flux.just(
-        leaderboardMapper.map(leagueEntryBean1, new CycleAvoidingMappingContext()),
-        leaderboardMapper.map(leagueEntryBean2, new CycleAvoidingMappingContext()));
+    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leagueEntry1), leaderboardMapper.map(leagueEntry2));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
-    StepVerifier.create(instance.getActiveLeagueEntryForPlayer(player, "ladder"))
-                .expectNext(leagueEntryBean2)
+    StepVerifier.create(instance.getActiveLeagueEntryForPlayer(player, "ladder")).expectNext(leagueEntry2)
                 .verifyComplete();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId())
-        .and().string("leagueSeason.leaderboard.technicalName").eq(leaderboard.getTechnicalName()))));
+                                                                             .and()
+                                                                             .string(
+                                                                                 "leagueSeason.leaderboard.technicalName")
+                                                                             .eq(leaderboard.technicalName()))));
   }
 
   @Test
   public void testGetHighestLeagueEntryForPlayerNoSubdivision() {
-    LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().subdivision(null).get();
+    LeagueEntry leagueEntry = Instancio.of(LeagueEntry.class).set(field(LeagueEntry::subdivision), null).create();
 
-    Flux<ElideEntity> resultFlux = Flux.just(
-        leaderboardMapper.map(leagueEntryBean, new CycleAvoidingMappingContext()));
+    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leagueEntry));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getHighestActiveLeagueEntryForPlayer(player)).verifyComplete();
 
@@ -188,43 +209,44 @@ public class LeaderboardServiceTest extends ServiceTest {
 
   @Test
   public void testGetLeagueEntries() {
-    LeagueSeasonBean leagueSeasonBean = LeagueSeasonBeanBuilder.create().defaultValues().get();
-    LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().get();
-    Flux<ElideEntity> resultFlux = Flux.just(
-        leaderboardMapper.map(leagueEntryBean, new CycleAvoidingMappingContext()));
+    LeagueSeason leagueSeason = Instancio.create(LeagueSeason.class);
+    LeagueEntry leagueEntry = Instancio.of(LeagueEntry.class)
+                                       .set(field(LeagueEntry::rank), 0L)
+                                       .set(field(LeagueEntry::player), player)
+                                       .create();
+    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leagueEntry));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     when(playerService.getPlayersByIds(anyCollection())).thenReturn(
-        Flux.just(PlayerBeanBuilder.create().id(1).username("junit").get()));
+        Flux.just(PlayerInfoBuilder.create().id(1).username("junit").get()));
 
-    StepVerifier.create(instance.getActiveEntries(leagueSeasonBean)).expectNext(leagueEntryBean).verifyComplete();
+    StepVerifier.create(instance.getActiveEntries(leagueSeason)).expectNext(leagueEntry).verifyComplete();
   }
 
   @Test
   public void testGetLeagueEntriesEmpty() {
-    LeagueSeasonBean leagueSeasonBean = LeagueSeasonBeanBuilder.create().defaultValues().get();
+    LeagueSeason leagueSeason = Instancio.create(LeagueSeason.class);
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
     when(playerService.getPlayersByIds(anyCollection())).thenReturn(Flux.empty());
-    StepVerifier.create(instance.getActiveEntries(leagueSeasonBean)).verifyComplete();
+    StepVerifier.create(instance.getActiveEntries(leagueSeason)).verifyComplete();
   }
 
 
   @Test
   public void testGetAllSubdivisions() {
-    LeagueSeasonBean season = LeagueSeasonBeanBuilder.create().defaultValues().id(0).get();
-    SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
-    Flux<ElideEntity> resultFlux = Flux.just(
-        leaderboardMapper.map(subdivisionBean, new CycleAvoidingMappingContext()));
+    LeagueSeason season = Instancio.create(LeagueSeason.class);
+    Subdivision subdivision = Instancio.create(Subdivision.class);
+    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(subdivision));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
-    StepVerifier.create(instance.getAllSubdivisions(season)).expectNext(subdivisionBean).verifyComplete();
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(
-        qBuilder().string("leagueSeasonDivision.leagueSeason.id").eq("0"))));
+    StepVerifier.create(instance.getAllSubdivisions(season)).expectNext(subdivision).verifyComplete();
+    verify(fafApiAccessor).getMany(argThat(
+        ElideMatchers.hasFilter(qBuilder().string("leagueSeasonDivision.leagueSeason.id").eq(season.id().toString()))));
   }
 
   @Test
   public void testLoadDivisionImage() {
-    SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
-    instance.loadDivisionImage(subdivisionBean.getImageUrl());
-    verify(assetService).loadAndCacheImage(subdivisionBean.getImageUrl(), Path.of("divisions"));
+    Subdivision subdivision = Instancio.create(Subdivision.class);
+    instance.loadDivisionImage(subdivision.imageUrl());
+    verify(assetService).loadAndCacheImage(subdivision.imageUrl(), Path.of("divisions"));
   }
 }

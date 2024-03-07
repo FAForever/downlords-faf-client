@@ -1,13 +1,13 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.chat.ChatMessage.Type;
 import com.faforever.client.chat.emoticons.Emoticon;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.chat.emoticons.Reaction;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.PlatformService;
@@ -82,12 +82,13 @@ public class ChatMessageControllerTest extends PlatformTest {
   private ChatMessageController instance;
 
   private final ChatChannelUser user = new ChatChannelUser("junit", new ChatChannel("#testChannel"));
-  private final PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
-  private final Image image = new Image("http://localhost");
+  private final PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
+  private Image image;
 
 
   @BeforeEach
   public void setup() throws Exception {
+    image = new Image("http://localhost");
     lenient().when(avatarService.loadAvatar(any())).thenReturn(image);
     lenient().when(countryFlagService.loadCountryFlag(any())).thenReturn(Optional.empty());
     lenient().when(timeService.asShortTime(any())).thenReturn("12:00");

@@ -336,8 +336,7 @@ public class LaunchCommandBuilderTest extends ServiceTest {
 
   @Test
   public void testRating() throws Exception {
-    assertThat(
-        defaultBuilder().mean(0f).deviation(0f).build(),
+    assertThat(defaultBuilder().mean(0d).deviation(0d).build(),
         contains(
             Path.of("test.exe").toAbsolutePath().toString(),
             "/init", "init.lua",

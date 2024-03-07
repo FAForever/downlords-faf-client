@@ -1,8 +1,8 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayRunner;
@@ -31,8 +31,10 @@ public class WatchGameMenuItemTest extends PlatformTest {
 
   @Test
   public void testWatchGame() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues()
-        .game(GameBeanBuilder.create().status(GameStatus.PLAYING).get()).get();
+    PlayerInfo player = PlayerInfoBuilder.create()
+                                         .defaultValues()
+                                         .game(GameInfoBuilder.create().status(GameStatus.PLAYING).get())
+                                         .get();
     instance.setObject(player);
     instance.onClicked();
 
@@ -41,8 +43,11 @@ public class WatchGameMenuItemTest extends PlatformTest {
 
   @Test
   public void testRunReplayWithError() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues()
-        .game(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get()).get();
+    PlayerInfo player = PlayerInfoBuilder.create()
+                                         .defaultValues()
+                                         .game(
+                                             GameInfoBuilder.create().defaultValues().status(GameStatus.PLAYING).get())
+                                         .get();
     Exception e = new RuntimeException();
     doThrow(e).when(replayRunner).runWithLiveReplay(player.getGame());
 
@@ -54,15 +59,17 @@ public class WatchGameMenuItemTest extends PlatformTest {
 
   @Test
   public void testVisibleItemIfPlayerIsPlaying() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues()
-        .game(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get()).get());
+    instance.setObject(PlayerInfoBuilder.create()
+                                        .defaultValues()
+                                        .game(GameInfoBuilder.create().defaultValues().status(GameStatus.PLAYING).get())
+                                        .get());
 
     assertTrue(instance.isVisible());
   }
 
   @Test
   public void testInvisibleItemIfPlayerIsIdle() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().game(null).get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().game(null).get());
 
     assertFalse(instance.isVisible());
   }

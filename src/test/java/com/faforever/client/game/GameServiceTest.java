@@ -1,16 +1,15 @@
 package com.faforever.client.game;
 
 import com.faforever.client.builders.GameInfoMessageBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.mapstruct.GameMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameInfo.TeamIds;
 import javafx.beans.property.SimpleObjectProperty;
 import org.hamcrest.CoreMatchers;
@@ -55,14 +54,14 @@ public class GameServiceTest extends ServiceTest {
   private GameMapper gameMapper = Mappers.getMapper(GameMapper.class);
 
 
-  private final TestPublisher<GameInfo> testGamePublisher = TestPublisher.create();
+  private final TestPublisher<com.faforever.commons.lobby.GameInfo> testGamePublisher = TestPublisher.create();
 
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(gameMapper);
 
     when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
-    when(fafServerAccessor.getEvents(GameInfo.class)).thenReturn(testGamePublisher.flux());
+    when(fafServerAccessor.getEvents(com.faforever.commons.lobby.GameInfo.class)).thenReturn(testGamePublisher.flux());
     when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
 
     instance.afterPropertiesSet();
@@ -81,8 +80,8 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void testPlayerLeftOpenGame() {
-    PlayerBean player1 = PlayerBeanBuilder.create().defaultValues().id(1).get();
-    PlayerBean player2 = PlayerBeanBuilder.create().defaultValues().id(2).get();
+    PlayerInfo player1 = PlayerInfoBuilder.create().defaultValues().id(1).get();
+    PlayerInfo player2 = PlayerInfoBuilder.create().defaultValues().id(2).get();
 
     when(playerService.getPlayerByIdIfOnline(1)).thenReturn(Optional.of(player1));
     when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(player2));
@@ -90,7 +89,7 @@ public class GameServiceTest extends ServiceTest {
     List<TeamIds> teamIds = List.of(new TeamIds(1, List.of(1)), new TeamIds(2, List.of(2)));
 
     testGamePublisher.next(GameInfoMessageBuilder.create(0).defaultValues().teamIds(teamIds).get());
-    GameBean game = instance.getByUid(0).orElseThrow();
+    GameInfo game = instance.getByUid(0).orElseThrow();
 
     assertThat(player1.getGame(), is(game));
     assertThat(player2.getGame(), is(game));
@@ -105,8 +104,11 @@ public class GameServiceTest extends ServiceTest {
   public void testOnGames() {
     assertThat(instance.getGames(), empty());
 
-    GameInfo multiGameInfo = GameInfoMessageBuilder.create(1)
-        .games(List.of(GameInfoMessageBuilder.create(1).defaultValues().get(),
+    com.faforever.commons.lobby.GameInfo multiGameInfo = GameInfoMessageBuilder.create(1)
+                                                                               .games(List.of(
+                                                                                   GameInfoMessageBuilder.create(1)
+                                                                                                         .defaultValues()
+                                                                                                         .get(),
                        GameInfoMessageBuilder.create(2).defaultValues().get())
         ).get();
     testGamePublisher.next(multiGameInfo);
@@ -119,10 +121,16 @@ public class GameServiceTest extends ServiceTest {
   public void testOnGameInfoAdd() {
     assertThat(instance.getGames(), empty());
 
-    GameInfo gameInfo1 = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
+    com.faforever.commons.lobby.GameInfo gameInfo1 = GameInfoMessageBuilder.create(1)
+                                                                           .defaultValues()
+                                                                           .title("Game 1")
+                                                                           .get();
     testGamePublisher.next(gameInfo1);
 
-    GameInfo gameInfo2 = GameInfoMessageBuilder.create(2).defaultValues().title("Game 2").get();
+    com.faforever.commons.lobby.GameInfo gameInfo2 = GameInfoMessageBuilder.create(2)
+                                                                           .defaultValues()
+                                                                           .title("Game 2")
+                                                                           .get();
     testGamePublisher.next(gameInfo2);
 
 
@@ -142,10 +150,14 @@ public class GameServiceTest extends ServiceTest {
   public void testOnGameInfoModify() {
     assertThat(instance.getGames(), empty());
 
-    GameInfo gameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").state(PLAYING).get();
+    com.faforever.commons.lobby.GameInfo gameInfo = GameInfoMessageBuilder.create(1)
+                                                                          .defaultValues()
+                                                                          .title("Game 1")
+                                                                          .state(PLAYING)
+                                                                          .get();
     testGamePublisher.next(gameInfo);
 
-    GameBean game = instance.getByUid(1).orElseThrow();
+    GameInfo game = instance.getByUid(1).orElseThrow();
 
     gameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1 modified").state(PLAYING).get();
     testGamePublisher.next(gameInfo);
@@ -157,7 +169,10 @@ public class GameServiceTest extends ServiceTest {
   public void testOnGameInfoRemove() {
     assertThat(instance.getGames(), empty());
 
-    GameInfo gameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
+    com.faforever.commons.lobby.GameInfo gameInfo = GameInfoMessageBuilder.create(1)
+                                                                          .defaultValues()
+                                                                          .title("Game 1")
+                                                                          .get();
     testGamePublisher.next(gameInfo);
     assertThat(instance.getGames(), hasSize(1));
 

@@ -1,6 +1,6 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.task.CompletableTask;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ public class UninstallModTask extends CompletableTask<Void> {
 
   private final ModService modService;
 
-  private ModVersionBean modVersion;
+  private ModVersion modVersion;
 
   @Autowired
   public UninstallModTask(ModService modService) {
@@ -28,7 +28,7 @@ public class UninstallModTask extends CompletableTask<Void> {
     this.modService = modService;
   }
 
-  public void setMod(ModVersionBean modVersion) {
+  public void setMod(ModVersion modVersion) {
     this.modVersion = modVersion;
   }
 
@@ -36,7 +36,7 @@ public class UninstallModTask extends CompletableTask<Void> {
   protected Void call() throws Exception {
     Objects.requireNonNull(modVersion, "modVersion has not been set");
 
-    log.info("Uninstalling modVersion '{}' ({})", modVersion.getMod().getDisplayName(), modVersion.getUid());
+    log.info("Uninstalling modVersion '{}' ({})", modVersion.mod().displayName(), modVersion.uid());
     Path modPath = modService.getPathForMod(modVersion);
 
     FileSystemUtils.deleteRecursively(modPath);

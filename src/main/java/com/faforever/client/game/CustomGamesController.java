@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.filter.CustomGamesFilterController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -70,8 +70,8 @@ public class CustomGamesController extends NodeController<Node> {
   private CustomGamesFilterController customGamesFilterController;
   private Popup gameFilterPopup;
 
-  private FilteredList<GameBean> filteredGames;
-  private final Predicate<GameBean> openGamesPredicate = game -> game.getStatus() == GameStatus.OPEN && game.getGameType() == GameType.CUSTOM;
+  private FilteredList<GameInfo> filteredGames;
+  private final Predicate<GameInfo> openGamesPredicate = game -> game.getStatus() == GameStatus.OPEN && game.getGameType() == GameType.CUSTOM;
 
   @Override
   protected void onInitialize() {

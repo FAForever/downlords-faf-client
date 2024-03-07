@@ -1,6 +1,6 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.domain.LeagueBean;
+import com.faforever.client.domain.api.League;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
@@ -43,7 +43,7 @@ public class LeaderboardsController extends NodeController<Node> {
   public LeaderboardController leaderboardController;
 
   private final ToggleGroup navigation = new ToggleGroup();
-  private final Map<Toggle, LeagueBean> toggleLeagueMap = new HashMap<>();
+  private final Map<Toggle, League> toggleLeagueMap = new HashMap<>();
 
   @Override
   public Node getRoot() {
@@ -62,8 +62,8 @@ public class LeaderboardsController extends NodeController<Node> {
 
     leaderboardService.getLeagues()
                       .map(league -> {
-                        String buttonText = i18n.getOrDefault(league.getTechnicalName(), String.format("leaderboard.%s",
-                                                                                                       league.getTechnicalName()));
+                        String buttonText = i18n.getOrDefault(league.technicalName(), String.format("leaderboard.%s",
+                                                                            league.technicalName()));
                         ToggleButton toggleButton = new ToggleButton(buttonText);
                         toggleButton.setToggleGroup(navigation);
                         toggleButton.getStyleClass().add("main-navigation-button");
@@ -73,7 +73,7 @@ public class LeaderboardsController extends NodeController<Node> {
                       .switchIfEmpty(Mono.error(new IllegalStateException("No leagues loaded")))
                       .collectList()
                       .doOnNext(leagueButtons -> {
-                        LeagueBean lastLeagueTab = navigationHandler.getLastLeagueTab();
+                        League lastLeagueTab = navigationHandler.getLastLeagueTab();
                         Toggle startingToggle = toggleLeagueMap.entrySet()
                                                                .stream()
                                                                .filter(entry -> Objects.equals(lastLeagueTab,
@@ -91,7 +91,7 @@ public class LeaderboardsController extends NodeController<Node> {
                       });
   }
 
-  private void setLeague(LeagueBean league) {
+  private void setLeague(League league) {
     navigationHandler.setLastLeagueTab(league);
     leaderboardService.getLatestSeason(league)
                       .publishOn(fxApplicationThreadExecutor.asScheduler())

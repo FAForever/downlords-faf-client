@@ -1,13 +1,12 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.avatar.Avatar;
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.builders.AvatarBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
-import com.faforever.client.domain.AvatarBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
@@ -26,6 +25,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.image.Image;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -33,7 +33,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 
 import java.io.InputStream;
-import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -90,11 +89,11 @@ public class PrivateChatTabControllerTest extends PlatformTest {
   private PrivateChatTabController instance;
 
   private String playerName;
-  private PlayerBean player;
+  private PlayerInfo player;
 
   @BeforeEach
   public void setUp() throws Exception {
-    player = PlayerBeanBuilder.create().defaultValues().get();
+    player = PlayerInfoBuilder.create().defaultValues().get();
     playerName = player.getUsername();
 
     lenient().when(chatMessageViewController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
@@ -154,10 +153,10 @@ public class PrivateChatTabControllerTest extends PlatformTest {
   public void checkPlayerAvatarListener() throws Exception {
     assertNotNull(instance.avatarImageView.getImage());
 
-    Image newAvatar = new Image(InputStream.nullInputStream());
-    AvatarBean avatarBean = AvatarBeanBuilder.create().defaultValues().url(new URL("https://test11.com")).get();
-    when(avatarService.loadAvatar(avatarBean)).thenReturn(newAvatar);
-    runOnFxThreadAndWait(() -> player.setAvatar(avatarBean));
-    assertEquals(newAvatar, instance.avatarImageView.getImage());
+    Image newAvatarImage = new Image(InputStream.nullInputStream());
+    Avatar avatar = Instancio.create(Avatar.class);
+    when(avatarService.loadAvatar(avatar)).thenReturn(newAvatarImage);
+    runOnFxThreadAndWait(() -> player.setAvatar(avatar));
+    assertEquals(newAvatarImage, instance.avatarImageView.getImage());
   }
 }

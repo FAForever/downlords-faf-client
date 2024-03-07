@@ -32,7 +32,7 @@ import java.util.function.Function;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 
-@Execution(ExecutionMode.SAME_THREAD)
+@Execution(ExecutionMode.CONCURRENT)
 @ExtendWith({MockitoExtension.class})
 @Slf4j
 public abstract class PlatformTest {

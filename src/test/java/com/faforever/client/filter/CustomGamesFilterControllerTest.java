@@ -1,6 +1,6 @@
 package com.faforever.client.filter;
 
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 
-import static com.faforever.client.builders.GameBeanBuilder.create;
+import static com.faforever.client.builders.GameInfoBuilder.create;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -43,11 +43,11 @@ public class CustomGamesFilterControllerTest extends PlatformTest {
   private PlayerService playerService;
 
   @Mock
-  private MutableListFilterController<GameBean> mapFolderNameBlackListFilter;
+  private MutableListFilterController<GameInfo> mapFolderNameBlackListFilter;
   @Mock
-  private FilterCheckboxController<GameBean> privateGameFilter;
+  private FilterCheckboxController<GameInfo> privateGameFilter;
   @Mock
-  private FilterCheckboxController<GameBean> simModsFilter;
+  private FilterCheckboxController<GameInfo> simModsFilter;
   @Spy
   private FiltersPrefs filtersPrefs;
   @Spy
@@ -75,10 +75,10 @@ public class CustomGamesFilterControllerTest extends PlatformTest {
 
   @Test
   public void testPrivateGameFilter() {
-    ArgumentCaptor<BiFunction<Boolean, GameBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<Boolean, GameInfo, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
     verify(privateGameFilter).registerListener(argumentCaptor.capture());
 
-    BiFunction<Boolean, GameBean, Boolean> filter = argumentCaptor.getValue();
+    BiFunction<Boolean, GameInfo, Boolean> filter = argumentCaptor.getValue();
 
     assertTrue(filter.apply(false, create().defaultValues().passwordProtected(false).get()));
     assertTrue(filter.apply(false, create().defaultValues().passwordProtected(true).get()));
@@ -88,11 +88,12 @@ public class CustomGamesFilterControllerTest extends PlatformTest {
 
   @Test
   public void testMapFolderNameBlackListFilter() {
-    ArgumentCaptor<BiFunction<List<String>, GameBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<List<String>, GameInfo, Boolean>> argumentCaptor = ArgumentCaptor.forClass(
+        BiFunction.class);
     verify(mapFolderNameBlackListFilter).registerListener(argumentCaptor.capture());
 
-    GameBean game = create().defaultValues().mapFolderName("test_map.v011").get();
-    BiFunction<List<String>, GameBean, Boolean> filter = argumentCaptor.getValue();
+    GameInfo game = create().defaultValues().mapFolderName("test_map.v011").get();
+    BiFunction<List<String>, GameInfo, Boolean> filter = argumentCaptor.getValue();
 
     assertTrue(filter.apply(Collections.emptyList(), game));
     assertFalse(filter.apply(List.of("test_"), game));

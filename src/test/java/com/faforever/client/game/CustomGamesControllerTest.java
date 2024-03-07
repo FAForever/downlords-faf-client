@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.filter.CustomGamesFilterController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
@@ -51,7 +51,7 @@ public class CustomGamesControllerTest extends PlatformTest {
   @Spy
   private Preferences preferences;
 
-  private ObservableList<GameBean> games;
+  private ObservableList<GameInfo> games;
 
   @BeforeEach
   public void setUp() throws Exception {

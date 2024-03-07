@@ -1,12 +1,12 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.builders.ModVersionBeanBuilder;
-import com.faforever.client.domain.ModVersionBean;
-import com.faforever.client.domain.ModVersionBean.ModType;
+import com.faforever.client.domain.api.ModType;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.test.PlatformTest;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import org.hamcrest.Matchers;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.instancio.Select.field;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,13 +28,13 @@ public class ModManagerControllerTest extends PlatformTest {
   private ModManagerController instance;
   @Mock
   private ModService modService;
-  private ModVersionBean modSIM;
-  private ModVersionBean modUI;
+  private ModVersion modSIM;
+  private ModVersion modUI;
 
   @BeforeEach
   public void setUp() throws Exception {
-    modUI = ModVersionBeanBuilder.create().defaultValues().uid("UI").modType(ModType.UI).id(null).get();
-    modSIM = ModVersionBeanBuilder.create().defaultValues().uid("SIM").modType(ModType.SIM).id(null).get();
+    modUI = Instancio.of(ModVersion.class).set(field(ModVersion::modType), ModType.UI).create();
+    modSIM = Instancio.of(ModVersion.class).set(field(ModVersion::modType), ModType.SIM).create();
     when(modService.getInstalledMods()).thenReturn(FXCollections.observableArrayList(modUI, modSIM));
 
     when(modService.getActivatedSimAndUIMods()).thenReturn(Collections.singletonList(modUI));

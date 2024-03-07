@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static com.faforever.client.builders.GameBeanBuilder.create;
+import static com.faforever.client.builders.GameInfoBuilder.create;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

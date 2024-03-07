@@ -9,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.core.io.ClassPathResource;
 
 import java.util.function.Consumer;
 
@@ -39,7 +38,6 @@ public class EmoticonControllerTest extends PlatformTest {
   public void testSetEmoticon() {
     Emoticon emoticon = EmoticonBuilder.create()
         .defaultValues()
-        .image(new Image(new ClassPathResource("/images/hydro.png").getPath()))
         .get();
     runOnFxThreadAndWait(() -> instance.setEmoticon(emoticon));
     assertNotNull(instance.emoticonImageView.getImage());

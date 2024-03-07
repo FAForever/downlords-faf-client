@@ -1,7 +1,7 @@
 package com.faforever.client.discord;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.game.GameRunner;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
@@ -65,14 +65,13 @@ public class DiscordRichPresenceService implements DisposableBean, InitializingB
 
     // This need to be change and not invalidation listeners but not quite sure why since they don't get triggered more than
     // once as invalidation listeners
-    gameRunner.runningGameProperty().flatMap(GameBean::statusProperty).subscribe(ignored -> updatePlayedGame());
-    gameRunner.runningGameProperty()
-               .flatMap(GameBean::allPlayersInGameProperty)
+    gameRunner.runningGameProperty().flatMap(GameInfo::statusProperty).subscribe(ignored -> updatePlayedGame());
+    gameRunner.runningGameProperty().flatMap(GameInfo::allPlayersInGameProperty)
                .subscribe(ignored -> updatePlayedGame());
   }
 
   private void updatePlayedGame() {
-    GameBean game = gameRunner.getRunningGame();
+    GameInfo game = gameRunner.getRunningGame();
     String applicationId = clientProperties.getDiscord().getApplicationId();
     if (applicationId == null) {
       return;
@@ -114,7 +113,7 @@ public class DiscordRichPresenceService implements DisposableBean, InitializingB
     }
   }
 
-  private String getDiscordState(GameBean game) {
+  private String getDiscordState(GameInfo game) {
     return switch (game.getStatus()) {
       case OPEN -> game.getHost().equals(playerService.getCurrentPlayer().getUsername()) ? HOSTING : WAITING;
       case PLAYING, UNKNOWN, CLOSED -> PLAYING;

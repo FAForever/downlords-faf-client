@@ -1,11 +1,11 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.GamePlayerStatsBean;
-import com.faforever.client.domain.MapBean;
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.ReplayBean;
-import com.faforever.client.domain.ReplayReviewsSummaryBean;
+import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.domain.api.GamePlayerStats;
+import com.faforever.client.domain.api.Map;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.Replay;
+import com.faforever.client.domain.api.ReviewsSummary;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
@@ -44,14 +44,14 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ReplayCardController extends VaultEntityCardController<ReplayBean> {
+public class ReplayCardController extends VaultEntityCardController<Replay> {
 
   private final UiService uiService;
   private final ReplayService replayService;
@@ -82,89 +82,76 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
   public TextField replayIdField;
   public StarsController starsController;
 
-  private Consumer<ReplayBean> onOpenDetailListener;
+  private Consumer<Replay> onOpenDetailListener;
   private Runnable onDeleteListener;
-  private final ObjectProperty<Map<String, List<GamePlayerStatsBean>>> teams = new SimpleObjectProperty<>();
-  private final SimpleChangeListener<Map<String, List<GamePlayerStatsBean>>> teamsListener = this::populatePlayers;
+  private final ObjectProperty<java.util.Map<String, List<GamePlayerStats>>> teams = new SimpleObjectProperty<>();
+  private final SimpleChangeListener<java.util.Map<String, List<GamePlayerStats>>> teamsListener = this::populatePlayers;
 
   @Override
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(deleteButton, tickDurationLabel, realTimeDurationLabel);
 
-    ObservableValue<MapVersionBean> mapVersionObservable = entity.flatMap(ReplayBean::mapVersionProperty);
+    ObservableValue<MapVersion> mapVersionObservable = entity.map(Replay::mapVersion);
     onMapLabel.textProperty()
-        .bind(mapVersionObservable.flatMap(MapVersionBean::mapProperty)
-            .flatMap(MapBean::displayNameProperty)
-            .map(displayName -> i18n.get("game.onMapFormat", displayName))
-            .when(showing));
+              .bind(mapVersionObservable.map(MapVersion::map)
+                                        .map(Map::displayName)
+                                        .map(displayName -> i18n.get("game.onMapFormat", displayName))
+                                        .when(showing));
 
-    mapThumbnailImageView.imageProperty()
-        .bind(mapVersionObservable.flatMap(MapVersionBean::folderNameProperty)
+    mapThumbnailImageView.imageProperty().bind(mapVersionObservable.map(MapVersion::folderName)
             .map(folderName -> mapService.loadPreview(folderName, PreviewSize.SMALL))
             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
             .when(showing));
 
-    deleteButton.visibleProperty()
-        .bind(entity.flatMap(replayBean -> replayBean.replayFileProperty().isNotNull()).when(showing));
-    watchButton.disableProperty()
-        .bind(entity.flatMap(replayBean -> replayBean.replayAvailableProperty().not()).when(showing));
-    gameTitleLabel.textProperty().bind(entity.flatMap(ReplayBean::titleProperty).when(showing));
-    ObservableValue<OffsetDateTime> startTimeObservable = entity.flatMap(ReplayBean::startTimeProperty);
+    deleteButton.visibleProperty().bind(entity.map(Replay::replayFile).map(Objects::nonNull).when(showing));
+    watchButton.disableProperty().bind(entity.map(replayBean -> !replayBean.replayAvailable()).when(showing));
+    gameTitleLabel.textProperty().bind(entity.map(Replay::title).when(showing));
+    ObservableValue<OffsetDateTime> startTimeObservable = entity.map(Replay::startTime);
     dateLabel.textProperty().bind(startTimeObservable.map(timeService::asDate).when(showing));
     timeLabel.textProperty().bind(startTimeObservable.map(timeService::asShortTime).when(showing));
-    modLabel.textProperty()
-        .bind(entity.flatMap(ReplayBean::featuredModProperty)
-            .flatMap(FeaturedModBean::displayNameProperty)
-            .when(showing));
-    playerCountLabel.textProperty()
-        .bind(entity.flatMap(ReplayBean::numPlayersProperty).map(i18n::number).when(showing));
+    modLabel.textProperty().bind(entity.map(Replay::featuredMod).map(FeaturedMod::displayName).when(showing));
+    playerCountLabel.textProperty().bind(entity.map(Replay::numPlayers).map(i18n::number).when(showing));
     qualityLabel.textProperty()
         .bind(entity.map(ratingService::calculateQuality)
             .map(quality -> !Double.isNaN(quality) ? i18n.get("percentage", Math.round(quality * 100)) : i18n.get("gameQuality.undefined"))
             .when(showing));
-    ratingLabel.textProperty()
-        .bind(entity.flatMap(ReplayBean::averageRatingProperty).map(i18n::number).orElse("-").when(showing));
+    ratingLabel.textProperty().bind(entity.map(Replay::averageRating).map(i18n::number).orElse("-").when(showing));
     tickDurationLabel.visibleProperty()
         .bind(tickDurationLabel.textProperty().isNotEmpty().and(realTimeDurationLabel.visibleProperty().not()));
-    tickDurationLabel.textProperty()
-        .bind(entity.flatMap(ReplayBean::replayTicksProperty)
+    tickDurationLabel.textProperty().bind(entity.map(Replay::replayTicks)
             .map(ticks -> Duration.ofMillis(ticks * 100))
             .map(timeService::shortDuration)
             .when(showing));
     realTimeDurationLabel.visibleProperty().bind(realTimeDurationLabel.textProperty().isNotEmpty());
-    realTimeDurationLabel.textProperty()
-        .bind(entity.flatMap(replayBean -> replayBean.endTimeProperty()
-            .flatMap(endTime -> replayBean.startTimeProperty()
-                .map(startTime -> Duration.between(startTime, endTime))
-                .map(timeService::shortDuration))).orElse(i18n.get("notAvailable")).when(showing));
-    numberOfReviewsLabel.textProperty()
-        .bind(entity.flatMap(ReplayBean::gameReviewsSummaryProperty)
-            .flatMap(ReplayReviewsSummaryBean::numReviewsProperty)
-            .orElse(0)
-            .map(i18n::number)
-            .when(showing));
-    replayIdField.textProperty()
-            .bind(entity.flatMap(ReplayBean::idProperty).map(id -> i18n.get("game.idFormat", id)).when(showing));
-    starsController.valueProperty()
-        .bind(entity.flatMap(ReplayBean::gameReviewsSummaryProperty)
-            .flatMap(reviewsSummary -> reviewsSummary.scoreProperty().divide(reviewsSummary.numReviewsProperty()))
+    realTimeDurationLabel.textProperty().bind(entity.map(replayBean -> {
+      OffsetDateTime startTime = replayBean.startTime();
+      OffsetDateTime endTime = replayBean.endTime();
+      return startTime == null || endTime == null ? null : Duration.between(startTime, endTime);
+    }).map(timeService::shortDuration).orElse(i18n.get("notAvailable")).when(showing));
+    numberOfReviewsLabel.textProperty().bind(entity.map(Replay::reviewsSummary).map(ReviewsSummary::numReviews)
+                                    .orElse(0)
+                                    .map(i18n::number)
+                                    .when(showing));
+    replayIdField.textProperty().bind(entity.map(Replay::id).map(id -> i18n.get("game.idFormat", id)).when(showing));
+    starsController.valueProperty().bind(entity.map(Replay::reviewsSummary)
+                    .map(reviewsSummary -> reviewsSummary.score() / reviewsSummary.numReviews())
             .when(showing));
 
-    teams.bind(entity.flatMap(ReplayBean::teamPlayerStatsProperty).when(showing));
-    teams.orElse(Map.of()).addListener(teamsListener);
+    teams.bind(entity.map(Replay::teamPlayerStats).when(showing));
+    teams.orElse(java.util.Map.of()).addListener(teamsListener);
   }
 
-  private void populatePlayers(Map<String, List<GamePlayerStatsBean>> newValue) {
+  private void populatePlayers(java.util.Map<String, List<GamePlayerStats>> newValue) {
     teamsContainer.getChildren().clear();
     CompletableFuture.supplyAsync(() -> createTeams(newValue)).thenAcceptAsync(teamCards -> 
       teamsContainer.getChildren().setAll(teamCards), fxApplicationThreadExecutor);
   }
 
-  private List<VBox> createTeams(Map<String, List<GamePlayerStatsBean>> teams) {
+  private List<VBox> createTeams(java.util.Map<String, List<GamePlayerStats>> teams) {
     if (teams.size() < 3) {
       return teams.entrySet().stream().map(entry -> {
         String team = entry.getKey();
-        List<GamePlayerStatsBean> playerStats = entry.getValue();
+        List<GamePlayerStats> playerStats = entry.getValue();
         VBox teamCard = new VBox();
 
         String teamLabelText = team.equals("1") ? i18n.get("replay.noTeam") : i18n.get("replay.team", Integer.parseInt(team) - 1);
@@ -175,8 +162,8 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
 
         playerStats.forEach(player -> {
           PlayerCardController controller = uiService.loadFxml("theme/player_card.fxml");
-          controller.setPlayer(player.getPlayer());
-          controller.setFaction(player.getFaction());
+          controller.setPlayer(player.player());
+          controller.setFaction(player.faction());
           controller.removeAvatar();
           teamCard.getChildren().add(controller.getRoot());
         });
@@ -196,7 +183,7 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
     return replayTileRoot;
   }
 
-  public void setOnOpenDetailListener(Consumer<ReplayBean> onOpenDetailListener) {
+  public void setOnOpenDetailListener(Consumer<Replay> onOpenDetailListener) {
     this.onOpenDetailListener = onOpenDetailListener;
   }
 
@@ -214,7 +201,7 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
 
   public void onDeleteButtonClicked() {
     notificationService.addNotification(new ImmediateNotification(i18n.get("replay.deleteNotification.heading", entity.get()
-                                                                                                                      .getTitle()),
+                                                                                                                      .title()),
                                                                   i18n.get("replay.deleteNotification.info"),
                                                                   Severity.INFO,
                                                                   Arrays.asList(new Action(i18n.get("cancel")),
@@ -223,7 +210,7 @@ public class ReplayCardController extends VaultEntityCardController<ReplayBean> 
   }
 
   private void deleteReplay() {
-    if (replayService.deleteReplayFile(entity.get().getReplayFile()) && onDeleteListener != null) {
+    if (replayService.deleteReplayFile(entity.get().replayFile()) && onDeleteListener != null) {
       onDeleteListener.run();
     }
   }

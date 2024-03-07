@@ -3,7 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.discord.JoinDiscordEventHandler;
-import com.faforever.client.domain.PartyBean;
+import com.faforever.client.domain.server.PartyInfo;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -66,7 +66,7 @@ public class MatchmakingChatControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    lenient().when(teamMatchmakingService.getParty()).thenReturn(new PartyBean());
+    lenient().when(teamMatchmakingService.getParty()).thenReturn(new PartyInfo());
     lenient().when(chatMessageViewController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(chatService.getCurrentUsername()).thenReturn("junit");
     lenient().when(i18n.get(anyString())).thenReturn("");

@@ -1,7 +1,7 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.social.SocialService;
@@ -30,7 +30,7 @@ public class RemoveFoeMenuItemTest extends PlatformTest {
 
   @Test
   public void testRemoveFoeIfPlayerIsFoe() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.FOE).get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.FOE).get();
 
     instance.setObject(player);
     instance.onClicked();
@@ -40,25 +40,25 @@ public class RemoveFoeMenuItemTest extends PlatformTest {
 
   @Test
   public void testInvisibleItemIfPlayerIsFriend() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.FRIEND).get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.FRIEND).get());
     assertFalse(instance.isVisible());
   }
 
   @Test
   public void testInvisibleItemIfPlayerIsOther() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.OTHER).get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.OTHER).get());
     assertFalse(instance.isVisible());
   }
 
   @Test
   public void testVisibleItemIfPlayerIsFoe() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.FOE).get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.FOE).get());
     assertTrue(instance.isVisible());
   }
 
   @Test
   public void testInvisibleItemIfPlayerIsSelf() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get());
     assertFalse(instance.isVisible());
   }
 

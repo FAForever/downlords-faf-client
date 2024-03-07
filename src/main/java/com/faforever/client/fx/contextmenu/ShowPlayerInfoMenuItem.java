@@ -1,6 +1,6 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.theme.UiService;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ShowPlayerInfoMenuItem extends AbstractMenuItem<PlayerBean> {
+public class ShowPlayerInfoMenuItem extends AbstractMenuItem<PlayerInfo> {
 
   private final I18n i18n;
   private final UiService uiService;

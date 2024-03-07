@@ -1,7 +1,7 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.PlatformTest;
@@ -44,11 +44,11 @@ public class WatchButtonControllerTest extends PlatformTest {
 
   private final ObjectProperty<TrackingLiveReplay> trackingLiveReplayProperty = new SimpleObjectProperty<>(null);
 
-  private GameBean game;
+  private GameInfo game;
 
   @BeforeEach
   public void setUp() throws Exception {
-    game = GameBeanBuilder.create().defaultValues().get();
+    game = GameInfoBuilder.create().defaultValues().get();
 
     when(liveReplayService.trackingLiveReplayProperty()).thenReturn(trackingLiveReplayProperty);
     when(i18n.get("game.watch")).thenReturn("watch");
@@ -74,7 +74,7 @@ public class WatchButtonControllerTest extends PlatformTest {
     assertTrue(instance.watchButton.getPseudoClassStates().contains(WatchButtonController.TRACKABLE_PSEUDO_CLASS));
   }
 
-  private void setGame(GameBean game) {
+  private void setGame(GameInfo game) {
     runOnFxThreadAndWait(() -> instance.setGame(game));
   }
 

@@ -1,7 +1,6 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.builders.ModVersionBeanBuilder;
-import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -17,6 +16,7 @@ import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import javafx.scene.layout.Pane;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -67,11 +67,11 @@ public class ModVaultControllerTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     when(modService.getNewestModsWithPageCount(anyInt(), anyInt())).thenReturn(
-        Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)));
+        Mono.zip(Mono.just(List.of()), Mono.just(0)));
     when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(
-        Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)));
+        Mono.zip(Mono.just(List.of()), Mono.just(0)));
     when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(
-        Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)));
+        Mono.zip(Mono.just(List.of()), Mono.just(0)));
     when(i18n.get(anyString())).thenReturn("test");
     when(modDetailController.getRoot()).thenReturn(new Pane());
 
@@ -114,7 +114,7 @@ public class ModVaultControllerTest extends PlatformTest {
 
   @Test
   public void testShowModDetail() throws MalformedURLException {
-    ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().get();
+    ModVersion modVersion = Instancio.create(ModVersion.class);
     runOnFxThreadAndWait(() -> instance.onDisplayDetails(modVersion));
 
     verify(modDetailController).setModVersion(modVersion);

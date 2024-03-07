@@ -1,13 +1,14 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.builders.LeagueBeanBuilder;
-import com.faforever.client.builders.LeagueSeasonBeanBuilder;
+import com.faforever.client.domain.api.League;
+import com.faforever.client.domain.api.LeagueSeason;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -52,9 +53,8 @@ public class LeaderboardsControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(leaderboardService.getLeagues()).thenReturn(Flux.just(LeagueBeanBuilder.create().defaultValues().get()));
-    when(leaderboardService.getLatestSeason(any())).thenReturn(
-        Mono.just(LeagueSeasonBeanBuilder.create().defaultValues().get()));
+    when(leaderboardService.getLeagues()).thenReturn(Flux.just(Instancio.create(League.class)));
+    when(leaderboardService.getLatestSeason(any())).thenReturn(Mono.just(Instancio.create(LeagueSeason.class)));
     when(i18n.getOrDefault(anyString(), anyString())).thenReturn("league");
 
     loadFxml("theme/leaderboard/leaderboards.fxml", clazz -> {

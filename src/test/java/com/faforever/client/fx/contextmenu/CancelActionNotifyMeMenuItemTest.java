@@ -1,7 +1,7 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.replay.LiveReplayService;
 import com.faforever.client.replay.TrackingLiveReplay;
@@ -41,7 +41,7 @@ public class CancelActionNotifyMeMenuItemTest extends PlatformTest {
 
   @Test
   public void testVisibleItem() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.of(new TrackingLiveReplay(game.getId(), TrackingLiveReplayAction.NOTIFY_ME)));
 
     instance.setObject(game);
@@ -56,14 +56,14 @@ public class CancelActionNotifyMeMenuItemTest extends PlatformTest {
 
   @Test
   public void testInvisibleItemIfNoStartTimeGame() {
-    GameBean game = GameBeanBuilder.create().defaultValues().startTime(null).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().startTime(null).get();
     instance.setObject(game);
     assertFalse(instance.isVisible());
   }
 
   @Test
   public void testInvisibleItemIfNoTrackingOwnReplay() {
-    GameBean game = GameBeanBuilder.create().defaultValues().id(1).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().id(1).get();
     when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.of(new TrackingLiveReplay(2, TrackingLiveReplayAction.NOTIFY_ME)));
 
     instance.setObject(game);

@@ -1,20 +1,19 @@
 package com.faforever.client.fx.contextmenu;
 
+import com.faforever.client.avatar.Avatar;
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.builders.AvatarBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.AvatarBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.PlatformTest;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import java.net.URL;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,22 +38,21 @@ public class AvatarPickerCustomMenuItemControllerTest extends PlatformTest {
 
   @Test
   public void testVisibleItemIfThereAvailableAvatars() throws Exception {
-    when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
-        AvatarBeanBuilder.create().defaultValues().url(new URL("http://www.example.com/avatar1.png")).description("Avatar Number #1").get(),
-        AvatarBeanBuilder.create().defaultValues().url(new URL("http://www.example.com/avatar2.png")).description("Avatar Number #2").get(),
-        AvatarBeanBuilder.create().defaultValues().url(new URL("http://www.example.com/avatar3.png")).description("Avatar Number #3").get()
-    )));
+    List<Avatar> avatars = Instancio.createList(Avatar.class);
+    when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(avatars));
 
-    runOnFxThreadAndWait(() -> instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get()));
+    runOnFxThreadAndWait(
+        () -> instance.setObject(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get()));
 
     assertTrue(instance.getRoot().isVisible());
     assertTrue(instance.avatarComboBox.isVisible());
-    assertEquals(4, instance.avatarComboBox.getItems().size()); // 3 avatars and 1 no avatar
+    assertEquals(avatars.size() + 1, instance.avatarComboBox.getItems().size()); // 3 avatars and 1 no avatar
   }
 
   @Test
   public void testInvisibleItemIfPlayerIsNotSelf() {
-    runOnFxThreadAndWait(() -> instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.OTHER).get()));
+    runOnFxThreadAndWait(
+        () -> instance.setObject(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.OTHER).get()));
 
     assertFalse(instance.getRoot().isVisible());
   }
@@ -63,17 +61,19 @@ public class AvatarPickerCustomMenuItemControllerTest extends PlatformTest {
   public void testInvisibleItemIfNoAvailableAvatars() {
     when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
 
-    runOnFxThreadAndWait(() -> instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get()));
+    runOnFxThreadAndWait(
+        () -> instance.setObject(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get()));
 
     assertFalse(instance.getRoot().isVisible());
   }
 
   @Test
   public void testSelectAvatar() throws Exception {
-    AvatarBean avatar = AvatarBeanBuilder.create().defaultValues().url(new URL("http://www.example.com/avatar1.png")).description("Avatar Number #1").get();
+    Avatar avatar = Instancio.create(Avatar.class);
     when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(avatar)));
 
-    runOnFxThreadAndWait(() -> instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get()));
+    runOnFxThreadAndWait(
+        () -> instance.setObject(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get()));
     runOnFxThreadAndWait(() -> instance.avatarComboBox.getSelectionModel().select(1)); // 0 index - no avatar
 
     verify(avatarService).changeAvatar(avatar);
@@ -81,14 +81,15 @@ public class AvatarPickerCustomMenuItemControllerTest extends PlatformTest {
 
   @Test
   public void testSelectNoAvatar() throws Exception {
-    AvatarBean avatar = AvatarBeanBuilder.create().defaultValues().url(new URL("http://www.example.com/avatar1.png")).description("Avatar Number #1").get();
+    Avatar avatar = Instancio.create(Avatar.class);
     when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(avatar)));
     when(i18n.get("chat.userContext.noAvatar")).thenReturn("no avatar");
 
-    runOnFxThreadAndWait(() -> instance.setObject(PlayerBeanBuilder.create().defaultValues().avatar(avatar).socialStatus(SocialStatus.SELF).get()));
+    runOnFxThreadAndWait(() -> instance.setObject(
+        PlayerInfoBuilder.create().defaultValues().avatar(avatar).socialStatus(SocialStatus.SELF).get()));
     assertEquals(avatar, instance.avatarComboBox.getSelectionModel().getSelectedItem());
 
     runOnFxThreadAndWait(() -> instance.avatarComboBox.getSelectionModel().select(0)); // 0 index - no avatar
-    assertEquals("no avatar", instance.avatarComboBox.getSelectionModel().getSelectedItem().getDescription());
+    assertEquals("no avatar", instance.avatarComboBox.getSelectionModel().getSelectedItem().description());
   }
 }

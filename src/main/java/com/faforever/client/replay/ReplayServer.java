@@ -1,8 +1,8 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
@@ -143,7 +143,7 @@ public class ReplayServer {
   private void recordAndRelay(int uid, ServerSocket serverSocket,
                               @Nullable OutputStream fafReplayOutputStream) throws IOException {
     Socket socket = serverSocket.accept();
-    GameBean game = gameService.getByUid(uid).orElseThrow();
+    GameInfo game = gameService.getByUid(uid).orElseThrow();
     log.info("Accepted connection from `{}`", socket.getRemoteSocketAddress());
 
     initReplayInfo(uid);
@@ -182,7 +182,7 @@ public class ReplayServer {
     replayFileWriter.writeReplayDataToFile(replayData, replayInfo);
   }
 
-  private void finishReplayInfo(GameBean game) {
+  private void finishReplayInfo(GameInfo game) {
     Map<String, List<String>> teamStrings = game.getTeams().entrySet().stream()
                                                 .collect(Collectors.toMap(String::valueOf, entry -> entry.getValue()
                                                                                                          .stream()
@@ -191,7 +191,7 @@ public class ReplayServer {
                                                                                                          .flatMap(
                                                                                                              Optional::stream)
                                                                                                          .map(
-                                                                                                             PlayerBean::getUsername)
+                                                                                                             PlayerInfo::getUsername)
                                                                                                          .collect(
                                                                                                              Collectors.toList())));
 

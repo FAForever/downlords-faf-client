@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
-import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
@@ -74,11 +74,11 @@ public class GameDetailController extends NodeController<Pane> {
   private final ImageViewHelper imageViewHelper;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
+  private final ObjectProperty<GameInfo> game = new SimpleObjectProperty<>();
   private final BooleanProperty playtimeVisible = new SimpleBooleanProperty();
-  private final ObservableValue<Map<Integer, List<Integer>>> teams = game.flatMap(GameBean::teamsProperty)
+  private final ObservableValue<Map<Integer, List<Integer>>> teams = game.flatMap(GameInfo::teamsProperty)
                                                                          .orElse(Map.of());
-  private final ObservableValue<String> leaderboard = game.flatMap(GameBean::leaderboardProperty);
+  private final ObservableValue<String> leaderboard = game.flatMap(GameInfo::leaderboardProperty);
   private final Timeline playTimeTimeline = new Timeline(new KeyFrame(Duration.ZERO, event -> updatePlaytimeValue()),
                                                          new KeyFrame(Duration.seconds(1)));
 
@@ -113,10 +113,10 @@ public class GameDetailController extends NodeController<Pane> {
 
     root.visibleProperty().bind(game.isNotNull());
     gameTitleLabel.textProperty()
-                  .bind(game.flatMap(GameBean::titleProperty).map(StringUtils::normalizeSpace).when(showing));
-    hostLabel.textProperty().bind(game.flatMap(GameBean::hostProperty).when(showing));
+                  .bind(game.flatMap(GameInfo::titleProperty).map(StringUtils::normalizeSpace).when(showing));
+    hostLabel.textProperty().bind(game.flatMap(GameInfo::hostProperty).when(showing));
 
-    ObservableValue<String> mapFolderNameObservable = game.flatMap(GameBean::mapFolderNameProperty);
+    ObservableValue<String> mapFolderNameObservable = game.flatMap(GameInfo::mapFolderNameProperty);
     mapLabel.textProperty().bind(mapFolderNameObservable.when(showing));
     mapImageView.imageProperty()
                 .bind(mapFolderNameObservable.flatMap(folderName -> Bindings.createObjectBinding(
@@ -125,7 +125,7 @@ public class GameDetailController extends NodeController<Pane> {
                                              .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
                                              .when(showing));
 
-    game.flatMap(GameBean::featuredModProperty)
+    game.flatMap(GameInfo::featuredModProperty)
         .when(showing)
         .addListener((SimpleChangeListener<String>) this::onFeaturedModChanged);
 
@@ -164,7 +164,7 @@ public class GameDetailController extends NodeController<Pane> {
                                            gameBean.getMaxPlayers()), gameBean.numActivePlayersProperty(),
                             gameBean.maxPlayersProperty())).when(showing));
 
-    game.flatMap(GameBean::statusProperty).when(showing).subscribe(this::onGameStatusChanged);
+    game.flatMap(GameInfo::statusProperty).when(showing).subscribe(this::onGameStatusChanged);
 
     teams.when(showing).subscribe(this::populateTeamsContainer);
   }
@@ -187,7 +187,7 @@ public class GameDetailController extends NodeController<Pane> {
       controller.setRatingPrecision(RatingPrecision.ROUNDED);
       controller.ratingProviderProperty()
                 .bind(leaderboard.map(
-                                     name -> (Function<PlayerBean, Integer>) player -> RatingUtil.getLeaderboardRating(player, name))
+                                     name -> (Function<PlayerInfo, Integer>) player -> RatingUtil.getLeaderboardRating(player, name))
                                  .when(showing));
       controller.setTeamId(team);
       controller.setPlayerIds(playerIds);
@@ -198,9 +198,7 @@ public class GameDetailController extends NodeController<Pane> {
   }
 
   private void onFeaturedModChanged(String featuredModTechnicalName) {
-    Mono.justOrEmpty(featuredModTechnicalName)
-        .flatMap(featuredModService::getFeaturedMod)
-        .map(FeaturedModBean::getDisplayName)
+    Mono.justOrEmpty(featuredModTechnicalName).flatMap(featuredModService::getFeaturedMod).map(FeaturedMod::displayName)
         .switchIfEmpty(Mono.just(i18n.get("unknown")))
         .publishOn(fxApplicationThreadExecutor.asScheduler())
         .subscribe(gameTypeLabel::setText);
@@ -221,13 +219,13 @@ public class GameDetailController extends NodeController<Pane> {
   private void updatePlaytimeValue() {
     String durationText;
 
-    GameBean gameBean = getGame();
-    if (gameBean == null || gameBean.getStartTime() == null || gameBean.getStatus() != GameStatus.PLAYING) {
+    GameInfo gameInfo = getGame();
+    if (gameInfo == null || gameInfo.getStartTime() == null || gameInfo.getStatus() != GameStatus.PLAYING) {
       durationText = null;
       playTimeTimeline.stop();
     } else {
       durationText = timeService.shortDuration(
-          java.time.Duration.between(gameBean.getStartTime(), OffsetDateTime.now()));
+          java.time.Duration.between(gameInfo.getStartTime(), OffsetDateTime.now()));
     }
 
     fxApplicationThreadExecutor.execute(() -> playtimeLabel.setText(durationText));
@@ -238,15 +236,15 @@ public class GameDetailController extends NodeController<Pane> {
     playTimeTimeline.stop();
   }
 
-  public void setGame(GameBean game) {
+  public void setGame(GameInfo game) {
     this.game.set(game);
   }
 
-  public GameBean getGame() {
+  public GameInfo getGame() {
     return game.get();
   }
 
-  public ObjectProperty<GameBean> gameProperty() {
+  public ObjectProperty<GameInfo> gameProperty() {
     return game;
   }
 
@@ -264,9 +262,9 @@ public class GameDetailController extends NodeController<Pane> {
   }
 
   public void onMapPreviewImageClicked() {
-    GameBean gameBean = getGame();
-    if (gameBean != null) {
-      PopupUtil.showImagePopup(mapService.loadPreview(gameBean.getMapFolderName(), PreviewSize.LARGE));
+    GameInfo gameInfo = getGame();
+    if (gameInfo != null) {
+      PopupUtil.showImagePopup(mapService.loadPreview(gameInfo.getMapFolderName(), PreviewSize.LARGE));
     }
   }
 

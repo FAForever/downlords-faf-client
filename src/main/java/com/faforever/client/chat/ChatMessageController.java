@@ -1,12 +1,12 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.avatar.Avatar;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.chat.ChatMessage.Type;
 import com.faforever.client.chat.emoticons.Emoticon;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
-import com.faforever.client.domain.AvatarBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
@@ -116,14 +116,12 @@ public class ChatMessageController extends NodeController<VBox> {
     mentionPattern = chatService.getMentionPattern();
 
     ObservableValue<ChatChannelUser> sender = chatMessage.map(ChatMessage::getSender);
-    ObservableValue<PlayerBean> player = sender.flatMap(ChatChannelUser::playerProperty);
-    avatarImageView.imageProperty()
-                   .bind(player.flatMap(PlayerBean::avatarProperty)
+    ObservableValue<PlayerInfo> player = sender.flatMap(ChatChannelUser::playerProperty);
+    avatarImageView.imageProperty().bind(player.flatMap(PlayerInfo::avatarProperty)
                                .map(avatarService::loadAvatar)
                                .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
                                .when(showing));
-    countryImageView.imageProperty()
-                    .bind(player.flatMap(PlayerBean::countryProperty)
+    countryImageView.imageProperty().bind(player.flatMap(PlayerInfo::countryProperty)
                                 .map(countryFlagService::loadCountryFlag)
                                 .map(flagOptional -> flagOptional.orElse(null))
                                 .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
@@ -132,7 +130,7 @@ public class ChatMessageController extends NodeController<VBox> {
                                             .map(JavaFxUtil::toRgbCode)
                                             .map(rgb -> String.format("-fx-fill: %s; -fx-text-fill: %s;", rgb, rgb))
                                             .when(showing));
-    clanLabel.textProperty().bind(player.flatMap(PlayerBean::clanProperty).map("[%s]"::formatted).when(showing));
+    clanLabel.textProperty().bind(player.flatMap(PlayerInfo::clanProperty).map("[%s]"::formatted).when(showing));
     clanLabel.styleProperty().bind(inlineTextColorStyleProperty);
     ObservableValue<String> usernameProperty = sender.map(ChatChannelUser::getUsername).when(showing);
     authorLabel.textProperty().bind(usernameProperty);
@@ -156,8 +154,7 @@ public class ChatMessageController extends NodeController<VBox> {
     detailsContainer.visibleProperty().bind(showDetails.when(showing));
 
     avatarTooltip.textProperty()
-                 .bind(
-                     player.flatMap(PlayerBean::avatarProperty).flatMap(AvatarBean::descriptionProperty).when(showing));
+                 .bind(player.flatMap(PlayerInfo::avatarProperty).map(Avatar::description).when(showing));
     avatarTooltip.setShowDelay(Duration.ZERO);
     avatarTooltip.setShowDuration(Duration.seconds(30));
     Tooltip.install(avatarImageView, avatarTooltip);

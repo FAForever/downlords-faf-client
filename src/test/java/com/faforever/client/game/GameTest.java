@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
 
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,19 +11,19 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class GameTest extends ServiceTest {
 
-  private GameBean one;
-  private GameBean two;
+  private GameInfo one;
+  private GameInfo two;
 
   @BeforeEach
   public void setUp() throws Exception {
-    one = new GameBean();
-    two = new GameBean();
+    one = new GameInfo();
+    two = new GameInfo();
   }
 
   @Test
   public void testEqualsNotEquals() {
-    GameBean one = new GameBean();
-    GameBean two = new GameBean();
+    GameInfo one = new GameInfo();
+    GameInfo two = new GameInfo();
 
     one.setId(1);
     two.setId(2);
@@ -33,8 +33,8 @@ public class GameTest extends ServiceTest {
 
   @Test
   public void testEqualsIsEquals() {
-    GameBean one = new GameBean();
-    GameBean two = new GameBean();
+    GameInfo one = new GameInfo();
+    GameInfo two = new GameInfo();
 
     one.setId(1);
     two.setId(1);

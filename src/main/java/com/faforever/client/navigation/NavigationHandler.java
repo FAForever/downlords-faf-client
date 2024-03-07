@@ -1,6 +1,6 @@
 package com.faforever.client.navigation;
 
-import com.faforever.client.domain.LeagueBean;
+import com.faforever.client.domain.api.League;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.play.PlayController;
@@ -21,7 +21,7 @@ public class NavigationHandler {
   private final ReadOnlyObjectWrapper<NavigateEvent> navigationEvent = new ReadOnlyObjectWrapper<>();
   private final ReadOnlyObjectWrapper<PlayController.PlayContentEnum> lastPlayTab = new ReadOnlyObjectWrapper<>();
   private final ReadOnlyObjectWrapper<ReplayController.ReplayContentEnum> lastReplayTab = new ReadOnlyObjectWrapper<>();
-  private final ReadOnlyObjectWrapper<LeagueBean> lastLeagueTab = new ReadOnlyObjectWrapper<>();
+  private final ReadOnlyObjectWrapper<League> lastLeagueTab = new ReadOnlyObjectWrapper<>();
   private final ObservableSet<NavigationItem> highlightedItems = FXCollections.observableSet();
 
   public void navigateTo(NavigateEvent navigationEvent) {
@@ -68,15 +68,15 @@ public class NavigationHandler {
     this.lastReplayTab.set(lastReplayTab);
   }
 
-  public LeagueBean getLastLeagueTab() {
+  public League getLastLeagueTab() {
     return lastLeagueTab.get();
   }
 
-  public ReadOnlyObjectProperty<LeagueBean> lastLeagueTabProperty() {
+  public ReadOnlyObjectProperty<League> lastLeagueTabProperty() {
     return lastLeagueTab.getReadOnlyProperty();
   }
 
-  public void setLastLeagueTab(LeagueBean lastLeagueTab) {
+  public void setLastLeagueTab(League lastLeagueTab) {
     this.lastLeagueTab.set(lastLeagueTab);
   }
 }

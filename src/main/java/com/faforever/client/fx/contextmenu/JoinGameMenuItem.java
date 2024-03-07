@@ -1,7 +1,7 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
@@ -18,7 +18,7 @@ import static com.faforever.client.player.SocialStatus.SELF;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class JoinGameMenuItem extends AbstractMenuItem<PlayerBean> {
+public class JoinGameMenuItem extends AbstractMenuItem<PlayerInfo> {
 
   private final I18n i18n;
   private final GameRunner gameRunner;
@@ -36,7 +36,7 @@ public class JoinGameMenuItem extends AbstractMenuItem<PlayerBean> {
     }
     SocialStatus socialStatus = object.getSocialStatus();
     PlayerGameStatus playerGameStatus = object.getGameStatus();
-    GameBean game = object.getGame();
+    GameInfo game = object.getGame();
     return socialStatus != SELF && (playerGameStatus == PlayerGameStatus.LOBBYING || playerGameStatus == PlayerGameStatus.HOSTING)
         && game != null && game.getGameType() != GameType.MATCHMAKER;
   }
