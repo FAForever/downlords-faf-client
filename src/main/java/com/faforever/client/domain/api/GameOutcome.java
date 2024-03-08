@@ -1,4 +1,4 @@
-package com.faforever.client.domain;
+package com.faforever.client.domain.api;
 
 public enum GameOutcome {
   VICTORY,

@@ -4,7 +4,7 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.api.FeaturedMod;
-import com.faforever.client.domain.LeagueScoreJournalBean;
+import com.faforever.client.domain.api.LeagueScoreJournal;
 import com.faforever.client.domain.api.Map;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.api.Replay;
@@ -29,7 +29,6 @@ import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GameReviewsSummary;
-import com.faforever.commons.api.dto.LeagueScoreJournal;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.api.elide.ElideNavigatorOnId;
@@ -43,6 +42,7 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
@@ -465,12 +465,11 @@ public class ReplayService {
                          .map(tuple -> tuple.mapT1(mods -> mods.stream().map(replayMapper::map).collect(toList())));
   }
 
-  public CompletableFuture<List<LeagueScoreJournalBean>> getLeagueScoreJournalForReplay(ReplayBean replay) {
-    ElideNavigatorOnCollection<LeagueScoreJournal> navigator = ElideNavigator.of(LeagueScoreJournal.class).collection()
-        .setFilter(qBuilder().intNum("gameId").eq(replay.getId()));
+  public Flux<LeagueScoreJournal> getLeagueScoreJournalForReplay(Replay replay) {
+    ElideNavigatorOnCollection<com.faforever.commons.api.dto.LeagueScoreJournal> navigator = ElideNavigator.of(com.faforever.commons.api.dto.LeagueScoreJournal.class).collection()
+        .setFilter(qBuilder().intNum("gameId").eq(replay.id()));
     return fafApiAccessor.getMany(navigator)
-        .map(dto -> replayMapper.map(dto, new CycleAvoidingMappingContext()))
-        .collectList()
-        .toFuture();
+        .map(replayMapper::map)
+        .cache();
   }
 }

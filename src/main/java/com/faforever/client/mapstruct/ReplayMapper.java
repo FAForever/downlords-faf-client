@@ -3,7 +3,7 @@ package com.faforever.client.mapstruct;
 import com.faforever.client.domain.api.FeaturedMod;
 import com.faforever.client.domain.api.GamePlayerStats;
 import com.faforever.client.domain.api.LeaderboardRatingJournal;
-import com.faforever.client.domain.LeagueScoreJournalBean;
+import com.faforever.client.domain.api.LeagueScoreJournal;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.api.Replay;
 import com.faforever.client.domain.server.PlayerInfo;
@@ -82,12 +82,10 @@ public interface ReplayMapper {
   @Mapping(target = "season", source = "leagueSeason")
   @Mapping(target = "divisionBefore", source = "leagueSeasonDivisionSubdivisionBefore")
   @Mapping(target = "divisionAfter", source = "leagueSeasonDivisionSubdivisionAfter")
-  LeagueScoreJournalBean map(LeagueScoreJournal source, @Context CycleAvoidingMappingContext context);
+  LeagueScoreJournal map(com.faforever.commons.api.dto.LeagueScoreJournal dto);
 
-  @Mapping(target = "leagueSeason", source = "season")
-  @Mapping(target = "leagueSeasonDivisionSubdivisionBefore", source = "divisionBefore")
-  @Mapping(target = "leagueSeasonDivisionSubdivisionAfter", source = "divisionAfter")
-  LeagueScoreJournal map(LeagueScoreJournalBean source, @Context CycleAvoidingMappingContext context);
+  @InheritInverseConfiguration
+  com.faforever.commons.api.dto.LeagueScoreJournal map(LeagueScoreJournal source);
 
   @Mapping(target = "local", constant = "true")
   @Mapping(target = "id", source = "parser.metadata.uid")

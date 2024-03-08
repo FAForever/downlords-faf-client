@@ -3,9 +3,8 @@ package com.faforever.client.game;
 
 import com.faforever.client.domain.api.GamePlayerStats;
 import com.faforever.client.domain.server.GameInfo;
-import com.faforever.client.domain.GameOutcome;
+import com.faforever.client.domain.api.GameOutcome;
 import com.faforever.client.domain.server.PlayerInfo;
-import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
