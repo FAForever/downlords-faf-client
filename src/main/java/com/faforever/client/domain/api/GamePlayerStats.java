@@ -7,8 +7,16 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 public record GamePlayerStats(
-    PlayerInfo player, byte score, byte team,
-    Faction faction, OffsetDateTime scoreTime, List<LeaderboardRatingJournal> leaderboardRatingJournals
+    boolean ai,
+    Faction faction,
+    byte color,
+    byte team,
+    byte startSpot,
+    byte score,
+    OffsetDateTime scoreTime,
+    GameOutcome outcome,
+    PlayerInfo player,
+    List<LeaderboardRatingJournal> leaderboardRatingJournals
 ) {
 
   public GamePlayerStats {

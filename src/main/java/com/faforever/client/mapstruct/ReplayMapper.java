@@ -161,6 +161,7 @@ public interface ReplayMapper {
     return teamPlayerStats.values().stream().flatMap(Collection::stream).toList();
   }
 
+  @Mapping(target = "outcome", source = "result")
   GamePlayerStats map(com.faforever.commons.api.dto.GamePlayerStats dto);
 
   @InheritInverseConfiguration

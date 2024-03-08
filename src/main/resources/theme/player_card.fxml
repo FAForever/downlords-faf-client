@@ -51,9 +51,8 @@
             <Insets left="5.0"/>
         </HBox.margin>
     </Label>
-    <Label fx:id="ratingChange"
-           minWidth="-Infinity"
-           styleClass="rating-change-label"/>
+    <Label fx:id="ratingLabel" visible="false"/>
+    <Label fx:id="ratingChange" minWidth="-Infinity" styleClass="rating-change-label"  visible="false"/>
     <ImageView fx:id="divisionImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true"
                visible="false"/>
 </HBox>
