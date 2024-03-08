@@ -3,10 +3,8 @@ package com.faforever.client.game;
 
 import com.faforever.client.domain.api.GamePlayerStats;
 import com.faforever.client.domain.server.GameInfo;
-import com.faforever.client.domain.api.GameOutcome;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
@@ -20,7 +18,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
@@ -46,13 +43,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class TeamCardController extends NodeController<Node> {
-
-  private static final PseudoClass VICTORY = PseudoClass.getPseudoClass("victory");
-  private static final PseudoClass DEFEAT = PseudoClass.getPseudoClass("defeat");
-  private static final PseudoClass DRAW = PseudoClass.getPseudoClass("draw");
-  private static final PseudoClass UNKNOWN = PseudoClass.getPseudoClass("unknown");
-  private static final int UNSET = -1000000;
-
   private final I18n i18n;
   private final PlayerService playerService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -61,22 +51,19 @@ public class TeamCardController extends NodeController<Node> {
   public Pane teamPaneRoot;
   public VBox teamPane;
   public Label teamNameLabel;
-  public Label gameResultLabel;
 
   private final ObjectProperty<List<Integer>> playerIds = new SimpleObjectProperty<>(List.of());
   private final ObjectProperty<List<PlayerInfo>> players = new SimpleObjectProperty<>(List.of());
   private final ObjectProperty<Function<PlayerInfo, Integer>> ratingProvider = new SimpleObjectProperty<>();
-  private final ObjectProperty<Function<PlayerInfo, SubdivisionBean>> divisionProvider = new SimpleObjectProperty<>();
-  private final ObjectProperty<Function<PlayerBean, Faction>> factionProvider = new SimpleObjectProperty<>();
+  private final ObjectProperty<Function<PlayerInfo, Faction>> factionProvider = new SimpleObjectProperty<>();
   private final ObjectProperty<RatingPrecision> ratingPrecision = new SimpleObjectProperty<>();
-  private final ObjectProperty<GameOutcome> teamOutcome = new SimpleObjectProperty<>();
   private final IntegerProperty teamId = new SimpleIntegerProperty();
   private final SimpleChangeListener<List<PlayerInfo>> playersListener = this::populateTeamContainer;
   private final ObservableValue<Integer> teamRating = ratingProvider.flatMap(provider -> ratingPrecision.flatMap(precision -> players.map(playerBeans -> playerBeans.stream()
       .map(provider)
       .filter(Objects::nonNull)
       .map(rating -> precision == RatingPrecision.ROUNDED ? RatingUtil.getRoundedRating(rating) : rating)
-      .reduce(Integer::sum).orElse(UNSET))));
+      .reduce(0, Integer::sum))));
 
   private final Map<PlayerInfo, PlayerCardController> playerCardControllersMap = new HashMap<>();
 
@@ -88,18 +75,13 @@ public class TeamCardController extends NodeController<Node> {
           case GameInfo.OBSERVERS_TEAM -> i18n.get("game.tooltip.observers");
           default -> {
             try {
-              if (teamRating == UNSET) {
-                yield i18n.get("game.tooltip.teamTitleNoRating", id.intValue() - 1);
-              } else {
-                yield i18n.get("game.tooltip.teamTitle", id.intValue() - 1, teamRating);
-              }
+              yield i18n.get("game.tooltip.teamTitle", id.intValue() - 1, teamRating);
             } catch (NumberFormatException e) {
               yield "";
             }
           }
         })));
-    JavaFxUtil.bindManagedToVisible(gameResultLabel);
-    gameResultLabel.visibleProperty().bind(gameResultLabel.textProperty().isEmpty().not());
+
     players.addListener(playersListener);
   }
 
@@ -117,8 +99,6 @@ public class TeamCardController extends NodeController<Node> {
       controller.ratingProperty()
           .bind(ratingProvider.map(ratingFunction -> ratingFunction.apply(player))
               .flatMap(rating -> ratingPrecision.map(precision -> precision == RatingPrecision.ROUNDED ? RatingUtil.getRoundedRating(rating) : rating)));
-      controller.divisionProperty()
-              .bind(divisionProvider.map(divisionFunction -> divisionFunction.apply(player)));
       controller.factionProperty()
           .bind(factionProvider.map(factionFunction -> factionFunction.apply(player)));
       controller.setPlayer(player);
@@ -127,39 +107,6 @@ public class TeamCardController extends NodeController<Node> {
 
       return controller;
     }).toList();
-  }
-
-  public void showGameResult() {
-    switch (teamOutcome.get()) {
-      case VICTORY -> {
-        gameResultLabel.setText(i18n.get("game.resultVictory"));
-        gameResultLabel.pseudoClassStateChanged(VICTORY, true);
-        gameResultLabel.pseudoClassStateChanged(DEFEAT, false);
-        gameResultLabel.pseudoClassStateChanged(DRAW, false);
-        gameResultLabel.pseudoClassStateChanged(UNKNOWN, false);
-      }
-      case DEFEAT -> {
-        gameResultLabel.setText(i18n.get("game.resultDefeat"));
-        gameResultLabel.pseudoClassStateChanged(VICTORY, false);
-        gameResultLabel.pseudoClassStateChanged(DEFEAT, true);
-        gameResultLabel.pseudoClassStateChanged(DRAW, false);
-        gameResultLabel.pseudoClassStateChanged(UNKNOWN, false);
-      }
-      case DRAW, MUTUAL_DRAW -> {
-        gameResultLabel.setText(i18n.get("game.resultDraw"));
-        gameResultLabel.pseudoClassStateChanged(VICTORY, false);
-        gameResultLabel.pseudoClassStateChanged(DEFEAT, false);
-        gameResultLabel.pseudoClassStateChanged(DRAW, true);
-        gameResultLabel.pseudoClassStateChanged(UNKNOWN, false);
-      }
-      default -> {
-        gameResultLabel.setText(i18n.get("game.resultUnknown"));
-        gameResultLabel.pseudoClassStateChanged(VICTORY, false);
-        gameResultLabel.pseudoClassStateChanged(DEFEAT, false);
-        gameResultLabel.pseudoClassStateChanged(DRAW, false);
-        gameResultLabel.pseudoClassStateChanged(UNKNOWN, true);
-      }
-    }
   }
 
   public void bindPlayersToPlayerIds() {
@@ -171,10 +118,6 @@ public class TeamCardController extends NodeController<Node> {
 
   public void setRatingProvider(Function<PlayerInfo, Integer> ratingProvider) {
     this.ratingProvider.set(ratingProvider);
-  }
-
-  public void setDivisionProvider(Function<PlayerBean, SubdivisionBean> divisionProvider) {
-    this.divisionProvider.set(divisionProvider);
   }
 
   public void setFactionProvider(Function<PlayerInfo, Faction> factionProvider) {
@@ -211,18 +154,6 @@ public class TeamCardController extends NodeController<Node> {
 
   public ObjectProperty<Function<PlayerInfo, Integer>> ratingProviderProperty() {
     return ratingProvider;
-  }
-
-  public void setTeamOutcome(GameOutcome teamOutcome) {
-    this.teamOutcome.set(teamOutcome);
-  }
-
-  public GameOutcome getTeamOutcome() {
-    return teamOutcome.get();
-  }
-
-  public ObjectProperty<GameOutcome> teamResult() {
-    return teamOutcome;
   }
 
   public void setStats(List<GamePlayerStats> teamPlayerStats) {
