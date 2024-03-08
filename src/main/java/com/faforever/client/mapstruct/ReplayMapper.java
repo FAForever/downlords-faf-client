@@ -145,8 +145,8 @@ public interface ReplayMapper {
                                                                               null);
         Float factionFloat = (Float) armyInfo.get("Faction");
         Faction faction = Faction.fromFaValue(factionFloat.intValue());
-        GamePlayerStats stats = new GamePlayerStats(player, (byte) 0, team, faction, null,
-                                                    List.of(ratingJournal));
+        GamePlayerStats stats = new GamePlayerStats(false, faction, (byte) 0, team, (byte) 0, (byte) 0, null,
+                                                    null, player, List.of(ratingJournal));
         teams.computeIfAbsent(teamString, key -> new ArrayList<>()).add(stats);
       }
     });
