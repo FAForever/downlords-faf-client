@@ -417,10 +417,6 @@ public class ReplayDetailController extends NodeController<Node> {
   private void populateTeamsContainer(java.util.Map<String, List<GamePlayerStats>> newValue) {
     CompletableFuture.supplyAsync(() -> createTeamCardControllers(newValue)).thenAcceptAsync(controllers -> {
       teamCardControllers.clear();
-      if (controllers.stream()
-          .map(TeamCardController::getTeamOutcome).noneMatch(gameOutcome -> gameOutcome != GameOutcome.DEFEAT)) {
-        controllers.forEach(teamCardController -> teamCardController.setTeamOutcome(GameOutcome.DRAW));
-      }
       teamCardControllers.addAll(controllers);
       teamsContainer.getChildren().setAll(teamCardControllers.stream().map(TeamCardController::getRoot).toList());
     }, fxApplicationThreadExecutor);
@@ -452,20 +448,21 @@ public class ReplayDetailController extends NodeController<Node> {
   private GameOutcome calculateTeamOutcome(Collection<GamePlayerStats> statsByPlayer) {
     // Game outcomes are saved since 2020, so this should suffice for the
     // vast majority of replays that people will realistically look up.
-    java.util.Map<GameOutcome, Long> outcomeCounts = statsByPlayer.stream()
+    List<GameOutcome> outcomes = statsByPlayer.stream()
         .map(GamePlayerStats::outcome)
         .filter(Objects::nonNull)
-        .map(gameOutcome -> (gameOutcome == GameOutcome.CONFLICTING) ? GameOutcome.UNKNOWN : gameOutcome)
         .map(gameOutcome -> (gameOutcome == GameOutcome.MUTUAL_DRAW) ? GameOutcome.DRAW : gameOutcome)
-        .collect(Collectors.groupingBy(gameOutcome -> gameOutcome, Collectors.counting()));
+        .toList();
 
-    if (outcomeCounts.containsKey(GameOutcome.VICTORY)) {
+    if (outcomes.contains(GameOutcome.VICTORY)) {
       return GameOutcome.VICTORY;
+    } else if (outcomes.contains(GameOutcome.DRAW)) {
+      return GameOutcome.DRAW;
+    } else if (outcomes.contains(GameOutcome.DEFEAT)) {
+      return GameOutcome.DEFEAT;
+    } else {
+      return GameOutcome.UNKNOWN;
     }
-
-    return outcomeCounts.entrySet()
-        .stream()
-        .max(Entry.comparingByValue()).map(Entry::getKey).orElse(GameOutcome.UNKNOWN);
   }
 
   private Faction getPlayerFaction(PlayerInfo player, java.util.Map<PlayerInfo, GamePlayerStats> statsByPlayerId) {
