@@ -82,7 +82,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -299,8 +298,13 @@ public class ReplayDetailController extends NodeController<Node> {
     replayService.getLeagueScoreJournalForReplay(newValue)
         .collectList()
         .publishOn(fxApplicationThreadExecutor.asScheduler())
-        .subscribe(scores -> {
-          teamCardControllers.forEach(teamCardController -> teamCardController.setDivisionProvider(player -> getPlayerDivision(player, scores)));
+        .subscribe(leagueScoreJournals -> {
+          teamCardControllers.forEach(teamCardController -> {
+            teamCardController.setDivisionProvider(player -> getPlayerDivision(player, leagueScoreJournals));
+            if (!leagueScoreJournals.isEmpty()) {
+              teamCardController.setDisplayType(DisplayType.DIVISION);
+            }
+          });
         });
 
     reviewsController.setCanWriteReview(true);

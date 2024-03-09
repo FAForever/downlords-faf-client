@@ -25,6 +25,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.SocialStatus;
+import com.faforever.client.replay.DisplayType;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
@@ -85,6 +86,7 @@ public class PlayerCardController extends NodeController<Node> {
   private final ObjectProperty<Integer> rating = new SimpleObjectProperty<>();
   private final ObjectProperty<Subdivision> division = new SimpleObjectProperty<>();
   private final ObjectProperty<Faction> faction = new SimpleObjectProperty<>();
+  private final ObjectProperty<DisplayType> displayType = new SimpleObjectProperty<>();
   private final Tooltip noteTooltip = new Tooltip();
   private final Tooltip avatarTooltip = new Tooltip();
   private final Tooltip divisionTooltip = new Tooltip();
@@ -96,8 +98,8 @@ public class PlayerCardController extends NodeController<Node> {
     countryImageView.visibleProperty().bind(countryImageView.imageProperty().isNotNull());
     avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
     divisionImageView.visibleProperty().bind(divisionImageView.imageProperty().isNotNull());
-    ratingLabel.visibleProperty().bind(rating.isNotNull().and(divisionImageView.imageProperty().isNull()));
-    ratingChange.visibleProperty().bind(playerStats.isNotNull().and(divisionImageView.imageProperty().isNull()));
+    ratingLabel.visibleProperty().bind(rating.isNotNull().and(displayType.isEqualTo(DisplayType.RATING)));
+    ratingChange.visibleProperty().bind(playerStats.isNotNull().and(displayType.isEqualTo(DisplayType.RATING)));
 
     factionImage.setImage(uiService.getImage(ThemeService.RANDOM_FACTION_IMAGE));
     factionImage.visibleProperty().bind(faction.map(value -> value == Faction.RANDOM));
@@ -282,6 +284,10 @@ public class PlayerCardController extends NodeController<Node> {
 
   public void setFaction(Faction faction) {
     this.faction.set(faction);
+  }
+
+  public ObjectProperty<DisplayType> displayTypeProperty() {
+    return displayType;
   }
 
   public GamePlayerStats getPlayerStats() {

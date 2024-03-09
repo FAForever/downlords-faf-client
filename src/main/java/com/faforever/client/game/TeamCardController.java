@@ -12,6 +12,7 @@ import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.replay.DisplayType;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.Faction;
@@ -72,6 +73,7 @@ public class TeamCardController extends NodeController<Node> {
   private final ObjectProperty<Function<PlayerInfo, Faction>> factionProvider = new SimpleObjectProperty<>();
   private final ObjectProperty<RatingPrecision> ratingPrecision = new SimpleObjectProperty<>();
   private final ObjectProperty<GameOutcome> teamOutcome = new SimpleObjectProperty<>();
+  private final ObjectProperty<DisplayType> displayType = new SimpleObjectProperty<>();
   private final IntegerProperty teamId = new SimpleIntegerProperty();
   private final SimpleChangeListener<List<PlayerInfo>> playersListener = this::populateTeamContainer;
   private final ObservableValue<Integer> teamRating = ratingProvider.flatMap(provider -> ratingPrecision.flatMap(precision -> players.map(playerBeans -> playerBeans.stream()
@@ -84,6 +86,7 @@ public class TeamCardController extends NodeController<Node> {
 
   @Override
   protected void onInitialize() {
+    setDisplayType(DisplayType.RATING);
     teamNameLabel.textProperty()
         .bind(teamId.map(id -> switch (id.intValue()) {
           case 0, GameInfo.NO_TEAM -> i18n.get("game.tooltip.teamTitleNoTeam");
@@ -98,7 +101,7 @@ public class TeamCardController extends NodeController<Node> {
         }));
     JavaFxUtil.bindManagedToVisible(teamRatingLabel, gameResultLabel);
     teamRatingLabel.textProperty().bind(teamRating.map(value -> i18n.get("game.tooltip.ratingFormat", value)));
-    teamRatingLabel.visibleProperty().bind(Bindings.createBooleanBinding(() -> teamRating.getValue() != null && teamRating.getValue() != 0, teamRating));
+    teamRatingLabel.visibleProperty().bind(teamRating.flatMap(teamRating -> displayType.map(type -> type == DisplayType.RATING && teamRating != 0)));
     gameResultLabel.visibleProperty().bind(gameResultLabel.textProperty().isEmpty().not());
     players.addListener(playersListener);
   }
@@ -122,6 +125,7 @@ public class TeamCardController extends NodeController<Node> {
       controller.factionProperty()
           .bind(factionProvider.map(factionFunction -> factionFunction.apply(player)));
       controller.setPlayer(player);
+      controller.displayTypeProperty().bind(displayType);
 
       playerCardControllersMap.put(player, controller);
 
@@ -167,6 +171,10 @@ public class TeamCardController extends NodeController<Node> {
         .map(playerService::getPlayerByIdIfOnline)
         .flatMap(Optional::stream)
         .collect(Collectors.toCollection(FXCollections::observableArrayList))));
+  }
+
+  public void setDisplayType(DisplayType type) {
+    this.displayType.set(type);
   }
 
   public void setRatingProvider(Function<PlayerInfo, Integer> ratingProvider) {
