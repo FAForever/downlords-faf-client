@@ -1,7 +1,6 @@
 package com.faforever.client.map;
 
-import com.faforever.client.builders.MapVersionBeanBuilder;
-import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -19,6 +18,7 @@ import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import javafx.scene.layout.Pane;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -28,7 +28,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -77,7 +76,7 @@ public class MapVaultControllerTest extends PlatformTest {
       return mapDetailController;
     }).when(uiService).loadFxml("theme/vault/map/map_detail.fxml");
 
-    when(mapService.getRecommendedMapPageCount(VaultEntityController.TOP_ELEMENT_COUNT)).thenReturn(CompletableFuture.completedFuture(0));
+    when(mapService.getRecommendedMapPageCount(VaultEntityController.TOP_ELEMENT_COUNT)).thenReturn(Mono.just(0));
 
     SortConfig sortOrder = new Preferences().getVault().getMapSortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
@@ -95,11 +94,16 @@ public class MapVaultControllerTest extends PlatformTest {
       }
       return instance;
     }, instance);
-    when(mapService.getHighestRatedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapVersionBean>of()), Mono.just(0)).toFuture());
-    when(mapService.getNewestMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapVersionBean>of()), Mono.just(0)).toFuture());
-    when(mapService.getMostPlayedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapVersionBean>of()), Mono.just(0)).toFuture());
-    when(mapService.getRecommendedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapVersionBean>of()), Mono.just(0)).toFuture());
-    when(mapService.getOwnedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapVersionBean>of()), Mono.just(0)).toFuture());
+    when(mapService.getHighestRatedMapsWithPageCount(anyInt(), anyInt())).thenReturn(
+        Mono.zip(Mono.just(List.<MapVersion>of()), Mono.just(0)));
+    when(mapService.getNewestMapsWithPageCount(anyInt(), anyInt())).thenReturn(
+        Mono.zip(Mono.just(List.<MapVersion>of()), Mono.just(0)));
+    when(mapService.getMostPlayedMapsWithPageCount(anyInt(), anyInt())).thenReturn(
+        Mono.zip(Mono.just(List.<MapVersion>of()), Mono.just(0)));
+    when(mapService.getRecommendedMapsWithPageCount(anyInt(), anyInt())).thenReturn(
+        Mono.zip(Mono.just(List.<MapVersion>of()), Mono.just(0)));
+    when(mapService.getOwnedMapsWithPageCount(anyInt(), anyInt())).thenReturn(
+        Mono.zip(Mono.just(List.of()), Mono.just(0)));
   }
 
   @Test
@@ -127,7 +131,7 @@ public class MapVaultControllerTest extends PlatformTest {
 
   @Test
   public void testShowMapDetail() throws MalformedURLException {
-    MapVersionBean mapBean = MapVersionBeanBuilder.create().defaultValues().get();
+    MapVersion mapBean = Instancio.create(MapVersion.class);
     runOnFxThreadAndWait(() -> instance.onDisplayDetails(mapBean));
 
     verify(mapDetailController).setMapVersion(mapBean);
@@ -136,8 +140,8 @@ public class MapVaultControllerTest extends PlatformTest {
 
   @Test
   public void testGetShowRoomCategories() {
-    List<VaultEntityController.ShowRoomCategory<MapVersionBean>> categories = instance.getShowRoomCategories();
-    for (ShowRoomCategory<MapVersionBean> category : categories) {
+    List<VaultEntityController.ShowRoomCategory<MapVersion>> categories = instance.getShowRoomCategories();
+    for (ShowRoomCategory<MapVersion> category : categories) {
       category.entitySupplier().get();
     }
     verify(mapService).getHighestRatedMapsWithPageCount(anyInt(), anyInt());

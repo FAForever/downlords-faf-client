@@ -1,12 +1,10 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.MapVersionBeanBuilder;
-import com.faforever.client.builders.ReplayBeanBuilder;
-import com.faforever.client.builders.ReplayReviewsSummaryBeanBuilder;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.ReplayBean;
-import com.faforever.client.domain.ReplayReviewsSummaryBean;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.Replay;
+import com.faforever.client.domain.api.ReviewsSummary;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
@@ -14,7 +12,6 @@ import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.generator.MapGeneratorService;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.ReplayMapper;
 import com.faforever.client.mapstruct.ReviewMapper;
@@ -38,6 +35,8 @@ import com.faforever.commons.api.elide.ElideEntity;
 import com.faforever.commons.replay.GameOption;
 import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
+import com.github.rutledgepaulv.qbuilders.conditions.Condition;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -47,27 +46,25 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.beans.factory.ObjectFactory;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -246,9 +243,8 @@ public class ReplayServiceTest extends ServiceTest {
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(file1);
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(file2);
 
-    Collection<ReplayBean> localReplays = new ArrayList<>(instance.loadLocalReplayPage(2, 1).get().getT1());
+    StepVerifier.create(instance.loadLocalReplayPage(2, 1)).expectNext(Tuples.of(List.of(), 0));
 
-    assertThat(localReplays, empty());
     verify(notificationService, times(2)).addNotification(any(PersistentNotification.class));
 
     assertThat(Files.exists(file1), is(false));
@@ -266,21 +262,21 @@ public class ReplayServiceTest extends ServiceTest {
     when(replayDataParser.getMetadata()).thenReturn(replayMetadata);
     when(replayFileReader.parseReplay(file1)).thenReturn(replayDataParser);
     when(featuredModService.getFeaturedMod(any())).thenReturn(Mono.empty());
-    when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapVersionBeanBuilder.create().defaultValues().get())));
+    when(mapService.findByMapFolderName(any())).thenReturn(Mono.just(Instancio.create(MapVersion.class)));
 
-    List<ReplayBean> localReplays = instance.loadLocalReplayPage(1, 1).get().getT1();
-
-    assertThat(localReplays, hasSize(1));
-    assertThat(localReplays.getFirst().getId(), is(123));
-    assertThat(localReplays.getFirst().getTitle(), is("title"));
+    StepVerifier.create(instance.loadLocalReplayPage(1, 1)).assertNext(result -> {
+      List<Replay> localReplays = result.getT1();
+      assertThat(localReplays, hasSize(1));
+      assertThat(localReplays.getFirst().id(), is(123));
+      assertThat(localReplays.getFirst().title(), is("title"));
+    }).verifyComplete();
   }
 
   @Test
   public void testRunFafReplayFile() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
-    ReplayBean replay = new ReplayBean();
-    replay.setReplayFile(replayFile);
+    Replay replay = Instancio.of(Replay.class).set(field(Replay::replayFile), replayFile).create();
 
     instance.runReplay(replay);
 
@@ -293,8 +289,7 @@ public class ReplayServiceTest extends ServiceTest {
   public void testRunFafReplayFileGeneratedMap() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
-    ReplayBean replay = new ReplayBean();
-    replay.setReplayFile(replayFile);
+    Replay replay = Instancio.of(Replay.class).set(field(Replay::replayFile), replayFile).create();
 
     when(replayDataParser.getMap()).thenReturn(TEST_MAP_PATH_GENERATED);
 
@@ -309,8 +304,7 @@ public class ReplayServiceTest extends ServiceTest {
   public void testRunScFaReplayFile() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.scfareplay"));
 
-    ReplayBean replay = new ReplayBean();
-    replay.setReplayFile(replayFile);
+    Replay replay = Instancio.of(Replay.class).set(field(Replay::replayFile), replayFile).create();
 
     when(replayFileReader.parseReplay(replayFile)).thenReturn(replayDataParser);
 
@@ -327,8 +321,7 @@ public class ReplayServiceTest extends ServiceTest {
 
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(replayFile);
 
-    ReplayBean replay = new ReplayBean();
-    replay.setReplayFile(replayFile);
+    Replay replay = Instancio.of(Replay.class).set(field(Replay::replayFile), replayFile).create();
 
     instance.runReplay(replay);
     verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString());
@@ -340,8 +333,7 @@ public class ReplayServiceTest extends ServiceTest {
 
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(replayFile);
 
-    ReplayBean replay = new ReplayBean();
-    replay.setReplayFile(replayFile);
+    Replay replay = Instancio.of(Replay.class).set(field(Replay::replayFile), replayFile).create();
 
     instance.runReplay(replay);
     verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString());
@@ -349,15 +341,22 @@ public class ReplayServiceTest extends ServiceTest {
 
   @Test
   public void testOwnReplays() throws Exception {
-    ReplayBean replayBean = ReplayBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(replayMapper.map(replayBean, new CycleAvoidingMappingContext())), 1);
-    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
+    Replay replay = Instancio.create(Replay.class);
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(replayMapper.map(replay)), 1);
+    when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
     when(loginService.getUserId()).thenReturn(47);
-    List<ReplayBean> results = instance.getOwnReplaysWithPageCount(100, 1).join().getT1();
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().intNum("playerStats.player.id").eq(47).and().instant("endTime").after(Instant.now().minus(365, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS), false))));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("endTime", false)));
-    assertThat(results, contains(replayBean));
+    StepVerifier.create(instance.getOwnReplaysWithPageCount(100, 1)).expectNextCount(1)
+                .verifyComplete();
+    Condition expectedCondition = qBuilder().intNum("playerStats.player.id")
+                                            .eq(47)
+                                            .and()
+                                            .instant("endTime")
+                                            .after(
+                                                Instant.now().minus(365, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS),
+                                                false);
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(expectedCondition)), anyString());
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("endTime", false)), anyString());
   }
 
   @Test
@@ -367,7 +366,7 @@ public class ReplayServiceTest extends ServiceTest {
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
     when(replayDownloadTaskFactory.getObject()).thenReturn(replayDownloadTask);
-    ReplayBean replay = new ReplayBean();
+    Replay replay = Instancio.of(Replay.class).ignore(field(Replay::replayFile)).create();
 
     ReplayMetadata replayMetadata = new ReplayMetadata();
     replayMetadata.setUid(123);
@@ -395,7 +394,7 @@ public class ReplayServiceTest extends ServiceTest {
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
 
     when(replayDownloadTaskFactory.getObject()).thenReturn(replayDownloadTask);
-    ReplayBean replay = new ReplayBean();
+    Replay replay = Instancio.of(Replay.class).ignore(field(Replay::replayFile)).create();
 
     when(replayFileReader.parseReplay(replayFile)).thenReturn(replayDataParser);
 
@@ -414,7 +413,7 @@ public class ReplayServiceTest extends ServiceTest {
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
     when(replayDownloadTaskFactory.getObject()).thenReturn(replayDownloadTask);
-    ReplayBean replay = new ReplayBean();
+    Replay replay = Instancio.of(Replay.class).ignore(field(Replay::replayFile)).create();
 
     instance.runReplay(replay);
 
@@ -435,67 +434,77 @@ public class ReplayServiceTest extends ServiceTest {
 
   @Test
   public void testGetNewest() {
-    ReplayBean replayBean = ReplayBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(replayMapper.map(replayBean, new CycleAvoidingMappingContext())), 1);
-    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
+    Replay replay = Instancio.create(Replay.class);
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(replayMapper.map(replay)), 1);
+    when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
-    List<ReplayBean> results = instance.getNewestReplaysWithPageCount(10, 1).join().getT1();
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().instant("endTime").after(Instant.now().minus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS), false))));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("endTime", false)));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
-    assertThat(results, contains(replayBean));
+    StepVerifier.create(instance.getNewestReplaysWithPageCount(10, 1)).expectNextCount(1)
+                .verifyComplete();
+    Condition expectedCondition = qBuilder().instant("endTime")
+                                            .after(Instant.now().minus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS),
+                                                   false);
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(expectedCondition)), anyString());
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("endTime", false)), anyString());
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)), anyString());
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)), anyString());
   }
 
   @Test
   public void testGetHighestRated() {
-    ReplayReviewsSummaryBean replayReviewsSummaryBean = ReplayReviewsSummaryBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(reviewMapper.map(replayReviewsSummaryBean, new CycleAvoidingMappingContext())), 1);
+    ReviewsSummary replayReviewsSummary = Instancio.create(ReviewsSummary.class);
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(
+        List.of(reviewMapper.mapToGame(replayReviewsSummary)), 1);
     when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
 
-    List<ReplayBean> results = instance.getHighestRatedReplaysWithPageCount(10, 1).join().getT1();
+    StepVerifier.create(instance.getHighestRatedReplaysWithPageCount(10, 1)).expectNextCount(1)
+                .verifyComplete();
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasDtoClass(GameReviewsSummary.class)));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("lowerBound", false)));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
-    assertThat(results, contains(replayReviewsSummaryBean.getReplay()));
   }
 
   @Test
   public void testGetReplaysForPlayer() {
-    ReplayBean replayBean = ReplayBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(replayMapper.map(replayBean, new CycleAvoidingMappingContext())), 1);
-    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
+    Replay replay = Instancio.create(Replay.class);
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(replayMapper.map(replay)), 1);
+    when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
-    List<ReplayBean> results = instance.getReplaysForPlayerWithPageCount(0, 10, 1).join().getT1();
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().intNum("playerStats.player.id").eq(0).and().instant("endTime").after(Instant.now().minus(365, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS), false))));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("endTime", false)));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
-    assertThat(results, contains(replayBean));
+    StepVerifier.create(instance.getReplaysForPlayerWithPageCount(0, 10, 1)).expectNextCount(1)
+                .verifyComplete();
+    Condition expectedCondition = qBuilder().intNum("playerStats.player.id")
+                                            .eq(0)
+                                            .and()
+                                            .instant("endTime")
+                                            .after(
+                                                Instant.now().minus(365, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS),
+                                                false);
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(expectedCondition)), anyString());
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("endTime", false)), anyString());
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)), anyString());
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)), anyString());
   }
 
   @Test
   public void testFindByQuery() {
-    ReplayBean replayBean = ReplayBeanBuilder.create().defaultValues().get();
-    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(replayMapper.map(replayBean, new CycleAvoidingMappingContext())), 1);
+    Replay replay = Instancio.create(Replay.class);
+    Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(replayMapper.map(replay)), 1);
     when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(resultMono);
 
     SearchConfig searchConfig = new SearchConfig(new SortConfig("testSort", SortOrder.ASC), "testQuery");
-    List<ReplayBean> results = instance.findByQueryWithPageCount(searchConfig, 10, 1).join().getT1();
+    StepVerifier.create(instance.findByQueryWithPageCount(searchConfig, 10, 1)).expectNextCount(1)
+                .verifyComplete();
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("testSort", true)), eq("testQuery"));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)), eq("testQuery"));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)), eq("testQuery"));
-    assertThat(results, contains(replayBean));
   }
 
   @Test
   public void testFindById() {
-    ReplayBean replayBean = ReplayBeanBuilder.create().defaultValues().get();
-    Mono<ElideEntity> resultMono = Mono.just(replayMapper.map(replayBean, new CycleAvoidingMappingContext()));
+    Replay replay = Instancio.create(Replay.class);
+    Mono<ElideEntity> resultMono = Mono.just(replayMapper.map(replay));
     when(fafApiAccessor.getOne(any())).thenReturn(resultMono);
-    Optional<ReplayBean> result = instance.findById(0).join();
+    StepVerifier.create(instance.findById(0)).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).getOne(any());
-    assertThat(result.orElse(null), is(replayBean));
   }
 }

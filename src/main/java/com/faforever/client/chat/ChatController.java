@@ -134,7 +134,7 @@ public class ChatController extends NodeController<AnchorPane> {
 
 
         if (chatService.isDefaultChannel(chatChannel)) {
-          tabPane.getTabs().add(0, tab);
+          tabPane.getTabs().addFirst(tab);
           tabPane.getSelectionModel().select(tab);
         } else {
           tabPane.getTabs().add(tabPane.getTabs().size() - 1, tab);

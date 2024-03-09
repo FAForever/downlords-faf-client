@@ -1,8 +1,8 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.teammatchmaking.TeamMatchmakingService;
 import com.faforever.client.test.PlatformTest;
@@ -31,7 +31,7 @@ public class InvitePlayerMenuItemTest extends PlatformTest {
 
   @Test
   public void testInvitePlayer() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
 
     instance.setObject(player);
     instance.onClicked();
@@ -41,14 +41,16 @@ public class InvitePlayerMenuItemTest extends PlatformTest {
 
   @Test
   public void testInvisibleItemWhenPlayerIsIdle() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues()
-        .game(GameBeanBuilder.create().status(GameStatus.PLAYING).get()).get());
+    instance.setObject(PlayerInfoBuilder.create()
+                                        .defaultValues()
+                                        .game(GameInfoBuilder.create().status(GameStatus.PLAYING).get())
+                                        .get());
     assertFalse(instance.isVisible());
   }
 
   @Test
   public void testVisibleItemWhenPlayerIsIdle() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().get());
     assertTrue(instance.isVisible());
   }
 

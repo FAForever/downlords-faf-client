@@ -2,6 +2,7 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
@@ -19,7 +20,14 @@
     </graphic>
     <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0">
         <children>
-            <SplitPane fx:id="splitPane" dividerPositions="0.8" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+            <VBox fx:id="loadingPane" alignment="CENTER" maxHeight="Infinity" VBox.vgrow="ALWAYS">
+                <Label text="%loading">
+                    <graphic>
+                        <ProgressIndicator/>
+                    </graphic>
+                </Label>
+            </VBox>
+            <SplitPane fx:id="chatPane" dividerPositions="0.8" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                 <VBox>
                     <children>
                         <HBox fx:id="topicPane" spacing="8.0" styleClass="topic-channel" alignment="CENTER_RIGHT">

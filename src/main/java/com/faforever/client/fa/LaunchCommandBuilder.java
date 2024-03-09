@@ -26,8 +26,8 @@ public class LaunchCommandBuilder {
   private static final String DEFAULT_EXECUTABLE_DECORATOR = "\"%s\"";
 
   private Path debuggerExecutable;
-  private Float mean;
-  private Float deviation;
+  private Double mean;
+  private Double deviation;
   private String division;
   private String subdivision;
   private String country;
@@ -89,12 +89,12 @@ public class LaunchCommandBuilder {
     return this;
   }
 
-  public LaunchCommandBuilder mean(Float mean) {
+  public LaunchCommandBuilder mean(Double mean) {
     this.mean = mean;
     return this;
   }
 
-  public LaunchCommandBuilder deviation(Float deviation) {
+  public LaunchCommandBuilder deviation(Double deviation) {
     this.deviation = deviation;
     return this;
   }

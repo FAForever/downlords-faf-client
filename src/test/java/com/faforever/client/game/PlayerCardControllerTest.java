@@ -1,9 +1,9 @@
 package com.faforever.client.game;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.helper.TooltipHelper;
 import com.faforever.client.i18n.I18n;
@@ -54,11 +54,11 @@ public class PlayerCardControllerTest extends PlatformTest {
   public void testSetFoe() {
     when(i18n.get("userInfo.tooltipFormat.noRating", "foe")).thenReturn("foe");
 
-    PlayerBeanBuilder playerBeanBuilder = PlayerBeanBuilder.create()
-        .defaultValues()
-        .username("foe")
-        .socialStatus(SocialStatus.FOE);
-    PlayerBean player = playerBeanBuilder.get();
+    PlayerInfoBuilder playerInfoBuilder = PlayerInfoBuilder.create()
+                                                           .defaultValues()
+                                                           .username("foe")
+                                                           .socialStatus(SocialStatus.FOE);
+    PlayerInfo player = playerInfoBuilder.get();
     instance.setPlayer(player);
     instance.setRating(1000);
     instance.setFaction(Faction.CYBRAN);
@@ -75,11 +75,11 @@ public class PlayerCardControllerTest extends PlatformTest {
   public void testSetFriend() {
     when(i18n.get("userInfo.tooltipFormat.noRating", "user")).thenReturn("user");
 
-    PlayerBeanBuilder playerBeanBuilder = PlayerBeanBuilder.create()
-        .defaultValues()
-        .username("user")
-        .socialStatus(SocialStatus.FRIEND);
-    PlayerBean player = playerBeanBuilder.get();
+    PlayerInfoBuilder playerInfoBuilder = PlayerInfoBuilder.create()
+                                                           .defaultValues()
+                                                           .username("user")
+                                                           .socialStatus(SocialStatus.FRIEND);
+    PlayerInfo player = playerInfoBuilder.get();
     instance.setPlayer(player);
     instance.setRating(1000);
     instance.setFaction(Faction.SERAPHIM);
@@ -96,11 +96,11 @@ public class PlayerCardControllerTest extends PlatformTest {
   public void testSetOther() {
     when(i18n.get("userInfo.tooltipFormat.noRating", "user")).thenReturn("user");
 
-    PlayerBeanBuilder playerBeanBuilder = PlayerBeanBuilder.create()
-        .defaultValues()
-        .username("user")
-        .socialStatus(SocialStatus.OTHER);
-    PlayerBean player = playerBeanBuilder.get();
+    PlayerInfoBuilder playerInfoBuilder = PlayerInfoBuilder.create()
+                                                           .defaultValues()
+                                                           .username("user")
+                                                           .socialStatus(SocialStatus.OTHER);
+    PlayerInfo player = playerInfoBuilder.get();
     instance.setPlayer(player);
     instance.setRating(1000);
     instance.setFaction(Faction.RANDOM);
@@ -116,7 +116,7 @@ public class PlayerCardControllerTest extends PlatformTest {
   @Test
   public void testSetPlayerAvatar() {
     Image avatarImage = new Image(InputStream.nullInputStream());
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
     when(avatarService.loadAvatar(player.getAvatar())).thenReturn(avatarImage);
 
     instance.setPlayer(player);
@@ -124,24 +124,26 @@ public class PlayerCardControllerTest extends PlatformTest {
     instance.setFaction(Faction.RANDOM);
 
     assertTrue(instance.avatarImageView.isVisible());
+    assertTrue(instance.avatarStackPane.isVisible());
     assertEquals(avatarImage, instance.avatarImageView.getImage());
   }
 
   @Test
   public void testInvisibleAvatarImageView() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().avatar(null).get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().avatar(null).get();
 
     instance.setPlayer(player);
     instance.setRating(1000);
     instance.setFaction(Faction.RANDOM);
 
     assertFalse(instance.avatarImageView.isVisible());
+    assertTrue(instance.avatarStackPane.isVisible());
   }
 
   @Test
   public void testSetCountryImage() {
     Image countryImage = new Image(InputStream.nullInputStream());
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
     when(countryFlagService.loadCountryFlag(player.getCountry())).thenReturn(Optional.of(countryImage));
 
     instance.setPlayer(player);
@@ -154,7 +156,7 @@ public class PlayerCardControllerTest extends PlatformTest {
 
   @Test
   public void testInvisibleCountryImageView() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
     when(countryFlagService.loadCountryFlag(player.getCountry())).thenReturn(Optional.empty());
 
     instance.setPlayer(player);
@@ -166,13 +168,11 @@ public class PlayerCardControllerTest extends PlatformTest {
 
   @Test
   public void testNotePlayerTooltip() {
-    PlayerBean player = PlayerBeanBuilder.create()
-        .defaultValues()
-        .note("Player 1")
-        .game(GameBeanBuilder.create()
-            .defaultValues()
-            .get())
-        .get();
+    PlayerInfo player = PlayerInfoBuilder.create()
+                                         .defaultValues()
+                                         .note("Player 1")
+                                         .game(GameInfoBuilder.create().defaultValues().get())
+                                         .get();
     instance.setPlayer(player);
     instance.setRating(0);
     instance.setFaction(Faction.AEON);
@@ -180,5 +180,18 @@ public class PlayerCardControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> player.setNote(""));
     assertNull(TooltipHelper.getTooltip(instance.root));
+  }
+
+  @Test 
+  public void testInvisibleAvatarOnRemove() {
+    Image avatarImage = new Image(InputStream.nullInputStream());
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
+    when(avatarService.loadAvatar(player.getAvatar())).thenReturn(avatarImage);
+
+    instance.setPlayer(player);
+    instance.setFaction(Faction.RANDOM);
+    instance.removeAvatar();
+
+    assertFalse(instance.avatarStackPane.isVisible());
   }
 }

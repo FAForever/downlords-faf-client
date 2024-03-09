@@ -1,8 +1,6 @@
 package com.faforever.client.avatar;
 
-import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.mapstruct.AvatarMapper;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafServerAccessor;
@@ -29,20 +27,19 @@ public class AvatarService {
   private final AvatarMapper avatarMapper;
 
   @Cacheable(value = AVATARS, sync = true)
-  public Image loadAvatar(AvatarBean avatar) {
+  public Image loadAvatar(Avatar avatar) {
     if (avatar == null) {
       return null;
     }
-    return assetService.loadAndCacheImage(avatar.getUrl(), Path.of("avatars"));
+    return assetService.loadAndCacheImage(avatar.url(), Path.of("avatars"));
   }
 
-  public CompletableFuture<List<AvatarBean>> getAvailableAvatars() {
-    return fafServerAccessor.getAvailableAvatars()
-        .thenApply(dto -> avatarMapper.mapDtos(dto, new CycleAvoidingMappingContext()));
+  public CompletableFuture<List<Avatar>> getAvailableAvatars() {
+    return fafServerAccessor.getAvailableAvatars().thenApply(avatarMapper::mapDtos);
   }
 
-  public void changeAvatar(AvatarBean avatar) {
-    fafServerAccessor.selectAvatar(avatar.getUrl());
+  public void changeAvatar(Avatar avatar) {
+    fafServerAccessor.selectAvatar(avatar.url());
     playerService.getCurrentPlayer().setAvatar(avatar);
   }
 }

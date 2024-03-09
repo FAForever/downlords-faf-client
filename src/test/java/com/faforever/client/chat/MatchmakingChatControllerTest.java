@@ -3,7 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.discord.JoinDiscordEventHandler;
-import com.faforever.client.domain.PartyBean;
+import com.faforever.client.domain.server.PartyInfo;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -22,9 +22,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
-import static com.faforever.client.theme.ThemeService.CHAT_CONTAINER;
-import static com.faforever.client.theme.ThemeService.CHAT_SECTION_COMPACT;
-import static com.faforever.client.theme.ThemeService.CHAT_TEXT_COMPACT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
@@ -69,17 +66,11 @@ public class MatchmakingChatControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    lenient().when(teamMatchmakingService.getParty()).thenReturn(new PartyBean());
+    lenient().when(teamMatchmakingService.getParty()).thenReturn(new PartyInfo());
     lenient().when(chatMessageViewController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(chatService.getCurrentUsername()).thenReturn("junit");
     lenient().when(i18n.get(anyString())).thenReturn("");
     lenient().when(chatService.getOrCreateChannel("partyName")).thenReturn(new ChatChannel("partyName"));
-    lenient().when(themeService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(
-        getClass().getResource("/theme/chat/chat_container.html"));
-    lenient().when(themeService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(
-        getClass().getResource("/theme/chat/compact/chat_section.html"));
-    lenient().when(themeService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(
-        getClass().getResource("/theme/chat/compact/chat_text.html"));
     lenient().when(timeService.asShortTime(any())).thenReturn("");
 
     loadFxml("theme/chat/matchmaking_chat.fxml", clazz -> {

@@ -3,17 +3,15 @@ package com.faforever.client.player;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.builders.AchievementDefinitionBuilder;
-import com.faforever.client.builders.LeaderboardBeanBuilder;
-import com.faforever.client.builders.LeaderboardEntryBeanBuilder;
-import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
-import com.faforever.client.builders.LeaderboardRatingJournalBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingMapBuilder;
-import com.faforever.client.builders.LeagueSeasonBeanBuilder;
 import com.faforever.client.builders.PlayerAchievementBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.LeaderboardBean;
-import com.faforever.client.domain.LeaderboardRatingBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.Leaderboard;
+import com.faforever.client.domain.api.LeaderboardEntry;
+import com.faforever.client.domain.api.LeaderboardRatingJournal;
+import com.faforever.client.domain.api.LeagueLeaderboard;
+import com.faforever.client.domain.api.LeagueSeason;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.notification.NotificationService;
@@ -25,20 +23,17 @@ import com.faforever.commons.api.dto.AchievementState;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.time.OffsetDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
+import static org.instancio.Select.field;
+import static org.instancio.Select.scope;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -83,46 +78,43 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
   @Mock
   private LeaderboardService leaderboardService;
 
-  private LeaderboardBean leaderboard;
-  private PlayerBean player;
+  private Leaderboard leaderboard;
+  private PlayerInfo player;
 
   @BeforeEach
   public void setUp() throws Exception {
-    leaderboard = LeaderboardBeanBuilder.create().defaultValues().get();
-    player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
+    leaderboard = Instancio.create(Leaderboard.class);
+    player = PlayerInfoBuilder.create().defaultValues().username("junit").get();
 
-    lenient().when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()))
-             .thenReturn(leaderboard.getTechnicalName());
+    lenient().when(i18n.getOrDefault(leaderboard.technicalName(), leaderboard.nameKey()))
+             .thenReturn(leaderboard.technicalName());
     lenient().when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
     lenient().when(achievementItemController.getRoot()).thenReturn(new HBox());
     lenient().when(uiService.loadFxml("theme/chat/player_rating_chart_tooltip.fxml"))
              .thenReturn(playerRatingChartTooltipController);
     lenient().when(playerRatingChartTooltipController.getRoot()).thenReturn(new Pane());
-    lenient().when(playerService.getPlayerNames(any())).thenReturn(CompletableFuture.completedFuture(List.of()));
-    lenient().when(leaderboardService.getLeaderboards())
-             .thenReturn(CompletableFuture.completedFuture(List.of(leaderboard)));
+    lenient().when(playerService.getPlayerNames(any())).thenReturn(Flux.empty());
+    lenient().when(leaderboardService.getLeaderboards()).thenReturn(Flux.just(leaderboard));
     lenient().when(leaderboardService.getEntriesForPlayer(eq(player)))
-             .thenReturn(CompletableFuture.completedFuture(
-                 List.of(LeaderboardEntryBeanBuilder.create().defaultValues().get())));
+             .thenReturn(Flux.just(Instancio.create(LeaderboardEntry.class)));
     lenient().when(statisticsService.getRatingHistory(eq(player), any()))
-             .thenReturn(CompletableFuture.completedFuture(asList(
-        LeaderboardRatingJournalBeanBuilder.create().defaultValues().createTime(OffsetDateTime.now()).meanBefore(1500d).deviationBefore(50d).get(),
-        LeaderboardRatingJournalBeanBuilder.create().defaultValues().createTime(OffsetDateTime.now().plusDays(1)).meanBefore(1500d).deviationBefore(50d).get()
-    )));
+             .thenReturn(Flux.fromIterable(Instancio.ofList(LeaderboardRatingJournal.class)
+                                                    .size(2)
+                                                    .set(field(LeaderboardRatingJournal::meanBefore), 1500d)
+                                                    .set(field(LeaderboardRatingJournal::deviationBefore), 50d)
+                                                    .create()));
 
     loadFxml("theme/user_info_window.fxml", clazz -> instance);
   }
 
   @Test
   public void testSetPlayerInfoBeanNoAchievementUnlocked() {
-    when(achievementService.getAchievementDefinitions()).thenReturn(CompletableFuture.completedFuture(singletonList(
-        AchievementDefinitionBuilder.create().defaultValues().get()
-    )));
+    when(achievementService.getAchievementDefinitions()).thenReturn(
+        Flux.just(AchievementDefinitionBuilder.create().defaultValues().get()));
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
-    when(achievementService.getPlayerAchievements(player.getId())).thenReturn(CompletableFuture.completedFuture(
-        singletonList(PlayerAchievementBuilder.create().defaultValues().get())
-    ));
-    when(eventService.getPlayerEvents(player.getId())).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
+    when(achievementService.getPlayerAchievements(player.getId())).thenReturn(
+        Flux.just(PlayerAchievementBuilder.create().defaultValues().get()));
+    when(eventService.getPlayerEvents(player.getId())).thenReturn(Flux.empty());
 
     instance.setPlayer(player);
     waitForFxEvents();
@@ -142,28 +134,36 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
 
   @Test
   public void testSetPlayerInfoBean() {
-    when(achievementService.getAchievementDefinitions()).thenReturn(CompletableFuture.completedFuture(List.of(
-        AchievementDefinitionBuilder.create().id("foo-bar").get()
-    )));
+    when(achievementService.getAchievementDefinitions()).thenReturn(
+        Flux.just(AchievementDefinitionBuilder.create().id("foo-bar").get()));
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
     when(uiService.loadFxml("theme/user_leaderboard_info.fxml")).thenReturn(userLeaderboardInfoController);
-    when(achievementService.getPlayerAchievements(player.getId())).thenReturn(CompletableFuture.completedFuture(List.of(
-        PlayerAchievementBuilder.create().defaultValues().achievementId("foo-bar").state(AchievementState.UNLOCKED).get()
-        )));
-    when(eventService.getPlayerEvents(player.getId())).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
-    when(leaderboardService.getActiveSeasons()).thenReturn(CompletableFuture.completedFuture(List.of(
-        LeagueSeasonBeanBuilder.create().defaultValues().leaderboard(leaderboard).get()
-    )));
-    when(leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard.getTechnicalName())).thenReturn(
-        CompletableFuture.completedFuture(Optional.empty()));
+    when(achievementService.getPlayerAchievements(player.getId())).thenReturn(Flux.just(
+        PlayerAchievementBuilder.create()
+                                .defaultValues()
+                                .achievementId("foo-bar")
+                                .state(AchievementState.UNLOCKED)
+                                .get()));
+    when(eventService.getPlayerEvents(player.getId())).thenReturn(Flux.empty());
+    when(leaderboardService.getActiveSeasons()).thenReturn(Flux.just(Instancio.of(LeagueSeason.class)
+                                                                              .set(field(LeagueLeaderboard::id).within(
+                                                                                       scope(LeagueLeaderboard.class)),
+                                                                                   leaderboard.id())
+                                                                              .set(field(
+                                                                                       LeagueLeaderboard::technicalName).within(
+                                                                                       scope(LeagueLeaderboard.class)),
+                                                                                   leaderboard.technicalName())
+                                                                              .create()));
+    when(leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard.technicalName())).thenReturn(
+        Mono.empty());
     when(userLeaderboardInfoController.getRoot()).thenReturn(new VBox());
-    final LeaderboardRatingBean leaderboardRating = LeaderboardRatingBeanBuilder.create()
-        .defaultValues()
-        .numberOfGames(47)
-        .mean(500)
-        .deviation(100)
-        .get();
-    player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create().put(leaderboard.getTechnicalName(), leaderboardRating).get());
+    final LeaderboardRating leaderboardRating = Instancio.of(LeaderboardRating.class)
+                                                         .set(field(LeaderboardRating::mean), 500)
+                                                         .set(field(LeaderboardRating::deviation), 100)
+                                                         .set(field(LeaderboardRating::numberOfGames), 47)
+                                                         .create();
+    player.setLeaderboardRatings(
+        LeaderboardRatingMapBuilder.create().put(leaderboard.technicalName(), leaderboardRating).get());
 
     instance.setPlayer(player);
     WaitForAsyncUtils.waitForFxEvents();
@@ -173,7 +173,6 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
     verify(leaderboardService, times(2)).getLeaderboards();
     verify(eventService).getPlayerEvents(player.getId());
     verify(userLeaderboardInfoController).setLeaderboardInfo(player, leaderboard);
-    verify(userLeaderboardInfoController).setUnlistedLeague();
     verify(userLeaderboardInfoController).getRoot();
     assertEquals(1, instance.leaderboardBox.getChildren().size());
     assertTrue(instance.mostRecentAchievementPane.isVisible());

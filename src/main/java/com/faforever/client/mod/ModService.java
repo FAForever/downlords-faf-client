@@ -2,14 +2,12 @@ package com.faforever.client.mod;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.domain.ModBean;
-import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GamePrefsService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.ModMapper;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
@@ -25,7 +23,6 @@ import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.api.dto.Mod;
-import com.faforever.commons.api.dto.ModVersion;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.mod.ModReader;
@@ -51,6 +48,7 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.retry.Retry;
@@ -82,7 +80,6 @@ import static java.nio.file.Files.list;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
 
 @Lazy
 @Service
@@ -110,10 +107,10 @@ public class ModService implements InitializingBean, DisposableBean {
 
   private final ModReader modReader = new ModReader();
 
-  private final Map<Path, ModVersionBean> pathToMod = new HashMap<>();
-  private final ObservableMap<String, ModVersionBean> modsByUid = FXCollections.observableHashMap();
+  private final Map<Path, ModVersion> pathToMod = new HashMap<>();
+  private final ObservableMap<String, ModVersion> modsByUid = FXCollections.observableHashMap();
   @Getter
-  private final ObservableList<ModVersionBean> installedMods = JavaFxUtil.attachListToMap(
+  private final ObservableList<ModVersion> installedMods = JavaFxUtil.attachListToMap(
       FXCollections.synchronizedObservableList(FXCollections.observableArrayList()), modsByUid);
   private final InvalidationListener modDirectoryChangedListener = observable -> tryLoadMods();
 
@@ -214,34 +211,34 @@ public class ModService implements InitializingBean, DisposableBean {
     });
   }
 
-  public CompletableFuture<Void> downloadIfNecessary(String uid) {
+  public Mono<Void> downloadIfNecessary(String uid) {
     if (isInstalled(uid)) {
-      return CompletableFuture.completedFuture(null);
+      return Mono.empty();
     }
 
-    return getModVersionByUid(uid).toFuture().thenCompose(modVersion -> {
+    return getModVersionByUid(uid).map(modMapper::map)
+                                  .flatMap(modVersion -> {
       if (modVersion == null) {
         throw new IllegalArgumentException("Mod with uid %s could not be found".formatted(uid));
       }
-      return downloadMod(modVersion.getDownloadUrl(), null, null);
+                                    return downloadMod(modVersion.downloadUrl(), null, null);
     });
   }
 
-  public CompletableFuture<Void> downloadIfNecessary(ModVersionBean modVersion) {
+  public Mono<Void> downloadIfNecessary(ModVersion modVersion) {
     return downloadIfNecessary(modVersion, null, null);
   }
 
-  public CompletableFuture<Void> downloadIfNecessary(ModVersionBean modVersion,
-                                                     @Nullable DoubleProperty progressProperty,
-                                                     @Nullable StringProperty titleProperty) {
+  public Mono<Void> downloadIfNecessary(ModVersion modVersion, @Nullable DoubleProperty progressProperty,
+                                        @Nullable StringProperty titleProperty) {
     if (isInstalled(modVersion)) {
-      return CompletableFuture.completedFuture(null);
+      return Mono.empty();
     }
 
-    return downloadMod(modVersion.getDownloadUrl(), progressProperty, titleProperty);
+    return downloadMod(modVersion.downloadUrl(), progressProperty, titleProperty);
   }
 
-  private CompletableFuture<Void> downloadMod(URL url, @Nullable DoubleProperty progressProperty,
+  private Mono<Void> downloadMod(URL url, @Nullable DoubleProperty progressProperty,
                                               @Nullable StringProperty titleProperty) {
     DownloadModTask task = downloadModTaskFactory.getObject();
     task.setUrl(url);
@@ -252,15 +249,13 @@ public class ModService implements InitializingBean, DisposableBean {
       titleProperty.bind(task.titleProperty());
     }
 
-    return taskService.submitTask(task).getFuture();
+    return taskService.submitTask(task).getMono();
   }
 
-  public CompletableFuture<Void> downloadAndEnableMods(Set<String> modUids) {
-    return CompletableFuture.allOf(
-        modUids.stream().map(uid -> downloadIfNecessary(uid).exceptionally(throwable -> {
+  public Mono<Void> downloadAndEnableMods(Set<String> modUids) {
+    return Mono.when(modUids.stream().map(uid -> downloadIfNecessary(uid).doOnError(throwable -> {
           log.warn("Unable to install mod with uid {}", uid);
-          return null;
-        })).toArray(CompletableFuture[]::new)).thenRun(() -> tryEnableMods(modUids));
+    })).toList()).doOnSuccess(ignored -> tryEnableMods(modUids));
   }
 
   private void tryEnableMods(Set<String> modUids) {
@@ -289,37 +284,36 @@ public class ModService implements InitializingBean, DisposableBean {
     }
   }
 
-  public boolean isInstalled(ModVersionBean modVersion) {
-    return modVersion != null && isInstalled(modVersion.getUid());
+  public boolean isInstalled(ModVersion modVersion) {
+    return modVersion != null && isInstalled(modVersion.uid());
   }
 
   public boolean isInstalled(String uid) {
     return modsByUid.containsKey(uid);
   }
 
-  public BooleanExpression isInstalledBinding(ObservableValue<ModVersionBean> modVersionObservable) {
+  public BooleanExpression isInstalledBinding(ObservableValue<ModVersion> modVersionObservable) {
     return BooleanExpression.booleanExpression(
         Bindings.createBooleanBinding(() -> isInstalled(modVersionObservable.getValue()), modVersionObservable,
                                       installedMods));
   }
 
-  public CompletableFuture<Void> uninstallMod(ModVersionBean modVersion) {
+  public CompletableFuture<Void> uninstallMod(ModVersion modVersion) {
     UninstallModTask task = uninstallModTaskFactory.getObject();
     task.setMod(modVersion);
     return taskService.submitTask(task).getFuture();
   }
 
-  public Path getPathForMod(ModVersionBean modVersionToFind) {
+  public Path getPathForMod(ModVersion modVersionToFind) {
     return pathToMod.entrySet()
-                    .stream()
-                    .filter(pathModEntry -> pathModEntry.getValue().getUid().equals(modVersionToFind.getUid()))
+                    .stream().filter(pathModEntry -> pathModEntry.getValue().uid().equals(modVersionToFind.uid()))
                     .findFirst()
                     .map(Entry::getKey)
                     .orElse(null);
   }
 
   @NotNull
-  public ModVersionBean extractModInfo(Path modFolder) {
+  public ModVersion extractModInfo(Path modFolder) {
     Path modInfoLua = modFolder.resolve("mod_info.lua");
     if (Files.notExists(modInfoLua)) {
       throw new ModLoadException("Missing mod_info.lua in: " + modFolder.toAbsolutePath(), null, "mod.load.noModInfo",
@@ -335,7 +329,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   @NotNull
-  public ModVersionBean extractModInfo(InputStream inputStream, Path basePath) {
+  public ModVersion extractModInfo(InputStream inputStream, Path basePath) {
     return modMapper.map(modReader.readModInfo(inputStream, basePath), basePath);
   }
 
@@ -347,22 +341,22 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   @Cacheable(value = CacheNames.MODS, sync = true)
-  public Image loadThumbnail(ModVersionBean modVersion) {
-    return assetService.loadAndCacheImage(modVersion.getThumbnailUrl(), Path.of("mods"),
+  public Image loadThumbnail(ModVersion modVersion) {
+    return assetService.loadAndCacheImage(modVersion.thumbnailUrl(), Path.of("mods"),
                                           () -> themeService.getThemeImage(ThemeService.NO_IMAGE_AVAILABLE));
   }
 
-  public CompletableFuture<Integer> getFileSize(ModVersionBean modVersion) {
-    return fileSizeReader.getFileSize(modVersion.getDownloadUrl());
+  public CompletableFuture<Integer> getFileSize(ModVersion modVersion) {
+    return fileSizeReader.getFileSize(modVersion.downloadUrl());
   }
 
-  public Collection<ModVersionBean> getActivatedSimAndUIMods() throws IOException {
+  public Collection<ModVersion> getActivatedSimAndUIMods() throws IOException {
     Set<String> activeMods = gamePrefsService.readActiveModUIDs();
-    return installedMods.stream().filter(mod -> activeMods.contains(mod.getUid())).collect(Collectors.toSet());
+    return installedMods.stream().filter(mod -> activeMods.contains(mod.uid())).collect(Collectors.toSet());
   }
 
-  public void overrideActivatedMods(Collection<ModVersionBean> modVersions) {
-    Set<String> modStates = modVersions.stream().map(ModVersionBean::getUid).collect(Collectors.toSet());
+  public void overrideActivatedMods(Collection<ModVersion> modVersions) {
+    Set<String> modStates = modVersions.stream().map(ModVersion::uid).collect(Collectors.toSet());
     try {
       gamePrefsService.writeActiveModUIDs(modStates);
     } catch (IOException exception) {
@@ -372,17 +366,17 @@ public class ModService implements InitializingBean, DisposableBean {
 
   private void removeMod(Path path) {
     log.trace("Removing mod: `{}`", path);
-    ModVersionBean modVersion = pathToMod.remove(path);
+    ModVersion modVersion = pathToMod.remove(path);
     if (modVersion != null) {
-      modsByUid.remove(modVersion.getUid());
+      modsByUid.remove(modVersion.uid());
     }
   }
 
   private void addInstalledMod(Path modFolder) {
-    ModVersionBean modVersion = extractModInfo(modFolder);
+    ModVersion modVersion = extractModInfo(modFolder);
     pathToMod.put(modFolder, modVersion);
-    if (!modsByUid.containsKey(modVersion.getUid())) {
-      fxApplicationThreadExecutor.execute(() -> modsByUid.put(modVersion.getUid(), modVersion));
+    if (!modsByUid.containsKey(modVersion.uid())) {
+      fxApplicationThreadExecutor.execute(() -> modsByUid.put(modVersion.uid(), modVersion));
       log.debug("Added mod from {}", modFolder);
     }
   }
@@ -392,54 +386,47 @@ public class ModService implements InitializingBean, DisposableBean {
     Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
   }
 
-  public CompletableFuture<Collection<ModVersionBean>> updateAndActivateModVersions(
-      final Collection<ModVersionBean> selectedModVersions) {
+  public Mono<List<ModVersion>> updateAndActivateModVersions(final Collection<ModVersion> selectedModVersions) {
     if (!preferences.isMapAndModAutoUpdate()) {
-      return CompletableFuture.completedFuture(selectedModVersions);
+      return Mono.just(List.copyOf(selectedModVersions));
     }
 
-    List<CompletableFuture<ModVersionBean>> completableFutures = selectedModVersions.stream()
-                                                                                    .map(this::updateModIfNecessary)
-                                                                                    .toList();
+    List<Mono<ModVersion>> updatedVersions = selectedModVersions.stream().map(this::updateModIfNecessary).toList();
 
 
-    return CompletableFuture.allOf(completableFutures.toArray(CompletableFuture[]::new)).thenApply(ignored -> {
-      List<ModVersionBean> newlySelectedMods = completableFutures.stream().map(CompletableFuture::join).toList();
-      overrideActivatedMods(newlySelectedMods);
-      return newlySelectedMods;
-    });
+    return Flux.concat(updatedVersions).collectList().doOnNext(this::overrideActivatedMods);
   }
 
-  private CompletableFuture<ModVersionBean> updateModIfNecessary(ModVersionBean installedModVersion) {
-    return getModVersionByUid(installedModVersion.getUid()).map(ModVersionBean::getMod)
-                                                           .map(ModBean::getLatestVersion)
+  private Mono<ModVersion> updateModIfNecessary(ModVersion installedModVersion) {
+    return getModVersionByUid(installedModVersion.uid()).map(dto -> modMapper.map(dto.getMod().getLatestVersion()))
                                                            .filter(latestModVersion -> !Objects.equals(latestModVersion,
                                                                                                        installedModVersion))
-                                                           .flatMap(latestModVersion -> Mono.fromFuture(
-                                                                                                downloadIfNecessary(latestModVersion))
-                                                                                            .thenReturn(
-                                                                                                latestModVersion))
+                                                           .flatMap(latestModVersion -> downloadIfNecessary(
+                                                               latestModVersion).thenReturn(latestModVersion))
                                                            .doOnError(throwable -> log.info(
                                                                "Failed fetching info about mod `{}` from the api.",
-                                                               installedModVersion.getMod().getDisplayName(),
+                                                               installedModVersion.mod().displayName(),
                                                                throwable))
                                                            .onErrorReturn(installedModVersion)
-                                                           .defaultIfEmpty(installedModVersion)
-                                                           .toFuture();
+                                                           .defaultIfEmpty(installedModVersion);
   }
 
-  private Mono<ModVersionBean> getModVersionByUid(String uid) {
-    ElideNavigatorOnCollection<ModVersion> navigator = ElideNavigator.of(ModVersion.class)
-                                                                     .collection()
-                                                                     .setFilter(qBuilder().string("uid").eq(uid))
-                                                                     .pageSize(1)
-                                                                     .pageNumber(1);
-    return fafApiAccessor.getMany(navigator).next().map(dto -> modMapper.map(dto, new CycleAvoidingMappingContext()));
+  private Mono<com.faforever.commons.api.dto.ModVersion> getModVersionByUid(String uid) {
+    ElideNavigatorOnCollection<com.faforever.commons.api.dto.ModVersion> navigator = ElideNavigator.of(
+                                                                                                       com.faforever.commons.api.dto.ModVersion.class)
+                                                                                                   .collection()
+                                                                                                   .setFilter(
+                                                                                                       qBuilder().string(
+                                                                                                                     "uid")
+                                                                                                                 .eq(uid))
+                                                                                                   .pageSize(1)
+                                                                                                   .pageNumber(1);
+    return fafApiAccessor.getMany(navigator).next();
   }
 
   @Cacheable(value = CacheNames.MODS, sync = true)
-  public CompletableFuture<Tuple2<List<ModVersionBean>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig,
-                                                                                           int count, int page) {
+  public Mono<Tuple2<List<ModVersion>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig, int count,
+                                                                          int page) {
     SortConfig sortConfig = searchConfig.sortConfig();
     ElideNavigatorOnCollection<Mod> navigator = ElideNavigator.of(Mod.class)
                                                               .collection()
@@ -450,19 +437,18 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   @Cacheable(value = CacheNames.MODS, sync = true)
-  public CompletableFuture<Integer> getRecommendedModPageCount(int count) {
-    return getRecommendedModsWithPageCount(count, 1).thenApply(Tuple2::getT2);
+  public Mono<Integer> getRecommendedModPageCount(int count) {
+    return getRecommendedModsWithPageCount(count, 1).map(Tuple2::getT2);
   }
 
-  public CompletableFuture<Tuple2<List<ModVersionBean>, Integer>> getRecommendedModsWithPageCount(int count, int page) {
+  public Mono<Tuple2<List<ModVersion>, Integer>> getRecommendedModsWithPageCount(int count, int page) {
     ElideNavigatorOnCollection<Mod> navigator = ElideNavigator.of(Mod.class)
                                                               .collection()
                                                               .setFilter(qBuilder().bool("recommended").isTrue());
     return getModPage(navigator, count, page);
   }
 
-  public CompletableFuture<Tuple2<List<ModVersionBean>, Integer>> getHighestRatedUiModsWithPageCount(int count,
-                                                                                                     int page) {
+  public Mono<Tuple2<List<ModVersion>, Integer>> getHighestRatedUiModsWithPageCount(int count, int page) {
     ElideNavigatorOnCollection<Mod> navigator = ElideNavigator.of(Mod.class)
                                                               .collection()
                                                               .setFilter(
@@ -471,8 +457,7 @@ public class ModService implements InitializingBean, DisposableBean {
     return getModPage(navigator, count, page);
   }
 
-  public CompletableFuture<Tuple2<List<ModVersionBean>, Integer>> getHighestRatedModsWithPageCount(int count,
-                                                                                                   int page) {
+  public Mono<Tuple2<List<ModVersion>, Integer>> getHighestRatedModsWithPageCount(int count, int page) {
     ElideNavigatorOnCollection<Mod> navigator = ElideNavigator.of(Mod.class)
                                                               .collection()
                                                               .setFilter(
@@ -481,35 +466,24 @@ public class ModService implements InitializingBean, DisposableBean {
     return getModPage(navigator, count, page);
   }
 
-  public CompletableFuture<Tuple2<List<ModVersionBean>, Integer>> getNewestModsWithPageCount(int count, int page) {
+  public Mono<Tuple2<List<ModVersion>, Integer>> getNewestModsWithPageCount(int count, int page) {
     ElideNavigatorOnCollection<Mod> navigator = ElideNavigator.of(Mod.class)
                                                               .collection()
                                                               .addSortingRule("latestVersion.createTime", false);
     return getModPage(navigator, count, page);
   }
 
-  private CompletableFuture<Tuple2<List<ModVersionBean>, Integer>> getModPage(ElideNavigatorOnCollection<Mod> navigator,
-                                                                              int count, int page) {
-    navigator.pageNumber(page).pageSize(count);
-    return fafApiAccessor.getManyWithPageCount(navigator)
-                         .map(tuple -> tuple.mapT1(mods -> mods.stream()
-                                                               .map(Mod::getLatestVersion)
-                                                               .map(dto -> modMapper.map(dto,
-                                                                                         new CycleAvoidingMappingContext()))
-                                                               .collect(toList())))
-                         .toFuture();
+  private Mono<Tuple2<List<ModVersion>, Integer>> getModPage(ElideNavigatorOnCollection<Mod> navigator, int count,
+                                                             int page) {
+    return getModPage(navigator, "", count, page);
   }
 
-  private CompletableFuture<Tuple2<List<ModVersionBean>, Integer>> getModPage(ElideNavigatorOnCollection<Mod> navigator,
-                                                                              String customFilter, int count,
-                                                                              int page) {
+  private Mono<Tuple2<List<ModVersion>, Integer>> getModPage(ElideNavigatorOnCollection<Mod> navigator,
+                                                             String customFilter, int count, int page) {
     navigator.pageNumber(page).pageSize(count);
     return fafApiAccessor.getManyWithPageCount(navigator, customFilter)
                          .map(tuple -> tuple.mapT1(mods -> mods.stream()
-                                                               .map(Mod::getLatestVersion)
-                                                               .map(dto -> modMapper.map(dto,
-                                                                                         new CycleAvoidingMappingContext()))
-                                                               .collect(toList())))
-                         .toFuture();
+                                                               .map(Mod::getLatestVersion).map(modMapper::map)
+                                                               .toList()));
   }
 }

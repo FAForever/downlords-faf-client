@@ -1,7 +1,7 @@
 package com.faforever.client.tutorial;
 
-import com.faforever.client.domain.TutorialBean;
-import com.faforever.client.domain.TutorialCategoryBean;
+import com.faforever.client.domain.api.Tutorial;
+import com.faforever.client.domain.api.TutorialCategory;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.main.event.NavigateEvent;
@@ -44,11 +44,10 @@ public class TutorialController extends NodeController<Node> {
     tutorialListItemControllers.clear();
     tutorialOverviewPane.getChildren().clear();
     tutorialService.getTutorialCategories()
-        .thenAccept(this::displayTutorials)
-        .exceptionally(throwable -> {
-          log.error("Tutorials could not be loaded", throwable);
-          return null;
-        });
+                   .collectList()
+                   .publishOn(fxApplicationThreadExecutor.asScheduler())
+                   .subscribe(this::displayTutorials,
+                              throwable -> log.error("Tutorials could not be loaded", throwable));
   }
 
   private void setLoading(boolean loading) {
@@ -56,8 +55,7 @@ public class TutorialController extends NodeController<Node> {
     loadingSpinner.setVisible(loading);
   }
 
-  private void displayTutorials(List<TutorialCategoryBean> categories) {
-    fxApplicationThreadExecutor.execute(() -> {
+  private void displayTutorials(List<TutorialCategory> categories) {
       if (categories.isEmpty()) {
         setLoading(false);
         setNothingToShow(true);
@@ -65,7 +63,7 @@ public class TutorialController extends NodeController<Node> {
       }
       categories.forEach(tutorialCategory -> {
         addCategory(tutorialCategory);
-        addTutorials(tutorialCategory.getTutorials());
+        addTutorials(tutorialCategory.tutorials());
       });
 
       if (tutorialDetailController.getTutorial() == null && !tutorialListItemControllers.isEmpty()) {
@@ -73,14 +71,13 @@ public class TutorialController extends NodeController<Node> {
       }
       setLoading(false);
       setNothingToShow(false);
-    });
   }
 
   private void setNothingToShow(boolean activate) {
     nothingToShow.setVisible(activate);
   }
 
-  private void addTutorials(List<TutorialBean> tutorials) {
+  private void addTutorials(List<Tutorial> tutorials) {
     tutorials.forEach(tutorial -> {
       TutorialListItemController tutorialListItemController = uiService.loadFxml("theme/tutorial_list_item.fxml");
       tutorialListItemController.setTutorial(tutorial);
@@ -97,7 +94,7 @@ public class TutorialController extends NodeController<Node> {
     tutorialDetailController.setTutorial(tutorialListItemController.getTutorial());
   }
 
-  private void addCategory(TutorialCategoryBean category) {
+  private void addCategory(TutorialCategory category) {
     TutorialCategoryListItemController tutorialCategoryListItemController = uiService.loadFxml("theme/tutorial_category_list_item.fxml");
     tutorialCategoryListItemController.setCategory(category);
     tutorialOverviewPane.getChildren().add(tutorialCategoryListItemController.getRoot());

@@ -1,7 +1,7 @@
 package com.faforever.client.filter;
 
-import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.filter.function.FeaturedModFilterFunction;
 import com.faforever.client.filter.function.SimModsFilterFunction;
@@ -18,15 +18,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class CustomGamesFilterController extends AbstractFilterController<GameBean> {
+public class CustomGamesFilterController extends AbstractFilterController<GameInfo> {
 
   private final FeaturedModService featuredModService;
   private final Preferences preferences;
   private final FiltersPrefs filtersPrefs;
 
-  private MutableListFilterController<GameBean> mapFolderNameBlackListFilter;
-  private FilterCheckboxController<GameBean> privateGameFilter;
-  private FilterCheckboxController<GameBean> simModsFilter;
+  private MutableListFilterController<GameInfo> mapFolderNameBlackListFilter;
+  private FilterCheckboxController<GameInfo> privateGameFilter;
+  private FilterCheckboxController<GameInfo> simModsFilter;
 
   public CustomGamesFilterController(UiService uiService, I18n i18n, FeaturedModService featuredModService,
                                      Preferences preferences,
@@ -39,14 +39,16 @@ public class CustomGamesFilterController extends AbstractFilterController<GameBe
   }
 
   @Override
-  protected void build(FilterBuilder<GameBean> filterBuilder) {
+  protected void build(FilterBuilder<GameInfo> filterBuilder) {
     privateGameFilter = filterBuilder.checkbox(i18n.get("privateGames"), (selected, game) -> !selected || !game.isPasswordProtected());
 
     simModsFilter = filterBuilder.checkbox(i18n.get("moddedGames"), new SimModsFilterFunction());
 
-    filterBuilder.multiCheckbox(i18n.get("featuredMod.displayName"), featuredModService.getFeaturedMods(),
-                                new ToStringOnlyConverter<>(FeaturedModBean::getDisplayName),
-                                new FeaturedModFilterFunction());
+    FilterMultiCheckboxController<FeaturedMod, GameInfo> featuredModFilter = filterBuilder.multiCheckbox(
+        i18n.get("featuredMod.displayName"), new ToStringOnlyConverter<>(FeaturedMod::displayName),
+        new FeaturedModFilterFunction());
+
+    featuredModService.getFeaturedMods().collectList().subscribe(featuredModFilter::setItems);
 
     mapFolderNameBlackListFilter = filterBuilder.mutableList(i18n.get("blacklist.mapFolderName"), i18n.get("blacklist.mapFolderName.promptText"),
         (folderNames, game) -> folderNames.isEmpty() || folderNames.stream()

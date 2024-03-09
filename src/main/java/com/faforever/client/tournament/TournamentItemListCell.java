@@ -1,10 +1,10 @@
 package com.faforever.client.tournament;
 
-import com.faforever.client.domain.TournamentBean;
+import com.faforever.client.domain.api.Tournament;
 import com.faforever.client.theme.UiService;
 import javafx.scene.control.ListCell;
 
-public class TournamentItemListCell extends ListCell<TournamentBean> {
+public class TournamentItemListCell extends ListCell<Tournament> {
 
   private final TournamentListItemController controller;
 
@@ -14,7 +14,7 @@ public class TournamentItemListCell extends ListCell<TournamentBean> {
   }
 
   @Override
-  protected void updateItem(TournamentBean item, boolean empty) {
+  protected void updateItem(Tournament item, boolean empty) {
     super.updateItem(item, empty);
     if (item == null || empty) {
       setText(null);

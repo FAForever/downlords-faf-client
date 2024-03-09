@@ -3,7 +3,6 @@ package com.faforever.client.preferences.ui;
 import ch.qos.logback.classic.Level;
 import com.faforever.client.api.IceServer;
 import com.faforever.client.chat.ChatColorMode;
-import com.faforever.client.chat.ChatFormat;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
 import com.faforever.client.fa.relay.ice.CoturnService;
@@ -154,7 +153,6 @@ public class SettingsController extends NodeController<Node> {
   public ToggleButton bottomRightToastButton;
   public ComboBox<TimeInfo> timeComboBox;
   public ComboBox<DateInfo> dateComboBox;
-  public ComboBox<ChatFormat> chatComboBox;
   public ComboBox<UnitDataBaseType> unitDatabaseComboBox;
   public CheckBox notifyOnAtMentionOnlyToggle;
   public Pane languagesContainer;
@@ -223,7 +221,6 @@ public class SettingsController extends NodeController<Node> {
 
     configureTimeSetting();
     configureDateSetting();
-    configureChatSetting();
     configureLanguageSelection();
     configureThemeSelection();
     configureToastScreen();
@@ -333,28 +330,39 @@ public class SettingsController extends NodeController<Node> {
   }
 
   private void initPreferredCoturnListView() {
-    coturnService.getActiveCoturns().thenAcceptAsync(coturnServers -> {
-      preferredCoturnListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-      preferredCoturnListView.setItems(FXCollections.observableList(coturnServers));
-      preferredCoturnListView.setCellFactory(param -> new StringListCell<>(IceServer::region, fxApplicationThreadExecutor));
-      ObservableSet<String> preferredCoturnServers = preferences
-          .getForgedAlliance()
-          .getPreferredCoturnIds();
-      Map<String, IceServer> hostPortCoturnServerMap = coturnServers.stream()
-          .collect(Collectors.toMap(IceServer::id, Function.identity()));
+    coturnService.getActiveCoturns()
+                 .collectList()
+                 .map(FXCollections::observableList)
+                 .publishOn(fxApplicationThreadExecutor.asScheduler())
+                 .subscribe(coturnServers -> {
+                   preferredCoturnListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+                   preferredCoturnListView.setItems(FXCollections.observableList(coturnServers));
+                   preferredCoturnListView.setCellFactory(
+                       param -> new StringListCell<>(IceServer::region, fxApplicationThreadExecutor));
+                   Map<String, IceServer> hostPortCoturnServerMap = coturnServers.stream()
+                                                                                 .collect(
+                                                                                     Collectors.toMap(IceServer::id,
+                                                                                                      Function.identity()));
 
-      preferredCoturnServers.stream()
-          .filter(hostPortCoturnServerMap::containsKey)
-          .map(hostPortCoturnServerMap::get)
-          .forEach(coturnServer -> preferredCoturnListView.getSelectionModel().select(coturnServer));
+                   ObservableSet<String> preferredCoturnServers = preferences.getForgedAlliance()
+                                                                             .getPreferredCoturnIds();
 
-      JavaFxUtil.addAndTriggerListener(preferredCoturnListView.getSelectionModel()
-          .getSelectedItems(), observable -> {
-        List<IceServer> selectedCoturns = preferredCoturnListView.getSelectionModel().getSelectedItems();
-        preferredCoturnServers.clear();
-        selectedCoturns.stream().map(IceServer::id).forEach(preferredCoturnServers::add);
-      });
-    }, fxApplicationThreadExecutor);
+                   preferredCoturnServers.stream()
+                                         .filter(hostPortCoturnServerMap::containsKey)
+                                         .map(hostPortCoturnServerMap::get)
+                                         .forEach(coturnServer -> preferredCoturnListView.getSelectionModel()
+                                                                                         .select(coturnServer));
+
+                   JavaFxUtil.addAndTriggerListener(preferredCoturnListView.getSelectionModel().getSelectedItems(),
+                                                    observable -> {
+                                                      List<IceServer> selectedCoturns = preferredCoturnListView.getSelectionModel()
+                                                                                                               .getSelectedItems();
+                                                      preferredCoturnServers.clear();
+                                                      selectedCoturns.stream()
+                                                                     .map(IceServer::id)
+                                                                     .forEach(preferredCoturnServers::add);
+                                                    });
+                 });
   }
 
   private void initAutoChannelListView() {
@@ -480,19 +488,6 @@ public class SettingsController extends NodeController<Node> {
   public void onDateFormatSelected() {
     log.trace("A new date format was selected: `{}`", dateComboBox.getValue());
     preferences.getLocalization().setDateFormat(dateComboBox.getValue());
-  }
-
-  private void configureChatSetting() {
-    ChatPrefs chatPrefs = preferences.getChat();
-    chatComboBox.setButtonCell(new StringListCell<>(chatFormat -> i18n.get(chatFormat.getI18nKey()), fxApplicationThreadExecutor));
-    chatComboBox.setCellFactory(param -> new StringListCell<>(chatFormat -> i18n.get(chatFormat.getI18nKey()), fxApplicationThreadExecutor));
-    chatComboBox.setItems(FXCollections.observableArrayList(ChatFormat.values()));
-    chatComboBox.getSelectionModel().select(chatPrefs.getChatFormat());
-  }
-
-  public void onChatFormatSelected() {
-    log.trace("A new chat format was selected: `{}`", chatComboBox.getValue());
-    preferences.getChat().setChatFormat(chatComboBox.getValue());
   }
 
   private StringListCell<Screen> screenListCell() {

@@ -1,15 +1,14 @@
 package com.faforever.client.featuredmod;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.FeaturedModBeanBuilder;
-import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
+import com.faforever.client.domain.api.FeaturedMod;
 import com.faforever.client.mapstruct.FeaturedModMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.FeaturedModFile;
 import com.faforever.commons.api.elide.ElideEntity;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -17,10 +16,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -47,25 +45,24 @@ public class FeaturedModServiceTest extends ServiceTest {
   @Test
   public void testGetFeaturedFiles() {
     when(fafApiAccessor.getMaxPageSize()).thenReturn(100);
-    FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
+    FeaturedMod featuredMod = Instancio.create(FeaturedMod.class);
     when(fafApiAccessor.getMany(eq(FeaturedModFile.class), anyString(), anyInt(), any())).thenReturn(
         Flux.just(new FeaturedModFile()));
 
-    instance.getFeaturedModFiles(featuredMod, 0);
+    StepVerifier.create(instance.getFeaturedModFiles(featuredMod, 0)).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).getMany(eq(FeaturedModFile.class),
-                                   eq(String.format("/featuredMods/%s/files/%s", featuredMod.getId(), 0)), eq(100),
+                                   eq(String.format("/featuredMods/%s/files/%s", featuredMod.id(), 0)), eq(100),
                                    any());
   }
 
   @Test
   public void testGetFeaturedMod() {
-    FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
-    Flux<ElideEntity> resultFlux = Flux.just(featuredModMapper.map(featuredMod, new CycleAvoidingMappingContext()));
+    FeaturedMod featuredMod = Instancio.create(FeaturedMod.class);
+    Flux<ElideEntity> resultFlux = Flux.just(featuredModMapper.map(featuredMod));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    FeaturedModBean result = instance.getFeaturedMod("test").block();
+    StepVerifier.create(instance.getFeaturedMod("test")).expectNext(featuredMod).verifyComplete();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("technicalName").eq("test"))));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("order", true)));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1)));
-    assertThat(result, is(featuredMod));
   }
 }

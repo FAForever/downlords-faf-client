@@ -1,19 +1,19 @@
 package com.faforever.client.mapstruct;
 
-import com.faforever.client.domain.TournamentBean;
-import com.faforever.commons.api.dto.Tournament;
-import org.mapstruct.Context;
+import com.faforever.client.domain.api.Tournament;
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 
 import java.util.List;
 
 @Mapper(config = MapperConfiguration.class)
 public interface TournamentMapper {
-     TournamentBean map(Tournament dto, @Context CycleAvoidingMappingContext context);
+  Tournament map(com.faforever.commons.api.dto.Tournament dto);
 
-     Tournament map(TournamentBean bean, @Context CycleAvoidingMappingContext context);
+  @InheritInverseConfiguration
+  com.faforever.commons.api.dto.Tournament map(Tournament bean);
 
-     List<TournamentBean> mapDtos(List<Tournament> dto, @Context CycleAvoidingMappingContext context);
+  List<Tournament> mapDtos(List<com.faforever.commons.api.dto.Tournament> dto);
 
-     List<Tournament> mapBeans(List<TournamentBean> bean, @Context CycleAvoidingMappingContext context);
+  List<com.faforever.commons.api.dto.Tournament> mapBeans(List<Tournament> bean);
 }

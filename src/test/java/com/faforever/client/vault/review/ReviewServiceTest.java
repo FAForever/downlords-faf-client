@@ -1,22 +1,18 @@
 package com.faforever.client.vault.review;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.MapVersionBeanBuilder;
-import com.faforever.client.builders.MapVersionReviewBeanBuilder;
-import com.faforever.client.builders.ModVersionBeanBuilder;
-import com.faforever.client.builders.ModVersionReviewBeanBuilder;
-import com.faforever.client.builders.ReplayBeanBuilder;
-import com.faforever.client.builders.ReplayReviewBeanBuilder;
-import com.faforever.client.domain.MapVersionReviewBean;
-import com.faforever.client.domain.ModVersionReviewBean;
-import com.faforever.client.domain.ReplayReviewBean;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.MapVersionReview;
+import com.faforever.client.domain.api.ModVersion;
+import com.faforever.client.domain.api.ModVersionReview;
+import com.faforever.client.domain.api.ReplayReview;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.ReviewMapper;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.elide.ElideEntity;
 import com.faforever.commons.api.elide.ElideNavigatorOnId;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -24,7 +20,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
+import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
@@ -46,11 +44,12 @@ public class ReviewServiceTest extends ServiceTest {
 
   @Test
   public void saveNewGameReview() throws Exception {
-    ReplayReviewBean reviewBean = ReplayReviewBeanBuilder.create().defaultValues().get();
-    Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext()));
+    ReplayReview reviewBean = Instancio.of(ReplayReview.class).ignore(field(ReplayReview::id)).create();
+    Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean));
     when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
 
-    instance.saveReplayReview(ReplayReviewBeanBuilder.create().defaultValues().replay(ReplayBeanBuilder.create().defaultValues().get()).get());
+    StepVerifier.create(instance.saveReview(Instancio.of(ReplayReview.class).ignore(field(ReplayReview::id))
+                                                     .create())).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).post(argThat(
         ElideMatchers.hasRelationship("reviews")
     ), any());
@@ -58,11 +57,15 @@ public class ReviewServiceTest extends ServiceTest {
 
   @Test
   public void saveNewMapVersionReview() throws Exception {
-    MapVersionReviewBean reviewBean = MapVersionReviewBeanBuilder.create().defaultValues().get();
-    Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext()));
+    MapVersionReview reviewBean = Instancio.of(MapVersionReview.class).ignore(field(MapVersionReview::id)).create();
+    Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean));
     when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
 
-    instance.saveMapVersionReview(MapVersionReviewBeanBuilder.create().defaultValues().mapVersion(MapVersionBeanBuilder.create().defaultValues().get()).get());
+    StepVerifier.create(instance.saveReview(Instancio.of(MapVersionReview.class)
+                                                     .ignore(field(MapVersionReview::id))
+                                                     .set(field(MapVersionReview::subject),
+                                                          Instancio.create(MapVersion.class))
+                                                     .create())).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).post(argThat(
         ElideMatchers.hasRelationship("reviews")
     ), any());
@@ -70,11 +73,15 @@ public class ReviewServiceTest extends ServiceTest {
 
   @Test
   public void saveNewModVersionReview() throws Exception {
-    ModVersionReviewBean reviewBean = ModVersionReviewBeanBuilder.create().defaultValues().get();
-    Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext()));
+    ModVersionReview reviewBean = Instancio.create(ModVersionReview.class);
+    Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean));
     when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
 
-    instance.saveModVersionReview(ModVersionReviewBeanBuilder.create().defaultValues().modVersion(ModVersionBeanBuilder.create().defaultValues().get()).get());
+    StepVerifier.create(instance.saveReview(Instancio.of(ModVersionReview.class)
+                                                     .ignore(field(ModVersionReview::id))
+                                                     .set(field(ModVersionReview::subject),
+                                                          Instancio.create(ModVersion.class))
+                                                     .create())).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).post(argThat(
         ElideMatchers.hasRelationship("reviews")
     ), any());
@@ -84,7 +91,8 @@ public class ReviewServiceTest extends ServiceTest {
   public void updateGameReview() throws Exception {
     when(fafApiAccessor.patch(any(), any())).thenReturn(Mono.empty());
 
-    instance.saveReplayReview(ReplayReviewBeanBuilder.create().defaultValues().replay(ReplayBeanBuilder.create().defaultValues().get()).id(0).get());
+    StepVerifier.create(instance.saveReview(Instancio.of(ReplayReview.class)
+                                                     .create())).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).patch(any(ElideNavigatorOnId.class), any());
   }
 
@@ -92,7 +100,9 @@ public class ReviewServiceTest extends ServiceTest {
   public void updateMapVersionReview() throws Exception {
     when(fafApiAccessor.patch(any(), any())).thenReturn(Mono.empty());
 
-    instance.saveMapVersionReview(MapVersionReviewBeanBuilder.create().defaultValues().mapVersion(MapVersionBeanBuilder.create().defaultValues().get()).id(0).get());
+    StepVerifier.create(instance.saveReview(Instancio.create(MapVersionReview.class)))
+                .expectNextCount(1)
+                .verifyComplete();
     verify(fafApiAccessor).patch(any(ElideNavigatorOnId.class), any());
   }
 
@@ -100,7 +110,9 @@ public class ReviewServiceTest extends ServiceTest {
   public void updateModVersionReview() throws Exception {
     when(fafApiAccessor.patch(any(), any())).thenReturn(Mono.empty());
 
-    instance.saveModVersionReview(ModVersionReviewBeanBuilder.create().defaultValues().modVersion(ModVersionBeanBuilder.create().defaultValues().get()).id(0).get());
+    StepVerifier.create(instance.saveReview(Instancio.of(ModVersionReview.class).create()))
+                .expectNextCount(1)
+                .verifyComplete();
     verify(fafApiAccessor).patch(any(ElideNavigatorOnId.class), any());
   }
 

@@ -1,28 +1,27 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.builders.LeagueBeanBuilder;
-import com.faforever.client.builders.LeagueSeasonBeanBuilder;
+import com.faforever.client.domain.api.League;
+import com.faforever.client.domain.api.LeagueSeason;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import javafx.scene.layout.StackPane;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
@@ -44,19 +43,35 @@ public class LeaderboardsControllerTest extends PlatformTest {
   private NavigationHandler navigationHandler;
 
   @Mock
-  private LeaderboardController controller;
+  private LeaderboardController leaderboardController;
+  @Mock
+  private LeaderboardRankingsController leaderboardRankingsController;
+  @Mock
+  private LeaderboardDistributionController leaderboardDistributionController;
+  @Mock
+  private LeaderboardPlayerDetailsController leaderboardPlayerDetailsController;
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(leaderboardService.getLeagues()).thenReturn(
-        CompletableFuture.completedFuture(List.of(LeagueBeanBuilder.create().defaultValues().get())));
-    when(leaderboardService.getLatestSeason(any())).thenReturn(
-        CompletableFuture.completedFuture(LeagueSeasonBeanBuilder.create().defaultValues().get()));
+    when(leaderboardService.getLeagues()).thenReturn(Flux.just(Instancio.create(League.class)));
+    when(leaderboardService.getLatestSeason(any())).thenReturn(Mono.just(Instancio.create(LeagueSeason.class)));
     when(i18n.getOrDefault(anyString(), anyString())).thenReturn("league");
-    when(uiService.loadFxml("theme/leaderboard/leaderboard.fxml")).thenReturn(controller);
-    when(controller.getRoot()).thenReturn(new StackPane());
 
-    loadFxml("theme/leaderboard/leaderboards.fxml", clazz -> instance);
+    loadFxml("theme/leaderboard/leaderboards.fxml", clazz -> {
+      if (clazz == LeaderboardController.class) {
+        return leaderboardController;
+      }
+      if (clazz == LeaderboardRankingsController.class) {
+        return leaderboardRankingsController;
+      }
+      if (clazz == LeaderboardDistributionController.class) {
+        return leaderboardDistributionController;
+      }
+      if (clazz == LeaderboardPlayerDetailsController.class) {
+        return leaderboardPlayerDetailsController;
+      }
+      return instance;
+    });
   }
 
   @Test
@@ -68,29 +83,30 @@ public class LeaderboardsControllerTest extends PlatformTest {
 
   @Test
   public void testNoLeagues() {
-    when(leaderboardService.getLeagues()).thenReturn(CompletableFuture.completedFuture(List.of()));
+    when(leaderboardService.getLeagues()).thenReturn(Flux.empty());
 
     reinitialize(instance);
 
-    verify(notificationService).addImmediateWarnNotification(eq("leaderboard.noLeaderboards"));
+    verify(notificationService).addImmediateErrorNotification(any(), eq("leaderboard.failedToLoadLeaderboards"));
   }
 
   @Test
   public void testInitializeWithLeagueError() {
-    when(leaderboardService.getLeagues()).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    when(leaderboardService.getLeagues()).thenReturn(Flux.error(new FakeTestException()));
 
     reinitialize(instance);
 
-    verify(notificationService).addImmediateErrorNotification(any(CompletionException.class), eq("leaderboard.failedToLoadLeaderboards"));
+    verify(notificationService).addImmediateErrorNotification(any(), eq("leaderboard.failedToLoadLeaderboards"));
   }
 
   @Test
   public void testInitializeWithSeasonError() {
-    when(leaderboardService.getLatestSeason(any())).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    when(leaderboardService.getLatestSeason(any())).thenReturn(Mono.error(new FakeTestException()));
 
     reinitialize(instance);
 
-    verify(notificationService).addImmediateErrorNotification(any(CompletionException.class), eq("leaderboard.failedToLoadLeaderboards"));
+    verify(notificationService, times(2)).addImmediateErrorNotification(any(),
+                                                                        eq("leaderboard.failedToLoadLeaderboards"));
   }
 
   @Test

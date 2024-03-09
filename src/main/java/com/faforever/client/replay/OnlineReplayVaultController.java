@@ -1,7 +1,7 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.domain.api.Replay;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
@@ -27,8 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -39,7 +39,7 @@ import static com.faforever.client.filter.ChatUserFilterController.MIN_RATING;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class OnlineReplayVaultController extends VaultEntityController<ReplayBean> {
+public class OnlineReplayVaultController extends VaultEntityController<Replay> {
 
   private static final int TOP_ELEMENT_COUNT = 6;
 
@@ -68,7 +68,7 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
   }
 
   @Override
-  protected void onDisplayDetails(ReplayBean replay) {
+  protected void onDisplayDetails(Replay replay) {
     JavaFxUtil.assertApplicationThread();
     replayDetailController.setReplay(replay);
     replayDetailController.getRoot().setVisible(true);
@@ -94,7 +94,7 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
   }
 
   @Override
-  protected List<ShowRoomCategory<ReplayBean>> getShowRoomCategories() {
+  protected List<ShowRoomCategory<Replay>> getShowRoomCategories() {
     return List.of(
         new ShowRoomCategory<>(() -> replayService.getOwnReplaysWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.OWN,
                                "vault.replays.ownReplays"),
@@ -140,20 +140,21 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
     CategoryFilterController featuredModFilterController = searchController.addCategoryFilter("featuredMod.displayName",
         i18n.get("featuredMod.displayName"), List.of());
 
-    featuredModService.getFeaturedMods().thenAccept(featuredMods ->
-        fxApplicationThreadExecutor.execute(() ->
-            featuredModFilterController.setItems(featuredMods.stream().map(FeaturedModBean::getDisplayName)
-                .collect(Collectors.toList()))));
+    featuredModService.getFeaturedMods().map(FeaturedMod::displayName)
+                      .collectList()
+                      .publishOn(fxApplicationThreadExecutor.asScheduler())
+                      .subscribe(featuredModFilterController::setItems);
 
-    CategoryFilterController leaderboardFilterController = searchController.addCategoryFilter("playerStats.ratingChanges.leaderboard.id",
+    CategoryFilterController leaderboardFilterController = searchController.addCategoryFilter(
+        "playerStats.ratingChanges.leaderboard.id",
         i18n.get("leaderboard.displayName"), Map.of());
 
-    leaderboardService.getLeaderboards().thenAccept(leaderboards -> {
-      Map<String, String> leaderboardItems = new LinkedHashMap<>();
-      leaderboards.forEach(leaderboard -> leaderboardItems.put(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()), String.valueOf(leaderboard.getId())));
-      fxApplicationThreadExecutor.execute(() ->
-          leaderboardFilterController.setItems(leaderboardItems));
-    });
+    leaderboardService.getLeaderboards()
+                      .collect(Collectors.toMap(
+                          leaderboard -> i18n.getOrDefault(leaderboard.technicalName(), leaderboard.nameKey()),
+                          leaderboard -> String.valueOf(leaderboard.id())))
+                      .publishOn(fxApplicationThreadExecutor.asScheduler())
+                      .subscribe(leaderboardFilterController::setItems);
 
     //TODO: Use rating rather than estimated mean with an assumed deviation of 300 when that is available
     searchController.addRangeFilter("playerStats.ratingChanges.meanBefore", i18n.get("game.rating"),
@@ -206,8 +207,11 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
 
   private void showReplayWithID(int replayId) {
     replayService.findById(replayId)
-        .thenAccept(possibleReplay -> possibleReplay.ifPresentOrElse(replayBean -> fxApplicationThreadExecutor.execute(() -> onDisplayDetails(replayBean)),
-            () -> notificationService.addImmediateWarnNotification("replay.replayNotFoundText", replayId)));
+                 .switchIfEmpty(Mono.fromRunnable(
+                     () -> notificationService.addImmediateWarnNotification("replay.replayNotFoundText", replayId)))
+                 .publishOn(fxApplicationThreadExecutor.asScheduler())
+                 .subscribe(this::onDisplayDetails,
+                            throwable -> log.error("Error while loading replay {}", replayId, throwable));
   }
 
   private void onShowUserReplaysEvent(ShowUserReplaysEvent event) {

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<VBox fx:id="rankingsRoot" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.faforever.client.leaderboard.LeaderboardRankingsController" prefWidth="600">
+    <fx:define>
+        <ToggleGroup fx:id="subdivisionToggleGroup"/>
+    </fx:define>
+    <children>
+        <HBox spacing="10.0">
+            <children>
+                <ComboBox fx:id="divisionPicker" styleClass="division-selector"
+                          promptText="Tiers" minWidth="225.0"/>
+                <Pane HBox.hgrow="ALWAYS"/>
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <Label contentDisplay="RIGHT" graphicTextGap="10.0"
+                           maxWidth="1.7976931348623157E308">
+                        <graphic>
+                            <Region styleClass="icon,search-icon"/>
+                        </graphic>
+                    </Label>
+                    <TextField fx:id="searchTextField" maxWidth="1.7976931348623157E308"
+                               minWidth="120.0"
+                               prefWidth="130.0" promptText="%leaderboard.searchPrompt"
+                               onAction="#processSearchInput" styleClass="search"/>
+                </HBox>
+            </children>
+        </HBox>
+        <VBox>
+            <HBox fx:id="subdivisionButtons"/>
+            <TableView fx:id="ratingTable" VBox.vgrow="ALWAYS" styleClass="division-table">
+                <columns>
+                    <TableColumn fx:id="rankColumn" prefWidth="70" text="RANK"/>
+                    <TableColumn fx:id="nameColumn" text="NAME"/>
+                    <TableColumn fx:id="scoreColumn" prefWidth="90" text="SCORE"/>
+                    <TableColumn fx:id="gamesPlayedColumn" prefWidth="90" text="GAMES"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </children>
+    <padding>
+        <Insets top="10.0"/>
+    </padding>
+</VBox>

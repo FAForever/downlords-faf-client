@@ -1,9 +1,9 @@
 package com.faforever.client.player;
 
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.preferences.UserPrefs;
 import com.faforever.client.remote.FafServerAccessor;
@@ -46,8 +46,8 @@ public class SocialServiceTest extends ServiceTest {
   @InjectMocks
   private SocialService instance;
 
-  private PlayerBean player1;
-  private PlayerBean player2;
+  private PlayerInfo player1;
+  private PlayerInfo player2;
 
   private final TestPublisher<SocialInfo> socialInfoTestPublisher = TestPublisher.create();
 
@@ -55,9 +55,9 @@ public class SocialServiceTest extends ServiceTest {
   public void setUp() throws Exception {
     when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
     when(fafServerAccessor.getEvents(SocialInfo.class)).thenReturn(socialInfoTestPublisher.flux());
-    PlayerBean currentPlayer = PlayerBeanBuilder.create().defaultValues().id(1).username("junit").get();
-    player1 = PlayerBeanBuilder.create().defaultValues().id(2).username("junit2").get();
-    player2 = PlayerBeanBuilder.create().defaultValues().id(3).username("junit3").get();
+    PlayerInfo currentPlayer = PlayerInfoBuilder.create().defaultValues().id(1).username("junit").get();
+    player1 = PlayerInfoBuilder.create().defaultValues().id(2).username("junit2").get();
+    player2 = PlayerInfoBuilder.create().defaultValues().id(3).username("junit3").get();
 
     lenient().when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
     lenient().when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(player1));
@@ -145,7 +145,7 @@ public class SocialServiceTest extends ServiceTest {
   @Test
   public void testThereIsFriendInGame() {
     Map<Integer, List<Integer>> teams = Map.of(1, List.of(1, 2));
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().teams(teams).get();
     instance.addFriend(player1);
 
     assertTrue(instance.areFriendsInGame(game));
@@ -154,7 +154,7 @@ public class SocialServiceTest extends ServiceTest {
   @Test
   public void testNoFriendInGame() {
     Map<Integer, List<Integer>> teams = Map.of(1, List.of(1));
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().teams(teams).get();
     player2.setId(100);
     instance.addFriend(player2);
 
@@ -164,7 +164,7 @@ public class SocialServiceTest extends ServiceTest {
 
   @Test
   public void testAddPlayerNote() {
-    PlayerBean player = PlayerBeanBuilder.create().id(2).get();
+    PlayerInfo player = PlayerInfoBuilder.create().id(2).get();
     assertFalse(userPrefs.getNotesByPlayerId().containsKey(2));
     instance.updateNote(player, "junit");
     assertTrue(userPrefs.getNotesByPlayerId().containsKey(2));
@@ -172,7 +172,7 @@ public class SocialServiceTest extends ServiceTest {
 
   @Test
   public void testEditPlayerNote() {
-    PlayerBean player = PlayerBeanBuilder.create().id(3).get();
+    PlayerInfo player = PlayerInfoBuilder.create().id(3).get();
     assertTrue(userPrefs.getNotesByPlayerId().containsKey(3));
     instance.updateNote(player, "updated");
     assertEquals("updated", userPrefs.getNotesByPlayerId().get(3));
@@ -180,7 +180,7 @@ public class SocialServiceTest extends ServiceTest {
 
   @Test
   public void testRemovePlayerNote() {
-    PlayerBean player = PlayerBeanBuilder.create().id(3).get();
+    PlayerInfo player = PlayerInfoBuilder.create().id(3).get();
     assertTrue(userPrefs.getNotesByPlayerId().containsKey(3));
     instance.removeNote(player);
     assertFalse(userPrefs.getNotesByPlayerId().containsKey(3));
@@ -188,7 +188,7 @@ public class SocialServiceTest extends ServiceTest {
 
   @Test
   public void testNormalizeTextBeforeUpdatingPlayerNote() {
-    PlayerBean player = PlayerBeanBuilder.create().id(2).get();
+    PlayerInfo player = PlayerInfoBuilder.create().id(2).get();
     instance.updateNote(player, "junit\n1\n\n2\n\n\n3\n4");
     assertEquals("junit\n1\n2\n3\n4", userPrefs.getNotesByPlayerId().get(2));
   }

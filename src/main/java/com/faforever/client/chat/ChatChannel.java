@@ -1,5 +1,7 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.chat.ChatMessage.Type;
+import com.faforever.client.chat.emoticons.Reaction;
 import com.faforever.client.fx.JavaFxUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
@@ -12,19 +14,22 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
 import javafx.collections.transformation.FilteredList;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 public class ChatChannel {
-
   @Getter
   @EqualsAndHashCode.Include
   @ToString.Include
@@ -39,10 +44,13 @@ public class ChatChannel {
   private final ObservableList<ChatChannelUser> unmodifiableUsers = FXCollections.unmodifiableObservableList(users);
   private final ObservableList<ChatChannelUser> typingUsers = new FilteredList<>(users, ChatChannelUser::isTyping);
   private final ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic(null, ""));
-  private final ObservableList<ChatMessage> messages = FXCollections.synchronizedObservableList(
-      FXCollections.observableArrayList());
-  private final ObservableList<ChatMessage> unmodifiableMessages = FXCollections.unmodifiableObservableList(messages);
+  private final ObservableMap<String, ChatMessage> messagesById = FXCollections.synchronizedObservableMap(
+      FXCollections.observableHashMap());
+  private final Map<String, Reaction> reactionsById = new ConcurrentHashMap<>();
+  private final ObservableSet<ChatMessage> messages = JavaFxUtil.attachSetToMap(
+      FXCollections.synchronizedObservableSet(FXCollections.observableSet()), messagesById);
   private final BooleanProperty open = new SimpleBooleanProperty();
+  private final BooleanProperty loaded = new SimpleBooleanProperty();
   private final IntegerProperty maxNumMessages = new SimpleIntegerProperty(Integer.MAX_VALUE);
   private final IntegerProperty numUnreadMessages = new SimpleIntegerProperty();
 
@@ -60,7 +68,10 @@ public class ChatChannel {
     int maxNumMessages = getMaxNumMessages();
     int numMessages = messages.size();
     if (numMessages > maxNumMessages) {
-      messages.subList(0, numMessages - maxNumMessages).clear();
+      messages.stream()
+              .sorted(Comparator.comparing(ChatMessage::getTime))
+              .limit(numMessages - maxNumMessages)
+              .forEach(message -> messagesById.remove(message.getId()));
     }
   }
 
@@ -134,13 +145,46 @@ public class ChatChannel {
     return Optional.ofNullable(usernameToChatUser.get(username));
   }
 
+  public Optional<ChatMessage> getMessage(String id) {
+    return Optional.ofNullable(messagesById.get(id));
+  }
+
+  public void removeMessage(String messageId) {
+    messagesById.remove(messageId);
+    Reaction removedReaction = reactionsById.remove(messageId);
+    if (removedReaction == null) {
+      return;
+    }
+    ChatMessage reactedToMessage = messagesById.get(removedReaction.targetMessageId());
+    if (reactedToMessage == null) {
+      return;
+    }
+
+    reactedToMessage.removeReaction(removedReaction);
+  }
+
+  public void removePendingMessage(String messageId) {
+    messagesById.computeIfPresent(messageId,
+                                  (ignored, chatMessage) -> chatMessage.getType() == Type.PENDING ? null : chatMessage);
+  }
+
   public void addMessage(ChatMessage message) {
-    messages.add(message);
+    messagesById.put(message.getId(), message);
     pruneMessages();
   }
 
-  public ObservableList<ChatMessage> getMessages() {
-    return unmodifiableMessages;
+  public void addReaction(Reaction reaction) {
+    ChatMessage targetMessage = messagesById.get(reaction.targetMessageId());
+    if (targetMessage == null) {
+      return;
+    }
+
+    targetMessage.addReaction(reaction);
+    reactionsById.put(reaction.messageId(), reaction);
+  }
+
+  public ObservableSet<ChatMessage> getMessages() {
+    return messages;
   }
 
   public boolean isPrivateChannel() {
@@ -161,5 +205,17 @@ public class ChatChannel {
 
   public void setOpen(boolean open) {
     this.open.set(open);
+  }
+
+  public boolean isLoaded() {
+    return loaded.get();
+  }
+
+  public BooleanProperty loadedProperty() {
+    return loaded;
+  }
+
+  public void setLoaded(boolean loaded) {
+    this.loaded.set(loaded);
   }
 }

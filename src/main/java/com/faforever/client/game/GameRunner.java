@@ -1,12 +1,11 @@
 package com.faforever.client.game;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.DivisionBean;
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.SubdivisionBean;
+import com.faforever.client.domain.api.Division;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameParameters;
@@ -60,6 +59,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -115,7 +115,7 @@ public class GameRunner implements InitializingBean {
   private final SimpleObjectProperty<Integer> runningGameId = new SimpleObjectProperty<>();
   private final ObjectProperty<Process> process = new SimpleObjectProperty<>();
 
-  private final ReadOnlyObjectWrapper<GameBean> runningGame = new ReadOnlyObjectWrapper<>();
+  private final ReadOnlyObjectWrapper<GameInfo> runningGame = new ReadOnlyObjectWrapper<>();
   private final ReadOnlyBooleanWrapper running = new ReadOnlyBooleanWrapper();
   private final ReadOnlyObjectWrapper<Long> pid = new ReadOnlyObjectWrapper<>();
 
@@ -174,8 +174,9 @@ public class GameRunner implements InitializingBean {
 
     String mapFolderName = gameLaunchResponse.getMapName();
     CompletableFuture<Void> downloadMapFuture = mapFolderName == null ? completedFuture(
-        null) : mapService.downloadIfNecessary(mapFolderName);
-    CompletableFuture<League> leagueFuture = hasLeague ? completedFuture(null) : getDivisionInfo(leaderboard);
+        null) : mapService.downloadIfNecessary(mapFolderName).toFuture();
+    CompletableFuture<League> leagueFuture = hasLeague ? completedFuture(null) : getDivisionInfo(
+        leaderboard).toFuture();
     CompletableFuture<Integer> startReplayServerFuture = replayServer.start(uid);
     CompletableFuture<Integer> startIceAdapterFuture = startIceAdapter(uid);
 
@@ -210,9 +211,9 @@ public class GameRunner implements InitializingBean {
                                                                                                    false);
 
     CompletableFuture<Void> installSimModsFuture = simModUids.isEmpty() ? completedFuture(
-        null) : modService.downloadAndEnableMods(simModUids);
+        null) : modService.downloadAndEnableMods(simModUids).toFuture();
     CompletableFuture<Void> downloadMapFuture = mapFolderName == null || mapFolderName.isBlank() ? completedFuture(
-        null) : mapService.downloadIfNecessary(mapFolderName);
+        null) : mapService.downloadIfNecessary(mapFolderName).toFuture();
     return CompletableFuture.allOf(updateFeaturedModFuture, installSimModsFuture, downloadMapFuture)
                             .thenCompose(ignored -> gameLaunchSupplier.get())
                             .thenCompose(this::startOnlineGame);
@@ -248,11 +249,11 @@ public class GameRunner implements InitializingBean {
     });
   }
 
-  public void join(GameBean gameBean) {
-    join(gameBean, null, false);
+  public void join(GameInfo gameInfo) {
+    join(gameInfo, null, false);
   }
 
-  private void join(GameBean game, String password, boolean ignoreRating) {
+  private void join(GameInfo game, String password, boolean ignoreRating) {
     if (isRunning()) {
       log.info("Game is running, ignoring join request");
       notificationService.addImmediateWarnNotification("game.gameRunning");
@@ -269,7 +270,7 @@ public class GameRunner implements InitializingBean {
       return;
     }
 
-    PlayerBean currentPlayer = playerService.getCurrentPlayer();
+    PlayerInfo currentPlayer = playerService.getCurrentPlayer();
     int playerRating = RatingUtil.getRoundedLeaderboardRating(currentPlayer, game.getLeaderboard());
 
     boolean minRatingViolated = game.getRatingMin() != null && playerRating < game.getRatingMin();
@@ -297,7 +298,7 @@ public class GameRunner implements InitializingBean {
         });
   }
 
-  private void showEnterPasswordDialog(GameBean game, boolean ignoreRating) {
+  private void showEnterPasswordDialog(GameInfo game, boolean ignoreRating) {
     EnterPasswordController enterPasswordController = uiService.loadFxml("theme/enter_password.fxml");
     enterPasswordController.setPasswordEnteredListener(this::join);
     enterPasswordController.setGame(game);
@@ -305,7 +306,7 @@ public class GameRunner implements InitializingBean {
     enterPasswordController.showPasswordDialog(StageHolder.getStage());
   }
 
-  private void showRatingOutOfBoundsConfirmation(int playerRating, GameBean game, String password) {
+  private void showRatingOutOfBoundsConfirmation(int playerRating, GameInfo game, String password) {
     notificationService.addNotification(new ImmediateNotification(i18n.get("game.joinGameRatingConfirmation.title"),
                                                                   i18n.get("game.joinGameRatingConfirmation.text",
                                                                            game.getRatingMin(), game.getRatingMax(),
@@ -379,22 +380,22 @@ public class GameRunner implements InitializingBean {
   private CompletableFuture<Integer> startIceAdapter(int uid) {
     return iceAdapter.start(uid)
                      .thenCompose(icePort -> coturnService.getSelectedCoturns(uid)
-                                                          .thenAccept(iceAdapter::setIceServers)
-                                                          .thenApply(ignored -> icePort));
+                                                          .collectList()
+                                                          .doOnNext(iceAdapter::setIceServers)
+                                                          .thenReturn(icePort)
+                                                          .toFuture());
   }
 
-  private CompletableFuture<League> getDivisionInfo(String leaderboard) {
+  private Mono<League> getDivisionInfo(String leaderboard) {
     return leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), leaderboard)
-                             .thenApply(leagueEntryOptional -> {
-                               Optional<SubdivisionBean> subdivisionBeanOptional = leagueEntryOptional.map(
-                                   LeagueEntryBean::getSubdivision);
-                               String division = subdivisionBeanOptional.map(SubdivisionBean::getDivision)
-                                                                        .map(DivisionBean::getNameKey)
-                                                                        .orElse("unlisted");
-                               String subDivision = subdivisionBeanOptional.map(SubdivisionBean::getNameKey)
-                                                                           .orElse(null);
+                             .map(LeagueEntry::subdivision)
+                             .map(subdivision -> {
+                               Division divisionBean = subdivision.division();
+                               String division = divisionBean == null ? null : divisionBean.nameKey();
+                               String subDivision = subdivision.nameKey();
                                return new League(division, subDivision);
-                             });
+                             })
+                             .defaultIfEmpty(new League("unlisted", null));
   }
 
   private void handleTermination(Process finishedProcess) {
@@ -420,7 +421,11 @@ public class GameRunner implements InitializingBean {
   }
 
   private void askForGameRate() {
-    GameBean game = getRunningGame();
+    GameInfo game = getRunningGame();
+    if (game == null) {
+      return;
+    }
+
     notificationService.addNotification(
         new PersistentNotification(i18n.get("game.ended", game.getTitle()), Severity.INFO, List.of(
             new Action(i18n.get("game.rate"), () -> navigationHandler.navigateTo(new ShowReplayEvent(game.getId()))))));
@@ -449,7 +454,7 @@ public class GameRunner implements InitializingBean {
     }
   }
 
-  public void launchTutorial(MapVersionBean mapVersion, String technicalMapName) {
+  public void launchTutorial(MapVersion mapVersion, String technicalMapName) {
     if (isRunning()) {
       log.info("Game is running, ignoring tutorial launch");
       notificationService.addImmediateWarnNotification("game.gameRunning");
@@ -461,8 +466,8 @@ public class GameRunner implements InitializingBean {
       return;
     }
 
-    String mapFolderName = mapVersion.getFolderName();
-    CompletableFuture<Void> downloadMapFuture = mapService.downloadIfNecessary(mapFolderName);
+    String mapFolderName = mapVersion.folderName();
+    CompletableFuture<Void> downloadMapFuture = mapService.downloadIfNecessary(mapFolderName).toFuture();
     CompletableFuture<Void> updateTutorialFuture = featuredModService.updateFeaturedModToLatest(
         TUTORIALS.getTechnicalName(), false);
 
@@ -523,11 +528,11 @@ public class GameRunner implements InitializingBean {
     return this.pid.getValue();
   }
 
-  public GameBean getRunningGame() {
+  public GameInfo getRunningGame() {
     return runningGame.getValue();
   }
 
-  public ReadOnlyObjectProperty<GameBean> runningGameProperty() {
+  public ReadOnlyObjectProperty<GameInfo> runningGameProperty() {
     return runningGame.getReadOnlyProperty();
   }
 }

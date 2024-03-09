@@ -1,12 +1,11 @@
 package com.faforever.client.player;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.PlayerMapper;
 import com.faforever.client.preferences.UserPrefs;
@@ -18,7 +17,6 @@ import com.faforever.commons.api.elide.ElideEntity;
 import com.faforever.commons.lobby.Player;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
-import com.faforever.commons.lobby.PlayerInfo;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
+import reactor.test.StepVerifier;
 import reactor.test.publisher.TestPublisher;
 
 import java.util.HashMap;
@@ -74,13 +73,14 @@ public class PlayerServiceTest extends ServiceTest {
   private com.faforever.commons.lobby.Player playerInfo1;
   private com.faforever.commons.lobby.Player playerInfo2;
 
-  private final TestPublisher<PlayerInfo> playerInfoTestPublisher = TestPublisher.create();
+  private final TestPublisher<com.faforever.commons.lobby.PlayerInfo> playerInfoTestPublisher = TestPublisher.create();
 
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(playerMapper);
     lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
-    lenient().when(fafServerAccessor.getEvents(PlayerInfo.class)).thenReturn(playerInfoTestPublisher.flux());
+    lenient().when(fafServerAccessor.getEvents(com.faforever.commons.lobby.PlayerInfo.class))
+             .thenReturn(playerInfoTestPublisher.flux());
     currentPlayer = new Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>(), null);
     playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null,
                                                          new Avatar("https://test.com/test.png", "junit"), "",
@@ -97,14 +97,14 @@ public class PlayerServiceTest extends ServiceTest {
     lenient().when(loginService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
 
     instance.afterPropertiesSet();
-    playerInfoTestPublisher.next(new PlayerInfo(List.of(playerInfo1, playerInfo2)));
+    playerInfoTestPublisher.next(new com.faforever.commons.lobby.PlayerInfo(List.of(playerInfo1, playerInfo2)));
 
     playerInfoTestPublisher.assertSubscribers(1);
   }
 
   @Test
   public void testPlayerComesOnline() {
-    playerInfoTestPublisher.next(new PlayerInfo(List.of(
+    playerInfoTestPublisher.next(new com.faforever.commons.lobby.PlayerInfo(List.of(
         new com.faforever.commons.lobby.Player(4, "junit3", null, null, "", new HashMap<>(), new HashMap<>(), null))));
 
     assertTrue(instance.getPlayerByIdIfOnline(4).isPresent());
@@ -112,26 +112,26 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testGetPlayerForUsernameUsernameDoesNotExist() {
-    Optional<PlayerBean> player = instance.getPlayerByNameIfOnline("test");
+    Optional<PlayerInfo> player = instance.getPlayerByNameIfOnline("test");
     assertFalse(player.isPresent());
   }
 
   @Test
   public void testGetPlayerForUsernameUsernameExists() {
-    PlayerBean player = instance.getPlayerByNameIfOnline("junit2").orElseThrow();
+    PlayerInfo player = instance.getPlayerByNameIfOnline("junit2").orElseThrow();
 
     assertEquals("junit2", player.getUsername());
   }
 
   @Test
   public void testPlayerUpdatedFromPlayerInfo() {
-    PlayerBean player = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
+    PlayerInfo player = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
 
     assertEquals(playerInfo1.getRatings().values().stream().mapToInt(LeaderboardStats::getNumberOfGames).sum(), player.getNumberOfGames());
     assertEquals(playerInfo1.getClan(), player.getClan());
     assertEquals(playerInfo1.getCountry(), player.getCountry());
 
-    playerInfoTestPublisher.next(new PlayerInfo(List.of(
+    playerInfoTestPublisher.next(new com.faforever.commons.lobby.PlayerInfo(List.of(
         new com.faforever.commons.lobby.Player(2, "junit2", "ABC", null, "DE", new HashMap<>(), new HashMap<>(),
                                                null))));
 
@@ -156,7 +156,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testGetCurrentPlayer() {
-    PlayerBean currentPlayer = instance.getCurrentPlayer();
+    PlayerInfo currentPlayer = instance.getCurrentPlayer();
 
     assertThat(currentPlayer.getUsername(), is("junit"));
     assertThat(currentPlayer.getId(), is(1));
@@ -164,49 +164,48 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testGetPlayerByName() {
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
-    Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerBean, new CycleAvoidingMappingContext()));
+    PlayerInfo playerInfo = PlayerInfoBuilder.create().defaultValues().get();
+    Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerInfo));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    Optional<PlayerBean> result = instance.getPlayerByName("test").join();
+    StepVerifier.create(instance.getPlayerByName("test")).expectNext(playerInfo).verifyComplete();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("login").eq("test"))));
-    assertThat(result.orElse(null), is(playerBean));
   }
 
   @Test
   public void testGetPlayerByNamePlayerOnline() {
-    instance.getPlayerByName("junit2").join();
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
 
-    verify(fafApiAccessor, never()).getMany(any());
+    StepVerifier.create(instance.getPlayerByName("junit2")).expectNextCount(1).verifyComplete();
   }
 
   @Test
   public void testGetPlayersByIds() {
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().username("junit4").id(4).get();
-    Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerBean, new CycleAvoidingMappingContext()));
+    PlayerInfo playerInfo = PlayerInfoBuilder.create().defaultValues().username("junit4").id(4).get();
+    Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerInfo));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    instance.getPlayersByIds(List.of(1, 2, 3, 4)).join();
+    instance.getPlayersByIds(List.of(1, 2, 3, 4)).blockLast();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("id").in(List.of(4)))));
   }
 
   @Test
   public void testGetPlayersByIdsAllPlayersOnline() {
-    instance.getPlayersByIds(List.of(2, 3)).join();
+    StepVerifier.create(instance.getPlayersByIds(List.of(2, 3))).expectNextCount(2).verifyComplete();
 
     verify(fafApiAccessor, never()).getMany(any());
   }
 
   @Test
   public void testCurrentPlayerInGame() {
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, List.of(1))).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().teams(Map.of(1, List.of(1))).get();
 
     assertTrue(instance.isCurrentPlayerInGame(game));
   }
 
   @Test
   public void testCurrentPlayerNotInGame() {
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, List.of(0))).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().teams(Map.of(1, List.of(0))).get();
 
     assertFalse(instance.isCurrentPlayerInGame(game));
   }

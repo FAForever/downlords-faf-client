@@ -1,9 +1,9 @@
 package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.builders.GameLaunchMessageBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.GameFullNotifier;
 import com.faforever.client.game.GameService;
 import com.faforever.client.mapstruct.IceServerMapper;
@@ -109,7 +109,7 @@ public class IceAdapterImplTest extends ServiceTest {
     Path javaExecutablePath = Path.of("some", "path", "java");
 
     when(operatingSystem.getJavaExecutablePath()).thenReturn(javaExecutablePath);
-    PlayerBean currentPlayer = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerInfo currentPlayer = PlayerInfoBuilder.create().defaultValues().get();
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
     forgedAlliancePrefs.setShowIceAdapterDebugWindow(true);
 
@@ -142,7 +142,7 @@ public class IceAdapterImplTest extends ServiceTest {
     when(operatingSystem.getJavaExecutablePath()).thenReturn(javaExecutablePath);
     forgedAlliancePrefs.setAllowIpv6(true);
     forgedAlliancePrefs.setShowIceAdapterDebugWindow(true);
-    PlayerBean currentPlayer = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerInfo currentPlayer = PlayerInfoBuilder.create().defaultValues().get();
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
 
     List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711);

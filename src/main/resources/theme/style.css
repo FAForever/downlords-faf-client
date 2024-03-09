@@ -791,7 +791,7 @@
   -fx-graphic-text-gap: 1em;
 }
 
-/***************** League leaderboard *****************/
+/***************** League leagueLeaderboard *****************/
 
 .score-arc {
   -fx-fill: transparent;
@@ -1404,6 +1404,10 @@
   -fx-background-color: grey;
 }
 
+.my-reaction {
+    -fx-background-color: -fx-accent;
+}
+
 .attribution-hyperlink {
   -fx-focus-color: transparent;
   -fx-border-color: transparent;
@@ -1420,6 +1424,10 @@
   -fx-background-color: #212121;
 }
 
+.message-container:hover {
+  -fx-background-color: derive(-fx-base, 5%);
+}
+
 .message-container Text {
   -fx-fill: -fx-text-color;
   -fx-font-size: 14px;
@@ -1430,7 +1438,7 @@
   -fx-font-size: 10px;
 }
 
-.message-container .author, .message-container .author {
+.message-container .author {
   -fx-text-fill: -fx-text-color;
   -fx-font-size: 14px;
   -fx-font-weight: bold;

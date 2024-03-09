@@ -43,8 +43,11 @@ import static org.bridj.Platform.show;
 public class PlatformService {
 
   // Taken from https://stackoverflow.com/questions/163360/regular-expression-to-match-urls-in-java
-  public static final Pattern URL_REGEX_PATTERN = Pattern.compile(
-      "^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
+  public static final Pattern STRICT_URL_REGEX_PATTERN = Pattern.compile(
+      "^(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
+
+  public static final Pattern LENIENT_URL_REGEX_PATTERN = Pattern.compile(
+      "^(?:(https?)://)?(?:[-a-zA-Z0-9]+\\.?)+\\.[a-zA-Z]{2,}(?::[0-9]+)?(?:(?:/[^/]*)?)*(?:\\?.*)?$");
 
   private final OperatingSystem operatingSystem;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;

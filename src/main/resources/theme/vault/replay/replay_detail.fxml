@@ -115,7 +115,7 @@
                     <HBox alignment="TOP_RIGHT" prefWidth="100.0" GridPane.columnIndex="1"
                           GridPane.columnSpan="2147483647">
                         <TextField fx:id="replayIdField" alignment="CENTER_RIGHT" editable="false"
-                                   maxWidth="100.0" promptText="&lt;ReplayID&gt;" text="#123456789"/>
+                                   maxWidth="100.0"/>
                         <Button fx:id="copyButton" onAction="#copyLink"
                                 prefHeight="25.0" text="Copy link for chat"/>
                     </HBox>

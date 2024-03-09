@@ -3,12 +3,12 @@ package com.faforever.client.remote;
 import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.builders.GameInfoMessageBuilder;
 import com.faforever.client.builders.GameLaunchMessageBuilder;
-import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
+import com.faforever.client.builders.MatchmakerQueueInfoBuilder;
 import com.faforever.client.builders.NewGameInfoBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.MatchmakerQueueBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.MatchmakerQueueInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.NewGameInfo;
@@ -45,7 +45,6 @@ import com.faforever.commons.lobby.PartyInfo.PartyMember;
 import com.faforever.commons.lobby.PartyInvite;
 import com.faforever.commons.lobby.PartyKick;
 import com.faforever.commons.lobby.Player.Avatar;
-import com.faforever.commons.lobby.PlayerInfo;
 import com.faforever.commons.lobby.SearchInfo;
 import com.faforever.commons.lobby.ServerMessage;
 import com.faforever.commons.lobby.SessionResponse;
@@ -176,10 +175,10 @@ public class ServerAccessorTest extends ServiceTest {
                                      clientProperties, new FafLobbyClient(objectMapper), () -> webClient);
 
     instance.afterPropertiesSet();
-    instance.addEventListener(ServerMessage.class, serverMessage -> {
+    instance.getEvents(ServerMessage.class).doOnNext(serverMessage -> {
       receivedMessage = serverMessage;
       messageReceivedByClientLatch.countDown();
-    });
+    }).subscribe();
 
     when(uidService.generate(any())).thenReturn("encrypteduidstring");
 
@@ -227,14 +226,12 @@ public class ServerAccessorTest extends ServiceTest {
   }
 
   private void assertMessageContainsComponents(String command, String... values) {
-    serverMessagesReceived.filter(message -> message.contains(command)).next()
-                          .switchIfEmpty(Mono.error(new AssertionError("No matching messages")))
-                          .doOnNext(json -> {
-                            assertThat(json, containsString("command"));
-                            for (String string : values) {
-                              assertThat(json, containsString(string));
-                            }
-                          }).block(Duration.ofSeconds(10));
+    StepVerifier.create(serverMessagesReceived.filter(message -> message.contains(command)).next()).assertNext(json -> {
+      assertThat(json, containsString("command"));
+      for (String string : values) {
+        assertThat(json, containsString(string));
+      }
+    }).verifyComplete();
   }
 
   @AfterEach
@@ -303,7 +300,7 @@ public class ServerAccessorTest extends ServiceTest {
 
     CompletableFuture<MatchmakerInfo> serviceStateDoneFuture = new CompletableFuture<>();
 
-    instance.addEventListener(MatchmakerInfo.class, serviceStateDoneFuture::complete);
+    instance.getEvents(MatchmakerInfo.class).subscribe(serviceStateDoneFuture::complete);
 
     sendFromServer(matchmakerMessage);
 
@@ -517,7 +514,7 @@ public class ServerAccessorTest extends ServiceTest {
 
   @Test
   public void testGameMatchmaking() {
-    MatchmakerQueueBean queue = MatchmakerQueueBeanBuilder.create().defaultValues().get();
+    MatchmakerQueueInfo queue = MatchmakerQueueInfoBuilder.create().defaultValues().get();
 
     instance.gameMatchmaking(queue, MatchmakerState.START);
 
@@ -531,7 +528,7 @@ public class ServerAccessorTest extends ServiceTest {
 
   @Test
   public void testInviteToParty() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
 
     instance.inviteToParty(player);
 
@@ -543,7 +540,7 @@ public class ServerAccessorTest extends ServiceTest {
 
   @Test
   public void testAcceptPartyInvite() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
 
     instance.acceptPartyInvite(player);
 
@@ -555,7 +552,7 @@ public class ServerAccessorTest extends ServiceTest {
 
   @Test
   public void testKickPlayerFromParty() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
 
     instance.kickPlayerFromParty(player);
 
@@ -686,7 +683,7 @@ public class ServerAccessorTest extends ServiceTest {
 
   @Test
   public void testOnPlayerInfo() throws InterruptedException, JsonProcessingException {
-    PlayerInfo playerInfoMessage = new PlayerInfo(List.of());
+    com.faforever.commons.lobby.PlayerInfo playerInfoMessage = new com.faforever.commons.lobby.PlayerInfo(List.of());
 
     sendFromServer(playerInfoMessage);
     assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));

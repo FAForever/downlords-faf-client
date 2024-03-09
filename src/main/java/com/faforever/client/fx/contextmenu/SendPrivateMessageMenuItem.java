@@ -22,7 +22,7 @@ public class SendPrivateMessageMenuItem extends AbstractMenuItem<String> {
   @Override
   protected void onClicked() {
     Assert.isTrue(!StringUtils.isBlank(object), "No username has been set");
-    chatService.onInitiatePrivateChat(object);
+    chatService.joinPrivateChat(object);
   }
 
   @Override

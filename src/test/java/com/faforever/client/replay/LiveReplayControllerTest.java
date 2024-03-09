@@ -1,7 +1,7 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.builders.GameInfoBuilder;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.filter.LiveGamesFilterController;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.game.GameService;
@@ -65,9 +65,11 @@ public class LiveReplayControllerTest extends PlatformTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testFilterOnlyLiveGames() {
-    ArgumentCaptor<Predicate<GameBean>> argumentCaptor = ArgumentCaptor.forClass(Predicate.class);
+    ArgumentCaptor<Predicate<GameInfo>> argumentCaptor = ArgumentCaptor.forClass(Predicate.class);
     verify(liveGamesFilterController).setDefaultPredicate(argumentCaptor.capture());
-    assertFalse(argumentCaptor.getValue().test(GameBeanBuilder.create().defaultValues().id(1).status(GameStatus.OPEN).get()));
-    assertTrue(argumentCaptor.getValue().test(GameBeanBuilder.create().defaultValues().id(2).status(GameStatus.PLAYING).get()));
+    assertFalse(
+        argumentCaptor.getValue().test(GameInfoBuilder.create().defaultValues().id(1).status(GameStatus.OPEN).get()));
+    assertTrue(argumentCaptor.getValue()
+                             .test(GameInfoBuilder.create().defaultValues().id(2).status(GameStatus.PLAYING).get()));
   }
 }

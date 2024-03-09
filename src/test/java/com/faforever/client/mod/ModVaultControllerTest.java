@@ -1,7 +1,6 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.builders.ModVersionBeanBuilder;
-import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -17,6 +16,7 @@ import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import javafx.scene.layout.Pane;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -26,7 +26,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -67,15 +66,18 @@ public class ModVaultControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(modService.getNewestModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
-    when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
-    when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
+    when(modService.getNewestModsWithPageCount(anyInt(), anyInt())).thenReturn(
+        Mono.zip(Mono.just(List.of()), Mono.just(0)));
+    when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(
+        Mono.zip(Mono.just(List.of()), Mono.just(0)));
+    when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(
+        Mono.zip(Mono.just(List.of()), Mono.just(0)));
     when(i18n.get(anyString())).thenReturn("test");
     when(modDetailController.getRoot()).thenReturn(new Pane());
 
     when(uiService.loadFxml("theme/vault/mod/mod_detail.fxml")).thenReturn(modDetailController);
 
-    when(modService.getRecommendedModPageCount(VaultEntityController.TOP_ELEMENT_COUNT)).thenReturn(CompletableFuture.completedFuture(0));
+    when(modService.getRecommendedModPageCount(VaultEntityController.TOP_ELEMENT_COUNT)).thenReturn(Mono.just(0));
 
     loadFxml("theme/vault/vault_entity.fxml", clazz -> {
       if (SearchController.class.isAssignableFrom(clazz)) {
@@ -112,7 +114,7 @@ public class ModVaultControllerTest extends PlatformTest {
 
   @Test
   public void testShowModDetail() throws MalformedURLException {
-    ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().get();
+    ModVersion modVersion = Instancio.create(ModVersion.class);
     runOnFxThreadAndWait(() -> instance.onDisplayDetails(modVersion));
 
     verify(modDetailController).setModVersion(modVersion);

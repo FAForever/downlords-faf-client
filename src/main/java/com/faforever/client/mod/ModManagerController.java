@@ -1,7 +1,7 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.domain.ModVersionBean;
-import com.faforever.client.domain.ModVersionBean.ModType;
+import com.faforever.client.domain.api.ModType;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -39,23 +39,20 @@ import java.util.function.Predicate;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ModManagerController extends NodeController<Parent> {
 
-  private static final Predicate<ModVersionBean> UI_FILTER = modVersion -> modVersion.getModType() == ModType.UI;
-  private static final Predicate<ModVersionBean> SIM_FILTER = modVersion -> modVersion.getModType() == ModType.SIM;
-
   private final ModService modService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  private final Set<ModVersionBean> selectedMods = new HashSet<>();
+  private final Set<ModVersion> selectedMods = new HashSet<>();
   public Button closeButton;
   private Runnable onCloseButtonClickedListener;
   public ToggleButton uiModsButton;
   public ToggleGroup viewToggleGroup;
   public ToggleButton simModsButton;
-  public ListView<ModVersionBean> modListView;
+  public ListView<ModVersion> modListView;
   public VBox root;
   public TextField modSearchTextField;
 
-  private FilteredList<ModVersionBean> modVersionFilteredList;
+  private FilteredList<ModVersion> modVersionFilteredList;
 
   public void onShowUIMods() {
     filterModList();
@@ -107,13 +104,18 @@ public class ModManagerController extends NodeController<Parent> {
     setCloseable(true);
   }
 
-  private Predicate<ModVersionBean> getCombinedFilter(){
-      return modVersion -> (viewToggleGroup.getSelectedToggle() == uiModsButton ? modVersion.getModType() == ModType.UI : modVersion.getModType() == ModType.SIM)
-          && (modSearchTextField.getText().isEmpty() || modVersion.getMod().getDisplayName().toLowerCase().contains(modSearchTextField.getText().toLowerCase()));
+  private Predicate<ModVersion> getCombinedFilter() {
+    return modVersion -> (viewToggleGroup.getSelectedToggle() == uiModsButton ? modVersion.modType() == ModType.UI : modVersion.modType() == ModType.SIM) && (modSearchTextField.getText()
+                                                                                                                                                                                .isEmpty() || modVersion.mod()
+                                                                                                                                                                                                                .displayName()
+                                                                                                                                                                                                                .toLowerCase()
+                                                                                                                                                                                                                .contains(
+                                                                                                                                                                                                                    modSearchTextField.getText()
+                                                                                                                                                                                                                                      .toLowerCase()));
   }
 
   private void loadActivatedMods() {
-    ObservableList<ModVersionBean> installedModVersions = modService.getInstalledMods();
+    ObservableList<ModVersion> installedModVersions = modService.getInstalledMods();
     try {
       selectedMods.addAll(modService.getActivatedSimAndUIMods());
     } catch (IOException e) {
@@ -136,13 +138,13 @@ public class ModManagerController extends NodeController<Parent> {
   }
 
   @NotNull
-  private Callback<ListView<ModVersionBean>, ListCell<ModVersionBean>> modListCellFactory() {
+  private Callback<ListView<ModVersion>, ListCell<ModVersion>> modListCellFactory() {
     return param -> {
-      ListCell<ModVersionBean> cell = new StringListCell<>(modVersion -> modVersion.getMod()
-          .getDisplayName(), fxApplicationThreadExecutor);
+      ListCell<ModVersion> cell = new StringListCell<>(modVersion -> modVersion.mod().displayName(),
+                                                       fxApplicationThreadExecutor);
       cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
         modListView.requestFocus();
-        MultipleSelectionModel<ModVersionBean> selectionModel = modListView.getSelectionModel();
+        MultipleSelectionModel<ModVersion> selectionModel = modListView.getSelectionModel();
         if (!cell.isEmpty()) {
           int index = cell.getIndex();
           if (selectionModel.getSelectedIndices().contains(index)) {
@@ -159,14 +161,14 @@ public class ModManagerController extends NodeController<Parent> {
     };
   }
 
-  public Set<ModVersionBean> apply() {
-    Set<ModVersionBean> mods = getSelectedModVersions();
+  public Set<ModVersion> apply() {
+    Set<ModVersion> mods = getSelectedModVersions();
     modService.overrideActivatedMods(mods);
     return mods;
   }
 
   @NotNull
-  public Set<ModVersionBean> getSelectedModVersions() {
+  public Set<ModVersion> getSelectedModVersions() {
     return Collections.unmodifiableSet(selectedMods);
   }
 }

@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.builders.ChatChannelUserBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.filter.ChatUserFilterController;
 import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
@@ -497,6 +497,8 @@ public class ChatUserListControllerTest extends PlatformTest {
 
   private ChatChannelUser generateUser(SocialStatus socialStatus, boolean isModerator) {
     return ChatChannelUserBuilder.create(RandomStringUtils.randomAlphanumeric(15), new ChatChannel(CHANNEL_NAME))
-        .moderator(isModerator).player(PlayerBeanBuilder.create().socialStatus(socialStatus).get()).get();
+                                 .moderator(isModerator)
+                                 .player(PlayerInfoBuilder.create().socialStatus(socialStatus).get())
+                                 .get();
   }
 }

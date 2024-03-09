@@ -1,6 +1,6 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.PlatformTest;
@@ -28,13 +28,13 @@ public class ShowPlayerInfoMenuItemTest extends PlatformTest {
 
   @Test
   public void testVisibleItemIfNonNullPlayer() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().get());
     assertTrue(instance.isVisible());
   }
 
   @Test
   public void testVisibleItemIfPlayerIsSelf() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get());
     assertTrue(instance.isVisible());
   }
 

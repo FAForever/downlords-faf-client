@@ -1,11 +1,10 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.MatchmakerQueueBean;
-import com.faforever.client.domain.PartyBean.PartyMember;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.domain.SubdivisionBean;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.server.MatchmakerQueueInfo;
+import com.faforever.client.domain.server.PartyInfo.PartyMember;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -107,7 +106,7 @@ public class TeamMatchmakingController extends NodeController<Node> {
     refreshingLabel.setVisible(false);
     renderPartyMembers();
   };
-  private final ListChangeListener<MatchmakerQueueBean> queueChangeListener = change -> {
+  private final ListChangeListener<MatchmakerQueueInfo> queueChangeListener = change -> {
     boolean shouldReRender = false;
     while (change.next()) {
       shouldReRender |= change.wasAdded() || change.wasRemoved();
@@ -123,12 +122,15 @@ public class TeamMatchmakingController extends NodeController<Node> {
     JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView, leagueImageView);
     JavaFxUtil.fixScrollSpeed(scrollPane);
 
+    leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
+    leagueImageView.setVisible(false);
+
     factionsToButtons = Map.of(Faction.UEF, uefButton, Faction.AEON, aeonButton, Faction.CYBRAN, cybranButton,
                                Faction.SERAPHIM, seraphimButton);
 
     searchButton.selectedProperty().bindBidirectional(teamMatchmakingService.searchingProperty());
 
-    ReadOnlyObjectProperty<PlayerBean> currentPlayerProperty = playerService.currentPlayerProperty();
+    ReadOnlyObjectProperty<PlayerInfo> currentPlayerProperty = playerService.currentPlayerProperty();
     searchButton.disableProperty()
                 .bind(teamMatchmakingService.getParty()
                                             .ownerProperty()
@@ -148,25 +150,22 @@ public class TeamMatchmakingController extends NodeController<Node> {
     leavePartyButton.disableProperty().bind(notPartyOwner.not().when(showing));
     invitePlayerButton.disableProperty().bind(notPartyOwner.when(showing));
 
-    countryImageView.imageProperty()
-                    .bind(currentPlayerProperty.flatMap(PlayerBean::countryProperty)
+    countryImageView.imageProperty().bind(currentPlayerProperty.flatMap(PlayerInfo::countryProperty)
                                                .map(country -> countryFlagService.loadCountryFlag(country).orElse(null))
                                                .when(showing));
 
-    avatarImageView.imageProperty()
-                   .bind(currentPlayerProperty.flatMap(PlayerBean::avatarProperty)
+    avatarImageView.imageProperty().bind(currentPlayerProperty.flatMap(PlayerInfo::avatarProperty)
                                               .map(avatarService::loadAvatar)
                                               .when(showing));
 
-    ObservableValue<String> clanTagProperty = currentPlayerProperty.flatMap(PlayerBean::clanProperty);
+    ObservableValue<String> clanTagProperty = currentPlayerProperty.flatMap(PlayerInfo::clanProperty);
     clanLabel.visibleProperty().bind(clanTagProperty.map(clanTag -> !clanTag.isBlank()).orElse(false).when(showing));
     clanLabel.textProperty().bind(clanTagProperty.map("[%s]"::formatted).orElse("").when(showing));
-    gameCountLabel.textProperty()
-                  .bind(currentPlayerProperty.flatMap(PlayerBean::numberOfGamesProperty)
+    gameCountLabel.textProperty().bind(currentPlayerProperty.flatMap(PlayerInfo::numberOfGamesProperty)
                                              .map(numGames -> i18n.get("teammatchmaking.gameCount", numGames))
                                              .map(String::toUpperCase)
                                              .when(showing));
-    usernameLabel.textProperty().bind(currentPlayerProperty.flatMap(PlayerBean::usernameProperty).when(showing));
+    usernameLabel.textProperty().bind(currentPlayerProperty.flatMap(PlayerInfo::usernameProperty).when(showing));
     crownLabel.visibleProperty()
               .bind(Bindings.size(teamMatchmakingService.getParty().getMembers())
                             .greaterThan(1)
@@ -227,7 +226,7 @@ public class TeamMatchmakingController extends NodeController<Node> {
   }
 
   private void setSearchButtonText() {
-    PlayerBean currentPlayer = playerService.getCurrentPlayer();
+    PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
     String buttonText;
     if (teamMatchmakingService.isInQueue()) {
@@ -246,29 +245,26 @@ public class TeamMatchmakingController extends NodeController<Node> {
     fxApplicationThreadExecutor.execute(() -> searchButton.setText(buttonText));
   }
 
-  private void setLeagueInfo(PlayerBean currentPlayer) {
+  private void setLeagueInfo(PlayerInfo currentPlayer) {
     if (currentPlayer == null) {
       return;
     }
 
-    leaderboardService.getHighestActiveLeagueEntryForPlayer(currentPlayer).thenAcceptAsync(leagueEntry -> {
-      SubdivisionBean subdivision = leagueEntry.map(LeagueEntryBean::getSubdivision).orElse(null);
-      if (subdivision == null) {
-        leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
-        leagueImageView.setVisible(false);
-      } else {
-        leagueLabel.setText(i18n.get("leaderboard.divisionName",
-                                     i18n.getOrDefault(subdivision.getDivision().getNameKey(),
-                                                       subdivision.getDivisionI18nKey()), subdivision.getNameKey())
-                                .toUpperCase());
-        leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
-        leagueImageView.setVisible(true);
-      }
-    }, fxApplicationThreadExecutor);
+    leaderboardService.getHighestActiveLeagueEntryForPlayer(currentPlayer).mapNotNull(LeagueEntry::subdivision)
+                      .publishOn(fxApplicationThreadExecutor.asScheduler())
+                      .subscribe(subdivision -> {
+                        String divisionNameKey = subdivision.division().nameKey();
+                        leagueLabel.setText(i18n.get("leaderboard.divisionName", i18n.getOrDefault(divisionNameKey,
+                                                                                                   "leagues.divisionName.%s".formatted(
+                                                                                                       divisionNameKey)),
+                                                     subdivision.nameKey()).toUpperCase());
+                        leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.mediumImageUrl()));
+                        leagueImageView.setVisible(true);
+                      });
   }
 
   private void renderPartyMembers() {
-    PlayerBean currentPlayer = playerService.getCurrentPlayer();
+    PlayerInfo currentPlayer = playerService.getCurrentPlayer();
     if (currentPlayer != null) {
       List<PartyMember> members = new ArrayList<>(teamMatchmakingService.getParty().getMembers());
       members.removeIf(partyMember -> currentPlayer.equals(partyMember.getPlayer()));
@@ -336,8 +332,8 @@ public class TeamMatchmakingController extends NodeController<Node> {
   }
 
   private void renderQueues() {
-    List<MatchmakerQueueBean> queues = new ArrayList<>(teamMatchmakingService.getQueues());
-    queues.sort(Comparator.comparing(MatchmakerQueueBean::getTeamSize).thenComparing(MatchmakerQueueBean::getId));
+    List<MatchmakerQueueInfo> queues = new ArrayList<>(teamMatchmakingService.getQueues());
+    queues.sort(Comparator.comparing(MatchmakerQueueInfo::getTeamSize).thenComparing(MatchmakerQueueInfo::getId));
     int queuesPerRow = Math.min(queues.size(), 4);
     ObservableValue<Number> prefWidth = queuePane.widthProperty()
                                                  .divide(queuesPerRow)

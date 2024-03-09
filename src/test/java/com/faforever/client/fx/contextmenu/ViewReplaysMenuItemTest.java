@@ -1,6 +1,6 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.navigation.NavigationHandler;
@@ -31,14 +31,14 @@ public class ViewReplaysMenuItemTest extends PlatformTest {
 
   @Test
   public void testViewReplays() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().get());
     instance.onClicked();
     verify(navigationHandler).navigateTo(any(ShowUserReplaysEvent.class));
   }
 
   @Test
   public void testVisibleItem() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.OTHER).get());
+    instance.setObject(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.OTHER).get());
     assertTrue(instance.isVisible());
   }
 

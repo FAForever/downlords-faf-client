@@ -1,71 +1,73 @@
 package com.faforever.client.mapstruct;
 
-import com.faforever.client.domain.MapReviewsSummaryBean;
-import com.faforever.client.domain.MapVersionReviewBean;
-import com.faforever.client.domain.MapVersionReviewsSummaryBean;
-import com.faforever.client.domain.ModReviewsSummaryBean;
-import com.faforever.client.domain.ModVersionReviewBean;
-import com.faforever.client.domain.ModVersionReviewsSummaryBean;
-import com.faforever.client.domain.ReplayReviewBean;
-import com.faforever.client.domain.ReplayReviewsSummaryBean;
+import com.faforever.client.domain.api.MapVersionReview;
+import com.faforever.client.domain.api.ModVersionReview;
+import com.faforever.client.domain.api.ReplayReview;
+import com.faforever.client.domain.api.ReviewBean;
+import com.faforever.client.domain.api.ReviewsSummary;
 import com.faforever.commons.api.dto.GameReview;
 import com.faforever.commons.api.dto.GameReviewsSummary;
-import com.faforever.commons.api.dto.MapReviewsSummary;
-import com.faforever.commons.api.dto.MapVersionReview;
-import com.faforever.commons.api.dto.MapVersionReviewsSummary;
-import com.faforever.commons.api.dto.ModReviewsSummary;
-import com.faforever.commons.api.dto.ModVersionReview;
-import com.faforever.commons.api.dto.ModVersionReviewsSummary;
-import org.mapstruct.Context;
+import com.faforever.commons.api.dto.Review;
+import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(uses = {ReplayMapper.class, ModMapper.class, MapMapper.class, PlayerMapper.class}, config = MapperConfiguration.class)
 public interface ReviewMapper {
 
-  @Mapping(target = "replay", source = "game")
-  ReplayReviewBean map(GameReview dto, @Context CycleAvoidingMappingContext context);
+  default ReviewBean<?> map(Review dto) {
+    return switch (dto) {
+      case GameReview replayReview -> map(replayReview);
+      case com.faforever.commons.api.dto.MapVersionReview mapReview -> map(mapReview);
+      case com.faforever.commons.api.dto.ModVersionReview modReview -> map(modReview);
+      default -> throw new UnsupportedOperationException("Cannot map reviews of type: " + dto.getClass());
+    };
+  }
 
-  @Mapping(target = "game", source = "replay")
-  GameReview map(ReplayReviewBean bean, @Context CycleAvoidingMappingContext context);
+  default Review map(ReviewBean<?> bean) {
+    return switch (bean) {
+      case ReplayReview replayReview -> map(replayReview);
+      case MapVersionReview mapReview -> map(mapReview);
+      case ModVersionReview modReview -> map(modReview);
+    };
+  }
 
-  MapVersionReviewBean map(MapVersionReview dto, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "subject", source = "game")
+  ReplayReview map(GameReview dto);
 
-  MapVersionReview map(MapVersionReviewBean bean, @Context CycleAvoidingMappingContext context);
+  @InheritInverseConfiguration
+  GameReview map(ReplayReview bean);
 
-  ModVersionReviewBean map(ModVersionReview dto, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "subject", source = "mapVersion")
+  MapVersionReview map(com.faforever.commons.api.dto.MapVersionReview dto);
 
-  ModVersionReview map(ModVersionReviewBean bean, @Context CycleAvoidingMappingContext context);
+  @InheritInverseConfiguration
+  com.faforever.commons.api.dto.MapVersionReview map(MapVersionReview bean);
 
-  @Mapping(target = "numReviews", source = "reviews")
-  @Mapping(target = "replay", source = "game")
-  ReplayReviewsSummaryBean map(GameReviewsSummary dto, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "subject", source = "modVersion")
+  ModVersionReview map(com.faforever.commons.api.dto.ModVersionReview dto);
 
-  @Mapping(target = "reviews", source = "numReviews")
-  @Mapping(target = "game", source = "replay")
-  GameReviewsSummary map(ReplayReviewsSummaryBean bean, @Context CycleAvoidingMappingContext context);
-
-  @Mapping(target = "numReviews", source = "reviews")
-  MapVersionReviewsSummaryBean map(MapVersionReviewsSummary dto, @Context CycleAvoidingMappingContext context);
-
-  @Mapping(target = "reviews", source = "numReviews")
-  MapVersionReviewsSummary map(MapVersionReviewsSummaryBean bean, @Context CycleAvoidingMappingContext context);
-
-  @Mapping(target = "numReviews", source = "reviews")
-  ModVersionReviewsSummaryBean map(ModVersionReviewsSummary dto, @Context CycleAvoidingMappingContext context);
-
-  @Mapping(target = "reviews", source = "numReviews")
-  ModVersionReviewsSummary map(ModVersionReviewsSummaryBean bean, @Context CycleAvoidingMappingContext context);
-
-  @Mapping(target = "numReviews", source = "reviews")
-  MapReviewsSummaryBean map(MapReviewsSummary dto, @Context CycleAvoidingMappingContext context);
-
-  @Mapping(target = "reviews", source = "numReviews")
-  MapReviewsSummary map(MapReviewsSummaryBean bean, @Context CycleAvoidingMappingContext context);
+  @InheritInverseConfiguration
+  com.faforever.commons.api.dto.ModVersionReview map(ModVersionReview bean);
 
   @Mapping(target = "numReviews", source = "reviews")
-  ModReviewsSummaryBean map(ModReviewsSummary dto, @Context CycleAvoidingMappingContext context);
+  ReviewsSummary map(GameReviewsSummary dto);
 
-  @Mapping(target = "reviews", source = "numReviews")
-  ModReviewsSummary map(ModReviewsSummaryBean bean, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "game", ignore = true)
+  @InheritInverseConfiguration
+  GameReviewsSummary mapToGame(ReviewsSummary bean);
+
+  @Mapping(target = "numReviews", source = "reviews")
+  ReviewsSummary map(com.faforever.commons.api.dto.MapReviewsSummary dto);
+
+  @InheritInverseConfiguration
+  @Mapping(target = "map", ignore = true)
+  com.faforever.commons.api.dto.MapReviewsSummary mapToMap(ReviewsSummary bean);
+
+  @Mapping(target = "numReviews", source = "reviews")
+  ReviewsSummary map(com.faforever.commons.api.dto.ModReviewsSummary dto);
+
+  @InheritInverseConfiguration
+  @Mapping(target = "mod", ignore = true)
+  com.faforever.commons.api.dto.ModReviewsSummary mapToMod(ReviewsSummary bean);
 }

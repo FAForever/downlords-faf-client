@@ -4,7 +4,7 @@ import javafx.beans.binding.BooleanExpression;
 import javafx.scene.control.Tab;
 
 
-public abstract non-sealed class TabController extends Controller<Tab> {
+public abstract class TabController extends Controller<Tab> {
 
   @Override
   protected BooleanExpression createAttachedExpression() {

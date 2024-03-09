@@ -1,8 +1,8 @@
 package com.faforever.client.filter;
 
-import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.filter.function.FeaturedModFilterFunction;
 import com.faforever.client.filter.function.SimModsFilterFunction;
@@ -26,7 +26,7 @@ import java.util.Optional;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class LiveGamesFilterController extends AbstractFilterController<GameBean> {
+public class LiveGamesFilterController extends AbstractFilterController<GameInfo> {
 
   private final SocialService socialService;
   private final PlayerService playerService;
@@ -46,7 +46,7 @@ public class LiveGamesFilterController extends AbstractFilterController<GameBean
   }
 
   @Override
-  protected void build(FilterBuilder<GameBean> filterBuilder) {
+  protected void build(FilterBuilder<GameInfo> filterBuilder) {
     filterBuilder.checkbox(i18n.get("moddedGames"), new SimModsFilterFunction());
 
     filterBuilder.checkbox(i18n.get("hideSingleGames"), (selected, game) -> !selected || game.getNumActivePlayers() != 1);
@@ -59,17 +59,18 @@ public class LiveGamesFilterController extends AbstractFilterController<GameBean
     filterBuilder.multiCheckbox(i18n.get("gameType"), List.of(GameType.CUSTOM, GameType.MATCHMAKER, GameType.COOP), gameTypeConverter,
         (selectedGameTypes, game) -> selectedGameTypes.isEmpty() || selectedGameTypes.contains(game.getGameType()));
 
-    filterBuilder.multiCheckbox(i18n.get("featuredMod.displayName"), featuredModService.getFeaturedMods(),
-                                new ToStringOnlyConverter<>(FeaturedModBean::getDisplayName),
-                                new FeaturedModFilterFunction());
+    FilterMultiCheckboxController<FeaturedMod, GameInfo> featuredModFilter = filterBuilder.multiCheckbox(
+        i18n.get("featuredMod.displayName"), new ToStringOnlyConverter<>(FeaturedMod::displayName),
+        new FeaturedModFilterFunction());
+
+    featuredModService.getFeaturedMods().collectList().subscribe(featuredModFilter::setItems);
 
     filterBuilder.textField(i18n.get("game.player.username"), (text, game) -> text.isEmpty() || game.getTeams()
         .values()
         .stream()
         .flatMap(Collection::stream)
         .map(playerService::getPlayerByIdIfOnline)
-        .flatMap(Optional::stream)
-        .map(PlayerBean::getUsername)
+        .flatMap(Optional::stream).map(PlayerInfo::getUsername)
         .anyMatch(name -> StringUtils.containsIgnoreCase(name, text)));
   }
 

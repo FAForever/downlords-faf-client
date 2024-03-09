@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import javafx.geometry.Insets?>
+<?import javafx.geometry.Rectangle2D?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<HBox fx:id="root" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.faforever.client.chat.ReactionController" styleClass="emoticon-view" spacing="5">
+    <padding>
+        <Insets topRightBottomLeft="5"/>
+    </padding>
+    <ImageView fx:id="emoticonImageView" pickOnBounds="true" preserveRatio="true" fitHeight="16" fitWidth="16">
+        <viewport>
+            <Rectangle2D/>
+        </viewport>
+    </ImageView>
+    <Label fx:id="label"/>
+</HBox>

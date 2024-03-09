@@ -1,20 +1,8 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.chat.ChatService;
-import com.faforever.client.chat.UrlPreviewResolver;
-import com.faforever.client.clan.ClanService;
-import com.faforever.client.clan.ClanTooltipController;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.navigation.NavigationHandler;
-import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.StageHolder;
-import com.faforever.client.util.PopupUtil;
-import com.google.common.annotations.VisibleForTesting;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Tooltip;
-import javafx.stage.Popup;
-import javafx.stage.PopupWindow.AnchorLocation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -31,19 +19,9 @@ import java.util.regex.Pattern;
 public class BrowserCallback implements InitializingBean {
 
   private final PlatformService platformService;
-  private final UrlPreviewResolver urlPreviewResolver;
-  private final ClanService clanService;
-  private final UiService uiService;
   private final ClientProperties clientProperties;
-  private final ChatService chatService;
-  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final NavigationHandler navigationHandler;
 
-  @VisibleForTesting
-  Popup clanInfoPopup;
-  private Tooltip linkPreviewTooltip;
-  private double lastMouseX;
-  private double lastMouseY;
   private Pattern replayUrlPattern;
 
   @Override
@@ -66,100 +44,5 @@ public class BrowserCallback implements InitializingBean {
 
     String replayId = replayUrlMatcher.group(1);
     navigationHandler.navigateTo(new ShowReplayEvent(Integer.parseInt(replayId)));
-  }
-
-  /**
-   * Called from JavaScript when user clicked a channel link.
-   */
-  @SuppressWarnings("unused")
-  public void openChannel(String channelName) {
-    chatService.joinChannel(channelName);
-  }
-
-  /**
-   * Called from JavaScript when user clicks on user name in chat
-   */
-  @SuppressWarnings("unused")
-  public void openPrivateMessageTab(String username) {
-    chatService.onInitiatePrivateChat(username);
-  }
-
-  /**
-   * Called from JavaScript when user no longer hovers over an URL.
-   */
-  @SuppressWarnings("unused")
-  public void hideUrlPreview() {
-    if (linkPreviewTooltip != null) {
-      linkPreviewTooltip.hide();
-      linkPreviewTooltip = null;
-    }
-  }
-
-  /**
-   * Called from JavaScript when user hovers over an URL.
-   */
-  @SuppressWarnings("unused")
-  public void previewUrl(String urlString) {
-    urlPreviewResolver.resolvePreview(urlString).thenAccept(optionalPreview -> optionalPreview.ifPresent(preview -> {
-      linkPreviewTooltip = new Tooltip(preview.description());
-      linkPreviewTooltip.setAutoHide(true);
-      linkPreviewTooltip.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_LEFT);
-      linkPreviewTooltip.setGraphic(preview.node());
-      linkPreviewTooltip.setContentDisplay(ContentDisplay.TOP);
-      fxApplicationThreadExecutor.execute(() -> linkPreviewTooltip.show(StageHolder.getStage(), lastMouseX + 20, lastMouseY));
-    }));
-  }
-
-  /**
-   * Called from JavaScript when user hovers over a clan tag.
-   */
-  @SuppressWarnings("unused")
-  public void showClanInfo(String clanTag) {
-    clanService.getClanByTag(clanTag).thenAcceptAsync(clan -> {
-      if (clan.isEmpty() || clanTag.isEmpty()) {
-        return;
-      }
-      ClanTooltipController clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
-      clanTooltipController.setClan(clan.get());
-      clanTooltipController.getRoot().getStyleClass().add("tooltip");
-
-      clanInfoPopup = PopupUtil.createPopup(AnchorLocation.CONTENT_TOP_LEFT, clanTooltipController.getRoot());
-      clanInfoPopup.show(StageHolder.getStage(), lastMouseX, lastMouseY + 10);
-    }, fxApplicationThreadExecutor);
-  }
-
-  /**
-   * Called from JavaScript when user no longer hovers over a clan tag.
-   */
-  @SuppressWarnings("unused")
-  public void hideClanInfo() {
-    if (clanInfoPopup == null) {
-      return;
-    }
-    fxApplicationThreadExecutor.execute(() -> {
-      clanInfoPopup.hide();
-      clanInfoPopup = null;
-    });
-  }
-
-  /**
-   * Called from JavaScript when user clicks on clan tag.
-   */
-  @SuppressWarnings("unused")
-  public void showClanWebsite(String clanTag) {
-    clanService.getClanByTag(clanTag).thenAccept(clan -> {
-      if (clan.isEmpty()) {
-        return;
-      }
-      platformService.showDocument(clan.get().getWebsiteUrl());
-    });
-  }
-
-  void setLastMouseX(double screenX) {
-    lastMouseX = screenX;
-  }
-
-  void setLastMouseY(double screenY) {
-    lastMouseY = screenY;
   }
 }

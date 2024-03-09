@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.discord.JoinDiscordEventHandler;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.teammatchmaking.TeamMatchmakingService;
 import javafx.scene.control.Hyperlink;
@@ -44,8 +44,7 @@ public class MatchmakingChatController extends AbstractChatTabController {
     matchmakingChatTabRoot.textProperty().bind(channelName.when(showing));
 
     chatChannel.bind(teamMatchmakingService.getParty()
-                                           .ownerProperty()
-                                           .flatMap(PlayerBean::usernameProperty)
+                                           .ownerProperty().flatMap(PlayerInfo::usernameProperty)
                                            .map(username -> "#" + username + PARTY_CHANNEL_SUFFIX)
                                            .map(chatService::getOrCreateChannel)
                                            .when(attached));

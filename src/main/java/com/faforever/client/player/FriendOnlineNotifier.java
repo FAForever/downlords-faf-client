@@ -2,7 +2,7 @@ package com.faforever.client.player;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.ChatService;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
@@ -28,7 +28,7 @@ public class FriendOnlineNotifier implements InitializingBean {
   private final NotificationPrefs notificationPrefs;
 
   @VisibleForTesting
-  void onPlayerOnline(PlayerBean player) {
+  void onPlayerOnline(PlayerInfo player) {
     if (player.getSocialStatus() != SocialStatus.FRIEND) {
       return;
     }
@@ -42,8 +42,7 @@ public class FriendOnlineNotifier implements InitializingBean {
           new TransientNotification(
               i18n.get("friend.nowOnlineNotification.title", player.getUsername()),
               i18n.get("friend.nowOnlineNotification.action"),
-              IdenticonUtil.createIdenticon(player.getId()),
-              () -> chatService.onInitiatePrivateChat(player.getUsername())
+              IdenticonUtil.createIdenticon(player.getId()), () -> chatService.joinPrivateChat(player.getUsername())
           ));
     }
   }

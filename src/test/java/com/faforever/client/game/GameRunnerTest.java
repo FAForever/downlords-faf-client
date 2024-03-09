@@ -1,17 +1,15 @@
 package com.faforever.client.game;
 
-import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.GameInfoBuilder;
 import com.faforever.client.builders.GameLaunchMessageBuilder;
-import com.faforever.client.builders.LeagueEntryBeanBuilder;
-import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.NewGameInfoBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.DiscordRichPresenceService;
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.LeagueEntryBean;
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameParameters;
 import com.faforever.client.fa.relay.ice.CoturnService;
@@ -45,6 +43,7 @@ import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.NoticeInfo;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.stage.Stage;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -53,10 +52,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.publisher.TestPublisher;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -152,7 +152,7 @@ public class GameRunnerTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(gameMapper);
-    PlayerBean junitPlayer = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerInfo junitPlayer = PlayerInfoBuilder.create().defaultValues().get();
 
     lenient().doAnswer(invocation -> {
       Runnable runnable = invocation.getArgument(0);
@@ -160,7 +160,7 @@ public class GameRunnerTest extends ServiceTest {
       return null;
     }).when(fxApplicationThreadExecutor).execute(any());
     lenient().when(fafServerAccessor.getEvents(NoticeInfo.class)).thenReturn(testNoticePublisher.flux());
-    lenient().when(coturnService.getSelectedCoturns(anyInt())).thenReturn(completedFuture(List.of()));
+    lenient().when(coturnService.getSelectedCoturns(anyInt())).thenReturn(Flux.empty());
     lenient().when(preferencesService.hasValidGamePath()).thenReturn(true);
     lenient().when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(replayServer.start(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
@@ -185,18 +185,18 @@ public class GameRunnerTest extends ServiceTest {
   private void mockStartGameProcess(GameLaunchResponse gameLaunchResponse) throws IOException {
     String mapName = gameLaunchResponse.getMapName();
     if (mapName != null) {
-      lenient().when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
+      lenient().when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     }
     lenient().when(forgedAllianceLaunchService.launchOnlineGame(any(), anyInt(), anyInt())).thenReturn(process);
     lenient().when(replayServer.start(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     lenient().when(iceAdapter.start(anyInt())).thenReturn(completedFuture(GPG_PORT));
-    lenient().when(coturnService.getSelectedCoturns(anyInt())).thenReturn(completedFuture(List.of()));
+    lenient().when(coturnService.getSelectedCoturns(anyInt())).thenReturn(Flux.empty());
     lenient().when(process.onExit()).thenReturn(new CompletableFuture<>());
     lenient().when(process.exitValue()).thenReturn(0);
     lenient().when(process.isAlive()).thenReturn(true);
     lenient().when(gameService.getByUid(anyInt()))
              .thenAnswer(invocation -> Optional.of(
-                 GameBeanBuilder.create().id(invocation.getArgument(0, Integer.class)).get()));
+                 GameInfoBuilder.create().id(invocation.getArgument(0, Integer.class)).get()));
   }
 
   @Test
@@ -249,7 +249,7 @@ public class GameRunnerTest extends ServiceTest {
                                                                     .ratingType("ladder_1v1")
                                                                     .get();
     mockStartGameProcess(gameLaunchResponse);
-    when(leaderboardService.getActiveLeagueEntryForPlayer(any(), any())).thenReturn(completedFuture(Optional.empty()));
+    when(leaderboardService.getActiveLeagueEntryForPlayer(any(), any())).thenReturn(Mono.empty());
 
     instance.startOnlineGame(gameLaunchResponse);
 
@@ -273,9 +273,8 @@ public class GameRunnerTest extends ServiceTest {
                                                                     .ratingType("ladder_1v1")
                                                                     .get();
     mockStartGameProcess(gameLaunchResponse);
-    LeagueEntryBean leagueEntry = LeagueEntryBeanBuilder.create().defaultValues().get();
-    when(leaderboardService.getActiveLeagueEntryForPlayer(any(), any())).thenReturn(
-        completedFuture(Optional.of(leagueEntry)));
+    LeagueEntry leagueEntry = Instancio.create(LeagueEntry.class);
+    when(leaderboardService.getActiveLeagueEntryForPlayer(any(), any())).thenReturn(Mono.just(leagueEntry));
 
     instance.startOnlineGame(gameLaunchResponse);
 
@@ -287,8 +286,8 @@ public class GameRunnerTest extends ServiceTest {
     verify(mapService).downloadIfNecessary(gameParameters.mapName());
 
     assertNotNull(gameParameters.league());
-    assertEquals(leagueEntry.getSubdivision().getDivision().getNameKey(), gameParameters.league().division());
-    assertEquals(leagueEntry.getSubdivision().getNameKey(), gameParameters.league().subDivision());
+    assertEquals(leagueEntry.subdivision().division().nameKey(), gameParameters.league().division());
+    assertEquals(leagueEntry.subdivision().nameKey(), gameParameters.league().subDivision());
   }
 
   @Test
@@ -385,7 +384,7 @@ public class GameRunnerTest extends ServiceTest {
     GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
     mockStartGameProcess(gameLaunchResponse);
     when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
+    when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
 
     instance.prepareAndLaunchGameWhenReady("faf", Set.of(), "testMap", () -> completedFuture(gameLaunchResponse));
 
@@ -399,7 +398,7 @@ public class GameRunnerTest extends ServiceTest {
     GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
     mockStartGameProcess(gameLaunchResponse);
     when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(modService.downloadAndEnableMods(any())).thenReturn(completedFuture(null));
+    when(modService.downloadAndEnableMods(any())).thenReturn(Mono.empty());
 
     instance.prepareAndLaunchGameWhenReady("faf", Set.of("uid"), null, () -> completedFuture(gameLaunchResponse));
 
@@ -408,7 +407,7 @@ public class GameRunnerTest extends ServiceTest {
     verify(mapService, never()).downloadIfNecessary(any());
   }
 
-  private void mockJoinGame(GameBean game) throws IOException {
+  private void mockJoinGame(GameInfo game) throws IOException {
     GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create()
                                                                     .defaultValues()
                                                                     .gameType(game.getGameType())
@@ -418,14 +417,14 @@ public class GameRunnerTest extends ServiceTest {
 
     lenient().when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     lenient().when(fafServerAccessor.requestJoinGame(anyInt(), any())).thenReturn(completedFuture(gameLaunchResponse));
-    lenient().when(modService.downloadAndEnableMods(anySet())).thenReturn(completedFuture(null));
-    lenient().when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
+    lenient().when(modService.downloadAndEnableMods(anySet())).thenReturn(Mono.empty());
+    lenient().when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     mockStartGameProcess(gameLaunchResponse);
   }
 
   @Test
   public void testJoinGame() throws Exception {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
 
     mockJoinGame(game);
 
@@ -437,7 +436,7 @@ public class GameRunnerTest extends ServiceTest {
 
   @Test
   public void testJoinGameWhileRunning() throws Exception {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
 
     mockJoinGame(game);
     when(process.onExit()).thenReturn(new CompletableFuture<>());
@@ -452,7 +451,7 @@ public class GameRunnerTest extends ServiceTest {
 
   @Test
   public void testJoinGameNoValidPath() throws Exception {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
 
     mockJoinGame(game);
     when(preferencesService.hasValidGamePath()).thenReturn(false);
@@ -478,14 +477,14 @@ public class GameRunnerTest extends ServiceTest {
 
     instance.startSearchMatchmaker();
 
-    instance.join(GameBeanBuilder.create().defaultValues().get());
+    instance.join(GameInfoBuilder.create().defaultValues().get());
 
     verify(fafServerAccessor, never()).requestJoinGame(anyInt(), any());
   }
 
   @Test
   public void testJoinGameRatingTooLow() throws Exception {
-    GameBean game = GameBeanBuilder.create().defaultValues()
+    GameInfo game = GameInfoBuilder.create().defaultValues()
                                    .ratingMax(-100)
                                    .get();
 
@@ -506,7 +505,7 @@ public class GameRunnerTest extends ServiceTest {
 
   @Test
   public void testJoinGameRatingTooHigh() throws Exception {
-    GameBean game = GameBeanBuilder.create().defaultValues()
+    GameInfo game = GameInfoBuilder.create().defaultValues()
                                    .ratingMin(5000)
                                    .get();
 
@@ -530,7 +529,7 @@ public class GameRunnerTest extends ServiceTest {
     StageHolder.setStage(mock(Stage.class));
     when(uiService.loadFxml("theme/enter_password.fxml")).thenReturn(enterPasswordController);
 
-    GameBean game = GameBeanBuilder.create().defaultValues().passwordProtected(true).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().passwordProtected(true).get();
 
     mockJoinGame(game);
     instance.join(game);
@@ -558,10 +557,10 @@ public class GameRunnerTest extends ServiceTest {
 
     lenient().when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     lenient().when(fafServerAccessor.requestHostGame(any())).thenReturn(completedFuture(gameLaunchResponse));
-    lenient().when(modService.downloadAndEnableMods(anySet())).thenReturn(completedFuture(null));
-    lenient().when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
+    lenient().when(modService.downloadAndEnableMods(anySet())).thenReturn(Mono.empty());
+    lenient().when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     lenient().when(gameService.getByUid(anyInt()))
-             .thenReturn(Optional.of(GameBeanBuilder.create().defaultValues().get()));
+             .thenReturn(Optional.of(GameInfoBuilder.create().defaultValues().get()));
     mockStartGameProcess(gameLaunchResponse);
   }
 
@@ -627,7 +626,7 @@ public class GameRunnerTest extends ServiceTest {
   private void mockMatchmakerGame(GameLaunchResponse gameLaunchResponse) throws IOException {
     lenient().when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     lenient().when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchResponse));
-    lenient().when(modService.downloadAndEnableMods(anySet())).thenReturn(completedFuture(null));
+    lenient().when(modService.downloadAndEnableMods(anySet())).thenReturn(Mono.empty());
     mockStartGameProcess(gameLaunchResponse);
   }
 
@@ -715,16 +714,16 @@ public class GameRunnerTest extends ServiceTest {
   @Test
   public void testLaunchTutorial() {
     when(preferencesService.hasValidGamePath()).thenReturn(true);
-    when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
+    when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     when(forgedAllianceLaunchService.launchOfflineGame(any())).thenReturn(process);
     when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     when(process.onExit()).thenReturn(new CompletableFuture<>());
     when(process.isAlive()).thenReturn(true);
 
-    MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().get();
+    MapVersion mapVersion = Instancio.create(MapVersion.class);
     instance.launchTutorial(mapVersion, "tut");
 
-    verify(mapService).downloadIfNecessary(mapVersion.getFolderName());
+    verify(mapService).downloadIfNecessary(mapVersion.folderName());
     verify(featuredModService).updateFeaturedModToLatest(KnownFeaturedMod.TUTORIALS.getTechnicalName(), false);
     verify(forgedAllianceLaunchService).launchOfflineGame("tut");
     assertEquals(10L, instance.getRunningProcessId());
@@ -733,13 +732,13 @@ public class GameRunnerTest extends ServiceTest {
   @Test
   public void testLaunchTutorialGameRunning() {
     when(preferencesService.hasValidGamePath()).thenReturn(true);
-    when(mapService.downloadIfNecessary(any())).thenReturn(completedFuture(null));
+    when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     when(forgedAllianceLaunchService.launchOfflineGame(any())).thenReturn(process);
     when(featuredModService.updateFeaturedModToLatest(any(), anyBoolean())).thenReturn(completedFuture(null));
     when(process.onExit()).thenReturn(new CompletableFuture<>());
     when(process.isAlive()).thenReturn(true);
 
-    MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().get();
+    MapVersion mapVersion = Instancio.create(MapVersion.class);
     instance.launchTutorial(mapVersion, "tut");
     instance.launchTutorial(mapVersion, "tut");
 
@@ -751,7 +750,7 @@ public class GameRunnerTest extends ServiceTest {
     when(preferencesService.hasValidGamePath()).thenReturn(false);
     when(gamePathHandler.chooseAndValidateGameDirectory()).thenReturn(new CompletableFuture<>());
 
-    instance.launchTutorial(MapVersionBeanBuilder.create().defaultValues().get(), "tut");
+    instance.launchTutorial(Instancio.create(MapVersion.class), "tut");
 
     verify(gamePathHandler).chooseAndValidateGameDirectory();
   }

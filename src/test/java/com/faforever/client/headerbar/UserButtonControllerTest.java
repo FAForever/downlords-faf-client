@@ -1,7 +1,7 @@
 package com.faforever.client.headerbar;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportDialogController;
@@ -34,14 +34,14 @@ public class UserButtonControllerTest extends PlatformTest {
 
   @InjectMocks
   private UserButtonController instance;
-  private PlayerBean player;
+  private PlayerInfo player;
 
   @BeforeEach
   public void setUp() throws Exception {
     lenient().when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
     lenient().when(uiService.loadFxml("theme/user_info_window.fxml")).thenReturn(playerInfoWindowController);
 
-    player = PlayerBeanBuilder.create().defaultValues().username(TEST_USER_NAME).get();
+    player = PlayerInfoBuilder.create().defaultValues().username(TEST_USER_NAME).get();
     lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
     lenient().when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<>(player));
 

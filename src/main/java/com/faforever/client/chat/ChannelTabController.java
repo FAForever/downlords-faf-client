@@ -5,6 +5,8 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.preferences.ChatPrefs;
 import javafx.beans.binding.BooleanExpression;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -16,6 +18,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.TextFlow;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -26,7 +29,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.faforever.client.fx.PlatformService.URL_REGEX_PATTERN;
+import static com.faforever.client.fx.PlatformService.STRICT_URL_REGEX_PATTERN;
 
 @Slf4j
 @Component
@@ -40,7 +43,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public Tab root;
-  public SplitPane splitPane;
+  public SplitPane chatPane;
   public HBox topicPane;
   public Label topicCharactersLimitLabel;
   public TextField topicTextField;
@@ -50,8 +53,10 @@ public class ChannelTabController extends AbstractChatTabController {
   public ToggleButton userListVisibilityToggleButton;
   public Node chatUserList;
   public ChatUserListController chatUserListController;
+  public VBox loadingPane;
 
   private final ObservableValue<ChannelTopic> channelTopic = chatChannel.flatMap(ChatChannel::topicProperty);
+  private final BooleanProperty loaded = new SimpleBooleanProperty();
 
   public ChannelTabController(ChatService chatService, PlatformService platformService, ChatPrefs chatPrefs,
                               FxApplicationThreadExecutor fxApplicationThreadExecutor) {
@@ -65,7 +70,12 @@ public class ChannelTabController extends AbstractChatTabController {
   protected void onInitialize() {
     super.onInitialize();
     JavaFxUtil.bindManagedToVisible(topicPane, chatUserList, changeTopicTextButton, topicTextField,
-                                    cancelChangesTopicTextButton, topicText, topicCharactersLimitLabel);
+                                    cancelChangesTopicTextButton, topicText, topicCharactersLimitLabel, loadingPane,
+                                    chatPane);
+
+    loaded.bind(chatChannel.flatMap(ChatChannel::loadedProperty).when(attached));
+    chatPane.visibleProperty().bind(loaded.when(showing));
+    loadingPane.visibleProperty().bind(loaded.not().when(showing));
 
     topicCharactersLimitLabel.visibleProperty().bind(topicTextField.visibleProperty());
     cancelChangesTopicTextButton.visibleProperty().bind(topicTextField.visibleProperty());
@@ -90,7 +100,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
     root.textProperty().bind(channelName.map(name -> name.replaceFirst("^#", "")).when(attached));
 
-    chatUserListController.chatChannelProperty().bind(chatChannel.when(showing));
+    chatUserListController.chatChannelProperty().bind(chatChannel.when(loaded));
 
     ObservableValue<Boolean> isModerator = chatChannel.map(
                                                           channel -> channel.getUser(chatService.getCurrentUsername()).orElse(null))
@@ -99,15 +109,14 @@ public class ChannelTabController extends AbstractChatTabController {
                                                       .when(showing);
     changeTopicTextButton.visibleProperty()
                          .bind(BooleanExpression.booleanExpression(isModerator)
-                                                .and(topicTextField.visibleProperty().not())
-                                                .when(showing));
+                                                .and(topicTextField.visibleProperty().not()).when(loaded));
 
-    channelTopic.when(showing).subscribe(this::updateChannelTopic);
-    userListVisibilityToggleButton.selectedProperty().when(showing).subscribe(this::updateDividerPosition);
+    channelTopic.when(loaded).subscribe(this::updateChannelTopic);
+    userListVisibilityToggleButton.selectedProperty().when(loaded).subscribe(this::updateDividerPosition);
   }
 
   private void updateDividerPosition(boolean selected) {
-    splitPane.setDividerPositions(selected ? 0.8 : 1);
+    chatPane.setDividerPositions(selected ? 0.8 : 1);
   }
 
   private void setChannelTopic(String content) {
@@ -116,7 +125,7 @@ public class ChannelTabController extends AbstractChatTabController {
     boolean notBlank = StringUtils.isNotBlank(content);
     if (notBlank) {
       Arrays.stream(content.split("\\s")).forEach(word -> {
-        if (URL_REGEX_PATTERN.matcher(word).matches()) {
+        if (STRICT_URL_REGEX_PATTERN.matcher(word).matches()) {
           Hyperlink link = new Hyperlink(word);
           link.setOnAction(event -> platformService.showDocument(word));
           children.add(link);

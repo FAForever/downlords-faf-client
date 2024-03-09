@@ -1,9 +1,9 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.avatar.Avatar;
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.domain.AvatarBean;
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -143,13 +143,15 @@ public class ChatUserItemController extends NodeController<Node> {
 
   public void installGameTooltip(GameTooltipController gameInfoController, Tooltip tooltip) {
     mapImageView.setOnMouseEntered(event -> gameInfoController.gameProperty()
-        .bind(chatUser.flatMap(ChatChannelUser::playerProperty).flatMap(PlayerBean::gameProperty).when(showing)));
+                                                              .bind(chatUser.flatMap(ChatChannelUser::playerProperty)
+                                                                            .flatMap(PlayerInfo::gameProperty)
+                                                                            .when(showing)));
     Tooltip.install(mapImageView, tooltip);
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
     ChatChannelUser chatChannelUser = chatUser.get();
-    PlayerBean player = chatChannelUser == null ? null : chatChannelUser.getPlayer().orElse(null);
+    PlayerInfo player = chatChannelUser == null ? null : chatChannelUser.getPlayer().orElse(null);
     String username = chatChannelUser == null ? null : chatChannelUser.getUsername();
     contextMenuBuilder.newBuilder()
         .addItem(ShowPlayerInfoMenuItem.class, player)
@@ -186,7 +188,7 @@ public class ChatUserItemController extends NodeController<Node> {
   public void onItemClicked(MouseEvent mouseEvent) {
     ChatChannelUser chatChannelUser = chatUser.get();
     if (chatChannelUser != null && mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
-      chatService.onInitiatePrivateChat(chatChannelUser.getUsername());
+      chatService.joinPrivateChat(chatChannelUser.getUsername());
     }
   }
 
@@ -208,9 +210,10 @@ public class ChatUserItemController extends NodeController<Node> {
   }
 
   private void bindProperties() {
-    ObservableValue<PlayerBean> playerProperty = chatUser.flatMap(ChatChannelUser::playerProperty);
-    ObservableValue<GameBean> gameProperty = playerProperty.flatMap(PlayerBean::gameProperty);
-    BooleanExpression gameNotClosedObservable = BooleanExpression.booleanExpression(gameProperty.flatMap(GameBean::statusProperty)
+    ObservableValue<PlayerInfo> playerProperty = chatUser.flatMap(ChatChannelUser::playerProperty);
+    ObservableValue<GameInfo> gameProperty = playerProperty.flatMap(PlayerInfo::gameProperty);
+    BooleanExpression gameNotClosedObservable = BooleanExpression.booleanExpression(
+        gameProperty.flatMap(GameInfo::statusProperty)
         .map(status -> status != GameStatus.CLOSED));
 
     JavaFxUtil.bindManagedToVisible(mapNameLabel, mapImageView, noteIcon);
@@ -224,23 +227,21 @@ public class ChatUserItemController extends NodeController<Node> {
 
     mapImageView.visibleProperty().bind(chatPrefs.showMapPreviewProperty().and(gameNotClosedObservable).when(showing));
 
-    mapNameLabel.textProperty().bind(gameProperty.flatMap(GameBean::mapFolderNameProperty).map(mapFolderName -> {
+    mapNameLabel.textProperty().bind(gameProperty.flatMap(GameInfo::mapFolderNameProperty).map(mapFolderName -> {
       if (mapGeneratorService.isGeneratedMap(mapFolderName)) {
         return "Neroxis Generated Map";
       } else {
-        return mapService.getMapLocallyFromName(mapFolderName)
-            .map(mapVersion -> mapVersion.getMap().getDisplayName())
+        return mapService.getMapLocallyFromName(mapFolderName).map(mapVersion -> mapVersion.map().displayName())
             .orElseGet(() -> mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName));
       }
     }).map(mapName -> i18n.get("game.onMapFormat", mapName)).when(showing));
 
-    mapImageView.imageProperty()
-        .bind(gameProperty.flatMap(GameBean::mapFolderNameProperty)
+    mapImageView.imageProperty().bind(gameProperty.flatMap(GameInfo::mapFolderNameProperty)
             .flatMap(mapFolderName -> Bindings.createObjectBinding(() -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL), mapService.isInstalledBinding(mapFolderName)))
             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
             .when(showing));
 
-    ObservableValue<PlayerGameStatus> statusProperty = playerProperty.flatMap(PlayerBean::gameStatusProperty);
+    ObservableValue<PlayerGameStatus> statusProperty = playerProperty.flatMap(PlayerInfo::gameStatusProperty);
     gameStatusImageView.imageProperty().bind(statusProperty.map(status -> switch (status) {
       case HOSTING -> themeService.getThemeImage(ThemeService.CHAT_LIST_STATUS_HOSTING);
       case LOBBYING -> themeService.getThemeImage(ThemeService.CHAT_LIST_STATUS_LOBBYING);
@@ -250,13 +251,13 @@ public class ChatUserItemController extends NodeController<Node> {
 
     statusTooltip.textProperty().bind(statusProperty.map(PlayerGameStatus::getI18nKey).map(i18n::get).when(showing));
 
-    noteTooltip.textProperty().bind(playerProperty.flatMap(PlayerBean::noteProperty).when(showing));
+    noteTooltip.textProperty().bind(playerProperty.flatMap(PlayerInfo::noteProperty).when(showing));
 
-    ObservableValue<AvatarBean> avatarProperty = playerProperty.flatMap(PlayerBean::avatarProperty);
-    avatarTooltip.textProperty().bind(avatarProperty.flatMap(AvatarBean::descriptionProperty).when(showing));
+    ObservableValue<Avatar> avatarProperty = playerProperty.flatMap(PlayerInfo::avatarProperty);
+    avatarTooltip.textProperty().bind(avatarProperty.map(Avatar::description).when(showing));
     avatarImageView.imageProperty().bind(avatarProperty.map(avatarService::loadAvatar).when(showing));
 
-    ObservableValue<String> countryProperty = playerProperty.flatMap(PlayerBean::countryProperty);
+    ObservableValue<String> countryProperty = playerProperty.flatMap(PlayerInfo::countryProperty);
     countryTooltip.textProperty().bind(countryProperty.map(i18n::getCountryNameLocalized).when(showing));
 
     countryImageView.imageProperty()
@@ -271,7 +272,7 @@ public class ChatUserItemController extends NodeController<Node> {
             .when(showing));
 
     ObservableValue<String> clanTagProperty = chatUser.flatMap(ChatChannelUser::playerProperty)
-        .flatMap(PlayerBean::clanProperty)
+                                                      .flatMap(PlayerInfo::clanProperty)
         .map(clanTag -> clanTag.isBlank() ? null : String.format("[%s]", clanTag));
     ObservableValue<String> usernameProperty = chatUser.map(ChatChannelUser::getUsername);
     usernameLabel.textProperty().bind(Bindings.createStringBinding(() -> {

@@ -1,6 +1,6 @@
 package com.faforever.client.discord;
 
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.GameService;
 import com.faforever.client.notification.NotificationService;
@@ -55,8 +55,8 @@ public class DiscordEventHandler extends DiscordEventHandlers {
 
     try {
       DiscordJoinSecret discordJoinSecret = objectMapper.readValue(joinSecret, DiscordJoinSecret.class);
-      GameBean gameBean = gameService.getByUid(discordJoinSecret.gameId()).orElseThrow();
-      gameRunner.join(gameBean);
+      GameInfo gameInfo = gameService.getByUid(discordJoinSecret.gameId()).orElseThrow();
+      gameRunner.join(gameInfo);
     } catch (Exception e) {
       log.error("Could not join game from discord rich presence", e);
       notificationService.addImmediateErrorNotification(e, "discord.couldNotOpen");
@@ -66,7 +66,7 @@ public class DiscordEventHandler extends DiscordEventHandlers {
   private void onSpectate(String spectateSecret) {
     try {
       DiscordSpectateSecret discordSpectateSecret = objectMapper.readValue(spectateSecret, DiscordSpectateSecret.class);
-      GameBean game = gameService.getByUid(discordSpectateSecret.gameId()).orElseThrow();
+      GameInfo game = gameService.getByUid(discordSpectateSecret.gameId()).orElseThrow();
       replayRunner.runWithLiveReplay(game);
     } catch (Exception e) {
       log.error("Could not join game from discord rich presence", e);

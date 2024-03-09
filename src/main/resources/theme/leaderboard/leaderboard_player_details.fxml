@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.Group?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Arc?>
+<?import javafx.scene.shape.Circle?>
+<HBox fx:id="detailsRoot" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.faforever.client.leaderboard.LeaderboardPlayerDetailsController">
+    <children>
+        <VBox alignment="BOTTOM_CENTER" spacing="20.0">
+            <StackPane minWidth="180">
+                <Group>
+                    <Circle centerX="50" centerY="50" radius="80"
+                            styleClass="score-circle"/>
+                    <Arc fx:id="scoreArc" centerX="50" centerY="50" radiusX="80"
+                         radiusY="80"
+                         startAngle="90" styleClass="score-arc"/>
+                </Group>
+                <Label fx:id="playerScoreLabel" styleClass="score" text="/"/>
+            </StackPane>
+            <Label fx:id="scoreLabel" styleClass="heading" text="%leaderboard.score"/>
+        </VBox>
+        <Pane minWidth="20.0" HBox.hgrow="ALWAYS"/>
+        <VBox alignment="BOTTOM_CENTER" spacing="20.0">
+            <AnchorPane>
+                <ImageView fx:id="playerDivisionImageView" fitHeight="200.0"
+                           fitWidth="400.0" pickOnBounds="true" preserveRatio="true"/>
+                <Label fx:id="placementLabel" styleClass="heading" maxWidth="380.0"
+                       text="%leaderboard.noEntry" wrapText="true"
+                       AnchorPane.bottomAnchor="60"/>
+            </AnchorPane>
+            <Label fx:id="playerDivisionNameLabel" styleClass="heading" maxWidth="380.0"
+                   text="%leaderboard.divisionName" wrapText="true" alignment="CENTER"
+                   visible="false"/>
+        </VBox>
+    </children>
+    <padding>
+        <Insets left="80.0" right="80.0" top="10.0"/>
+    </padding>
+</HBox>

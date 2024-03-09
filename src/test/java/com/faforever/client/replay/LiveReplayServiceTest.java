@@ -1,8 +1,8 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.GameInfoBuilder;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -70,29 +70,29 @@ public class LiveReplayServiceTest extends PlatformTest {
 
   @Test
   public void testGetWatchDelayTime() {
-    GameBean game1 = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
+    GameInfo game1 = GameInfoBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
     assertFalse(instance.getWatchDelayTime(game1).isNegative());
 
-    GameBean game2 = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now().minusSeconds(6)).get();
+    GameInfo game2 = GameInfoBuilder.create().defaultValues().startTime(OffsetDateTime.now().minusSeconds(6)).get();
     assertTrue(instance.getWatchDelayTime(game2).isNegative());
   }
 
   @Test
   public void testCanWatchReplay() {
-    GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now().minusSeconds(6)).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().startTime(OffsetDateTime.now().minusSeconds(6)).get();
     assertTrue(instance.canWatchReplay(game));
   }
 
   @Test
   public void testCannotWatchReplay() {
-    GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
     assertFalse(instance.canWatchReplay(game));
   }
 
   @Test
   public void testNotifyMeWhenReplayIsAvailable() {
     ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
-    GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
 
     instance.performActionWhenAvailable(game, TrackingLiveReplayAction.NOTIFY_ME);
 
@@ -106,7 +106,7 @@ public class LiveReplayServiceTest extends PlatformTest {
   @Test
   public void testRunReplayWhenIsAvailable() {
     ArgumentCaptor<Runnable> runReplayCaptor = ArgumentCaptor.forClass(Runnable.class);
-    GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
 
     instance.performActionWhenAvailable(game, TrackingLiveReplayAction.RUN_REPLAY);
 
@@ -135,7 +135,7 @@ public class LiveReplayServiceTest extends PlatformTest {
   @Test
   @SuppressWarnings({"unchecked", "rawtypes", "RedundantExplicitVariableType"})
   public void testStopTrackingReplayWhenTaskIsScheduled() {
-    GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
 
     ScheduledFuture mockFutureTask = mock(ScheduledFuture.class);
     when(taskScheduler.schedule(any(), any(Instant.class))).thenReturn(mockFutureTask);
@@ -150,7 +150,7 @@ public class LiveReplayServiceTest extends PlatformTest {
   @Test
   @SuppressWarnings({"rawtypes", "unchecked", "RedundantExplicitVariableType"})
   public void testStopTrackingReplayWhenGameStarted() {
-    GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
+    GameInfo game = GameInfoBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
 
     ScheduledFuture mockFutureTask = mock(ScheduledFuture.class);
     when(taskScheduler.schedule(any(), any(Instant.class))).thenReturn(mockFutureTask);

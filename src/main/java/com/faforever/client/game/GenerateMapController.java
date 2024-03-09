@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.security.InvalidParameterException;
 import java.text.NumberFormat;
@@ -42,7 +43,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -314,7 +314,7 @@ public class GenerateMapController extends NodeController<Pane> {
   }
 
   public void onGenerateMap() {
-    CompletableFuture<String> generateFuture;
+    Mono<String> generateFuture;
     if (!previousMapName.getText().isEmpty()) {
       if (!mapGeneratorService.isGeneratedMap(previousMapName.getText())) {
         log.warn(String.format("Invalid Generated Map Name %s", previousMapName.getText()));
@@ -326,27 +326,28 @@ public class GenerateMapController extends NodeController<Pane> {
       generateFuture = mapGeneratorService.generateMap(getGeneratorOptions());
     }
 
-    generateFuture.exceptionally(throwable -> {
-      handleGenerationException(throwable);
-      return null;
-    });
+    generateFuture.subscribe(null, this::handleGenerationException);
     onCloseButtonClicked();
   }
 
   private void handleGenerationException(Throwable e) {
-    Throwable cause = e.getCause();
-    if (cause instanceof InvalidParameterException) {
-      log.error("Map generation failed due to invalid parameter", e);
-      notificationService.addImmediateErrorNotification(e, "mapGenerator.invalidName");
-    } else if (cause instanceof UnsupportedVersionException) {
-      log.warn("Map generation failed due to unsupported version", e);
-      notificationService.addImmediateWarnNotification("mapGenerator.tooNewVersion");
-    } else if (cause instanceof OutdatedVersionException) {
-      log.warn("Map generation failed due to outdated version", e);
-      notificationService.addImmediateWarnNotification("mapGenerator.tooOldVersion");
-    } else {
-      log.error("Map generation failed", e);
-      notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");
+    switch (e) {
+      case InvalidParameterException ignored -> {
+        log.error("Map generation failed due to invalid parameter", e);
+        notificationService.addImmediateErrorNotification(e, "mapGenerator.invalidName");
+      }
+      case UnsupportedVersionException ignored -> {
+        log.warn("Map generation failed due to unsupported version", e);
+        notificationService.addImmediateWarnNotification("mapGenerator.tooNewVersion");
+      }
+      case OutdatedVersionException ignored -> {
+        log.warn("Map generation failed due to outdated version", e);
+        notificationService.addImmediateWarnNotification("mapGenerator.tooOldVersion");
+      }
+      case null, default -> {
+        log.error("Map generation failed", e);
+        notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");
+      }
     }
   }
 

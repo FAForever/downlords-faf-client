@@ -1,20 +1,18 @@
 package com.faforever.client.tutorial;
 
-import com.faforever.client.domain.TutorialBean;
-import com.faforever.client.domain.TutorialCategoryBean;
+import com.faforever.client.domain.api.TutorialCategory;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.layout.Pane;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
-
-import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
+import reactor.core.publisher.Flux;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -43,18 +41,10 @@ public class TutorialControllerTest extends PlatformTest {
       }
       return instance;
     });
-    TutorialCategoryBean tutorialCategory = new TutorialCategoryBean();
-    tutorialCategory.setCategory("test category");
-    TutorialBean tutorial = new TutorialBean();
-    tutorial.setImageUrl("http://example.com/example.png");
-    tutorial.setDescription("Test description");
-    tutorial.setTitle("Test Title");
-    tutorial.setId(1);
-    tutorial.setOrdinal(1);
-    tutorialCategory.getTutorials().add(tutorial);
-    when(tutorialService.getTutorialCategories()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(tutorialCategory)));
-    when(tutorialListItemController.getRoot()).thenReturn(new Pane());
-    when(tutorialsCategoryListItemController.getRoot()).thenReturn(new Pane());
+    TutorialCategory tutorialCategory = Instancio.create(TutorialCategory.class);
+    when(tutorialService.getTutorialCategories()).thenReturn(Flux.just(tutorialCategory));
+    when(tutorialListItemController.getRoot()).thenAnswer(invocation -> new Pane());
+    when(tutorialsCategoryListItemController.getRoot()).thenAnswer(invocation -> new Pane());
     when(uiService.loadFxml("theme/tutorial_category_list_item.fxml")).thenReturn(tutorialsCategoryListItemController);
     when(uiService.loadFxml("theme/tutorial_list_item.fxml")).thenReturn(tutorialListItemController);
   }

@@ -1,6 +1,6 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.domain.api.Replay;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -20,6 +20,7 @@ import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import javafx.scene.layout.Pane;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -28,14 +29,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -82,26 +85,27 @@ public class OnlineReplayVaultControllerTest extends PlatformTest {
   private ArgumentCaptor<Consumer<SearchConfig>> searchListenerCaptor;
   private SortConfig sortOrder;
   private SearchConfig standardSearchConfig;
-  private final ReplayBean testReplay = new ReplayBean();
+  private final Replay testReplay = Instancio.create(Replay.class);
 
   @BeforeEach
   public void setUp() throws Exception {
     lenient().when(replayDetailController.getRoot()).thenReturn(new Pane());
 
-    lenient().when(featuredModService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(List.of()));
-    lenient().when(leaderboardService.getLeaderboards()).thenReturn(CompletableFuture.completedFuture(List.of()));
+    lenient().when(featuredModService.getFeaturedMods()).thenReturn(Flux.empty());
+    lenient().when(leaderboardService.getLeaderboards()).thenReturn(Flux.empty());
     lenient().when(replayService.getNewestReplaysWithPageCount(anyInt(), anyInt()))
-             .thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
+             .thenReturn(Mono.zip(Mono.just(List.<Replay>of()), Mono.just(0)));
     lenient().when(replayService.getHighestRatedReplaysWithPageCount(anyInt(), anyInt()))
-             .thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
-    lenient().when(replayService.findById(anyInt()))
-             .thenReturn(CompletableFuture.completedFuture(Optional.of(testReplay)));
+             .thenReturn(Mono.zip(Mono.just(List.<Replay>of()), Mono.just(0)));
+    lenient().when(replayService.findById(anyInt())).thenReturn(Mono.just(testReplay));
     lenient().when(replayService.getOwnReplaysWithPageCount(anyInt(), anyInt()))
-             .thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
+             .thenReturn(Mono.zip(Mono.just(List.<Replay>of()), Mono.just(0)));
     lenient().when(uiService.loadFxml("theme/vault/replay/replay_detail.fxml")).thenReturn(replayDetailController);
     lenient().when(uiService.loadFxml("theme/vault/vault_entity_show_room.fxml"))
              .thenReturn(vaultEntityShowRoomController);
     lenient().when(i18n.get(anyString())).thenReturn("test");
+    lenient().when(searchController.addCategoryFilter(any(), any(), anyMap())).thenReturn(categoryFilterController);
+    lenient().when(searchController.addCategoryFilter(any(), any(), anyList())).thenReturn(categoryFilterController);
 
     sortOrder = new VaultPrefs().getOnlineReplaySortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
@@ -158,7 +162,7 @@ public class OnlineReplayVaultControllerTest extends PlatformTest {
 
   @Test
   public void showReplayButReplayNotPresent() {
-    when(replayService.findById(anyInt())).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
+    when(replayService.findById(anyInt())).thenReturn(Mono.empty());
     runOnFxThreadAndWait(() -> instance.display(new ShowReplayEvent(123)));
     verify(notificationService).addImmediateWarnNotification(anyString(), anyInt());
   }

@@ -1,7 +1,7 @@
 package com.faforever.client.social;
 
-import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.GameInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.player.FriendJoinedGameNotifier;
 import com.faforever.client.player.PlayerService;
@@ -17,7 +17,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +44,7 @@ public class SocialService implements InitializingBean {
   public void afterPropertiesSet() {
     fafServerAccessor.getEvents(SocialInfo.class)
                      .flatMap(socialInfo -> {
-                       Flux<PlayerBean> friendFlux = Mono.just(socialInfo.getFriends())
+                       Flux<PlayerInfo> friendFlux = Mono.just(socialInfo.getFriends())
                                                          .doOnNext(ids -> {
                                                            friendList.clear();
                                                            friendList.addAll(ids);
@@ -54,7 +53,7 @@ public class SocialService implements InitializingBean {
                                                          .map(playerService::getPlayerByIdIfOnline)
                                                          .flatMap(Mono::justOrEmpty);
 
-                       Flux<PlayerBean> foeFlux = Mono.just(socialInfo.getFoes())
+                       Flux<PlayerInfo> foeFlux = Mono.just(socialInfo.getFoes())
                                                       .doOnNext(ids -> {
                                                         foeList.clear();
                                                         foeList.addAll(ids);
@@ -67,7 +66,6 @@ public class SocialService implements InitializingBean {
                      })
                      .publishOn(fxApplicationThreadExecutor.asScheduler())
                      .doOnNext(this::updatePlayerSocialStatus)
-                     .publishOn(Schedulers.single())
                      .doOnError(throwable -> log.error("Error processing social info", throwable))
                      .retry()
                      .subscribe();
@@ -92,7 +90,7 @@ public class SocialService implements InitializingBean {
     });
   }
 
-  public void updateNote(PlayerBean player, String text) {
+  public void updateNote(PlayerInfo player, String text) {
     if (StringUtils.isBlank(text)) {
       removeNote(player);
     } else {
@@ -101,44 +99,44 @@ public class SocialService implements InitializingBean {
     }
   }
 
-  public void removeNote(PlayerBean player) {
+  public void removeNote(PlayerInfo player) {
     userPrefs.getNotesByPlayerId().remove(player.getId());
   }
 
-  public void addFriend(PlayerBean player) {
+  public void addFriend(PlayerInfo player) {
     player.setSocialStatus(FRIEND);
     friendList.add(player.getId());
     foeList.remove(player.getId());
     fafServerAccessor.addFriend(player.getId());
   }
 
-  public void removeFriend(PlayerBean player) {
+  public void removeFriend(PlayerInfo player) {
     player.setSocialStatus(OTHER);
     friendList.remove(player.getId());
     fafServerAccessor.removeFriend(player.getId());
   }
 
-  public void addFoe(PlayerBean player) {
+  public void addFoe(PlayerInfo player) {
     player.setSocialStatus(FOE);
     foeList.add(player.getId());
     friendList.remove(player.getId());
     fafServerAccessor.addFoe(player.getId());
   }
 
-  public void removeFoe(PlayerBean player) {
+  public void removeFoe(PlayerInfo player) {
     player.setSocialStatus(OTHER);
     foeList.remove(player.getId());
     fafServerAccessor.removeFoe(player.getId());
   }
 
-  public boolean areFriendsInGame(GameBean game) {
+  public boolean areFriendsInGame(GameInfo game) {
     if (game == null) {
       return false;
     }
     return game.getAllPlayersInGame().stream().anyMatch(friendList::contains);
   }
 
-  private void updatePlayerSocialStatus(PlayerBean player) {
+  private void updatePlayerSocialStatus(PlayerInfo player) {
     Integer id = player.getId();
     if (player.equals(playerService.getCurrentPlayer())) {
       player.setSocialStatus(SELF);

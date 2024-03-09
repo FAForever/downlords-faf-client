@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -45,11 +45,11 @@ public class GamesTilesContainerController extends NodeController<Node> {
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final Comparator<Node> averageRatingComparator = Comparator.comparingDouble(this::getAverageRatingForGame);
-  private final Comparator<Node> titleComparator = Comparator.comparing(o -> ((GameBean) o.getUserData()).getTitle()
+  private final Comparator<Node> titleComparator = Comparator.comparing(o -> ((GameInfo) o.getUserData()).getTitle()
                                                                                                          .toLowerCase(
                                                                                                              Locale.US));
   private final Comparator<Node> playerCountComparator = Comparator.comparingInt(
-      o -> ((GameBean) o.getUserData()).getNumActivePlayers());
+      o -> ((GameInfo) o.getUserData()).getNumActivePlayers());
 
   public FlowPane tiledFlowPane;
   public ScrollPane tiledScrollPane;
@@ -57,18 +57,18 @@ public class GamesTilesContainerController extends NodeController<Node> {
 
   private Tooltip tooltip;
 
-  private final ObservableMap<GameBean, Node> gameToGameCard = FXCollections.synchronizedObservableMap(
+  private final ObservableMap<GameInfo, Node> gameToGameCard = FXCollections.synchronizedObservableMap(
       FXCollections.observableHashMap());
   private final SortedList<Node> gameCards = new SortedList<>(
       JavaFxUtil.attachListToMap(FXCollections.observableArrayList(), gameToGameCard));
   private final ObjectProperty<TilesSortingOrder> sortingOrder = new SimpleObjectProperty<>();
-  private final ReadOnlyObjectWrapper<GameBean> selectedGame = new ReadOnlyObjectWrapper<>();
+  private final ReadOnlyObjectWrapper<GameInfo> selectedGame = new ReadOnlyObjectWrapper<>();
 
-  private final ListChangeListener<GameBean> gameListChangeListener = this::onGameListChange;
-  private ObservableList<GameBean> games;
+  private final ListChangeListener<GameInfo> gameListChangeListener = this::onGameListChange;
+  private ObservableList<GameInfo> games;
 
   private double getAverageRatingForGame(Node tile) {
-    return this.playerService.getAverageRatingForGame((GameBean) tile.getUserData());
+    return this.playerService.getAverageRatingForGame((GameInfo) tile.getUserData());
   }
 
   @Override
@@ -95,7 +95,7 @@ public class GamesTilesContainerController extends NodeController<Node> {
     }
   }
 
-  private void onGameListChange(Change<? extends GameBean> change) {
+  private void onGameListChange(Change<? extends GameInfo> change) {
     while (change.next()) {
       if (change.wasRemoved()) {
         change.getRemoved().forEach(this::removeGameCard);
@@ -107,11 +107,11 @@ public class GamesTilesContainerController extends NodeController<Node> {
     }
   }
 
-  public ReadOnlyObjectProperty<GameBean> selectedGameProperty() {
+  public ReadOnlyObjectProperty<GameInfo> selectedGameProperty() {
     return selectedGame.getReadOnlyProperty();
   }
 
-  public void createTiledFlowPane(ObservableList<GameBean> games) {
+  public void createTiledFlowPane(ObservableList<GameInfo> games) {
     if (this.games != null) {
       this.games.removeListener(gameListChangeListener);
     }
@@ -123,10 +123,10 @@ public class GamesTilesContainerController extends NodeController<Node> {
   }
 
   private void selectFirstGame() {
-    selectedGame.set(!gameCards.isEmpty() ? (GameBean) gameCards.getFirst().getUserData() : null);
+    selectedGame.set(!gameCards.isEmpty() ? (GameInfo) gameCards.getFirst().getUserData() : null);
   }
 
-  private void addGameCard(GameBean game) {
+  private void addGameCard(GameInfo game) {
     if (gameToGameCard.containsKey(game)) {
       return;
     }
@@ -145,7 +145,7 @@ public class GamesTilesContainerController extends NodeController<Node> {
 
   }
 
-  private Node createGameCard(GameBean game) {
+  private Node createGameCard(GameInfo game) {
     GameTileController gameTileController = uiService.loadFxml("theme/play/game_card.fxml");
     gameTileController.setGame(game);
     gameTileController.setOnSelectedListener(selectedGame::set);
@@ -163,7 +163,7 @@ public class GamesTilesContainerController extends NodeController<Node> {
     return root;
   }
 
-  private void removeGameCard(GameBean game) {
+  private void removeGameCard(GameInfo game) {
     fxApplicationThreadExecutor.execute(() -> {
       Node card = gameToGameCard.remove(game);
       if (card != null) {
@@ -175,7 +175,7 @@ public class GamesTilesContainerController extends NodeController<Node> {
     });
   }
 
-  private void clearSelectedGame(GameBean game) {
+  private void clearSelectedGame(GameInfo game) {
     if (game.equals(selectedGame.getValue()) && game.getStatus() != GameStatus.OPEN) {
       selectFirstGame();
     }

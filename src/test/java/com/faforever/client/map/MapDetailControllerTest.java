@@ -1,12 +1,10 @@
 package com.faforever.client.map;
 
-import com.faforever.client.builders.MapBeanBuilder;
-import com.faforever.client.builders.MapVersionBeanBuilder;
-import com.faforever.client.builders.MapVersionReviewBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.MapVersionReviewBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.Map;
+import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.MapVersionReview;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
@@ -31,6 +29,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.input.MouseEvent;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -44,6 +43,8 @@ import reactor.core.scheduler.Schedulers;
 import java.time.OffsetDateTime;
 import java.util.concurrent.CompletableFuture;
 
+import static org.instancio.Select.field;
+import static org.instancio.Select.scope;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -79,9 +80,9 @@ public class MapDetailControllerTest extends PlatformTest {
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
   @Mock
-  private ReviewsController<MapVersionReviewBean> reviewsController;
+  private ReviewsController<MapVersionReview> reviewsController;
   @Mock
-  private ReviewController<MapVersionReviewBean> reviewController;
+  private ReviewController<MapVersionReview> reviewController;
   @Mock
   private StarsController starsController;
   @Mock
@@ -93,28 +94,25 @@ public class MapDetailControllerTest extends PlatformTest {
 
   @InjectMocks
   private MapDetailController instance;
-  private PlayerBean currentPlayer;
-  private MapVersionBean testMap;
-  private MapVersionBean ownedMap;
-  private MapVersionReviewBean review;
+  private PlayerInfo currentPlayer;
+  private MapVersion testMap;
+  private MapVersion ownedMap;
+  private MapVersionReview review;
 
   private final BooleanProperty installed = new SimpleBooleanProperty();
 
   @BeforeEach
   public void setUp() throws Exception {
-    currentPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").id(100).get();
-    testMap = MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().get())
-        .createTime(OffsetDateTime.now())
-        .get();
-    ownedMap = MapVersionBeanBuilder.create()
-        .defaultValues()
-        .map(MapBeanBuilder.create().defaultValues().author(currentPlayer).get())
-        .get();
-    review = MapVersionReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
+    currentPlayer = PlayerInfoBuilder.create().defaultValues().username("junit").id(100).get();
+    testMap = Instancio.create(MapVersion.class);
+    ownedMap = Instancio.of(MapVersion.class)
+                        .set(field(Map::author).within(scope(Map.class)), currentPlayer)
+                        .set(field(MapVersion::ranked), true)
+                        .set(field(MapVersion::hidden), false)
+                        .create();
+    review = Instancio.of(MapVersionReview.class).set(field(MapVersionReview::player), currentPlayer).create();
 
-    lenient().when(mapService.isInstalledBinding(Mockito.<ObservableValue<MapVersionBean>>any())).thenReturn(installed);
+    lenient().when(mapService.isInstalledBinding(Mockito.<ObservableValue<MapVersion>>any())).thenReturn(installed);
     lenient().when(imageViewHelper.createPlaceholderImageOnErrorObservable(any()))
              .thenAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0)));
     lenient().when(reviewService.getMapReviews(any())).thenReturn(Flux.empty());
@@ -123,15 +121,14 @@ public class MapDetailControllerTest extends PlatformTest {
     lenient().when(timeService.asDate(any(OffsetDateTime.class))).thenReturn("test date");
     lenient().when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
     lenient().when(mapService.downloadAndInstallMap(any(), any(DoubleProperty.class), any(StringProperty.class)))
-             .thenReturn(CompletableFuture.runAsync(() -> {
-    }));
-    lenient().when(i18n.number(testMap.getMaxPlayers())).thenReturn(String.valueOf(testMap.getMaxPlayers()));
-    lenient().when(i18n.get("map.id", testMap.getId())).thenReturn(String.valueOf(testMap.getId()));
+             .thenReturn(Mono.empty());
+    lenient().when(i18n.number(testMap.maxPlayers())).thenReturn(String.valueOf(testMap.maxPlayers()));
+    lenient().when(i18n.get("map.id", testMap.id())).thenReturn(String.valueOf(testMap.id()));
     lenient().when(i18n.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
     lenient().when(i18n.get(eq("mapPreview.size"), anyInt(), anyInt())).thenReturn("map size");
-    lenient().when(mapService.isInstalled(testMap.getFolderName())).thenReturn(true);
+    lenient().when(mapService.isInstalled(testMap.folderName())).thenReturn(true);
     lenient().when(mapService.hasPlayedMap(eq(currentPlayer), eq(testMap))).thenReturn(Mono.just(true));
-    lenient().when(mapService.getFileSize(any(MapVersionBean.class))).thenReturn(CompletableFuture.completedFuture(12));
+    lenient().when(mapService.getFileSize(any(MapVersion.class))).thenReturn(CompletableFuture.completedFuture(12));
 
     loadFxml("theme/vault/map/map_detail.fxml", param -> {
       if (param == ReviewsController.class) {
@@ -152,7 +149,7 @@ public class MapDetailControllerTest extends PlatformTest {
 
   @Test
   public void onCreateButtonClickedMapNotInstalled() {
-    when(mapService.isInstalled(testMap.getFolderName())).thenReturn(false);
+    when(mapService.isInstalled(testMap.folderName())).thenReturn(false);
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
@@ -194,8 +191,11 @@ public class MapDetailControllerTest extends PlatformTest {
 
   @Test
   public void testSetHiddenOwnedMap() {
-    ownedMap.setRanked(false);
-    ownedMap.setHidden(true);
+    MapVersion ownedMap = Instancio.of(MapVersion.class)
+                                   .set(field(Map::author).within(scope(Map.class)), currentPlayer)
+                                   .set(field(MapVersion::ranked), false)
+                                   .set(field(MapVersion::hidden), true)
+                                   .create();
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(ownedMap));
     WaitForAsyncUtils.waitForFxEvents();
@@ -213,13 +213,13 @@ public class MapDetailControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
 
     verify(reviewsController).setCanWriteReview(true);
-    assertEquals(testMap.getMap().getDisplayName(), instance.nameLabel.getText());
-    assertEquals(testMap.getMap().getAuthor().getUsername(), instance.authorLabel.getText());
-    assertEquals(String.valueOf(testMap.getMaxPlayers()), instance.maxPlayersLabel.getText());
-    assertEquals(String.valueOf(testMap.getId()), instance.mapIdLabel.getText());
+    assertEquals(testMap.map().displayName(), instance.nameLabel.getText());
+    assertEquals(testMap.map().author().getUsername(), instance.authorLabel.getText());
+    assertEquals(String.valueOf(testMap.maxPlayers()), instance.maxPlayersLabel.getText());
+    assertEquals(String.valueOf(testMap.id()), instance.mapIdLabel.getText());
     assertEquals("map size", instance.dimensionsLabel.getText());
     assertEquals("test date", instance.dateLabel.getText());
-    assertEquals(testMap.getDescription(), instance.mapDescriptionLabel.getText());
+    assertEquals(testMap.description(), instance.mapDescriptionLabel.getText());
     assertEquals(0.0, instance.hideRow.getPrefHeight(), 0);
     assertTrue(instance.uninstallButton.isVisible());
     assertFalse(instance.installButton.isVisible());
@@ -228,27 +228,26 @@ public class MapDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnInstallButtonClicked() {
-    when(mapService.downloadAndInstallMap(any(MapVersionBean.class), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(mapService.downloadAndInstallMap(any(MapVersion.class), any(), any())).thenReturn(Mono.empty());
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     instance.onInstallButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(mapService).downloadAndInstallMap(any(MapVersionBean.class), any(), any());
+    verify(mapService).downloadAndInstallMap(any(MapVersion.class), any(), any());
   }
 
   @Test
   public void testOnInstallButtonClickedInstallingMapThrowsException() {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    future.completeExceptionally(new FakeTestException());
-    when(mapService.downloadAndInstallMap(any(MapVersionBean.class), any(), any())).thenReturn(future);
+    when(mapService.downloadAndInstallMap(any(MapVersion.class), any(), any())).thenReturn(
+        Mono.error(new FakeTestException()));
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.onInstallButtonClicked();
 
-    verify(mapService).downloadAndInstallMap(any(MapVersionBean.class), any(), any());
+    verify(mapService).downloadAndInstallMap(any(MapVersion.class), any(), any());
     verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString(), anyString(), anyString());
   }
 
@@ -256,7 +255,7 @@ public class MapDetailControllerTest extends PlatformTest {
   public void testOnUninstallButtonClicked() {
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
-    when(mapService.uninstallMap(testMap)).thenReturn(CompletableFuture.completedFuture(null));
+    when(mapService.uninstallMap(testMap)).thenReturn(Mono.empty());
 
     runOnFxThreadAndWait(() -> instance.onUninstallButtonClicked());
 
@@ -268,9 +267,7 @@ public class MapDetailControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
 
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    future.completeExceptionally(new FakeTestException());
-    when(mapService.uninstallMap(testMap)).thenReturn(future);
+    when(mapService.uninstallMap(testMap)).thenReturn(Mono.error(new FakeTestException()));
 
     runOnFxThreadAndWait(() -> instance.onUninstallButtonClicked());
     WaitForAsyncUtils.waitForFxEvents();
@@ -282,8 +279,8 @@ public class MapDetailControllerTest extends PlatformTest {
   @Test
   public void testHideButtonClicked() {
     runOnFxThreadAndWait(() -> instance.setMapVersion(ownedMap));
-    WaitForAsyncUtils.waitForFxEvents();
-    when(mapService.hideMapVersion(ownedMap)).thenReturn(Mono.empty());
+    when(mapService.hideMapVersion(ownedMap)).thenReturn(
+        Mono.just(Instancio.of(MapVersion.class).set(field(MapVersion::hidden), true).create()));
 
     runOnFxThreadAndWait(() -> instance.hideMap());
 
@@ -342,12 +339,12 @@ public class MapDetailControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
 
-    when(reviewService.deleteMapVersionReview(review)).thenReturn(Mono.empty());
+    when(reviewService.deleteReview(review)).thenReturn(Mono.empty());
 
     instance.onDeleteReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).deleteMapVersionReview(review);
+    verify(reviewService).deleteReview(review);
   }
 
   @Test
@@ -355,7 +352,7 @@ public class MapDetailControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
 
-    when(reviewService.deleteMapVersionReview(review)).thenReturn(Mono.error(new FakeTestException()));
+    when(reviewService.deleteReview(review)).thenReturn(Mono.error(new FakeTestException()));
 
     instance.onDeleteReview(review);
     WaitForAsyncUtils.waitForFxEvents();
@@ -365,47 +362,50 @@ public class MapDetailControllerTest extends PlatformTest {
 
   @Test
   public void testOnSendReviewNew() {
-    review.setId(null);
-    review.setMapVersion(testMap);
+    MapVersionReview review = Instancio.of(MapVersionReview.class)
+                                       .ignore(field(MapVersionReview::id))
+                                       .set(field(MapVersionReview::subject), testMap)
+                                       .create();
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
 
-    when(reviewService.saveMapVersionReview(review)).thenReturn(Mono.empty());
+    when(reviewService.saveReview(review)).thenReturn(Mono.empty());
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveMapVersionReview(review);
-    assertEquals(currentPlayer, review.getPlayer());
+    verify(reviewService).saveReview(review);
   }
 
   @Test
   public void testOnSendReviewUpdate() {
-    review.setMapVersion(testMap);
-    review.setId(0);
+    MapVersionReview review = Instancio.of(MapVersionReview.class)
+                                       .set(field(MapVersionReview::subject), testMap)
+                                       .create();
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
 
-    when(reviewService.saveMapVersionReview(review)).thenReturn(Mono.empty());
+    when(reviewService.saveReview(review)).thenReturn(Mono.empty());
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveMapVersionReview(review);
-    assertEquals(currentPlayer, review.getPlayer());
+    verify(reviewService).saveReview(review);
   }
 
   @Test
   public void testOnSendReviewThrowsException() {
-    review.setMapVersion(testMap);
+    MapVersionReview review = Instancio.of(MapVersionReview.class)
+                                       .set(field(MapVersionReview::subject), testMap)
+                                       .create();
 
     runOnFxThreadAndWait(() -> instance.setMapVersion(testMap));
     WaitForAsyncUtils.waitForFxEvents();
 
 
-    when(reviewService.saveMapVersionReview(review)).thenReturn(Mono.error(new FakeTestException()));
+    when(reviewService.saveReview(review)).thenReturn(Mono.error(new FakeTestException()));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();

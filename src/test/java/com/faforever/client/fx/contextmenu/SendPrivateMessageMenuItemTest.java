@@ -1,8 +1,8 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.chat.ChatService;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
@@ -35,19 +35,19 @@ public class SendPrivateMessageMenuItemTest extends PlatformTest {
 
   @Test
   public void testSendPrivateMessage() {
-    PlayerBean ownPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").get();
+    PlayerInfo ownPlayer = PlayerInfoBuilder.create().defaultValues().username("junit").get();
     when(playerService.getCurrentPlayer()).thenReturn(ownPlayer);
     String username = "junit";
 
     instance.setObject(username);
     instance.onClicked();
 
-    verify(chatService).onInitiatePrivateChat(any());
+    verify(chatService).joinPrivateChat(any());
   }
 
   @Test
   public void testVisibleItemIfPlayerIsNotOwnPlayer() {
-    PlayerBean ownPlayer = PlayerBeanBuilder.create().defaultValues().username("own player").get();
+    PlayerInfo ownPlayer = PlayerInfoBuilder.create().defaultValues().username("own player").get();
     when(playerService.getCurrentPlayer()).thenReturn(ownPlayer);
     when(chatService.userExistsInAnyChannel(anyString())).thenReturn(true);
     String username = "junit";
@@ -59,7 +59,7 @@ public class SendPrivateMessageMenuItemTest extends PlatformTest {
 
   @Test
   public void testInvisibleItemIfPlayerIsOwnPlayer() {
-    PlayerBean ownPlayer = PlayerBeanBuilder.create().defaultValues().username("own player").get();
+    PlayerInfo ownPlayer = PlayerInfoBuilder.create().defaultValues().username("own player").get();
     when(playerService.getCurrentPlayer()).thenReturn(ownPlayer);
     String username = "own player";
 
@@ -70,21 +70,21 @@ public class SendPrivateMessageMenuItemTest extends PlatformTest {
 
   @Test
   public void testInvisibleItemIfUsernameIsBlank() {
-    PlayerBean ownPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").get();
+    PlayerInfo ownPlayer = PlayerInfoBuilder.create().defaultValues().username("junit").get();
     instance.setObject("");
     assertFalse(instance.isVisible());
   }
 
   @Test
   public void testInvisibleItemIfUsernameIsNull() {
-    PlayerBean ownPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").get();
+    PlayerInfo ownPlayer = PlayerInfoBuilder.create().defaultValues().username("junit").get();
     instance.setObject(null);
     assertFalse(instance.isVisible());
   }
 
   @Test
   public void testInvisibleItemIfPlayerNotInChat() {
-    PlayerBean ownPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").get();
+    PlayerInfo ownPlayer = PlayerInfoBuilder.create().defaultValues().username("junit").get();
     instance.setObject("");
     assertFalse(instance.isVisible());
   }

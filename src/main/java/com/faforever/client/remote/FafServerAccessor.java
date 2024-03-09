@@ -3,8 +3,8 @@ package com.faforever.client.remote;
 import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Server;
-import com.faforever.client.domain.MatchmakerQueueBean;
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.MatchmakerQueueInfo;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.exception.UIDException;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -60,7 +60,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 @Lazy
 @Component
@@ -138,20 +137,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
 
   public <T extends ServerMessage> Flux<T> getEvents(Class<T> type) {
     return lobbyClient.getEvents().ofType(type);
-  }
-
-  /**
-   * @deprecated should use {@link FafServerAccessor#getEvents(Class)} instead
-   */
-  @Deprecated
-  public <T extends ServerMessage> void addEventListener(Class<T> type, Consumer<T> listener) {
-    lobbyClient.getEvents()
-               .ofType(type)
-               .flatMap(message -> Mono.fromRunnable(() -> listener.accept(message)).onErrorResume(throwable -> {
-                 log.error("Could not process listener for `{}`", message, throwable);
-                 return Mono.empty();
-               }))
-               .subscribe();
   }
 
   public ConnectionState getConnectionState() {
@@ -314,19 +299,19 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
     lobbyClient.restoreGameSession(id);
   }
 
-  public void gameMatchmaking(MatchmakerQueueBean queue, MatchmakerState state) {
+  public void gameMatchmaking(MatchmakerQueueInfo queue, MatchmakerState state) {
     lobbyClient.gameMatchmaking(queue.getTechnicalName(), state);
   }
 
-  public void inviteToParty(PlayerBean recipient) {
+  public void inviteToParty(PlayerInfo recipient) {
     lobbyClient.inviteToParty(recipient.getId());
   }
 
-  public void acceptPartyInvite(PlayerBean sender) {
+  public void acceptPartyInvite(PlayerInfo sender) {
     lobbyClient.acceptPartyInvite(sender.getId());
   }
 
-  public void kickPlayerFromParty(PlayerBean kickedPlayer) {
+  public void kickPlayerFromParty(PlayerInfo kickedPlayer) {
     lobbyClient.kickPlayerFromParty(kickedPlayer.getId());
   }
 

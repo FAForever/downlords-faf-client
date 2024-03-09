@@ -1,6 +1,6 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.social.SocialService;
@@ -17,7 +17,7 @@ import static com.faforever.client.player.SocialStatus.SELF;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class AddFoeMenuItem extends AbstractMenuItem<PlayerBean> {
+public class AddFoeMenuItem extends AbstractMenuItem<PlayerInfo> {
 
   private final SocialService socialService;
   private final I18n i18n;

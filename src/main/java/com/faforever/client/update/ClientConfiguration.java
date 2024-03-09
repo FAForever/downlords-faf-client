@@ -34,7 +34,7 @@ public class ClientConfiguration {
     private SocketEndpoint lobby;
     private UrlEndpoint lobbyWebsocket;
     private UrlEndpoint user;
-    private SocketEndpoint irc;
+    private SocketEndpoint chat;
     private SocketEndpoint liveReplay;
     private UrlEndpoint api;
     private OAuthEndpoint oauth;

@@ -1,15 +1,13 @@
 package com.faforever.client.tutorial;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.TutorialCategoryBeanBuilder;
-import com.faforever.client.domain.TutorialCategoryBean;
-import com.faforever.client.game.GameService;
-import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
+import com.faforever.client.domain.api.TutorialCategory;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.TutorialMapper;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.elide.ElideEntity;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,11 +17,8 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
-import java.util.List;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
@@ -34,8 +29,6 @@ public class TutorialServiceTest extends ServiceTest {
 
   @Mock
   private FafApiAccessor fafApiAccessor;
-  @Mock
-  private GameService gameService;
   @Spy
   private final TutorialMapper tutorialMapper = Mappers.getMapper(TutorialMapper.class);
   @InjectMocks
@@ -48,11 +41,10 @@ public class TutorialServiceTest extends ServiceTest {
 
   @Test
   public void testGetTutorialCategories() throws Exception {
-    TutorialCategoryBean tutorialCategoryBean = TutorialCategoryBeanBuilder.create().defaultValues().get();
-    Flux<ElideEntity> resultFlux = Flux.just(tutorialMapper.map(tutorialCategoryBean, new CycleAvoidingMappingContext()));
+    TutorialCategory tutorialCategory = Instancio.create(TutorialCategory.class);
+    Flux<ElideEntity> resultFlux = Flux.just(tutorialMapper.map(tutorialCategory));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    List<TutorialCategoryBean> results = instance.getTutorialCategories().join();
+    StepVerifier.create(instance.getTutorialCategories()).expectNextCount(1).verifyComplete();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1000)));
-    assertThat(results, contains(tutorialCategoryBean));
   }
 }

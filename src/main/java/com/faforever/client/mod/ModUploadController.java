@@ -1,8 +1,7 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.ModBean;
-import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.api.ModVersion;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
@@ -17,7 +16,6 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.commons.api.dto.ApiException;
-import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -71,7 +69,7 @@ public class ModUploadController extends NodeController<Node> {
   public Label rulesLabel;
   private Path modPath;
   private CompletableTask<Void> modUploadTask;
-  private ModVersionBean modVersionInfo;
+  private ModVersion modVersionInfo;
   private Runnable cancelButtonClickedListener;
   private Runnable uploadListener;
 
@@ -108,17 +106,15 @@ public class ModUploadController extends NodeController<Node> {
     uploadCompletePane.setVisible(false);
   }
 
-  private void setModVersionInfo(ModVersionBean modVersion) {
+  private void setModVersionInfo(ModVersion modVersion) {
     this.modVersionInfo = modVersion;
     fxApplicationThreadExecutor.execute(() -> {
       enterModInfoState();
-      modNameLabel.textProperty().bind(modVersion.modProperty().flatMap(ModBean::displayNameProperty));
-      descriptionLabel.textProperty().bind(modVersion.descriptionProperty());
-      versionLabel.textProperty().bind(modVersion.versionProperty().asString());
-      uidLabel.textProperty().bind(modVersion.uidProperty());
-      thumbnailImageView.imageProperty().bind(
-          Bindings.createObjectBinding(() -> modService.loadThumbnail(modVersion), modVersion.thumbnailUrlProperty())
-      );
+      modNameLabel.setText(modVersion.mod().displayName());
+      descriptionLabel.setText(modVersion.description());
+      versionLabel.setText(modVersion.version().toString());
+      uidLabel.setText(modVersion.uid());
+      thumbnailImageView.setImage(modService.loadThumbnail(modVersion));
     });
   }
 

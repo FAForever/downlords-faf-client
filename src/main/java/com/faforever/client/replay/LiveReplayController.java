@@ -1,6 +1,6 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.filter.LiveGamesFilterController;
 import com.faforever.client.fx.ControllerTableCell;
 import com.faforever.client.fx.DecimalCell;
@@ -71,18 +71,18 @@ public class LiveReplayController extends NodeController<Node> {
 
   public VBox root;
   public ToggleButton filterButton;
-  public TableView<GameBean> tableView;
-  public TableColumn<GameBean, Image> mapPreviewColumn;
-  public TableColumn<GameBean, OffsetDateTime> startTimeColumn;
-  public TableColumn<GameBean, String> gameTitleColumn;
-  public TableColumn<GameBean, Number> playersColumn;
-  public TableColumn<GameBean, Double> averageRatingColumn;
-  public TableColumn<GameBean, String> modsColumn;
-  public TableColumn<GameBean, String> hostColumn;
-  public TableColumn<GameBean, GameBean> watchColumn;
+  public TableView<GameInfo> tableView;
+  public TableColumn<GameInfo, Image> mapPreviewColumn;
+  public TableColumn<GameInfo, OffsetDateTime> startTimeColumn;
+  public TableColumn<GameInfo, String> gameTitleColumn;
+  public TableColumn<GameInfo, Number> playersColumn;
+  public TableColumn<GameInfo, Double> averageRatingColumn;
+  public TableColumn<GameInfo, String> modsColumn;
+  public TableColumn<GameInfo, String> hostColumn;
+  public TableColumn<GameInfo, GameInfo> watchColumn;
   public Label filteredGamesCountLabel;
 
-  private final Predicate<GameBean> onlineGamesPredicate = game -> game.getStatus() == GameStatus.PLAYING;
+  private final Predicate<GameInfo> onlineGamesPredicate = game -> game.getStatus() == GameStatus.PLAYING;
 
   private boolean initialized = false;
   private LiveGamesFilterController liveGamesFilterController;
@@ -117,8 +117,8 @@ public class LiveReplayController extends NodeController<Node> {
   }
 
   private void initializeGameTable() {
-    ObservableList<GameBean> games = gameService.getGames();
-    FilteredList<GameBean> filteredGameList = new FilteredList<>(games);
+    ObservableList<GameInfo> games = gameService.getGames();
+    FilteredList<GameInfo> filteredGameList = new FilteredList<>(games);
     liveGamesFilterController.predicateProperty().when(showing).subscribe(filteredGameList::setPredicate);
 
     filteredGamesSizeBinding = Bindings.size(filteredGameList);
@@ -131,7 +131,7 @@ public class LiveReplayController extends NodeController<Node> {
       return i18n.get("filteredOutItemsCount", gameListSize - filteredGamesSizeBinding.get(), gameListSize);
     }, filteredGamesSizeBinding, gameListSizeBinding).when(showing));
 
-    SortedList<GameBean> sortedList = new SortedList<>(filteredGameList);
+    SortedList<GameInfo> sortedList = new SortedList<>(filteredGameList);
     sortedList.comparatorProperty().bind(tableView.comparatorProperty());
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(imageViewHelper));
@@ -170,7 +170,7 @@ public class LiveReplayController extends NodeController<Node> {
   }
 
   @NotNull
-  private ObservableValue<String> modCell(CellDataFeatures<GameBean, String> param) {
+  private ObservableValue<String> modCell(CellDataFeatures<GameInfo, String> param) {
     Map<String, String> simMods = param.getValue().getSimMods();
     int simModCount = simMods.size();
     List<String> modNames;
