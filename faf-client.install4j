@@ -39,7 +39,7 @@
   </files>
   <launchers>
     <launcher name="FAF Client" id="25">
-      <executable name="faf-client" iconSet="true" executableMode="gui" changeWorkingDirectory="false" workingDirectory="bin" singleInstance="true" checkConsoleParameter="true" dpiAware="true" />
+      <executable name="faf-client" iconSet="true" executableMode="gui" singleInstance="true" checkConsoleParameter="true" dpiAware="true" />
       <splashScreen show="true" width="640" height="400" bitmapFile="./src/media/splash/splash.png" textOverlay="true">
         <text>
           <statusLine x="11" y="378" fontSize="10" fontColor="255,255,255" />
