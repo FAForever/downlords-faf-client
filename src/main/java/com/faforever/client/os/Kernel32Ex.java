@@ -15,7 +15,7 @@ interface Kernel32Ex extends Kernel32 {
    * @return If the function succeeds, the return value is the previous value of the specified offset. If the function
    * fails, the return value is zero. To get extended error information, call GetLastError.
    */
-  BOOL SetPriorityClass(HANDLE hProcess, DWORD dwPriorityClass);
+  boolean SetPriorityClass(HANDLE hProcess, DWORD dwPriorityClass);
 
   enum WindowsPriority {
     REALTIME_PRIORITY_CLASS(0x00000100),

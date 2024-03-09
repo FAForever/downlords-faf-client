@@ -5,7 +5,6 @@ import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
-import com.sun.jna.platform.win32.WinDef.BOOL;
 import com.sun.jna.platform.win32.WinDef.DWORD;
 import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
@@ -116,8 +115,8 @@ public final class OsWindows implements OperatingSystem {
     log.debug("Settings priority of process {} to {}", process.pid(), priority);
     try {
       DWORD dwPriorityClass = priority.dword();
-      BOOL success = Kernel32Ex.INSTANCE.SetPriorityClass(getProcessHandle(process), dwPriorityClass);
-      if (!success.booleanValue()) {
+      boolean success = Kernel32Ex.INSTANCE.SetPriorityClass(getProcessHandle(process), dwPriorityClass);
+      if (!success) {
         int lastError = Kernel32.INSTANCE.GetLastError();
         log.warn("Could not set priority of process {} (error {})", process.pid(), lastError);
       }
