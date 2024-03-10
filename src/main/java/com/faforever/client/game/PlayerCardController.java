@@ -286,8 +286,16 @@ public class PlayerCardController extends NodeController<Node> {
     this.faction.set(faction);
   }
 
+  public DisplayType getDisplayType() {
+    return displayType.get();
+  }
+
   public ObjectProperty<DisplayType> displayTypeProperty() {
     return displayType;
+  }
+
+  public void setDisplayType(DisplayType displayType) {
+    this.displayType.set(displayType);
   }
 
   public GamePlayerStats getPlayerStats() {
