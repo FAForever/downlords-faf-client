@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.function.Consumer;
 
 @Slf4j
 @Component
@@ -60,6 +61,7 @@ public class MatchmakingQueueItemController extends NodeController<VBox> {
   private final ObjectProperty<MatchmakerQueueInfo> queue = new SimpleObjectProperty<>();
   private final ObservableValue<OffsetDateTime> popTime = queue.flatMap(MatchmakerQueueInfo::queuePopTimeProperty);
   private Timeline queuePopTimeUpdater;
+  private Consumer<MatchmakerQueueInfo> onMapPoolClickedListener;
 
   @Override
   protected void onInitialize() {
@@ -170,8 +172,11 @@ public class MatchmakingQueueItemController extends NodeController<VBox> {
     queuePopTimeUpdater.play();
   }
 
+  public void setOnMapPoolClickedListener(Consumer<MatchmakerQueueInfo> onMapPoolClickedListener) {
+    this.onMapPoolClickedListener = onMapPoolClickedListener;
+  }
   public void showMapPool() {
-    navigationHandler.navigateTo(new ShowMapPoolEvent(getQueue()));
+    onMapPoolClickedListener.accept(this.queue.get());
   }
 
   public MatchmakerQueueInfo getQueue() {

@@ -331,6 +331,13 @@ public class TeamMatchmakingController extends NodeController<Node> {
     factionsToButtons.forEach((faction, toggleButton) -> toggleButton.setSelected(factions.contains(faction)));
   }
 
+  protected void onMapPoolClickedListener(MatchmakerQueueInfo queue) {
+    TeamMatchmakingMapListController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_maplist_popup.fxml");
+    controller.init(queue);
+    Pane root = controller.getRoot();
+    uiService.showInDialog(teamMatchmakingRoot, root, i18n.get("teammatchmaking.mapPool"));
+  }
+
   private void renderQueues() {
     List<MatchmakerQueueInfo> queues = new ArrayList<>(teamMatchmakingService.getQueues());
     queues.sort(Comparator.comparing(MatchmakerQueueInfo::getTeamSize).thenComparing(MatchmakerQueueInfo::getId));
@@ -343,6 +350,7 @@ public class TeamMatchmakingController extends NodeController<Node> {
       MatchmakingQueueItemController controller = uiService.loadFxml(
           "theme/play/teammatchmaking/matchmaking_queue_card.fxml");
       controller.setQueue(queue);
+      controller.setOnMapPoolClickedListener(this::onMapPoolClickedListener);
       controller.getRoot().prefWidthProperty().bind(prefWidth);
       return controller.getRoot();
     }).collect(Collectors.toList());
