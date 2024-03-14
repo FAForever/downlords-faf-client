@@ -73,10 +73,10 @@ public class LeaderboardPlayerDetailsController extends NodeController<HBox> {
     playerDivisionImageView.imageProperty().bind(leagueEntry.map(LeagueEntry::subdivision).map(Subdivision::imageUrl)
                                             .map(leaderboardService::loadDivisionImage));
 
-    scoreArc.lengthProperty()
-            .bind(leagueEntry.map(
-                                 leagueEntry -> leagueEntry.score().doubleValue() / leagueEntry.subdivision().highestScore() * -360d)
-                             .when(showing));
+    scoreArc.lengthProperty().bind(leagueEntry.map(leagueEntry -> {
+      Integer score = leagueEntry.score();
+      return score == null ? 0 : score.doubleValue() / leagueEntry.subdivision().highestScore() * -360d;
+    }).when(showing));
   }
 
   public LeagueEntry getLeagueEntry() {
