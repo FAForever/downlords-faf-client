@@ -24,7 +24,7 @@ public interface MatchmakerMapper {
     @Mapping(target = "queuePopTime", source = "popTime")
     @Mapping(target = "technicalName", source = "name")
     MatchmakerQueueInfo update(MatchmakerInfo.MatchmakerQueue dto, @MappingTarget MatchmakerQueueInfo bean);
-
+    @Mapping(target = "mapVersion", source = "dto")
     MapPoolAssignment map(com.faforever.commons.api.dto.MapPoolAssignment dto);
 
     @InheritInverseConfiguration
@@ -33,7 +33,7 @@ public interface MatchmakerMapper {
     List<MapPoolAssignment> mapAssignmentDtos(List<com.faforever.commons.api.dto.MapPoolAssignment> dto);
 
     List<com.faforever.commons.api.dto.MapPoolAssignment> mapAssignmentBeans(List<MapPoolAssignment> bean);
-
+    @Mapping(target = "mapPool", source = "matchmakerQueueMapPool")
     MapPool map(com.faforever.commons.api.dto.MapPool dto);
 
     @InheritInverseConfiguration
