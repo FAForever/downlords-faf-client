@@ -7,6 +7,7 @@ import com.faforever.client.config.ClientProperties.Vault;
 import com.faforever.client.domain.api.Map;
 import com.faforever.client.domain.api.MapType;
 import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.MatchmakerQueueMapPool;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.exception.AssetLoadException;
@@ -16,6 +17,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mapstruct.MapMapper;
+import com.faforever.client.mapstruct.MatchmakerMapper;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -87,6 +89,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.faforever.client.util.LuaUtil.loadFile;
@@ -117,6 +120,7 @@ public class MapService implements InitializingBean, DisposableBean {
   private final MapGeneratorService mapGeneratorService;
   private final PlayerService playerService;
   private final MapMapper mapMapper;
+  private final MatchmakerMapper matchmakerMapper;
   private final FileSizeReader fileSizeReader;
   private final ClientProperties clientProperties;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
@@ -627,37 +631,18 @@ public class MapService implements InitializingBean, DisposableBean {
 
   @Cacheable(value = CacheNames.MATCHMAKER_POOLS, sync = true)
   @SuppressWarnings({"rawtypes", "unchecked"})
-  public Mono<Tuple2<List<MapVersion>, Integer>> getMatchmakerMapsWithPageCount(MatchmakerQueueInfo matchmakerQueue,
-                                                                                int count, int page) {
-    PlayerInfo player = playerService.getCurrentPlayer();
-    double rating = Optional.ofNullable(player.getLeaderboardRatings())
-                            .map(ratings -> ratings.get(matchmakerQueue.getLeaderboard().technicalName()))
-                            .map(ratingBean -> ratingBean.mean() - 3 * ratingBean.deviation())
-                            .orElse(0d);
+  public Mono <java.util.Map<MatchmakerQueueMapPool, List<MapVersion>>> getMatchmakerBrackets(MatchmakerQueueInfo matchmakerQueue) {
     ElideNavigatorOnCollection<MapPoolAssignment> navigator = ElideNavigator.of(MapPoolAssignment.class).collection();
     List<Condition<?>> conditions = new ArrayList<>();
     conditions.add(qBuilder().intNum("mapPool.matchmakerQueueMapPool.matchmakerQueue.id").eq(matchmakerQueue.getId()));
-    conditions.add(qBuilder().doubleNum("mapPool.matchmakerQueueMapPool.minRating")
-                             .lte(rating)
-                             .or()
-                             .floatNum("mapPool.matchmakerQueueMapPool.minRating")
-                             .ne(null));
-    // The api doesn't support the ne operation so we manually replace it with isnull which rsql does not support
-    String customFilter = ((String) new QBuilder().and(conditions).query(new RSQLVisitor())).replace("ex", "isnull");
-    Flux<MapVersion> matchmakerMapsFlux = fafApiAccessor.getMany(navigator, customFilter)
-                                                        .map(mapMapper::mapFromPoolAssignment)
-                                                        .distinct()
-                                                        .sort(
-                                                            Comparator.nullsLast(Comparator.comparing(MapVersion::size))
-                                                                      .thenComparing(Comparator.nullsLast(
-                                                                          Comparator.comparing(MapVersion::map,
-                                                                                               Comparator.nullsLast(
-                                                                                                   Comparator.comparing(
-                                                                                                       Map::displayName,
-                                                                                                       Comparator.nullsLast(
-                                                                                                           String.CASE_INSENSITIVE_ORDER)))))));
-    return Mono.zip(matchmakerMapsFlux.skip((long) (page - 1) * count).take(count).collectList(),
-                    matchmakerMapsFlux.count().map(size -> (int) (size - 1) / count + 1));
+
+    String customFilter = ((String) new QBuilder().and(conditions).query(new RSQLVisitor()));
+
+    return fafApiAccessor.getMany(navigator, customFilter)
+                         .map(matchmakerMapper::map)
+                         .collect(Collectors.groupingBy(assignment -> assignment.mapPool().mapPool(),
+                                                        Collectors.mapping(assignment -> assignment.mapVersion(), Collectors.toList())));
+
   }
 
   public Mono<Boolean> hasPlayedMap(PlayerInfo player, MapVersion mapVersion) {
