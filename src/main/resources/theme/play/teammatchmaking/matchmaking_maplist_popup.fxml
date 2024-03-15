@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.layout.StackPane?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="root" fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingMapListController">
+    <ScrollPane fx:id="scrollContainer" prefHeight="530" prefWidth="530">
+        <StackPane>
+            <VBox prefWidth="530" prefHeight="530" fx:id="loadingPane" alignment="CENTER" maxHeight="1.7976931348623157E308"
+                  maxWidth="1.7976931348623157E308" mouseTransparent="true" spacing="10.0">
+                <Label contentDisplay="TOP" text="%loading">
+                    <graphic>
+                        <ProgressIndicator/>
+                    </graphic>
+                </Label>
+            </VBox>
+            <FlowPane fx:id="tilesContainer" vgap="10" hgap="10"/>
+        </StackPane>
+    </ScrollPane>
+</VBox>

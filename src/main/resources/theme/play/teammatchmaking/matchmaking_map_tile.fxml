@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+
+
+
+<StackPane fx:id="root" prefWidth="125.0" fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingMapTileController" prefHeight="125.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1" style="-fx-margin:0 0 0 0;">
+    <ImageView fx:id="thumbnailImageView" fitHeight="125" fitWidth="125" preserveRatio="true"/>
+
+    <GridPane prefWidth="125.0" prefHeight="125.0">
+        <rowConstraints>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="ALWAYS"/>
+            <RowConstraints vgrow="NEVER"/>
+        </rowConstraints>
+
+        <VBox fx:id="authorBox" prefHeight="40" alignment="TOP_CENTER" prefWidth="125" GridPane.rowIndex="0" styleClass="image-dimmer-light-reversed">
+            <Label textAlignment="CENTER" fx:id="authorLabel" wrapText="true" />
+        </VBox>
+
+        <VBox prefHeight="60" alignment="BOTTOM_CENTER" prefWidth="125" GridPane.rowIndex="2" styleClass="image-dimmer-light">
+            <Label fx:id="nameLabel" style="-fx-line-spacing: 0;"  alignment="TOP_CENTER" textAlignment="CENTER" wrapText="true"/>
+            <Label fx:id="sizeLabel" style="-fx-line-spacing: 0;"  alignment="BOTTOM_CENTER" textAlignment="CENTER" />
+        </VBox>
+    </GridPane>
+</StackPane>

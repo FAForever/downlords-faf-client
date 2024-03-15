@@ -1095,6 +1095,16 @@
     -fx-opacity: 0;
 }
 
+.image-dimmer-light {
+  -fx-padding: 0 3 3 3;
+  -fx-background-color: linear-gradient(to bottom, #00000000 0%, #00000022 10%, #00000033 20%, #0000004d 30%, #00000066 40%, #00000080 50%, #00000099 60%, #000000b3 70%);
+}
+
+.image-dimmer-light-reversed {
+  -fx-padding: 3 3 0 3;
+  -fx-background-color: linear-gradient(to top, #00000000 0%, #00000000 10%, #00000033 20%, #0000004d 30%, #00000066 40%, #00000080 50%, #00000099 60%, #000000b3 70%);
+}
+
 
 /***************** Faction buttons *****************/
 
