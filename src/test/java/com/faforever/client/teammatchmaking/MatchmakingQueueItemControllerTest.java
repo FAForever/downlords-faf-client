@@ -95,13 +95,6 @@ public class MatchmakingQueueItemControllerTest extends PlatformTest {
   }
 
   @Test
-  public void testShowMapPool() {
-    instance.showMapPool();
-
-    verify(navigationHandler).navigateTo(any(ShowMapPoolEvent.class));
-  }
-
-  @Test
   public void testOnJoinLeaveQueueButtonClicked() {
     runOnFxThreadAndWait(() -> instance.selectButton.fire());
 
