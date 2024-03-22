@@ -237,7 +237,7 @@ dependencies {
           }
   implementation("com.github.FAForever.faf-java-commons:faf-commons-api:${commonsVersion}")
   implementation("com.github.FAForever.faf-java-commons:faf-commons-lobby:${commonsVersion}")
-  implementation("com.google.guava:guava:33.0.0-jre")
+  implementation("com.google.guava:guava:33.1.0-jre")
   implementation("org.apache.commons:commons-compress:1.26.1")
   implementation("net.java.dev.jna:jna:5.14.0")
   implementation("net.java.dev.jna:jna-platform:5.14.0")
