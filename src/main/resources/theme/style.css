@@ -1223,7 +1223,29 @@
   -fx-font-size: 1.5em;
 }
 
-/***************** Rating change*****************/
+/***************** Game Result *****************/
+
+.game-result-label {
+  -fx-font-weight: bold;
+}
+
+.game-result-label:victory {
+  -fx-text-fill: -good;
+}
+
+.game-result-label:defeat {
+  -fx-text-fill: -bad;
+}
+
+.game-result-label:draw {
+  -fx-text-fill: CHART_COLOR_3;
+}
+
+.game-result-label:unknown {
+  -fx-text-fill: -warn;
+}
+
+/***************** Rating change *****************/
 
 .rating-change-label {
   -fx-font-size: 9px;

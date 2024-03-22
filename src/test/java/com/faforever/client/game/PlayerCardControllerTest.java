@@ -3,17 +3,22 @@ package com.faforever.client.game;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.GameInfoBuilder;
 import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.GamePlayerStats;
+import com.faforever.client.domain.api.Subdivision;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.helper.TooltipHelper;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.SocialStatus;
+import com.faforever.client.replay.DisplayType;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
 import javafx.scene.image.Image;
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -35,6 +40,8 @@ public class PlayerCardControllerTest extends PlatformTest {
   @Mock
   private CountryFlagService countryFlagService;
   @Mock
+  private LeaderboardService leaderboardService;
+  @Mock
   private AvatarService avatarService;
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
@@ -43,7 +50,7 @@ public class PlayerCardControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new PlayerCardController(uiService, countryFlagService, avatarService, contextMenuBuilder, i18n);
+    instance = new PlayerCardController(uiService, countryFlagService, avatarService, leaderboardService, contextMenuBuilder, i18n);
 
     when(uiService.getImage(ThemeService.RANDOM_FACTION_IMAGE)).thenReturn(
         new Image(ThemeService.RANDOM_FACTION_IMAGE));
@@ -52,7 +59,6 @@ public class PlayerCardControllerTest extends PlatformTest {
 
   @Test
   public void testSetFoe() {
-    when(i18n.get("userInfo.tooltipFormat.noRating", "foe")).thenReturn("foe");
 
     PlayerInfoBuilder playerInfoBuilder = PlayerInfoBuilder.create()
                                                            .defaultValues()
@@ -60,7 +66,6 @@ public class PlayerCardControllerTest extends PlatformTest {
                                                            .socialStatus(SocialStatus.FOE);
     PlayerInfo player = playerInfoBuilder.get();
     instance.setPlayer(player);
-    instance.setRating(1000);
     instance.setFaction(Faction.CYBRAN);
 
     assertTrue(instance.factionIcon.getStyleClass().contains(ThemeService.CYBRAN_STYLE_CLASS));
@@ -73,7 +78,6 @@ public class PlayerCardControllerTest extends PlatformTest {
 
   @Test
   public void testSetFriend() {
-    when(i18n.get("userInfo.tooltipFormat.noRating", "user")).thenReturn("user");
 
     PlayerInfoBuilder playerInfoBuilder = PlayerInfoBuilder.create()
                                                            .defaultValues()
@@ -81,7 +85,6 @@ public class PlayerCardControllerTest extends PlatformTest {
                                                            .socialStatus(SocialStatus.FRIEND);
     PlayerInfo player = playerInfoBuilder.get();
     instance.setPlayer(player);
-    instance.setRating(1000);
     instance.setFaction(Faction.SERAPHIM);
 
     assertTrue(instance.factionIcon.getStyleClass().contains(ThemeService.SERAPHIM_STYLE_CLASS));
@@ -94,7 +97,6 @@ public class PlayerCardControllerTest extends PlatformTest {
 
   @Test
   public void testSetOther() {
-    when(i18n.get("userInfo.tooltipFormat.noRating", "user")).thenReturn("user");
 
     PlayerInfoBuilder playerInfoBuilder = PlayerInfoBuilder.create()
                                                            .defaultValues()
@@ -102,7 +104,6 @@ public class PlayerCardControllerTest extends PlatformTest {
                                                            .socialStatus(SocialStatus.OTHER);
     PlayerInfo player = playerInfoBuilder.get();
     instance.setPlayer(player);
-    instance.setRating(1000);
     instance.setFaction(Faction.RANDOM);
 
     assertTrue(instance.factionImage.getImage().getUrl().contains(ThemeService.RANDOM_FACTION_IMAGE));
@@ -120,7 +121,6 @@ public class PlayerCardControllerTest extends PlatformTest {
     when(avatarService.loadAvatar(player.getAvatar())).thenReturn(avatarImage);
 
     instance.setPlayer(player);
-    instance.setRating(1000);
     instance.setFaction(Faction.RANDOM);
 
     assertTrue(instance.avatarImageView.isVisible());
@@ -133,7 +133,6 @@ public class PlayerCardControllerTest extends PlatformTest {
     PlayerInfo player = PlayerInfoBuilder.create().defaultValues().avatar(null).get();
 
     instance.setPlayer(player);
-    instance.setRating(1000);
     instance.setFaction(Faction.RANDOM);
 
     assertFalse(instance.avatarImageView.isVisible());
@@ -147,7 +146,6 @@ public class PlayerCardControllerTest extends PlatformTest {
     when(countryFlagService.loadCountryFlag(player.getCountry())).thenReturn(Optional.of(countryImage));
 
     instance.setPlayer(player);
-    instance.setRating(1000);
     instance.setFaction(Faction.RANDOM);
 
     assertTrue(instance.countryImageView.isVisible());
@@ -160,7 +158,6 @@ public class PlayerCardControllerTest extends PlatformTest {
     when(countryFlagService.loadCountryFlag(player.getCountry())).thenReturn(Optional.empty());
 
     instance.setPlayer(player);
-    instance.setRating(1000);
     instance.setFaction(Faction.RANDOM);
 
     assertFalse(instance.countryImageView.isVisible());
@@ -174,7 +171,6 @@ public class PlayerCardControllerTest extends PlatformTest {
                                          .game(GameInfoBuilder.create().defaultValues().get())
                                          .get();
     instance.setPlayer(player);
-    instance.setRating(0);
     instance.setFaction(Faction.AEON);
     assertEquals("Player 1", TooltipHelper.getTooltipText(instance.root));
 
@@ -193,5 +189,33 @@ public class PlayerCardControllerTest extends PlatformTest {
     instance.removeAvatar();
 
     assertFalse(instance.avatarStackPane.isVisible());
+  }
+
+  @Test
+  public void testRating() {
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
+    GamePlayerStats playerStats = Instancio.create(GamePlayerStats.class);
+
+    instance.setPlayer(player);
+    instance.setDisplayType(DisplayType.RATING);
+    instance.setRating(1000);
+    instance.setPlayerStats(playerStats);
+
+    assertTrue(instance.ratingLabel.isVisible());
+    assertTrue(instance.ratingChange.isVisible());
+  }
+
+  @Test
+  public void testInvisibleRating() {
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
+    GamePlayerStats playerStats = Instancio.create(GamePlayerStats.class);
+
+    instance.setPlayer(player);
+    instance.setDisplayType(DisplayType.DIVISION);
+    instance.setRating(1000);
+    instance.setPlayerStats(playerStats);
+
+    assertFalse(instance.ratingLabel.isVisible());
+    assertFalse(instance.ratingChange.isVisible());
   }
 }

@@ -4,6 +4,7 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.domain.api.LeagueScoreJournal;
 import com.faforever.client.domain.api.Map;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.api.Replay;
@@ -41,6 +42,7 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
@@ -461,5 +463,13 @@ public class ReplayService {
     navigator.pageNumber(page).pageSize(count);
     return fafApiAccessor.getManyWithPageCount(navigator, customFilter)
                          .map(tuple -> tuple.mapT1(mods -> mods.stream().map(replayMapper::map).collect(toList())));
+  }
+
+  public Flux<LeagueScoreJournal> getLeagueScoreJournalForReplay(Replay replay) {
+    ElideNavigatorOnCollection<com.faforever.commons.api.dto.LeagueScoreJournal> navigator = ElideNavigator.of(com.faforever.commons.api.dto.LeagueScoreJournal.class).collection()
+        .setFilter(qBuilder().intNum("gameId").eq(replay.id()));
+    return fafApiAccessor.getMany(navigator)
+        .map(replayMapper::map)
+        .cache();
   }
 }

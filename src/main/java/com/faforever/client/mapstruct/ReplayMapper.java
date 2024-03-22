@@ -3,6 +3,7 @@ package com.faforever.client.mapstruct;
 import com.faforever.client.domain.api.FeaturedMod;
 import com.faforever.client.domain.api.GamePlayerStats;
 import com.faforever.client.domain.api.LeaderboardRatingJournal;
+import com.faforever.client.domain.api.LeagueScoreJournal;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.api.Replay;
 import com.faforever.client.domain.server.PlayerInfo;
@@ -78,6 +79,14 @@ public interface ReplayMapper {
                                                          Collectors.toList())));
   }
 
+  @Mapping(target = "season", source = "leagueSeason")
+  @Mapping(target = "divisionBefore", source = "leagueSeasonDivisionSubdivisionBefore")
+  @Mapping(target = "divisionAfter", source = "leagueSeasonDivisionSubdivisionAfter")
+  LeagueScoreJournal map(com.faforever.commons.api.dto.LeagueScoreJournal dto);
+
+  @InheritInverseConfiguration
+  com.faforever.commons.api.dto.LeagueScoreJournal map(LeagueScoreJournal source);
+
   @Mapping(target = "local", constant = "true")
   @Mapping(target = "id", source = "parser.metadata.uid")
   @Mapping(target = "title", source = "parser.metadata.title")
@@ -136,8 +145,8 @@ public interface ReplayMapper {
                                                                               null);
         Float factionFloat = (Float) armyInfo.get("Faction");
         Faction faction = Faction.fromFaValue(factionFloat.intValue());
-        GamePlayerStats stats = new GamePlayerStats(player, (byte) 0, team, faction, null,
-                                                    List.of(ratingJournal));
+        GamePlayerStats stats = new GamePlayerStats(false, faction, (byte) 0, team, (byte) 0, (byte) 0, null,
+                                                    null, player, List.of(ratingJournal));
         teams.computeIfAbsent(teamString, key -> new ArrayList<>()).add(stats);
       }
     });
@@ -152,6 +161,7 @@ public interface ReplayMapper {
     return teamPlayerStats.values().stream().flatMap(Collection::stream).toList();
   }
 
+  @Mapping(target = "outcome", source = "result")
   GamePlayerStats map(com.faforever.commons.api.dto.GamePlayerStats dto);
 
   @InheritInverseConfiguration

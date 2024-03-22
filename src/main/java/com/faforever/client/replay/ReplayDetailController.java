@@ -2,13 +2,16 @@ package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.domain.api.GameOutcome;
 import com.faforever.client.domain.api.GamePlayerStats;
+import com.faforever.client.domain.api.LeagueScoreJournal;
 import com.faforever.client.domain.api.Map;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.api.Replay;
 import com.faforever.client.domain.api.Replay.ChatMessage;
 import com.faforever.client.domain.api.Replay.GameOption;
 import com.faforever.client.domain.api.ReplayReview;
+import com.faforever.client.domain.api.Subdivision;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
@@ -69,6 +72,8 @@ import org.apache.commons.compress.compressors.CompressorException;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
+import reactor.function.TupleUtils;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -404,11 +409,27 @@ public class ReplayDetailController extends NodeController<Node> {
   }
 
   private void populateTeamsContainer(java.util.Map<String, List<GamePlayerStats>> newValue) {
-    CompletableFuture.supplyAsync(() -> createTeamCardControllers(newValue)).thenAcceptAsync(controllers -> {
-      teamCardControllers.clear();
-      teamCardControllers.addAll(controllers);
-      teamsContainer.getChildren().setAll(teamCardControllers.stream().map(TeamCardController::getRoot).toList());
-    }, fxApplicationThreadExecutor);
+    Mono.fromFuture(CompletableFuture.supplyAsync(() -> createTeamCardControllers(newValue)))
+        .zipWith(replayService.getLeagueScoreJournalForReplay(replay.get()).collectList().onErrorReturn(List.of()))
+        .map(TupleUtils.function((controllers, leagueScoreJournals) -> {
+          controllers.forEach(teamCardController -> {
+            teamCardController.setDivisionProvider(player -> getPlayerDivision(player, leagueScoreJournals));
+            if (!leagueScoreJournals.isEmpty()) {
+              teamCardController.setDisplayType(DisplayType.DIVISION);
+            }
+          });
+          return controllers;
+        }))
+        .doOnNext(controllers -> {
+          teamCardControllers.clear();
+          teamCardControllers.addAll(controllers);
+        })
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
+        .doOnSuccess(controllers -> teamsContainer.getChildren()
+                                                  .setAll(teamCardControllers.stream()
+                                                                             .map(TeamCardController::getRoot)
+                                                                             .toList()))
+        .subscribe();
   }
 
   private List<TeamCardController> createTeamCardControllers(java.util.Map<String, List<GamePlayerStats>> teamsValue) {
@@ -419,10 +440,11 @@ public class ReplayDetailController extends NodeController<Node> {
       java.util.Map<PlayerInfo, GamePlayerStats> statsByPlayer = playerStats.stream()
                                                                             .collect(Collectors.toMap(
                                                                                 GamePlayerStats::player,
-                                                                                           Function.identity()));
+                                                                                Function.identity()));
 
       TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
 
+      controller.setTeamOutcome(calculateTeamOutcome(statsByPlayer.values()));
       controller.setRatingPrecision(RatingPrecision.EXACT);
       controller.setRatingProvider(player -> getPlayerRating(player, statsByPlayer));
       controller.setFactionProvider(player -> getPlayerFaction(player, statsByPlayer));
@@ -431,6 +453,27 @@ public class ReplayDetailController extends NodeController<Node> {
 
       return controller;
     }).toList();
+  }
+
+  private GameOutcome calculateTeamOutcome(Collection<GamePlayerStats> statsByPlayer) {
+    // Game outcomes are saved since 2020, so this should suffice for the
+    // vast majority of replays that people will realistically look up.
+    List<GameOutcome> outcomes = statsByPlayer.stream()
+                                              .map(GamePlayerStats::outcome)
+                                              .filter(Objects::nonNull)
+                                              .map(
+                                                  gameOutcome -> (gameOutcome == GameOutcome.MUTUAL_DRAW) ? GameOutcome.DRAW : gameOutcome)
+                                              .toList();
+
+    if (outcomes.contains(GameOutcome.VICTORY)) {
+      return GameOutcome.VICTORY;
+    } else if (outcomes.contains(GameOutcome.DRAW)) {
+      return GameOutcome.DRAW;
+    } else if (outcomes.contains(GameOutcome.DEFEAT)) {
+      return GameOutcome.DEFEAT;
+    } else {
+      return GameOutcome.UNKNOWN;
+    }
   }
 
   private Faction getPlayerFaction(PlayerInfo player, java.util.Map<PlayerInfo, GamePlayerStats> statsByPlayerId) {
@@ -447,6 +490,14 @@ public class ReplayDetailController extends NodeController<Node> {
                                                    .filter(ratingJournal -> ratingJournal.deviationBefore() != null)
                                                    .map(RatingUtil::getRating)
                                                    .orElse(null);
+  }
+
+  private Subdivision getPlayerDivision(PlayerInfo player, List<LeagueScoreJournal> journals) {
+    return journals.stream()
+                   .filter(journal -> journal.loginId() == player.getId())
+                   .findFirst()
+                   .map(LeagueScoreJournal::divisionBefore)
+                   .orElse(null);
   }
 
   public void onReport() {
@@ -506,8 +557,8 @@ public class ReplayDetailController extends NodeController<Node> {
   }
 
   public void showRatingChange() {
+    teamCardControllers.forEach(TeamCardController::showGameResult);
     java.util.Map<String, List<GamePlayerStats>> teamsValue = teams.get();
-
     teamCardControllers.forEach(teamCardController -> teamCardController.setStats(
         teamsValue.get(String.valueOf(teamCardController.getTeamId()))));
   }

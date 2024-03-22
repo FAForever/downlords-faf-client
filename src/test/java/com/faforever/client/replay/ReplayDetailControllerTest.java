@@ -1,6 +1,8 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.domain.api.GamePlayerStats;
+import com.faforever.client.domain.api.LeagueScoreJournal;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.api.Replay;
 import com.faforever.client.domain.api.ReplayReview;
@@ -47,7 +49,9 @@ import reactor.core.scheduler.Schedulers;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static org.instancio.Select.field;
@@ -117,11 +121,14 @@ public class ReplayDetailControllerTest extends PlatformTest {
   public void setUp() throws Exception {
     currentPlayer = PlayerInfoBuilder.create().defaultValues().get();
     mapBean = Instancio.create(MapVersion.class);
+    Map<String, List<GamePlayerStats>> teamPlayerStats = new HashMap<>();
+    teamPlayerStats.put("2", List.of(Instancio.of(GamePlayerStats.class).create()));
     onlineReplay = Instancio.of(Replay.class)
                             .set(field(Replay::validity), Validity.VALID)
                             .set(field(Replay::title), "test")
                             .set(field(Replay::mapVersion), mapBean)
                             .set(field(Replay::replayAvailable), true)
+                            .set(field(Replay::teamPlayerStats), teamPlayerStats)
                             .ignore(field(Replay::replayFile))
                             .ignore(field(Replay::local))
                             .create();
@@ -150,6 +157,8 @@ public class ReplayDetailControllerTest extends PlatformTest {
              .thenReturn(Flux.just(PlayerInfoBuilder.create().defaultValues().get()));
     lenient().when(replayService.getFileSize(onlineReplay)).thenReturn(CompletableFuture.completedFuture(12));
     lenient().when(replayService.replayChangedRating(onlineReplay)).thenReturn(true);
+    lenient().when(replayService.getLeagueScoreJournalForReplay(any())).thenReturn(
+        Flux.just(Instancio.create(LeagueScoreJournal.class)));
     lenient().when(timeService.asDate(onlineReplay.startTime())).thenReturn("Min Date");
     lenient().when(timeService.asShortTime(onlineReplay.startTime())).thenReturn("Min Time");
     lenient().when(timeService.asDate(localReplay.startTime())).thenReturn("Min Date");
