@@ -295,18 +295,6 @@ public class ReplayDetailController extends NodeController<Node> {
       enrichReplayLater(newValue.replayFile(), newValue);
     }
 
-    replayService.getLeagueScoreJournalForReplay(newValue)
-        .collectList()
-        .publishOn(fxApplicationThreadExecutor.asScheduler())
-        .subscribe(leagueScoreJournals -> {
-          teamCardControllers.forEach(teamCardController -> {
-            teamCardController.setDivisionProvider(player -> getPlayerDivision(player, leagueScoreJournals));
-            if (!leagueScoreJournals.isEmpty()) {
-              teamCardController.setDisplayType(DisplayType.DIVISION);
-            }
-          });
-        });
-
     reviewsController.setCanWriteReview(true);
 
     reviewService.getReplayReviews(newValue)
@@ -419,11 +407,20 @@ public class ReplayDetailController extends NodeController<Node> {
   }
 
   private void populateTeamsContainer(java.util.Map<String, List<GamePlayerStats>> newValue) {
-    CompletableFuture.supplyAsync(() -> createTeamCardControllers(newValue)).thenAcceptAsync(controllers -> {
+    CompletableFuture.supplyAsync(() -> createTeamCardControllers(newValue)).thenAccept(controllers -> {
       teamCardControllers.clear();
-      teamCardControllers.addAll(controllers);
-      teamsContainer.getChildren().setAll(teamCardControllers.stream().map(TeamCardController::getRoot).toList());
-    }, fxApplicationThreadExecutor);
+      replayService.getLeagueScoreJournalForReplay(replay.get())
+                   .collectList()
+                   .publishOn(fxApplicationThreadExecutor.asScheduler())
+                   .subscribe(leagueScoreJournals -> controllers.forEach(teamCardController -> {
+                     teamCardController.setDivisionProvider(player -> getPlayerDivision(player, leagueScoreJournals));
+                     if (!leagueScoreJournals.isEmpty()) {
+                       teamCardController.setDisplayType(DisplayType.DIVISION);
+                     }
+                     teamCardControllers.addAll(controllers);
+                     teamsContainer.getChildren().setAll(teamCardControllers.stream().map(TeamCardController::getRoot).toList());
+                   }));
+    });
   }
 
   private List<TeamCardController> createTeamCardControllers(java.util.Map<String, List<GamePlayerStats>> teamsValue) {
