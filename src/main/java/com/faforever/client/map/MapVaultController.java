@@ -112,8 +112,6 @@ public class MapVaultController extends VaultEntityController<MapVersion> {
       case NEWEST -> mapService.getNewestMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case HIGHEST_RATED -> mapService.getHighestRatedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case PLAYED -> mapService.getMostPlayedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-      case MAP_POOL ->
-          mapService.getMatchmakerMapsWithPageCount(matchmakerQueue, pageSize, pagination.getCurrentPageIndex() + 1);
       case OWN -> mapService.getOwnedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case PLAYER, HIGHEST_RATED_UI -> throw new UnsupportedOperationException();
     };
@@ -174,13 +172,7 @@ return List.of(
 
   @Override
   protected void handleSpecialNavigateEvent(NavigateEvent navigateEvent) {
-    if (navigateEvent instanceof ShowMapPoolEvent showMapPoolEvent) {
-      matchmakerQueue = showMapPoolEvent.getQueue();
-      searchType = SearchType.MAP_POOL;
-      onPageChange(null, true);
-    } else {
-      log.warn("No such NavigateEvent for this Controller: {}", navigateEvent.getClass());
-    }
+    log.warn("No such NavigateEvent for this Controller: {}", navigateEvent.getClass());
   }
 
   private void openUploadWindow(Path path) {

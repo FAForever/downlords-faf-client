@@ -351,7 +351,7 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
   }
 
   public enum SearchType {
-    SEARCH, OWN, NEWEST, HIGHEST_RATED, PLAYER, RECOMMENDED, MAP_POOL, PLAYED, HIGHEST_RATED_UI
+    SEARCH, OWN, NEWEST, HIGHEST_RATED, PLAYER, RECOMMENDED, PLAYED, HIGHEST_RATED_UI
   }
 
   public record ShowRoomCategory<T>(

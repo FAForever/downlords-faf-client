@@ -15,6 +15,9 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.dialog.Dialog;
+import com.faforever.client.ui.dialog.Dialog.DialogTransition;
+import com.faforever.client.ui.dialog.DialogLayout;
 import com.faforever.commons.lobby.Faction;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
@@ -31,6 +34,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -331,6 +335,24 @@ public class TeamMatchmakingController extends NodeController<Node> {
     factionsToButtons.forEach((faction, toggleButton) -> toggleButton.setSelected(factions.contains(faction)));
   }
 
+  protected void onMapPoolClickedListener(MatchmakerQueueInfo queue) {
+    TeamMatchmakingMapListController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_maplist_popup.fxml");
+    DialogLayout dialogLayout = new DialogLayout();
+    dialogLayout.setHeading(new Label(i18n.get("teammatchmaking.mapPool")));
+    dialogLayout.setBody(controller.getRoot());
+    Dialog dialog = new Dialog();
+    dialog.setContent(dialogLayout);
+    dialog.setTransitionType(DialogTransition.CENTER);
+    teamMatchmakingRoot.setOnKeyPressed(event -> {
+      if (event.getCode() == KeyCode.ESCAPE) {
+        dialog.close();
+      }
+    });
+    controller.init(queue, dialogLayout);
+    fxApplicationThreadExecutor.execute(() -> dialog.show(teamMatchmakingRoot));
+
+  }
+
   private void renderQueues() {
     List<MatchmakerQueueInfo> queues = new ArrayList<>(teamMatchmakingService.getQueues());
     queues.sort(Comparator.comparing(MatchmakerQueueInfo::getTeamSize).thenComparing(MatchmakerQueueInfo::getId));
@@ -343,6 +365,7 @@ public class TeamMatchmakingController extends NodeController<Node> {
       MatchmakingQueueItemController controller = uiService.loadFxml(
           "theme/play/teammatchmaking/matchmaking_queue_card.fxml");
       controller.setQueue(queue);
+      controller.setOnMapPoolClickedListener(this::onMapPoolClickedListener);
       controller.getRoot().prefWidthProperty().bind(prefWidth);
       return controller.getRoot();
     }).collect(Collectors.toList());

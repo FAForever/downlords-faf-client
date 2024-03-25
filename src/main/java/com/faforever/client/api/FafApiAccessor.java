@@ -103,7 +103,7 @@ public class FafApiAccessor implements InitializingBean {
       java.util.Map.entry(MapVersion.class, List.of("map", "map.reviewsSummary", "map.author")),
       java.util.Map.entry(MapReviewsSummary.class, List.of("map.latestVersion", "map.author", "map.reviewsSummary")),
       java.util.Map.entry(Map.class, List.of("latestVersion", "author", "reviewsSummary")),
-      java.util.Map.entry(MapPoolAssignment.class, List.of("mapVersion", "mapVersion.map", "mapVersion.map.author", "mapVersion.map.reviewsSummary")),
+      java.util.Map.entry(MapPoolAssignment.class, List.of("mapVersion", "mapVersion.map", "mapVersion.map.author", "mapVersion.map.reviewsSummary", "mapPool", "mapPool.matchmakerQueueMapPool")),
       java.util.Map.entry(ModVersion.class, List.of("mod", "mod.latestVersion", "mod.reviewsSummary", "mod.uploader")),
       java.util.Map.entry(ModReviewsSummary.class, List.of("mod.latestVersion", "mod.reviewsSummary", "mod.uploader")),
       java.util.Map.entry(Mod.class, List.of("latestVersion", "reviewsSummary", "uploader")),
