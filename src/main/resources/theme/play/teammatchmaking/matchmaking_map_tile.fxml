@@ -8,22 +8,27 @@
 <?import javafx.scene.layout.StackPane?>
 
 
+<?import javafx.scene.shape.SVGPath?>
+<?import javafx.scene.layout.HBox?>
+<StackPane fx:id="root" prefWidth="160.0" fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingMapTileController" prefHeight="160.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1" style="-fx-margin:0 0 0 0;">
+    <ImageView fx:id="thumbnailImageView" fitHeight="160" fitWidth="160" preserveRatio="true"/>
 
-<StackPane fx:id="root" prefWidth="125.0" fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingMapTileController" prefHeight="125.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1" style="-fx-margin:0 0 0 0;">
-    <ImageView fx:id="thumbnailImageView" fitHeight="125" fitWidth="125" preserveRatio="true"/>
-
-    <GridPane prefWidth="125.0" prefHeight="125.0">
+    <GridPane prefWidth="160.0" prefHeight="160.0">
         <rowConstraints>
             <RowConstraints vgrow="NEVER"/>
             <RowConstraints vgrow="ALWAYS"/>
             <RowConstraints vgrow="NEVER"/>
         </rowConstraints>
 
-        <VBox fx:id="authorBox" prefHeight="40" alignment="TOP_CENTER" prefWidth="125" GridPane.rowIndex="0" styleClass="image-dimmer-light-reversed">
-            <Label textAlignment="CENTER" fx:id="authorLabel" wrapText="true" />
+        <VBox fx:id="authorBox" prefHeight="40" alignment="TOP_CENTER" prefWidth="160" style="-fx-opacity: 0;" GridPane.rowIndex="0" styleClass="image-dimmer-light-reversed">
+            <Label textAlignment="CENTER" fx:id="authorLabel" wrapText="true" style="-fx-opacity: 0;" />
         </VBox>
 
-        <VBox prefHeight="60" alignment="BOTTOM_CENTER" prefWidth="125" GridPane.rowIndex="2" styleClass="image-dimmer-light">
+        <HBox style="-fx-start-margin: 40" spacing="10" fx:id="vetoesBox" prefHeight="40" alignment="TOP_CENTER" prefWidth="160" GridPane.rowIndex="0" styleClass="image-dimmer-light-reversed">
+            <Label fx:id="mapid" />
+        </HBox>
+
+        <VBox prefHeight="60" alignment="BOTTOM_CENTER" prefWidth="160" GridPane.rowIndex="2" styleClass="image-dimmer-light">
             <Label fx:id="nameLabel" style="-fx-line-spacing: 0;"  alignment="TOP_CENTER" textAlignment="CENTER" wrapText="true"/>
             <Label fx:id="sizeLabel" style="-fx-line-spacing: 0;"  alignment="BOTTOM_CENTER" textAlignment="CENTER" />
         </VBox>

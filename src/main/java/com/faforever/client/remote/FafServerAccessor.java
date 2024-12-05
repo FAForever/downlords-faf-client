@@ -30,6 +30,7 @@ import com.faforever.commons.lobby.NoticeInfo;
 import com.faforever.commons.lobby.Player;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.ServerMessage;
+import com.faforever.commons.lobby.VetoData;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -55,8 +56,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -329,6 +332,10 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
 
   public void setPartyFactions(List<Faction> factions) {
     lobbyClient.setPartyFactions(new HashSet<>(factions));
+  }
+
+  public void setPlayerVetoes(List<VetoData> vetoes) {
+    lobbyClient.setPlayerVetoes(vetoes);
   }
 
   public void notifyGameEnded() {

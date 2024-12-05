@@ -1,10 +1,15 @@
 package com.faforever.client.preferences;
 
 import com.faforever.commons.lobby.Faction;
+import com.faforever.commons.lobby.VetoData;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
 
+import java.util.Map;
+
 import static javafx.collections.FXCollections.observableArrayList;
+import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.observableSet;
 
 
@@ -13,11 +18,17 @@ public class MatchmakerPrefs {
                                                                        Faction.SERAPHIM);
   private final ObservableSet<Integer> unselectedQueueIds = observableSet();
 
+  private final ObservableList<VetoData> appliedVetoes = observableArrayList();
+
   public ObservableList<Faction> getFactions() {
     return factions;
   }
 
   public ObservableSet<Integer> getUnselectedQueueIds() {
     return unselectedQueueIds;
+  }
+
+  public ObservableList<VetoData> getAppliedVetoes() {
+    return appliedVetoes;
   }
 }

@@ -78,7 +78,9 @@ import reactor.function.TupleUtils;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -229,6 +231,13 @@ public class TeamMatchmakingService implements InitializingBean {
     fafServerAccessor.connectionStateProperty().subscribe(newValue -> {
       if (newValue == ConnectionState.CONNECTED) {
         sendFactions();
+        sendVetoes();
+      }
+    });
+
+    matchmakerPrefs.getAppliedVetoes().subscribe(()->{
+      if (fafServerAccessor.getConnectionState() == ConnectionState.CONNECTED) {
+        sendVetoes();
       }
     });
 
@@ -249,6 +258,12 @@ public class TeamMatchmakingService implements InitializingBean {
 
   private void sendFactions() {
     sendFactionSelection(matchmakerPrefs.getFactions());
+  }
+
+  private void sendVetoes() {
+    log.debug("SENDING SOME VETOEEEEEEEEEEEEEEEEEEEES");
+    log.debug(matchmakerPrefs.getAppliedVetoes().toString());
+    fafServerAccessor.setPlayerVetoes(matchmakerPrefs.getAppliedVetoes());
   }
 
   private void onSearchInfo(SearchInfo message) {

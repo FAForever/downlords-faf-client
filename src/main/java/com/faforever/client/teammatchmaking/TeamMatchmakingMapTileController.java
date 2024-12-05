@@ -1,28 +1,40 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.domain.api.Map;
+import com.faforever.client.domain.api.MapPoolAssignment;
 import com.faforever.client.domain.api.MapVersion;
+import com.faforever.client.domain.api.MatchmakerQueueMapPool;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
-import javafx.beans.property.DoubleProperty;
+import com.faforever.client.preferences.MatchmakerPrefs;
+import com.faforever.commons.lobby.VetoData;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.SVGPath;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -35,6 +47,8 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   private final I18n i18n;
   private final ImageViewHelper imageViewHelper;
   private final MapGeneratorService mapGeneratorService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final MatchmakerPrefs matchmakerPrefs;
 
   public Pane root;
   public ImageView thumbnailImageView;
@@ -43,18 +57,14 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   public Label sizeLabel;
   public VBox authorBox;
 
-  protected final ObjectProperty<MapVersion> entity = new SimpleObjectProperty<>();
-  private DoubleProperty relevanceLevel = new SimpleDoubleProperty(0);;
+  protected final ObjectProperty<MapPoolAssignment> assignment = new SimpleObjectProperty<>();
+  public Label mapid;
 
-  public double getRelevanceLevel(){
-    return this.relevanceLevel.get();
-  }
-  public void setRelevanceLevel(double value) {
-    this.relevanceLevel.set(value);
-  }
-  public DoubleProperty relevanceLevelProperty() {
-    return this.relevanceLevel;
-  }
+  @Setter
+  private ObservableValue<Integer> vetoTokensLeft;
+  private final SimpleIntegerProperty vetoTokensMax = new SimpleIntegerProperty(0);
+  public HBox vetoesBox;
+
 
   @Override
   public Pane getRoot() {
@@ -62,21 +72,22 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   }
 
 
-  public void setMapVersion(MapVersion mapVersion) {
-    this.entity.set(mapVersion);
+  public void setMapAssignment(MapPoolAssignment mapVersion) {
+    this.assignment.set(mapVersion);
   }
 
+  public void setVetoTokensMax(int vetoTokensMax) {
+    this.vetoTokensMax.set(vetoTokensMax);
+  }
 
   @Override
-  protected void onInitialize(){
-    thumbnailImageView.imageProperty().bind(entity.map(mapVersionBean -> mapService.loadPreview(mapVersionBean, PreviewSize.SMALL))
-                                                  .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
-    thumbnailImageView.effectProperty().bind(relevanceLevel.map(relevanceLevel -> {
-      ColorAdjust grayscaleEffect = new ColorAdjust();
-      grayscaleEffect.setSaturation(-1 + relevanceLevel.intValue());
-      return grayscaleEffect;
-    }));
-    ObservableValue<Map> mapObservable = entity.map(MapVersion::map);
+  protected void onInitialize() {
+    thumbnailImageView.imageProperty()
+                      .bind(assignment.map(
+                                          assignmentBean -> mapService.loadPreview(assignmentBean.mapVersion(), PreviewSize.SMALL))
+                                      .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
+
+    ObservableValue<Map> mapObservable = assignment.map((assignment) -> assignment.mapVersion().map());
 
     nameLabel.textProperty().bind(mapObservable.map(map -> {
       String name = map.displayName();
@@ -86,7 +97,10 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
       return name;
     }));
 
-    authorBox.visibleProperty().bind(mapObservable.map(map -> (map.author() != null) || (mapGeneratorService.isGeneratedMap(map.displayName()))));
+
+    authorBox.visibleProperty()
+             .bind(mapObservable.map(
+                 map -> (map.author() != null) || (mapGeneratorService.isGeneratedMap(map.displayName()))));
     authorLabel.textProperty().bind(mapObservable.map(map -> {
       if (map.author() != null) {
         return map.author().getUsername();
@@ -96,6 +110,72 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
         return i18n.get("map.unknownAuthor");
       }
     }));
-    sizeLabel.textProperty().bind(entity.map(MapVersion::size).map(size -> i18n.get("mapPreview.size", size.widthInKm(), size.heightInKm())));
+    sizeLabel.textProperty()
+             .bind(assignment.map((assignment) -> assignment.id().toString()));
+
+    this.vetoTokensMax.subscribe(this::updateVetoes);
+
+    this.assignment.subscribe((v) -> {
+      fxApplicationThreadExecutor.execute(() -> {
+        mapid.setText(String.valueOf(assignment.getValue().id()));
+      });
+    });
+    matchmakerPrefs.getAppliedVetoes().subscribe(this::updateVetoes);
   }
+
+
+  private void updateVetoes() {
+    int maxTokens = vetoTokensMax.getValue();
+
+    int usedTokens = matchmakerPrefs.getAppliedVetoes().stream()
+                                                 .filter(veto -> veto.getMapPoolMapVersionId() == assignment.getValue().id())
+                                                 .findFirst()
+                                                 .map(VetoData::getVetoTokensApplied)
+                                                 .orElse(0);
+
+    List<SVGPath> tokens = new ArrayList<>();
+    for (int i = 0; i < maxTokens; i++) {
+      SVGPath token = new SVGPath();
+      token.setContent(
+          "M18.148 12.48l5.665-5.66c1.563-1.56 1.563-4.1 0-5.66-1.565-1.57-4.101-1.57-5.665 0l-5.664 5.66L6.82 1.16c-1.563-1.57-4.099-1.57-5.664 0-1.563 1.56-1.563 4.1 0 5.66l5.664 5.66-5.664 5.67c-1.563 1.56-1.563 4.1 0 5.66 1.565 1.57 4.101 1.57 5.664 0l5.664-5.66 5.664 5.66c1.564 1.57 4.1 1.57 5.665 0 1.563-1.56 1.563-4.1 0-5.66l-5.665-5.67");
+      int index = i;
+      token.setStyle("-fx-cursor: hand;");
+
+      if (i < usedTokens) {
+        token.setFill(Paint.valueOf("#ff0000"));
+      } else {
+        index++;
+        token.setFill(Paint.valueOf("#000000"));
+        token.getStyleClass().add("token-not-activated");
+      }
+      int finalIndex = index;
+      token.setOnMouseClicked(event -> {
+        int current = matchmakerPrefs.getAppliedVetoes().stream().filter(veto -> veto.getMapPoolMapVersionId() == assignment.getValue().id()).findFirst().map(VetoData::getVetoTokensApplied).orElse(0);
+        int delta = finalIndex - current;
+        if (delta > vetoTokensLeft.getValue()) {
+          delta = vetoTokensLeft.getValue();
+        }
+        int newValue = Math.max(0, current + delta);
+
+        int VetoDataIndex = matchmakerPrefs.getAppliedVetoes().indexOf(matchmakerPrefs.getAppliedVetoes().stream()
+                                                                              .filter(veto -> veto .getMapPoolMapVersionId() == assignment.getValue().id())
+                                                                              .findFirst()
+                                                                              .orElse(null));
+
+        if (VetoDataIndex != -1) {
+          matchmakerPrefs.getAppliedVetoes().set(VetoDataIndex, new VetoData(assignment.getValue().id(), newValue));
+        } else {
+          matchmakerPrefs.getAppliedVetoes().add(new VetoData(assignment.getValue().id(), newValue));
+        }
+
+      });
+      tokens.add(token);
+    }
+    fxApplicationThreadExecutor.execute(() -> {
+      this.vetoesBox.getChildren().setAll(tokens);
+      //sizeLabel.setText(String.valueOf(assignment.getValue().id()));
+      mapid.setText(String.valueOf(assignment.getValue().id()));
+    });
+  }
+
 }

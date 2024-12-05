@@ -7,6 +7,9 @@
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.TilePane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.Region?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="root" styleClass="tmm-maplist" fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingMapListController">
     <ScrollPane fx:id="scrollContainer" hbarPolicy="NEVER">
         <StackPane styleClass="tmm-maplist-inner">
@@ -18,7 +21,22 @@
                     </graphic>
                 </Label>
             </VBox>
-            <TilePane fx:id="tilesContainer"  vgap="10" hgap="10" />
+            <VBox spacing="20">
+                <VBox fx:id="headerContainer" spacing="20">
+                    <HBox maxWidth="840" alignment="CENTER" spacing="10" >
+                        <Button prefWidth="160" prefHeight="80" fx:id="prevBracketButton" textAlignment="CENTER" text="←" style="-fx-font-size: 40; -fx-font-weight: 900" onAction="#goToPreviousBracket"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label style="-fx-font-size: 40; -fx-font-weight: 700" fx:id="bracketTitle"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button prefWidth="160" prefHeight="80" fx:id="nextBracketButton" textAlignment="CENTER" text="→" style="-fx-font-size: 40; -fx-font-weight: 900" onAction="#goToNextBracket"/>
+                    </HBox>
+                    <HBox alignment="CENTER" spacing="20" fx:id="vetoTokensContainer">
+                        <Label text="Veto tokens available: " style="-fx-font-size: 22; -fx-font-weight: 500" />
+                        <HBox fx:id="vetoTokensViewer" spacing="10"/>
+                    </HBox>
+                </VBox>
+                <TilePane fx:id="tilesContainer"  vgap="10" hgap="10" />
+            </VBox>
         </StackPane>
     </ScrollPane>
 </VBox>
