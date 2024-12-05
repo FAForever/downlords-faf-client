@@ -13,11 +13,12 @@
       fx:controller="com.faforever.client.map.management.RemovableMapCellController">
     <children>
         <ImageView fx:id="previewMapView" fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true"/>
-        <Label fx:id="mapNameLabel" prefWidth="280.0">
+        <Label fx:id="mapNameLabel">
             <HBox.margin>
                 <Insets left="5.0" right="5.0"/>
             </HBox.margin>
         </Label>
+        <Label fx:id="mapVersionLabel" maxWidth="370.0" HBox.hgrow="ALWAYS"/>
         <Button fx:id="removeButton" mnemonicParsing="false" prefHeight="24.0" prefWidth="24.0">
             <graphic>
                 <Region>

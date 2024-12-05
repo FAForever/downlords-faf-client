@@ -9,6 +9,7 @@
     <items>
         <MenuItem mnemonicParsing="false" onAction="#onShowProfile" text="%userMenu.showProfile"/>
         <MenuItem mnemonicParsing="false" onAction="#onReport" text="%userMenu.moderationReport"/>
+        <MenuItem mnemonicParsing="false" onAction="#onCopyAccessToken" text="%userMenu.copyAccessToken"/>
         <MenuItem mnemonicParsing="false" onAction="#onLogOut" text="%userMenu.logOut"/>
     </items>
 </MenuButton>

@@ -255,7 +255,9 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   private void removeMap(Path mapFolder) {
-    mapsByFolderName.remove(mapFolder.getFileName().toString().toLowerCase(Locale.ROOT));
+    fxApplicationThreadExecutor.execute(
+      () -> mapsByFolderName.remove(mapFolder.getFileName().toString().toLowerCase(Locale.ROOT))
+    );
   }
 
   private void addInstalledMap(Path mapFolder) throws MapLoadException {

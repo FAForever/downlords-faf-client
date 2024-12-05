@@ -2,7 +2,7 @@ import com.install4j.gradle.Install4jTask
 import org.gradle.internal.os.OperatingSystem
 
 plugins {
-  id("org.springframework.boot") version "3.3.3"
+  id("org.springframework.boot") version "3.3.5"
   id("com.install4j.gradle") version "10.0.8"
   id("de.undercouch.download") version "5.6.0"
   id("jacoco")
@@ -241,7 +241,7 @@ dependencies {
   implementation("org.apache.commons:commons-compress:1.27.1")
   implementation("net.java.dev.jna:jna:5.14.0")
   implementation("net.java.dev.jna:jna-platform:5.14.0")
-  implementation("org.jetbrains:annotations:24.1.0")
+  implementation("org.jetbrains:annotations:26.0.1")
   implementation("com.neovisionaries:nv-i18n:1.29")
   implementation("com.nativelibs4java:bridj:0.7.0")
   implementation("org.luaj:luaj-jse:3.0.1")
@@ -259,7 +259,7 @@ dependencies {
   implementation("io.github.micheljung:fxstage:0.8.3")
   implementation("io.github.micheljung:jfx-waitomo-theme:0.3.0")
   implementation("org.kitteh.irc:client-lib:9.0.0")
-  def mapstructVersion = "1.6.0"
+  def mapstructVersion = "1.6.3"
   implementation("org.mapstruct:mapstruct:${mapstructVersion}")
   implementation("com.code-disaster.steamworks4j:steamworks4j:1.9.0")
 
@@ -299,7 +299,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok")
   annotationProcessor("org.mapstruct:mapstruct-processor:${mapstructVersion}")
   testAnnotationProcessor("org.projectlombok:lombok")
-  testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.6.0")
+  testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")
   compileOnly("org.projectlombok:lombok")
   testCompileOnly("org.projectlombok:lombok")
 

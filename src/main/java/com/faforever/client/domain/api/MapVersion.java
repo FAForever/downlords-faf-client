@@ -18,6 +18,7 @@ public record MapVersion(
     boolean ranked,
     URL downloadUrl,
     URL thumbnailUrlSmall,
-    URL thumbnailUrlLarge, Map map,
+    URL thumbnailUrlLarge, 
+    Map map,
     OffsetDateTime createTime
 ) {}

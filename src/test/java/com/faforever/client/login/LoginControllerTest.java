@@ -160,12 +160,25 @@ public class LoginControllerTest extends PlatformTest {
   @Test
   public void testLoginFailsNoPorts() throws Exception {
     when(oAuthValuesReceiver.receiveValues(anyString(), anyString()))
-        .thenReturn(CompletableFuture.failedFuture(new IllegalStateException()));
+        .thenReturn(CompletableFuture.failedFuture(new IllegalStateException("")));
 
     instance.onLoginButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(notificationService).addImmediateErrorNotification(any(), eq("login.failed"));
+    assertFalse(instance.loginProgressPane.isVisible());
+    assertTrue(instance.loginFormPane.isVisible());
+  }
+
+  @Test
+  public void testLoginFailsKnownError() throws Exception {
+    when(oAuthValuesReceiver.receiveValues(anyString(), anyString()))
+        .thenReturn(CompletableFuture.failedFuture(new KnownLoginErrorException("", "login.known")));
+
+    instance.onLoginButtonClicked();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(notificationService).addImmediateErrorNotification(any(), eq("login.known"));
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
   }
@@ -236,7 +249,7 @@ public class LoginControllerTest extends PlatformTest {
         .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
     loginPrefs.setRememberMe(true);
     loginPrefs.setRefreshToken("abc");
-    when(loginService.loginWithRefreshToken()).thenReturn(Mono.error(new Exception()));
+    when(loginService.loginWithRefreshToken()).thenReturn(Mono.error(new Exception("")));
     runOnFxThreadAndWait(() -> reinitialize(instance));
     verify(loginService).loginWithRefreshToken();
     assertFalse(instance.loginProgressPane.isVisible());

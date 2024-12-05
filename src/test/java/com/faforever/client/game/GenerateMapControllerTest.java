@@ -532,5 +532,64 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertNull(result.resourceDensity());
     assertNull(result.reclaimDensity());
   }
+
+  @Test
+  public void testResourceComboRandomSliderDisabled(){
+    generatorPrefs.setCustomStyle(true);
+    instance.resourcesComboBox.setItems(FXCollections.observableList(List.of("RANDOM")));
+    instance.resourcesComboBox.getSelectionModel().selectFirst();
+    instance.propsComboBox.setItems(FXCollections.observableList(List.of("OPTIMUS")));
+    instance.propsComboBox.getSelectionModel().selectFirst();
+
+    runOnFxThreadAndWait(() -> reinitialize(instance));
+
+    ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
+
+    runOnFxThreadAndWait(() -> instance.onGenerateMap());
+
+    verify(mapGeneratorService).generateMap(captor.capture());
+
+    GeneratorOptions result = captor.getValue();
+    assertEquals("RANDOM", result.resourceStyle());
+    assertEquals("OPTIMUS", result.propStyle());
+    assertTrue(instance.resourcesDensitySlider.isDisabled());
+    assertFalse(instance.reclaimDensitySlider.isDisabled());
+  }
+
+  @Test
+  public void testPropComboRandomSliderDisabled(){
+    generatorPrefs.setCustomStyle(true);
+    instance.propsComboBox.setItems(FXCollections.observableList(List.of("RANDOM")));
+    instance.propsComboBox.getSelectionModel().selectFirst();
+    instance.resourcesComboBox.setItems(FXCollections.observableList(List.of("OPTIMUS")));
+    instance.resourcesComboBox.getSelectionModel().selectFirst();
+
+    runOnFxThreadAndWait(() -> reinitialize(instance));
+
+    ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
+
+    runOnFxThreadAndWait(() -> instance.onGenerateMap());
+
+    verify(mapGeneratorService).generateMap(captor.capture());
+
+    GeneratorOptions result = captor.getValue();
+    assertEquals("RANDOM", result.propStyle());
+    assertEquals("OPTIMUS", result.resourceStyle());
+    assertTrue(instance.reclaimDensitySlider.isDisabled());
+    assertFalse(instance.resourcesDensitySlider.isDisabled());
+  }
+
+  @Test
+  public void testCustomStyleFalseAndPropAndResourceComboNotRandomSlidersDisabled(){
+
+    runOnFxThreadAndWait(() -> reinitialize(instance));
+    instance.customStyleCheckBox.setSelected(false);
+    instance.setPropStyles(new ArrayList<>(List.of("Maximus")));
+    instance.setResourceStyles(new ArrayList<>(List.of("Decimus")));
+
+
+    assertTrue(instance.reclaimDensitySlider.isDisabled());
+    assertTrue(instance.resourcesDensitySlider.isDisabled());
+  }
 }
 

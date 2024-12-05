@@ -183,4 +183,16 @@ public class TokenRetrieverTest extends ServiceTest {
 
     assertEquals(tokenProperties.get(REFRESH_TOKEN), loginPrefs.getRefreshToken());
   }
+
+  @Test
+  public void testGetAccessToken() throws Exception {
+    loginPrefs.setRememberMe(true);
+    Map<String, String> tokenProperties = Map.of(EXPIRES_IN, "3600", REFRESH_TOKEN, "refresh", ACCESS_TOKEN, "test",
+                                                 TOKEN_TYPE, "bearer");
+    prepareTokenResponse(tokenProperties);
+
+    StepVerifier.create(instance.getAccessToken())
+                .assertNext(accessToken -> assertEquals(accessToken, "test"))
+                .verifyComplete();
+  }
 }

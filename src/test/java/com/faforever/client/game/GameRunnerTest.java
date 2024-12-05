@@ -215,6 +215,7 @@ public class GameRunnerTest extends ServiceTest {
     Integer uid = gameParameters.uid();
 
     verify(fafServerAccessor).setPingIntervalSeconds(5);
+    verify(fafServerAccessor).setTimeoutLoginReconnectSeconds(5);
     verify(leaderboardService, never()).getActiveLeagueEntryForPlayer(any(), any());
     verify(mapService, never()).downloadIfNecessary(any());
     verify(replayServer).start(uid);
@@ -234,6 +235,7 @@ public class GameRunnerTest extends ServiceTest {
     verify(replayServer).stop();
     verify(fafServerAccessor).notifyGameEnded();
     verify(fafServerAccessor).setPingIntervalSeconds(25);
+    verify(fafServerAccessor).setTimeoutLoginReconnectSeconds(30);
     verify(notificationService).addNotification(any(PersistentNotification.class));
     assertFalse(instance.isRunning());
     assertNull(instance.getRunningProcessId());

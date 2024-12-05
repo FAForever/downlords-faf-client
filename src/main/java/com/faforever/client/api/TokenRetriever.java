@@ -43,8 +43,7 @@ public class TokenRetriever implements InitializingBean {
 
   private final Mono<String> refreshedTokenMono = Mono.defer(this::refreshAccess)
                                                       .cacheInvalidateWhen(this::getExpirationMono)
-
-      .map(OAuth2AccessToken::getTokenValue);
+                                                      .map(OAuth2AccessToken::getTokenValue);
 
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -129,5 +128,9 @@ public class TokenRetriever implements InitializingBean {
 
   public Flux<Long> invalidationFlux() {
     return invalidateFlux;
+  }
+
+  public Mono<String> getAccessToken() {
+    return refreshedTokenMono;
   }
 }

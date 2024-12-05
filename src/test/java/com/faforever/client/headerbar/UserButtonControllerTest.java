@@ -1,5 +1,6 @@
 package com.faforever.client.headerbar;
 
+import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.player.PlayerInfoWindowController;
@@ -13,9 +14,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import reactor.core.publisher.Mono;
 
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class UserButtonControllerTest extends PlatformTest {
   private static final String TEST_USER_NAME = "junit";
@@ -30,6 +33,8 @@ public class UserButtonControllerTest extends PlatformTest {
   private ReportDialogController reportDialogController;
   @Mock
   private PlayerInfoWindowController playerInfoWindowController;
+  @Mock
+  private TokenRetriever tokenRetriever;
 
 
   @InjectMocks
@@ -62,6 +67,15 @@ public class UserButtonControllerTest extends PlatformTest {
 
     verify(reportDialogController).setAutoCompleteWithOnlinePlayers();
     verify(reportDialogController).show();
+  }
+
+  @Test
+  public void testCopyAccessToken() {
+    when(tokenRetriever.getAccessToken()).thenReturn(Mono.just("someToken"));
+
+    instance.onCopyAccessToken();
+
+    verify(tokenRetriever).getAccessToken();
   }
 
   @Test

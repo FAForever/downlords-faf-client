@@ -373,6 +373,7 @@ public class GameRunner implements InitializingBean {
 
   private Process launchOnlineGame(GameParameters gameParameters, Integer gpgPort, Integer replayPort) {
     fafServerAccessor.setPingIntervalSeconds(5);
+    fafServerAccessor.setTimeoutLoginReconnectSeconds(5);
     gameKilled = false;
     return forgedAllianceLaunchService.launchOnlineGame(gameParameters, gpgPort, replayPort);
   }
@@ -400,6 +401,7 @@ public class GameRunner implements InitializingBean {
 
   private void handleTermination(Process finishedProcess) {
     fafServerAccessor.setPingIntervalSeconds(25);
+    fafServerAccessor.setTimeoutLoginReconnectSeconds(30);
     int exitCode = finishedProcess.exitValue();
     log.info("Forged Alliance terminated with exit code {}", exitCode);
     Optional<Path> logFile = loggingService.getMostRecentGameLogFile();

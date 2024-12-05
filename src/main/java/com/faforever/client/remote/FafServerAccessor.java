@@ -36,6 +36,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -86,6 +87,9 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
   private boolean autoReconnect;
   @Getter
   private boolean running;
+  @Getter
+  @Setter
+  private int timeoutLoginReconnectSeconds;
 
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -101,6 +105,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
                                  .subscribe();
 
       setPingIntervalSeconds(25);
+      setTimeoutLoginReconnectSeconds(30);
 
       lobbyClient.getConnectionStatus()
                  .map(connectionStatus -> switch (connectionStatus) {
@@ -164,7 +169,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
                                                                    clientProperties.getUserAgent(), lobbyUrl,
                                                                    this::tryGenerateUid, 1024 * 1024, false)))
                                .flatMap(lobbyClient::connectAndLogin)
-                               .timeout(Duration.ofSeconds(30))
+                               .timeout(Duration.ofSeconds(timeoutLoginReconnectSeconds))
                                .retryWhen(createRetrySpec(clientProperties.getServer()));
   }
 

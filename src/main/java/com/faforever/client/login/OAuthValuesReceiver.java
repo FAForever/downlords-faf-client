@@ -19,6 +19,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -33,6 +34,9 @@ public class OAuthValuesReceiver {
 
   private static final Pattern CODE_PATTERN = Pattern.compile("code=([^ &]+)");
   private static final Pattern STATE_PATTERN = Pattern.compile("state=([^ &]+)");
+  private static final Pattern ERROR_PATTERN = Pattern.compile("error=([^ &]+)");
+  private static final Pattern ERROR_SCOPE_DENIED = Pattern.compile("scope_denied");
+  private static final Pattern ERROR_NO_CSRF = Pattern.compile("No\\+CSRF\\+value");
 
   private final PlatformService platformService;
   private final LoginService loginService;
@@ -89,6 +93,7 @@ public class OAuthValuesReceiver {
 
       // Do not try with resources as the socket needs to stay open.
       try {
+        checkForError(request);
         Values values = readValues(request, redirectUri);
         success = true;
         return values;
@@ -139,12 +144,31 @@ public class OAuthValuesReceiver {
     return new Values(code, state, redirectUri);
   }
 
+  private String formatRequest(String request) {
+    return URLDecoder.decode(request, StandardCharsets.UTF_8);
+  }
+
   private String extractValue(String request, Pattern pattern) {
     Matcher matcher = pattern.matcher(request);
     if (!matcher.find()) {
-      throw new IllegalStateException("Could not extract value with pattern '" + pattern + "' from: " + request);
+      throw new IllegalStateException("Could not extract value with pattern '" + pattern + "' from: " + formatRequest(request));
     }
     return matcher.group(1);
+  }
+
+  private void checkForError(String request) {
+    Matcher matcher = ERROR_PATTERN.matcher(request);
+    if (matcher.find()) {
+      String errorMessage = "Login failed with error '" + matcher.group(1) + "'. The full request is: " + formatRequest(request);
+      if (ERROR_SCOPE_DENIED.matcher(request).find()) {
+        throw new KnownLoginErrorException(errorMessage, "login.scopeDenied");
+      }
+
+      if (ERROR_NO_CSRF.matcher(request).find()) {
+        throw new KnownLoginErrorException(errorMessage, "login.noCSRF");
+      }
+      throw new IllegalStateException(errorMessage);
+    }
   }
 
   public record Values(String code, String state, URI redirectUri) {}

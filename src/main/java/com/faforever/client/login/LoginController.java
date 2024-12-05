@@ -55,7 +55,6 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 @RequiredArgsConstructor
 public class LoginController extends NodeController<Pane> {
-
   private final OperatingSystem operatingSystem;
   private final GameRunner gameRunner;
   private final LoginService loginService;
@@ -292,6 +291,8 @@ public class LoginController extends NodeController<Pane> {
       notificationService.addNotification(
           new ServerNotification(i18n.get("login.failed"), loginException.getMessage(), Severity.ERROR,
                                  List.of(new DismissAction(i18n))));
+    } else if (throwable instanceof KnownLoginErrorException loginException) {
+      notificationService.addImmediateErrorNotification(throwable, loginException.getI18nKey());
     } else {
       log.error("Could not log in", throwable);
       notificationService.addImmediateErrorNotification(throwable, "login.failed");
