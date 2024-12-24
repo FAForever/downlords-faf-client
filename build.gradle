@@ -230,13 +230,7 @@ dependencies {
   implementation("io.projectreactor.addons:reactor-extra")
   implementation("io.projectreactor:reactor-tools")
 
-  def commonsVersion = "87d6a503af708ef01f8c628d339ba80209b02097"
-
-  implementation("com.github.K-ETFreeman.faf-java-commons:faf-commons-data:${commonsVersion}") {
-            exclude module: 'guava'
-          }
-  implementation("com.github.K-ETFreeman.faf-java-commons:faf-commons-api:${commonsVersion}")
-  implementation("com.github.K-ETFreeman.faf-java-commons:faf-commons-lobby:${commonsVersion}")
+  implementation("com.github.K-ETFreeman:faf-java-commons:3b1a47fb0cf1d8444351d53feb4f25aae77a6737")
   implementation("com.google.guava:guava:33.3.0-jre")
   implementation("org.apache.commons:commons-compress:1.27.1")
   implementation("net.java.dev.jna:jna:5.14.0")

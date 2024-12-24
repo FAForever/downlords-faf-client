@@ -117,7 +117,9 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
 
     this.assignment.subscribe((v) -> {
       fxApplicationThreadExecutor.execute(() -> {
-        mapid.setText(String.valueOf(assignment.getValue().id()));
+        if (assignment.getValue() != null) {
+          mapid.setText(String.valueOf(assignment.getValue().id()));
+        }
       });
     });
     matchmakerPrefs.getAppliedVetoes().subscribe(this::updateVetoes);
@@ -157,17 +159,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
         }
         int newValue = Math.max(0, current + delta);
 
-        int VetoDataIndex = matchmakerPrefs.getAppliedVetoes().indexOf(matchmakerPrefs.getAppliedVetoes().stream()
-                                                                              .filter(veto -> veto .getMapPoolMapVersionId() == assignment.getValue().id())
-                                                                              .findFirst()
-                                                                              .orElse(null));
-
-        if (VetoDataIndex != -1) {
-          matchmakerPrefs.getAppliedVetoes().set(VetoDataIndex, new VetoData(assignment.getValue().id(), newValue));
-        } else {
-          matchmakerPrefs.getAppliedVetoes().add(new VetoData(assignment.getValue().id(), newValue));
-        }
-
+        matchmakerPrefs.setVetoData(new VetoData(assignment.getValue().id(), newValue));
       });
       tokens.add(token);
     }

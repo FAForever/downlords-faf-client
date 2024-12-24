@@ -90,8 +90,11 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   private final ObservableValue<List<MatchmakerQueueMapPool>> sortedMapPools = brackets.map(this::getSortedMapPools)
                                                                                        .orElse(List.of());
 
-  private final ObservableValue<MatchmakerQueueMapPool> currentBracket = Bindings.createObjectBinding(this::getCurrentBracket, sortedMapPools, currentBracketIndex);
-  private final ObservableValue<List<MapPoolAssignment>> currentBracketMaps = Bindings.createObjectBinding(this::getCurrentBracketMaps, currentBracket);
+  private final ObservableValue<MatchmakerQueueMapPool> currentBracket = Bindings.createObjectBinding(
+      this::getCurrentBracket, sortedMapPools, currentBracketIndex);
+
+  private final ObservableValue<List<MapPoolAssignment>> currentBracketMaps = Bindings.createObjectBinding(
+      this::getCurrentBracketMaps, currentBracket);
 
   private final ObservableValue<Integer> playerBracketIndex = Bindings.createObjectBinding(this::calculateBracketIndex,
                                                                                            sortedMapPools,
@@ -118,10 +121,16 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
   private void bindProperties() {
     JavaFxUtil.bindManagedToVisible(loadingPane);
-    tilesContainer.getChildren().subscribe(()->this.loadingPane.setVisible(false));
+    this.currentBracketIndex.subscribe(currentBracketIndex -> {
+      log.debug("CURRENT BRACKET INDEX: {}", currentBracketIndex);
+    });
+    tilesContainer.getChildren().subscribe(() -> this.loadingPane.setVisible(false));
 
-    vetoTokensApplied = Bindings.createObjectBinding(this::calculateVetoTokensApplied, currentBracketMaps, matchmakerPrefs.getAppliedVetoes(), currentBracket);
-    vetoTokensLeft = Bindings.createObjectBinding(()-> Optional.ofNullable(currentBracket.getValue().vetoTokensPerPlayer()).orElse(0) - Optional.ofNullable(vetoTokensApplied.getValue()).orElse(0), currentBracket, vetoTokensApplied);
+    vetoTokensApplied = Bindings.createObjectBinding(this::calculateVetoTokensApplied, currentBracketMaps,
+                                                     matchmakerPrefs.getAppliedVetoes(), currentBracket);
+    vetoTokensLeft = Bindings.createObjectBinding(
+        () -> Optional.ofNullable(currentBracket.getValue().vetoTokensPerPlayer()).orElse(0) - Optional.ofNullable(
+            vetoTokensApplied.getValue()).orElse(0), currentBracket, vetoTokensApplied);
 
     this.currentBracket.subscribe(this::updateContent);
     this.currentBracketMaps.when(showing).subscribe(this::updateContent);
@@ -129,6 +138,8 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
     currentBracket.subscribe(this::updateVetoes);
     vetoTokensApplied.subscribe(this::updateVetoes);
+
+    log.debug("INITIALLLLLLLLLLIIIIIIIIIIIIIIIIZIIIIIIIIIIIIIIIING");
 
     this.queue.when(showing).subscribe(value -> {
       if (value == null) {
@@ -138,6 +149,16 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
       mapService.getMatchmakerBrackets(value).subscribe(this.brackets::setValue);
     });
     this.playerBracketIndex.subscribe(currentBracketIndex::set);
+
+    this.brackets.subscribe(brackets -> {
+      log.debug("BRACKETS: {}", brackets);
+    });
+    this.sortedMapPools.subscribe(pools -> {
+      log.debug("MAP POOLS: {}", pools);
+      if(pools.size() > 0) {
+        this.currentBracketIndex.setValue(Optional.ofNullable(this.currentBracketIndex.getValue()).orElse(0));
+      }
+    });
 
     playerRating.bind(playerService.currentPlayerProperty()
                                    .flatMap(player -> queue.flatMap(MatchmakerQueueInfo::leaderboardProperty)
@@ -197,10 +218,12 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
   private MatchmakerQueueMapPool getCurrentBracket() {
     Integer v = this.currentBracketIndex.get();
-
+    log.debug("CURRENT BRACKET v is: {}", v);
     if ((v == null) || (v > this.sortedMapPools.getValue().size() - 1) || (v < 0)) {
       return null;
     }
+
+    log.debug("CURRENT BRACKET UPDATED: {}", this.sortedMapPools.getValue().get(this.currentBracketIndex.get()));
 
     return this.sortedMapPools.getValue().get(this.currentBracketIndex.get());
   }
@@ -236,13 +259,19 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
       return Collections.emptyList();
     }
 
-    return this.brackets.getValue().get(currentBracket.getValue()).stream()
-                                          .sorted((m1, m2) -> MAP_VERSION_COMPARATOR.compare(m1.mapVersion(), m2.mapVersion()))
-                                          .toList();
+    log.debug("getCURRENTBRACKETMAPS TRIGGERED WITH {}", this.brackets.getValue().get(currentBracket.getValue()));
+
+    return this.brackets.getValue()
+                        .get(currentBracket.getValue())
+                        .stream()
+                        .sorted((m1, m2) -> MAP_VERSION_COMPARATOR.compare(m1.mapVersion(), m2.mapVersion()))
+                        .toList();
   }
 
 
-  private List<MatchmakerQueueMapPool> getSortedMapPools(Map<MatchmakerQueueMapPool, List<MapPoolAssignment>> brackets) {
+  private List<MatchmakerQueueMapPool> getSortedMapPools(
+      Map<MatchmakerQueueMapPool, List<MapPoolAssignment>> brackets) {
+    log.debug("SORTED MAP POOLS UPDATED WITH BRACKET SIZE {}", brackets.size());
     return brackets.keySet().stream().sorted(MAP_POOL_COMPARATOR).toList();
   }
 
@@ -251,7 +280,11 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
       return 0;
     }
     Set<Integer> IDs = currentBracketMaps.getValue().stream().map(MapPoolAssignment::id).collect(Collectors.toSet());
-    List<VetoData> vetoesInCurrentBracket = matchmakerPrefs.getAppliedVetoes().stream().filter((data) -> IDs.contains(data.getMapPoolMapVersionId())).toList();
+    List<VetoData> vetoesInCurrentBracket = matchmakerPrefs.getAppliedVetoes()
+                                                           .stream()
+                                                           .filter(
+                                                               (data) -> IDs.contains(data.getMapPoolMapVersionId()))
+                                                           .toList();
 
     return vetoesInCurrentBracket.stream().mapToInt(VetoData::getVetoTokensApplied).sum();
   }
@@ -271,8 +304,6 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     TeamMatchmakingMapTileController controller = uiService.loadFxml(
         "theme/play/teammatchmaking/matchmaking_map_tile.fxml");
     controller.setMapAssignment(mapAssignment);
-    log.debug("HERE)))))))))))))))000000000000000000000000");
-    log.debug(currentBracket.getValue().toString());
     controller.setVetoTokensMax(Math.min(currentBracket.getValue().vetoTokensPerPlayer(), 5));
     controller.setVetoTokensLeft(vetoTokensLeft);
     return controller.getRoot();
@@ -306,7 +337,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   private void updateVetoes() {
     MatchmakerQueueMapPool v = currentBracket.getValue();
     if (v == null) {
-      fxApplicationThreadExecutor.execute(()->this.vetoTokensViewer.getChildren().clear());
+      fxApplicationThreadExecutor.execute(() -> this.vetoTokensViewer.getChildren().clear());
       return;
     }
     int maxTokens = v.vetoTokensPerPlayer();
@@ -315,11 +346,11 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     List<SVGPath> tokens = new ArrayList<>();
     for (int i = 0; i < maxTokens; i++) {
       SVGPath token = new SVGPath();
-      token.setContent("M18.148 12.48l5.665-5.66c1.563-1.56 1.563-4.1 0-5.66-1.565-1.57-4.101-1.57-5.665 0l-5.664 5.66L6.82 1.16c-1.563-1.57-4.099-1.57-5.664 0-1.563 1.56-1.563 4.1 0 5.66l5.664 5.66-5.664 5.67c-1.563 1.56-1.563 4.1 0 5.66 1.565 1.57 4.101 1.57 5.664 0l5.664-5.66 5.664 5.66c1.564 1.57 4.1 1.57 5.665 0 1.563-1.56 1.563-4.1 0-5.66l-5.665-5.67");
-      if (i >= maxTokens - usedTokens)
-        token.setFill(Paint.valueOf("#000000"));
-      else
+      token.setContent(
+          "M18.148 12.48l5.665-5.66c1.563-1.56 1.563-4.1 0-5.66-1.565-1.57-4.101-1.57-5.665 0l-5.664 5.66L6.82 1.16c-1.563-1.57-4.099-1.57-5.664 0-1.563 1.56-1.563 4.1 0 5.66l5.664 5.66-5.664 5.67c-1.563 1.56-1.563 4.1 0 5.66 1.565 1.57 4.101 1.57 5.664 0l5.664-5.66 5.664 5.66c1.564 1.57 4.1 1.57 5.665 0 1.563-1.56 1.563-4.1 0-5.66l-5.665-5.67");
+      if (i >= maxTokens - usedTokens) {token.setFill(Paint.valueOf("#000000"));} else {
         token.setFill(Paint.valueOf("#ff0000"));
+      }
       tokens.add(token);
     }
     fxApplicationThreadExecutor.execute(() -> this.vetoTokensViewer.getChildren().setAll(tokens));
@@ -327,7 +358,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
   private void updateContent() {
     List<Pane> mapTiles = currentBracketMaps.getValue().stream().map(this::createMapTile).toList();
-
+    log.debug("UPDATE CONTENT WITH BRACKET {} AND TILE LENGTH {}", currentBracket.getValue(), mapTiles.size());
     fxApplicationThreadExecutor.execute(() -> {
       this.setBracketTitle();
       this.tilesContainer.getChildren().setAll(mapTiles);
@@ -340,6 +371,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   }
 
   public void goToNextBracket(ActionEvent actionEvent) {
-    this.currentBracketIndex.set(Math.min(this.currentBracketIndex.get() + 1, this.sortedMapPools.getValue().size() - 1));
+    this.currentBracketIndex.set(
+        Math.min(this.currentBracketIndex.get() + 1, this.sortedMapPools.getValue().size() - 1));
   }
 }

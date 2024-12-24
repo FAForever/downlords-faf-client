@@ -16,6 +16,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ServerNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.update.Version;
+import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.commons.lobby.ConnectionStatus;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.FafLobbyClient;
@@ -31,6 +32,7 @@ import com.faforever.commons.lobby.Player;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.ServerMessage;
 import com.faforever.commons.lobby.VetoData;
+import com.faforever.commons.lobby.VetoesChangedInfo;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -81,6 +83,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
   private final UidService uidService;
   private final ClientProperties clientProperties;
   private final FafLobbyClient lobbyClient;
+  private final MatchmakerPrefs matchmakerPrefs;
   @Qualifier("userWebClient")
   private final ObjectFactory<WebClient> userWebClientFactory;
 
@@ -101,6 +104,11 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
     if (!isRunning()) {
       getEvents(NoticeInfo.class).doOnNext(this::onNotice)
                                  .doOnError(throwable -> log.error("Error processing notice", throwable))
+                                 .retry()
+                                 .subscribe();
+
+      getEvents(VetoesChangedInfo.class).doOnNext(this::onVetoesChanged)
+                                 .doOnError(throwable -> log.error("Error processing vetoes changed", throwable))
                                  .retry()
                                  .subscribe();
 
@@ -301,6 +309,11 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
     notificationService.addNotification(
         new ServerNotification(i18n.get("messageFromServer"), noticeMessage.getText(), severity,
                                Collections.singletonList(new DismissAction(i18n))));
+  }
+
+  private void onVetoesChanged(VetoesChangedInfo vetoesChangedInfo) {
+    log.debug("Received vetoes changed message {}", vetoesChangedInfo);
+    matchmakerPrefs.getAppliedVetoes().setAll(vetoesChangedInfo.getVetoesData());
   }
 
   public void restoreGameSession(int id) {
