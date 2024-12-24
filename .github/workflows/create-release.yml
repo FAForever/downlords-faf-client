@@ -25,7 +25,7 @@ jobs:
     environment: deploy
     runs-on: ubuntu-latest
     env:
-      INSTALL4J_DIR: "install4j/install4j10.0.6"
+      INSTALL4J_DIR: "install4j/install4j11.0.1"
 
     steps:
       - uses: actions/checkout@v4
@@ -87,7 +87,7 @@ jobs:
       - name: Download Install4j
         run: |
           mkdir -p "$HOME/install4j"
-          curl https://content.faforever.com/build/install4j_unix_10_0_6.tar.gz -o "$HOME/install4j/install4j.tar.gz"
+          curl https://content.faforever.com/build/install4j_linux-x64_11_0_1.tar.gz -o "$HOME/install4j/install4j.tar.gz"
           tar xzf "$HOME/install4j/install4j.tar.gz" -C "$HOME/install4j"
 
       - name: Download Bundled JRE
@@ -100,7 +100,7 @@ jobs:
           ./gradlew -Pversion="${{ steps.set_version.outputs.tag }}" \
           -PjavafxPlatform=win \
           -Pinstall4jHomeDir=$HOME/$INSTALL4J_DIR \
-          -Pinstall4jLicense=${{ secrets.INSTALL4J_LICENSE }} \
+          -Pinstall4jLicense=${{ secrets.INSTALL4J_11_LICENSE }} \
           --info \
           --stacktrace \
           buildInstall4jMediaFiles
@@ -110,7 +110,7 @@ jobs:
           ./gradlew -Pversion="${{ steps.set_version.outputs.tag }}" \
           -PjavafxPlatform=linux \
           -Pinstall4jHomeDir=$HOME/$INSTALL4J_DIR \
-          -Pinstall4jLicense=${{ secrets.INSTALL4J_LICENSE }} \
+          -Pinstall4jLicense=${{ secrets.INSTALL4J_11_LICENSE }} \
           --info \
           --stacktrace \
           buildInstall4jMediaFiles

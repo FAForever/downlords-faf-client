@@ -58,18 +58,36 @@ public class WebViewConfigurer {
       themeService.registerWebView(webView);
 
       ((JSObject) engine.executeScript("window")).setMember(JAVA_REFERENCE_IN_JAVASCRIPT, browserCallback);
-
       Document document = webView.getEngine().getDocument();
       if (document == null) {
         return;
       }
 
+      engine.executeScript("""
+          let obs = new MutationObserver((mutations, observer) => {
+            const addedNodes = mutations.flatMap(mut => Array.from(mut.addedNodes));
+            const links = [];
+            for (const node of addedNodes) {
+              if (node?.querySelectorAll) {
+                links.push(...document.querySelectorAll("a"));
+              }
+            }
+            for (const elt of links) {
+              if (!elt.href.includes("javascript:java.openUrl")) {
+                elt.setAttribute("href", "javascript:java.openUrl('" + elt.href + "')");
+              }
+            }
+          });
+          obs.observe(document.body, {subtree:true, childList:true});
+          """);
+
       NodeList nodeList = document.getElementsByTagName("a");
       for (int i = 0; i < nodeList.getLength(); i++) {
         Element link = (Element) nodeList.item(i);
         String href = link.getAttribute("href");
-
-        link.setAttribute("href", "javascript:java.openUrl('" + href + "');");
+        if (!href.contains("javascript:java.openUrl")) {
+          link.setAttribute("href", "javascript:java.openUrl('" + href + "');");
+        }
       }
     });
   }

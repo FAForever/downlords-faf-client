@@ -3,7 +3,7 @@ import org.gradle.internal.os.OperatingSystem
 
 plugins {
   id("org.springframework.boot") version "3.3.5"
-  id("com.install4j.gradle") version "10.0.8"
+  id("com.install4j.gradle") version "11.0.1"
   id("de.undercouch.download") version "5.6.0"
   id("jacoco")
   id("java")
@@ -275,9 +275,9 @@ dependencies {
   implementation("org.javassist:javassist:3.30.2-GA")
 
   implementation("io.github.sheikah45.fx2j:fx2j-api:0.1.0")
-  implementation("com.install4j:install4j-runtime:10.0.8")
+  implementation("com.install4j:install4j-runtime:11.0.1")
 
-  testImplementation("org.instancio:instancio-junit:5.0.2")
+  testImplementation("org.instancio:instancio-junit:5.2.0")
   testImplementation("com.squareup.okhttp3:okhttp")
   testImplementation("com.squareup.okhttp3:mockwebserver")
   testImplementation("io.projectreactor:reactor-test")
