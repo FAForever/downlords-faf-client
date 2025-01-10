@@ -90,6 +90,12 @@
         </graphic>
     </Label>
 
+    <Label fx:id="replayWatchedLabel" text="&lt;ReplayWatched&gt;" GridPane.columnIndex="2" GridPane.rowIndex="8">
+        <graphic>
+            <Region styleClass="icon, watched-icon" />
+        </graphic>
+    </Label>
+
 
     <HBox spacing="10.0" alignment="BOTTOM_RIGHT" GridPane.halignment="RIGHT" GridPane.valignment="BOTTOM"
           GridPane.columnIndex="2" GridPane.rowIndex="8"

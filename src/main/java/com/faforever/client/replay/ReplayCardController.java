@@ -55,6 +55,7 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
 
   private final UiService uiService;
   private final ReplayService replayService;
+  private final ReplayWatchedService replayWatchedService;
   private final TimeService timeService;
   private final MapService mapService;
   private final RatingService ratingService;
@@ -81,6 +82,7 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
   public Button deleteButton;
   public TextField replayIdField;
   public StarsController starsController;
+  public Label replayWatchedLabel;
 
   private Consumer<Replay> onOpenDetailListener;
   private Runnable onDeleteListener;
@@ -89,7 +91,7 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
 
   @Override
   protected void onInitialize() {
-    JavaFxUtil.bindManagedToVisible(deleteButton, tickDurationLabel, realTimeDurationLabel);
+    JavaFxUtil.bindManagedToVisible(deleteButton, tickDurationLabel, realTimeDurationLabel, replayWatchedLabel);
 
     ObservableValue<MapVersion> mapVersionObservable = entity.map(Replay::mapVersion);
     onMapLabel.textProperty()
@@ -136,13 +138,26 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
                     .map(reviewsSummary -> reviewsSummary.score() / reviewsSummary.numReviews())
             .when(showing));
 
+
+    replayWatchedLabel.visibleProperty().bind(replayWatchedLabel.textProperty().isNotEmpty());
+    replayWatchedLabel.textProperty().bind( entity.map(Replay::id).when(showing).map(
+        replayWatchedService::getReplayWatchedDateTime).map(timeService::asDate).map(date -> {
+          if( date != null ) {
+            replayTileRoot.setStyle("-fx-border-color: -card-watched-color;");
+            replayTileRoot.setStyle("-fx-border-width: 7;");
+          }
+          return date;
+
+    }).when(showing));
+
+
     teams.bind(entity.map(Replay::teamPlayerStats).when(showing));
     teams.orElse(java.util.Map.of()).addListener(teamsListener);
   }
 
   private void populatePlayers(java.util.Map<String, List<GamePlayerStats>> newValue) {
     teamsContainer.getChildren().clear();
-    CompletableFuture.supplyAsync(() -> createTeams(newValue)).thenAcceptAsync(teamCards -> 
+    CompletableFuture.supplyAsync(() -> createTeams(newValue)).thenAcceptAsync(teamCards ->
       teamsContainer.getChildren().setAll(teamCards), fxApplicationThreadExecutor);
   }
 
@@ -170,7 +185,7 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
       return teamCard;
     }).toList();
     }
-    VBox helperLabel = new VBox(); 
+    VBox helperLabel = new VBox();
     helperLabel.getChildren().add(new Label("Click for teams"));
     ArrayList<VBox> helpers = new ArrayList<VBox>();
     helpers.add(helperLabel);
