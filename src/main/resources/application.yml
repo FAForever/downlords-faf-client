@@ -17,6 +17,7 @@ faf-client:
     patreon: https://www.patreon.com/faf
     twitter: https://twitter.com/FAFOfficial_
     wiki: https://wikijs.faforever.com/
+    linksSoundIssues: https://forum.faforever.com/topic/4084/solutions-for-snd-error-xact-invalid-arg-xact3dapply-failed
 
   vault:
     map_rules_url: https://wiki.faforever.com/en/Development/Vault/Rules

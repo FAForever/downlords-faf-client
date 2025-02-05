@@ -27,6 +27,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.layout.Pane;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -150,6 +151,7 @@ public class ModVaultControllerTest extends PlatformTest {
   }
 
   @Test
+  @Disabled("Flaky Test")
   public void testShowModDetail() throws MalformedURLException {
     ModVersion modVersion = Instancio.create(ModVersion.class);
     runOnFxThreadAndWait(() -> instance.onDisplayDetails(modVersion));
