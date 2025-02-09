@@ -43,6 +43,7 @@ import com.faforever.client.ui.StageHolder;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.client.util.RatingUtil;
+import com.faforever.commons.lobby.GameJoinFailedException;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.NoticeInfo;
 import com.google.common.annotations.VisibleForTesting;
@@ -299,8 +300,12 @@ public class GameRunner implements InitializingBean {
     prepareAndLaunchGameWhenReady(game.getFeaturedMod(), simModUIds, game.getMapFolderName(),
                                   () -> fafServerAccessor.requestJoinGame(game.getId(), password)).exceptionally(
         throwable -> {
-          log.error("Game could not be joined", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
+          if (throwable.getCause() instanceof GameJoinFailedException e) {
+            log.warn("Game with id '{}' could not be joined. Reason: {}", e.getGameId(), e.getFailureReason(), e);
+          } else {
+            log.error("Game could not be joined", throwable);
+            notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
+          }
           return null;
         });
   }
