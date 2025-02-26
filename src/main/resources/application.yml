@@ -6,7 +6,9 @@ faf-client:
     dynamic-factor: 10
     draw-probability: 0.1
 
-  links: # Add new entries here with caution !!! Each entry key is mapped to an i18n key (see com.faforever.client.main.LinksAndHelpController.onInitialize)
+  # Add new entries here with caution !!! Each entry key is mapped to an i18n key
+  # (see com.faforever.client.main.LinksAndHelpController.onInitialize)
+  links:
     linksTecHelpDiscord: https://discord.gg/6W6HKfzcsj
     linksTecHelpForum: https://forum.faforever.com/category/4/i-need-help
     linksRules: ${faf-client.website.base-url}/rules
