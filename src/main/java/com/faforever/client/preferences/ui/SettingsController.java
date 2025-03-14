@@ -124,6 +124,7 @@ public class SettingsController extends NodeController<Node> {
   public TextField vaultLocationTextField;
   public Label vaultLocationWarningLabel;
   public CheckBox autoDownloadMapsToggle;
+  public CheckBox relativePathsToggle;
   public CheckBox useFAFDebuggerToggle;
   public CheckBox allowIpv6Toggle;
   public CheckBox showIceAdapterDebugWindowToggle;
@@ -311,6 +312,7 @@ public class SettingsController extends NodeController<Node> {
     gameLocationTextField.textProperty()
         .bindBidirectional(forgedAlliancePrefs.installationPathProperty(), PATH_STRING_CONVERTER);
     autoDownloadMapsToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.autoDownloadMapsProperty());
+    relativePathsToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.relativeGamePathsProperty());
     useFAFDebuggerToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.runFAWithDebuggerProperty());
     allowIpv6Toggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.allowIpv6Property());
     showIceAdapterDebugWindowToggle.selectedProperty()
