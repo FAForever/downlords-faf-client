@@ -10,6 +10,7 @@ import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameParameters;
 import com.faforever.client.fa.GameParameters.League;
+import com.faforever.client.fa.relay.gpg.GPGNetServer;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.featuredmod.FeaturedModService;
@@ -104,7 +105,7 @@ public class GameRunner implements InitializingBean {
   private final UiService uiService;
   private final I18n i18n;
   private final PlayerService playerService;
-  private final IceAdapter iceAdapter;
+  private final GPGNetServer gpgNetServer;
   private final ModService modService;
   private final FeaturedModService featuredModService;
   private final PlatformService platformService;
@@ -176,6 +177,7 @@ public class GameRunner implements InitializingBean {
 
   @VisibleForTesting
   CompletableFuture<Void> startOnlineGame(GameLaunchResponse gameLaunchResponse) {
+    int gpgPort = gpgNetServer.start();
     int uid = gameLaunchResponse.getUid();
     String leaderboard = gameLaunchResponse.getLeaderboard();
     boolean hasLeague = leaderboard == null || "global".equals(leaderboard);
@@ -190,7 +192,7 @@ public class GameRunner implements InitializingBean {
 
     return CompletableFuture.allOf(downloadMapFuture, leagueFuture, startIceAdapterFuture, startReplayServerFuture)
                             .thenApply(ignored -> gameMapper.map(gameLaunchResponse, leagueFuture.join()))
-                            .thenApply(parameters -> launchOnlineGame(parameters, startIceAdapterFuture.join(),
+                            .thenApply(parameters -> launchOnlineGame(parameters, gpgPort,
                                                                       startReplayServerFuture.join()))
                             .whenCompleteAsync((process, throwable) -> {
                               if (process != null) {
@@ -201,7 +203,7 @@ public class GameRunner implements InitializingBean {
                             .thenCompose(Process::onExit)
                             .thenAccept(this::handleTermination)
                             .whenComplete((ignored, throwable) -> {
-                              iceAdapter.stop();
+                              gpgNetServer.stop();
                               replayServer.stop();
                               fafServerAccessor.notifyGameEnded();
                             })
