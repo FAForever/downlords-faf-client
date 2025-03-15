@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Reads data from Forged Alliance (the forgedalliance, not the lobby).
  */
-public class FaDataReader implements AutoCloseable {
+public class FaDataReader {
 
   private static final int MAX_CHUNK_SIZE = 10;
   private static final int FIELD_TYPE_INT = 0;
@@ -30,14 +30,14 @@ public class FaDataReader implements AutoCloseable {
     this.inputStream = new LittleEndianDataInputStream(new BufferedInputStream(inputStream));
   }
 
-  private List<Object> readChunks() throws IOException {
+  private Object[] readChunks() throws IOException {
     int numberOfChunks = readInt();
 
     if (numberOfChunks > MAX_CHUNK_SIZE) {
       throw new IOException("Too many chunks: " + numberOfChunks);
     }
 
-    List<Object> chunks = new ArrayList<>(numberOfChunks);
+    Object[] chunks = new Object[numberOfChunks];
 
     for (int chunkNumber = 0; chunkNumber < numberOfChunks; chunkNumber++) {
       GPGFieldType fieldType = GPGFieldType.fromId(inputStream.read());
@@ -48,7 +48,7 @@ public class FaDataReader implements AutoCloseable {
         case Unknown unknown -> readString().replace("/t", "\t").replace("/n", "\n");
       };
 
-      chunks.add(chunk);
+      chunks[chunkNumber] = chunk;
     }
 
     return chunks;
@@ -68,7 +68,7 @@ public class FaDataReader implements AutoCloseable {
 
   public GPGMessage readMessage() throws IOException {
     String command = readString();
-    List<Object> arguments = readChunks();
+    Object[] arguments = readChunks();
     return createMessage(command, arguments);
   }
 
@@ -82,10 +82,5 @@ public class FaDataReader implements AutoCloseable {
                           (int) arguments[3]);
       default -> new Generic(command, List.of(arguments));
     };
-  }
-
-  @Override
-  public void close() throws IOException {
-    inputStream.close();
   }
 }

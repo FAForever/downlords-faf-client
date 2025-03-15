@@ -12,7 +12,6 @@ import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameParameters;
-import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
@@ -53,7 +52,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.publisher.TestPublisher;
 
@@ -70,7 +68,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -130,8 +127,6 @@ public class GameRunnerTest extends ServiceTest {
   @Mock
   private Process process;
   @Mock
-  private CoturnService coturnService;
-  @Mock
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Mock
   private GamePathHandler gamePathHandler;
@@ -160,7 +155,6 @@ public class GameRunnerTest extends ServiceTest {
       return null;
     }).when(fxApplicationThreadExecutor).execute(any());
     lenient().when(fafServerAccessor.getEvents(NoticeInfo.class)).thenReturn(testNoticePublisher.flux());
-    lenient().when(coturnService.getSelectedCoturns(anyInt())).thenReturn(Flux.empty());
     lenient().when(preferencesService.hasValidGamePath()).thenReturn(true);
     lenient().when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(replayServer.start(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
@@ -190,7 +184,6 @@ public class GameRunnerTest extends ServiceTest {
     lenient().when(forgedAllianceLaunchService.launchOnlineGame(any(), anyInt(), anyInt())).thenReturn(process);
     lenient().when(replayServer.start(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     lenient().when(iceAdapter.start(anyInt())).thenReturn(completedFuture(GPG_PORT));
-    lenient().when(coturnService.getSelectedCoturns(anyInt())).thenReturn(Flux.empty());
     lenient().when(process.onExit()).thenReturn(new CompletableFuture<>());
     lenient().when(process.exitValue()).thenReturn(0);
     lenient().when(process.isAlive()).thenReturn(true);
@@ -220,8 +213,6 @@ public class GameRunnerTest extends ServiceTest {
     verify(mapService, never()).downloadIfNecessary(any());
     verify(replayServer).start(uid);
     verify(iceAdapter).start(uid);
-    verify(coturnService).getSelectedCoturns(uid);
-    verify(iceAdapter).setIceServers(anyCollection());
     assertTrue(instance.isRunning());
     assertEquals(uid, instance.getRunningGame().getId());
     assertEquals(10L, instance.getRunningProcessId());

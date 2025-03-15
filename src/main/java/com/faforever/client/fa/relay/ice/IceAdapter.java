@@ -11,13 +11,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface IceAdapter {
 
-  void onIceAdapterStateChanged(String newState);
-
-  void onGpgGameMessage(GpgGameOutboundMessage message);
-
-  CompletableFuture<Integer> start(int gameId);
+  int start(int gameId, int clientGpgPort);
 
   void stop();
-
-  void setIceServers(Collection<CoturnServer> coturnServers);
 }

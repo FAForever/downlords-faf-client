@@ -11,8 +11,7 @@ import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameParameters;
 import com.faforever.client.fa.GameParameters.League;
 import com.faforever.client.fa.relay.gpg.GPGNetServer;
-import com.faforever.client.fa.relay.ice.CoturnService;
-import com.faforever.client.fa.relay.ice.IceAdapter;
+import com.faforever.client.fa.relay.gpg.LobbyInitMode;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.PlatformService;
@@ -46,6 +45,7 @@ import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.lobby.GameJoinFailedException;
 import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.NoticeInfo;
 import com.google.common.annotations.VisibleForTesting;
 import jakarta.annotation.Nullable;
@@ -96,7 +96,6 @@ public class GameRunner implements InitializingBean {
 
   private final FafServerAccessor fafServerAccessor;
   private final ForgedAllianceLaunchService forgedAllianceLaunchService;
-  private final CoturnService coturnService;
   private final MapService mapService;
   private final PreferencesService preferencesService;
   private final LoggingService loggingService;
@@ -177,7 +176,6 @@ public class GameRunner implements InitializingBean {
 
   @VisibleForTesting
   CompletableFuture<Void> startOnlineGame(GameLaunchResponse gameLaunchResponse) {
-    int gpgPort = gpgNetServer.start();
     int uid = gameLaunchResponse.getUid();
     String leaderboard = gameLaunchResponse.getLeaderboard();
     boolean hasLeague = leaderboard == null || "global".equals(leaderboard);
@@ -188,11 +186,12 @@ public class GameRunner implements InitializingBean {
     CompletableFuture<League> leagueFuture = hasLeague ? completedFuture(null) : getDivisionInfo(
         leaderboard).toFuture();
     CompletableFuture<Integer> startReplayServerFuture = replayServer.start(uid);
-    CompletableFuture<Integer> startIceAdapterFuture = startIceAdapter(uid);
+    CompletableFuture<Integer> gpgServerFuture = gpgNetServer.start(uid,
+                                                                    gameLaunchResponse.getGameType() == GameType.MATCHMAKER ? LobbyInitMode.AUTO : LobbyInitMode.NORMAL);
 
-    return CompletableFuture.allOf(downloadMapFuture, leagueFuture, startIceAdapterFuture, startReplayServerFuture)
+    return CompletableFuture.allOf(downloadMapFuture, leagueFuture, startReplayServerFuture, gpgServerFuture)
                             .thenApply(ignored -> gameMapper.map(gameLaunchResponse, leagueFuture.join()))
-                            .thenApply(parameters -> launchOnlineGame(parameters, gpgPort,
+                            .thenApply(parameters -> launchOnlineGame(parameters, gpgServerFuture.join(),
                                                                       startReplayServerFuture.join()))
                             .whenCompleteAsync((process, throwable) -> {
                               if (process != null) {
@@ -215,8 +214,8 @@ public class GameRunner implements InitializingBean {
 
   @VisibleForTesting
   CompletableFuture<Void> prepareAndLaunchGameWhenReady(String featuredModName, Set<String> simModUids,
-                                                                @Nullable String mapFolderName,
-                                                                Supplier<CompletableFuture<GameLaunchResponse>> gameLaunchSupplier) {
+                                                        @Nullable String mapFolderName,
+                                                        Supplier<CompletableFuture<GameLaunchResponse>> gameLaunchSupplier) {
     CompletableFuture<Void> updateFeaturedModFuture = featuredModService.updateFeaturedModToLatest(featuredModName,
                                                                                                    false);
 
@@ -392,15 +391,6 @@ public class GameRunner implements InitializingBean {
     return forgedAllianceLaunchService.launchOnlineGame(gameParameters, gpgPort, replayPort);
   }
 
-  private CompletableFuture<Integer> startIceAdapter(int uid) {
-    return iceAdapter.start(uid)
-                     .thenCompose(icePort -> coturnService.getSelectedCoturns(uid)
-                                                          .collectList()
-                                                          .doOnNext(iceAdapter::setIceServers)
-                                                          .thenReturn(icePort)
-                                                          .toFuture());
-  }
-
   private Mono<League> getDivisionInfo(String leaderboard) {
     return leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), leaderboard)
                              .map(LeagueEntry::subdivision)
@@ -419,17 +409,16 @@ public class GameRunner implements InitializingBean {
     int exitCode = finishedProcess.exitValue();
     log.info("Forged Alliance terminated with exit code {}", exitCode);
     Optional<Path> logFilePath = loggingService.getMostRecentGameLogFile();
-    Optional<String> logFileContent = logFilePath
-        .map(file -> {
-          try {
-            final String logFileText = logMasker.maskMessage(Files.readString(file));
-            Files.writeString(file, logFileText);
-            return logFileText;
-          } catch (IOException e) {
-            log.warn("Could not open log file", e);
-            return null;
-          }
-        });
+    Optional<String> logFileContent = logFilePath.map(file -> {
+      try {
+        final String logFileText = logMasker.maskMessage(Files.readString(file));
+        Files.writeString(file, logFileText);
+        return logFileText;
+      } catch (IOException e) {
+        log.warn("Could not open log file", e);
+        return null;
+      }
+    });
 
     if (!gameKilled) {
       if (exitCode != 0) {
@@ -457,13 +446,11 @@ public class GameRunner implements InitializingBean {
     } else {
       notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
                                                                     i18n.get("game.crash", exitCode,
-                                                                             logFilePath.map(Path::toString).orElse("")),
-                                                                    WARN, List.of(new Action(i18n.get("game.open.log"),
-                                                                                             () -> platformService.reveal(
-                                                                                                 logFilePath.orElse(
-                                                                                                     operatingSystem.getLoggingDirectory()))),
-                                                                                  new DismissAction(i18n)),
-                                                                    getAnalysisButtonIfNecessary(logFileContent).orElse(null)));
+                                                                             logFilePath.map(Path::toString)
+                                                                                        .orElse("")), WARN, List.of(
+          new Action(i18n.get("game.open.log"),
+                     () -> platformService.reveal(logFilePath.orElse(operatingSystem.getLoggingDirectory()))),
+          new DismissAction(i18n)), getAnalysisButtonIfNecessary(logFileContent).orElse(null)));
     }
   }
 

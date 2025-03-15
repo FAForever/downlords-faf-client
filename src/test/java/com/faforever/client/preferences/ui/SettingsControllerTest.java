@@ -1,9 +1,7 @@
 package com.faforever.client.preferences.ui;
 
-import com.faforever.client.api.IceServer;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
-import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.GameService;
@@ -44,7 +42,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.beans.factory.ObjectFactory;
 import org.testfx.util.WaitForAsyncUtils;
-import reactor.core.publisher.Flux;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -100,8 +97,6 @@ public class SettingsControllerTest extends PlatformTest {
   @Mock
   private TaskService taskService;
   @Mock
-  private CoturnService coturnService;
-  @Mock
   private VaultPathHandler vaultPathHandler;
   @Mock
   private ObjectFactory<MoveDirectoryTask> moveDirectoryTaskFactory;
@@ -126,7 +121,6 @@ public class SettingsControllerTest extends PlatformTest {
     lenient().when(themeService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(themeService.getCurrentTheme()).thenReturn(FIRST_THEME);
     lenient().when(themeService.getAvailableThemes()).thenReturn(Arrays.asList(FIRST_THEME, SECOND_THEME));
-    lenient().when(coturnService.getActiveCoturns()).thenReturn(Flux.just(new IceServer("0", "Test")));
 
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     lenient().when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));

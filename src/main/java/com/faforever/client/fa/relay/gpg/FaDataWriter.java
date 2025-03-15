@@ -1,21 +1,25 @@
 package com.faforever.client.fa.relay.gpg;
 
 import com.google.common.io.LittleEndianDataOutputStream;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Writes data to Forged Alliance (the forgedalliance, not the lobby).
  */
-public class FaDataWriter implements AutoCloseable {
+@Slf4j
+public class FaDataWriter {
 
   public static final int FIELD_TYPE_INT = 0;
   public static final int FIELD_TYPE_STRING = 1;
   private final LittleEndianDataOutputStream outputStream;
+  private final ReentrantLock messageLock = new ReentrantLock();
 
   public FaDataWriter(OutputStream outputStream) {
     this.outputStream = new LittleEndianDataOutputStream(new BufferedOutputStream(outputStream));
@@ -48,14 +52,14 @@ public class FaDataWriter implements AutoCloseable {
     outputStream.write(string.getBytes(StandardCharsets.UTF_8));
   }
 
-  public void writeMessage(GPGMessage message) throws IOException {
-    writeString(message.command());
-    writeArgs(message.arguments());
-    outputStream.flush();
-  }
-
-  @Override
-  public void close() throws IOException {
-    outputStream.close();
+  public void writeMessage(GPGMessage message) throws IOException, InterruptedException {
+    messageLock.lockInterruptibly();
+    try {
+      writeString(message.command());
+      writeArgs(message.arguments());
+      outputStream.flush();
+    } finally {
+      messageLock.unlock();
+    }
   }
 }

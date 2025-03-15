@@ -52,7 +52,7 @@ public sealed interface GPGMessage {
 
     @Override
     public List<Object> arguments() {
-      return List.of(mode().getId(), port, playerName, playerId);
+      return List.of(mode().getId(), port, playerName, playerId, 1);
     }
   }
 

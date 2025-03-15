@@ -5,7 +5,6 @@ import com.faforever.client.api.IceServer;
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
-import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -51,14 +50,12 @@ import javafx.beans.WeakInvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableSet;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
@@ -81,9 +78,7 @@ import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
@@ -104,7 +99,6 @@ public class SettingsController extends NodeController<Node> {
   private final ClientProperties clientProperties;
   private final ClientUpdateService clientUpdateService;
   private final TaskService taskService;
-  private final CoturnService coturnService;
   private final VaultPathHandler vaultPathHandler;
   private final Preferences preferences;
   private final ObjectFactory<MoveDirectoryTask> moveDirectoryTaskFactory;
@@ -230,7 +224,6 @@ public class SettingsController extends NodeController<Node> {
     configureStartTab();
 
     initAutoChannelListView();
-    initPreferredCoturnListView();
     initUnitDatabaseSelection();
     initNotifyMeOnAtMention();
     initGameDataCache();
@@ -331,42 +324,6 @@ public class SettingsController extends NodeController<Node> {
     executableDecoratorField.textProperty().bindBidirectional(forgedAlliancePrefs.executableDecoratorProperty());
     executionDirectoryField.textProperty()
         .bindBidirectional(forgedAlliancePrefs.executionDirectoryProperty(), PATH_STRING_CONVERTER);
-  }
-
-  private void initPreferredCoturnListView() {
-    coturnService.getActiveCoturns()
-                 .collectList()
-                 .map(FXCollections::observableList)
-                 .publishOn(fxApplicationThreadExecutor.asScheduler())
-                 .subscribe(coturnServers -> {
-                   preferredCoturnListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-                   preferredCoturnListView.setItems(FXCollections.observableList(coturnServers));
-                   preferredCoturnListView.setCellFactory(
-                       param -> new StringListCell<>(IceServer::region, fxApplicationThreadExecutor));
-                   Map<String, IceServer> hostPortCoturnServerMap = coturnServers.stream()
-                                                                                 .collect(
-                                                                                     Collectors.toMap(IceServer::id,
-                                                                                                      Function.identity()));
-
-                   ObservableSet<String> preferredCoturnServers = preferences.getForgedAlliance()
-                                                                             .getPreferredCoturnIds();
-
-                   preferredCoturnServers.stream()
-                                         .filter(hostPortCoturnServerMap::containsKey)
-                                         .map(hostPortCoturnServerMap::get)
-                                         .forEach(coturnServer -> preferredCoturnListView.getSelectionModel()
-                                                                                         .select(coturnServer));
-
-                   JavaFxUtil.addAndTriggerListener(preferredCoturnListView.getSelectionModel().getSelectedItems(),
-                                                    observable -> {
-                                                      List<IceServer> selectedCoturns = preferredCoturnListView.getSelectionModel()
-                                                                                                               .getSelectedItems();
-                                                      preferredCoturnServers.clear();
-                                                      selectedCoturns.stream()
-                                                                     .map(IceServer::id)
-                                                                     .forEach(preferredCoturnServers::add);
-                                                    });
-                 });
   }
 
   private void initAutoChannelListView() {
