@@ -14,14 +14,14 @@ import java.util.concurrent.locks.ReentrantLock;
  * Writes data to Forged Alliance (the forgedalliance, not the lobby).
  */
 @Slf4j
-public class FaDataWriter {
+public class GPGNetWriter {
 
   public static final int FIELD_TYPE_INT = 0;
   public static final int FIELD_TYPE_STRING = 1;
   private final LittleEndianDataOutputStream outputStream;
   private final ReentrantLock messageLock = new ReentrantLock();
 
-  public FaDataWriter(OutputStream outputStream) {
+  public GPGNetWriter(OutputStream outputStream) {
     this.outputStream = new LittleEndianDataOutputStream(new BufferedOutputStream(outputStream));
   }
 

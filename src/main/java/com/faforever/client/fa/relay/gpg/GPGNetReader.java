@@ -12,46 +12,44 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Reads data from Forged Alliance (the forgedalliance, not the lobby).
  */
-public class FaDataReader {
+public class GPGNetReader {
 
-  private static final int MAX_CHUNK_SIZE = 10;
-  private static final int FIELD_TYPE_INT = 0;
+  private static final int MAX_ARGUMENTS = 10;
 
   private final LittleEndianDataInputStream inputStream;
   private final Charset charset = StandardCharsets.UTF_8;
 
-  public FaDataReader(InputStream inputStream) {
+  public GPGNetReader(InputStream inputStream) {
     this.inputStream = new LittleEndianDataInputStream(new BufferedInputStream(inputStream));
   }
 
-  private Object[] readChunks() throws IOException {
+  private Object[] readArguments() throws IOException {
     int numberOfChunks = readInt();
 
-    if (numberOfChunks > MAX_CHUNK_SIZE) {
-      throw new IOException("Too many chunks: " + numberOfChunks);
+    if (numberOfChunks > MAX_ARGUMENTS) {
+      throw new IOException("Too many arguments: " + numberOfChunks);
     }
 
-    Object[] chunks = new Object[numberOfChunks];
+    Object[] arguments = new Object[numberOfChunks];
 
-    for (int chunkNumber = 0; chunkNumber < numberOfChunks; chunkNumber++) {
+    for (int argumentNumber = 0; argumentNumber < numberOfChunks; argumentNumber++) {
       GPGFieldType fieldType = GPGFieldType.fromId(inputStream.read());
 
-      Object chunk = switch (fieldType) {
+      Object argument = switch (fieldType) {
         case Known.INT -> readInt();
         case Known.STRING -> readString().replace("/t", "\t").replace("/n", "\n");
         case Unknown unknown -> readString().replace("/t", "\t").replace("/n", "\n");
       };
 
-      chunks[chunkNumber] = chunk;
+      arguments[argumentNumber] = argument;
     }
 
-    return chunks;
+    return arguments;
   }
 
   private int readInt() throws IOException {
@@ -68,7 +66,7 @@ public class FaDataReader {
 
   public GPGMessage readMessage() throws IOException {
     String command = readString();
-    Object[] arguments = readChunks();
+    Object[] arguments = readArguments();
     return createMessage(command, arguments);
   }
 
