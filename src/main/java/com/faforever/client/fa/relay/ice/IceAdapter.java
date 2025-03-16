@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface IceAdapter {
 
-  int start(int gameId, int clientGpgPort);
+  int start(int gameId, int clientGpgPort, String accessToken);
 
   void stop();
 }

@@ -29,13 +29,12 @@ public class IceAdapterImpl implements IceAdapter, DisposableBean {
   private final OperatingSystem operatingSystem;
   private final PlayerService playerService;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
-  private final TokenRetriever tokenRetriever;
   private final ClientProperties clientProperties;
 
   private Process process;
 
   @Override
-  public int start(int gameId, int clientGpgPort) {
+  public int start(int gameId, int clientGpgPort, String accessToken) {
     Path workDirectory = Path.of(System.getProperty("nativeDir", "lib")).toAbsolutePath();
 
     int gpgPort;
@@ -47,7 +46,7 @@ public class IceAdapterImpl implements IceAdapter, DisposableBean {
       throw new CompletionException("Unable to find open port for GPG", exception);
     }
 
-    List<String> cmd = buildCommand(gpgPort, clientGpgPort, gameId);
+    List<String> cmd = buildCommand(gpgPort, clientGpgPort, gameId, accessToken);
     try {
       startIceAdapterProcess(workDirectory, cmd);
     } catch (IOException e) {
@@ -79,7 +78,7 @@ public class IceAdapterImpl implements IceAdapter, DisposableBean {
   }
 
   @VisibleForTesting
-  List<String> buildCommand(int gpgGamePort, int gpgClientPort, int gameId) {
+  List<String> buildCommand(int gpgGamePort, int gpgClientPort, int gameId, String accessToken) {
     PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
     List<String> cmd = new ArrayList<>();
@@ -93,7 +92,7 @@ public class IceAdapterImpl implements IceAdapter, DisposableBean {
                                               String.valueOf(currentPlayer.getId()), "--game-id",
                                               String.valueOf(gameId), "--gpgnet-port", String.valueOf(gpgGamePort),
                                               "--gpgnet-client-port", String.valueOf(gpgClientPort), "--access-token",
-                                              tokenRetriever.getRefreshedTokenValue().blockOptional().orElseThrow(),
+                                              accessToken,
                                               "--api-root", clientProperties.getApi().getBaseUrl() + "/ice");
 
     cmd.addAll(standardIceOptions);

@@ -1,5 +1,6 @@
 package com.faforever.client.fa.relay.gpg;
 
+import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.GameFullNotifier;
 import com.faforever.client.fa.relay.gpg.GPGMessage.ConnectToPeer;
@@ -51,6 +52,7 @@ public class GPGNetServer {
   @Lazy
   private final GameFullNotifier gameFullNotifier;
   private final IceAdapter iceAdapter;
+  private final TokenRetriever tokenRetriever;
 
   private ServerSocket serverSocket;
   private GPGNetClient activeClient;
@@ -69,15 +71,17 @@ public class GPGNetServer {
       activeClient.stop();
     }
 
-    int gpgPort = iceAdapter.start(gameId, serverSocket.getLocalPort());
-
-    return CompletableFuture.runAsync(() -> {
-      try {
-        activeClient = new GPGNetClient(serverSocket.accept(), lobbyInitMode);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }).thenApply(aVoid -> gpgPort);
+    return tokenRetriever.getRefreshedTokenValue()
+                         .map(accessToken -> iceAdapter.start(gameId, serverSocket.getLocalPort(), accessToken))
+                         .toFuture()
+                         .thenApply(gpgPort -> {
+                           try {
+                             activeClient = new GPGNetClient(serverSocket.accept(), lobbyInitMode);
+                           } catch (IOException e) {
+                             throw new RuntimeException(e);
+                           }
+                           return gpgPort;
+                         });
   }
 
   public void stop() {
