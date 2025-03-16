@@ -80,23 +80,12 @@ public class IceAdapterImpl implements IceAdapter, DisposableBean {
   List<String> buildCommand(int gpgGamePort, int gpgClientPort, int gameId, String accessToken) {
     PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
-    List<String> cmd = new ArrayList<>();
-    //cmd.add(operatingSystem.getJavaExecutablePath().toAbsolutePath().toString());
-
-    if (!forgedAlliancePrefs.isAllowIpv6()) {
-      cmd.add("-Dorg.ice4j.ipv6.DISABLED=true");
-    }
-
-    List<String> standardIceOptions = List.of(System.getProperty("PIONEER_BIN_NAME", "pioneer.exe"), "--user-id",
-                                              String.valueOf(currentPlayer.getId()), "--game-id",
-                                              String.valueOf(gameId), "--gpgnet-port", String.valueOf(gpgGamePort),
-                                              "--gpgnet-client-port", String.valueOf(gpgClientPort), "--access-token",
-                                              accessToken,
-                                              "--api-root", clientProperties.getApi().getBaseUrl() + "/ice");
-
-    cmd.addAll(standardIceOptions);
-
-    return cmd;
+    return List.of(System.getProperty("PIONEER_BIN_NAME", "pioneer.exe"), "--user-id",
+                   String.valueOf(currentPlayer.getId()), "--game-id",
+                   String.valueOf(gameId), "--gpgnet-port", String.valueOf(gpgGamePort),
+                   "--gpgnet-client-port", String.valueOf(gpgClientPort), "--access-token",
+                   accessToken,
+                   "--api-root", clientProperties.getApi().getBaseUrl() + "/ice");
   }
 
   @Override
