@@ -1,6 +1,5 @@
 package com.faforever.client.fa.relay.ice;
 
-import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.os.OperatingSystem;
@@ -82,7 +81,7 @@ public class IceAdapterImpl implements IceAdapter, DisposableBean {
     PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
     List<String> cmd = new ArrayList<>();
-    cmd.add(operatingSystem.getJavaExecutablePath().toAbsolutePath().toString());
+    //cmd.add(operatingSystem.getJavaExecutablePath().toAbsolutePath().toString());
 
     if (!forgedAlliancePrefs.isAllowIpv6()) {
       cmd.add("-Dorg.ice4j.ipv6.DISABLED=true");
