@@ -36,8 +36,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 @Slf4j
@@ -104,7 +104,7 @@ public class GPGNetServer {
     private final GPGNetWriter GPGNetWriter;
     private final GPGNetReader GPGNetReader;
     private final Disposable messageDisposable;
-    private final Queue<GPGMessage> messageQueue = new ConcurrentLinkedQueue<>();
+    private final Queue<GPGMessage> messageQueue = new LinkedBlockingQueue<>();
     private final CountDownLatch lobbyLatch = new CountDownLatch(1);
     private final Socket socket;
 
