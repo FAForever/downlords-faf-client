@@ -240,7 +240,7 @@ dependencies {
   implementation("com.google.guava:guava:33.4.0-jre")
   implementation("org.apache.commons:commons-compress:1.27.1")
   implementation("net.java.dev.jna:jna:5.16.0")
-  implementation("net.java.dev.jna:jna-platform:5.16.0")
+  implementation("net.java.dev.jna:jna-platform:5.17.0")
   implementation("org.jetbrains:annotations:26.0.2")
   implementation("com.neovisionaries:nv-i18n:1.29")
   implementation("com.nativelibs4java:bridj:0.7.0")
