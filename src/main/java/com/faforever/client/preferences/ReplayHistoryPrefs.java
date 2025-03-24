@@ -1,23 +1,21 @@
 package com.faforever.client.preferences;
 
-import javafx.beans.property.MapProperty;
-import javafx.beans.property.SimpleMapProperty;
+import javafx.beans.property.SetProperty;
+import javafx.beans.property.SimpleSetProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
-
-import java.time.OffsetDateTime;
+import javafx.collections.ObservableSet;
 
 public class ReplayHistoryPrefs {
 
-  private final MapProperty<Integer, OffsetDateTime> watchedReplayMap = new SimpleMapProperty<>(
-      FXCollections.observableHashMap());
+  private final SetProperty<Integer> watchedReplayMap = new SimpleSetProperty<>(
+      FXCollections.observableSet());
 
-  public ObservableMap<Integer, OffsetDateTime> getWatchedReplayMap() {return watchedReplayMap.getValue();}
+  public ObservableSet<Integer> getWatchedReplayMap() {return watchedReplayMap.getValue();}
 
-  public void setWatchedReplayMap(ObservableMap<Integer, OffsetDateTime> watchedReplayMap) {
+  public void setWatchedReplayMap(ObservableSet<Integer> watchedReplayMap) {
     this.watchedReplayMap.setValue(watchedReplayMap);
   }
 
-  public MapProperty<Integer, OffsetDateTime> watchedReplayMapProperty() {return watchedReplayMap;}
+  public SetProperty<Integer> watchedReplayMapProperty() {return watchedReplayMap;}
 
 }

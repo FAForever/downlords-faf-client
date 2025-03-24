@@ -6,8 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.time.OffsetDateTime;
-
 @Lazy
 @Service
 @Slf4j
@@ -17,19 +15,11 @@ public class ReplayWatchedService {
   private final Preferences preferences;
 
   boolean wasReplayWatched(Integer replayId) {
-    return preferences.getReplayHistory().getWatchedReplayMap().containsKey(replayId);
-  }
-
-  OffsetDateTime getReplayWatchedDateTime(Integer replayId) {
-    if (wasReplayWatched(replayId)) {
-      return preferences.getReplayHistory().getWatchedReplayMap().get(replayId);
-    } else {
-      return null;
-    }
+    return preferences.getReplayHistory().getWatchedReplayMap().contains(replayId);
   }
 
   void updateReplayWatchHistory(Integer replayId) {
-    preferences.getReplayHistory().getWatchedReplayMap().put(replayId, OffsetDateTime.now());
+    preferences.getReplayHistory().getWatchedReplayMap().add(replayId);
   }
 
 

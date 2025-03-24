@@ -82,7 +82,6 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
   public Button deleteButton;
   public TextField replayIdField;
   public StarsController starsController;
-  public Label replayWatchedLabel;
 
   private Consumer<Replay> onOpenDetailListener;
   private Runnable onDeleteListener;
@@ -91,7 +90,7 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
 
   @Override
   protected void onInitialize() {
-    JavaFxUtil.bindManagedToVisible(deleteButton, tickDurationLabel, realTimeDurationLabel, replayWatchedLabel);
+    JavaFxUtil.bindManagedToVisible(deleteButton, tickDurationLabel, realTimeDurationLabel);
 
     ObservableValue<MapVersion> mapVersionObservable = entity.map(Replay::mapVersion);
     onMapLabel.textProperty()
@@ -139,16 +138,12 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
             .when(showing));
 
 
-    replayWatchedLabel.visibleProperty().bind(replayWatchedLabel.textProperty().isNotEmpty());
-    replayWatchedLabel.textProperty().bind( entity.map(Replay::id).when(showing).map(
-        replayWatchedService::getReplayWatchedDateTime).map(timeService::asDate).map(date -> {
-          if( date != null ) {
-            replayTileRoot.setStyle("-fx-border-color: -card-watched-color;");
-            replayTileRoot.setStyle("-fx-border-width: 7;");
-          }
-          return date;
-
-    }).when(showing));
+    entity.map(Replay::id).subscribe(id -> {
+      if(replayWatchedService.wasReplayWatched(id)){
+        replayTileRoot.setStyle("-fx-background-color: -card-watched-color;");
+        replayTileRoot.applyCss();
+      }
+    });
 
 
     teams.bind(entity.map(Replay::teamPlayerStats).when(showing));
