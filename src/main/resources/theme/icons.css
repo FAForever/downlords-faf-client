@@ -54,6 +54,34 @@
   -fx-padding: 0;
 }
 
+.chat-message-button.button {
+  -icon-paint: #A9A9A9;
+  -fx-cursor: default;
+  -fx-background-color: transparent;
+  -height: 100%;
+  -fx-min-width: 45;
+  -fx-max-width: 45;
+  -fx-margin: 0;
+  -fx-padding: 0;
+  -fx-background-radius: 0;
+}
+
+.chat-message-button .icon {
+  -fx-padding: 0;
+  -fx-background-color: -icon-paint;
+  -fx-max-width: 10;
+  -fx-max-height: 10;
+}
+
+.chat-message-button.button:hover {
+  -fx-background-color: #00000011;
+  -icon-paint: white;
+}
+
+.chat-message-button.button:pressed {
+  -fx-background-color: #00000022;
+}
+
 .login-logo,
 .icon-faf {
   -fx-shape: "M16 32c-8.837 0-16-7.163-16-16s7.163-16 16-16 16 7.163 16 16-7.163 16-16 16zM16 2.147c-7.651 0-13.853 6.202-13.853 13.853s6.202 13.853 13.853 13.853 13.853-6.202 13.853-13.853-6.202-13.853-13.853-13.853zM24.026 16.058l3.538 6.127h-2.256l-4.642-8.077h7.122l1.125 1.949h-4.886zM18.256 9.917h7.111l1.24 2.147h-7.117zM20.911 22.185l-1.684-2.917h-6.415l-1.684 2.917h-2.173l7.083-12.268h0.057l7.052 12.268h-2.235zM16.020 13.743l-1.78 3.083h3.56zM5.388 12.064l1.24-2.147h7.243l-1.24 2.147h-7.243zM6.787 22.185h-2.357l3.538-6.127h-4.886l1.125-1.949h7.243z";

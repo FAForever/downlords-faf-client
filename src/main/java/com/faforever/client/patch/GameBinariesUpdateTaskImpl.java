@@ -103,7 +103,9 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
 
     copyGameFilesToFafBinDirectory();
     downloadFafExeIfNecessary(exePath);
-    ForgedAllianceExePatcher.patchVersion(exePath, version);
+    if (ForgedAllianceExePatcher.readVersion(exePath) != version) {
+      ForgedAllianceExePatcher.patchVersion(exePath, version);
+    }
     log.trace("Binaries have been updated successfully");
     return null;
   }

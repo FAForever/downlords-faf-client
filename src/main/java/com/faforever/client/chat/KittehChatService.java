@@ -165,6 +165,9 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
    */
   private final List<String> autoChannels = new ArrayList<>();
   private final Queue<String> bufferedChannels = new ArrayDeque<>();
+
+  private boolean autoReconnect;
+
   @VisibleForTesting
   ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
   @VisibleForTesting
@@ -195,6 +198,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     chatPrefs.maxMessagesProperty()
              .subscribe(maxMessages -> channels.values()
                                                .forEach(channel -> channel.setMaxNumMessages(maxMessages.intValue())));
+    connectionState.subscribe((oldValue, newValue) -> {
+      if (autoReconnect && oldValue == ConnectionState.CONNECTED && newValue == ConnectionState.DISCONNECTED) {
+        connect();
+      }
+    });
   }
 
   private void updateUserColors() {
@@ -705,6 +713,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void connect() {
+    autoReconnect = true;
     if (connectionState.get() != ConnectionState.DISCONNECTED) {
       return;
     }
@@ -769,6 +778,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void disconnect() {
+    autoReconnect = false;
     if (client != null) {
       log.info("Disconnecting from IRC");
       client.shutdown("Goodbye");

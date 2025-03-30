@@ -37,12 +37,12 @@
         <Label fx:id="timeLabel" styleClass="time" minWidth="75"/>
         <TextFlow fx:id="message" HBox.hgrow="ALWAYS"/>
         <HBox fx:id="messageActionsContainer" visible="false">
-            <Button fx:id="reactButton" onAction="#onReactButtonClicked" styleClass="window-button">
+            <Button fx:id="reactButton" onAction="#onReactButtonClicked" styleClass="chat-message-button">
                 <graphic>
                     <Region styleClass="icon, react-icon"/>
                 </graphic>
             </Button>
-            <Button fx:id="replyButton" styleClass="window-button">
+            <Button fx:id="replyButton" styleClass="chat-message-button">
                 <graphic>
                     <Region styleClass="icon, reply-icon"/>
                 </graphic>

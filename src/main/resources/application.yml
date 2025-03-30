@@ -6,6 +6,8 @@ faf-client:
     dynamic-factor: 10
     draw-probability: 0.1
 
+  # Add new entries here with caution !!! Each entry key is mapped to an i18n key
+  # (see com.faforever.client.main.LinksAndHelpController.onInitialize)
   links:
     linksTecHelpDiscord: https://discord.gg/6W6HKfzcsj
     linksTecHelpForum: https://forum.faforever.com/category/4/i-need-help
@@ -17,7 +19,9 @@ faf-client:
     patreon: https://www.patreon.com/faf
     twitter: https://twitter.com/FAFOfficial_
     wiki: https://wikijs.faforever.com/
-    linksSoundIssues: https://forum.faforever.com/topic/4084/solutions-for-snd-error-xact-invalid-arg-xact3dapply-failed
+
+  help-links:
+    soundIssues: https://forum.faforever.com/topic/4084/solutions-for-snd-error-xact-invalid-arg-xact3dapply-failed
 
   vault:
     map_rules_url: https://wiki.faforever.com/en/Development/Vault/Rules

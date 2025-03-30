@@ -111,7 +111,7 @@ public class ChatMessageController extends NodeController<VBox> {
 
   @Override
   protected void onInitialize() {
-    JavaFxUtil.bindManagedToVisible(detailsContainer, replyContainer, message, messageActionsContainer);
+    JavaFxUtil.bindManagedToVisible(detailsContainer, replyContainer, message);
 
     mentionPattern = chatService.getMentionPattern();
 

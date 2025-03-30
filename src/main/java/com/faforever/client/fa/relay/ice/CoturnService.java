@@ -24,7 +24,7 @@ public class CoturnService {
   public Flux<IceServer> getActiveCoturns() {
     return fafApiAccessor.getApiObject("/ice/server", IceServerResponse.class)
         .flatMapIterable(IceServerResponse::servers)
-                         .switchIfEmpty(Flux.error(new IllegalStateException("No Coturn Servers Available")));
+                         .switchIfEmpty(Flux.empty());
   }
 
   public Flux<CoturnServer> getSelectedCoturns(int gameId) {
@@ -35,6 +35,6 @@ public class CoturnService {
 
     return coturnServerFlux.filter(coturnServer -> preferredCoturnIds.contains(coturnServer.getId()))
         .switchIfEmpty(coturnServerFlux)
-                           .switchIfEmpty(Flux.error(new IllegalStateException("No Coturn Servers Available")));
+                           .switchIfEmpty(Flux.empty());
   }
 }
