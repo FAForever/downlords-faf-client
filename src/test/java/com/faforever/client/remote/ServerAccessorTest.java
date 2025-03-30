@@ -17,6 +17,7 @@ import com.faforever.client.io.UidService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ServerNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.update.Version;
 import com.faforever.commons.lobby.AvatarListInfo;
@@ -130,6 +131,8 @@ public class ServerAccessorTest extends ServiceTest {
   @Spy
   private ClientProperties clientProperties;
   @Spy
+  private MatchmakerPrefs matchmakerPrefs;
+  @Spy
   private ObjectMapper objectMapper;
 
   private FafServerAccessor instance;
@@ -172,7 +175,7 @@ public class ServerAccessorTest extends ServiceTest {
                         .addHeader("Content-Type", "application/json;charset=utf-8"));
 
     instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenRetriever, uidService,
-                                     clientProperties, new FafLobbyClient(objectMapper), () -> webClient);
+                                     clientProperties, new FafLobbyClient(objectMapper), matchmakerPrefs, () -> webClient);
 
     instance.afterPropertiesSet();
     instance.getEvents(ServerMessage.class).doOnNext(serverMessage -> {

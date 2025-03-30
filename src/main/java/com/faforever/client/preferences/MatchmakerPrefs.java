@@ -36,7 +36,7 @@ public class MatchmakerPrefs {
 
   public void setVetoData(VetoData vetoData) {
     int index = IntStream.range(0, appliedVetoes.size())
-        .filter(i -> appliedVetoes.get(i).getMapPoolMapVersionId() == vetoData.getMapPoolMapVersionId())
+        .filter(i -> appliedVetoes.get(i).getMapPoolMapVersionId() == vetoData.getMapPoolMapVersionId() && appliedVetoes.get(i).getMatchmakerQueueMapPoolId() == vetoData.getMatchmakerQueueMapPoolId())
         .findFirst()
         .orElse(-1);
     if (index == -1) {

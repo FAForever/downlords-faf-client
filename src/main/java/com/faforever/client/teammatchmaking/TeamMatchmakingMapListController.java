@@ -11,6 +11,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.DeepCopyUtil;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.lobby.VetoData;
 import javafx.beans.binding.Bindings;
@@ -21,8 +22,10 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
@@ -89,7 +92,6 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
   private final ObservableValue<List<MatchmakerQueueMapPool>> sortedMapPools = brackets.map(this::getSortedMapPools)
                                                                                        .orElse(List.of());
-
   private final ObservableValue<MatchmakerQueueMapPool> currentBracket = Bindings.createObjectBinding(
       this::getCurrentBracket, sortedMapPools, currentBracketIndex);
 
@@ -99,6 +101,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   private final ObservableValue<Integer> playerBracketIndex = Bindings.createObjectBinding(this::calculateBracketIndex,
                                                                                            sortedMapPools,
                                                                                            playerRating);
+  public ComboBox<String> bracketComboBox;
 
   private ObservableValue<Integer> vetoTokensApplied;
   private ObservableValue<Integer> vetoTokensLeft;
@@ -107,9 +110,6 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   public TilePane tilesContainer;
   public ScrollPane scrollContainer;
   public VBox loadingPane;
-  public Label bracketTitle;
-  public Button prevBracketButton;
-  public Button nextBracketButton;
   public VBox headerContainer;
   public HBox vetoTokensContainer;
   public HBox vetoTokensViewer;
@@ -124,6 +124,15 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     this.currentBracketIndex.subscribe(currentBracketIndex -> {
       log.debug("CURRENT BRACKET INDEX: {}", currentBracketIndex);
     });
+
+    this.sortedMapPools.subscribe(pools -> {
+      this.bracketComboBox.getItems().setAll(pools.stream().map(this::getBracketTitle).toList());
+      this.bracketComboBox.getSelectionModel().select(Optional.ofNullable(this.currentBracketIndex.getValue()).orElse(0));
+    });
+
+    bracketComboBox.getSelectionModel().selectedIndexProperty().subscribe(index -> this.currentBracketIndex.set(index.intValue()));
+    this.currentBracketIndex.addListener(v->bracketComboBox.getSelectionModel().select((Optional.ofNullable(this.currentBracketIndex.getValue()).orElse(0))));
+
     tilesContainer.getChildren().subscribe(() -> this.loadingPane.setVisible(false));
 
     vetoTokensApplied = Bindings.createObjectBinding(this::calculateVetoTokensApplied, currentBracketMaps,
@@ -228,30 +237,24 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     return this.sortedMapPools.getValue().get(this.currentBracketIndex.get());
   }
 
-  private void setBracketTitle() {
-    MatchmakerQueueMapPool bracket = currentBracket.getValue();
-
+  private String getBracketTitle(MatchmakerQueueMapPool bracket) {
     if (bracket == null) {
-      bracketTitle.setText("");
-      return;
+      return "";
     }
 
     Double min = bracket.minRating(), max = bracket.maxRating();
     if (min == null && max == null) {
-      bracketTitle.setText("Any rating");
-      return;
+      return "Any rating";
     }
 
     if (min == null) {
-      bracketTitle.setText("Rating < " + Math.round(Math.ceil(max)));
-      return;
+      return "Rating < " + Math.round(Math.ceil(max));
     }
 
     if (max == null) {
-      bracketTitle.setText("Rating > " + Math.round(Math.floor(min)));
-      return;
+      return "Rating > " + Math.round(Math.floor(min));
     }
-    bracketTitle.setText("Rating " + Math.round(bracket.minRating()) + " - " + Math.round(bracket.maxRating()));
+    return "Rating " + Math.round(bracket.minRating()) + " - " + Math.round(bracket.maxRating());
   }
 
   private List<MapPoolAssignment> getCurrentBracketMaps() {
@@ -276,16 +279,16 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   }
 
   private Integer calculateVetoTokensApplied() {
-    if (matchmakerPrefs == null) {
+    if (matchmakerPrefs == null || getCurrentBracket() == null) {
       return 0;
     }
-    Set<Integer> IDs = currentBracketMaps.getValue().stream().map(MapPoolAssignment::id).collect(Collectors.toSet());
     List<VetoData> vetoesInCurrentBracket = matchmakerPrefs.getAppliedVetoes()
                                                            .stream()
                                                            .filter(
-                                                               (data) -> IDs.contains(data.getMapPoolMapVersionId()))
+                                                               (data) -> data.getMatchmakerQueueMapPoolId() == getCurrentBracket().id())
                                                            .toList();
-
+    log.debug("VETOES IN CURRENT BRACKET:");
+    log.debug(vetoesInCurrentBracket.toString());
     return vetoesInCurrentBracket.stream().mapToInt(VetoData::getVetoTokensApplied).sum();
   }
 
@@ -304,7 +307,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     TeamMatchmakingMapTileController controller = uiService.loadFxml(
         "theme/play/teammatchmaking/matchmaking_map_tile.fxml");
     controller.setMapAssignment(mapAssignment);
-    controller.setVetoTokensMax(Math.min(currentBracket.getValue().vetoTokensPerPlayer(), 5));
+    controller.setVetoTokensMax(currentBracket.getValue().vetoTokensPerPlayer());
     controller.setVetoTokensLeft(vetoTokensLeft);
     return controller.getRoot();
   }
@@ -347,9 +350,9 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     for (int i = 0; i < maxTokens; i++) {
       SVGPath token = new SVGPath();
       token.setContent(
-          "M18.148 12.48l5.665-5.66c1.563-1.56 1.563-4.1 0-5.66-1.565-1.57-4.101-1.57-5.665 0l-5.664 5.66L6.82 1.16c-1.563-1.57-4.099-1.57-5.664 0-1.563 1.56-1.563 4.1 0 5.66l5.664 5.66-5.664 5.67c-1.563 1.56-1.563 4.1 0 5.66 1.565 1.57 4.101 1.57 5.664 0l5.664-5.66 5.664 5.66c1.564 1.57 4.1 1.57 5.665 0 1.563-1.56 1.563-4.1 0-5.66l-5.665-5.67");
+          "M18.1643 2.85951L18.1642 3.8033L18.1628 15.1153L20.5427 13.3444C21.6355 12.5312 23.139 12.5563 24.204 13.4056L26.1661 14.9701L26.8328 15.5017L26.4132 16.244L21.9549 24.1317L21.2295 25.5147C19.2025 29.3793 15.0673 31.664 10.7167 31.3229C4.9923 30.874 0.59593 26.0643 0.661914 20.3227L0.831081 5.60293L0.841517 4.6949L1.74634 4.61801L5.89383 4.26554L6.03253 1.45284L6.07784 0.533815L6.99746 0.502663L12.0103 0.332857L13.0572 0.297391L13.044 1.34488L13.0287 2.5616L17.2221 2.80485L18.1643 2.85951ZM13.0035 4.5635L12.874 14.8414L10.8741 14.8162L11.0168 3.49198L11.031 2.36718L7.98478 2.47037L7.8487 5.23004L7.51282 14.8291L5.51404 14.7592L5.81075 6.27981L2.82051 6.53393L2.66178 20.3457C2.6079 25.0346 6.1982 28.9624 10.873 29.329C14.426 29.6076 17.803 27.7418 19.4583 24.5857L20.191 23.1889L20.1983 23.175L20.206 23.1613L24.2525 16.0022L22.9571 14.9693C22.6021 14.6862 22.1009 14.6778 21.7367 14.9489L17.7595 17.9084L16.1626 17.106L16.1641 4.74684L13.0035 4.5635Z");
       if (i >= maxTokens - usedTokens) {token.setFill(Paint.valueOf("#000000"));} else {
-        token.setFill(Paint.valueOf("#ff0000"));
+        token.setFill(Paint.valueOf("#ffffff"));
       }
       tokens.add(token);
     }
@@ -360,7 +363,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     List<Pane> mapTiles = currentBracketMaps.getValue().stream().map(this::createMapTile).toList();
     log.debug("UPDATE CONTENT WITH BRACKET {} AND TILE LENGTH {}", currentBracket.getValue(), mapTiles.size());
     fxApplicationThreadExecutor.execute(() -> {
-      this.setBracketTitle();
+      //this.setBracketTitle();
       this.tilesContainer.getChildren().setAll(mapTiles);
       this.resizeToContent();
     });

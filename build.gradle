@@ -230,7 +230,7 @@ dependencies {
   implementation("io.projectreactor.addons:reactor-extra")
   implementation("io.projectreactor:reactor-tools")
 
-  implementation("com.github.K-ETFreeman:faf-java-commons:3b1a47fb0cf1d8444351d53feb4f25aae77a6737")
+  implementation("com.github.K-ETFreeman:faf-java-commons:493e50c22fb0a445c34781921905028f044d06eb")
   implementation("com.google.guava:guava:33.4.0-jre")
   implementation("org.apache.commons:commons-compress:1.27.1")
   implementation("net.java.dev.jna:jna:5.16.0")

@@ -56,9 +56,9 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   public Label authorLabel;
   public Label sizeLabel;
   public VBox authorBox;
+  public Label mapid;
 
   protected final ObjectProperty<MapPoolAssignment> assignment = new SimpleObjectProperty<>();
-  public Label mapid;
 
   @Setter
   private ObservableValue<Integer> vetoTokensLeft;
@@ -74,6 +74,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
 
   public void setMapAssignment(MapPoolAssignment mapVersion) {
     this.assignment.set(mapVersion);
+    log.debug(this.assignment.getValue().toString());
   }
 
   public void setVetoTokensMax(int vetoTokensMax) {
@@ -159,7 +160,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
         }
         int newValue = Math.max(0, current + delta);
 
-        matchmakerPrefs.setVetoData(new VetoData(assignment.getValue().id(), newValue));
+        matchmakerPrefs.setVetoData(new VetoData(assignment.getValue().id(), newValue, this.assignment.getValue().mapPool().mapPool().id()));
       });
       tokens.add(token);
     }

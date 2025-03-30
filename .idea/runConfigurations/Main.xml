@@ -1,10 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Main" type="Application" factoryName="Application" singleton="false" nameIsGenerated="true">
-    <option name="ALTERNATIVE_JRE_PATH" value="temurin-21" />
+    <option name="ALTERNATIVE_JRE_PATH" value="$PROJECT_DIR$/../../../Program Files/Eclipse Adoptium/jdk-21.0.5.11-hotspot" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
-    <envs>
-      <env name="SPRING_PROFILES_ACTIVE" value="prod" />
-    </envs>
     <option name="MAIN_CLASS_NAME" value="com.faforever.client.Main" />
     <module name="faf-client.main" />
     <option name="VM_PARAMETERS" value="-Dio.netty.allocator.type=unpooled -DnativeDir=build/resources/native -Dprism.forceGPU=true -Xmx1g -XX:MinHeapFreeRatio=15 -XX:MaxHeapFreeRatio=33 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseZGC -XX:+ZGenerational -Djava.net.preferIPv4Stack=true -XX:TieredStopAtLevel=1 --add-opens=java.base/java.lang=ALL-UNNAMED" />
