@@ -147,6 +147,8 @@ public class ReplayServiceTest extends ServiceTest {
   @Mock
   private LoginService loginService;
   @Mock
+  private ReplayWatchedService replayWatchedService;
+  @Mock
   private ReplayDataParser replayDataParser;
   @Mock
   private FileSizeReader fileSizeReader;

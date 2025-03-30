@@ -73,6 +73,9 @@ public class ReplayCardControllerTest extends PlatformTest {
   private ImageViewHelper imageViewHelper;
 
   @Mock
+  private ReplayWatchedService replayWatchedService;
+
+  @Mock
   private I18n i18n;
 
   @Mock
@@ -286,5 +289,23 @@ public class ReplayCardControllerTest extends PlatformTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(notificationService).addNotification(any());
+  }
+
+  @Test
+  public void replayNotWatched() {
+    when(replayWatchedService.wasReplayWatched(any())).thenReturn(false);
+
+    runOnFxThreadAndWait(() -> instance.setEntity(localReplay));
+
+    assertFalse(instance.replayTileRoot.getStyle().contains("card-watched-color"));
+  }
+
+  @Test
+  public void replayWatched() {
+    when(replayWatchedService.wasReplayWatched(any())).thenReturn(true);
+
+    runOnFxThreadAndWait(() -> instance.setEntity(localReplay));
+
+    assertTrue(instance.replayTileRoot.getStyle().contains("card-watched-color"));
   }
 }
