@@ -35,7 +35,7 @@ public class LogAnalyzerService {
     if (StringUtils.contains(logContents, SND_WARNING_TRACE) && StringUtils.contains(logContents, SND_XACT_TRACE)) {
       final String moreInfoButtonCaption = i18n.get("game.log.analysis.moreInfoBtn");
       final Action openSoundHelpAction = new Action(moreInfoButtonCaption, () -> platformService.showDocument(
-          clientProperties.getLinks().get("linksSoundIssues")));
+          clientProperties.getHelpLinks().get("soundIssues")));
 
       analysisResult.put(i18n.get("game.log.analysis.snd", moreInfoButtonCaption), openSoundHelpAction);
     }
