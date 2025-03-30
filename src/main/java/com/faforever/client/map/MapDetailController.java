@@ -1,5 +1,6 @@
 package com.faforever.client.map;
 
+import com.faforever.client.chat.ChatService;
 import com.faforever.client.domain.api.Map;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.api.MapVersionReview;
@@ -17,6 +18,8 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.theme.UiService;
+import com.faforever.client.util.ContextMenuUtil;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewService;
@@ -33,11 +36,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
@@ -52,6 +57,8 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
+
+import static com.faforever.client.util.MouseEventUtil.handleClick;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -69,6 +76,8 @@ public class MapDetailController extends NodeController<Node> {
   private final ImageViewHelper imageViewHelper;
   private final NavigationHandler navigationHandler;
   private final ContextMenuBuilder contextMenuBuilder;
+  private final ChatService chatService;
+  private final UiService uiService;
 
   private final ObjectProperty<MapVersion> mapVersion = new SimpleObjectProperty<>();
   private final ObservableList<MapVersionReview> mapReviews = FXCollections.observableArrayList();
@@ -104,7 +113,32 @@ public class MapDetailController extends NodeController<Node> {
                                     loadingContainer, hideBox, getRoot());
     JavaFxUtil.fixScrollSpeed(scrollPane);
 
-    contextMenuBuilder.addCopyLabelContextMenu(nameLabel, authorLabel, mapDescriptionLabel, mapIdLabel);
+    ObservableValue<String> usernameProperty = Bindings.createObjectBinding(() -> {
+      Map map = mapVersion.getValue().map();
+      if (map == null || map.author() == null) {
+        return null;
+      }
+      return map.author().getUsername();
+    }, mapVersion);
+    authorLabel.setOnMouseClicked(event -> {
+      String username = usernameProperty.getValue();
+      if (username != null) {
+        handleClick(event,
+                    () -> {
+                      chatService.joinPrivateChat(username);
+                    },
+                    (mouseEvent) -> {
+                      onContextMenuRequested(new ContextMenuEvent(
+                          ContextMenuEvent.CONTEXT_MENU_REQUESTED,
+                          mouseEvent.getScreenX(), mouseEvent.getScreenY(),
+                          mouseEvent.getScreenX(), mouseEvent.getScreenY(),
+                          false,
+                          null
+                      ));
+                    }
+        );
+      }
+    });
     mapDetailRoot.setOnKeyPressed(keyEvent -> {
       if (keyEvent.getCode() == KeyCode.ESCAPE) {
         onCloseButtonClicked();
@@ -124,8 +158,8 @@ public class MapDetailController extends NodeController<Node> {
                                       .when(showing));
     nameLabel.textProperty().bind(mapObservable.map(Map::displayName).when(showing));
     authorLabel.textProperty().bind(mapObservable.map(Map::author).flatMap(PlayerInfo::usernameProperty)
-                                  .orElse(i18n.get("map.unknownAuthor"))
-                                  .when(showing));
+                                                 .orElse(i18n.get("map.unknownAuthor"))
+                                                 .when(showing));
     maxPlayersLabel.textProperty().bind(mapVersion.map(MapVersion::maxPlayers).map(i18n::number).when(showing));
     mapIdLabel.textProperty().bind(mapVersion.map(MapVersion::id).map(id -> i18n.get("map.id", id)).when(showing));
     mapPlaysLabel.textProperty().bind(mapObservable.map(Map::gamesPlayed).map(i18n::number).when(showing));
@@ -187,6 +221,20 @@ public class MapDetailController extends NodeController<Node> {
     reviewsController.setReviewSupplier(
         () -> new MapVersionReview(null, null, playerService.getCurrentPlayer(), 0, mapVersion.get()));
     reviewsController.bindReviews(mapReviews);
+  }
+
+  public void onContextMenuRequested(ContextMenuEvent event) {
+    ObservableValue<Map> mapObservable = mapVersion.map(MapVersion::map);
+    Map map = mapObservable.getValue();
+    if (map == null) {
+      return;
+    }
+    PlayerInfo author = map.author();
+    if (author != null) {
+      ContextMenu contextMenu = ContextMenuUtil.createContextMenu(event, getRoot(), author, uiService,
+                                                                  contextMenuBuilder);
+      contextMenu.show(getRoot().getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    }
   }
 
   private void onMapVersionChanged(MapVersion newValue) {

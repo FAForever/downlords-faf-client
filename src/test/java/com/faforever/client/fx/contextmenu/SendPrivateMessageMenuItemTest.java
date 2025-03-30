@@ -4,6 +4,7 @@ import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,12 +26,14 @@ public class SendPrivateMessageMenuItemTest extends PlatformTest {
   private PlayerService playerService;
   @Mock
   private ChatService chatService;
+  @Mock
+  private NavigationHandler navigationHandler;
 
   private SendPrivateMessageMenuItem instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new SendPrivateMessageMenuItem(i18n, playerService, chatService);
+    instance = new SendPrivateMessageMenuItem(i18n, playerService, chatService, navigationHandler);
   }
 
   @Test

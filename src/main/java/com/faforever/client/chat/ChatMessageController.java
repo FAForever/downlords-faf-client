@@ -12,11 +12,14 @@ import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.ContextMenuUtil;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
+import static com.faforever.client.util.MouseEventUtil.handleClick;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -27,6 +30,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
+import javafx.collections.MapChangeListener.Change;
 import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -34,10 +38,12 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
@@ -71,6 +77,7 @@ public class ChatMessageController extends NodeController<VBox> {
 
   private final AvatarService avatarService;
   private final CountryFlagService countryFlagService;
+  private final ContextMenuBuilder contextMenuBuilder;
   private final TimeService timeService;
   private final PlatformService platformService;
   private final ChatService chatService;
@@ -137,8 +144,21 @@ public class ChatMessageController extends NodeController<VBox> {
     authorLabel.styleProperty().bind(inlineTextColorStyleProperty);
     authorLabel.setOnMouseClicked(event -> {
       String username = usernameProperty.getValue();
-      if (username != null && event.getClickCount() == 2) {
-        chatService.joinPrivateChat(username);
+      if (username != null) {
+        handleClick(event,
+                    () -> {
+                      chatService.joinPrivateChat(username);
+                    },
+                    (mouseEvent) -> {
+                      onContextMenuRequested(new ContextMenuEvent(
+                          ContextMenuEvent.CONTEXT_MENU_REQUESTED,
+                          mouseEvent.getScreenX(), mouseEvent.getScreenY(),
+                          mouseEvent.getScreenX(), mouseEvent.getScreenY(),
+                          false,
+                          null
+                      ));
+                    }
+        );
       }
     });
     timeLabel.textProperty()
@@ -193,8 +213,20 @@ public class ChatMessageController extends NodeController<VBox> {
                                        .when(showing));
   }
 
+  private void onContextMenuRequested(ContextMenuEvent event) {
+    ChatMessage message = chatMessage.get();
+    PlayerInfo playerInfo = (message != null)
+                            ? message.getSender().getPlayer().orElse(null)
+                            : null;
+    if (playerInfo != null) {
+      ContextMenu contextMenu = ContextMenuUtil.createContextMenu(event, root, playerInfo, uiService,
+                                                                  contextMenuBuilder);
+      contextMenu.show(root.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    }
+  }
+
   private void onReactionChange(
-      MapChangeListener.Change<? extends Emoticon, ? extends ObservableMap<String, String>> change) {
+      Change<? extends Emoticon, ? extends ObservableMap<String, String>> change) {
     Emoticon reaction = change.getKey();
     if (change.wasRemoved()) {
       HBox reactionRoot = reactionNodeMap.remove(reaction);

@@ -7,27 +7,9 @@ import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
-import com.faforever.client.fx.contextmenu.AddEditPlayerNoteMenuItem;
-import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
-import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
-import com.faforever.client.fx.contextmenu.BroadcastMessageMenuItem;
 import com.faforever.client.fx.contextmenu.ChangeUsernameColorMenuItem;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
-import com.faforever.client.fx.contextmenu.CopyUsernameMenuItem;
-import com.faforever.client.fx.contextmenu.InvitePlayerMenuItem;
-import com.faforever.client.fx.contextmenu.JoinGameMenuItem;
-import com.faforever.client.fx.contextmenu.KickGameMenuItem;
-import com.faforever.client.fx.contextmenu.KickLobbyMenuItem;
-import com.faforever.client.fx.contextmenu.OpenClanUrlMenuItem;
-import com.faforever.client.fx.contextmenu.RemoveFoeMenuItem;
-import com.faforever.client.fx.contextmenu.RemoveFriendMenuItem;
-import com.faforever.client.fx.contextmenu.RemovePlayerNoteMenuItem;
-import com.faforever.client.fx.contextmenu.ReportPlayerMenuItem;
-import com.faforever.client.fx.contextmenu.SendPrivateMessageClanLeaderMenuItem;
-import com.faforever.client.fx.contextmenu.SendPrivateMessageMenuItem;
-import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
-import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
-import com.faforever.client.fx.contextmenu.WatchGameMenuItem;
+import static com.faforever.client.util.MouseEventUtil.handleClick;
 import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
@@ -38,6 +20,7 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.ContextMenuUtil;
 import com.faforever.commons.lobby.GameStatus;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
@@ -45,11 +28,11 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -151,44 +134,31 @@ public class ChatUserItemController extends NodeController<Node> {
 
   public void onContextMenuRequested(ContextMenuEvent event) {
     ChatChannelUser chatChannelUser = chatUser.get();
-    PlayerInfo player = chatChannelUser == null ? null : chatChannelUser.getPlayer().orElse(null);
-    String username = chatChannelUser == null ? null : chatChannelUser.getUsername();
-    contextMenuBuilder.newBuilder()
-        .addItem(ShowPlayerInfoMenuItem.class, player)
-        .addItem(SendPrivateMessageMenuItem.class, username)
-        .addItem(CopyUsernameMenuItem.class, username)
-        .addItem(ChangeUsernameColorMenuItem.class, chatChannelUser)
-        .addSeparator()
-        .addItem(SendPrivateMessageClanLeaderMenuItem.class, player)
-        .addItem(OpenClanUrlMenuItem.class, player)
-        .addSeparator()
-        .addItem(InvitePlayerMenuItem.class, player)
-        .addItem(AddFriendMenuItem.class, player)
-        .addItem(RemoveFriendMenuItem.class, player)
-        .addItem(AddFoeMenuItem.class, player)
-        .addItem(RemoveFoeMenuItem.class, player)
-        .addSeparator()
-        .addItem(AddEditPlayerNoteMenuItem.class, player)
-        .addItem(RemovePlayerNoteMenuItem.class, player)
-        .addSeparator()
-        .addItem(ReportPlayerMenuItem.class, player)
-        .addSeparator()
-        .addItem(JoinGameMenuItem.class, player)
-        .addItem(WatchGameMenuItem.class, player)
-        .addItem(ViewReplaysMenuItem.class, player)
-        .addSeparator()
-        .addItem(KickGameMenuItem.class, player)
-        .addItem(KickLobbyMenuItem.class, player)
-        .addItem(BroadcastMessageMenuItem.class)
-        .addCustomItem(uiService.loadFxml("theme/chat/avatar_picker_menu_item.fxml"), player)
-        .build()
-        .show(root.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    if (chatChannelUser != null) {
+      ContextMenu contextMenu = ContextMenuUtil.createContextMenu(event, root, chatUser.get().getPlayer().orElse(null), uiService, contextMenuBuilder);
+      ChangeUsernameColorMenuItem changeColorItem = new ChangeUsernameColorMenuItem(uiService, i18n, contextMenuBuilder, chatPrefs);
+      changeColorItem.setObject(chatChannelUser);
+      contextMenu.getItems().add(changeColorItem);
+      contextMenu.show(root.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    }
   }
 
   public void onItemClicked(MouseEvent mouseEvent) {
     ChatChannelUser chatChannelUser = chatUser.get();
-    if (chatChannelUser != null && mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
-      chatService.joinPrivateChat(chatChannelUser.getUsername());
+    if (chatChannelUser != null) {
+      handleClick(mouseEvent,
+                  () -> chatService.joinPrivateChat(chatChannelUser.getUsername()),
+                  (event) -> {
+                    ContextMenuEvent fakeEvent = new ContextMenuEvent(
+                        ContextMenuEvent.CONTEXT_MENU_REQUESTED,
+                        mouseEvent.getScreenX(), mouseEvent.getScreenY(),
+                        mouseEvent.getScreenX(), mouseEvent.getScreenY(),
+                        false,
+                        null
+                    );
+                    onContextMenuRequested(fakeEvent);
+                  }
+      );
     }
   }
 

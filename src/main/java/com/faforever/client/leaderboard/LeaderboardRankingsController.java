@@ -166,7 +166,15 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
     rankColumn.setCellFactory(param -> new StringCell<>(rank -> i18n.number(rank.intValue())));
 
     nameColumn.setCellValueFactory(param -> param.getValue().player().usernameProperty());
-    nameColumn.setCellFactory(param -> new StringCell<>(name -> name));
+    nameColumn.setCellFactory(param -> new StringCell<>(name -> name){
+      @Override
+      public void updateItem(String item, boolean empty) {
+        super.updateItem(item, empty);
+
+        // Add the hand cursor style
+        getStyleClass().add("name-cell");
+      }
+    });
     nameColumn.prefWidthProperty().bind(ratingTable.widthProperty().subtract(250));
 
     gamesPlayedColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().gamesPlayed()));
@@ -207,7 +215,7 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
 
   private TableRow<LeagueEntry> entriesRowFactory() {
     TableRow<LeagueEntry> row = new TableRow<>();
-    row.setOnContextMenuRequested(event -> {
+    row.setOnMouseClicked(event -> {
       LeagueEntry leagueEntry = row.getItem();
       if (leagueEntry == null) {
         return;
