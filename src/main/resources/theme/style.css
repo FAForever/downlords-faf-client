@@ -1126,13 +1126,11 @@
 }
 
 .image-dimmer-light {
-  -fx-padding: 0 3 3 3;
-  -fx-background-color: linear-gradient(to bottom, #00000000 0%, #00000022 10%, #00000033 20%, #0000004d 30%, #00000066 40%, #00000080 50%, #00000099 60%, #000000b3 70%);
+  -fx-background-color: linear-gradient(to bottom, #00000000 0%, #00000080 100%);
 }
 
 .image-dimmer-light-reversed {
-  -fx-padding: 3 3 0 3;
-  -fx-background-color: linear-gradient(to top, #00000000 0%, #00000000 10%, #00000033 20%, #0000004d 30%, #00000066 40%, #00000080 50%, #00000099 60%, #000000b3 70%);
+  -fx-background-color: linear-gradient(to top, #00000000 0%, #00000080 100%);
 }
 
 .tmm-maplist {
@@ -1141,6 +1139,24 @@
 
 .tmm-maplist-inner {
  -fx-padding: 0 12 0 0; //related to PADDING constant, do not change without adjusting it
+}
+
+.tmm-maplist-tile {
+  -fx-background-color: linear-gradient(to bottom right, #fff, #ffffff60);
+  -fx-background-radius: 6;
+  -fx-padding: 1;
+  -fx-font-size: 15;
+  -fx-font-weight: 600;
+}
+
+.tmm-maplist-tile-top-line {
+  -fx-padding: 5;
+  -fx-background-color:  #00000080;
+}
+
+.tmm-maplist-tile-bottom-line {
+  -fx-padding: 5;
+  -fx-background-color:  #00000080;
 }
 
 /***************** Faction buttons *****************/

@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
 
 public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
-  private static final int TILE_SIZE = 160;
+  private static final int TILE_SIZE = 180;
   private static final int PADDING = 20;
 
   private static final Comparator<MapVersion> MAP_VERSION_COMPARATOR = Comparator.nullsFirst(

@@ -6,31 +6,41 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.StackPane?>
-
-
-<?import javafx.scene.shape.SVGPath?>
+<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.layout.HBox?>
-<StackPane fx:id="root" prefWidth="160.0" fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingMapTileController" prefHeight="160.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1" style="-fx-margin:0 0 0 0;">
-    <ImageView fx:id="thumbnailImageView" fitHeight="160" fitWidth="160" preserveRatio="true"/>
+<?import javafx.scene.layout.Region?>
 
-    <GridPane prefWidth="160.0" prefHeight="160.0">
-        <rowConstraints>
-            <RowConstraints vgrow="NEVER"/>
-            <RowConstraints vgrow="ALWAYS"/>
-            <RowConstraints vgrow="NEVER"/>
-        </rowConstraints>
-
-        <VBox fx:id="authorBox" prefHeight="40" alignment="TOP_CENTER" prefWidth="160" style="-fx-opacity: 0;" GridPane.rowIndex="0" styleClass="image-dimmer-light-reversed">
-            <Label textAlignment="CENTER" fx:id="authorLabel" wrapText="true" style="-fx-opacity: 0;" />
-        </VBox>
-
-        <HBox style="-fx-start-margin: 40" spacing="10" fx:id="vetoesBox" prefHeight="40" alignment="TOP_CENTER" prefWidth="160" GridPane.rowIndex="0" styleClass="image-dimmer-light-reversed">
-            <Label fx:id="mapid" />
-        </HBox>
-
-        <VBox prefHeight="60" alignment="BOTTOM_CENTER" prefWidth="160" GridPane.rowIndex="2" styleClass="image-dimmer-light">
-            <Label fx:id="nameLabel" style="-fx-line-spacing: 0;"  alignment="TOP_CENTER" textAlignment="CENTER" wrapText="true"/>
-            <Label fx:id="sizeLabel" style="-fx-line-spacing: 0;"  alignment="BOTTOM_CENTER" textAlignment="CENTER" />
-        </VBox>
-    </GridPane>
+<StackPane fx:id="root" prefWidth="180.0" prefHeight="180.0"
+           styleClass="tmm-maplist-tile"
+           xmlns="http://javafx.com/javafx/11"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingMapTileController">
+    <StackPane prefWidth="178.0" prefHeight="178.0" style="-fx-background-radius: 6;">
+        <clip>
+            <Rectangle width="178" height="178" arcWidth="12" arcHeight="12" />
+        </clip>
+        <ImageView fx:id="thumbnailImageView" fitHeight="178" fitWidth="178" preserveRatio="true"/>
+        <GridPane prefWidth="178.0" prefHeight="178.0">
+            <rowConstraints>
+                <RowConstraints vgrow="NEVER"/>
+                <RowConstraints vgrow="NEVER"/>
+                <RowConstraints vgrow="ALWAYS"/>
+                <RowConstraints vgrow="NEVER"/>
+                <RowConstraints vgrow="NEVER"/>
+            </rowConstraints>
+            <HBox GridPane.rowIndex="0" prefWidth="178.0" styleClass="tmm-maplist-tile-top-line" >
+                <VBox fx:id="authorBox">
+                    <Label fx:id="authorLabel" wrapText="true"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox fx:id="vetoesBox" alignment="TOP_RIGHT" spacing="10"/>
+            </HBox>
+            <HBox prefHeight="10" styleClass="image-dimmer-light-reversed" GridPane.rowIndex="1"/>
+            <HBox prefHeight="10" styleClass="image-dimmer-light" GridPane.rowIndex="3"/>
+            <VBox alignment="BOTTOM_LEFT" prefWidth="178" spacing="-5" GridPane.rowIndex="4" styleClass="tmm-maplist-tile-bottom-line">
+                <Label fx:id="nameLabel" wrapText="true" style="-fx-font-weight: 700"/>
+                <Label fx:id="sizeLabel" style="-fx-font-size: 14; -fx-font-weight: 400"/>
+            </VBox>
+        </GridPane>
+    </StackPane>
 </StackPane>
