@@ -1149,13 +1149,27 @@
   -fx-font-weight: 600;
 }
 
+.tmm-maplist-tile-vetoset-counter {
+  -fx-background-color: rgba(21, 21, 21, 0.8);
+  -fx-background-radius: 4;
+  -fx-padding: 2 4;
+}
+
+.tmm-maplist-tile-vetoset-btn-minus {
+  -fx-background-color: rgba(21, 21, 21, 0.8);
+  -fx-background-radius: 4 0 0 4;
+  -fx-translate-x: 2;
+  -fx-background-insets: 2;
+  -fx-padding: 0;
+}
+
 .tmm-maplist-tile-top-line {
-  -fx-padding: 5;
+  -fx-padding: 5 5 0;
   -fx-background-color:  #00000080;
 }
 
 .tmm-maplist-tile-bottom-line {
-  -fx-padding: 5;
+  -fx-padding: 0 5 5;
   -fx-background-color:  #00000080;
 }
 

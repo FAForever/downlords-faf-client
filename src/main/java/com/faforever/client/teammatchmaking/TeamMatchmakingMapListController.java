@@ -18,6 +18,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -84,6 +85,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
   private final DoubleProperty maxWidth = new SimpleDoubleProperty(0);
   private final DoubleProperty maxHeight = new SimpleDoubleProperty(0);
+  private final SimpleBooleanProperty vetoModeEnabled = new SimpleBooleanProperty(false);
   private final ObjectProperty<Map<MatchmakerQueueMapPool, List<MapPoolAssignment>>> brackets = new SimpleObjectProperty<>(
       Map.of());
   private final IntegerProperty playerRating = new SimpleIntegerProperty();
@@ -102,6 +104,8 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
                                                                                            sortedMapPools,
                                                                                            playerRating);
   public ComboBox<String> bracketComboBox;
+  public Button applyVetoesButton;
+  public Button vetoTokensWallet;
 
   private ObservableValue<Integer> vetoTokensApplied;
   private ObservableValue<Integer> vetoTokensLeft;
@@ -176,6 +180,10 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
                                    .orElse(0)
                                    .when(showing));
 
+    applyVetoesButton.visibleProperty().bind(vetoModeEnabled.not());
+    vetoTokensWallet.visibleProperty().bind(vetoModeEnabled);
+    applyVetoesButton.managedProperty().bind(vetoModeEnabled.not());
+    vetoTokensWallet.managedProperty().bind(vetoModeEnabled);
   }
 
   @Override
@@ -309,6 +317,9 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     controller.setMapAssignment(mapAssignment);
     controller.setVetoTokensMax(currentBracket.getValue().vetoTokensPerPlayer());
     controller.setVetoTokensLeft(vetoTokensLeft);
+    controller.setVetoModeEnabled(vetoModeEnabled);
+    controller.bindVetoesBoxProperties();
+
     return controller.getRoot();
   }
 
@@ -350,7 +361,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     for (int i = 0; i < maxTokens; i++) {
       SVGPath token = new SVGPath();
       token.setContent(
-          "M18.1643 2.85951L18.1642 3.8033L18.1628 15.1153L20.5427 13.3444C21.6355 12.5312 23.139 12.5563 24.204 13.4056L26.1661 14.9701L26.8328 15.5017L26.4132 16.244L21.9549 24.1317L21.2295 25.5147C19.2025 29.3793 15.0673 31.664 10.7167 31.3229C4.9923 30.874 0.59593 26.0643 0.661914 20.3227L0.831081 5.60293L0.841517 4.6949L1.74634 4.61801L5.89383 4.26554L6.03253 1.45284L6.07784 0.533815L6.99746 0.502663L12.0103 0.332857L13.0572 0.297391L13.044 1.34488L13.0287 2.5616L17.2221 2.80485L18.1643 2.85951ZM13.0035 4.5635L12.874 14.8414L10.8741 14.8162L11.0168 3.49198L11.031 2.36718L7.98478 2.47037L7.8487 5.23004L7.51282 14.8291L5.51404 14.7592L5.81075 6.27981L2.82051 6.53393L2.66178 20.3457C2.6079 25.0346 6.1982 28.9624 10.873 29.329C14.426 29.6076 17.803 27.7418 19.4583 24.5857L20.191 23.1889L20.1983 23.175L20.206 23.1613L24.2525 16.0022L22.9571 14.9693C22.6021 14.6862 22.1009 14.6778 21.7367 14.9489L17.7595 17.9084L16.1626 17.106L16.1641 4.74684L13.0035 4.5635Z");
+          "M 11.8068 1.8587 L 11.8067 2.4721 L 11.8058 9.8249 L 13.3528 8.6739 C 14.0631 8.1453 15.0404 8.1616 15.7326 8.7136 L 17.008 9.7306 L 17.4413 10.0761 L 17.1686 10.5586 L 14.2707 15.6856 L 13.7992 16.5846 C 12.4816 19.0965 9.7937 20.5816 6.9659 20.3599 C 3.245 20.0681 0.3874 16.9418 0.4302 13.2098 L 0.5402 3.6419 L 0.547 3.0517 L 1.1351 3.0017 L 3.831 2.7726 L 3.9211 0.9443 L 3.9506 0.347 L 4.5483 0.3267 L 7.8067 0.2164 L 8.4872 0.1933 L 8.4786 0.8742 L 8.4687 1.665 L 11.1944 1.8232 L 11.8068 1.8587 Z M 8.4523 2.9663 L 8.3681 9.6469 L 7.0682 9.6305 L 7.1609 2.2698 L 7.1702 1.5387 L 5.1901 1.6057 L 5.1017 3.3995 L 4.8833 9.6389 L 3.5841 9.5935 L 3.777 4.0819 L 1.8333 4.2471 L 1.7302 13.2247 C 1.6951 16.2725 4.0288 18.8256 7.0675 19.0639 C 9.3769 19.2449 11.572 18.0322 12.6479 15.9807 L 13.1242 15.0728 L 13.1289 15.0638 L 13.1339 15.0548 L 15.7641 10.4014 L 14.9221 9.73 C 14.6914 9.546 14.3656 9.5406 14.1289 9.7168 L 11.5437 11.6405 L 10.5057 11.1189 L 10.5067 3.0854 L 8.4523 2.9663 Z");
       if (i >= maxTokens - usedTokens) {token.setFill(Paint.valueOf("#000000"));} else {
         token.setFill(Paint.valueOf("#ffffff"));
       }
@@ -369,12 +380,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     });
   }
 
-  public void goToPreviousBracket(ActionEvent actionEvent) {
-    this.currentBracketIndex.set(Math.max(this.currentBracketIndex.get() - 1, 0));
-  }
-
-  public void goToNextBracket(ActionEvent actionEvent) {
-    this.currentBracketIndex.set(
-        Math.min(this.currentBracketIndex.get() + 1, this.sortedMapPools.getValue().size() - 1));
+  public void changeMode() {
+    vetoModeEnabled.set(!vetoModeEnabled.get());
   }
 }

@@ -5,17 +5,21 @@ import com.faforever.client.domain.api.MapPoolAssignment;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
-import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.commons.lobby.VetoData;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -55,11 +59,18 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   public Label sizeLabel;
   public VBox authorBox;
   public HBox vetoesBox;
+  public Button minusButton;
+  public Button vetoButton;
+  public Label tokenCounterLabel;
+  public SVGPath vetoSvg;
 
   protected final ObjectProperty<MapPoolAssignment> assignment = new SimpleObjectProperty<>();
   @Setter
   private ObservableValue<Integer> vetoTokensLeft;
+  @Setter
+  private SimpleBooleanProperty vetoModeEnabled;
   private final SimpleIntegerProperty vetoTokensMax = new SimpleIntegerProperty(0);
+  private final SimpleIntegerProperty tokenCount = new SimpleIntegerProperty(0);
 
   @Override
   public Pane getRoot() {
@@ -72,6 +83,11 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
 
   public void setVetoTokensMax(int vetoTokensMax) {
     this.vetoTokensMax.set(vetoTokensMax);
+  }
+
+  public void bindVetoesBoxProperties() {
+    vetoesBox.mouseTransparentProperty().bind(vetoModeEnabled.not());
+    vetoesBox.visibleProperty().bind(vetoModeEnabled.or(tokenCount.greaterThan(0)));
   }
 
   @Override
@@ -108,51 +124,53 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
                                             .map(MapVersion::size)
                                             .map(size -> i18n.get("mapPreview.size", size.widthInKm(), size.heightInKm())));
 
+    // Bind token counter label
+    tokenCounterLabel.textProperty().bind(tokenCount.asString());
+
+    // Bind SVG fill color
+    vetoSvg.fillProperty().bind(Bindings.when(tokenCount.greaterThan(0))
+                                        .then(Paint.valueOf("#FFD700"))
+                                        .otherwise(Paint.valueOf("#FFFFFF")));
+
+    // Bind minus button visibility
+    minusButton.visibleProperty().bind(vetoesBox.hoverProperty().and(tokenCount.greaterThan(0)));
+    minusButton.managedProperty().bind(minusButton.visibleProperty());
+
+    // Set up click handlers
+    vetoButton.setOnAction(event -> {
+      int current = tokenCount.get();
+      if (current < vetoTokensMax.get() && vetoTokensLeft.getValue() > 0) {
+        matchmakerPrefs.setVetoData(new VetoData(assignment.getValue().id(), current + 1, assignment.getValue().mapPool().mapPool().id()));
+      }
+    });
+
+    minusButton.setOnAction(event -> {
+      int current = tokenCount.get();
+      if (current > 0) {
+        matchmakerPrefs.setVetoData(new VetoData(assignment.getValue().id(), current - 1, assignment.getValue().mapPool().mapPool().id()));
+      }
+    });
+
+    // Handle banned class
+    tokenCount.addListener((obs, oldValue, newValue) -> {
+      if (newValue.intValue() >= vetoTokensMax.get()) {
+        root.getStyleClass().add("banned");
+      } else {
+        root.getStyleClass().remove("banned");
+      }
+    });
+
     // Subscribe to veto token updates
     vetoTokensMax.subscribe(this::updateVetoes);
     matchmakerPrefs.getAppliedVetoes().subscribe(this::updateVetoes);
   }
 
   private void updateVetoes() {
-    int maxTokens = vetoTokensMax.getValue();
     int usedTokens = matchmakerPrefs.getAppliedVetoes().stream()
                                     .filter(veto -> veto.getMapPoolMapVersionId() == assignment.getValue().id())
                                     .findFirst()
                                     .map(VetoData::getVetoTokensApplied)
                                     .orElse(0);
-
-    List<SVGPath> tokens = new ArrayList<>();
-    for (int i = 0; i < maxTokens; i++) {
-      SVGPath token = new SVGPath();
-      token.setContent("M18.148 12.48l5.665-5.66c1.563-1.56 1.563-4.1 0-5.66-1.565-1.57-4.101-1.57-5.665 0l-5.664 5.66L6.82 1.16c-1.563-1.57-4.099-1.57-5.664 0-1.563 1.56-1.563 4.1 0 5.66l5.664 5.66-5.664 5.67c-1.563 1.56-1.563 4.1 0 5.66 1.565 1.57 4.101 1.57 5.664 0l5.664-5.66 5.664 5.66c1.564 1.57 4.1 1.57 5.665 0 1.563-1.56 1.563-4.1 0-5.66l-5.665-5.67");
-      token.setStyle("-fx-cursor: hand;");
-
-      int index = i;
-      if (i < usedTokens) {
-        token.setFill(Paint.valueOf("#ff0000")); // Red for used tokens
-      } else {
-        index++;
-        token.setFill(Paint.valueOf("#000000")); // Black for unused tokens
-        token.getStyleClass().add("token-not-activated");
-      }
-
-      int finalIndex = index;
-      token.setOnMouseClicked(event -> {
-        int current = matchmakerPrefs.getAppliedVetoes().stream()
-                                     .filter(veto -> veto.getMapPoolMapVersionId() == assignment.getValue().id())
-                                     .findFirst()
-                                     .map(VetoData::getVetoTokensApplied)
-                                     .orElse(0);
-        int delta = finalIndex - current;
-        if (delta > vetoTokensLeft.getValue()) {
-          delta = vetoTokensLeft.getValue();
-        }
-        int newValue = Math.max(0, current + delta);
-        matchmakerPrefs.setVetoData(new VetoData(assignment.getValue().id(), newValue, assignment.getValue().mapPool().mapPool().id()));
-      });
-      tokens.add(token);
-    }
-
-    fxApplicationThreadExecutor.execute(() -> vetoesBox.getChildren().setAll(tokens));
+    tokenCount.set(usedTokens);
   }
 }
