@@ -29,6 +29,7 @@ public class IceAdapterImpl implements IceAdapter, DisposableBean {
   private final PlayerService playerService;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final ClientProperties clientProperties;
+  private final IceAdapterService iceAdapterService;
 
   private Process process;
 
@@ -63,7 +64,7 @@ public class IceAdapterImpl implements IceAdapter, DisposableBean {
                   .put("LOG_DIR",
                        operatingSystem.getLoggingDirectory().resolve("iceAdapterLogs").toAbsolutePath().toString());
 
-    log.info("Starting ICE adapter with command: {}", cmd);
+    log.info("Starting ICE adapter with command: {}", maskAccessToken(cmd));
 
     process = processBuilder.start();
     process.onExit().thenAccept(finished -> {
@@ -76,11 +77,18 @@ public class IceAdapterImpl implements IceAdapter, DisposableBean {
     });
   }
 
+  private List<String> maskAccessToken(List<String> cmd) {
+    List<String> result = new ArrayList<>(cmd);
+    int index = result.indexOf("--access-token") + 1;
+    result.set(index, "[redacted]");
+    return result;
+  }
+
   @VisibleForTesting
   List<String> buildCommand(int gpgGamePort, int gpgClientPort, int gameId, String accessToken) {
     PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
-    return List.of(System.getProperty("PIONEER_BIN_NAME", "pioneer.exe"), "--user-id",
+    return List.of(iceAdapterService.getExecutablePath().toString(), "--user-id",
                    String.valueOf(currentPlayer.getId()), "--game-id",
                    String.valueOf(gameId), "--gpgnet-port", String.valueOf(gpgGamePort),
                    "--gpgnet-client-port", String.valueOf(gpgClientPort), "--access-token",

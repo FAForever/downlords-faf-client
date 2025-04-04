@@ -12,6 +12,7 @@ import com.faforever.client.fa.GameParameters;
 import com.faforever.client.fa.GameParameters.League;
 import com.faforever.client.fa.relay.gpg.GPGNetServer;
 import com.faforever.client.fa.relay.gpg.LobbyInitMode;
+import com.faforever.client.fa.relay.ice.IceAdapterService;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.PlatformService;
@@ -118,6 +119,7 @@ public class GameRunner implements InitializingBean {
   private final NotificationPrefs notificationPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final LogAnalyzerService logAnalyzerService;
+  private final IceAdapterService iceAdapterService;
 
   private final MaskPatternLayout logMasker = new MaskPatternLayout();
   private final SimpleObjectProperty<Integer> runningGameId = new SimpleObjectProperty<>();
@@ -223,7 +225,8 @@ public class GameRunner implements InitializingBean {
         null) : modService.downloadAndEnableMods(simModUids).toFuture();
     CompletableFuture<Void> downloadMapFuture = mapFolderName == null || mapFolderName.isBlank() ? completedFuture(
         null) : mapService.downloadIfNecessary(mapFolderName).toFuture();
-    return CompletableFuture.allOf(updateFeaturedModFuture, installSimModsFuture, downloadMapFuture)
+    CompletableFuture<Void> downloadIceAdapter = iceAdapterService.getNewest().toFuture();
+    return CompletableFuture.allOf(updateFeaturedModFuture, installSimModsFuture, downloadMapFuture, downloadIceAdapter)
                             .thenCompose(ignored -> gameLaunchSupplier.get())
                             .thenCompose(this::startOnlineGame);
   }

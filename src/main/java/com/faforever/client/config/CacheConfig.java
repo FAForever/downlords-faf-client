@@ -29,6 +29,7 @@ import static com.faforever.client.config.CacheNames.DIVISIONS;
 import static com.faforever.client.config.CacheNames.FEATURED_MODS;
 import static com.faforever.client.config.CacheNames.FEATURED_MOD_FILES;
 import static com.faforever.client.config.CacheNames.GLOBAL_LEADERBOARD;
+import static com.faforever.client.config.CacheNames.ICE_ADAPTER;
 import static com.faforever.client.config.CacheNames.IMAGES;
 import static com.faforever.client.config.CacheNames.LADDER_1V1_LEADERBOARD;
 import static com.faforever.client.config.CacheNames.LEADERBOARD;
@@ -113,8 +114,8 @@ public class CacheConfig implements CachingConfigurer {
                 new CaffeineCache(COUNTRY_NAMES, newBuilder().weakValues().build(), true),
                 new CaffeineCache(THEME_IMAGES, newBuilder().weakValues().build(), true),
                 new CaffeineCache(IMAGES, newBuilder().weakValues().build(), true),
-                new CaffeineCache(MOD_THUMBNAIL, newBuilder().weakValues().build(), true
-        )));
+                new CaffeineCache(MOD_THUMBNAIL, newBuilder().weakValues().build(), true),
+                new CaffeineCache(ICE_ADAPTER, newBuilder().expireAfterWrite(10, MINUTES).buildAsync(), true)));
     return cacheManager;
   }
 
