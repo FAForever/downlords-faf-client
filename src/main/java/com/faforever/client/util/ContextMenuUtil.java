@@ -1,37 +1,27 @@
 package com.faforever.client.util;
 
 import com.faforever.client.domain.server.PlayerInfo;
-import com.faforever.client.fx.contextmenu.AddEditPlayerNoteMenuItem;
-import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
-import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
-import com.faforever.client.fx.contextmenu.BroadcastMessageMenuItem;
-import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
-import com.faforever.client.fx.contextmenu.CopyUsernameMenuItem;
-import com.faforever.client.fx.contextmenu.InvitePlayerMenuItem;
-import com.faforever.client.fx.contextmenu.JoinGameMenuItem;
-import com.faforever.client.fx.contextmenu.KickGameMenuItem;
-import com.faforever.client.fx.contextmenu.KickLobbyMenuItem;
-import com.faforever.client.fx.contextmenu.OpenClanUrlMenuItem;
-import com.faforever.client.fx.contextmenu.RemoveFoeMenuItem;
-import com.faforever.client.fx.contextmenu.RemoveFriendMenuItem;
-import com.faforever.client.fx.contextmenu.RemovePlayerNoteMenuItem;
-import com.faforever.client.fx.contextmenu.ReportPlayerMenuItem;
-import com.faforever.client.fx.contextmenu.SendPrivateMessageClanLeaderMenuItem;
-import com.faforever.client.fx.contextmenu.SendPrivateMessageMenuItem;
-import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
-import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
-import com.faforever.client.fx.contextmenu.WatchGameMenuItem;
+import com.faforever.client.fx.contextmenu.*;
 import com.faforever.client.theme.UiService;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.input.ContextMenuEvent;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ContextMenuUtil {
-  public static ContextMenu createContextMenu(ContextMenuEvent event, Node targetNode,
-                                              PlayerInfo playerInfo,
-                                              UiService uiService,
-                                              ContextMenuBuilder contextMenuBuilder) {
-    if (playerInfo == null) return new ContextMenu();
+  private final UiService uiService;
+  private final ContextMenuBuilder contextMenuBuilder;
+
+  public ContextMenuUtil(UiService uiService, ContextMenuBuilder contextMenuBuilder) {
+    this.uiService = uiService;
+    this.contextMenuBuilder = contextMenuBuilder;
+  }
+
+  public ContextMenu createContextMenu(ContextMenuEvent event, Node targetNode, PlayerInfo playerInfo) {
+    if (playerInfo == null) {
+      return new ContextMenu();
+    }
 
     return contextMenuBuilder.newBuilder()
                              .addItem(ShowPlayerInfoMenuItem.class, playerInfo)

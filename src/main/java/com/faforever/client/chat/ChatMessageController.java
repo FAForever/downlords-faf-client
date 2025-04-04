@@ -19,7 +19,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ContextMenuUtil;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
-import static com.faforever.client.util.MouseEventUtil.handleClick;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -86,6 +85,7 @@ public class ChatMessageController extends NodeController<VBox> {
   private final ImageViewHelper imageViewHelper;
   private final I18n i18n;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final ContextMenuUtil contextMenuUtil;
 
   public VBox root;
   public HBox detailsContainer;
@@ -144,23 +144,11 @@ public class ChatMessageController extends NodeController<VBox> {
     authorLabel.styleProperty().bind(inlineTextColorStyleProperty);
     authorLabel.setOnMouseClicked(event -> {
       String username = usernameProperty.getValue();
-      if (username != null) {
-        handleClick(event,
-                    () -> {
-                      chatService.joinPrivateChat(username);
-                    },
-                    (mouseEvent) -> {
-                      onContextMenuRequested(new ContextMenuEvent(
-                          ContextMenuEvent.CONTEXT_MENU_REQUESTED,
-                          mouseEvent.getScreenX(), mouseEvent.getScreenY(),
-                          mouseEvent.getScreenX(), mouseEvent.getScreenY(),
-                          false,
-                          null
-                      ));
-                    }
-        );
+      if (username != null && event.getClickCount() == 2) {
+        chatService.joinPrivateChat(username);
       }
     });
+    authorLabel.setOnContextMenuRequested(this::onContextMenuRequested);
     timeLabel.textProperty()
              .bind(chatMessage.map(message -> message.getType() != Type.PENDING ? message.getTime() : null)
                               .map(timeService::asShortTime)
@@ -214,15 +202,12 @@ public class ChatMessageController extends NodeController<VBox> {
   }
 
   private void onContextMenuRequested(ContextMenuEvent event) {
-    ChatMessage message = chatMessage.get();
-    PlayerInfo playerInfo = (message != null)
-                            ? message.getSender().getPlayer().orElse(null)
-                            : null;
-    if (playerInfo != null) {
-      ContextMenu contextMenu = ContextMenuUtil.createContextMenu(event, root, playerInfo, uiService,
-                                                                  contextMenuBuilder);
-      contextMenu.show(root.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-    }
+    chatMessage.map(ChatMessage::getSender)
+               .flatMap(ChatChannelUser::playerProperty)
+               .subscribe(playerInfo -> {
+                 ContextMenu contextMenu = contextMenuUtil.createContextMenu(event, root, playerInfo);
+                 contextMenu.show(root.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+               });
   }
 
   private void onReactionChange(

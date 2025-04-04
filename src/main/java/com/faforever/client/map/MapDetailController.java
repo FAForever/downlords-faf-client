@@ -1,6 +1,5 @@
 package com.faforever.client.map;
 
-import com.faforever.client.chat.ChatService;
 import com.faforever.client.domain.api.Map;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.api.MapVersionReview;
@@ -18,7 +17,6 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ContextMenuUtil;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
@@ -27,6 +25,7 @@ import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
 import com.google.common.annotations.VisibleForTesting;
 import io.micrometer.common.util.StringUtils;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.ObjectProperty;
@@ -48,6 +47,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
+import javafx.stage.Window;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -57,8 +57,6 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
-
-import static com.faforever.client.util.MouseEventUtil.handleClick;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -75,9 +73,9 @@ public class MapDetailController extends NodeController<Node> {
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final ImageViewHelper imageViewHelper;
   private final NavigationHandler navigationHandler;
+  private final ContextMenuUtil contextMenuUtil;
   private final ContextMenuBuilder contextMenuBuilder;
-  private final ChatService chatService;
-  private final UiService uiService;
+  private ContextMenu authorContextMenu;
 
   private final ObjectProperty<MapVersion> mapVersion = new SimpleObjectProperty<>();
   private final ObservableList<MapVersionReview> mapReviews = FXCollections.observableArrayList();
@@ -112,31 +110,19 @@ public class MapDetailController extends NodeController<Node> {
     JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, hideButton,
                                     loadingContainer, hideBox, getRoot());
     JavaFxUtil.fixScrollSpeed(scrollPane);
-
-    ObservableValue<String> usernameProperty = Bindings.createObjectBinding(() -> {
-      Map map = mapVersion.getValue().map();
-      if (map == null || map.author() == null) {
-        return null;
-      }
-      return map.author().getUsername();
-    }, mapVersion);
-    authorLabel.setOnMouseClicked(event -> {
-      String username = usernameProperty.getValue();
-      if (username != null) {
-        handleClick(event,
-                    () -> {
-                      chatService.joinPrivateChat(username);
-                    },
-                    (mouseEvent) -> {
-                      onContextMenuRequested(new ContextMenuEvent(
-                          ContextMenuEvent.CONTEXT_MENU_REQUESTED,
-                          mouseEvent.getScreenX(), mouseEvent.getScreenY(),
-                          mouseEvent.getScreenX(), mouseEvent.getScreenY(),
-                          false,
-                          null
-                      ));
-                    }
-        );
+    contextMenuBuilder.addCopyLabelContextMenu(nameLabel, mapDescriptionLabel, mapIdLabel);
+    authorLabel.setOnContextMenuRequested(null);
+    authorLabel.setOnContextMenuRequested(this::onContextMenuRequested);
+    getRoot().visibleProperty().addListener((obs, wasVisible, isNowVisible) -> {
+      if (!isNowVisible) {
+        authorLabel.setOnContextMenuRequested(null);
+        if (authorContextMenu != null) {
+          authorContextMenu.hide();
+          authorContextMenu.getItems().clear();
+          authorContextMenu = null;
+        } else {
+          authorLabel.setOnContextMenuRequested(this::onContextMenuRequested);
+        }
       }
     });
     mapDetailRoot.setOnKeyPressed(keyEvent -> {
@@ -224,17 +210,21 @@ public class MapDetailController extends NodeController<Node> {
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
-    ObservableValue<Map> mapObservable = mapVersion.map(MapVersion::map);
-    Map map = mapObservable.getValue();
-    if (map == null) {
-      return;
+    event.consume();
+    if (authorContextMenu != null) {
+      authorContextMenu.hide();
+      authorContextMenu = null;
     }
-    PlayerInfo author = map.author();
-    if (author != null) {
-      ContextMenu contextMenu = ContextMenuUtil.createContextMenu(event, getRoot(), author, uiService,
-                                                                  contextMenuBuilder);
-      contextMenu.show(getRoot().getScene().getWindow(), event.getScreenX(), event.getScreenY());
-    }
+
+    mapVersion.map(MapVersion::map)
+              .map(Map::author)
+              .subscribe(playerInfo -> {
+                authorContextMenu = contextMenuUtil.createContextMenu(event, getRoot(), playerInfo);
+                Window window = getRoot().getScene().getWindow();
+                if (getRoot().isVisible() && window != null && window.isShowing()) {
+                  authorContextMenu.show(window, event.getScreenX(), event.getScreenY());
+                }
+              });
   }
 
   private void onMapVersionChanged(MapVersion newValue) {
@@ -275,7 +265,20 @@ public class MapDetailController extends NodeController<Node> {
   }
 
   public void onCloseButtonClicked() {
+    authorLabel.setOnContextMenuRequested(null);
+    if (authorContextMenu != null) {
+      authorContextMenu.hide();
+      authorContextMenu.getItems().clear();
+      authorContextMenu = null;
+    }
+    getRoot().requestFocus();
     getRoot().setVisible(false);
+
+    Platform.runLater(() -> {
+      if (getRoot().isVisible()) {
+        authorLabel.setOnContextMenuRequested(this::onContextMenuRequested);
+      }
+    });
   }
 
   @Override

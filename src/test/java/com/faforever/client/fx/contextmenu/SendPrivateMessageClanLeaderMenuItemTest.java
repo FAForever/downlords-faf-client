@@ -6,6 +6,7 @@ import com.faforever.client.clan.ClanService;
 import com.faforever.client.domain.api.Clan;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.test.PlatformTest;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,12 +29,14 @@ public class SendPrivateMessageClanLeaderMenuItemTest extends PlatformTest {
   private ClanService clanService;
   @Mock
   private ChatService chatService;
+  @Mock
+  private NavigationHandler navigationHandler;
 
   private SendPrivateMessageClanLeaderMenuItem instance;
 
   @BeforeEach
   public void setup() {
-    instance = new SendPrivateMessageClanLeaderMenuItem(i18n, clanService, chatService);
+    instance = new SendPrivateMessageClanLeaderMenuItem(i18n, clanService, chatService,navigationHandler);
   }
 
   @Test

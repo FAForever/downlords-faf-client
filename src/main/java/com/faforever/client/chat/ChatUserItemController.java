@@ -9,7 +9,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.contextmenu.ChangeUsernameColorMenuItem;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
-import static com.faforever.client.util.MouseEventUtil.handleClick;
 import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
@@ -33,6 +32,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -44,6 +44,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -62,6 +64,7 @@ public class ChatUserItemController extends NodeController<Node> {
   private final ContextMenuBuilder contextMenuBuilder;
   private final ChatPrefs chatPrefs;
   private final ImageViewHelper imageViewHelper;
+  private final ContextMenuUtil contextMenuUtil;
 
   private final ObjectProperty<ChatChannelUser> chatUser = new SimpleObjectProperty<>();
 
@@ -133,32 +136,22 @@ public class ChatUserItemController extends NodeController<Node> {
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
-    ChatChannelUser chatChannelUser = chatUser.get();
-    if (chatChannelUser != null) {
-      ContextMenu contextMenu = ContextMenuUtil.createContextMenu(event, root, chatUser.get().getPlayer().orElse(null), uiService, contextMenuBuilder);
-      ChangeUsernameColorMenuItem changeColorItem = new ChangeUsernameColorMenuItem(uiService, i18n, contextMenuBuilder, chatPrefs);
-      changeColorItem.setObject(chatChannelUser);
-      contextMenu.getItems().add(changeColorItem);
-      contextMenu.show(root.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-    }
+    chatUser.flatMap(ChatChannelUser::playerProperty)
+            .map(Objects::nonNull)
+            .map(bool -> chatUser.flatMap(ChatChannelUser::playerProperty).getValue())
+            .subscribe(playerInfo -> {
+              ContextMenu contextMenu = contextMenuUtil.createContextMenu(event, root, playerInfo);
+              ChangeUsernameColorMenuItem changeColorItem = new ChangeUsernameColorMenuItem(uiService, i18n, contextMenuBuilder, chatPrefs);
+              changeColorItem.setObject(chatUser.get());
+              contextMenu.getItems().add(changeColorItem);
+              contextMenu.show(root.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+            });
   }
 
   public void onItemClicked(MouseEvent mouseEvent) {
     ChatChannelUser chatChannelUser = chatUser.get();
-    if (chatChannelUser != null) {
-      handleClick(mouseEvent,
-                  () -> chatService.joinPrivateChat(chatChannelUser.getUsername()),
-                  (event) -> {
-                    ContextMenuEvent fakeEvent = new ContextMenuEvent(
-                        ContextMenuEvent.CONTEXT_MENU_REQUESTED,
-                        mouseEvent.getScreenX(), mouseEvent.getScreenY(),
-                        mouseEvent.getScreenX(), mouseEvent.getScreenY(),
-                        false,
-                        null
-                    );
-                    onContextMenuRequested(fakeEvent);
-                  }
-      );
+    if (chatChannelUser != null && mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
+      chatService.joinPrivateChat(chatChannelUser.getUsername());
     }
   }
 

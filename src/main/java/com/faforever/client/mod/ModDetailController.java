@@ -14,13 +14,14 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
+import com.faforever.client.util.ContextMenuUtil;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
 import com.google.common.annotations.VisibleForTesting;
 import io.micrometer.common.util.StringUtils;
+import javafx.application.Platform;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -29,12 +30,15 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
+import javafx.stage.Window;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -58,9 +62,9 @@ public class ModDetailController extends NodeController<Node> {
   private final ImageViewHelper imageViewHelper;
   private final ReviewService reviewService;
   private final PlayerService playerService;
-  private final UiService uiService;
   private final ContextMenuBuilder contextMenuBuilder;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final ContextMenuUtil contextMenuUtil;
 
   private final ObjectProperty<ModVersion> modVersion = new SimpleObjectProperty<>();
   private final ObservableList<ModVersionReview> modReviews = FXCollections.observableArrayList();
@@ -80,14 +84,15 @@ public class ModDetailController extends NodeController<Node> {
   public Label modDescriptionLabel;
   public Node modDetailRoot;
   public ReviewsController<ModVersionReview> reviewsController;
-  public Label authorLabel;
+  public VBox authorContainer;
 
   @Override
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, getRoot());
     JavaFxUtil.fixScrollSpeed(scrollPane);
 
-    contextMenuBuilder.addCopyLabelContextMenu(nameLabel, authorLabel, idLabel, uploaderLabel, versionLabel);
+    contextMenuBuilder.addCopyLabelContextMenu(nameLabel, idLabel, versionLabel);
+    uploaderLabel.setOnContextMenuRequested(this::onContextMenuRequested);
     modDetailRoot.setOnKeyPressed(keyEvent -> {
       if (keyEvent.getCode() == KeyCode.ESCAPE) {
         onCloseButtonClicked();
@@ -110,12 +115,33 @@ public class ModDetailController extends NodeController<Node> {
             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
             .when(showing));
     nameLabel.textProperty().bind(modObservable.map(Mod::displayName).when(showing));
-    authorLabel.textProperty()
-               .bind(modObservable.map(Mod::author)
-                                  .map(author -> Arrays.stream(author.split(","))
-                                                       .map(String::trim)
-                                                       .collect(Collectors.joining("\n")))
-                                  .when(showing));
+    modObservable.map(Mod::author)
+                 .when(showing)
+                 .subscribe(authorString -> {
+                   authorContainer.getChildren().clear();
+                   if (authorString == null || authorString.isBlank()) {
+                     return;
+                   }
+                   String[] authors = authorString.split(",");
+                   for (String author : authors) {
+                     String trimmedAuthor = author.trim();
+                     Label authorLabel = new Label(trimmedAuthor);
+                     authorLabel.getStyleClass().add("clickable");
+                     authorLabel.setOnContextMenuRequested(event -> {
+                       event.consume();
+                       playerService.getPlayerByName(trimmedAuthor).subscribe(playerInfo -> {
+                         if (playerInfo != null) {
+                           Platform.runLater(() -> {
+                             ContextMenu contextMenu = contextMenuUtil.createContextMenu(event, getRoot(), playerInfo);
+                             contextMenu.show(getRoot().getScene().getWindow(), event.getScreenX(), event.getScreenY());
+                           });
+                         }
+                       });
+                     });
+
+                     authorContainer.getChildren().add(authorLabel);
+                   }
+                 });
     uploaderLabel.textProperty().bind(modObservable.map(Mod::uploader).flatMap(PlayerInfo::usernameProperty)
             .map(author -> author)
             .when(showing));
@@ -143,6 +169,14 @@ public class ModDetailController extends NodeController<Node> {
   @Override
   public Node getRoot() {
     return modDetailRoot;
+  }
+
+  public void onContextMenuRequested(ContextMenuEvent event) {
+    event.consume();
+    modVersion.map(ModVersion::mod).map(Mod::uploader).subscribe(playerInfo -> {
+      ContextMenu contextMenu = contextMenuUtil.createContextMenu(event, getRoot(), playerInfo);
+      contextMenu.show(getRoot().getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    });
   }
 
   public void setModVersion(ModVersion modVersion) {
