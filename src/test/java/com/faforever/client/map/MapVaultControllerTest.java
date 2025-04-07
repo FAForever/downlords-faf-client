@@ -48,6 +48,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -131,15 +132,15 @@ public class MapVaultControllerTest extends PlatformTest {
       }
       return instance;
     }, instance);
-    when(mapService.getHighestRatedMapsWithPageCount(anyInt(), anyInt())).thenReturn(
+    lenient().when(mapService.getHighestRatedMapsWithPageCount(anyInt(), anyInt())).thenReturn(
         Mono.zip(Mono.just(List.<MapVersion>of()), Mono.just(0)));
-    when(mapService.getNewestMapsWithPageCount(anyInt(), anyInt())).thenReturn(
+    lenient().when(mapService.getNewestMapsWithPageCount(anyInt(), anyInt())).thenReturn(
         Mono.zip(Mono.just(List.<MapVersion>of()), Mono.just(0)));
-    when(mapService.getMostPlayedMapsWithPageCount(anyInt(), anyInt())).thenReturn(
+    lenient().when(mapService.getMostPlayedMapsWithPageCount(anyInt(), anyInt())).thenReturn(
         Mono.zip(Mono.just(List.<MapVersion>of()), Mono.just(0)));
-    when(mapService.getRecommendedMapsWithPageCount(anyInt(), anyInt())).thenReturn(
+    lenient().when(mapService.getRecommendedMapsWithPageCount(anyInt(), anyInt())).thenReturn(
         Mono.zip(Mono.just(List.<MapVersion>of()), Mono.just(0)));
-    when(mapService.getOwnedMapsWithPageCount(anyInt(), anyInt())).thenReturn(
+    lenient().when(mapService.getOwnedMapsWithPageCount(anyInt(), anyInt())).thenReturn(
         Mono.zip(Mono.just(List.of()), Mono.just(0)));
   }
 
