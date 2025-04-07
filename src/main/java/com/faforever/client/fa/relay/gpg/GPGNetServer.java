@@ -105,8 +105,8 @@ public class GPGNetServer {
     private final Thread processorThread;
     private final Thread senderThread;
 
-    private final GPGNetWriter GPGNetWriter;
-    private final GPGNetReader GPGNetReader;
+    private final GPGNetWriter gpgNetWriter;
+    private final GPGNetReader gpgNetReader;
     private final Disposable messageDisposable;
     private final Queue<GPGMessage> messageQueue = new LinkedBlockingQueue<>();
     private final CountDownLatch lobbyLatch = new CountDownLatch(1);
@@ -117,8 +117,8 @@ public class GPGNetServer {
     private GPGNetClient(Socket socket, LobbyInitMode lobbyInitMode) throws IOException {
       this.socket = socket;
       this.lobbyInitMode = lobbyInitMode;
-      GPGNetWriter = new GPGNetWriter(socket.getOutputStream());
-      GPGNetReader = new GPGNetReader(socket.getInputStream());
+      gpgNetWriter = new GPGNetWriter(socket.getOutputStream());
+      gpgNetReader = new GPGNetReader(socket.getInputStream());
 
       processorThread = Thread.startVirtualThread(this::processMessages);
       senderThread = Thread.startVirtualThread(this::sendMessages);
@@ -175,7 +175,7 @@ public class GPGNetServer {
 
       try {
         log.trace("Sending GPGNet message: {}", message);
-        GPGNetWriter.writeMessage(message);
+        gpgNetWriter.writeMessage(message);
       } catch (IOException e) {
         log.error("Error while communicating with FA (output), assuming shutdown", e);
       } catch (InterruptedException e) {
@@ -191,7 +191,7 @@ public class GPGNetServer {
 
       while (!Thread.interrupted()) {
         try {
-          GPGMessage message = GPGNetReader.readMessage();
+          GPGMessage message = gpgNetReader.readMessage();
           processGPGNetMessage(message);
         } catch (EOFException e) {
           log.info("Lost connection to FA, shutting down");
@@ -217,7 +217,7 @@ public class GPGNetServer {
             continue;
           }
 
-          GPGNetWriter.writeMessage(message);
+          gpgNetWriter.writeMessage(message);
         } catch (IOException e) {
           log.error("Error while communicating with FA (output)", e);
         } catch (InterruptedException e) {
