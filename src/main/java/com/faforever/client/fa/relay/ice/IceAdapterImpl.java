@@ -4,7 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.IceAdapterPrefs;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -27,7 +27,7 @@ public class IceAdapterImpl implements IceAdapter, DisposableBean {
 
   private final OperatingSystem operatingSystem;
   private final PlayerService playerService;
-  private final ForgedAlliancePrefs forgedAlliancePrefs;
+  private final IceAdapterPrefs iceAdapterPrefs;
   private final ClientProperties clientProperties;
   private final IceAdapterService iceAdapterService;
 
@@ -46,7 +46,8 @@ public class IceAdapterImpl implements IceAdapter, DisposableBean {
       throw new CompletionException("Unable to find open port for GPG", exception);
     }
 
-    List<String> cmd = buildCommand(gpgPort, clientGpgPort, gameId, accessToken);
+    List<String> cmd = buildCommand(gpgPort, clientGpgPort, gameId, accessToken, iceAdapterPrefs.isForceTurnRelay(),
+                                    iceAdapterPrefs.isConsentLogSharing(), iceAdapterPrefs.isEnableDebugLogging());
     try {
       startIceAdapterProcess(workDirectory, cmd);
     } catch (IOException e) {
@@ -85,15 +86,24 @@ public class IceAdapterImpl implements IceAdapter, DisposableBean {
   }
 
   @VisibleForTesting
-  List<String> buildCommand(int gpgGamePort, int gpgClientPort, int gameId, String accessToken) {
+  List<String> buildCommand(int gpgGamePort, int gpgClientPort, int gameId, String accessToken, boolean forceTurnRelay,
+                            boolean consentLogSharing, boolean debugLogging) {
     PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
-    return List.of(iceAdapterService.getExecutablePath().toString(), "--user-id",
-                   String.valueOf(currentPlayer.getId()), "--game-id",
-                   String.valueOf(gameId), "--gpgnet-port", String.valueOf(gpgGamePort),
-                   "--gpgnet-client-port", String.valueOf(gpgClientPort), "--access-token",
-                   accessToken,
-                   "--api-root", clientProperties.getApi().getBaseUrl() + "/ice");
+    // @formatter:off
+    return List.of(iceAdapterService.getExecutablePath().toString(),
+                   "--user-id", String.valueOf(currentPlayer.getId()),
+                   "--game-id", String.valueOf(gameId),
+                   "--gpgnet-port", String.valueOf(gpgGamePort),
+                   "--gpgnet-client-port", String.valueOf(gpgClientPort),
+                   "--access-token", accessToken,
+                   "--api-root", clientProperties.getApi().getBaseUrl() + "/ice",
+                   "--force-turn-relay", String.valueOf(forceTurnRelay),
+                   "--consent-log-sharing", String.valueOf(consentLogSharing),
+                   "--log-level", debugLogging ? "-1" : "0"
+    );
+    // @formatter:on
+
   }
 
   @Override
