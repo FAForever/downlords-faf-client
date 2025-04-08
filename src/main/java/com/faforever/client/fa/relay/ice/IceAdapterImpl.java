@@ -61,9 +61,6 @@ public class IceAdapterImpl implements IceAdapter, DisposableBean {
     ProcessBuilder processBuilder = new ProcessBuilder();
     processBuilder.directory(workDirectory.toFile());
     processBuilder.command(cmd);
-    processBuilder.environment()
-                  .put("LOG_DIR",
-                       operatingSystem.getLoggingDirectory().resolve("iceAdapterLogs").toAbsolutePath().toString());
 
     log.info("Starting ICE adapter with command: {}", maskAccessToken(cmd));
 
@@ -90,20 +87,31 @@ public class IceAdapterImpl implements IceAdapter, DisposableBean {
                             boolean consentLogSharing, boolean debugLogging) {
     PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
+
     // @formatter:off
-    return List.of(iceAdapterService.getExecutablePath().toString(),
-                   "--user-id", String.valueOf(currentPlayer.getId()),
-                   "--game-id", String.valueOf(gameId),
-                   "--gpgnet-port", String.valueOf(gpgGamePort),
-                   "--gpgnet-client-port", String.valueOf(gpgClientPort),
-                   "--access-token", accessToken,
-                   "--api-root", clientProperties.getApi().getBaseUrl() + "/ice",
-                   "--force-turn-relay", String.valueOf(forceTurnRelay),
-                   "--consent-log-sharing", String.valueOf(consentLogSharing),
-                   "--log-level", debugLogging ? "-1" : "0"
+    List<String> args = new ArrayList<>(
+        List.of(iceAdapterService.getExecutablePath().toString(),
+                "--user-id", String.valueOf(currentPlayer.getId()),
+                "--game-id", String.valueOf(gameId),
+                "--gpgnet-port", String.valueOf(gpgGamePort),
+                "--gpgnet-client-port", String.valueOf(gpgClientPort),
+                "--api-root", clientProperties.getApi().getBaseUrl() + "/ice",
+                "--access-token", accessToken,
+                "--log-level", debugLogging ? "-1" : "0"
+        )
     );
     // @formatter:on
 
+    // The pioneer is very picky and breaks if we send empty args, so we need to have a clean list
+    if (forceTurnRelay) {
+      args.add("--force-turn-relay");
+    }
+
+    if (consentLogSharing) {
+      args.add("--consent-log-sharing");
+    }
+
+    return args;
   }
 
   @Override
