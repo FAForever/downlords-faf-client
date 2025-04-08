@@ -35,7 +35,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -108,7 +108,7 @@ public class GPGNetServer {
     private final GPGNetWriter gpgNetWriter;
     private final GPGNetReader gpgNetReader;
     private final Disposable messageDisposable;
-    private final Queue<GPGMessage> messageQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<GPGMessage> messageQueue = new LinkedBlockingQueue<>();
     private final CountDownLatch lobbyLatch = new CountDownLatch(1);
     private final Socket socket;
 
@@ -212,11 +212,7 @@ public class GPGNetServer {
 
       while (!Thread.interrupted()) {
         try {
-          GPGMessage message = messageQueue.poll();
-          if (message == null) {
-            continue;
-          }
-
+          GPGMessage message = messageQueue.take();
           gpgNetWriter.writeMessage(message);
         } catch (IOException e) {
           log.error("Error while communicating with FA (output)", e);
