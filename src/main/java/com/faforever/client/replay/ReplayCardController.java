@@ -139,12 +139,18 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
 
 
     entity.map(Replay::id).subscribe(id -> {
-      if(replayWatchedService.wasReplayWatched(id)){
-        replayTileRoot.setStyle("-fx-background-color: -card-watched-color;");
-        replayTileRoot.applyCss();
+      if (replayWatchedService.wasReplayWatched(id)) {
+        // set viewed, when was in history viewed already
+        applyWatchedReplayHighlight();
+      } else {
+        // keep an eye on possible future view
+        replayWatchedService.replayIdJustWatchedProperty().subscribe(replayId -> {
+          if(replayId.equals(id)) {
+            applyWatchedReplayHighlight();
+          }
+        });
       }
     });
-
 
     teams.bind(entity.map(Replay::teamPlayerStats).when(showing));
     teams.orElse(java.util.Map.of()).addListener(teamsListener);
@@ -223,4 +229,10 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
       onDeleteListener.run();
     }
   }
+
+  private void applyWatchedReplayHighlight() {
+    replayTileRoot.setStyle("-fx-background-color: -card-watched-color;");
+    replayTileRoot.applyCss();
+  }
+
 }

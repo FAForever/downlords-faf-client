@@ -18,6 +18,7 @@ import com.faforever.commons.api.dto.Validity;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.image.Image;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
@@ -124,6 +125,7 @@ public class ReplayCardControllerTest extends PlatformTest {
     lenient().when(timeService.asDate(localReplay.startTime())).thenReturn("Min Date");
     lenient().when(timeService.asShortTime(localReplay.startTime())).thenReturn("Min Time");
     lenient().when(timeService.shortDuration(any(Duration.class))).thenReturn("Forever");
+    lenient().when(replayWatchedService.replayIdJustWatchedProperty()).thenReturn(new SimpleIntegerProperty());
     lenient().when(i18n.get("game.onUnknownMap")).thenReturn("unknown map");
     lenient().when(i18n.get("unknown")).thenReturn("unknown");
     lenient().when(i18n.number(anyInt())).thenReturn("1234");
@@ -302,9 +304,24 @@ public class ReplayCardControllerTest extends PlatformTest {
 
   @Test
   public void replayWatched() {
+
     when(replayWatchedService.wasReplayWatched(any())).thenReturn(true);
 
     runOnFxThreadAndWait(() -> instance.setEntity(localReplay));
+
+    assertTrue(instance.replayTileRoot.getStyle().contains("card-watched-color"));
+  }
+
+
+  @Test
+  public void replayJustWatched() {
+
+
+    when(replayWatchedService.wasReplayWatched(any())).thenReturn(false);
+
+    runOnFxThreadAndWait(() -> instance.setEntity(localReplay));
+    replayWatchedService.replayIdJustWatchedProperty().setValue(localReplay.id());
+
 
     assertTrue(instance.replayTileRoot.getStyle().contains("card-watched-color"));
   }
