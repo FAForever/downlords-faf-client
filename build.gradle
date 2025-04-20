@@ -281,7 +281,7 @@ dependencies {
   implementation("org.javassist:javassist:3.30.2-GA")
 
   implementation("io.github.sheikah45.fx2j:fx2j-api:0.1.0")
-  implementation("com.install4j:install4j-runtime:11.0.1")
+  implementation("com.install4j:install4j-runtime:11.0.3")
 
   testImplementation("org.instancio:instancio-junit:5.4.1")
   testImplementation("com.squareup.okhttp3:okhttp:4.12.0")
