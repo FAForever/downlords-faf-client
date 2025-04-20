@@ -37,7 +37,8 @@ public class ForgedAlliancePrefs {
   private final ObjectProperty<Path> executionDirectory = new SimpleObjectProperty<>();
   private final BooleanProperty runFAWithDebugger = new SimpleBooleanProperty(false);
   private final BooleanProperty showIceAdapterDebugWindow = new SimpleBooleanProperty(false);
-  ObservableSet<String> preferredCoturnIds = FXCollections.observableSet();
+  private final BooleanProperty relativeGamePaths = new SimpleBooleanProperty(false);
+  private final ObservableSet<String> preferredCoturnIds = FXCollections.observableSet();
 
   public Path getPreferencesFile() {
     return preferencesFile.get();
@@ -93,6 +94,18 @@ public class ForgedAlliancePrefs {
 
   public void setInstallationPath(Path installationPath) {
     this.installationPath.set(installationPath);
+  }
+
+  public void setRelativeGamePaths(boolean relativeGamePaths) {
+    this.relativeGamePaths.set(relativeGamePaths);
+  }
+
+  public boolean isRelativeGamePaths() {
+    return relativeGamePaths.get();
+  }
+
+  public BooleanProperty relativeGamePathsProperty() {
+    return relativeGamePaths;
   }
 
   public ObjectProperty<Path> installationPathProperty() {

@@ -41,6 +41,7 @@ public class ClientProperties {
   private Duration clientConfigConnectTimeout = Duration.ofSeconds(30);
   private String userAgent;
   private Map<String, String> links = new HashMap<>();
+  private Map<String, String> helpLinks = new HashMap<>();
   private List<String> vanillaGameHashes = new ArrayList<>();
 
   @Data
