@@ -99,8 +99,18 @@ public class GameUpdaterImpl implements GameUpdater {
 
   private void createFaPathLuaFile(String featuredModName, ComparableVersion gameVersion,
                                    boolean forReplays) throws IOException {
-    String installationPath = forgedAlliancePrefs.getInstallationPath().toString().replace("\\", "/");
-    String vaultPath = forgedAlliancePrefs.getVaultBaseDirectory().toString().replace("\\", "/");
+    String installationPathString = forgedAlliancePrefs.getInstallationPath().toString().replace("\\", "/");
+    String vaultPathString = forgedAlliancePrefs.getVaultBaseDirectory().toString().replace("\\", "/");
+    if (forgedAlliancePrefs.isRelativeGamePaths()) {
+      String homeDirString = Path.of(System.getProperty("user.home")).toString().replace("\\", "/");
+      if (installationPathString.startsWith(homeDirString)) {
+        installationPathString = installationPathString.substring(homeDirString.length());
+      }
+      if (vaultPathString.startsWith(homeDirString)) {
+        vaultPathString = vaultPathString.substring(homeDirString.length());
+      }
+    }
+
     String pathFileFormat = """
         fa_path = "%s"
         custom_vault_path = "%s"
@@ -108,7 +118,7 @@ public class GameUpdaterImpl implements GameUpdater {
         GameVersion = "%s"
         ClientVersion = "%s"
         """.stripIndent();
-    String content = String.format(pathFileFormat, installationPath, vaultPath, featuredModName, gameVersion.toString(),
+    String content = String.format(pathFileFormat, installationPathString, vaultPathString, featuredModName, gameVersion.toString(),
                                    Version.getCurrentVersion());
     Path baseDirectory;
     if (forReplays) {
