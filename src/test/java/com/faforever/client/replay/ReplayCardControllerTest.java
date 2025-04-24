@@ -9,6 +9,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.preferences.ReplayHistoryPrefs;
 import com.faforever.client.rating.RatingService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
@@ -18,7 +19,6 @@ import com.faforever.commons.api.dto.Validity;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleFloatProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.image.Image;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.scheduler.Schedulers;
 
@@ -74,9 +75,6 @@ public class ReplayCardControllerTest extends PlatformTest {
   private ImageViewHelper imageViewHelper;
 
   @Mock
-  private ReplayWatchedService replayWatchedService;
-
-  @Mock
   private I18n i18n;
 
   @Mock
@@ -90,6 +88,9 @@ public class ReplayCardControllerTest extends PlatformTest {
 
   @Mock
   private Consumer<Replay> onOpenDetailListener;
+
+  @Spy
+  private ReplayHistoryPrefs replayHistory;
 
   private Replay onlineReplay;
   private Replay localReplay;
@@ -125,7 +126,6 @@ public class ReplayCardControllerTest extends PlatformTest {
     lenient().when(timeService.asDate(localReplay.startTime())).thenReturn("Min Date");
     lenient().when(timeService.asShortTime(localReplay.startTime())).thenReturn("Min Time");
     lenient().when(timeService.shortDuration(any(Duration.class))).thenReturn("Forever");
-    lenient().when(replayWatchedService.replayIdJustWatchedProperty()).thenReturn(new SimpleIntegerProperty());
     lenient().when(i18n.get("game.onUnknownMap")).thenReturn("unknown map");
     lenient().when(i18n.get("unknown")).thenReturn("unknown");
     lenient().when(i18n.number(anyInt())).thenReturn("1234");
@@ -295,34 +295,32 @@ public class ReplayCardControllerTest extends PlatformTest {
 
   @Test
   public void replayNotWatched() {
-    when(replayWatchedService.wasReplayWatched(any())).thenReturn(false);
-
     runOnFxThreadAndWait(() -> instance.setEntity(localReplay));
 
-    assertFalse(instance.replayTileRoot.getStyle().contains("card-watched-color"));
+    assertFalse(instance.replayTileRoot.getPseudoClassStates().contains(ReplayCardController.WATCHED_PSEUDO_CLASS));
   }
 
   @Test
   public void replayWatched() {
 
-    when(replayWatchedService.wasReplayWatched(any())).thenReturn(true);
+    runOnFxThreadAndWait(() -> {
+      replayHistory.getWatchedReplays().add(localReplay.id());
+      instance.setEntity(localReplay);
+    });
 
-    runOnFxThreadAndWait(() -> instance.setEntity(localReplay));
-
-    assertTrue(instance.replayTileRoot.getStyle().contains("card-watched-color"));
+    assertTrue(instance.replayTileRoot.getPseudoClassStates().contains(ReplayCardController.WATCHED_PSEUDO_CLASS));
   }
 
 
   @Test
-  public void replayJustWatched() {
+  public void replayAfterInitJustWatched() {
+
+    runOnFxThreadAndWait(() -> {
+      instance.setEntity(localReplay);
+      replayHistory.getWatchedReplays().add(localReplay.id());
+    });
 
 
-    when(replayWatchedService.wasReplayWatched(any())).thenReturn(false);
-
-    runOnFxThreadAndWait(() -> instance.setEntity(localReplay));
-    replayWatchedService.replayIdJustWatchedProperty().setValue(localReplay.id());
-
-
-    assertTrue(instance.replayTileRoot.getStyle().contains("card-watched-color"));
+    assertTrue(instance.replayTileRoot.getPseudoClassStates().contains(ReplayCardController.WATCHED_PSEUDO_CLASS));
   }
 }

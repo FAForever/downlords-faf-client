@@ -7,15 +7,15 @@ import javafx.collections.ObservableSet;
 
 public class ReplayHistoryPrefs {
 
-  private final SetProperty<Integer> watchedReplayMap = new SimpleSetProperty<>(
+  private final SetProperty<Integer> watchedReplays = new SimpleSetProperty<>(
       FXCollections.observableSet());
 
-  public ObservableSet<Integer> getWatchedReplayMap() {return watchedReplayMap.getValue();}
+  public ObservableSet<Integer> getWatchedReplays() {return watchedReplays.getValue();}
 
-  public void setWatchedReplayMap(ObservableSet<Integer> watchedReplayMap) {
-    this.watchedReplayMap.setValue(watchedReplayMap);
+  public void setWatchedReplays(ObservableSet<Integer> watchedReplays) {
+    this.watchedReplays.setValue(watchedReplays);
   }
 
-  public SetProperty<Integer> watchedReplayMapProperty() {return watchedReplayMap;}
+  public SetProperty<Integer> watchedReplaysProperty() {return watchedReplays;}
 
 }

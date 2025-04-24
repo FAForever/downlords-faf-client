@@ -70,11 +70,9 @@ public class Preferences {
   @JsonMerge
   @Getter
   private final FiltersPrefs filters = new FiltersPrefs();
-
-  /* Temporary solution to see POC, probably will be moved somewhere else and renamed*/
   @JsonMerge
   @Getter
-  ReplayHistoryPrefs replayHistory = new ReplayHistoryPrefs();
+  private final ReplayHistoryPrefs replayHistory = new ReplayHistoryPrefs();
 
   private final StringProperty themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
   private final BooleanProperty preReleaseCheckEnabled = new SimpleBooleanProperty(false);

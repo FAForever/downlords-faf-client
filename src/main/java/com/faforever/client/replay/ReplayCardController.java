@@ -18,14 +18,19 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.preferences.ReplayHistoryPrefs;
 import com.faforever.client.rating.RatingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.review.StarsController;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -35,6 +40,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -48,14 +54,16 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+@Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 public class ReplayCardController extends VaultEntityCardController<Replay> {
 
+  public static final PseudoClass WATCHED_PSEUDO_CLASS = PseudoClass.getPseudoClass("watched");
+
   private final UiService uiService;
   private final ReplayService replayService;
-  private final ReplayWatchedService replayWatchedService;
   private final TimeService timeService;
   private final MapService mapService;
   private final RatingService ratingService;
@@ -63,6 +71,7 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
   private final ImageViewHelper imageViewHelper;
   private final I18n i18n;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final ReplayHistoryPrefs replayHistory;
 
   public Label dateLabel;
   public ImageView mapThumbnailImageView;
@@ -82,6 +91,8 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
   public Button deleteButton;
   public TextField replayIdField;
   public StarsController starsController;
+
+  private final BooleanProperty isReplayWatched = new SimpleBooleanProperty();
 
   private Consumer<Replay> onOpenDetailListener;
   private Runnable onDeleteListener;
@@ -138,17 +149,20 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
             .when(showing));
 
 
-    entity.map(Replay::id).subscribe(id -> {
-      if (replayWatchedService.wasReplayWatched(id)) {
-        // set viewed, when was in history viewed already
-        applyWatchedReplayHighlight();
+    isReplayWatched.bind(Bindings.createBooleanBinding(() -> {
+      var id = entity.map(Replay::id).getValue();
+      var replayHistory = this.replayHistory.getWatchedReplays();
+      if( id != null && replayHistory != null ){
+        return replayHistory.contains(id);
       } else {
-        // keep an eye on possible future view
-        replayWatchedService.replayIdJustWatchedProperty().subscribe(replayId -> {
-          if(replayId.equals(id)) {
-            applyWatchedReplayHighlight();
-          }
-        });
+        return false;
+      }
+    }, entity, replayHistory.getWatchedReplays()));
+
+
+    isReplayWatched.when(showing).subscribe((oldValue, newValue)-> {
+      if(newValue) {
+        applyWatchedReplayHighlight();
       }
     });
 
@@ -231,8 +245,7 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
   }
 
   private void applyWatchedReplayHighlight() {
-    replayTileRoot.setStyle("-fx-background-color: -card-watched-color;");
-    replayTileRoot.applyCss();
+    replayTileRoot.pseudoClassStateChanged(WATCHED_PSEUDO_CLASS, true);
   }
 
 }

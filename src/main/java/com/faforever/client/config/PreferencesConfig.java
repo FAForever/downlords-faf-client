@@ -16,6 +16,7 @@ import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.ReplayHistoryPrefs;
 import com.faforever.client.preferences.UserPrefs;
 import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.preferences.WindowPrefs;
@@ -169,6 +170,9 @@ public class PreferencesConfig implements DisposableBean {
   public FiltersPrefs filters() {
     return preferences().getFilters();
   }
+
+  @Bean
+  public ReplayHistoryPrefs replayHistory() {return preferences().getReplayHistory();}
 
   private ObjectMapper configureObjectMapper(ObjectMapper objectMapper) {
     ObjectMapper configuredObjectMapper = objectMapper.copy().setSerializationInclusion(Include.NON_EMPTY)
