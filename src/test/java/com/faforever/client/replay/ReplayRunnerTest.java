@@ -50,6 +50,8 @@ public class ReplayRunnerTest extends ServiceTest {
   private ReplayRunner instance;
 
   @Mock
+  private LiveReplayProxyServer liveReplayProxyServer;
+  @Mock
   private ForgedAllianceLaunchService forgedAllianceLaunchService;
   @Mock
   private MapService mapService;
