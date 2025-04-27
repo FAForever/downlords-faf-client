@@ -70,7 +70,6 @@ public class ReplayServer {
 
   public CompletableFuture<Integer> start(int gameId) {
     String remoteReplayServerHost = clientProperties.getReplay().getRemoteHost();
-    int remoteReplayServerPort = clientProperties.getReplay().getRemotePort();
 
 
     ReplayMetadata replayInfo = initReplayInfo(gameId);
@@ -88,8 +87,7 @@ public class ReplayServer {
                                               .resolver(DefaultAddressResolverGroup.INSTANCE)
                                               .doOnConnected(connection -> this.remoteReplayConnection = connection)
                                               .websocket()
-                                              .uri(URI.create("wss://%s:%d".formatted(remoteReplayServerHost,
-                                                                                      remoteReplayServerPort)))
+                                              .uri(URI.create("wss://%s".formatted(remoteReplayServerHost)))
                                               .handle((ignored2, outbound) -> outbound.send(incomingReplayData))
                                               .then()
                                               .doOnError(
