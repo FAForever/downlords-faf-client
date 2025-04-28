@@ -30,6 +30,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableSet;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -150,8 +151,8 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
 
 
     isReplayWatched.bind(Bindings.createBooleanBinding(() -> {
-      var id = entity.map(Replay::id).getValue();
-      var replayHistory = this.replayHistory.getWatchedReplays();
+      Integer id = entity.map(Replay::id).getValue();
+      ObservableSet<Integer> replayHistory = this.replayHistory.getWatchedReplays();
       if( id != null && replayHistory != null ){
         return replayHistory.contains(id);
       } else {
