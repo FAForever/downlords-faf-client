@@ -8,14 +8,15 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.LoginService;
 import com.faforever.commons.replay.ReplayMetadata;
+import io.netty.buffer.ByteBuf;
 import io.netty.resolver.DefaultAddressResolverGroup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
-import reactor.netty.ByteBufFlux;
 import reactor.netty.Connection;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.client.HttpClient;
@@ -79,7 +80,7 @@ public class ReplayServer {
       this.tcpServer = server;
     }).handle((inbound, ignored1) -> {
       ByteArrayOutputStream replayData = new ByteArrayOutputStream();
-      ByteBufFlux incomingReplayData = inbound.receive();
+      ConnectableFlux<ByteBuf> incomingReplayData = inbound.receive().retain().replay();
 
       Mono<Void> remoteReplayData = HttpClient.newConnection()
                                               .doOnConnect(config -> log.info("Connecting to replay server at `{}`",
