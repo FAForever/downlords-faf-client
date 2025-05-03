@@ -8,13 +8,13 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.LoginService;
 import com.faforever.commons.replay.ReplayMetadata;
-import io.netty.buffer.ByteBuf;
+import com.google.common.primitives.Bytes;
 import io.netty.resolver.DefaultAddressResolverGroup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.ConnectableFlux;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
 import reactor.netty.Connection;
@@ -80,7 +80,7 @@ public class ReplayServer {
       this.tcpServer = server;
     }).handle((inbound, ignored1) -> {
       ByteArrayOutputStream replayData = new ByteArrayOutputStream();
-      ConnectableFlux<ByteBuf> incomingReplayData = inbound.receive().retain().replay();
+      Flux<byte[]> incomingReplayData = inbound.receive().asByteArray().replay().refCount();
 
       Mono<Void> remoteReplayData = HttpClient.newConnection()
                                               .doOnConnect(config -> log.info("Connecting to replay server at `{}`",
@@ -89,28 +89,19 @@ public class ReplayServer {
                                               .doOnConnected(connection -> this.remoteReplayConnection = connection)
                                               .websocket()
                                               .uri(URI.create("wss://%s".formatted(remoteReplayServerHost)))
-                                              .handle((ignored2, outbound) -> outbound.send(incomingReplayData))
+                                              .handle((ignored2, outbound) -> outbound.sendByteArray(incomingReplayData))
                                               .then()
                                               .doOnError(
                                                   throwable -> log.warn("Error sending data to remote replay server",
                                                                         throwable))
                                               .onErrorComplete();
 
-      Mono<Void> localReplayData = incomingReplayData.doOnNext(byteBuf -> {
-        try {
-          if (replayData.size() == 0) {
-            int index1;
-            int index2;
-            if ((index1 = byteBuf.indexOf(0, byteBuf.readableBytes(),
-                                          LIVE_REPLAY_PREFIX[0])) != -1 && (index2 = byteBuf.indexOf(index1,
-                                                                                                     byteBuf.readableBytes(),
-                                                                                                     LIVE_REPLAY_PREFIX[1])) != -1) {
-              byteBuf.readerIndex(index2 + 1);
-            }
-          }
-          byteBuf.readBytes(replayData, byteBuf.readableBytes());
-        } catch (IOException e) {
-          throw new RuntimeException(e);
+      Mono<Void> localReplayData = incomingReplayData.doOnNext(buffer -> {
+        if (replayData.size() == 0 && Bytes.indexOf(buffer, LIVE_REPLAY_PREFIX) != -1) {
+          int dataBeginIndex = Bytes.indexOf(buffer, (byte) 0x00) + 1;
+          replayData.write(buffer, dataBeginIndex, buffer.length - dataBeginIndex);
+        } else {
+          replayData.writeBytes(buffer);
         }
       }).then().doOnError(throwable -> log.warn("Error in replay server", throwable)).doFinally(signalType -> {
         if (signalType == SignalType.ON_ERROR) {
