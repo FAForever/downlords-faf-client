@@ -101,9 +101,9 @@ public class IceAdapterService {
 
   public String getFileSuffix() {
     return switch (operatingSystem) {
-      case OsPosix osPosix -> clientProperties.getIceAdapter().getLinuxSuffix();
-      case OsUnknown osUnknown -> throw new IllegalStateException("faf-pioneer needs specific OS");
-      case OsWindows osWindows -> clientProperties.getIceAdapter().getWindowsSuffix();
+      case OsPosix ignored -> clientProperties.getIceAdapter().getLinuxSuffix();
+      case OsUnknown ignored -> throw new IllegalStateException("faf-pioneer needs specific OS");
+      case OsWindows ignored -> clientProperties.getIceAdapter().getWindowsSuffix();
     };
   }
 
