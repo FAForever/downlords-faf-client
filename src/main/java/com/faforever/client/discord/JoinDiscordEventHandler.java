@@ -36,12 +36,13 @@ public class JoinDiscordEventHandler {
     HttpHeaders headers = new HttpHeaders();
     headers.add("Origin", "https://discord.com");
     WebSocketHttpHeaders webSocketHttpHeaders = new WebSocketHttpHeaders(headers);
-    client.doHandshake(getWebSocketHandler(joinUrl), webSocketHttpHeaders, URI.create("ws://127.0.0.1:6463/?v=1"))
-          .addCallback(result -> {
-    }, ex -> {
-      log.warn("Connection to Discord not possible", ex);
-      joinViaBrowser(joinUrl);
-    });
+    client.execute(getWebSocketHandler(joinUrl), webSocketHttpHeaders, URI.create("ws://127.0.0.1:6463/?v=1"))
+          .whenComplete((result, ex) -> {
+            if (ex != null) {
+              log.warn("Connection to Discord not possible", ex);
+              joinViaBrowser(joinUrl);
+            }
+          });
   }
 
   @NotNull
@@ -53,14 +54,17 @@ public class JoinDiscordEventHandler {
       }
 
       @Override
-      public void handleMessage(@NotNull WebSocketSession session, @NotNull WebSocketMessage<?> message) throws Exception {
+      public void handleMessage(@NotNull WebSocketSession session,
+                                @NotNull WebSocketMessage<?> message) throws Exception {
         if (!(message instanceof TextMessage textMessage)) {
           session.close(CloseStatus.BAD_DATA);
           return;
         }
 
         if (textMessage.getPayload().contains("DISPATCH")) {
-          session.sendMessage(new TextMessage("{\"cmd\":\"INVITE_BROWSER\",\"args\":{\"code\":\"" + joinUrl.replaceAll("https://.*/", "") + "\"},\"nonce\":\"bcf3dcce-e76e-44d3-8bde-d3c7e435d165\"}"));
+          session.sendMessage(new TextMessage(
+              "{\"cmd\":\"INVITE_BROWSER\",\"args\":{\"code\":\"" + joinUrl.replaceAll("https://.*/",
+                                                                                       "") + "\"},\"nonce\":\"bcf3dcce-e76e-44d3-8bde-d3c7e435d165\"}"));
         } else if (textMessage.getPayload().contains("INVITE_BROWSER")) {
           session.close(CloseStatus.NORMAL);
         } else {
@@ -69,13 +73,15 @@ public class JoinDiscordEventHandler {
       }
 
       @Override
-      public void handleTransportError(@NotNull WebSocketSession session, @NotNull Throwable exception) throws Exception {
+      public void handleTransportError(@NotNull WebSocketSession session,
+                                       @NotNull Throwable exception) throws Exception {
         log.warn("Unable to contact Discord app", exception);
         joinViaBrowser(joinUrl);
       }
 
       @Override
-      public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus closeStatus) throws Exception {
+      public void afterConnectionClosed(@NotNull WebSocketSession session,
+                                        @NotNull CloseStatus closeStatus) throws Exception {
         if (!closeStatus.equals(CloseStatus.NORMAL)) {
           log.warn("Unable to contact Discord app: {}", closeStatus);
           joinViaBrowser(joinUrl);
