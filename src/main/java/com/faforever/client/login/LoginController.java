@@ -260,8 +260,8 @@ public class LoginController extends NodeController<Pane> {
     clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
     clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText());
 
-    String state = RandomStringUtils.randomAlphanumeric(64, 128);
-    String verifier = RandomStringUtils.randomAlphanumeric(64, 128);
+    String state = RandomStringUtils.secureStrong().nextAlphanumeric(64, 128);
+    String verifier = RandomStringUtils.secureStrong().nextAlphanumeric(64, 128);
 
     loginFuture = oAuthValuesReceiver.receiveValues(state, verifier).thenCompose(values -> {
       platformService.focusWindow(i18n.get("login.title"));
