@@ -1,33 +1,26 @@
 package com.faforever.client.ui.taskbar;
 
-import com.faforever.client.FafClientApplication;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.task.TaskService;
 import javafx.beans.Observable;
 import javafx.beans.value.WeakChangeListener;
 import javafx.concurrent.Worker;
-import javafx.scene.control.ProgressIndicator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bridj.Pointer;
-import org.bridj.PointerIO;
-import org.bridj.cpp.com.COMRuntime;
-import org.bridj.cpp.com.shell.ITaskbarList3;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.awt.Taskbar;
 import java.util.Collection;
 import java.util.concurrent.Executor;
 
 /**
- * Updates the progress in the Windows 7+ task bar, if available.
+ * Updates the progress in the Windows taskbar (Windows 7+), using java.awt.Taskbar API.
  */
 @Slf4j
 @Component
-@Profile(FafClientApplication.PROFILE_WINDOWS)
 @RequiredArgsConstructor
 public class WindowsTaskbarProgressUpdater implements InitializingBean {
 
@@ -35,11 +28,16 @@ public class WindowsTaskbarProgressUpdater implements InitializingBean {
   private final Executor executorService;
   private final SimpleChangeListener<Number> progressUpdateListener = newValue -> updateTaskbarProgress(newValue.doubleValue());
 
-  private ITaskbarList3 taskBarList;
-  private Pointer<Integer> taskBarPointer;
+  private Taskbar taskbar;
 
   @Override
   public void afterPropertiesSet() {
+    if (Taskbar.isTaskbarSupported()) {
+      taskbar = Taskbar.getTaskbar();
+    } else {
+      log.warn("Taskbar API is not supported on this platform");
+    }
+
     JavaFxUtil.addListener(taskService.getActiveWorkers(), (Observable observable) -> onActiveTasksChanged());
   }
 
@@ -55,35 +53,22 @@ public class WindowsTaskbarProgressUpdater implements InitializingBean {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  public void initTaskBar() {
-    try {
-      executorService.execute(() -> {
-        try {
-          taskBarList = COMRuntime.newInstance(ITaskbarList3.class);
-        } catch (ClassNotFoundException e) {
-          log.warn("Could not initialize TaskBar", e);
-        }
-      });
-      long hwndVal = com.sun.jna.Pointer.nativeValue(JavaFxUtil.getNativeWindow());
-      taskBarPointer = Pointer.pointerToAddress(hwndVal, (PointerIO) null);
-    } catch (NoClassDefFoundError e) {
-      taskBarPointer = null;
-    }
-  }
-
-  @SuppressWarnings("unchecked")
   private void updateTaskbarProgress(@Nullable Double progress) {
     executorService.execute(() -> {
-      if (taskBarPointer == null || taskBarList == null) {
+      if (taskbar == null || !taskbar.isSupported(Taskbar.Feature.PROGRESS_VALUE)) {
         return;
       }
 
-      if (progress == null) {
-        taskBarList.SetProgressState(taskBarPointer, ITaskbarList3.TbpFlag.TBPF_NOPROGRESS);
-      } else if (progress != ProgressIndicator.INDETERMINATE_PROGRESS) {
-        taskBarList.SetProgressState(taskBarPointer, ITaskbarList3.TbpFlag.TBPF_NORMAL);
-        taskBarList.SetProgressValue(taskBarPointer, (int) (progress * 100), 100);
+      try {
+        if (progress == null || progress < 0) {
+          // Fallback: set to 0 when no progress is available
+          taskbar.setProgressValue(0);
+        } else {
+          int clampedProgress = Math.max(0, Math.min(100, (int) (progress * 100)));
+          taskbar.setProgressValue(clampedProgress);
+        }
+      } catch (UnsupportedOperationException e) {
+        log.warn("Taskbar progress not supported: {}", e.getMessage());
       }
     });
   }
