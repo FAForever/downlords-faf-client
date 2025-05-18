@@ -21,9 +21,26 @@ java {
 
 // These are read from gradle.properties
 version "${version}"
+project.ext.javafxPlatform = "${javafxPlatform}"
+project.ext.useJfxFromProperties = javafxPlatform != "unspecified"
 
 bootJar.enabled = false
 jar.enabled = true
+
+if (javafxPlatform == "unspecified") {
+  switch (OperatingSystem.current()) {
+    case OperatingSystem.LINUX:
+      project.ext.javafxPlatform = "linux"
+      break
+    case OperatingSystem.MAC_OS:
+      project.ext.javafxPlatform = "mac"
+      break
+    case OperatingSystem.WINDOWS:
+      project.ext.javafxPlatform = "win"
+      break
+  }
+}
+println "Platform is: ${javafxPlatform}"
 
 compileJava.dependsOn(processResources)
 processResources {
@@ -136,14 +153,14 @@ tasks.register('buildInstall4jMediaFiles', Install4jTask) {
   projectFile = file('faf-client.install4j')
   release = version
 
-  switch (OperatingSystem.current()) {
-    case OperatingSystem.LINUX:
+  switch (project.ext.javafxPlatform) {
+    case "linux":
       mediaTypes = ['unixInstaller', 'unixArchive']
       break
-    case OperatingSystem.MAC_OS:
+    case "mac":
       mediaTypes = ['macos', 'macosFolder', 'macosArchive', 'macosFolderArchive']
       break
-    case OperatingSystem.WINDOWS:
+    case "win":
       mediaTypes = ['windows', 'windowsArchive']
       break
   }
@@ -205,6 +222,10 @@ javafx {
   modules = [
           "javafx.base", "javafx.controls", "javafx.graphics", "javafx.swing", "javafx.fxml", "javafx.web", "javafx.media"
   ]
+  if (project.ext.useJfxFromProperties) {
+    println "Using javaFxPlatform from properties ${javafxPlatform}"
+    platform = javafxPlatform
+  }
 }
 
 dependencies {
