@@ -2,7 +2,7 @@ import com.install4j.gradle.Install4jTask
 import org.gradle.internal.os.OperatingSystem
 
 plugins {
-  id("org.springframework.boot") version "3.4.4"
+  id("org.springframework.boot") version "3.4.5"
   id("io.spring.dependency-management") version "1.1.7"
   id("com.install4j.gradle") version "11.0.1"
   id("de.undercouch.download") version "5.6.0"
@@ -241,7 +241,7 @@ dependencies {
   implementation("io.projectreactor.addons:reactor-extra")
   implementation("io.projectreactor:reactor-tools")
 
-  def commonsVersion = "7418142f9f"
+  def commonsVersion = "07e30bcb925ff34273a9a4eb08c8c506b13d5d78"
 
   implementation("com.github.faforever.faf-java-commons:data:${commonsVersion}") {
             exclude module: 'guava'
