@@ -223,8 +223,8 @@ javafx {
           "javafx.base", "javafx.controls", "javafx.graphics", "javafx.swing", "javafx.fxml", "javafx.web", "javafx.media"
   ]
   if (project.ext.useJfxFromProperties) {
-    println "Using javaFxPlatform from properties ${javafxPlatform}"
-    platform = javafxPlatform
+    println "Using javaFxPlatform from properties ${project.ext.javafxPlatform}"
+    platform = project.ext.javafxPlatform
   }
 }
 
