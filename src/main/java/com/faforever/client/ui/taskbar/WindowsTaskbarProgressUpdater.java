@@ -1,5 +1,6 @@
 package com.faforever.client.ui.taskbar;
 
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.task.TaskService;
@@ -10,9 +11,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.awt.Taskbar;
+import java.awt.Taskbar.Feature;
 import java.util.Collection;
 import java.util.concurrent.Executor;
 
@@ -25,7 +28,7 @@ import java.util.concurrent.Executor;
 public class WindowsTaskbarProgressUpdater implements InitializingBean {
 
   private final TaskService taskService;
-  private final Executor executorService;
+  private final FxApplicationThreadExecutor executorService;
   private final SimpleChangeListener<Number> progressUpdateListener = newValue -> updateTaskbarProgress(newValue.doubleValue());
 
   private Taskbar taskbar;
@@ -55,7 +58,7 @@ public class WindowsTaskbarProgressUpdater implements InitializingBean {
 
   private void updateTaskbarProgress(@Nullable Double progress) {
     executorService.execute(() -> {
-      if (taskbar == null || !taskbar.isSupported(Taskbar.Feature.PROGRESS_VALUE)) {
+      if (taskbar == null || !taskbar.isSupported(Feature.PROGRESS_VALUE)) {
         return;
       }
 
