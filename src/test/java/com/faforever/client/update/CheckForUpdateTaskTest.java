@@ -6,7 +6,8 @@ import com.faforever.client.test.ServiceTest;
 import com.faforever.client.util.FileSizeReader;
 import com.google.common.io.CharStreams;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -74,13 +75,13 @@ public class CheckForUpdateTaskTest extends ServiceTest {
     assertThat(updateInfo.name(), is("0.4.7-alpha"));
     assertThat(updateInfo.releaseNotesUrl(), is(new URL("https://www.example.com/")));
 
-    if (org.bridj.Platform.isWindows()) {
+    if (SystemUtils.IS_OS_WINDOWS) {
       assertThat(updateInfo.url(), is(new URL(
           "https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_windows_0_4_7-alpha.exe")));
-    } else if (org.bridj.Platform.isLinux()) {
+    } else if (SystemUtils.IS_OS_LINUX) {
       assertThat(updateInfo.url(), is(new URL(
           "https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_linux_0_4_7-alpha.tar.gz")));
-    } else if (org.bridj.Platform.isMacOSX()) {
+    } else if (SystemUtils.IS_OS_MAC_OSX) {
       assertThat(updateInfo.url(), is(new URL(
           "https://github.com/faforever/downlords-faf-client/releases/download/v0.4.7-alpha/dfaf_mac_0_4_7-alpha.dmg")));
     } else {

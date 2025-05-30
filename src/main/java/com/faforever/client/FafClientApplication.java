@@ -13,7 +13,6 @@ import com.faforever.client.svg.SvgImageLoaderFactory;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
-import com.faforever.client.ui.taskbar.WindowsTaskbarProgressUpdater;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.text.Font;
@@ -73,10 +72,6 @@ public class FafClientApplication extends Application {
       fxStage.getStage().setOnCloseRequest(this::closeMainWindow);
 
       showMainWindow(fxStage);
-
-      if (!applicationContext.getBeansOfType(WindowsTaskbarProgressUpdater.class).isEmpty()) {
-        applicationContext.getBean(WindowsTaskbarProgressUpdater.class).initTaskBar();
-      }
     } catch (Exception e) {
       log.error("Unable to start", e);
       throw e;

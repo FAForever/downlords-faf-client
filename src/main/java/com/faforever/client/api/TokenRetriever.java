@@ -5,6 +5,7 @@ import com.faforever.client.config.ClientProperties.Oauth;
 import com.faforever.client.login.NoRefreshTokenException;
 import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.client.preferences.LoginPrefs;
+import com.nimbusds.jwt.JWTParser;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.RequiredArgsConstructor;
@@ -41,9 +42,8 @@ public class TokenRetriever implements InitializingBean {
   private final Flux<Long> invalidateFlux = invalidateSink.asFlux().publish().autoConnect();
   private final StringProperty refreshTokenValue = new SimpleStringProperty();
 
-  private final Mono<String> refreshedTokenMono = Mono.defer(this::refreshAccess)
-                                                      .cacheInvalidateWhen(this::getExpirationMono)
-                                                      .map(OAuth2AccessToken::getTokenValue);
+  private final Mono<OAuth2AccessToken> refreshedTokenMono = Mono.defer(this::refreshAccess)
+                                                                 .cacheInvalidateWhen(this::getExpirationMono);
 
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -59,7 +59,17 @@ public class TokenRetriever implements InitializingBean {
   }
 
   public Mono<String> getRefreshedTokenValue() {
-    return refreshedTokenMono.doOnError(this::onTokenError);
+    return refreshedTokenMono.map(OAuth2AccessToken::getTokenValue).doOnError(this::onTokenError);
+  }
+
+  public Mono<String> getRefreshedHmacValue() {
+    return getRefreshedTokenValue().flatMap(tokenValue -> {
+      try {
+        return Mono.just(JWTParser.parse(tokenValue).getJWTClaimsSet().getJSONObjectClaim("ext").get("hmac").toString());
+      } catch (Exception e) {
+        return Mono.error(e);
+      }
+    });
   }
 
   public Mono<Void> loginWithAuthorizationCode(String code, String codeVerifier, URI redirectUri) {
@@ -99,26 +109,26 @@ public class TokenRetriever implements InitializingBean {
 
   private Mono<OAuth2AccessToken> retrieveToken(MultiValueMap<String, String> properties) {
     return defaultWebClient.post()
-        .uri(String.format("%s/oauth2/token", clientProperties.getOauth().getBaseUrl()))
-        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-        .accept(MediaType.APPLICATION_JSON)
-        .bodyValue(properties)
-        .exchangeToMono(response -> {
-          if (response.statusCode().isError()) {
-            return response.bodyToMono(String.class)
-                .switchIfEmpty(Mono.just(response.statusCode().toString()))
-                .flatMap(body -> Mono.error(new TokenRetrievalException(body)));
-          }
+                           .uri(String.format("%s/oauth2/token", clientProperties.getOauth().getBaseUrl()))
+                           .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                           .accept(MediaType.APPLICATION_JSON)
+                           .bodyValue(properties)
+                           .exchangeToMono(response -> {
+                             if (response.statusCode().isError()) {
+                               return response.bodyToMono(String.class)
+                                              .switchIfEmpty(Mono.just(response.statusCode().toString()))
+                                              .flatMap(body -> Mono.error(new TokenRetrievalException(body)));
+                             }
 
-          return response.body(OAuth2BodyExtractors.oauth2AccessTokenResponse());
-        })
-        .doOnSubscribe(subscription -> log.debug("Retrieving OAuth token"))
-        .doOnNext(tokenResponse -> {
-          OAuth2RefreshToken refreshToken = tokenResponse.getRefreshToken();
-          refreshTokenValue.set(refreshToken != null ? refreshToken.getTokenValue() : null);
-        })
-        .map(OAuth2AccessTokenResponse::getAccessToken)
-        .doOnNext(token -> log.info("Token valid until {}", token.getExpiresAt()));
+                             return response.body(OAuth2BodyExtractors.oauth2AccessTokenResponse());
+                           })
+                           .doOnSubscribe(subscription -> log.debug("Retrieving OAuth token"))
+                           .doOnNext(tokenResponse -> {
+                             OAuth2RefreshToken refreshToken = tokenResponse.getRefreshToken();
+                             refreshTokenValue.set(refreshToken != null ? refreshToken.getTokenValue() : null);
+                           })
+                           .map(OAuth2AccessTokenResponse::getAccessToken)
+                           .doOnNext(token -> log.info("Token valid until {}", token.getExpiresAt()));
   }
 
   public void invalidateToken() {
@@ -128,9 +138,5 @@ public class TokenRetriever implements InitializingBean {
 
   public Flux<Long> invalidationFlux() {
     return invalidateFlux;
-  }
-
-  public Mono<String> getAccessToken() {
-    return refreshedTokenMono;
   }
 }
