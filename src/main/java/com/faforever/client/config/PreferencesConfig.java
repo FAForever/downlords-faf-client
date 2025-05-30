@@ -172,7 +172,7 @@ public class PreferencesConfig implements DisposableBean {
   }
 
   @Bean
-  public IceAdapterPrefs iceAdapter() {return preferences().getIceAdapter();}
+  public IceAdapterPrefs iceAdapterPrefs() {return preferences().getIceAdapter();}
 
   private ObjectMapper configureObjectMapper(ObjectMapper objectMapper) {
     ObjectMapper configuredObjectMapper = objectMapper.copy().setSerializationInclusion(Include.NON_EMPTY)
