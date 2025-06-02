@@ -12,10 +12,14 @@ import net.arikia.dev.drpc.DiscordEventHandlers;
 import net.arikia.dev.drpc.DiscordRPC;
 import net.arikia.dev.drpc.DiscordRPC.DiscordReply;
 import net.arikia.dev.drpc.DiscordUser;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+
+import static com.faforever.client.FafClientApplication.PROFILE_MAC;
 
 @Slf4j
 @Component
+@Profile("!"+PROFILE_MAC)
 public class DiscordEventHandler extends DiscordEventHandlers {
   private final NotificationService notificationService;
   private final GameRunner gameRunner;
