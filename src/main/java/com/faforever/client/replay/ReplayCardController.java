@@ -24,13 +24,11 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.review.StarsController;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.ObservableSet;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -149,20 +147,13 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
                     .map(reviewsSummary -> reviewsSummary.score() / reviewsSummary.numReviews())
             .when(showing));
 
-
-    isReplayWatched.bind(Bindings.createBooleanBinding(() -> {
-      Integer id = entity.map(Replay::id).getValue();
-      ObservableSet<Integer> replayHistory = this.replayHistory.getWatchedReplays();
-      if( id != null && replayHistory != null ){
-        return replayHistory.contains(id);
-      } else {
-        return false;
-      }
-    }, entity, replayHistory.getWatchedReplays()));
+    isReplayWatched.bind(replayHistory.watchedReplaysProperty()
+                                      .flatMap(watchedReplays -> entity.map(Replay::id).map(watchedReplays::contains))
+                                      .orElse(false));
 
 
-    isReplayWatched.when(showing).subscribe((oldValue, newValue)-> {
-      if(newValue) {
+    isReplayWatched.when(showing).subscribe((value) -> {
+      if (value) {
         applyWatchedReplayHighlight();
       }
     });
