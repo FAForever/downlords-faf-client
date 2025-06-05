@@ -2,7 +2,6 @@ package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.server.PlayerInfo;
-import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.IceAdapterPrefs;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +30,6 @@ public class IceAdapter implements DisposableBean {
   private final IceAdapterPrefs iceAdapterPrefs;
   private final ClientProperties clientProperties;
   private final IceAdapterService iceAdapterService;
-  private final OperatingSystem operatingSystem;
 
   private Process process;
 
@@ -58,7 +56,7 @@ public class IceAdapter implements DisposableBean {
 
   private void startIceAdapterProcess(List<String> cmd) throws IOException {
     ProcessBuilder processBuilder = new ProcessBuilder();
-    processBuilder.directory(operatingSystem.getLoggingDirectory().resolve("ice").toFile());
+    processBuilder.directory(iceAdapterService.getExecutablePath().getParent().toFile());
     processBuilder.command(cmd);
 
     log.info("Starting ICE adapter with command: {}", maskAccessToken(cmd));
