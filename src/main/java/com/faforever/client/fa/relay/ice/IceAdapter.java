@@ -2,6 +2,7 @@ package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.server.PlayerInfo;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.IceAdapterPrefs;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletionException;
@@ -31,12 +31,11 @@ public class IceAdapter implements DisposableBean {
   private final IceAdapterPrefs iceAdapterPrefs;
   private final ClientProperties clientProperties;
   private final IceAdapterService iceAdapterService;
+  private final OperatingSystem operatingSystem;
 
   private Process process;
 
   public int start(int gameId, int clientGpgPort, String accessToken) {
-    Path workDirectory = Path.of(System.getProperty("nativeDir", "lib")).toAbsolutePath();
-
     int gpgPort;
     try (
         ServerSocket gpgTestSocket = new ServerSocket(0)
@@ -49,7 +48,7 @@ public class IceAdapter implements DisposableBean {
     List<String> cmd = buildCommand(gpgPort, clientGpgPort, gameId, accessToken, iceAdapterPrefs.isForceTurnRelay(),
                                     iceAdapterPrefs.isConsentLogSharing(), iceAdapterPrefs.isEnableDebugLogging());
     try {
-      startIceAdapterProcess(workDirectory, cmd);
+      startIceAdapterProcess(cmd);
     } catch (IOException e) {
       throw new CompletionException(e);
     }
@@ -57,9 +56,9 @@ public class IceAdapter implements DisposableBean {
     return gpgPort;
   }
 
-  private void startIceAdapterProcess(Path workDirectory, List<String> cmd) throws IOException {
+  private void startIceAdapterProcess(List<String> cmd) throws IOException {
     ProcessBuilder processBuilder = new ProcessBuilder();
-    processBuilder.directory(workDirectory.toFile());
+    processBuilder.directory(operatingSystem.getLoggingDirectory().resolve("ice").toFile());
     processBuilder.command(cmd);
 
     log.info("Starting ICE adapter with command: {}", maskAccessToken(cmd));
