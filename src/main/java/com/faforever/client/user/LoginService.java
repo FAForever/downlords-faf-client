@@ -24,6 +24,7 @@ import reactor.core.publisher.Mono;
 import reactor.function.TupleUtils;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Base64.Encoder;
@@ -59,10 +60,12 @@ public class LoginService implements InitializingBean {
 
   public String getHydraUrl(String state, String codeVerifier, URI redirectUri) {
     Oauth oauth = clientProperties.getOauth();
+    String scopes = URLEncoder.encode(oauth.getScopes(), StandardCharsets.UTF_8);
     String codeChallenge = BASE64_ENCODER.encodeToString(Hashing.sha256()
         .hashString(codeVerifier, StandardCharsets.US_ASCII)
         .asBytes());
-    return String.format("%s/oauth2/auth?response_type=code&client_id=%s&state=%s&redirect_uri=%s&scope=%s&code_challenge_method=S256&code_challenge=%s", oauth.getBaseUrl(), oauth.getClientId(), state, redirectUri.toASCIIString(), oauth.getScopes(), codeChallenge);
+    return String.format("%s/oauth2/auth?response_type=code&client_id=%s&state=%s&redirect_uri=%s&scope=%s&code_challenge_method=S256&code_challenge=%s", oauth.getBaseUrl(), oauth.getClientId(), state, redirectUri.toASCIIString(),
+                         scopes, codeChallenge);
   }
 
   public Mono<Void> login(String code, String codeVerifier, URI redirectUri) {
