@@ -12,7 +12,8 @@ plugins {
   id("me.champeau.jmh") version "0.7.3"
   id("io.github.sheikah45.fx2j") version "0.1.0"
   id("com.adarshr.test-logger") version "4.0.0"
-  id("org.openjfx.javafxplugin") version "0.1.0"}
+  id("org.openjfx.javafxplugin") version "0.1.0"
+}
 
 java {
   sourceCompatibility = JavaVersion.VERSION_21

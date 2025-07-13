@@ -454,7 +454,6 @@ public class CreateGameController extends NodeController<Pane> {
                                                                            "mapGenerator.generationUIFailed");
                        }, () -> {
                          Pane root = generateMapController.getRoot();
-                         generateMapController.setCreateGameController(this);
                          Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generateMap.dialog"));
                          generateMapController.setOnCloseButtonClickedListener(dialog::close);
 

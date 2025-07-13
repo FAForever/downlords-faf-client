@@ -11,6 +11,8 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 
 public class GeneratorPrefs {
@@ -19,15 +21,15 @@ public class GeneratorPrefs {
   private final IntegerProperty spawnCount = new SimpleIntegerProperty(6);
   private final IntegerProperty numTeams = new SimpleIntegerProperty(2);
   private final DoubleProperty mapSizeInKm = new SimpleDoubleProperty(10);
-  private final StringProperty mapStyle = new SimpleStringProperty("");
-  private final StringProperty symmetry = new SimpleStringProperty("");
+  private final ObservableList<String> mapStyles = FXCollections.observableArrayList();
+  private final ObservableList<String> symmetry = FXCollections.observableArrayList();
   private final StringProperty seed = new SimpleStringProperty("");
   private final BooleanProperty fixedSeed = new SimpleBooleanProperty(false);
   private final BooleanProperty customStyle = new SimpleBooleanProperty(false);
-  private final StringProperty terrainStyle = new SimpleStringProperty("");
-  private final StringProperty textureStyle = new SimpleStringProperty("");
-  private final StringProperty resourceStyle = new SimpleStringProperty("");
-  private final StringProperty propStyle = new SimpleStringProperty("");
+  private final ObservableList<String> terrainStyles = FXCollections.observableArrayList();
+  private final ObservableList<String> textureStyles = FXCollections.observableArrayList();
+  private final ObservableList<String> resourceStyles = FXCollections.observableArrayList();
+  private final ObservableList<String> propStyles = FXCollections.observableArrayList();
   private final IntegerProperty reclaimDensityMin = new SimpleIntegerProperty(0);
   private final IntegerProperty reclaimDensityMax = new SimpleIntegerProperty(127);
   private final IntegerProperty resourceDensityMin = new SimpleIntegerProperty(0);
@@ -93,27 +95,11 @@ public class GeneratorPrefs {
     return mapSizeInKm;
   }
 
-  public String getMapStyle() {
-    return mapStyle.get();
+  public ObservableList<String> getMapStyles() {
+    return mapStyles;
   }
 
-  public void setMapStyle(String mapStyle) {
-    this.mapStyle.set(mapStyle);
-  }
-
-  public StringProperty mapStyleProperty() {
-    return mapStyle;
-  }
-
-  public String getSymmetry() {
-    return symmetry.get();
-  }
-
-  public void setSymmetry(String symmetry) {
-    this.symmetry.set(symmetry);
-  }
-
-  public StringProperty symmetryProperty() {
+  public ObservableList<String> getSymmetries() {
     return symmetry;
   }
 
@@ -153,52 +139,20 @@ public class GeneratorPrefs {
     return customStyle;
   }
 
-  public String getTerrainStyle() {
-    return terrainStyle.get();
+  public ObservableList<String> getTerrainStyles() {
+    return terrainStyles;
   }
 
-  public void setTerrainStyle(String terrainStyle) {
-    this.terrainStyle.set(terrainStyle);
+  public ObservableList<String> getTextureStyles() {
+    return textureStyles;
   }
 
-  public StringProperty terrainStyleProperty() {
-    return terrainStyle;
+  public ObservableList<String> getResourceStyles() {
+    return resourceStyles;
   }
 
-  public String getTextureStyle() {
-    return textureStyle.get();
-  }
-
-  public void setTextureStyle(String textureStyle) {
-    this.textureStyle.set(textureStyle);
-  }
-
-  public StringProperty textureStyleProperty() {
-    return textureStyle;
-  }
-
-  public String getResourceStyle() {
-    return resourceStyle.get();
-  }
-
-  public void setResourceStyle(String resourceStyle) {
-    this.resourceStyle.set(resourceStyle);
-  }
-
-  public StringProperty resourceStyleProperty() {
-    return resourceStyle;
-  }
-
-  public String getPropStyle() {
-    return propStyle.get();
-  }
-
-  public void setPropStyle(String propStyle) {
-    this.propStyle.set(propStyle);
-  }
-
-  public StringProperty propStyleProperty() {
-    return propStyle;
+  public ObservableList<String> getPropStyles() {
+    return propStyles;
   }
 
   public boolean isFixedSeed() {
