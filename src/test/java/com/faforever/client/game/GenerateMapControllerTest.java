@@ -544,7 +544,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     GeneratorOptions result = captor.getValue();
     assertNull(result.resourceStyle());
-    assertEquals("TEST", instance.resourcesCheckComboBox.getTitle());
+    assertEquals("RANDOM", instance.resourcesCheckComboBox.getTitle());
     assertEquals("OPTIMUS", result.propStyle());
     assertTrue(instance.resourcesDensitySlider.isDisabled());
     assertFalse(instance.reclaimDensitySlider.isDisabled());
@@ -567,7 +567,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     GeneratorOptions result = captor.getValue();
     assertNull(result.propStyle());
-    assertEquals("TEST", instance.propsCheckComboBox.getTitle());
+    assertEquals("RANDOM", instance.propsCheckComboBox.getTitle());
     assertEquals("OPTIMUS", result.resourceStyle());
     assertTrue(instance.reclaimDensitySlider.isDisabled());
     assertFalse(instance.resourcesDensitySlider.isDisabled());
