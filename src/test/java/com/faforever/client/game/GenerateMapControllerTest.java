@@ -530,7 +530,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   @Test
   public void testResourceComboRandomSliderDisabled(){
     generatorPrefs.setCustomStyle(true);
-    instance.resourcesCheckComboBox.getItems().setAll(FXCollections.observableList(List.of("RANDOM")));
+    instance.resourcesCheckComboBox.getItems().setAll(FXCollections.observableList(List.of("RESOURCES")));
     instance.propsCheckComboBox.getItems().setAll(FXCollections.observableList(List.of("OPTIMUS")));
     instance.propsCheckComboBox.getCheckModel().check(0);
 
@@ -544,6 +544,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     GeneratorOptions result = captor.getValue();
     assertNull(result.resourceStyle());
+    assertEquals("TEST", instance.resourcesCheckComboBox.getTitle());
     assertEquals("OPTIMUS", result.propStyle());
     assertTrue(instance.resourcesDensitySlider.isDisabled());
     assertFalse(instance.reclaimDensitySlider.isDisabled());
@@ -552,7 +553,7 @@ public class GenerateMapControllerTest extends PlatformTest {
   @Test
   public void testPropComboRandomSliderDisabled(){
     generatorPrefs.setCustomStyle(true);
-    instance.propsCheckComboBox.getItems().setAll(FXCollections.observableList(List.of("RANDOM")));
+    instance.propsCheckComboBox.getItems().setAll(FXCollections.observableList(List.of("PROPS")));
     instance.resourcesCheckComboBox.getItems().setAll(FXCollections.observableList(List.of("OPTIMUS")));
     instance.resourcesCheckComboBox.getCheckModel().check(0);
 
@@ -566,6 +567,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     GeneratorOptions result = captor.getValue();
     assertNull(result.propStyle());
+    assertEquals("TEST", instance.propsCheckComboBox.getTitle());
     assertEquals("OPTIMUS", result.resourceStyle());
     assertTrue(instance.reclaimDensitySlider.isDisabled());
     assertFalse(instance.resourcesDensitySlider.isDisabled());
