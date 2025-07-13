@@ -13,7 +13,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.GeneratorPrefs;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -35,7 +34,6 @@ import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.controlsfx.control.CheckComboBox;
-import org.controlsfx.control.CheckModel;
 import org.controlsfx.control.RangeSlider;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -118,8 +116,8 @@ public class GenerateMapController extends NodeController<Pane> {
                            resourcesCheckComboBox, symmetryCheckComboBox, mapStyleCheckComboBox);
     bindCustomStyleDisabledPropertyNonSliders(terrainCheckComboBox, biomeCheckComboBox, resourcesCheckComboBox,
                                               propsCheckComboBox);
-    bindCustomStyleDisabledPropertySlider(resourcesDensitySlider, resourcesCheckComboBox);
-    bindCustomStyleDisabledPropertySlider(reclaimDensitySlider, propsCheckComboBox);
+    bindCustomStyleDisabledPropertySlider(resourcesDensitySlider);
+    bindCustomStyleDisabledPropertySlider(reclaimDensitySlider);
   }
 
   private void bindCheckComboBoxTitle(CheckComboBox<?>... checkComboBoxes) {
@@ -292,11 +290,8 @@ public class GenerateMapController extends NodeController<Pane> {
     }
   }
 
-  private void bindCustomStyleDisabledPropertySlider(RangeSlider slider, CheckComboBox<String> relatedComboBox) {
-    slider.disableProperty()
-          .bind(disableCustomization.or(customStyleCheckBox.selectedProperty().not())
-                                    .or(BooleanExpression.booleanExpression(
-                                        relatedComboBox.checkModelProperty().map(CheckModel::isEmpty))));
+  private void bindCustomStyleDisabledPropertySlider(RangeSlider slider) {
+    slider.disableProperty().bind(disableCustomization.or(customStyleCheckBox.selectedProperty().not()));
   }
 
   private GeneratorOptions getGeneratorOptions() {
