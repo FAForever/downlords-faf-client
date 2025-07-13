@@ -114,10 +114,23 @@ public class GenerateMapController extends NodeController<Pane> {
     initMapSizeSpinner();
     initSeedField();
 
+    bindCheckComboBoxTitle(terrainCheckComboBox, biomeCheckComboBox, resourcesCheckComboBox, propsCheckComboBox,
+                           resourcesCheckComboBox, symmetryCheckComboBox, mapStyleCheckComboBox);
     bindCustomStyleDisabledPropertyNonSliders(terrainCheckComboBox, biomeCheckComboBox, resourcesCheckComboBox,
                                               propsCheckComboBox);
     bindCustomStyleDisabledPropertySlider(resourcesDensitySlider, resourcesCheckComboBox);
     bindCustomStyleDisabledPropertySlider(reclaimDensitySlider, propsCheckComboBox);
+  }
+
+  private void bindCheckComboBoxTitle(CheckComboBox<?>... checkComboBoxes) {
+    String emptyTitle = "RANDOM";
+    for (CheckComboBox<?> checkComboBox : checkComboBoxes) {
+      checkComboBox.setTitle(emptyTitle);
+      checkComboBox.getCheckModel().getCheckedItems().subscribe(() -> {
+        String title = checkComboBox.getCheckModel().getCheckedItems().isEmpty() ? emptyTitle : null;
+        checkComboBox.setTitle(title);
+      });
+    }
   }
 
   private StringConverter<GenerationType> getGenerationTypeConverter() {
