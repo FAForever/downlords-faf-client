@@ -315,8 +315,8 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertFalse(instance.biomeCheckComboBox.isDisabled());
     assertFalse(instance.resourcesCheckComboBox.isDisabled());
     assertFalse(instance.propsCheckComboBox.isDisabled());
-    assertTrue(instance.resourcesDensitySlider.isDisabled());
-    assertTrue(instance.reclaimDensitySlider.isDisabled());
+    assertFalse(instance.resourcesDensitySlider.isDisabled());
+    assertFalse(instance.reclaimDensitySlider.isDisabled());
   }
 
   @Test
@@ -546,7 +546,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertNull(result.resourceStyle());
     assertEquals("RANDOM", instance.resourcesCheckComboBox.getTitle());
     assertEquals("OPTIMUS", result.propStyle());
-    assertTrue(instance.resourcesDensitySlider.isDisabled());
+    assertFalse(instance.resourcesDensitySlider.isDisabled());
     assertFalse(instance.reclaimDensitySlider.isDisabled());
   }
 
@@ -569,7 +569,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertNull(result.propStyle());
     assertEquals("RANDOM", instance.propsCheckComboBox.getTitle());
     assertEquals("OPTIMUS", result.resourceStyle());
-    assertTrue(instance.reclaimDensitySlider.isDisabled());
+    assertFalse(instance.reclaimDensitySlider.isDisabled());
     assertFalse(instance.resourcesDensitySlider.isDisabled());
   }
 
