@@ -68,7 +68,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.compressors.CompressorException;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -381,7 +380,7 @@ public class ReplayDetailController extends NodeController<Node> {
     CompletableFuture<ReplayDetails> replayDetailsFuture = CompletableFuture.supplyAsync(() -> {
       try {
         return replayService.loadReplayDetails(path);
-      } catch (CompressorException | IOException e) {
+      } catch (IOException e) {
         throw new RuntimeException(e);
       }
     });

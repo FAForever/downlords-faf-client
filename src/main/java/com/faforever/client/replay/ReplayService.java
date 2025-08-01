@@ -38,7 +38,6 @@ import com.faforever.commons.replay.ReplayMetadata;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.compressors.CompressorException;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
@@ -285,7 +284,7 @@ public class ReplayService {
   /**
    * Reads the specified replay file in order to add more information to the specified replay instance.
    */
-  public ReplayDetails loadReplayDetails(Path path) throws CompressorException, IOException {
+  public ReplayDetails loadReplayDetails(Path path) throws IOException {
     ReplayDataParser replayDataParser = replayFileReader.parseReplay(path);
     List<ChatMessage> chatMessages = replayDataParser.getChatMessages().stream().map(replayMapper::map).toList();
     List<GameOption> gameOptions = Stream.concat(
@@ -321,7 +320,7 @@ public class ReplayService {
                      ratingJournal -> ratingJournal.meanAfter() != null && ratingJournal.deviationAfter() != null);
   }
 
-  public void runReplayFile(Path path) throws IOException, CompressorException {
+  public void runReplayFile(Path path) throws IOException {
     log.info("Starting replay file: `{}`", path.toAbsolutePath());
 
     String fileName = path.getFileName().toString();
@@ -337,7 +336,7 @@ public class ReplayService {
       try {
         runReplayFile(path);
         replayHistory.getWatchedReplays().add(replayId);
-      } catch (IOException | CompressorException e) {
+      } catch (IOException e) {
         throw new RuntimeException(e);
       }
     }).exceptionally(throwable -> {
@@ -352,7 +351,7 @@ public class ReplayService {
     });
   }
 
-  private void runFafReplayFile(Path path) throws IOException, CompressorException {
+  private void runFafReplayFile(Path path) throws IOException {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
     byte[] rawReplayBytes = replayData.getData();
 
@@ -374,7 +373,7 @@ public class ReplayService {
     replayRunner.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods, mapName);
   }
 
-  private void runSupComReplayFile(Path path) throws IOException, CompressorException {
+  private void runSupComReplayFile(Path path) throws IOException {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
 
     Integer version = parseSupComVersion(replayData);
