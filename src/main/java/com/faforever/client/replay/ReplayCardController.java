@@ -147,27 +147,18 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
                     .map(reviewsSummary -> reviewsSummary.score() / reviewsSummary.numReviews())
             .when(showing));
 
-    teams.bind(entity.map(Replay::teamPlayerStats).when(showing));
-    teams.orElse(java.util.Map.of()).addListener(teamsListener);
-  }
-
-  @Override
-  protected void onAttached()
-  {
     isReplayWatched.bind(replayHistory.watchedReplaysProperty()
                                       .flatMap(watchedReplays -> entity.map(Replay::id).map(watchedReplays::contains))
-                                      .orElse(false));
+                                      .orElse(false)
+                                      .when(showing));
     isReplayWatched.when(showing).subscribe((value) -> {
       if (value) {
         applyWatchedReplayHighlight();
       }
     });
-  }
 
-  @Override
-  protected void onDetached()
-  {
-    isReplayWatched.unbind();
+    teams.bind(entity.map(Replay::teamPlayerStats).when(showing));
+    teams.orElse(java.util.Map.of()).addListener(teamsListener);
   }
 
   private void populatePlayers(java.util.Map<String, List<GamePlayerStats>> newValue) {
