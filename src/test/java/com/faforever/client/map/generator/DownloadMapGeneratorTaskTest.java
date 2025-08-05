@@ -3,6 +3,9 @@ package com.faforever.client.map.generator;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.generator.MapGeneratorService.ExecutableType;
+import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.os.OsPosix;
 import com.faforever.client.test.ServiceTest;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +13,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -40,6 +44,8 @@ public class DownloadMapGeneratorTaskTest extends ServiceTest {
   private PlatformService platformService;
   @Mock
   private MapGeneratorService mapGeneratorService;
+  @Spy
+  private OperatingSystem operatingSystem = new OsPosix();
 
   private ClientProperties clientProperties;
 
@@ -49,7 +55,8 @@ public class DownloadMapGeneratorTaskTest extends ServiceTest {
     downloadDirectory = Files.createDirectories(tempDirectory.resolve("download"));
     sourceDirectory = Files.createDirectories(tempDirectory.resolve("source"));
 
-    instance = new DownloadMapGeneratorTask(mapGeneratorService, clientProperties, i18n, platformService);
+    instance = new DownloadMapGeneratorTask(mapGeneratorService, clientProperties, i18n, platformService,
+                                            operatingSystem);
   }
 
   @Test
@@ -62,10 +69,11 @@ public class DownloadMapGeneratorTaskTest extends ServiceTest {
   public void testCall() throws Exception {
     ComparableVersion version = new ComparableVersion("");
     instance.setVersion(version);//mock version to prevent a subdirectory with the name of the version
-    when(mapGeneratorService.getGeneratorExecutablePath(version)).thenReturn(downloadDirectory);
+    when(mapGeneratorService.getGeneratorExecutablePathForDownload(version, ExecutableType.JAR)).thenReturn(
+        downloadDirectory);
 
     File generatorFile = Files.createFile(sourceDirectory.resolve("NeroxisGenMock.jar")).toFile();
-    clientProperties.getMapGenerator().setDownloadUrlFormat(generatorFile.toURI().toURL() + "%1$s");
+    clientProperties.getMapGenerator().setDownloadUrlFormatJar(generatorFile.toURI().toURL() + "%1$s");
     instance.call();
 
     assertThat(List.of(Objects.requireNonNull(Files.list(downloadDirectory))), contains(downloadDirectory.resolve(String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, "")).toFile()));

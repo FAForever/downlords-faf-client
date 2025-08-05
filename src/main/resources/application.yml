@@ -49,7 +49,9 @@ faf-client:
     repoAndOwnerName: FAForever/Neroxis-Map-Generator
     queryLatestVersionUrl: https://api.github.com/repos/${faf-client.map-generator.repoAndOwnerName}/releases/latest
     queryVersionsUrl: https://api.github.com/repos/${faf-client.map-generator.repoAndOwnerName}/releases
-    downloadUrlFormat: https://github.com/${faf-client.map-generator.repoAndOwnerName}/releases/download/%1$s/NeroxisGen_%1$s.jar
+    downloadUrlFormatJar: https://github.com/${faf-client.map-generator.repoAndOwnerName}/releases/download/%1$s/NeroxisGen_%1$s.jar
+    downloadUrlFormatZipWindows: https://github.com/${faf-client.map-generator.repoAndOwnerName}/releases/download/%1$s/NeroxisGen_%1$s.jar
+    downloadUrlFormatTarLinux: https://github.com/${faf-client.map-generator.repoAndOwnerName}/releases/download/%1$s/NeroxisGen_%1$s.jar
     maxSupportedMajorVersion: 1
     minSupportedMajorVersion: 0
 

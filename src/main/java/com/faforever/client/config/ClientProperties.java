@@ -190,7 +190,9 @@ public class ClientProperties {
 
   @Data
   public static class MapGenerator {
-    private String downloadUrlFormat;
+    private String downloadUrlFormatJar;
+    private String downloadUrlFormatZipWindows;
+    private String downloadUrlFormatZipLinux;
     private String repoAndOwnerName;
     private String queryLatestVersionUrl;
     private String queryVersionsUrl;

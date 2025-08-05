@@ -3,6 +3,8 @@ package com.faforever.client.map.generator;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.generator.MapGeneratorService.ExecutableType;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.commons.io.ByteCopier;
 import com.google.common.annotations.VisibleForTesting;
@@ -35,6 +37,7 @@ public class DownloadMapGeneratorTask extends CompletableTask<Void> {
   private final ClientProperties clientProperties;
   private final I18n i18n;
   private final PlatformService platformService;
+  private final OperatingSystem operatingSystem;
 
   @Setter
   @Getter
@@ -42,13 +45,15 @@ public class DownloadMapGeneratorTask extends CompletableTask<Void> {
   private ComparableVersion version;
 
   @Autowired
-  public DownloadMapGeneratorTask(MapGeneratorService mapGeneratorService, ClientProperties clientProperties, I18n i18n, PlatformService platformService) {
+  public DownloadMapGeneratorTask(MapGeneratorService mapGeneratorService, ClientProperties clientProperties, I18n i18n,
+                                  PlatformService platformService, OperatingSystem operatingSystem) {
     super(Priority.HIGH);
 
     this.mapGeneratorService = mapGeneratorService;
     this.clientProperties = clientProperties;
     this.i18n = i18n;
     this.platformService = platformService;
+    this.operatingSystem = operatingSystem;
   }
 
   @Override
@@ -57,15 +62,19 @@ public class DownloadMapGeneratorTask extends CompletableTask<Void> {
 
     updateTitle(i18n.get("game.mapGeneration.downloadGenerator.title", version));
 
-    URL url = URI.create(String.format(clientProperties.getMapGenerator().getDownloadUrlFormat(), version)).toURL();
+    URL url = URI.create(clientProperties.getMapGenerator().getDownloadUrlFormatJar().formatted(version)).toURL();
+
 
     URLConnection urlConnection = url.openConnection();
 
-    Path targetFile = mapGeneratorService.getGeneratorExecutablePath(version);
+    Path targetFile = mapGeneratorService.getGeneratorExecutablePathForDownload(version, ExecutableType.JAR);
     Files.createDirectories(targetFile.getParent());
     Path tempFile = Files.createTempFile(targetFile.getParent(), "generator", null);
 
-    try (InputStream inputStream = url.openStream(); OutputStream outputStream = Files.newOutputStream(tempFile)) {
+    try (
+        InputStream inputStream = urlConnection.getInputStream();
+        OutputStream outputStream = Files.newOutputStream(tempFile)
+    ) {
       ByteCopier.from(inputStream)
           .to(outputStream)
           .totalBytes(urlConnection.getContentLength())

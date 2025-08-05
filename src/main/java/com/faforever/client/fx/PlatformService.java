@@ -18,7 +18,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -253,7 +252,7 @@ public class PlatformService {
 
   public void setUnixExecutableAndWritableBits(Path exePath) throws IOException {
     // client needs executable bit for running and the writeable bit set to alter the version
-    if (SystemUtils.IS_OS_UNIX) {
+    if (operatingSystem instanceof OsPosix) {
       Files.setPosixFilePermissions(exePath, Sets.immutableEnumSet(PosixFilePermission.OWNER_READ,
                                                                    PosixFilePermission.OWNER_WRITE,
                                                                    PosixFilePermission.OWNER_EXECUTE));

@@ -2,6 +2,10 @@ package com.faforever.client.map.generator;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.os.OsPosix;
+import com.faforever.client.os.OsUnknown;
+import com.faforever.client.os.OsWindows;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.task.TaskService;
@@ -43,11 +47,13 @@ public class MapGeneratorService implements DisposableBean {
    */
   public static final String GENERATED_MAP_NAME = "neroxis_map_generator_%s_%s";
   public static final String GENERATOR_EXECUTABLE_FILENAME = "MapGenerator_%s.jar";
+  public static final String GENERATOR_EXECUTABLE_DIRECTORY = "neroxis_generator_%s";
   @VisibleForTesting
   public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
   public static final int GENERATION_TIMEOUT_SECONDS = 60 * 3;
   private static final Pattern VERSION_PATTERN = Pattern.compile("\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?");
-  protected static final Pattern GENERATED_MAP_PATTERN = Pattern.compile("neroxis_map_generator_(" + VERSION_PATTERN + ")_(.*)");
+  protected static final Pattern GENERATED_MAP_PATTERN = Pattern.compile(
+      "neroxis_map_generator_(" + VERSION_PATTERN + ")_(.*)");
 
   private final TaskService taskService;
   private final ClientProperties clientProperties;
@@ -57,6 +63,7 @@ public class MapGeneratorService implements DisposableBean {
   private final ObjectFactory<GenerateMapTask> generateMapTaskFactory;
   private final ObjectFactory<DownloadMapGeneratorTask> downloadMapGeneratorTaskFactory;
   private final ObjectFactory<GeneratorOptionsTask> generatorOptionsTaskFactory;
+  private final OperatingSystem operatingSystem;
 
   private ComparableVersion defaultGeneratorVersion;
 
@@ -71,14 +78,14 @@ public class MapGeneratorService implements DisposableBean {
     if (customMapsDirectory != null && customMapsDirectory.toFile().exists()) {
       try (Stream<Path> listOfMapFiles = Files.list(customMapsDirectory)) {
         listOfMapFiles.filter(Files::isDirectory)
-            .filter(mapPath -> GENERATED_MAP_PATTERN.matcher(mapPath.getFileName().toString()).matches())
-            .forEach(generatedMapPath -> {
-              try {
-                FileSystemUtils.deleteRecursively(generatedMapPath);
-              } catch (IOException e) {
-                log.warn("Could not delete generated map directory {}", generatedMapPath, e);
-              }
-            });
+                      .filter(mapPath -> GENERATED_MAP_PATTERN.matcher(mapPath.getFileName().toString()).matches())
+                      .forEach(generatedMapPath -> {
+                        try {
+                          FileSystemUtils.deleteRecursively(generatedMapPath);
+                        } catch (IOException e) {
+                          log.warn("Could not delete generated map directory {}", generatedMapPath, e);
+                        }
+                      });
       } catch (IOException e) {
         log.error("Could not list custom maps directory for deleting leftover generated maps.", e);
       } catch (RuntimeException e) {
@@ -89,19 +96,19 @@ public class MapGeneratorService implements DisposableBean {
 
   @VisibleForTesting
   private Mono<ComparableVersion> queryMaxSupportedVersion() {
-    ComparableVersion minVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator()
-        .getMinSupportedMajorVersion()));
-    ComparableVersion maxVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator()
-        .getMaxSupportedMajorVersion() + 1));
+    ComparableVersion minVersion = new ComparableVersion(
+        String.valueOf(clientProperties.getMapGenerator().getMinSupportedMajorVersion()));
+    ComparableVersion maxVersion = new ComparableVersion(
+        String.valueOf(clientProperties.getMapGenerator().getMaxSupportedMajorVersion() + 1));
 
     return defaultWebClient.get()
-        .uri(clientProperties.getMapGenerator().getQueryVersionsUrl())
-        .accept(MediaType.parseMediaType("application/vnd.github.v3+json"))
-        .retrieve()
-        .bodyToFlux(GitHubRelease.class)
-        .map(release -> new ComparableVersion(release.getTagName()))
-        .filter(version -> version.compareTo(maxVersion) < 0 && minVersion.compareTo(version) < 0)
-        .sort(Comparator.naturalOrder())
+                           .uri(clientProperties.getMapGenerator().getQueryVersionsUrl())
+                           .accept(MediaType.parseMediaType("application/vnd.github.v3+json"))
+                           .retrieve()
+                           .bodyToFlux(GitHubRelease.class)
+                           .map(release -> new ComparableVersion(release.getTagName()))
+                           .filter(version -> version.compareTo(maxVersion) < 0 && minVersion.compareTo(version) < 0)
+                           .sort(Comparator.naturalOrder())
                            .last()
                            .switchIfEmpty(Mono.error(new RuntimeException("No valid generator version found")));
   }
@@ -113,7 +120,6 @@ public class MapGeneratorService implements DisposableBean {
     }
 
     ComparableVersion version = new ComparableVersion(matcher.group(1));
-    String seed = matcher.group(2);
 
     Path generatorExecutablePath = getGeneratorExecutablePath(version);
 
@@ -141,10 +147,10 @@ public class MapGeneratorService implements DisposableBean {
   }
 
   public Mono<Void> downloadGeneratorIfNecessary(ComparableVersion version) {
-    ComparableVersion minVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator()
-        .getMinSupportedMajorVersion()));
-    ComparableVersion maxVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator()
-        .getMaxSupportedMajorVersion() + 1));
+    ComparableVersion minVersion = new ComparableVersion(
+        String.valueOf(clientProperties.getMapGenerator().getMinSupportedMajorVersion()));
+    ComparableVersion maxVersion = new ComparableVersion(
+        String.valueOf(clientProperties.getMapGenerator().getMaxSupportedMajorVersion() + 1));
     if (version.compareTo(maxVersion) >= 0) {
       return Mono.error(new UnsupportedVersionException("New version not supported"));
     }
@@ -235,13 +241,37 @@ public class MapGeneratorService implements DisposableBean {
     return taskService.submitTask(generatorOptionsTask).getMono();
   }
 
-  @NotNull
-  public Path getGeneratorExecutablePath(ComparableVersion defaultGeneratorVersion) {
-    return dataPrefs.getMapGeneratorDirectory()
-        .resolve(String.format(GENERATOR_EXECUTABLE_FILENAME, defaultGeneratorVersion));
+  private Path getGeneratorExecutablePath(ComparableVersion generatorVersion) {
+    Path selfContainedExecutable = switch (operatingSystem) {
+      case OsWindows ignored -> Path.of("neroxis-generator.exe");
+      case OsPosix ignored -> Path.of("bin", "neroxis-generator");
+      case OsUnknown ignored -> Path.of("");
+    };
+    Path executablePath = dataPrefs.getMapGeneratorDirectory()
+                                   .resolve(GENERATOR_EXECUTABLE_DIRECTORY.formatted(generatorVersion))
+                                   .resolve(selfContainedExecutable);
+    if (Files.exists(executablePath)) {
+      return executablePath;
+    }
+
+    return dataPrefs.getMapGeneratorDirectory().resolve(String.format(GENERATOR_EXECUTABLE_FILENAME, generatorVersion));
   }
 
   public boolean isGeneratedMap(String mapName) {
     return GENERATED_MAP_PATTERN.matcher(mapName).matches();
+  }
+
+  @NotNull
+  public Path getGeneratorExecutablePathForDownload(ComparableVersion defaultGeneratorVersion,
+                                                    ExecutableType executableType) {
+    String childPath = switch (executableType) {
+      case JAR -> GENERATOR_EXECUTABLE_FILENAME;
+      case ZIP -> GENERATOR_EXECUTABLE_DIRECTORY;
+    };
+    return dataPrefs.getMapGeneratorDirectory().resolve(childPath.formatted(defaultGeneratorVersion));
+  }
+
+  public enum ExecutableType {
+    JAR, ZIP
   }
 }
