@@ -17,6 +17,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
@@ -62,6 +63,9 @@ public class ModUploadControllerTest extends PlatformTest {
   @Mock
   private FafApiAccessor fafApiAccessor;
 
+  @Mock
+  private WebClient defaultWebClient;
+
   @BeforeEach
   public void setUp() throws Exception {
     lenient().doAnswer(invocation -> {
@@ -69,7 +73,7 @@ public class ModUploadControllerTest extends PlatformTest {
       return null;
     }).when(executorService).execute(any());
 
-    modUploadTask = new ModUploadTask(fafApiAccessor, i18n, dataPrefs) {
+    modUploadTask = new ModUploadTask(fafApiAccessor, i18n, dataPrefs, defaultWebClient) {
       @Override
       protected Void call() {
         return null;
