@@ -10,7 +10,6 @@ import com.faforever.commons.io.ByteCountListener;
 import com.faforever.commons.io.Zipper;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -22,7 +21,6 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.io.File;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.Files;
@@ -108,10 +106,9 @@ public class ModUploadTask extends CompletableTask<Void> {
   private Mono<UUID> uploadModToS3(UploadUrlResponse response, Path filePath) {
     final URI signedUrl = response.uploadUrl();
     final UUID requestId = response.requestId();
-    final File modFile = filePath.toFile();
-    final FileSystemResource resource = new FileSystemResource(modFile);
+    final FileSystemResource resource = new FileSystemResource(filePath);
 
-    log.debug("Uploading mod to S3: requestId=[{}], fileName=[{}]", modFile.getName(), requestId);
+    log.debug("Uploading mod to S3: requestId=[{}], zip filePath=[{}]", filePath, requestId);
 
     return defaultWebClient.put()
                            .uri(signedUrl)
@@ -120,12 +117,11 @@ public class ModUploadTask extends CompletableTask<Void> {
                            .body(BodyInserters.fromResource(resource))
                            .retrieve()
                            .onStatus(HttpStatusCode::isError, errResponse -> errResponse.bodyToMono(String.class)
-                                                                                        .doOnNext(json -> log.error(
-                                                                                            "S3 Mod Upload failed. requestId=[{}], statusCode=[{}], response=[{}]",
+                                                                                        .doOnNext(json -> log.warn(
+                                                                                            "S3 Mod Upload failed. requestId=[{}], statusCode=[{}], \n response=[{}]",
                                                                                             requestId,
                                                                                             errResponse.statusCode()
-                                                                                                       .value(),
-                                                                                            StringUtils.deleteWhitespace(json)))
+                                                                                                       .value(), json))
                                                                                         .then(Mono.error(
                                                                                             new IllegalStateException(
                                                                                                 "S3 Mod Upload failed. Request Id=[%s], Status Code=[%d]".formatted(
@@ -134,6 +130,6 @@ public class ModUploadTask extends CompletableTask<Void> {
                                                                                                                .value())))))
                            .bodyToMono(Void.class)
                            .doOnSuccess(r -> log.debug("Successfully uploaded mod to S3: requestId=[{}]", requestId))
-                           .then(Mono.just(requestId));
+                           .thenReturn(requestId);
   }
 }
