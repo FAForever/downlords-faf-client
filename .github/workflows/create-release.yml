@@ -155,4 +155,4 @@ jobs:
           aws s3 cp \
             ${{ steps.artifact_paths.outputs.WINDOWS_EXE }} \
             s3://${{ secrets.R2_BUCKET_NAME }}/${{ steps.artifact_paths.outputs.WINDOWS_EXE_NAME }} \
-            --endpoint-url=${{ secrets.R2_ENDPOINT }}
+            --endpoint-url=${{ secrets.R2_BUCKET_API_URL }}
