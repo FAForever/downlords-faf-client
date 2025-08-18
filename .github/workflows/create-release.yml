@@ -147,5 +147,13 @@ jobs:
           src: ${{ steps.artifact_paths.outputs.WINDOWS_EXE }}
           dest: ${{ steps.artifact_paths.outputs.WINDOWS_EXE_NAME }}
 
-    
-      
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          aws-region: auto  # Cloudflare R2 specific
+
+      - name: Upload to R2
+        run: |
+          aws s3 cp ${{ steps.artifact_paths.outputs.WINDOWS_EXE }} ${{ secrets.R2_BUCKET_PATH }}/${{ steps.artifact_paths.outputs.WINDOWS_EXE_NAME }} \
+            --endpoint-url=${{ secrets.R2_BUCKET_API_URL }}
