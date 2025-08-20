@@ -154,5 +154,5 @@ jobs:
         run: |
           aws s3 cp \
             ${{ steps.artifact_paths.outputs.WINDOWS_EXE }} \
-            ${{ vars.R2_BUCKET_PATH }}/${{ steps.artifact_paths.outputs.WINDOWS_EXE_NAME }} \
+            s3://${{ vars.R2_BUCKET_NAME }}/${{ steps.artifact_paths.outputs.WINDOWS_EXE_NAME }} \
             --endpoint-url=${{ vars.R2_BUCKET_API_URL }}
