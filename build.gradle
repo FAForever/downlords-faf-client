@@ -258,7 +258,7 @@ dependencies {
   implementation("org.apache.commons:commons-compress:1.28.0")
   implementation("net.java.dev.jna:jna:5.17.0")
   implementation("net.java.dev.jna:jna-platform:5.17.0")
-  implementation("org.jetbrains:annotations:26.0.2")
+  implementation("org.jetbrains:annotations:26.0.2-1")
   implementation("com.neovisionaries:nv-i18n:1.29")
   implementation("org.luaj:luaj-jse:3.0.1")
   implementation("commons-validator:commons-validator:1.10.0") {
