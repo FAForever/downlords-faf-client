@@ -120,7 +120,7 @@ public class IceAdapterImplTest extends ServiceTest {
     when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just("someToken"));
     forgedAlliancePrefs.setShowIceAdapterDebugWindow(true);
 
-    List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711);
+    List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711, false);
 
     assertEquals(javaExecutablePath.toAbsolutePath().toString(), command.getFirst());
     assertEquals("-Dorg.ice4j.ipv6.DISABLED=true", command.get(1));
@@ -159,9 +159,25 @@ public class IceAdapterImplTest extends ServiceTest {
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
     when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just("someToken"));
 
-    List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711);
+    List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711, false);
 
     assertFalse(command.contains("-Dorg.ice4j.ipv6.DISABLED=true"));
+  }
+
+  @Test
+  public void testForceRelay() throws Exception {
+    Path javaExecutablePath = Path.of("some", "path", "java");
+
+    clientProperties.getApi().setBaseUrl("http://faf-api");
+
+    when(operatingSystem.getJavaExecutablePath()).thenReturn(javaExecutablePath);
+    PlayerInfo currentPlayer = PlayerInfoBuilder.create().defaultValues().get();
+    when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
+    when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just("someToken"));
+
+    List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711, true);
+
+    assertTrue(command.contains("--force-relay"));
   }
 
   @Test

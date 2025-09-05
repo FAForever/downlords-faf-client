@@ -5,5 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public record IceSession(@NotNull String id, @NotNull List<CoturnServer> servers) {
+public record IceSession(
+    @NotNull String id, boolean forceRelay, @NotNull List<CoturnServer> servers
+) {
 }

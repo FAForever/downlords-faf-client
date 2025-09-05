@@ -213,8 +213,8 @@ public class GameRunner implements InitializingBean {
 
   @VisibleForTesting
   CompletableFuture<Void> prepareAndLaunchGameWhenReady(String featuredModName, Set<String> simModUids,
-                                                                @Nullable String mapFolderName,
-                                                                Supplier<CompletableFuture<GameLaunchResponse>> gameLaunchSupplier) {
+                                                        @Nullable String mapFolderName,
+                                                        Supplier<CompletableFuture<GameLaunchResponse>> gameLaunchSupplier) {
     CompletableFuture<Void> updateFeaturedModFuture = featuredModService.updateFeaturedModToLatest(featuredModName,
                                                                                                    false);
 
@@ -391,12 +391,12 @@ public class GameRunner implements InitializingBean {
   }
 
   private CompletableFuture<Integer> startIceAdapter(int uid) {
-    return iceAdapter.start(uid)
-                     .thenCompose(icePort -> coturnService.getSelectedCoturns(uid)
-                                                          .collectList()
-                                                          .doOnNext(iceAdapter::setIceServers)
-                                                          .thenReturn(icePort)
-                                                          .toFuture());
+    return coturnService.getIceSession(uid)
+                        .toFuture()
+                        .thenCompose(session -> iceAdapter.start(uid, session.forceRelay()).thenApply(result -> {
+                          iceAdapter.setIceServers(session.servers());
+                          return result;
+                        }));
   }
 
   private Mono<League> getDivisionInfo(String leaderboard) {
@@ -417,17 +417,16 @@ public class GameRunner implements InitializingBean {
     int exitCode = finishedProcess.exitValue();
     log.info("Forged Alliance terminated with exit code {}", exitCode);
     Optional<Path> logFilePath = loggingService.getMostRecentGameLogFile();
-    Optional<String> logFileContent = logFilePath
-        .map(file -> {
-          try {
-            final String logFileText = logMasker.maskMessage(Files.readString(file));
-            Files.writeString(file, logFileText);
-            return logFileText;
-          } catch (IOException e) {
-            log.warn("Could not open log file", e);
-            return null;
-          }
-        });
+    Optional<String> logFileContent = logFilePath.map(file -> {
+      try {
+        final String logFileText = logMasker.maskMessage(Files.readString(file));
+        Files.writeString(file, logFileText);
+        return logFileText;
+      } catch (IOException e) {
+        log.warn("Could not open log file", e);
+        return null;
+      }
+    });
 
     if (!gameKilled) {
       if (exitCode != 0) {
@@ -455,13 +454,11 @@ public class GameRunner implements InitializingBean {
     } else {
       notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
                                                                     i18n.get("game.crash", exitCode,
-                                                                             logFilePath.map(Path::toString).orElse("")),
-                                                                    WARN, List.of(new Action(i18n.get("game.open.log"),
-                                                                                             () -> platformService.reveal(
-                                                                                                 logFilePath.orElse(
-                                                                                                     operatingSystem.getLoggingDirectory()))),
-                                                                                  new DismissAction(i18n)),
-                                                                    getAnalysisButtonIfNecessary(logFileContent).orElse(null)));
+                                                                             logFilePath.map(Path::toString)
+                                                                                        .orElse("")), WARN, List.of(
+          new Action(i18n.get("game.open.log"),
+                     () -> platformService.reveal(logFilePath.orElse(operatingSystem.getLoggingDirectory()))),
+          new DismissAction(i18n)), getAnalysisButtonIfNecessary(logFileContent).orElse(null)));
     }
   }
 
