@@ -134,7 +134,6 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
                        ((observable, oldValue, newValue) -> onPerPageCountChanged(oldValue == null ? 0 : oldValue,
                                                                                   newValue)));
     perPageComboBox.setValue(20);
-    perPageComboBox.setOnAction((event -> changePerPageCount()));
     pageSize = perPageComboBox.getValue();
 
     initSearchController();
