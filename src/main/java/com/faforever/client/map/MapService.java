@@ -571,14 +571,19 @@ public class MapService implements InitializingBean, DisposableBean {
    * Tries to find a map my its folder name, first locally then on the server.
    */
   public Mono<MapVersion> findByMapFolderName(String folderName) {
-    ElideNavigatorOnCollection<com.faforever.commons.api.dto.MapVersion> navigator = ElideNavigator.of(
-                                                                                                       com.faforever.commons.api.dto.MapVersion.class)
-                                                                                                   .collection()
-                                                                                                   .setFilter(
-                                                                                                       qBuilder().string(
-                                                                                                                     "folderName")
-                                                                                                                 .eq(folderName));
-    Mono<MapVersion> apiMapVersion = fafApiAccessor.getMany(navigator).next().map(mapMapper::map);
+    Mono<MapVersion> apiMapVersion;
+    if (mapGeneratorService.isGeneratedMap(folderName)) {
+      apiMapVersion = Mono.empty();
+    } else {
+      ElideNavigatorOnCollection<com.faforever.commons.api.dto.MapVersion> navigator = ElideNavigator.of(
+                                                                                                         com.faforever.commons.api.dto.MapVersion.class)
+                                                                                                     .collection()
+                                                                                                     .setFilter(
+                                                                                                         qBuilder().string(
+                                                                                                                       "folderName")
+                                                                                                                   .eq(folderName));
+      apiMapVersion = fafApiAccessor.getMany(navigator).next().map(mapMapper::map);
+    }
 
     return Mono.justOrEmpty(getMapLocallyFromName(folderName)).switchIfEmpty(apiMapVersion);
   }

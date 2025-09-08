@@ -39,8 +39,6 @@ public class GenerateMapControllerTest extends PlatformTest {
   private MapGeneratorService mapGeneratorService;
   @Mock
   private I18n i18n;
-  @Mock
-  private CreateGameController createGameController;
   @Spy
   private GeneratorPrefs generatorPrefs;
 
@@ -55,10 +53,6 @@ public class GenerateMapControllerTest extends PlatformTest {
     generatorPrefs.seedProperty().unbind();
     generatorPrefs.fixedSeedProperty().unbind();
     generatorPrefs.customStyleProperty().unbind();
-    generatorPrefs.terrainStyleProperty().unbind();
-    generatorPrefs.textureStyleProperty().unbind();
-    generatorPrefs.resourceStyleProperty().unbind();
-    generatorPrefs.propStyleProperty().unbind();
     generatorPrefs.commandLineArgsProperty().unbind();
     generatorPrefs.reclaimDensityMinProperty().unbind();
     generatorPrefs.reclaimDensityMaxProperty().unbind();
@@ -97,7 +91,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
-    assertEquals(instance.numTeamsSpinner.getValue().intValue(), 5);
+    assertEquals(5, instance.numTeamsSpinner.getValue().intValue());
   }
 
   @Test
@@ -105,19 +99,19 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
-    assertEquals(instance.mapSizeSpinner.getValue(), 10.0);
-    assertEquals((int) instance.spawnCountSpinner.getValue(), 10);
+    assertEquals(10.0, instance.mapSizeSpinner.getValue());
+    assertEquals(10, (int) instance.spawnCountSpinner.getValue());
   }
 
   @Test
   public void testSetLastSymmetry() {
-    generatorPrefs.setSymmetry("Test");
+    generatorPrefs.getSymmetries().setAll("Test");
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
     instance.setSymmetries(new ArrayList<>(List.of("Test")));
 
-    assertEquals(instance.symmetryComboBox.getValue(), "Test");
+    assertEquals(instance.symmetryCheckComboBox.getCheckModel().getCheckedItems(), List.of("Test"));
   }
 
   @Test
@@ -135,18 +129,18 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
-    assertEquals(instance.seedTextField.getText(), "100");
+    assertEquals("100", instance.seedTextField.getText());
   }
 
   @Test
   public void testSetLastMapStyle() {
-    generatorPrefs.setMapStyle("TEST");
+    generatorPrefs.getMapStyles().setAll("TEST");
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
     instance.setStyles(new ArrayList<>(List.of("TEST")));
 
-    assertEquals(instance.mapStyleComboBox.getValue(), "TEST");
+    assertEquals(List.of("TEST"), instance.mapStyleCheckComboBox.getCheckModel().getCheckedItems());
   }
 
   @Test
@@ -160,46 +154,46 @@ public class GenerateMapControllerTest extends PlatformTest {
 
   @Test
   public void testSetLastTerrainStyle() {
-    generatorPrefs.setTerrainStyle("Test");
+    generatorPrefs.getTerrainStyles().setAll("TEST");
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
-    instance.setTerrainStyles(new ArrayList<>(List.of("Test")));
+    instance.setTerrainStyles(new ArrayList<>(List.of("TEST")));
 
-    assertEquals(instance.terrainComboBox.getValue(), "Test");
+    assertEquals(List.of("TEST"), instance.terrainCheckComboBox.getCheckModel().getCheckedItems());
   }
 
   @Test
   public void testSetLastTextureStyle() {
-    generatorPrefs.setTextureStyle("Test");
+    generatorPrefs.getTextureStyles().setAll("TEST");
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
-    instance.setTextureStyles(new ArrayList<>(List.of("Test")));
+    instance.setTextureStyles(new ArrayList<>(List.of("TEST")));
 
-    assertEquals(instance.biomeComboBox.getValue(), "Test");
+    assertEquals(List.of("TEST"), instance.biomeCheckComboBox.getCheckModel().getCheckedItems());
   }
 
   @Test
   public void testSetLastResourceStyle() {
-    generatorPrefs.setResourceStyle("Test");
+    generatorPrefs.getResourceStyles().setAll("TEST");
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
-    instance.setResourceStyles(new ArrayList<>(List.of("Test")));
+    instance.setResourceStyles(new ArrayList<>(List.of("TEST")));
 
-    assertEquals(instance.resourcesComboBox.getValue(), "Test");
+    assertEquals(List.of("TEST"), instance.resourcesCheckComboBox.getCheckModel().getCheckedItems());
   }
 
   @Test
   public void testSetLastPropStyle() {
-    generatorPrefs.setPropStyle("Test");
+    generatorPrefs.getPropStyles().setAll("TEST");
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
-    instance.setPropStyles(new ArrayList<>(List.of("Test")));
+    instance.setPropStyles(new ArrayList<>(List.of("TEST")));
 
-    assertEquals(instance.propsComboBox.getValue(), "Test");
+    assertEquals(List.of("TEST"), instance.propsCheckComboBox.getCheckModel().getCheckedItems());
   }
 
   @Test
@@ -244,7 +238,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertFalse(instance.spawnCountSpinner.isDisabled());
     assertFalse(instance.numTeamsSpinner.isDisabled());
     assertFalse(instance.mapSizeSpinner.isDisabled());
-    assertFalse(instance.symmetryComboBox.isDisabled());
+    assertFalse(instance.symmetryCheckComboBox.isDisabled());
     assertFalse(instance.fixedSeedCheckBox.isDisabled());
     assertFalse(instance.customStyleCheckBox.isDisabled());
   }
@@ -260,15 +254,15 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertTrue(instance.spawnCountSpinner.isDisabled());
     assertTrue(instance.numTeamsSpinner.isDisabled());
     assertTrue(instance.mapSizeSpinner.isDisabled());
-    assertTrue(instance.symmetryComboBox.isDisabled());
+    assertTrue(instance.symmetryCheckComboBox.isDisabled());
     assertTrue(instance.fixedSeedCheckBox.isDisabled());
     assertTrue(instance.seedTextField.isDisabled());
     assertTrue(instance.seedRerollButton.isDisabled());
-    assertTrue(instance.mapStyleComboBox.isDisabled());
+    assertTrue(instance.mapStyleCheckComboBox.isDisabled());
     assertTrue(instance.customStyleCheckBox.isDisabled());
-    assertTrue(instance.terrainComboBox.isDisabled());
-    assertTrue(instance.biomeComboBox.isDisabled());
-    assertTrue(instance.resourcesComboBox.isDisabled());
+    assertTrue(instance.terrainCheckComboBox.isDisabled());
+    assertTrue(instance.biomeCheckComboBox.isDisabled());
+    assertTrue(instance.resourcesCheckComboBox.isDisabled());
     assertTrue(instance.resourcesDensitySlider.isDisabled());
     assertTrue(instance.reclaimDensitySlider.isDisabled());
   }
@@ -283,16 +277,16 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertTrue(instance.spawnCountSpinner.isDisabled());
     assertTrue(instance.numTeamsSpinner.isDisabled());
     assertTrue(instance.mapSizeSpinner.isDisabled());
-    assertTrue(instance.symmetryComboBox.isDisabled());
+    assertTrue(instance.symmetryCheckComboBox.isDisabled());
     assertTrue(instance.fixedSeedCheckBox.isDisabled());
     assertTrue(instance.seedTextField.isDisabled());
     assertTrue(instance.seedRerollButton.isDisabled());
-    assertTrue(instance.mapStyleComboBox.isDisabled());
+    assertTrue(instance.mapStyleCheckComboBox.isDisabled());
     assertTrue(instance.customStyleCheckBox.isDisabled());
-    assertTrue(instance.terrainComboBox.isDisabled());
-    assertTrue(instance.biomeComboBox.isDisabled());
-    assertTrue(instance.resourcesComboBox.isDisabled());
-    assertTrue(instance.propsComboBox.isDisabled());
+    assertTrue(instance.terrainCheckComboBox.isDisabled());
+    assertTrue(instance.biomeCheckComboBox.isDisabled());
+    assertTrue(instance.resourcesCheckComboBox.isDisabled());
+    assertTrue(instance.propsCheckComboBox.isDisabled());
     assertTrue(instance.resourcesDensitySlider.isDisabled());
     assertTrue(instance.reclaimDensitySlider.isDisabled());
   }
@@ -302,11 +296,11 @@ public class GenerateMapControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> reinitialize(instance));
     instance.customStyleCheckBox.setSelected(false);
 
-    assertFalse(instance.mapStyleComboBox.isDisabled());
-    assertTrue(instance.terrainComboBox.isDisabled());
-    assertTrue(instance.biomeComboBox.isDisabled());
-    assertTrue(instance.resourcesComboBox.isDisabled());
-    assertTrue(instance.propsComboBox.isDisabled());
+    assertFalse(instance.mapStyleCheckComboBox.isDisabled());
+    assertTrue(instance.terrainCheckComboBox.isDisabled());
+    assertTrue(instance.biomeCheckComboBox.isDisabled());
+    assertTrue(instance.resourcesCheckComboBox.isDisabled());
+    assertTrue(instance.propsCheckComboBox.isDisabled());
     assertTrue(instance.resourcesDensitySlider.isDisabled());
     assertTrue(instance.reclaimDensitySlider.isDisabled());
   }
@@ -316,11 +310,11 @@ public class GenerateMapControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> reinitialize(instance));
     instance.customStyleCheckBox.setSelected(true);
 
-    assertTrue(instance.mapStyleComboBox.isDisabled());
-    assertFalse(instance.terrainComboBox.isDisabled());
-    assertFalse(instance.biomeComboBox.isDisabled());
-    assertFalse(instance.resourcesComboBox.isDisabled());
-    assertFalse(instance.propsComboBox.isDisabled());
+    assertTrue(instance.mapStyleCheckComboBox.isDisabled());
+    assertFalse(instance.terrainCheckComboBox.isDisabled());
+    assertFalse(instance.biomeCheckComboBox.isDisabled());
+    assertFalse(instance.resourcesCheckComboBox.isDisabled());
+    assertFalse(instance.propsCheckComboBox.isDisabled());
     assertFalse(instance.resourcesDensitySlider.isDisabled());
     assertFalse(instance.reclaimDensitySlider.isDisabled());
   }
@@ -353,7 +347,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertFalse(instance.spawnCountSpinner.isDisabled());
     assertFalse(instance.numTeamsSpinner.isDisabled());
     assertFalse(instance.mapSizeSpinner.isDisabled());
-    assertFalse(instance.symmetryComboBox.isDisabled());
+    assertFalse(instance.symmetryCheckComboBox.isDisabled());
     assertFalse(instance.fixedSeedCheckBox.isDisabled());
     assertFalse(instance.customStyleCheckBox.isDisabled());
   }
@@ -368,16 +362,16 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertFalse(instance.spawnCountSpinner.isDisabled());
     assertFalse(instance.numTeamsSpinner.isDisabled());
     assertFalse(instance.mapSizeSpinner.isDisabled());
-    assertTrue(instance.symmetryComboBox.isDisabled());
+    assertTrue(instance.symmetryCheckComboBox.isDisabled());
     assertTrue(instance.fixedSeedCheckBox.isDisabled());
     assertTrue(instance.seedTextField.isDisabled());
     assertTrue(instance.seedRerollButton.isDisabled());
-    assertTrue(instance.mapStyleComboBox.isDisabled());
+    assertTrue(instance.mapStyleCheckComboBox.isDisabled());
     assertTrue(instance.customStyleCheckBox.isDisabled());
-    assertTrue(instance.terrainComboBox.isDisabled());
-    assertTrue(instance.biomeComboBox.isDisabled());
-    assertTrue(instance.resourcesComboBox.isDisabled());
-    assertTrue(instance.propsComboBox.isDisabled());
+    assertTrue(instance.terrainCheckComboBox.isDisabled());
+    assertTrue(instance.biomeCheckComboBox.isDisabled());
+    assertTrue(instance.resourcesCheckComboBox.isDisabled());
+    assertTrue(instance.propsCheckComboBox.isDisabled());
     assertTrue(instance.resourcesDensitySlider.isDisabled());
     assertTrue(instance.reclaimDensitySlider.isDisabled());
   }
@@ -392,16 +386,16 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertFalse(instance.spawnCountSpinner.isDisabled());
     assertFalse(instance.numTeamsSpinner.isDisabled());
     assertFalse(instance.mapSizeSpinner.isDisabled());
-    assertTrue(instance.symmetryComboBox.isDisabled());
+    assertTrue(instance.symmetryCheckComboBox.isDisabled());
     assertTrue(instance.fixedSeedCheckBox.isDisabled());
     assertTrue(instance.seedTextField.isDisabled());
     assertTrue(instance.seedRerollButton.isDisabled());
-    assertTrue(instance.mapStyleComboBox.isDisabled());
+    assertTrue(instance.mapStyleCheckComboBox.isDisabled());
     assertTrue(instance.customStyleCheckBox.isDisabled());
-    assertTrue(instance.terrainComboBox.isDisabled());
-    assertTrue(instance.biomeComboBox.isDisabled());
-    assertTrue(instance.resourcesComboBox.isDisabled());
-    assertTrue(instance.propsComboBox.isDisabled());
+    assertTrue(instance.terrainCheckComboBox.isDisabled());
+    assertTrue(instance.biomeCheckComboBox.isDisabled());
+    assertTrue(instance.resourcesCheckComboBox.isDisabled());
+    assertTrue(instance.propsCheckComboBox.isDisabled());
     assertTrue(instance.resourcesDensitySlider.isDisabled());
     assertTrue(instance.reclaimDensitySlider.isDisabled());
   }
@@ -416,16 +410,16 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertFalse(instance.spawnCountSpinner.isDisabled());
     assertFalse(instance.numTeamsSpinner.isDisabled());
     assertFalse(instance.mapSizeSpinner.isDisabled());
-    assertTrue(instance.symmetryComboBox.isDisabled());
+    assertTrue(instance.symmetryCheckComboBox.isDisabled());
     assertTrue(instance.fixedSeedCheckBox.isDisabled());
     assertTrue(instance.seedTextField.isDisabled());
     assertTrue(instance.seedRerollButton.isDisabled());
-    assertTrue(instance.mapStyleComboBox.isDisabled());
+    assertTrue(instance.mapStyleCheckComboBox.isDisabled());
     assertTrue(instance.customStyleCheckBox.isDisabled());
-    assertTrue(instance.terrainComboBox.isDisabled());
-    assertTrue(instance.biomeComboBox.isDisabled());
-    assertTrue(instance.resourcesComboBox.isDisabled());
-    assertTrue(instance.propsComboBox.isDisabled());
+    assertTrue(instance.terrainCheckComboBox.isDisabled());
+    assertTrue(instance.biomeCheckComboBox.isDisabled());
+    assertTrue(instance.resourcesCheckComboBox.isDisabled());
+    assertTrue(instance.propsCheckComboBox.isDisabled());
     assertTrue(instance.resourcesDensitySlider.isDisabled());
     assertTrue(instance.reclaimDensitySlider.isDisabled());
   }
@@ -458,16 +452,16 @@ public class GenerateMapControllerTest extends PlatformTest {
     generatorPrefs.setReclaimDensityMin(10);
     generatorPrefs.setReclaimDensityMax(10);
 
-    instance.symmetryComboBox.setItems(FXCollections.observableList(List.of("SYMMETRY")));
-    instance.symmetryComboBox.getSelectionModel().selectFirst();
-    instance.terrainComboBox.setItems(FXCollections.observableList(List.of("TERRAIN")));
-    instance.terrainComboBox.getSelectionModel().selectFirst();
-    instance.biomeComboBox.setItems(FXCollections.observableList(List.of("BIOME")));
-    instance.biomeComboBox.getSelectionModel().selectFirst();
-    instance.resourcesComboBox.setItems(FXCollections.observableList(List.of("MEXES")));
-    instance.resourcesComboBox.getSelectionModel().selectFirst();
-    instance.propsComboBox.setItems(FXCollections.observableList(List.of("PROPS")));
-    instance.propsComboBox.getSelectionModel().selectFirst();
+    instance.symmetryCheckComboBox.getItems().setAll(FXCollections.observableList(List.of("SYMMETRY")));
+    instance.symmetryCheckComboBox.getCheckModel().check(0);
+    instance.terrainCheckComboBox.getItems().setAll(FXCollections.observableList(List.of("TERRAIN")));
+    instance.terrainCheckComboBox.getCheckModel().check(0);
+    instance.biomeCheckComboBox.getItems().setAll(FXCollections.observableList(List.of("BIOME")));
+    instance.biomeCheckComboBox.getCheckModel().check(0);
+    instance.resourcesCheckComboBox.getItems().setAll(FXCollections.observableList(List.of("MEXES")));
+    instance.resourcesCheckComboBox.getCheckModel().check(0);
+    instance.propsCheckComboBox.getItems().setAll(FXCollections.observableList(List.of("PROPS")));
+    instance.propsCheckComboBox.getCheckModel().check(0);
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
@@ -508,7 +502,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     GeneratorOptions result = captor.getValue();
 
-    assertEquals(result.commandLineArgs(), "--test");
+    assertEquals("--test", result.commandLineArgs());
   }
 
   @Test
@@ -536,10 +530,9 @@ public class GenerateMapControllerTest extends PlatformTest {
   @Test
   public void testResourceComboRandomSliderDisabled(){
     generatorPrefs.setCustomStyle(true);
-    instance.resourcesComboBox.setItems(FXCollections.observableList(List.of("RANDOM")));
-    instance.resourcesComboBox.getSelectionModel().selectFirst();
-    instance.propsComboBox.setItems(FXCollections.observableList(List.of("OPTIMUS")));
-    instance.propsComboBox.getSelectionModel().selectFirst();
+    instance.resourcesCheckComboBox.getItems().setAll(FXCollections.observableList(List.of("RESOURCES")));
+    instance.propsCheckComboBox.getItems().setAll(FXCollections.observableList(List.of("OPTIMUS")));
+    instance.propsCheckComboBox.getCheckModel().check(0);
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
@@ -550,19 +543,19 @@ public class GenerateMapControllerTest extends PlatformTest {
     verify(mapGeneratorService).generateMap(captor.capture());
 
     GeneratorOptions result = captor.getValue();
-    assertEquals("RANDOM", result.resourceStyle());
+    assertNull(result.resourceStyle());
+    assertEquals("RANDOM", instance.resourcesCheckComboBox.getTitle());
     assertEquals("OPTIMUS", result.propStyle());
-    assertTrue(instance.resourcesDensitySlider.isDisabled());
+    assertFalse(instance.resourcesDensitySlider.isDisabled());
     assertFalse(instance.reclaimDensitySlider.isDisabled());
   }
 
   @Test
   public void testPropComboRandomSliderDisabled(){
     generatorPrefs.setCustomStyle(true);
-    instance.propsComboBox.setItems(FXCollections.observableList(List.of("RANDOM")));
-    instance.propsComboBox.getSelectionModel().selectFirst();
-    instance.resourcesComboBox.setItems(FXCollections.observableList(List.of("OPTIMUS")));
-    instance.resourcesComboBox.getSelectionModel().selectFirst();
+    instance.propsCheckComboBox.getItems().setAll(FXCollections.observableList(List.of("PROPS")));
+    instance.resourcesCheckComboBox.getItems().setAll(FXCollections.observableList(List.of("OPTIMUS")));
+    instance.resourcesCheckComboBox.getCheckModel().check(0);
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
@@ -573,9 +566,10 @@ public class GenerateMapControllerTest extends PlatformTest {
     verify(mapGeneratorService).generateMap(captor.capture());
 
     GeneratorOptions result = captor.getValue();
-    assertEquals("RANDOM", result.propStyle());
+    assertNull(result.propStyle());
+    assertEquals("RANDOM", instance.propsCheckComboBox.getTitle());
     assertEquals("OPTIMUS", result.resourceStyle());
-    assertTrue(instance.reclaimDensitySlider.isDisabled());
+    assertFalse(instance.reclaimDensitySlider.isDisabled());
     assertFalse(instance.resourcesDensitySlider.isDisabled());
   }
 

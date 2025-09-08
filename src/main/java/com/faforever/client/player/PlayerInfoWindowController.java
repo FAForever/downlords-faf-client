@@ -235,7 +235,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
     onRatingTypeChange();
 
     loadAchievements();
-    eventService.getPlayerEvents(player.getId()).collectMap(PlayerEvent::getId).subscribe(events -> {
+    eventService.getPlayerEvents(player.getId()).collectMap(playerEvent -> playerEvent.getEvent().getId()).subscribe(events -> {
       plotFactionsChart(events);
       plotUnitsByCategoriesChart(events);
       plotTechBuiltChart(events);

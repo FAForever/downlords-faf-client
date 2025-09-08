@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.api.IceSession;
 import com.faforever.client.builders.GameInfoBuilder;
 import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.NewGameInfoBuilder;
@@ -58,6 +59,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.publisher.TestPublisher;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;

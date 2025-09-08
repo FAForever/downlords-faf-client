@@ -1426,6 +1426,10 @@
   -fx-background: -fx-accent;
 }
 
+.card:watched {
+  -fx-background-color: -card-watched-color;
+}
+
 /***************** Game Card *****************/
 
 .game-card .lock-icon {

@@ -6,6 +6,9 @@ faf-client:
     host: irc.faforever.xyz
     port: 6697
 
+  user:
+    base-url: https://user.faforever.xyz
+
   vault:
     base-url: https://content.faforever.xyz
     replay-download-url-format: https://replay.faforever.xyz/%s

@@ -147,5 +147,12 @@ jobs:
           src: ${{ steps.artifact_paths.outputs.WINDOWS_EXE }}
           dest: ${{ steps.artifact_paths.outputs.WINDOWS_EXE_NAME }}
 
-    
-      
+      - name: Upload to R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ vars.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          aws s3 cp \
+            ${{ steps.artifact_paths.outputs.WINDOWS_EXE }} \
+            ${{ vars.R2_BUCKET_PATH }}/${{ steps.artifact_paths.outputs.WINDOWS_EXE_NAME }} \
+            --endpoint-url=${{ vars.R2_BUCKET_API_URL }}

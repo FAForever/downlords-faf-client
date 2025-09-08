@@ -10,7 +10,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.compressors.CompressorException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -50,7 +49,7 @@ public class FileOpeningHandler implements ApplicationRunner, InitializingBean {
   private void runReplay(Path filePath) {
     try {
       replayService.runReplayFile(filePath);
-    } catch (CompressorException | IOException e) {
+    } catch (IOException e) {
       notificationService.addImmediateErrorNotification(e, "replay.couldNotParse");
     }
   }

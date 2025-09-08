@@ -6,64 +6,134 @@ import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.test.PlatformTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.BodyInserter;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsArrayWithSize.emptyArray;
+import static com.faforever.client.mod.ModUploadTask.MOD_UPLOAD_COMPLETE_API_POST;
+import static com.faforever.client.mod.ModUploadTask.MOD_UPLOAD_START_API_GET;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-public class ModUploadTaskTest extends PlatformTest {
+@ExtendWith(MockitoExtension.class)
+class ModUploadTaskTest extends PlatformTest {
 
   @TempDir
-  public Path tempDirectory;
-
-  private ModUploadTask instance;
+  Path tempDirectory;
 
   @Mock
-  private FafApiAccessor fafApiAccessor;
+  FafApiAccessor fafApiAccessor;
+
   @Mock
-  private I18n i18n;
+  WebClient defaultWebClient;
+
+  @Mock
+  I18n i18n;
+
   @Spy
-  private DataPrefs dataPrefs;
+  DataPrefs dataPrefs;
+
+  @Captor
+  ArgumentCaptor<ModUploadMetadata> metadataCaptor;
+
+  ModUploadTask underTest;
+
+  UUID requestId;
+  URI signedUri;
+
+  @Mock
+  WebClient.RequestBodyUriSpec requestBodySpec;
+  @Mock
+  WebClient.RequestHeadersSpec<?> headersSpec;
+  @Mock
+  WebClient.ResponseSpec responseSpec;
 
   @BeforeEach
-  public void setUp() throws Exception {
-    instance = new ModUploadTask(fafApiAccessor, i18n, dataPrefs);
+  void setUp() throws Exception {
+    underTest = new ModUploadTask(fafApiAccessor, i18n, dataPrefs, defaultWebClient);
+
     dataPrefs.setBaseDataDirectory(tempDirectory);
-
     Files.createDirectories(dataPrefs.getCacheDirectory());
+
     lenient().when(i18n.get(any())).thenReturn("");
-    lenient().when(fafApiAccessor.uploadFile(any(), any(), any(), any())).thenReturn(Mono.empty());
+
+    requestId = UUID.randomUUID();
+    signedUri = new URI("https://example.com/upload");
   }
 
   @Test
-  public void testModPathNull() throws Exception {
-    assertThrows(NullPointerException.class, () -> instance.call());
+  void testModPathNull() {
+    assertThrows(NullPointerException.class, () -> underTest.call());
   }
 
   @Test
-  public void testProgressListenerNull() throws Exception {
-    instance.setModPath(Path.of("."));
-    assertThrows(NullPointerException.class, () -> instance.call());
+  void testProgressListenerNull() {
+    underTest.setModPath(Path.of("."));
+    assertThrows(NullPointerException.class, () -> underTest.call());
   }
 
   @Test
-  public void testCall() throws Exception {
-    instance.setModPath(Files.createDirectories(tempDirectory.resolve("test-mod")));
+  void testCall() throws Exception {
+    stubWebClient();
 
-    instance.call();
+    when(responseSpec.bodyToMono(Void.class)).thenReturn(Mono.empty());
+    when(fafApiAccessor.postJson(eq(MOD_UPLOAD_COMPLETE_API_POST), metadataCaptor.capture())).thenReturn(Mono.empty());
 
-    verify(fafApiAccessor).uploadFile(any(), any(), any(), any());
+    Path modFolder = Files.createDirectory(tempDirectory.resolve("my-mod"));
+    Files.writeString(modFolder.resolve("hello.txt"), "world");
 
-    assertThat(Files.list(dataPrefs.getCacheDirectory()).toArray(), emptyArray());
+    underTest.setModPath(modFolder);
+    underTest.call();
+
+    verify(fafApiAccessor).getApiObject(MOD_UPLOAD_START_API_GET, UploadUrlResponse.class);
+    verify(defaultWebClient).put();
+    verify(fafApiAccessor).postJson(eq(MOD_UPLOAD_COMPLETE_API_POST), metadataCaptor.capture());
+
+    assert metadataCaptor.getValue().requestId().equals(requestId);
+    assert Files.list(dataPrefs.getCacheDirectory()).toList().isEmpty();
+  }
+
+  @Test
+  void testCallUploadFails() throws Exception {
+    stubWebClient();
+
+    when(responseSpec.bodyToMono(Void.class)).thenReturn(Mono.error(new IllegalStateException("Simulated S3 failure")));
+
+    Path modFolder = Files.createDirectory(tempDirectory.resolve("my-mod"));
+    Files.writeString(modFolder.resolve("hello.txt"), "world");
+
+    underTest.setModPath(modFolder);
+
+    assertThrows(IllegalStateException.class, () -> underTest.call());
+  }
+
+  void stubWebClient() {
+    when(fafApiAccessor.getApiObject(MOD_UPLOAD_START_API_GET, UploadUrlResponse.class)).thenReturn(
+        Mono.just(new UploadUrlResponse(signedUri, requestId)));
+
+    when(defaultWebClient.put()).thenReturn(requestBodySpec);
+    when(requestBodySpec.uri(signedUri)).thenReturn(requestBodySpec);
+    when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+    when(requestBodySpec.contentType(MediaType.valueOf("application/zip"))).thenReturn(requestBodySpec);
+    when(requestBodySpec.body(any(BodyInserter.class))).thenReturn(headersSpec);
+    when(headersSpec.retrieve()).thenReturn(responseSpec);
+    when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
   }
 }

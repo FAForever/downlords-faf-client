@@ -14,6 +14,7 @@ import net.arikia.dev.drpc.DiscordRichPresence;
 import net.arikia.dev.drpc.DiscordRichPresence.Builder;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
@@ -22,9 +23,12 @@ import java.time.OffsetDateTime;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.faforever.client.FafClientApplication.PROFILE_MAC;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Profile("!" + PROFILE_MAC)
 public class DiscordRichPresenceService implements DisposableBean, InitializingBean {
   private static final String HOSTING = "Hosting";
   private static final String WAITING = "Waiting";

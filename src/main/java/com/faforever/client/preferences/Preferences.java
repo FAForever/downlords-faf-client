@@ -73,6 +73,9 @@ public class Preferences {
   @JsonMerge
   @Getter
   private final IceAdapterPrefs iceAdapter = new IceAdapterPrefs();
+  @JsonMerge
+  @Getter
+  private final ReplayHistoryPrefs replayHistory = new ReplayHistoryPrefs();
 
   private final StringProperty themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
   private final BooleanProperty preReleaseCheckEnabled = new SimpleBooleanProperty(false);

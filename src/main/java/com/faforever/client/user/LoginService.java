@@ -20,10 +20,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 import reactor.function.TupleUtils;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Base64.Encoder;
@@ -59,10 +61,22 @@ public class LoginService implements InitializingBean {
 
   public String getHydraUrl(String state, String codeVerifier, URI redirectUri) {
     Oauth oauth = clientProperties.getOauth();
+    String scopes = URLEncoder.encode(oauth.getScopes(), StandardCharsets.UTF_8);
     String codeChallenge = BASE64_ENCODER.encodeToString(Hashing.sha256()
         .hashString(codeVerifier, StandardCharsets.US_ASCII)
         .asBytes());
-    return String.format("%s/oauth2/auth?response_type=code&client_id=%s&state=%s&redirect_uri=%s&scope=%s&code_challenge_method=S256&code_challenge=%s", oauth.getBaseUrl(), oauth.getClientId(), state, redirectUri.toASCIIString(), oauth.getScopes(), codeChallenge);
+
+    return UriComponentsBuilder.fromUriString(oauth.getBaseUrl())
+                               .path("/oauth2/auth")
+                               .queryParam("response_type", "code")
+                               .queryParam("client_id", oauth.getClientId())
+                               .queryParam("state", state)
+                               .queryParam("redirect_uri", redirectUri.toASCIIString())
+                               .queryParam("scope", scopes)
+                               .queryParam("code_challenge_method", "S256")
+                               .queryParam("code_challenge", codeChallenge)
+                               .build()
+                               .toUriString();
   }
 
   public Mono<Void> login(String code, String codeVerifier, URI redirectUri) {
