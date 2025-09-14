@@ -28,6 +28,6 @@ public class ReplayFileReaderImplTest extends ServiceTest {
     try (InputStream inputStream = new BufferedInputStream(getClass().getResourceAsStream("/replay/test.fafreplay"))) {
       Files.copy(inputStream, tempFile);
     }
-    assertThat(instance.parseReplay(tempFile).getData().length, is(197007));
+    assertThat(instance.parseReplay(tempFile).getData().capacity(), is(197007));
   }
 }
