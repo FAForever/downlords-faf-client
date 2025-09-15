@@ -95,6 +95,7 @@ public class ReplayService {
   public static final String SUP_COM_REPLAY_FILE_ENDING = ".scfareplay";
   private static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
   private static final Pattern invalidCharacters = Pattern.compile("[?@*%{}<>|\"]");
+  private static final int nThreads = Math.min(Runtime.getRuntime().availableProcessors(), 4);
 
   private final ClientProperties clientProperties;
   private final LoginService loginService;
@@ -114,8 +115,8 @@ public class ReplayService {
   private final ObjectFactory<ReplayDownloadTask> replayDownloadTaskFactory;
   private final ReplayHistoryPrefs replayHistory;
   private final Cache<@NotNull Path, @NotNull Replay> replayCache = CacheBuilder.newBuilder()
-                                                                                .maximumSize(1000)
-                                                                                .expireAfterWrite(2, TimeUnit.HOURS)
+                                                                                .maximumSize(500)
+                                                                                .expireAfterWrite(20, TimeUnit.MINUTES)
                                                                                 .build();
 
   @VisibleForTesting
@@ -187,7 +188,7 @@ public class ReplayService {
       int numPages = filesList.size() / pageSize;
 
       List<Replay> replays;
-      try (ExecutorService executor = Executors.newFixedThreadPool(4)) {
+      try (ExecutorService executor = Executors.newFixedThreadPool(nThreads)) {
         List<Callable<Replay>> tasks = new ArrayList<>();
         int limit = Math.min(skippedReplays + pageSize, filesList.size());
         for (int i = skippedReplays; i < limit; i++) {
@@ -217,7 +218,6 @@ public class ReplayService {
       return Mono.justOrEmpty(replays).zipWith(Mono.just(numPages));
     }
   }
-
 
   private CompletableFuture<Replay> tryLoadingLocalReplay(Path replayFile) {
     try {
@@ -399,7 +399,8 @@ public class ReplayService {
     Path tempSupComReplayFile = dataPrefs.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
 
     Files.createDirectories(tempSupComReplayFile.getParent());
-    Files.copy(new ByteBufferBackedInputStream(rawReplayByteBuffer), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
+    Files.copy(new ByteBufferBackedInputStream(rawReplayByteBuffer), tempSupComReplayFile,
+               StandardCopyOption.REPLACE_EXISTING);
 
     ReplayMetadata replayMetadata = replayData.getMetadata();
     String gameType = replayMetadata.getFeaturedMod();
