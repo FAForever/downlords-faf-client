@@ -68,7 +68,7 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
                                                  () -> instance.startReplay(Path.of("."), 0));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
-    verify(loggingService).getNewGameLogFile(0);
+    verify(loggingService).getNewGameLogFile(0, true);
     verify(instance).getReplayExecutablePath();
   }
 
@@ -80,7 +80,7 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(playerService).getCurrentPlayer();
-    verify(loggingService).getNewGameLogFile(0);
+    verify(loggingService).getNewGameLogFile(0, true);
     verify(instance).getReplayExecutablePath();
   }
 }
