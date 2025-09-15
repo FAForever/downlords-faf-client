@@ -32,6 +32,8 @@ import java.util.stream.Stream;
 public class LoggingService implements InitializingBean {
 
   private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d*)?.log");
+  private static final Pattern REPLAY_LOG_PATTERN = Pattern.compile("replay(_\\d*)?.log");
+  private static Pattern LOG_PATTERN;
   private static final int NUMBER_GAME_LOGS_STORED = 10;
 
   private final OperatingSystem operatingSystem;
@@ -69,10 +71,17 @@ public class LoggingService implements InitializingBean {
     JavaFxUtil.addAndTriggerListener(developerPrefs.logLevelProperty(), new WeakChangeListener<>(logLevelChangeListener));
   }
 
-  public Path getNewGameLogFile(int gameUID) {
+  public Path getNewGameLogFile(int gameUID) {return getNewGameLogFile(gameUID, false);}
+
+  public Path getNewGameLogFile(int gameUID, boolean replay) {
+    if (replay) {
+      LOG_PATTERN = REPLAY_LOG_PATTERN;
+    } else {
+      LOG_PATTERN = GAME_LOG_PATTERN;
+    }
     try (Stream<Path> listOfLogFiles = Files.list(operatingSystem.getLoggingDirectory())) {
       listOfLogFiles
-          .filter(logPath -> GAME_LOG_PATTERN.matcher(logPath.getFileName().toString()).matches())
+          .filter(logPath -> LOG_PATTERN.matcher(logPath.getFileName().toString()).matches())
           .sorted(Comparator.<Path>comparingLong(logPath -> logPath.toFile().lastModified()).reversed())
           .skip(NUMBER_GAME_LOGS_STORED - 1)
           .forEach(logPath -> {
@@ -85,7 +94,7 @@ public class LoggingService implements InitializingBean {
     } catch (IOException e) {
       log.error("Could not list log directory", e);
     }
-    return operatingSystem.getLoggingDirectory().resolve(String.format("game_%d.log", gameUID));
+    return operatingSystem.getLoggingDirectory().resolve(String.format(replay ? "replay_%d.log" : "game_%d.log", gameUID));
   }
 
   public Optional<Path> getMostRecentGameLogFile() {
