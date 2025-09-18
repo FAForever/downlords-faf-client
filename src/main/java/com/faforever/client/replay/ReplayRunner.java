@@ -1,6 +1,5 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
@@ -61,7 +60,6 @@ public class ReplayRunner implements InitializingBean {
   private final PlayerService playerService;
   private final GamePathHandler gamePathHandler;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
-  private final ClientProperties clientProperties;
   private final LiveReplayProxyServer liveReplayProxyServer;
 
   private final ReadOnlyObjectWrapper<Process> process = new ReadOnlyObjectWrapper<>();
@@ -135,14 +133,18 @@ public class ReplayRunner implements InitializingBean {
       return;
     }
 
-    int port = liveReplayProxyServer.start(game.getId());
+    int port = liveReplayProxyServer.start();
 
+    /* A courtesy towards the replay server so we can see in logs who we're dealing with. */
+    String playerName = playerService.getCurrentPlayer().getUsername();
     String featuredModName = game.getFeaturedMod();
     String mapName = game.getMapFolderName();
     URI replayUrl = UriComponentsBuilder.newInstance()
                                         .scheme(GPGNET_SCHEME)
                                         .host(InetAddress.getLoopbackAddress().getHostAddress())
                                         .port(port)
+                                        .pathSegment(String.valueOf(game.getId()),
+                                                     playerName + ReplayService.SUP_COM_REPLAY_FILE_ENDING)
                                         .build()
                                         .toUri();
 
@@ -155,7 +157,10 @@ public class ReplayRunner implements InitializingBean {
     CompletableFuture<Void> downloadMapFuture = downloadMapAskIfError(mapName).toFuture();
     CompletableFuture.allOf(updateFeaturedModFuture, installAndActivateSimModsFuture, downloadMapFuture)
                      .thenApply(ignored -> forgedAllianceLaunchService.startReplay(replayUrl, game.getId()))
-                     .thenAcceptAsync(process::set, fxApplicationThreadExecutor)
+                     .thenApplyAsync(process -> {
+                       this.process.set(process);
+                       return process;
+                     }, fxApplicationThreadExecutor)
                      .exceptionally(throwable -> {
                        if (throwable instanceof NotifiableException notifiableException) {
                          notificationService.addErrorNotification(notifiableException);
@@ -164,6 +169,7 @@ public class ReplayRunner implements InitializingBean {
                        }
                        return null;
                      })
+                     .thenCompose(Process::onExit)
                      .whenComplete((ignored, throwable) -> liveReplayProxyServer.stop());
   }
 

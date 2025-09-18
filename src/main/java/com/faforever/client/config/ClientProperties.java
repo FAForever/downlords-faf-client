@@ -99,7 +99,6 @@ public class ClientProperties {
 
   @Data
   public static class Replay {
-    private String remoteHost;
     private int remotePort;
     private String replayFileFormat = "%d-%s.fafreplay";
     private String replayFileGlob = "*.fafreplay";
@@ -157,12 +156,6 @@ public class ClientProperties {
     UrlEndpoint user = serverEndpoints.getUser();
     if (user != null) {
       this.user.setBaseUrl(user.getUrl());
-    }
-
-    SocketEndpoint liveReplay = serverEndpoints.getLiveReplay();
-    if (liveReplay != null) {
-      replay.setRemoteHost(liveReplay.getHost());
-      replay.setRemotePort(liveReplay.getPort());
     }
 
     SocketEndpoint chat = serverEndpoints.getChat();

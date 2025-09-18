@@ -16,10 +16,6 @@ faf-client:
   news:
     feed-url: https://direct.faforever.xyz/news/feed
 
-  replay:
-    remote-host: faforever.xyz
-    remote-port: 15000
-
   website:
     base-url: https://www.faforever.xyz
 

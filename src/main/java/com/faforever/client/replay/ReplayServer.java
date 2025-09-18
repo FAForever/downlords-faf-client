@@ -5,6 +5,7 @@ import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.game.GameService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.remote.HmacAccess;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.LoginService;
 import com.faforever.commons.replay.ReplayMetadata;
@@ -12,8 +13,11 @@ import com.google.common.primitives.Bytes;
 import io.netty.resolver.DefaultAddressResolverGroup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
@@ -24,7 +28,6 @@ import reactor.netty.tcp.TcpServer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +51,8 @@ public class ReplayServer {
   private final ReplayFileWriter replayFileWriter;
   private final PlayerService playerService;
   private final GameService gameService;
+  @Qualifier("userWebClient")
+  private final ObjectFactory<WebClient> userWebClientFactory;
 
   private DisposableServer tcpServer;
   private Connection remoteReplayConnection;
@@ -70,56 +75,81 @@ public class ReplayServer {
   }
 
   public CompletableFuture<Integer> start(int gameId) {
-    String remoteReplayServerHost = clientProperties.getReplay().getRemoteHost();
-
-
     ReplayMetadata replayInfo = initReplayInfo(gameId);
 
-    return TcpServer.create().doOnBound(server -> {
-      log.debug("Opening local replay server on port {}", server.port());
-      this.tcpServer = server;
-    }).handle((inbound, ignored1) -> {
-      ByteArrayOutputStream replayData = new ByteArrayOutputStream();
-      Flux<byte[]> incomingReplayData = inbound.receive().asByteArray().replay().refCount();
+    return TcpServer.create()
+                    .doOnBound(server -> {
+                      log.debug("Opening local replay server on port {}", server.port());
+                      this.tcpServer = server;
+                    })
+                    .doOnUnbound(server -> log.debug("Closing local replay server on port {}", server.port()))
+                    .handle((inbound, ignored1) -> {
+                      ByteArrayOutputStream replayData = new ByteArrayOutputStream();
+                      Flux<byte[]> incomingReplayData = inbound.receive().asByteArray().replay().refCount();
 
-      Mono<Void> remoteReplayData = HttpClient.newConnection()
-                                              .doOnConnect(config -> log.info("Connecting to replay server at `{}`",
-                                                                              config.uri()))
-                                              .resolver(DefaultAddressResolverGroup.INSTANCE)
-                                              .doOnConnected(connection -> this.remoteReplayConnection = connection)
-                                              .websocket()
-                                              .uri(URI.create("wss://%s".formatted(remoteReplayServerHost)))
-                                              .handle((ignored2, outbound) -> outbound.sendByteArray(incomingReplayData))
-                                              .then()
-                                              .doOnError(
-                                                  throwable -> log.warn("Error sending data to remote replay server",
-                                                                        throwable))
-                                              .onErrorComplete();
+                      Mono<Void> remoteReplayData = userWebClientFactory.getObject()
+                                                                        .get()
+                                                                        .uri("/replay/access")
+                                                                        .retrieve()
+                                                                        .bodyToMono(HmacAccess.class)
+                                                                        .map(HmacAccess::accessUrl)
+                                                                        .flatMap(url -> HttpClient.newConnection()
+                                                                                                  .doOnConnect(
+                                                                                                      config -> log.info(
+                                                                                                          "Connecting to replay server at `{}`",
+                                                                                                          config.uri()))
+                                                                                                  .resolver(
+                                                                                                      DefaultAddressResolverGroup.INSTANCE)
+                                                                                                  .doOnConnected(
+                                                                                                      connection -> this.remoteReplayConnection = connection)
+                                                                                                  .websocket()
+                                                                                                  .uri(url)
+                                                                                                  .handle(
+                                                                                                      (ignored2, outbound) -> outbound.sendByteArray(
+                                                                                                          incomingReplayData))
+                                                                                                  .then()
+                                                                                                  .doOnError(
+                                                                                                      throwable -> log.warn(
+                                                                                                          "Error sending data to remote replay server",
+                                                                                                          throwable))
+                                                                                                  .onErrorComplete());
 
-      Mono<Void> localReplayData = incomingReplayData.doOnNext(buffer -> {
-        if (replayData.size() == 0 && Bytes.indexOf(buffer, LIVE_REPLAY_PREFIX) != -1) {
-          int dataBeginIndex = Bytes.indexOf(buffer, (byte) 0x00) + 1;
-          replayData.write(buffer, dataBeginIndex, buffer.length - dataBeginIndex);
-        } else {
-          replayData.writeBytes(buffer);
-        }
-      }).then().doOnError(throwable -> log.warn("Error in replay server", throwable)).doFinally(signalType -> {
-        if (signalType == SignalType.ON_ERROR) {
-          return;
-        }
+                      Mono<Void> localReplayData = incomingReplayData.doOnNext(buffer -> {
+                                                                       if (replayData.size() == 0 && Bytes.indexOf(buffer, LIVE_REPLAY_PREFIX) != -1) {
+                                                                         int dataBeginIndex = Bytes.indexOf(buffer, (byte) 0x00) + 1;
+                                                                         replayData.write(buffer, dataBeginIndex, buffer.length - dataBeginIndex);
+                                                                       } else {
+                                                                         replayData.writeBytes(buffer);
+                                                                       }
+                                                                     })
+                                                                     .then()
+                                                                     .doOnError(
+                                                                         throwable -> log.warn("Error in replay server",
+                                                                                               throwable))
+                                                                     .doFinally(signalType -> {
+                                                                       if (signalType == SignalType.ON_ERROR) {
+                                                                         return;
+                                                                       }
 
-        log.info("FAF disconnected, writing replay data to file");
-        GameInfo game = gameService.getByUid(gameId).orElseThrow();
-        finishReplayInfo(game, replayInfo);
-        try {
-          replayFileWriter.writeReplayDataToFile(replayData, replayInfo);
-        } catch (IOException e) {
-          log.warn("Unable to write replay data to file", e);
-        }
-      });
+                                                                       log.info(
+                                                                           "FAF disconnected, writing replay data to file");
+                                                                       GameInfo game = gameService.getByUid(gameId)
+                                                                                                  .orElseThrow();
+                                                                       finishReplayInfo(game, replayInfo);
+                                                                       try {
+                                                                         replayFileWriter.writeReplayDataToFile(
+                                                                             replayData, replayInfo);
+                                                                       } catch (IOException e) {
+                                                                         log.warn("Unable to write replay data to file",
+                                                                                  e);
+                                                                       }
+                                                                     });
 
-      return Mono.when(remoteReplayData, localReplayData);
-    }).bind().map(DisposableServer::port).toFuture();
+                      return Mono.when(remoteReplayData, localReplayData);
+                    })
+                    .bind()
+                    .map(DisposableServer::port)
+                    .toFuture();
   }
 
   private ReplayMetadata initReplayInfo(int uid) {
