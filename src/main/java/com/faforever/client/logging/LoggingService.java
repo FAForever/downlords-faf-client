@@ -33,7 +33,6 @@ public class LoggingService implements InitializingBean {
 
   private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d*)?.log");
   private static final Pattern REPLAY_LOG_PATTERN = Pattern.compile("replay(_\\d*)?.log");
-  private static Pattern LOG_PATTERN;
   private static final int NUMBER_GAME_LOGS_STORED = 10;
 
   private final OperatingSystem operatingSystem;
@@ -71,14 +70,10 @@ public class LoggingService implements InitializingBean {
     JavaFxUtil.addAndTriggerListener(developerPrefs.logLevelProperty(), new WeakChangeListener<>(logLevelChangeListener));
   }
 
-  public Path getNewGameLogFile(int gameUID) {return getNewGameLogFile(gameUID, false);}
+  public Path getNewGameLogFile(int gameUID) {return getNewLogFile(gameUID, GAME_LOG_PATTERN);}
+  public Path getNewReplayLogFile(int gameUID) {return getNewLogFile(gameUID, REPLAY_LOG_PATTERN);}
 
-  public Path getNewGameLogFile(int gameUID, boolean replay) {
-    if (replay) {
-      LOG_PATTERN = REPLAY_LOG_PATTERN;
-    } else {
-      LOG_PATTERN = GAME_LOG_PATTERN;
-    }
+  private Path getNewLogFile(int gameUID, Pattern LOG_PATTERN) {
     try (Stream<Path> listOfLogFiles = Files.list(operatingSystem.getLoggingDirectory())) {
       listOfLogFiles
           .filter(logPath -> LOG_PATTERN.matcher(logPath.getFileName().toString()).matches())
@@ -94,7 +89,7 @@ public class LoggingService implements InitializingBean {
     } catch (IOException e) {
       log.error("Could not list log directory", e);
     }
-    return operatingSystem.getLoggingDirectory().resolve(String.format(replay ? "replay_%d.log" : "game_%d.log", gameUID));
+    return operatingSystem.getLoggingDirectory().resolve(String.format(LOG_PATTERN == REPLAY_LOG_PATTERN ? "replay_%d.log" : "game_%d.log", gameUID));
   }
 
   public Optional<Path> getMostRecentGameLogFile() {

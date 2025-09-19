@@ -39,7 +39,7 @@ public class LoggingServiceTest extends ServiceTest {
 
   @Test
   public void testGetNewReplayLogFile() throws Exception {
-    assertTrue(REPLAY_LOG_PATTERN.matcher(instance.getNewGameLogFile(0, true).getFileName().toString()).matches());
+    assertTrue(REPLAY_LOG_PATTERN.matcher(instance.getNewReplayLogFile(0).getFileName().toString()).matches());
   }
 
   @Test
