@@ -2,7 +2,6 @@ package com.faforever.client.login;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
-import com.faforever.client.config.ClientProperties.Replay;
 import com.faforever.client.config.ClientProperties.User;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
@@ -210,9 +209,6 @@ public class LoginController extends NodeController<Pane> {
     fxApplicationThreadExecutor.execute(() -> {
       User user = clientProperties.getUser();
       userUrlField.setText(user.getBaseUrl());
-      Replay replay = clientProperties.getReplay();
-      replayServerHostField.setText(replay.getRemoteHost());
-      replayServerPortField.setText(String.valueOf(replay.getRemotePort()));
       Irc irc = clientProperties.getIrc();
       ircServerHostField.setText(irc.getHost());
       ircServerPortField.setText(String.valueOf(irc.getPort()));
@@ -248,10 +244,6 @@ public class LoginController extends NodeController<Pane> {
 
     clientProperties.getUser()
         .setBaseUrl(userUrlField.getText());
-
-    clientProperties.getReplay()
-        .setRemoteHost(replayServerHostField.getText())
-        .setRemotePort(Integer.parseInt(replayServerPortField.getText()));
 
     clientProperties.getIrc()
         .setHost(ircServerHostField.getText())

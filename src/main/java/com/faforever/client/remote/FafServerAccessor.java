@@ -157,9 +157,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
     return userWebClientFactory.getObject()
                                .get()
                                .uri("/lobby/access")
-                               .retrieve()
-                               .bodyToMono(LobbyAccess.class)
-                               .map(LobbyAccess::accessUrl)
+                               .retrieve().bodyToMono(HmacAccess.class).map(HmacAccess::accessUrl)
                                .zipWith(tokenRetriever.getRefreshedTokenValue())
                                .map(TupleUtils.function(
                                    (lobbyUrl, token) -> new Config(token, Version.getCurrentVersion(),
