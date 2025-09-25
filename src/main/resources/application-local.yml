@@ -28,7 +28,7 @@ faf-client:
   oauth:
     base-url: http://localhost:4444
     scopes: openid offline public_profile upload_map upload_mod lobby
-    client-id: faf-java-client
+    client-id: 2e8808cf-5889-469b-b2c3-01f0cc58c4af
 
 logging:
   level:
