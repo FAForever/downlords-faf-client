@@ -106,7 +106,7 @@ public final class WebSocketConnection implements ClientConnection {
   }
 
   private void scheduleReconnect(int delay) {
-    Mono.delay(Duration.ofMillis(delay)).doOnNext(ignored -> this.client.connect()).subscribe();
+    Mono.delay(Duration.ofMillis(delay)).doOnNext(_ -> this.client.connect()).subscribe();
   }
 
   private void handleException(Throwable thrown) {
@@ -125,7 +125,7 @@ public final class WebSocketConnection implements ClientConnection {
 
   @Override
   public void startPing() {
-    this.ping = Flux.interval(Duration.ofSeconds(60)).doOnNext(ignored -> this.client.ping()).subscribe();
+    this.ping = Flux.interval(Duration.ofSeconds(60)).doOnNext(_ -> this.client.ping()).subscribe();
   }
 
   @Override

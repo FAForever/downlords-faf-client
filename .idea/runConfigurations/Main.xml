@@ -7,7 +7,7 @@
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.faforever.client.Main" />
     <module name="faf-client.main" />
-    <option name="VM_PARAMETERS" value="-Dio.netty.allocator.type=unpooled -DnativeDir=build/resources/native -Dprism.forceGPU=true -Xmx1g -XX:MinHeapFreeRatio=15 -XX:MaxHeapFreeRatio=33 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseZGC -XX:+ZGenerational -Djava.awt.headless=false -Djava.net.preferIPv4Stack=true -XX:TieredStopAtLevel=1 --add-opens=java.base/java.lang=ALL-UNNAMED" />
+    <option name="VM_PARAMETERS" value="-Dio.netty.allocator.type=unpooled -DnativeDir=build/resources/native -Dprism.forceGPU=true -Xmx1g -XX:MinHeapFreeRatio=15 -XX:MaxHeapFreeRatio=33 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseZGC -XX:+UseCompactObjectHeaders -Djava.awt.headless=false -Djava.net.preferIPv4Stack=true -XX:TieredStopAtLevel=1 --add-opens=java.base/java.lang=ALL-UNNAMED" />
     <RunnerSettings RunnerId="Profile ">
       <option name="myExternalizedOptions" value="additional-options2=onexit\=snapshot,_no_java_version_check" />
     </RunnerSettings>

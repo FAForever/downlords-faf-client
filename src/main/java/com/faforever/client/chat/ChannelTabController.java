@@ -127,7 +127,7 @@ public class ChannelTabController extends AbstractChatTabController {
       Arrays.stream(content.split("\\s")).forEach(word -> {
         if (STRICT_URL_REGEX_PATTERN.matcher(word).matches()) {
           Hyperlink link = new Hyperlink(word);
-          link.setOnAction(event -> platformService.showDocument(word));
+          link.setOnAction(_ -> platformService.showDocument(word));
           children.add(link);
         } else {
           children.add(new Label(word + " "));

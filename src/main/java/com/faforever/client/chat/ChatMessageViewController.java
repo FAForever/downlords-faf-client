@@ -334,7 +334,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
         log.warn("Message could not be sent: {}", text, throwable);
         notificationService.addImmediateErrorNotification(throwable, "chat.sendFailed");
       }
-    }).whenCompleteAsync((ignored, throwable) -> {
+    }).whenCompleteAsync((_, _) -> {
       messageTextField.clear();
       messageTextField.setDisable(false);
       messageTextField.requestFocus();

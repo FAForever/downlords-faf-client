@@ -83,7 +83,7 @@ public class ReplayServer {
                       this.tcpServer = server;
                     })
                     .doOnUnbound(server -> log.debug("Closing local replay server on port {}", server.port()))
-                    .handle((inbound, ignored1) -> {
+                    .handle((inbound, _) -> {
                       ByteArrayOutputStream replayData = new ByteArrayOutputStream();
                       Flux<byte[]> incomingReplayData = inbound.receive().asByteArray().replay().refCount();
 
@@ -105,7 +105,7 @@ public class ReplayServer {
                                                                                                   .websocket()
                                                                                                   .uri(url)
                                                                                                   .handle(
-                                                                                                      (ignored2, outbound) -> outbound.sendByteArray(
+                                                                                                      (_, outbound) -> outbound.sendByteArray(
                                                                                                           incomingReplayData))
                                                                                                   .then()
                                                                                                   .doOnError(

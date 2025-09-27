@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="10.0.6" transformSequenceNumber="10">
+<install4j version="11.0.5" transformSequenceNumber="11">
   <directoryPresets config="./build/resources/steam_appid.txt" />
-  <application name="FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="faf" publisher="FAForever" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="21" allowBetaVM="true">
+  <application name="FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="faf" publisher="FAForever" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="25" allowBetaVM="true">
     <languages>
       <additionalLanguages>
         <language id="zh_CN" />
@@ -88,7 +88,7 @@
                   <property name="obtainIfNormalWin" type="boolean" value="true" />
                 </serializedBean>
               </action>
-              <action id="695" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" actionElevationType="none" rollbackBarrierExitCode="0" failureStrategy="askQuit">
+              <action id="695" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" actionElevationType="none" rollbackBarrierExitCode="0" failureStrategy="ask" failureAskRetry="false">
                 <serializedBean>
                   <property name="additionalExecutables" type="array" class="java.io.File" length="3">
                     <element index="0">
@@ -117,7 +117,7 @@
         <screens>
           <screen id="2" beanClass="com.install4j.runtime.beans.screens.WelcomeScreen" styleId="232">
             <actions>
-              <action id="3" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" multiExec="true" failureStrategy="askRetryQuit">
+              <action id="3" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" multiExec="true" failureStrategy="ask">
                 <serializedBean>
                   <property name="excludedVariables" type="array" elementType="string" length="1">
                     <element index="0">sys.installationDir</element>
@@ -159,7 +159,7 @@ return console.askOkCancel(message, true);
           <screen id="4" beanClass="com.install4j.runtime.beans.screens.InstallationDirectoryScreen">
             <condition>!context.getBooleanVariable("sys.confirmedUpdateInstallation")</condition>
             <actions>
-              <action id="5" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" multiExec="true" failureStrategy="askRetryQuit">
+              <action id="5" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" multiExec="true" failureStrategy="ask">
                 <serializedBean>
                   <property name="excludedVariables" type="array" elementType="string" length="1">
                     <element index="0">sys.installationDir</element>
@@ -254,7 +254,7 @@ return console.askOkCancel(message, true);
           <screen id="8" beanClass="com.install4j.runtime.beans.screens.InstallationScreen" rollbackBarrier="true">
             <actions>
               <action id="118" beanClass="com.install4j.runtime.beans.actions.UninstallPreviousAction" />
-              <action id="9" beanClass="com.install4j.runtime.beans.actions.InstallFilesAction" actionElevationType="elevated" failureStrategy="askRetryQuit" errorMessage="${i18n:FileCorrupted}" />
+              <action id="9" beanClass="com.install4j.runtime.beans.actions.InstallFilesAction" actionElevationType="elevated" failureStrategy="ask" errorMessage="${i18n:FileCorrupted}" />
               <action id="10" beanClass="com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction" actionElevationType="elevated">
                 <serializedBean>
                   <property name="addUninstaller" type="boolean" value="true" />
@@ -315,7 +315,7 @@ return console.askOkCancel(message, true);
                   <property name="launcherId" type="string">25</property>
                   <property name="vmOptions" type="array" elementType="string" length="2">
                     <element index="0">-XX:+UseZGC</element>
-                    <element index="1">-XX:+ZGenerational</element>
+                    <element index="1">-XX:+UseCompactObjectHeaders</element>
                   </property>
                 </serializedBean>
                 <condition>Double.parseDouble(System.getProperty("os.version")) &gt;= 10.0</condition>
@@ -323,8 +323,9 @@ return console.askOkCancel(message, true);
               <action id="824" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
                 <serializedBean>
                   <property name="launcherId" type="string">25</property>
-                  <property name="vmOptions" type="array" elementType="string" length="1">
+                  <property name="vmOptions" type="array" elementType="string" length="2">
                     <element index="0">-XX:+UseG1GC</element>
+                    <element index="1">-XX:+UseCompactObjectHeaders</element>
                   </property>
                 </serializedBean>
                 <condition>Double.parseDouble(System.getProperty("os.version")) &lt; 10.0</condition>
@@ -374,7 +375,7 @@ return console.askOkCancel(message, true);
             <actions>
               <action id="20" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" />
               <action id="21" beanClass="com.install4j.runtime.beans.actions.misc.RequireInstallerPrivilegesAction" actionElevationType="none" />
-              <action id="807" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" actionElevationType="none" rollbackBarrierExitCode="0" failureStrategy="askQuit">
+              <action id="807" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" actionElevationType="none" rollbackBarrierExitCode="0" failureStrategy="ask" failureAskRetry="false">
                 <serializedBean>
                   <property name="additionalExecutables" type="array" class="java.io.File" length="3">
                     <element index="0">
@@ -706,11 +707,7 @@ return console.askYesNo(message, true);
   </installerGui>
   <mediaSets>
     <windows name="Windows" id="26" installDir="${compiler:sys.fullName}" architecture="64">
-      <exclude>
-        <entry location="lib/faf-uid" />
-        <entry location="lib/uid" />
-      </exclude>
-      <jreBundle usePack200="false" jreBundleSource="preCreated" includedJre="windows-amd64-21.0.1" directDownload="true" />
+      <jreBundle usePack200="false" jreBundleSource="preCreated" includedJre="windows-amd64-25" />
     </windows>
     <windowsArchive name="Windows Archive" id="330" installDir="faf-client-${compiler:sys.version}" architecture="64">
       <exclude>

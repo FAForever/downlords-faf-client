@@ -2,22 +2,30 @@ import com.install4j.gradle.Install4jTask
 import org.gradle.internal.os.OperatingSystem
 
 plugins {
-  id("org.springframework.boot") version "3.5.6"
-  id("io.spring.dependency-management") version "1.1.7"
-  id("com.install4j.gradle") version "11.0.1"
-  id("de.undercouch.download") version "5.6.0"
-  id("jacoco")
-  id("java")
-  id("distribution")
-  id("me.champeau.jmh") version "0.7.3"
-  id("io.github.sheikah45.fx2j") version "0.1.0"
-  id("com.adarshr.test-logger") version "4.0.0"
-  id("org.openjfx.javafxplugin") version "0.1.0"
+    id("org.springframework.boot") version "3.5.6"
+    id("io.spring.dependency-management") version "1.1.7"
+    id("com.install4j.gradle") version "11.0.1"
+    id("de.undercouch.download") version "5.6.0"
+    id("jacoco")
+    id("java")
+    id("distribution")
+    id("idea")
+    id("me.champeau.jmh") version "0.7.3"
+    id("io.github.sheikah45.fx2j") version "0.1.0"
+    id("com.adarshr.test-logger") version "4.0.0"
+    id("org.openjfx.javafxplugin") version "0.1.0"
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_21
-  targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
 }
 
 // These are read from gradle.properties
@@ -29,81 +37,82 @@ bootJar.enabled = false
 jar.enabled = true
 
 if (javafxPlatform == "unspecified") {
-  switch (OperatingSystem.current()) {
-    case OperatingSystem.LINUX:
-      project.ext.javafxPlatform = "linux"
-      break
-    case OperatingSystem.MAC_OS:
-      String arch = System.getProperty("os.arch")
-      if (arch == "aarch64") {
-        project.ext.javafxPlatform = "mac-aarch64"
-      } else {
-        project.ext.javafxPlatform = "mac"
-      }
-      break
-    case OperatingSystem.WINDOWS:
-      project.ext.javafxPlatform = "win"
-      break
-  }
+    switch (OperatingSystem.current()) {
+        case OperatingSystem.LINUX:
+            project.ext.javafxPlatform = "linux"
+            break
+        case OperatingSystem.MAC_OS:
+            String arch = System.getProperty("os.arch")
+            if (arch == "aarch64") {
+                project.ext.javafxPlatform = "mac-aarch64"
+            } else {
+                project.ext.javafxPlatform = "mac"
+            }
+            break
+        case OperatingSystem.WINDOWS:
+            project.ext.javafxPlatform = "win"
+            break
+    }
 }
 println "Platform is: ${javafxPlatform}"
 
 compileJava.dependsOn(processResources)
 processResources {
-  filesMatching('**/application.yml') {
-    filter {
-      it.replace('#faf-client.version#', project.version.toString())
+    filesMatching('**/application.yml') {
+        filter {
+            it.replace('#faf-client.version#', project.version.toString())
+        }
     }
-  }
 }
 
 configurations {
-  compile.exclude module: "assertj-core"
+    compile.exclude module: "assertj-core"
 }
 
 jacocoTestReport {
-  reports {
-    xml.getRequired().set(true)
-    html.getRequired().set(false)
-  }
-}
-
-test {
-  useJUnitPlatform()
-  dependsOn("fx2jJar")
-  systemProperties = [
-          'junit.jupiter.execution.parallel.enabled': true
-  ]
-  testLogging {
-    exceptionFormat = 'full'
-  }
-
-  maxHeapSize = "1024m"
+    reports {
+        xml.getRequired().set(true)
+        html.getRequired().set(false)
+    }
 }
 
 configurations {
-  codacy
+    codacy
+    mockitoAgent
+}
+
+test {
+    useJUnitPlatform()
+    dependsOn("fx2jJar")
+    systemProperties = [
+            'junit.jupiter.execution.parallel.enabled': true
+    ]
+    testLogging {
+        exceptionFormat = 'full'
+    }
+
+    maxHeapSize = "1024m"
 }
 
 distributions {
-  main {
-    contents {
-      from {
-        [
-                configurations.runtimeClasspath,
-                jar,
-                downloadIceAdapter.outputs.files,
-                downloadUnixUid.outputs.files,
-                downloadWindowsUid.outputs.files
-        ]
-      }
-      exclude('**/i4jruntime*.jar')
+    main {
+        contents {
+            from {
+                [
+                        configurations.runtimeClasspath,
+                        jar,
+                        downloadIceAdapter.outputs.files,
+                        downloadUnixUid.outputs.files,
+                        downloadWindowsUid.outputs.files
+                ]
+            }
+            exclude('**/i4jruntime*.jar')
+        }
     }
-  }
 }
 
 bootRun {
-  mainClass = "com.faforever.client.Main"
+    mainClass = "com.faforever.client.Main"
     jvmArgs = [
             "-DnativeDir=build/resources/native",
             "-Dprism.forceGPU=true",
@@ -121,196 +130,206 @@ bootRun {
 }
 
 jar {
-  manifest {
-    attributes "Main-Class": "com.faforever.client.Main",
-        "Implementation-Title": "FAF Client",
-        "Implementation-Version": archiveVersion,
-        "Implementation-Vendor": "Forged Alliance Forever"
-  }
+    manifest {
+        attributes "Main-Class": "com.faforever.client.Main",
+                "Implementation-Title": "FAF Client",
+                "Implementation-Version": archiveVersion,
+                "Implementation-Vendor": "Forged Alliance Forever"
+    }
 }
 
 install4j {
-  if (project.hasProperty('install4jHomeDir')) {
-    installDir = file(install4jHomeDir)
-  }
-  if (project.hasProperty('install4jLicense')) {
-    license = install4jLicense
-  }
+    if (project.hasProperty('install4jHomeDir')) {
+        installDir = file(install4jHomeDir)
+    }
+    if (project.hasProperty('install4jLicense')) {
+        license = install4jLicense
+    }
 }
 
 fx2j {
-  modularizeIfPossible = false
-  basePackage = "com.faforever.client.fx2j"
-  strict = true
+    modularizeIfPossible = false
+    basePackage = "com.faforever.client.fx2j"
+    strict = true
 }
 
 testlogger {
-  theme = "standard-parallel"
-  showFullStackTraces = false
-  showPassed = false
-  showStandardStreams = false
+    theme = "standard-parallel"
+    showFullStackTraces = false
+    showPassed = false
+    showStandardStreams = false
 }
 
 tasks.register('buildInstall4jMediaFiles', Install4jTask) {
-  group "distribution"
-  description 'Creates install4j media files'
-  dependsOn 'installDist', "fx2jJar"
+    group "distribution"
+    description 'Creates install4j media files'
+    dependsOn 'installDist', "fx2jJar"
 
-  projectFile = file('faf-client.install4j')
-  release = version
+    projectFile = file('faf-client.install4j')
+    release = version
 
-  switch (project.ext.javafxPlatform) {
-    case "linux":
-      mediaTypes = ['unixInstaller', 'unixArchive']
-      break
-    case "mac":
-      mediaTypes = ['macos', 'macosFolder', 'macosArchive', 'macosFolderArchive']
-      break
-    case "win":
-      mediaTypes = ['windows', 'windowsArchive']
-      break
-  }
-
-  it.doFirst {
-    println "Building version ${version}"
-    if (!project.hasProperty('install4jHomeDir')) {
-      throw new RuntimeException('Specify install4jHomeDir in gradle.properties and set it to an install4j installation directory')
+    switch (project.ext.javafxPlatform) {
+        case "linux":
+            mediaTypes = ['unixInstaller', 'unixArchive']
+            break
+        case "mac":
+            mediaTypes = ['macos', 'macosFolder', 'macosArchive', 'macosFolderArchive']
+            break
+        case "win":
+            mediaTypes = ['windows', 'windowsArchive']
+            break
     }
-  }
+
+    it.doFirst {
+        println "Building version ${version}"
+        if (!project.hasProperty('install4jHomeDir')) {
+            throw new RuntimeException('Specify install4jHomeDir in gradle.properties and set it to an install4j installation directory')
+        }
+    }
 }
 
 tasks.register('downloadIceAdapter', Download) {
-  group "native dependencies"
-  src "https://github.com/FAForever/java-ice-adapter/releases/download/${iceAdapterVersion}/faf-ice-adapter-${iceAdapterVersion}-nojfx.jar"
-  dest file("${buildDir}/resources/native/faf-ice-adapter.jar")
-  onlyIfNewer true
+    group "native dependencies"
+    src "https://github.com/FAForever/java-ice-adapter/releases/download/${iceAdapterVersion}/faf-ice-adapter-${iceAdapterVersion}-nojfx.jar"
+    dest file("${buildDir}/resources/native/faf-ice-adapter.jar")
+    onlyIfNewer true
 }
 
 tasks.register('downloadUnixUid', Download) {
-  group "native dependencies"
-  src "https://github.com/FAForever/uid/releases/download/v4.0.4/faf-uid"
-  dest file("${buildDir}/resources/native/faf-uid")
-  onlyIfNewer true
-  it.doLast {
-    file("${buildDir}/resources/native/faf-uid").setExecutable(true, false)
-  }
+    group "native dependencies"
+    src "https://github.com/FAForever/uid/releases/download/v4.0.4/faf-uid"
+    dest file("${buildDir}/resources/native/faf-uid")
+    onlyIfNewer true
+    it.doLast {
+        file("${buildDir}/resources/native/faf-uid").setExecutable(true, false)
+    }
 }
 
 tasks.register('downloadWindowsUid', Download) {
-  group "native dependencies"
-  src "https://github.com/FAForever/uid/releases/download/v4.0.4/faf-uid.exe"
-  dest file("${buildDir}/resources/native/faf-uid.exe")
-  onlyIfNewer true
+    group "native dependencies"
+    src "https://github.com/FAForever/uid/releases/download/v4.0.4/faf-uid.exe"
+    dest file("${buildDir}/resources/native/faf-uid.exe")
+    onlyIfNewer true
 }
 
 tasks.register('downloadNativeDependencies') {
-  dependsOn downloadUnixUid, downloadWindowsUid, downloadIceAdapter
-  group "native dependencies"
+    dependsOn downloadUnixUid, downloadWindowsUid, downloadIceAdapter
+    group "native dependencies"
 }
 
 compileJava.dependsOn 'downloadNativeDependencies'
 
 tasks.register('sendCoverageToCodacy', JavaExec) {
-  dependsOn jacocoTestReport
-  mainClass = "com.codacy.CodacyCoverageReporter"
-  classpath = configurations.codacy
-  args = ["-l", "Java", "-r", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"]
+    dependsOn jacocoTestReport
+    mainClass = "com.codacy.CodacyCoverageReporter"
+    classpath = configurations.codacy
+    args = ["-l", "Java", "-r", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"]
 }
 
 repositories {
-  mavenCentral()
-  maven { url "https://jitpack.io" }
-  maven { url 'https://maven.ej-technologies.com/repository' }
+    mavenCentral()
+    maven { url "https://jitpack.io" }
+    maven { url 'https://maven.ej-technologies.com/repository' }
 }
 
 javafx {
-  version = "21.0.7"
-  modules = [
-          "javafx.base", "javafx.controls", "javafx.graphics", "javafx.swing", "javafx.fxml", "javafx.web", "javafx.media"
-  ]
-  if (project.ext.useJfxFromProperties) {
-    println "Using javaFxPlatform from properties ${project.ext.javafxPlatform}"
-    platform = project.ext.javafxPlatform
-  }
+    version = "25"
+    modules = [
+            "javafx.base", "javafx.controls", "javafx.graphics", "javafx.swing", "javafx.fxml", "javafx.web", "javafx.media"
+    ]
+    if (project.ext.useJfxFromProperties) {
+        println "Using javaFxPlatform from properties ${project.ext.javafxPlatform}"
+        platform = project.ext.javafxPlatform
+    }
 }
 
 dependencies {
-  implementation("org.springframework.boot:spring-boot-starter")
-  implementation("org.springframework.boot:spring-boot-starter-cache")
-  implementation("org.springframework.boot:spring-boot-starter-logging")
-  implementation("org.springframework.boot:spring-boot-starter-websocket")
-  implementation("org.springframework.boot:spring-boot-starter-webflux")
-  implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-  implementation("org.springframework:spring-web")
-  implementation("org.springframework:spring-websocket")
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation("org.springframework.boot:spring-boot-starter-logging")
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+    implementation("org.springframework:spring-web")
+    implementation("org.springframework:spring-websocket")
 
-  implementation("io.projectreactor.addons:reactor-extra")
-  implementation("io.projectreactor:reactor-tools")
+    implementation("io.projectreactor.addons:reactor-extra")
+    implementation("io.projectreactor:reactor-tools")
 
-  def commonsVersion = "07e30bcb925ff34273a9a4eb08c8c506b13d5d78"
+    def commonsVersion = "07e30bcb925ff34273a9a4eb08c8c506b13d5d78"
 
-  implementation("com.github.faforever.faf-java-commons:data:${commonsVersion}") {
-            exclude module: 'guava'
-          }
-  implementation("com.github.faforever.faf-java-commons:api:${commonsVersion}")
-  implementation("com.github.faforever.faf-java-commons:lobby:${commonsVersion}")
-  implementation("com.google.guava:guava:33.5.0-jre")
-  implementation("org.apache.commons:commons-compress:1.28.0")
-  implementation("net.java.dev.jna:jna:5.18.0")
-  implementation("net.java.dev.jna:jna-platform:5.18.0")
-  implementation("org.jetbrains:annotations:26.0.2-1")
-  implementation("com.neovisionaries:nv-i18n:1.29")
-  implementation("org.luaj:luaj-jse:3.0.1")
-  implementation("commons-validator:commons-validator:1.10.0") {
-    exclude module: 'commons-logging'
-  }
-  implementation("com.github.micheljung:JJsonRpc:01a7fba5f4")
-  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-  implementation("com.github.rutledgepaulv:q-builders:1.6")
-  implementation("com.github.nsp:JSkills:8b333ec63d")
-  implementation("com.github.jasminb:jsonapi-converter:0.14")
-  implementation("javax.annotation:javax.annotation-api:1.3.2")
-  implementation("com.github.ben-manes.caffeine:caffeine")
-  implementation("io.github.micheljung:fxstage:0.8.3")
-  implementation("io.github.micheljung:jfx-waitomo-theme:0.3.0")
-  implementation("org.kitteh.irc:client-lib:9.0.0")
-  def mapstructVersion = "1.6.3"
-  implementation("org.mapstruct:mapstruct:${mapstructVersion}")
-  implementation("com.code-disaster.steamworks4j:steamworks4j:1.9.0")
+    implementation("com.github.faforever.faf-java-commons:data:${commonsVersion}") {
+        exclude module: 'guava'
+    }
+    implementation("com.github.faforever.faf-java-commons:api:${commonsVersion}")
+    implementation("com.github.faforever.faf-java-commons:lobby:${commonsVersion}")
+    implementation("com.google.guava:guava:33.5.0-jre")
+    implementation("org.apache.commons:commons-compress:1.28.0")
+    implementation("net.java.dev.jna:jna:5.18.0")
+    implementation("net.java.dev.jna:jna-platform:5.18.0")
+    implementation("org.jetbrains:annotations:26.0.2-1")
+    implementation("com.neovisionaries:nv-i18n:1.29")
+    implementation("org.luaj:luaj-jse:3.0.1")
+    implementation("commons-validator:commons-validator:1.10.0") {
+        exclude module: 'commons-logging'
+    }
+    implementation("com.github.micheljung:JJsonRpc:01a7fba5f4")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("com.github.rutledgepaulv:q-builders:1.6")
+    implementation("com.github.nsp:JSkills:8b333ec63d")
+    implementation("com.github.jasminb:jsonapi-converter:0.14")
+    implementation("javax.annotation:javax.annotation-api:1.3.2")
+    implementation("com.github.ben-manes.caffeine:caffeine")
+    implementation("io.github.micheljung:fxstage:0.8.3")
+    implementation("io.github.micheljung:jfx-waitomo-theme:0.3.0")
+    implementation("org.kitteh.irc:client-lib:9.0.0")
+    def mapstructVersion = "1.6.3"
+    implementation("org.mapstruct:mapstruct:${mapstructVersion}")
+    implementation("com.code-disaster.steamworks4j:steamworks4j:1.9.0")
 
-  implementation("com.github.1-alex98:discord-rpc:1.6.2-jna")
-  implementation("org.controlsfx:controlsfx:11.2.2")
-  implementation("de.codecentric.centerdevice:javafxsvg:1.3.0") {
-    exclude module: 'commons-logging'
-  }
-  implementation("org.fxmisc.flowless:flowless:0.7.4")
+    implementation("com.github.1-alex98:discord-rpc:1.6.2-jna")
+    implementation("org.controlsfx:controlsfx:11.2.2")
+    implementation("de.codecentric.centerdevice:javafxsvg:1.3.0") {
+        exclude module: 'commons-logging'
+    }
+    implementation("org.fxmisc.flowless:flowless:0.7.4")
 
-  implementation("org.javassist:javassist:3.30.2-GA")
-  implementation("org.checkerframework:checker-qual:3.51.0")
+    implementation("org.javassist:javassist:3.30.2-GA")
+    implementation("org.checkerframework:checker-qual:3.51.0")
 
-  implementation("io.github.sheikah45.fx2j:fx2j-api:0.1.0")
-  implementation("com.install4j:install4j-runtime:11.0.1")
+    implementation("io.github.sheikah45.fx2j:fx2j-api:0.1.0")
+    implementation("com.install4j:install4j-runtime:11.0.1")
 
-  testImplementation("org.instancio:instancio-junit:5.5.1")
-  testImplementation("com.squareup.okhttp3:okhttp:5.1.0")
-  testImplementation("com.squareup.okhttp3:mockwebserver:5.1.0")
-  testImplementation("io.projectreactor:reactor-test")
-  testImplementation("org.testfx:testfx-core:4.0.18") {
-    exclude module: 'guava'
-  }
-  testImplementation("io.projectreactor.netty:reactor-netty")
-  testImplementation("org.testfx:testfx-junit5:4.0.18")
-  testImplementation("com.natpryce.hamcrest:hamcrest-reflection:0.1-2")
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.instancio:instancio-junit:5.5.1")
+    testImplementation("com.squareup.okhttp3:okhttp:5.1.0")
+    testImplementation("com.squareup.okhttp3:mockwebserver:5.1.0")
+    testImplementation("io.projectreactor:reactor-test")
+    testImplementation("org.testfx:testfx-core:4.0.18") {
+        exclude module: 'guava'
+    }
+    testImplementation("io.projectreactor.netty:reactor-netty")
+    testImplementation("org.testfx:testfx-junit5:4.0.18")
+    testImplementation("com.natpryce.hamcrest:hamcrest-reflection:0.1-2")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  annotationProcessor("org.projectlombok:lombok")
-  annotationProcessor("org.mapstruct:mapstruct-processor:${mapstructVersion}")
-  testAnnotationProcessor("org.projectlombok:lombok")
-  testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")
-  compileOnly("org.projectlombok:lombok")
-  testCompileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    annotationProcessor("org.projectlombok:lombok")
+    annotationProcessor("org.mapstruct:mapstruct-processor:${mapstructVersion}")
+    testAnnotationProcessor("org.projectlombok:lombok")
+    testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")
+    compileOnly("org.projectlombok:lombok")
+    testCompileOnly("org.projectlombok:lombok")
 
-  codacy("com.github.codacy:codacy-coverage-reporter:-SNAPSHOT")
+    mockitoAgent("org.mockito:mockito-core") {
+        transitive = false
+    }
+
+    codacy("com.github.codacy:codacy-coverage-reporter:-SNAPSHOT")
+}
+
+tasks {
+    test {
+        jvmArgs += "-javaagent:${configurations.mockitoAgent.asPath}"
+    }
 }

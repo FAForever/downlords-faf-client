@@ -44,8 +44,8 @@ public class SvgImageLoader extends ImageLoaderImpl {
   }
 
   @Override
-  public ImageFrame load(int imageIndex, int width, int height, boolean preserveAspectRatio, boolean smooth)
-      throws IOException {
+  public ImageFrame load(int imageIndex, double width, double height, boolean preserveAspectRatio, boolean smooth,
+                         float screenPixelScale, float imagePixelScale) throws IOException {
     if (0 != imageIndex) {
       return null;
     }
@@ -53,11 +53,11 @@ public class SvgImageLoader extends ImageLoaderImpl {
     Document document = createDocument();
     Dimension fallbackDimension = (width <= 0 || height <= 0) ? dimensionProvider.getDimension(document) : null;
 
-    float imageWidth = width > 0 ? width : fallbackDimension.getWidth();
-    float imageHeight = height > 0 ? height : fallbackDimension.getHeight();
+    double imageWidth = width > 0 ? width : fallbackDimension.getWidth();
+    double imageHeight = height > 0 ? height : fallbackDimension.getHeight();
 
     try {
-      return createImageFrame(document, imageWidth, imageHeight, getPixelScale());
+      return createImageFrame(document, (float) imageWidth, (float) imageHeight, getPixelScale());
     } catch (TranscoderException ex) {
       throw new IOException(ex);
     }
@@ -83,17 +83,16 @@ public class SvgImageLoader extends ImageLoaderImpl {
     return maxRenderScale;
   }
 
-  private ImageFrame createImageFrame(Document document, float width, float height, float pixelScale)
-      throws TranscoderException {
+  private ImageFrame createImageFrame(Document document, float width, float height,
+                                      float pixelScale) throws TranscoderException {
     BufferedImage bufferedImage = getTranscodedImage(document, width * pixelScale, height * pixelScale);
     ByteBuffer imageData = getImageData(bufferedImage);
 
     return new FixedPixelDensityImageFrame(ImageStorage.ImageType.RGBA, imageData, bufferedImage.getWidth(),
-        bufferedImage.getHeight(), getStride(bufferedImage), null, pixelScale, null);
+                                           bufferedImage.getHeight(), getStride(bufferedImage), null, pixelScale, null);
   }
 
-  private BufferedImage getTranscodedImage(Document document, float width, float height)
-      throws TranscoderException {
+  private BufferedImage getTranscodedImage(Document document, float width, float height) throws TranscoderException {
     BufferedImageTranscoder trans = new BufferedImageTranscoder(BufferedImage.TYPE_INT_ARGB);
     trans.addTranscodingHint(KEY_WIDTH, width);
     trans.addTranscodingHint(KEY_HEIGHT, height);
@@ -108,7 +107,7 @@ public class SvgImageLoader extends ImageLoaderImpl {
 
   private ByteBuffer getImageData(BufferedImage bufferedImage) {
     int[] rgb = bufferedImage.getRGB(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight(), null, 0,
-        bufferedImage.getWidth());
+                                     bufferedImage.getWidth());
 
     byte[] imageData = new byte[getStride(bufferedImage) * bufferedImage.getHeight()];
 

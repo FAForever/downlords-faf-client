@@ -12,14 +12,6 @@ public final class Assert {
     throw new AssertionError("Not instantiatable");
   }
 
-  public static void checkNullArgument(Object object, String message) {
-    if (object == null) {
-      IllegalArgumentException exception = new IllegalArgumentException(message);
-      log.warn(message, exception);
-      throw exception;
-    }
-  }
-
   public static void checkNullIllegalState(Object object, String message) {
     if (object == null) {
       IllegalStateException exception = new IllegalStateException(message);

@@ -255,7 +255,7 @@ public class ModService implements InitializingBean, DisposableBean {
   public Mono<Void> downloadAndEnableMods(Set<String> modUids) {
     return Mono.when(modUids.stream().map(uid -> downloadIfNecessary(uid).doOnError(throwable -> {
           log.warn("Unable to install mod with uid {}", uid);
-    })).toList()).doOnSuccess(ignored -> tryEnableMods(modUids));
+    })).toList()).doOnSuccess(_ -> tryEnableMods(modUids));
   }
 
   private void tryEnableMods(Set<String> modUids) {
