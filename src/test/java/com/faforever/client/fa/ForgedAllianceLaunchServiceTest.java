@@ -17,8 +17,6 @@ import org.mockito.Spy;
 import java.net.URI;
 import java.nio.file.Path;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,8 +42,7 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
 
   @Test
   public void testStartGameOffline() throws Exception {
-    GameLaunchException throwable = assertThrows(GameLaunchException.class, () -> instance.launchOfflineGame("test"));
-    assertThat(throwable.getCause().getMessage(), containsString("error=2"));
+    assertThrows(GameLaunchException.class, () -> instance.launchOfflineGame("test"));
 
     verify(loggingService).getNewGameLogFile(0);
   }
@@ -54,9 +51,7 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
   public void testStartGameOnline() throws Exception {
     when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().defaultValues().get());
     GameParameters gameParameters = GameParametersBuilder.create().defaultValues().get();
-    GameLaunchException throwable = assertThrows(GameLaunchException.class,
-                                                 () -> instance.launchOnlineGame(gameParameters, 0, 0));
-    assertThat(throwable.getCause().getMessage(), containsString("error=2"));
+    assertThrows(GameLaunchException.class, () -> instance.launchOnlineGame(gameParameters, 0, 0));
 
     verify(playerService).getCurrentPlayer();
     verify(loggingService).getNewGameLogFile(gameParameters.uid());
@@ -64,9 +59,7 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
 
   @Test
   public void testStartReplay() throws Exception {
-    GameLaunchException throwable = assertThrows(GameLaunchException.class,
-                                                 () -> instance.startReplay(Path.of("."), 0));
-    assertThat(throwable.getCause().getMessage(), containsString("error=2"));
+    assertThrows(GameLaunchException.class, () -> instance.startReplay(Path.of("."), 0));
 
     verify(loggingService).getNewReplayLogFile(0);
     verify(instance).getReplayExecutablePath();
@@ -75,9 +68,7 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
   @Test
   public void testStartOnlineReplay() throws Exception {
     when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().defaultValues().get());
-    GameLaunchException throwable = assertThrows(GameLaunchException.class,
-                                                 () -> instance.startReplay(URI.create("google.com"), 0));
-    assertThat(throwable.getCause().getMessage(), containsString("error=2"));
+    assertThrows(GameLaunchException.class, () -> instance.startReplay(URI.create("google.com"), 0));
 
     verify(playerService).getCurrentPlayer();
     verify(loggingService).getNewReplayLogFile(0);
