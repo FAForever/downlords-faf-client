@@ -1,11 +1,9 @@
 package com.faforever.client.preferences.ui;
 
 import ch.qos.logback.classic.Level;
-import com.faforever.client.api.IceServer;
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
-import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
@@ -26,6 +24,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.DateInfo;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.IceAdapterPrefs;
 import com.faforever.client.preferences.LocalizationPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -51,14 +50,12 @@ import javafx.beans.WeakInvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableSet;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
@@ -81,9 +78,7 @@ import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
@@ -104,7 +99,6 @@ public class SettingsController extends NodeController<Node> {
   private final ClientProperties clientProperties;
   private final ClientUpdateService clientUpdateService;
   private final TaskService taskService;
-  private final CoturnService coturnService;
   private final VaultPathHandler vaultPathHandler;
   private final Preferences preferences;
   private final ObjectFactory<MoveDirectoryTask> moveDirectoryTaskFactory;
@@ -112,6 +106,7 @@ public class SettingsController extends NodeController<Node> {
   private final ObjectFactory<DownloadFAFDebuggerTask> downloadFAFDebuggerTaskFactory;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final GamePathHandler gamePathHandler;
+  private final IceAdapterPrefs iceAdapterPrefs;
 
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
@@ -126,8 +121,9 @@ public class SettingsController extends NodeController<Node> {
   public CheckBox autoDownloadMapsToggle;
   public CheckBox relativePathsToggle;
   public CheckBox useFAFDebuggerToggle;
-  public CheckBox allowIpv6Toggle;
-  public CheckBox showIceAdapterDebugWindowToggle;
+  public CheckBox iceForceTurnRelayToggle;
+  public CheckBox iceConsentLogSharingToggle;
+  public CheckBox iceDebugLoggingToggle;
   public TextField maxMessagesTextField;
   public CheckBox imagePreviewToggle;
   public CheckBox enableNotificationsToggle;
@@ -175,7 +171,6 @@ public class SettingsController extends NodeController<Node> {
   public Spinner<Integer> gameDataCacheTimeSpinner;
   public ComboBox<Level> logLevelComboBox;
   public CheckBox mapAndModAutoUpdateCheckBox;
-  public ListView<IceServer> preferredCoturnListView;
 
   private final SimpleChangeListener<Theme> selectedThemeChangeListener = this::onThemeChanged;
   private final SimpleChangeListener<Theme> currentThemeChangeListener = newValue -> themeComboBox.getSelectionModel()
@@ -230,7 +225,6 @@ public class SettingsController extends NodeController<Node> {
     configureStartTab();
 
     initAutoChannelListView();
-    initPreferredCoturnListView();
     initUnitDatabaseSelection();
     initNotifyMeOnAtMention();
     initGameDataCache();
@@ -289,8 +283,6 @@ public class SettingsController extends NodeController<Node> {
     backgroundImageLocation.textProperty()
         .bindBidirectional(preferences.getMainWindow().backgroundImagePathProperty(), PATH_STRING_CONVERTER);
 
-    advancedIceLogToggle.selectedProperty().bindBidirectional(preferences.advancedIceLogEnabledProperty());
-
     prereleaseToggle.selectedProperty().bindBidirectional(preferences.preReleaseCheckEnabledProperty());
     prereleaseToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
       if (Boolean.TRUE.equals(newValue) && (!Boolean.TRUE.equals(oldValue))) {
@@ -314,9 +306,9 @@ public class SettingsController extends NodeController<Node> {
     autoDownloadMapsToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.autoDownloadMapsProperty());
     relativePathsToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.relativeGamePathsProperty());
     useFAFDebuggerToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.runFAWithDebuggerProperty());
-    allowIpv6Toggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.allowIpv6Property());
-    showIceAdapterDebugWindowToggle.selectedProperty()
-        .bindBidirectional(forgedAlliancePrefs.showIceAdapterDebugWindow());
+    iceForceTurnRelayToggle.selectedProperty().bindBidirectional(iceAdapterPrefs.forceTurnRelayProperty());
+    iceConsentLogSharingToggle.selectedProperty().bindBidirectional(iceAdapterPrefs.consentLogSharingProperty());
+    iceDebugLoggingToggle.selectedProperty().bindBidirectional(iceAdapterPrefs.enableDebugLoggingProperty());
     vaultLocationTextField.textProperty()
         .bindBidirectional(forgedAlliancePrefs.vaultBaseDirectoryProperty(), PATH_STRING_CONVERTER);
     JavaFxUtil.addAndTriggerListener(vaultLocationTextField.textProperty(), (observable) ->
@@ -331,42 +323,6 @@ public class SettingsController extends NodeController<Node> {
     executableDecoratorField.textProperty().bindBidirectional(forgedAlliancePrefs.executableDecoratorProperty());
     executionDirectoryField.textProperty()
         .bindBidirectional(forgedAlliancePrefs.executionDirectoryProperty(), PATH_STRING_CONVERTER);
-  }
-
-  private void initPreferredCoturnListView() {
-    coturnService.getActiveCoturns()
-                 .collectList()
-                 .map(FXCollections::observableList)
-                 .publishOn(fxApplicationThreadExecutor.asScheduler())
-                 .subscribe(coturnServers -> {
-                   preferredCoturnListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-                   preferredCoturnListView.setItems(FXCollections.observableList(coturnServers));
-                   preferredCoturnListView.setCellFactory(
-                       param -> new StringListCell<>(IceServer::region, fxApplicationThreadExecutor));
-                   Map<String, IceServer> hostPortCoturnServerMap = coturnServers.stream()
-                                                                                 .collect(
-                                                                                     Collectors.toMap(IceServer::id,
-                                                                                                      Function.identity()));
-
-                   ObservableSet<String> preferredCoturnServers = preferences.getForgedAlliance()
-                                                                             .getPreferredCoturnIds();
-
-                   preferredCoturnServers.stream()
-                                         .filter(hostPortCoturnServerMap::containsKey)
-                                         .map(hostPortCoturnServerMap::get)
-                                         .forEach(coturnServer -> preferredCoturnListView.getSelectionModel()
-                                                                                         .select(coturnServer));
-
-                   JavaFxUtil.addAndTriggerListener(preferredCoturnListView.getSelectionModel().getSelectedItems(),
-                                                    observable -> {
-                                                      List<IceServer> selectedCoturns = preferredCoturnListView.getSelectionModel()
-                                                                                                               .getSelectedItems();
-                                                      preferredCoturnServers.clear();
-                                                      selectedCoturns.stream()
-                                                                     .map(IceServer::id)
-                                                                     .forEach(preferredCoturnServers::add);
-                                                    });
-                 });
   }
 
   private void initAutoChannelListView() {

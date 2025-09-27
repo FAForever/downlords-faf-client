@@ -72,6 +72,9 @@ public class Preferences {
   private final FiltersPrefs filters = new FiltersPrefs();
   @JsonMerge
   @Getter
+  private final IceAdapterPrefs iceAdapter = new IceAdapterPrefs();
+  @JsonMerge
+  @Getter
   private final ReplayHistoryPrefs replayHistory = new ReplayHistoryPrefs();
 
   private final StringProperty themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
@@ -86,7 +89,6 @@ public class Preferences {
   private final ObjectProperty<UnitDataBaseType> unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.SPOOKY);
   private final BooleanProperty disallowJoinsViaDiscord = new SimpleBooleanProperty();
   private final BooleanProperty showGameDetailsSidePane = new SimpleBooleanProperty(false);
-  private final BooleanProperty advancedIceLogEnabled = new SimpleBooleanProperty(false);
   private final IntegerProperty cacheLifeTimeInDays = new SimpleIntegerProperty(30);
   private final BooleanProperty gameDataCacheActivated = new SimpleBooleanProperty(false);
 
@@ -174,18 +176,6 @@ public class Preferences {
 
   public void setShowGameDetailsSidePane(boolean showGameDetailsSidePane) {
     this.showGameDetailsSidePane.set(showGameDetailsSidePane);
-  }
-
-  public boolean isAdvancedIceLogEnabled() {
-    return advancedIceLogEnabled.get();
-  }
-
-  public void setAdvancedIceLogEnabled(boolean advancedIceLogEnabled) {
-    this.advancedIceLogEnabled.set(advancedIceLogEnabled);
-  }
-
-  public BooleanProperty advancedIceLogEnabledProperty() {
-    return advancedIceLogEnabled;
   }
 
   public BooleanProperty showGameDetailsSidePaneProperty() {

@@ -42,6 +42,7 @@ public final class CacheNames {
   public static final String MATCHMAKER_POOLS = "matchmakerPools";
   public static final String MODERATION_REPORTS = "moderationReports";
   public static final String COTURN = "coturn";
+  public static final String ICE_ADAPTER = "iceAdapter";
 
   private CacheNames() {
     throw new AssertionError("Not instantiatable");

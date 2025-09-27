@@ -1,9 +1,7 @@
 package com.faforever.client.preferences.ui;
 
-import com.faforever.client.api.IceServer;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
-import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.GameService;
@@ -14,6 +12,7 @@ import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.IceAdapterPrefs;
 import com.faforever.client.preferences.LanguageChannel;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -33,7 +32,6 @@ import javafx.beans.property.ReadOnlySetWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleSetProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableSet;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -44,7 +42,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.beans.factory.ObjectFactory;
 import org.testfx.util.WaitForAsyncUtils;
-import reactor.core.publisher.Flux;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -59,8 +56,6 @@ import java.util.concurrent.CompletableFuture;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -100,8 +95,6 @@ public class SettingsControllerTest extends PlatformTest {
   @Mock
   private TaskService taskService;
   @Mock
-  private CoturnService coturnService;
-  @Mock
   private VaultPathHandler vaultPathHandler;
   @Mock
   private ObjectFactory<MoveDirectoryTask> moveDirectoryTaskFactory;
@@ -115,6 +108,8 @@ public class SettingsControllerTest extends PlatformTest {
   private IceServerMapper iceServerMapper = Mappers.getMapper(IceServerMapper.class);
   @Spy
   private Preferences preferences;
+  @Spy
+  private IceAdapterPrefs iceAdapterPrefs;
   private SimpleSetProperty<Locale> availableLanguages;
 
   @BeforeEach
@@ -126,7 +121,6 @@ public class SettingsControllerTest extends PlatformTest {
     lenient().when(themeService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(themeService.getCurrentTheme()).thenReturn(FIRST_THEME);
     lenient().when(themeService.getAvailableThemes()).thenReturn(Arrays.asList(FIRST_THEME, SECOND_THEME));
-    lenient().when(coturnService.getActiveCoturns()).thenReturn(Flux.just(new IceServer("0", "Test")));
 
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     lenient().when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
@@ -225,24 +219,6 @@ public class SettingsControllerTest extends PlatformTest {
     preferences.getChat().getAutoJoinChannels().setAll(expected);
 
     assertThat(instance.autoChannelListView.getItems(), is(expected));
-  }
-
-  @Test
-  public void testCoturnSelected() throws Exception {
-    ObservableSet<String> preferredCoturnServers = preferences.getForgedAlliance().getPreferredCoturnIds();
-    preferredCoturnServers.clear();
-    runOnFxThreadAndWait(() -> reinitialize(instance));
-
-    assertEquals(0, preferredCoturnServers.size());
-
-    runOnFxThreadAndWait(() -> instance.preferredCoturnListView.getSelectionModel().select(0));
-
-    assertEquals(1, preferredCoturnServers.size());
-    assertTrue(preferredCoturnServers.contains("0"));
-
-    runOnFxThreadAndWait(() -> reinitialize(instance));
-
-    assertEquals(1, instance.preferredCoturnListView.getSelectionModel().getSelectedItems().size());
   }
 
   @Test

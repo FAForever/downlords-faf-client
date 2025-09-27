@@ -17,6 +17,7 @@ public class DataPrefs {
   private static final String THEMES_SUB_FOLDER = "themes";
   private static final String LANGUAGES_SUB_FOLDER = "languages";
   public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
+  public static final String ICE_ADAPTER_EXECUTABLE_SUB_DIRECTORY = "ice_adapter";
 
   private final ObjectProperty<Path> baseDataDirectory = new SimpleObjectProperty<>();
 
@@ -74,5 +75,9 @@ public class DataPrefs {
 
   public Path getMapGeneratorDirectory() {
     return getBaseDataDirectory().resolve(GENERATOR_EXECUTABLE_SUB_DIRECTORY);
+  }
+
+  public Path getIceAdapterDirectory() {
+    return getBaseDataDirectory().resolve(ICE_ADAPTER_EXECUTABLE_SUB_DIRECTORY);
   }
 }

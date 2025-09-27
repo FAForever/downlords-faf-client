@@ -53,6 +53,17 @@ faf-client:
     maxSupportedMajorVersion: 1
     minSupportedMajorVersion: 0
 
+  ice-adapter:
+    repoAndOwnerName: FAForever/faf-pioneer
+    queryLatestVersionUrl: https://api.github.com/repos/${faf-client.ice-adapter.repoAndOwnerName}/releases/latest
+    queryVersionsUrl: https://api.github.com/repos/${faf-client.ice-adapter.repoAndOwnerName}/releases
+    downloadUrlFormat: https://github.com/${faf-client.ice-adapter.repoAndOwnerName}/releases/download/%1$s/faf-pioneer-%1$s-%2$s
+    linuxSuffix: linux-amd64
+    windowsSuffix: windows-amd64.exe
+    macosSuffix: darwin-amd64
+    maxSupportedMajorVersion: 1
+    minSupportedMajorVersion: 0
+
   faf-debugger:
     repoAndOwnerName: FAForever/FADeepProbe
     queryLatestVersionUrl: https://api.github.com/repos/${faf-client.faf-debugger.repoAndOwnerName}/releases/latest

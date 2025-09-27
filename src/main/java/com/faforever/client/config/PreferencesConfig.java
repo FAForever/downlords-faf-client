@@ -9,6 +9,7 @@ import com.faforever.client.preferences.FiltersPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.GeneralPrefs;
 import com.faforever.client.preferences.GeneratorPrefs;
+import com.faforever.client.preferences.IceAdapterPrefs;
 import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.preferences.LiveReplaySearchPrefs;
 import com.faforever.client.preferences.LocalizationPrefs;
@@ -170,6 +171,9 @@ public class PreferencesConfig implements DisposableBean {
   public FiltersPrefs filters() {
     return preferences().getFilters();
   }
+
+  @Bean
+  public IceAdapterPrefs iceAdapterPrefs() {return preferences().getIceAdapter();}
 
   @Bean
   public ReplayHistoryPrefs replayHistory() {return preferences().getReplayHistory();}

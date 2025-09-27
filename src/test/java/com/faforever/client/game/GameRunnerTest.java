@@ -13,8 +13,9 @@ import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameParameters;
-import com.faforever.client.fa.relay.ice.CoturnService;
-import com.faforever.client.fa.relay.ice.IceAdapter;
+import com.faforever.client.fa.relay.gpg.GPGNetServer;
+import com.faforever.client.fa.relay.gpg.LobbyInitMode;
+import com.faforever.client.fa.relay.ice.IceAdapterService;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ObservableConstant;
@@ -71,7 +72,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -107,7 +107,7 @@ public class GameRunnerTest extends ServiceTest {
   @Mock
   private ReplayServer replayServer;
   @Mock
-  private IceAdapter iceAdapter;
+  private GPGNetServer gpgNetServer;
   @Mock
   private ModService modService;
   @Mock
@@ -131,11 +131,11 @@ public class GameRunnerTest extends ServiceTest {
   @Mock
   private Process process;
   @Mock
-  private CoturnService coturnService;
-  @Mock
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Mock
   private GamePathHandler gamePathHandler;
+  @Mock
+  private IceAdapterService iceAdapterService;
   @Spy
   private GameMapper gameMapper = Mappers.getMapper(GameMapper.class);
   @Spy
@@ -161,14 +161,13 @@ public class GameRunnerTest extends ServiceTest {
       return null;
     }).when(fxApplicationThreadExecutor).execute(any());
     lenient().when(fafServerAccessor.getEvents(NoticeInfo.class)).thenReturn(testNoticePublisher.flux());
-    lenient().when(coturnService.getIceSession(anyInt()))
-             .thenReturn(Mono.just(new IceSession("someSessionId", false, List.of())));
     lenient().when(preferencesService.hasValidGamePath()).thenReturn(true);
     lenient().when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(replayServer.start(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
-    lenient().when(iceAdapter.start(anyInt(), anyBoolean())).thenReturn(completedFuture(GPG_PORT));
+    lenient().when(gpgNetServer.start(anyInt(), any(LobbyInitMode.class))).thenReturn(completedFuture(GPG_PORT));
     lenient().when(playerService.getCurrentPlayer()).thenReturn(junitPlayer);
     lenient().when(process.pid()).thenReturn(10L);
+    lenient().when(iceAdapterService.getNewest()).thenReturn(Mono.empty());
 
     lenient().doAnswer(invocation -> {
       try {
@@ -191,9 +190,7 @@ public class GameRunnerTest extends ServiceTest {
     }
     lenient().when(forgedAllianceLaunchService.launchOnlineGame(any(), anyInt(), anyInt())).thenReturn(process);
     lenient().when(replayServer.start(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
-    lenient().when(iceAdapter.start(anyInt(), anyBoolean())).thenReturn(completedFuture(GPG_PORT));
-    lenient().when(coturnService.getIceSession(anyInt()))
-             .thenReturn(Mono.just(new IceSession("someSessionId", false, List.of())));
+    lenient().when(gpgNetServer.start(anyInt(), any(LobbyInitMode.class))).thenReturn(completedFuture(GPG_PORT));
     lenient().when(process.onExit()).thenReturn(new CompletableFuture<>());
     lenient().when(process.exitValue()).thenReturn(0);
     lenient().when(process.isAlive()).thenReturn(true);
@@ -222,9 +219,7 @@ public class GameRunnerTest extends ServiceTest {
     verify(leaderboardService, never()).getActiveLeagueEntryForPlayer(any(), any());
     verify(mapService, never()).downloadIfNecessary(any());
     verify(replayServer).start(uid);
-    verify(iceAdapter).start(uid, false);
-    verify(coturnService).getIceSession(uid);
-    verify(iceAdapter).setIceServers(anyCollection());
+    verify(gpgNetServer).start(uid, LobbyInitMode.NORMAL);
     assertTrue(instance.isRunning());
     assertEquals(uid, instance.getRunningGame().getId());
     assertEquals(10L, instance.getRunningProcessId());
@@ -234,7 +229,7 @@ public class GameRunnerTest extends ServiceTest {
 
     exitFuture.complete(process);
 
-    verify(iceAdapter).stop();
+    verify(gpgNetServer).stop();
     verify(replayServer).stop();
     verify(fafServerAccessor).notifyGameEnded();
     verify(fafServerAccessor).setPingIntervalSeconds(25);
@@ -365,7 +360,7 @@ public class GameRunnerTest extends ServiceTest {
 
     testNoticePublisher.next(new NoticeInfo("kill", "test"));
 
-    verify(iceAdapter).stop();
+    verify(gpgNetServer).stop();
     verify(process).destroy();
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }

@@ -10,8 +10,9 @@ import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameParameters;
 import com.faforever.client.fa.GameParameters.League;
-import com.faforever.client.fa.relay.ice.CoturnService;
-import com.faforever.client.fa.relay.ice.IceAdapter;
+import com.faforever.client.fa.relay.gpg.GPGNetServer;
+import com.faforever.client.fa.relay.gpg.LobbyInitMode;
+import com.faforever.client.fa.relay.ice.IceAdapterService;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.PlatformService;
@@ -45,6 +46,7 @@ import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.lobby.GameJoinFailedException;
 import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.NoticeInfo;
 import com.google.common.annotations.VisibleForTesting;
 import jakarta.annotation.Nullable;
@@ -95,7 +97,6 @@ public class GameRunner implements InitializingBean {
 
   private final FafServerAccessor fafServerAccessor;
   private final ForgedAllianceLaunchService forgedAllianceLaunchService;
-  private final CoturnService coturnService;
   private final MapService mapService;
   private final PreferencesService preferencesService;
   private final LoggingService loggingService;
@@ -104,7 +105,7 @@ public class GameRunner implements InitializingBean {
   private final UiService uiService;
   private final I18n i18n;
   private final PlayerService playerService;
-  private final IceAdapter iceAdapter;
+  private final GPGNetServer gpgNetServer;
   private final ModService modService;
   private final FeaturedModService featuredModService;
   private final PlatformService platformService;
@@ -118,6 +119,7 @@ public class GameRunner implements InitializingBean {
   private final NotificationPrefs notificationPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final LogAnalyzerService logAnalyzerService;
+  private final IceAdapterService iceAdapterService;
 
   private final MaskPatternLayout logMasker = new MaskPatternLayout();
   private final SimpleObjectProperty<Integer> runningGameId = new SimpleObjectProperty<>();
@@ -186,11 +188,12 @@ public class GameRunner implements InitializingBean {
     CompletableFuture<League> leagueFuture = hasLeague ? completedFuture(null) : getDivisionInfo(
         leaderboard).toFuture();
     CompletableFuture<Integer> startReplayServerFuture = replayServer.start(uid);
-    CompletableFuture<Integer> startIceAdapterFuture = startIceAdapter(uid);
+    CompletableFuture<Integer> gpgServerFuture = gpgNetServer.start(uid,
+                                                                    gameLaunchResponse.getGameType() == GameType.MATCHMAKER ? LobbyInitMode.AUTO : LobbyInitMode.NORMAL);
 
-    return CompletableFuture.allOf(downloadMapFuture, leagueFuture, startIceAdapterFuture, startReplayServerFuture)
+    return CompletableFuture.allOf(downloadMapFuture, leagueFuture, startReplayServerFuture, gpgServerFuture)
                             .thenApply(ignored -> gameMapper.map(gameLaunchResponse, leagueFuture.join()))
-                            .thenApply(parameters -> launchOnlineGame(parameters, startIceAdapterFuture.join(),
+                            .thenApply(parameters -> launchOnlineGame(parameters, gpgServerFuture.join(),
                                                                       startReplayServerFuture.join()))
                             .whenCompleteAsync((process, throwable) -> {
                               if (process != null) {
@@ -201,7 +204,7 @@ public class GameRunner implements InitializingBean {
                             .thenCompose(Process::onExit)
                             .thenAccept(this::handleTermination)
                             .whenComplete((ignored, throwable) -> {
-                              iceAdapter.stop();
+                              gpgNetServer.stop();
                               replayServer.stop();
                               fafServerAccessor.notifyGameEnded();
                             })
@@ -222,7 +225,8 @@ public class GameRunner implements InitializingBean {
         null) : modService.downloadAndEnableMods(simModUids).toFuture();
     CompletableFuture<Void> downloadMapFuture = mapFolderName == null || mapFolderName.isBlank() ? completedFuture(
         null) : mapService.downloadIfNecessary(mapFolderName).toFuture();
-    return CompletableFuture.allOf(updateFeaturedModFuture, installSimModsFuture, downloadMapFuture)
+    CompletableFuture<Void> downloadIceAdapter = iceAdapterService.getNewest().toFuture();
+    return CompletableFuture.allOf(updateFeaturedModFuture, installSimModsFuture, downloadMapFuture, downloadIceAdapter)
                             .thenCompose(ignored -> gameLaunchSupplier.get())
                             .thenCompose(this::startOnlineGame);
   }
@@ -388,15 +392,6 @@ public class GameRunner implements InitializingBean {
     fafServerAccessor.setTimeoutLoginReconnectSeconds(5);
     gameKilled = false;
     return forgedAllianceLaunchService.launchOnlineGame(gameParameters, gpgPort, replayPort);
-  }
-
-  private CompletableFuture<Integer> startIceAdapter(int uid) {
-    return coturnService.getIceSession(uid)
-                        .toFuture()
-                        .thenCompose(session -> iceAdapter.start(uid, session.forceRelay()).thenApply(result -> {
-                          iceAdapter.setIceServers(session.servers());
-                          return result;
-                        }));
   }
 
   private Mono<League> getDivisionInfo(String leaderboard) {
