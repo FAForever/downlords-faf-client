@@ -50,6 +50,8 @@ public class ReplayRunnerTest extends ServiceTest {
   private ReplayRunner instance;
 
   @Mock
+  private LiveReplayProxyServer liveReplayProxyServer;
+  @Mock
   private ForgedAllianceLaunchService forgedAllianceLaunchService;
   @Mock
   private MapService mapService;
@@ -79,9 +81,6 @@ public class ReplayRunnerTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    clientProperties.getReplay().setRemoteHost("localhost");
-    clientProperties.getReplay().setRemotePort(15000);
-
     lenient().when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().defaultValues().get());
     lenient().doAnswer(invocation -> {
       invocation.getArgument(0, Runnable.class).run();

@@ -25,16 +25,16 @@ jobs:
     environment: deploy
     runs-on: ubuntu-latest
     env:
-      INSTALL4J_DIR: "install4j/install4j11.0.1"
+      INSTALL4J_DIR: "install4j/install4j11.0.5"
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@v3
         with:
           distribution: "temurin"
-          java-version: 21.0.1
+          java-version: 25
           cache: 'gradle'
 
       - name: Grant execute permission for gradlew
@@ -87,13 +87,13 @@ jobs:
       - name: Download Install4j
         run: |
           mkdir -p "$HOME/install4j"
-          curl https://content.faforever.com/build/install4j_linux-x64_11_0_1.tar.gz -o "$HOME/install4j/install4j.tar.gz"
+          curl https://content.faforever.com/build/install4j_linux-x64_11_0_5.tar.gz -o "$HOME/install4j/install4j.tar.gz"
           tar xzf "$HOME/install4j/install4j.tar.gz" -C "$HOME/install4j"
 
       - name: Download Bundled JRE
         run: |
-          mkdir -p "$HOME/.local/share/install4j/v10/jres"
-          curl https://content.faforever.com/build/jre/windows-amd64-21.0.1.tar.gz -o "$HOME/.local/share/install4j/v10/jres/windows-amd64-21.0.1.tar.gz"
+          mkdir -p "$HOME/.local/share/install4j/v11/jres"
+          curl https://content.faforever.com/build/jre/windows-amd64-25.tar.gz -o "$HOME/.local/share/install4j/v11/jres/windows-amd64-25.tar.gz"
 
       - name: Build Windows Files
         run: |

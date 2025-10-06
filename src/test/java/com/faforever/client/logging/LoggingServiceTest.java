@@ -19,6 +19,7 @@ import static org.mockito.Mockito.when;
 public class LoggingServiceTest extends ServiceTest {
 
   private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d*)?.log");
+  private static final Pattern REPLAY_LOG_PATTERN = Pattern.compile("replay(_\\d*)?.log");
 
   @InjectMocks
   private LoggingService instance;
@@ -34,6 +35,11 @@ public class LoggingServiceTest extends ServiceTest {
   @Test
   public void testGetNewLogFile() throws Exception {
     assertTrue(GAME_LOG_PATTERN.matcher(instance.getNewGameLogFile(0).getFileName().toString()).matches());
+  }
+
+  @Test
+  public void testGetNewReplayLogFile() throws Exception {
+    assertTrue(REPLAY_LOG_PATTERN.matcher(instance.getNewReplayLogFile(0).getFileName().toString()).matches());
   }
 
   @Test

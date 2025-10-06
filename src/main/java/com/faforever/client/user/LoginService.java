@@ -51,7 +51,7 @@ public class LoginService implements InitializingBean {
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    tokenRetriever.invalidationFlux().doOnNext(ignored -> {
+    tokenRetriever.invalidationFlux().doOnNext(_ -> {
       if (loggedIn.get()) {
         notificationService.addImmediateInfoNotification("session.expired.message");
         logOut();

@@ -841,7 +841,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       chatChannel.maxNumMessagesProperty().bind(chatPrefs.maxMessagesProperty());
       Subscription unreadMessagesSubscription = chatChannel.numUnreadMessagesProperty()
                                                            .subscribe(this::incrementUnreadMessagesCount);
-      channelSubscriptions.computeIfAbsent(chatChannel, ignored -> ConcurrentHashMap.newKeySet())
+      channelSubscriptions.computeIfAbsent(chatChannel, _ -> ConcurrentHashMap.newKeySet())
                           .add(unreadMessagesSubscription);
       return chatChannel;
     });

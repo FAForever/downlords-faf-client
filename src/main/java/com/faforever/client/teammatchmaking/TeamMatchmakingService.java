@@ -159,8 +159,8 @@ public class TeamMatchmakingService implements InitializingBean {
                      .map(GameLaunchResponse::getGameType)
                      .filter(GameType.MATCHMAKER::equals)
                      .publishOn(fxApplicationThreadExecutor.asScheduler())
-                     .doOnNext(ignored -> changeLabelForQueues(MatchingStatus.GAME_LAUNCHING))
-                     .doOnNext(ignored -> matchFoundAndWaitingForGameLaunch.set(false))
+                     .doOnNext(_ -> changeLabelForQueues(MatchingStatus.GAME_LAUNCHING))
+                     .doOnNext(_ -> matchFoundAndWaitingForGameLaunch.set(false))
                      .doOnError(throwable -> log.error("Error processing game launch response", throwable))
                      .retry()
                      .subscribe();
@@ -195,11 +195,11 @@ public class TeamMatchmakingService implements InitializingBean {
                      .subscribe();
 
     fafServerAccessor.getEvents(MatchmakerMatchFoundResponse.class)
-                     .doOnNext(ignored -> matchFoundAndWaitingForGameLaunch.set(true))
-                     .doOnNext(ignored -> notifyMatchFound())
+                     .doOnNext(_ -> matchFoundAndWaitingForGameLaunch.set(true))
+                     .doOnNext(_ -> notifyMatchFound())
                      .publishOn(fxApplicationThreadExecutor.asScheduler())
-                     .doOnNext(ignored -> queues.forEach(matchmakingQueue -> matchmakingQueue.setMatchingStatus(null)))
-                     .doOnNext(ignored -> searching.set(false))
+                     .doOnNext(_ -> queues.forEach(matchmakingQueue -> matchmakingQueue.setMatchingStatus(null)))
+                     .doOnNext(_ -> searching.set(false))
                      .doOnNext(this::setFoundStatusForQueue)
                      .doOnError(throwable -> log.error("Error processing found response", throwable))
                      .retry()
@@ -207,11 +207,11 @@ public class TeamMatchmakingService implements InitializingBean {
 
     fafServerAccessor.getEvents(MatchmakerMatchCancelledResponse.class)
                      .publishOn(fxApplicationThreadExecutor.asScheduler())
-                     .doOnNext(ignored -> changeLabelForQueues(MatchingStatus.MATCH_CANCELLED))
+                     .doOnNext(_ -> changeLabelForQueues(MatchingStatus.MATCH_CANCELLED))
                      .publishOn(Schedulers.single())
                      .doOnError(throwable -> log.error("Error handling cancelled response", throwable))
-                     .doOnNext(ignored -> matchFoundAndWaitingForGameLaunch.set(false))
-                     .doOnNext(ignored -> gameRunner.stopSearchMatchmaker())
+                     .doOnNext(_ -> matchFoundAndWaitingForGameLaunch.set(false))
+                     .doOnNext(_ -> gameRunner.stopSearchMatchmaker())
                      .retry()
                      .subscribe();
 

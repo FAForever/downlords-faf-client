@@ -57,9 +57,9 @@ public class NotificationService {
   public void removeNotification(Notification notification) {
     switch (notification) {
       case PersistentNotification persistentNotification -> persistentNotifications.remove(persistentNotification);
-      case ImmediateNotification ignored -> {}
-      case ServerNotification ignored -> {}
-      case TransientNotification ignored -> {}
+      case ImmediateNotification _ -> {}
+      case ServerNotification _ -> {}
+      case TransientNotification _ -> {}
     }
   }
 

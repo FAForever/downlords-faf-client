@@ -12,7 +12,6 @@ import com.faforever.client.domain.api.Replay.ChatMessage;
 import com.faforever.client.domain.api.Replay.GameOption;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -101,7 +100,6 @@ public class ReplayService {
   private final LoginService loginService;
   private final ReplayFileReader replayFileReader;
   private final NotificationService notificationService;
-  private final GameService gameService;
   private final ReplayRunner replayRunner;
   private final TaskService taskService;
   private final I18n i18n;
@@ -234,7 +232,7 @@ public class ReplayService {
       CompletableFuture<MapVersion> mapVersionFuture = mapService.findByMapFolderName(replayMetadata.getMapname())
                                                                  .toFuture();
 
-      return CompletableFuture.allOf(featuredModFuture, mapVersionFuture).thenApply(ignoredVoid -> {
+      return CompletableFuture.allOf(featuredModFuture, mapVersionFuture).thenApply(_ -> {
         MapVersion mapVersion = mapVersionFuture.join();
         FeaturedMod featuredMod = featuredModFuture.join();
         if (mapVersion == null) {

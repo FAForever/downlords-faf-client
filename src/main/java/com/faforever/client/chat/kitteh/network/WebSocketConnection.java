@@ -89,32 +89,24 @@ public final class WebSocketConnection implements ClientConnection {
               })
               .websocket()
               .uri(URI.create("wss://%s:%d".formatted(serverAddress.getHost(), serverAddress.getPort())))
-              .connect()
-              .doOnNext(connection -> {
-                Mono<Void> inbound = connection.inbound()
-                                               .receive()
-                                               .asString(StandardCharsets.UTF_8)
-                                               .doOnNext(message -> {
-                                                 this.client.getInputListener().queue(message);
-                                                 this.client.processLine(message);
-                                                 this.lastMessage = message;
-                                               })
-                                               .doOnError(this::handleException)
-                                               .then();
+              .handle((inbound, outbound) -> {
+                outbound.sendString(outboundMessages.doOnNext(message -> this.client.getOutputListener().queue(message))
+                                                    .doOnError(this::handleException))
+                        .then()
+                        .subscribeOn(Schedulers.single())
+                        .subscribe();
 
-                Mono<Void> outbound = connection.outbound()
-                                                .sendString(outboundMessages.doOnNext(
-                                                                                message -> this.client.getOutputListener().queue(message))
-                                                                            .doOnError(this::handleException))
-                                                .neverComplete();
-
-                Mono.firstWithSignal(inbound, outbound).subscribeOn(Schedulers.single()).subscribe();
+                return inbound.receive().asString(StandardCharsets.UTF_8).doOnError(this::handleException);
               })
-              .subscribe();
+              .subscribe(message -> {
+                this.client.getInputListener().queue(message);
+                this.client.processLine(message);
+                this.lastMessage = message;
+              });
   }
 
   private void scheduleReconnect(int delay) {
-    Mono.delay(Duration.ofMillis(delay)).doOnNext(ignored -> this.client.connect()).subscribe();
+    Mono.delay(Duration.ofMillis(delay)).doOnNext(_ -> this.client.connect()).subscribe();
   }
 
   private void handleException(Throwable thrown) {
@@ -133,7 +125,7 @@ public final class WebSocketConnection implements ClientConnection {
 
   @Override
   public void startPing() {
-    this.ping = Flux.interval(Duration.ofSeconds(60)).doOnNext(ignored -> this.client.ping()).subscribe();
+    this.ping = Flux.interval(Duration.ofSeconds(60)).doOnNext(_ -> this.client.ping()).subscribe();
   }
 
   @Override

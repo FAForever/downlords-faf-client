@@ -14,10 +14,6 @@ public class Action {
   @Getter
   private final Type type;
 
-  public Action(Runnable onAction) {
-    this(null, Type.OK_DONE, onAction);
-  }
-
   /**
    * Creates an onAction that calls the specified callback when executed. Also, a type is specified that
    */

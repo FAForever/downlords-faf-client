@@ -112,7 +112,7 @@ public class PlayerService implements InitializingBean {
             removePlayer(newPlayer);
           }
         });
-        playerSubscriptions.computeIfAbsent(newPlayer, ignored -> ConcurrentHashMap.newKeySet())
+        playerSubscriptions.computeIfAbsent(newPlayer, _ -> ConcurrentHashMap.newKeySet())
                            .add(removeSubscription);
         playersByName.put(newPlayer.getUsername(), newPlayer);
         return playerMapper.update(playerInfo, newPlayer);
@@ -132,7 +132,7 @@ public class PlayerService implements InitializingBean {
                      removePlayer(newPlayer);
                    }
                  });
-                 playerSubscriptions.computeIfAbsent(newPlayer, ignored -> ConcurrentHashMap.newKeySet()).add(removeSubscription);
+                 playerSubscriptions.computeIfAbsent(newPlayer, _ -> ConcurrentHashMap.newKeySet()).add(removeSubscription);
                  return newPlayer;
                })
                .doOnNext(playerBean -> {

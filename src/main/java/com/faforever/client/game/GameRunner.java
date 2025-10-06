@@ -189,7 +189,7 @@ public class GameRunner implements InitializingBean {
     CompletableFuture<Integer> startIceAdapterFuture = startIceAdapter(uid);
 
     return CompletableFuture.allOf(downloadMapFuture, leagueFuture, startIceAdapterFuture, startReplayServerFuture)
-                            .thenApply(ignored -> gameMapper.map(gameLaunchResponse, leagueFuture.join()))
+                            .thenApply(_ -> gameMapper.map(gameLaunchResponse, leagueFuture.join()))
                             .thenApply(parameters -> launchOnlineGame(parameters, startIceAdapterFuture.join(),
                                                                       startReplayServerFuture.join()))
                             .whenCompleteAsync((process, throwable) -> {
@@ -200,12 +200,12 @@ public class GameRunner implements InitializingBean {
                             }, fxApplicationThreadExecutor)
                             .thenCompose(Process::onExit)
                             .thenAccept(this::handleTermination)
-                            .whenComplete((ignored, throwable) -> {
+                            .whenComplete((_, _) -> {
                               iceAdapter.stop();
                               replayServer.stop();
                               fafServerAccessor.notifyGameEnded();
                             })
-                            .whenCompleteAsync((ignored, throwable) -> {
+                            .whenCompleteAsync((_, _) -> {
                               process.set(null);
                               runningGameId.set(null);
                             }, fxApplicationThreadExecutor);
@@ -223,7 +223,7 @@ public class GameRunner implements InitializingBean {
     CompletableFuture<Void> downloadMapFuture = mapFolderName == null || mapFolderName.isBlank() ? completedFuture(
         null) : mapService.downloadIfNecessary(mapFolderName).toFuture();
     return CompletableFuture.allOf(updateFeaturedModFuture, installSimModsFuture, downloadMapFuture)
-                            .thenCompose(ignored -> gameLaunchSupplier.get())
+                            .thenCompose(_ -> gameLaunchSupplier.get())
                             .thenCompose(this::startOnlineGame);
   }
 
@@ -348,7 +348,7 @@ public class GameRunner implements InitializingBean {
     matchmakerFuture = prepareAndLaunchGameWhenReady(FAF.getTechnicalName(), Set.of(), null,
                                                      fafServerAccessor::startSearchMatchmaker);
 
-    matchmakerFuture.whenComplete((ignored, throwable) -> {
+    matchmakerFuture.whenComplete((_, throwable) -> {
       if (throwable != null) {
         throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
         if (throwable instanceof CancellationException) {
@@ -519,8 +519,8 @@ public class GameRunner implements InitializingBean {
         TUTORIALS.getTechnicalName(), false);
 
     CompletableFuture.allOf(updateTutorialFuture, downloadMapFuture)
-                     .thenApply(ignored -> forgedAllianceLaunchService.launchOfflineGame(technicalMapName))
-                     .whenCompleteAsync((process, throwable) -> {
+                     .thenApply(_ -> forgedAllianceLaunchService.launchOfflineGame(technicalMapName))
+                     .whenCompleteAsync((process, _) -> {
                        if (process != null) {
                          this.process.set(process);
                        }

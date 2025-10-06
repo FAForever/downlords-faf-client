@@ -6,8 +6,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -31,10 +29,6 @@ public class AddEditPlayerNoteMenuItemTest extends PlatformTest {
   @BeforeEach
   public void setUp() throws Exception {
     instance = new AddEditPlayerNoteMenuItem(uiService, playerService, i18n);
-  }
-
-  protected Pane getRoot() {
-    return new StackPane();
   }
 
   @Test

@@ -168,7 +168,7 @@ public class ServerAccessorTest extends ServiceTest {
 
     mockApi.enqueue(new MockResponse()
                         .setBody(objectMapper.writeValueAsString(
-                            new LobbyAccess("http://localhost:%d".formatted(disposableServer.port()))))
+                            new HmacAccess("http://localhost:%d".formatted(disposableServer.port()))))
                         .addHeader("Content-Type", "application/json;charset=utf-8"));
 
     instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenRetriever, uidService,
