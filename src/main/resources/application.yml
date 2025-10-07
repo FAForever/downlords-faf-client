@@ -18,7 +18,7 @@ faf-client:
     twitch: https://twitch.tv/faflive
     patreon: https://www.patreon.com/faf
     twitter: https://twitter.com/FAFOfficial_
-    wiki: https://wikijs.faforever.com/
+    wiki: https://wiki.faforever.com/
 
   help-links:
     soundIssues: https://forum.faforever.com/topic/4084/solutions-for-snd-error-xact-invalid-arg-xact3dapply-failed

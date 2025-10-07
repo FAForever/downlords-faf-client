@@ -91,7 +91,7 @@ public class ForgedAllianceLaunchService {
 
     List<String> launchCommand = replayLaunchCommand().replayFile(path)
         .replayId(checkedReplayId)
-        .logFile(loggingService.getNewGameLogFile(checkedReplayId))
+        .logFile(loggingService.getNewReplayLogFile(checkedReplayId))
         .build();
 
     return launch(launchCommand);
@@ -101,7 +101,7 @@ public class ForgedAllianceLaunchService {
   public Process startReplay(URI replayUri, Integer replayId) {
     List<String> launchCommand = replayLaunchCommand().replayUri(replayUri)
         .replayId(replayId)
-        .logFile(loggingService.getNewGameLogFile(replayId))
+        .logFile(loggingService.getNewReplayLogFile(replayId))
         .username(playerService.getCurrentPlayer().getUsername())
         .build();
 

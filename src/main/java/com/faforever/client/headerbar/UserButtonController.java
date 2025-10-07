@@ -65,7 +65,7 @@ public class UserButtonController extends NodeController<Node> {
   }
 
   public void onCopyAccessToken() {
-    tokenRetriever.getAccessToken().publishOn(fxApplicationThreadExecutor.asScheduler()).subscribe(accessToken -> {
+    tokenRetriever.getRefreshedTokenValue().publishOn(fxApplicationThreadExecutor.asScheduler()).subscribe(accessToken -> {
       log.info("Copied access token to clipboard");
       ClipboardUtil.copyToClipboard(accessToken);
     });

@@ -7,7 +7,6 @@ import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.LoginService;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import org.apache.commons.compress.compressors.CompressorException;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -34,7 +33,7 @@ public class FileOpeningHandlerTest extends ServiceTest {
   private FileOpeningHandler instance;
 
   @Test
-  public void testRunLocalReplay() throws IOException, CompressorException {
+  public void testRunLocalReplay() throws IOException {
     ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
     when(loginService.connectionStateProperty()).thenReturn(connectionState);
 

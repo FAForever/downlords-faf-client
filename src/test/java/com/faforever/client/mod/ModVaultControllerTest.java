@@ -34,8 +34,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Mono;
 
-import java.net.MalformedURLException;
-import java.time.LocalDate;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -45,8 +43,8 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class ModVaultControllerTest extends PlatformTest {
 
@@ -90,32 +88,32 @@ public class ModVaultControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(modService.getNewestModsWithPageCount(anyInt(), anyInt())).thenReturn(
+    lenient().when(modService.getNewestModsWithPageCount(anyInt(), anyInt())).thenReturn(
         Mono.zip(Mono.just(List.of()), Mono.just(0)));
-    when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(
+    lenient().when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(
         Mono.zip(Mono.just(List.of()), Mono.just(0)));
-    when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(
+    lenient().when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(
         Mono.zip(Mono.just(List.of()), Mono.just(0)));
-    when(i18n.get(anyString())).thenReturn("test");
-    when(modDetailController.getRoot()).thenReturn(new Pane());
-    when(searchController.addBinaryFilter(anyString(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(binaryFilterController);
-    when(binaryFilterController.firstSelectedProperty()).thenReturn(new SimpleBooleanProperty());
-    when(binaryFilterController.secondSelectedProperty()).thenReturn(new SimpleBooleanProperty());
-    when(searchController.addTextFilter(anyString(), anyString(), anyBoolean())).thenReturn(textFilterController);
-    when(textFilterController.textFieldProperty()).thenReturn(new SimpleStringProperty());
-    when(searchController.addRangeFilter(anyString(), anyString(), anyDouble(), anyDouble(), anyInt(), anyInt(), anyInt())).thenReturn(rangeFilterController);
-    when(searchController.addRangeFilter(anyString(), anyString(), anyDouble(), anyDouble(), anyInt(), anyInt(), anyInt(), any())).thenReturn(rangeFilterController);
-    when(rangeFilterController.lowValueProperty()).thenReturn(new SimpleDoubleProperty());
-    when(rangeFilterController.highValueProperty()).thenReturn(new SimpleDoubleProperty());
-    when(searchController.addToggleFilter(anyString(), anyString(), anyString())).thenReturn(toggleFilterController);
-    when(toggleFilterController.selectedProperty()).thenReturn(new SimpleBooleanProperty());
-    when(searchController.addDateRangeFilter(anyString(), anyString(), anyInt())).thenReturn(dateRangeFilterController);
-    when(dateRangeFilterController.beforeDateProperty()).thenReturn(new SimpleObjectProperty<LocalDate>());
-    when(dateRangeFilterController.afterDateProperty()).thenReturn(new SimpleObjectProperty<LocalDate>());
+    lenient().when(i18n.get(anyString())).thenReturn("test");
+    lenient().when(modDetailController.getRoot()).thenReturn(new Pane());
+    lenient().when(searchController.addBinaryFilter(anyString(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(binaryFilterController);
+    lenient().when(binaryFilterController.firstSelectedProperty()).thenReturn(new SimpleBooleanProperty());
+    lenient().when(binaryFilterController.secondSelectedProperty()).thenReturn(new SimpleBooleanProperty());
+    lenient().when(searchController.addTextFilter(anyString(), anyString(), anyBoolean())).thenReturn(textFilterController);
+    lenient().when(textFilterController.textFieldProperty()).thenReturn(new SimpleStringProperty());
+    lenient().when(searchController.addRangeFilter(anyString(), anyString(), anyDouble(), anyDouble(), anyInt(), anyInt(), anyInt())).thenReturn(rangeFilterController);
+    lenient().when(searchController.addRangeFilter(anyString(), anyString(), anyDouble(), anyDouble(), anyInt(), anyInt(), anyInt(), any())).thenReturn(rangeFilterController);
+    lenient().when(rangeFilterController.lowValueProperty()).thenReturn(new SimpleDoubleProperty());
+    lenient().when(rangeFilterController.highValueProperty()).thenReturn(new SimpleDoubleProperty());
+    lenient().when(searchController.addToggleFilter(anyString(), anyString(), anyString())).thenReturn(toggleFilterController);
+    lenient().when(toggleFilterController.selectedProperty()).thenReturn(new SimpleBooleanProperty());
+    lenient().when(searchController.addDateRangeFilter(anyString(), anyString(), anyInt())).thenReturn(dateRangeFilterController);
+    lenient().when(dateRangeFilterController.beforeDateProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(dateRangeFilterController.afterDateProperty()).thenReturn(new SimpleObjectProperty<>());
 
-    when(uiService.loadFxml("theme/vault/mod/mod_detail.fxml")).thenReturn(modDetailController);
+    lenient().when(uiService.loadFxml("theme/vault/mod/mod_detail.fxml")).thenReturn(modDetailController);
 
-    when(modService.getRecommendedModPageCount(VaultEntityController.TOP_ELEMENT_COUNT)).thenReturn(Mono.just(0));
+    lenient().when(modService.getRecommendedModPageCount(VaultEntityController.TOP_ELEMENT_COUNT)).thenReturn(Mono.just(0));
 
     loadFxml("theme/vault/vault_entity.fxml", clazz -> {
       if (SearchController.class.isAssignableFrom(clazz)) {
@@ -152,7 +150,7 @@ public class ModVaultControllerTest extends PlatformTest {
 
   @Test
   @Disabled("Flaky Test")
-  public void testShowModDetail() throws MalformedURLException {
+  public void testShowModDetail() {
     ModVersion modVersion = Instancio.create(ModVersion.class);
     runOnFxThreadAndWait(() -> instance.onDisplayDetails(modVersion));
 

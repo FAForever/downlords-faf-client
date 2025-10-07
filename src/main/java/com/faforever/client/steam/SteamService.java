@@ -7,10 +7,14 @@ import com.faforever.client.preferences.Preferences;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+
+import static com.faforever.client.FafClientApplication.PROFILE_MAC;
 
 @Service
 @Slf4j
+@Profile("!" + PROFILE_MAC)
 public class SteamService implements InitializingBean, DisposableBean {
 
   private final GeneralPrefs generalPrefs;

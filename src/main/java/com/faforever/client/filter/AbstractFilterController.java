@@ -43,12 +43,11 @@ public abstract class AbstractFilterController<T> extends NodeController<SplitPa
   private final List<AbstractFilterNodeController<?, ? extends ObservableValue<?>, T>> filters = new ArrayList<>();
   private final ObservableList<ObservableValue<Predicate<T>>> filterPredicates = FXCollections.observableList(
       new ArrayList<>(), observable -> new Observable[]{observable});
-  private Predicate<T> defaultPredicate = t -> true;
+  private Predicate<T> defaultPredicate = _ -> true;
   private boolean resetInProgress = false;
 
   private final BooleanProperty filterActive = new SimpleBooleanProperty(false);
   private final ObjectProperty<Predicate<T>> predicate = new SimpleObjectProperty<>(defaultPredicate);
-  private final ObjectProperty<Predicate<T>> filtersPredicate = new SimpleObjectProperty<>(t -> true);
 
   @Override
   protected void onInitialize() {

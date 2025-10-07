@@ -70,6 +70,9 @@ public class Preferences {
   @JsonMerge
   @Getter
   private final FiltersPrefs filters = new FiltersPrefs();
+  @JsonMerge
+  @Getter
+  private final ReplayHistoryPrefs replayHistory = new ReplayHistoryPrefs();
 
   private final StringProperty themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
   private final BooleanProperty preReleaseCheckEnabled = new SimpleBooleanProperty(false);

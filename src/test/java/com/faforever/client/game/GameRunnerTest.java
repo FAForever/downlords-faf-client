@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.api.IceSession;
 import com.faforever.client.builders.GameInfoBuilder;
 import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.NewGameInfoBuilder;
@@ -53,11 +54,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.publisher.TestPublisher;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -160,11 +161,12 @@ public class GameRunnerTest extends ServiceTest {
       return null;
     }).when(fxApplicationThreadExecutor).execute(any());
     lenient().when(fafServerAccessor.getEvents(NoticeInfo.class)).thenReturn(testNoticePublisher.flux());
-    lenient().when(coturnService.getSelectedCoturns(anyInt())).thenReturn(Flux.empty());
+    lenient().when(coturnService.getIceSession(anyInt()))
+             .thenReturn(Mono.just(new IceSession("someSessionId", false, List.of())));
     lenient().when(preferencesService.hasValidGamePath()).thenReturn(true);
     lenient().when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(replayServer.start(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
-    lenient().when(iceAdapter.start(anyInt())).thenReturn(completedFuture(GPG_PORT));
+    lenient().when(iceAdapter.start(anyInt(), anyBoolean())).thenReturn(completedFuture(GPG_PORT));
     lenient().when(playerService.getCurrentPlayer()).thenReturn(junitPlayer);
     lenient().when(process.pid()).thenReturn(10L);
 
@@ -189,8 +191,9 @@ public class GameRunnerTest extends ServiceTest {
     }
     lenient().when(forgedAllianceLaunchService.launchOnlineGame(any(), anyInt(), anyInt())).thenReturn(process);
     lenient().when(replayServer.start(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
-    lenient().when(iceAdapter.start(anyInt())).thenReturn(completedFuture(GPG_PORT));
-    lenient().when(coturnService.getSelectedCoturns(anyInt())).thenReturn(Flux.empty());
+    lenient().when(iceAdapter.start(anyInt(), anyBoolean())).thenReturn(completedFuture(GPG_PORT));
+    lenient().when(coturnService.getIceSession(anyInt()))
+             .thenReturn(Mono.just(new IceSession("someSessionId", false, List.of())));
     lenient().when(process.onExit()).thenReturn(new CompletableFuture<>());
     lenient().when(process.exitValue()).thenReturn(0);
     lenient().when(process.isAlive()).thenReturn(true);
@@ -219,8 +222,8 @@ public class GameRunnerTest extends ServiceTest {
     verify(leaderboardService, never()).getActiveLeagueEntryForPlayer(any(), any());
     verify(mapService, never()).downloadIfNecessary(any());
     verify(replayServer).start(uid);
-    verify(iceAdapter).start(uid);
-    verify(coturnService).getSelectedCoturns(uid);
+    verify(iceAdapter).start(uid, false);
+    verify(coturnService).getIceSession(uid);
     verify(iceAdapter).setIceServers(anyCollection());
     assertTrue(instance.isRunning());
     assertEquals(uid, instance.getRunningGame().getId());

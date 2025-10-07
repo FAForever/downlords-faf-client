@@ -15,7 +15,7 @@ public interface IceAdapter {
 
   void onGpgGameMessage(GpgGameOutboundMessage message);
 
-  CompletableFuture<Integer> start(int gameId);
+  CompletableFuture<Integer> start(int gameId, boolean forceRelay);
 
   void stop();
 

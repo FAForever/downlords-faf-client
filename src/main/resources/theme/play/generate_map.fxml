@@ -13,6 +13,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import org.controlsfx.control.CheckComboBox?>
 <?import org.controlsfx.control.RangeSlider?>
 <GridPane fx:id="generateMapRoot" hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/17.0.2-ea"
           xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GenerateMapController">
@@ -69,7 +70,7 @@
         </tooltip>
     </ComboBox>
     <Label text="%game.generateMap.symmetry" GridPane.rowIndex="6"/>
-    <ComboBox fx:id="symmetryComboBox" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+    <CheckComboBox fx:id="symmetryCheckComboBox" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
     <Label text="%game.generateMap.seed" GridPane.rowIndex="7"/>
     <HBox spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="7">
         <children>
@@ -84,22 +85,22 @@
         </children>
     </HBox>
     <Label text="%game.generateMap.style" GridPane.rowIndex="8"/>
-    <ComboBox fx:id="mapStyleComboBox" maxHeight="Infinity" prefWidth="190.0" GridPane.columnIndex="1"
-              GridPane.rowIndex="8"/>
+    <CheckComboBox fx:id="mapStyleCheckComboBox" maxHeight="Infinity" prefWidth="190.0" GridPane.columnIndex="1"
+                   GridPane.rowIndex="8"/>
     <Label text="%game.generateMap.custom" GridPane.rowIndex="9"/>
     <CheckBox fx:id="customStyleCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="9"/>
     <Label text="%game.generateMap.terrain" GridPane.rowIndex="10"/>
-    <ComboBox fx:id="terrainComboBox" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="10"/>
+    <CheckComboBox fx:id="terrainCheckComboBox" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="10"/>
     <Label text="%game.generateMap.biome" GridPane.columnIndex="0" GridPane.rowIndex="11"/>
-    <ComboBox fx:id="biomeComboBox" maxHeight="Infinity" prefWidth="190.0" GridPane.columnIndex="1"
-              GridPane.rowIndex="11"/>
+    <CheckComboBox fx:id="biomeCheckComboBox" maxHeight="Infinity" prefWidth="190.0" GridPane.columnIndex="1"
+                   GridPane.rowIndex="11"/>
     <Label text="%game.generateMap.resources" GridPane.rowIndex="12"/>
-    <ComboBox fx:id="resourcesComboBox" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="12"/>
+    <CheckComboBox fx:id="resourcesCheckComboBox" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="12"/>
     <Label text="%game.generateMap.resource.density" GridPane.rowIndex="13"/>
     <RangeSlider fx:id="resourcesDensitySlider" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="13"
                  min="0" max="127" snapToTicks="true" showTickLabels="true"/>
     <Label text="%game.generateMap.props" GridPane.rowIndex="14"/>
-    <ComboBox fx:id="propsComboBox" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="14"/>
+    <CheckComboBox fx:id="propsCheckComboBox" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="14"/>
     <Label text="%game.generateMap.reclaim.density" GridPane.rowIndex="15"/>
     <RangeSlider fx:id="reclaimDensitySlider" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="15" min="0"
                  max="127" snapToTicks="true" showTickLabels="true"/>

@@ -21,8 +21,8 @@ import org.mockito.Mock;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.instancio.Select.field;
@@ -48,7 +48,7 @@ public class LeaderboardDistributionControllerTest extends PlatformTest {
     lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
     lenient().when(i18n.get(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-    loadFxml("theme/leaderboard/leaderboard_distribution.fxml", clazz -> instance);
+    loadFxml("theme/leaderboard/leaderboard_distribution.fxml", _ -> instance);
   }
 
   @Test
@@ -73,7 +73,8 @@ public class LeaderboardDistributionControllerTest extends PlatformTest {
                                         .set(field(Subdivision::id), 4)
                                         .set(field(Subdivision::index), 2)
                                         .create();
-    instance.setSubdivisions(List.of(subdivision1, subdivision2, subdivision3, subdivision4));
+    runOnFxThreadAndWait(
+        () -> instance.setSubdivisions(List.of(subdivision1, subdivision2, subdivision3, subdivision4)));
 
     ObservableList<Series<String, Integer>> series = instance.ratingDistributionChart.getData();
 
@@ -82,68 +83,64 @@ public class LeaderboardDistributionControllerTest extends PlatformTest {
 
     PseudoClass highlighted = PseudoClass.getPseudoClass("highlighted-bar");
 
-    instance.setLeagueEntries(List.of(Instancio.of(LeagueEntry.class)
+    runOnFxThreadAndWait(() -> instance.setLeagueEntries(List.of(Instancio.of(LeagueEntry.class)
                                                .set(field(LeagueEntry::subdivision), subdivision1)
                                                .set(field(LeagueEntry::id), 1)
-                                               .set(field(LeagueEntry::player), player)
-                                               .create()));
+                                               .set(field(LeagueEntry::player), player).create())));
 
     assertThat(series.getFirst().getData().getFirst().getYValue(), equalTo(1));
     assertThat(series.getFirst().getData().getLast().getYValue(), equalTo(0));
     assertThat(series.getLast().getData().getFirst().getYValue(), equalTo(0));
     assertThat(series.getLast().getData().getLast().getYValue(), equalTo(0));
 
-    assertThat(series.getFirst().getData().getFirst().getNode().getPseudoClassStates(), contains(highlighted));
-    assertThat(series.getFirst().getData().getLast().getNode().getPseudoClassStates(), not(contains(highlighted)));
-    assertThat(series.getLast().getData().getFirst().getNode().getPseudoClassStates(), not(contains(highlighted)));
-    assertThat(series.getLast().getData().getLast().getNode().getPseudoClassStates(), not(contains(highlighted)));
+    assertThat(series.getFirst().getData().getFirst().getNode().getPseudoClassStates(), hasItem(highlighted));
+    assertThat(series.getFirst().getData().getLast().getNode().getPseudoClassStates(), not(hasItem(highlighted)));
+    assertThat(series.getLast().getData().getFirst().getNode().getPseudoClassStates(), not(hasItem(highlighted)));
+    assertThat(series.getLast().getData().getLast().getNode().getPseudoClassStates(), not(hasItem(highlighted)));
 
-    instance.setLeagueEntries(List.of(Instancio.of(LeagueEntry.class)
+    runOnFxThreadAndWait(() -> instance.setLeagueEntries(List.of(Instancio.of(LeagueEntry.class)
                                                .set(field(LeagueEntry::subdivision), subdivision2)
                                                .set(field(LeagueEntry::id), 2)
-                                               .set(field(LeagueEntry::player), player)
-                                               .create()));
+                                               .set(field(LeagueEntry::player), player).create())));
 
     assertThat(series.getFirst().getData().getFirst().getYValue(), equalTo(0));
     assertThat(series.getFirst().getData().getLast().getYValue(), equalTo(0));
     assertThat(series.getLast().getData().getFirst().getYValue(), equalTo(1));
     assertThat(series.getLast().getData().getLast().getYValue(), equalTo(0));
 
-    assertThat(series.getFirst().getData().getFirst().getNode().getPseudoClassStates(), not(contains(highlighted)));
-    assertThat(series.getFirst().getData().getLast().getNode().getPseudoClassStates(), not(contains(highlighted)));
-    assertThat(series.getLast().getData().getFirst().getNode().getPseudoClassStates(), contains(highlighted));
-    assertThat(series.getLast().getData().getLast().getNode().getPseudoClassStates(), not(contains(highlighted)));
+    assertThat(series.getFirst().getData().getFirst().getNode().getPseudoClassStates(), not(hasItem(highlighted)));
+    assertThat(series.getFirst().getData().getLast().getNode().getPseudoClassStates(), not(hasItem(highlighted)));
+    assertThat(series.getLast().getData().getFirst().getNode().getPseudoClassStates(), hasItem(highlighted));
+    assertThat(series.getLast().getData().getLast().getNode().getPseudoClassStates(), not(hasItem(highlighted)));
 
-    instance.setLeagueEntries(List.of(Instancio.of(LeagueEntry.class)
+    runOnFxThreadAndWait(() -> instance.setLeagueEntries(List.of(Instancio.of(LeagueEntry.class)
                                                .set(field(LeagueEntry::subdivision), subdivision3)
                                                .set(field(LeagueEntry::id), 3)
-                                               .set(field(LeagueEntry::player), player)
-                                               .create()));
+                                               .set(field(LeagueEntry::player), player).create())));
 
     assertThat(series.getFirst().getData().getFirst().getYValue(), equalTo(0));
     assertThat(series.getFirst().getData().getLast().getYValue(), equalTo(1));
     assertThat(series.getLast().getData().getFirst().getYValue(), equalTo(0));
     assertThat(series.getLast().getData().getLast().getYValue(), equalTo(0));
 
-    assertThat(series.getFirst().getData().getFirst().getNode().getPseudoClassStates(), not(contains(highlighted)));
-    assertThat(series.getFirst().getData().getLast().getNode().getPseudoClassStates(), contains(highlighted));
-    assertThat(series.getLast().getData().getFirst().getNode().getPseudoClassStates(), not(contains(highlighted)));
-    assertThat(series.getLast().getData().getLast().getNode().getPseudoClassStates(), not(contains(highlighted)));
+    assertThat(series.getFirst().getData().getFirst().getNode().getPseudoClassStates(), not(hasItem(highlighted)));
+    assertThat(series.getFirst().getData().getLast().getNode().getPseudoClassStates(), hasItem(highlighted));
+    assertThat(series.getLast().getData().getFirst().getNode().getPseudoClassStates(), not(hasItem(highlighted)));
+    assertThat(series.getLast().getData().getLast().getNode().getPseudoClassStates(), not(hasItem(highlighted)));
 
-    instance.setLeagueEntries(List.of(Instancio.of(LeagueEntry.class)
+    runOnFxThreadAndWait(() -> instance.setLeagueEntries(List.of(Instancio.of(LeagueEntry.class)
                                                .set(field(LeagueEntry::subdivision), subdivision4)
                                                .set(field(LeagueEntry::id), 4)
-                                               .set(field(LeagueEntry::player), player)
-                                               .create()));
+                                               .set(field(LeagueEntry::player), player).create())));
 
     assertThat(series.getFirst().getData().getFirst().getYValue(), equalTo(0));
     assertThat(series.getFirst().getData().getLast().getYValue(), equalTo(0));
     assertThat(series.getLast().getData().getFirst().getYValue(), equalTo(0));
     assertThat(series.getLast().getData().getLast().getYValue(), equalTo(1));
 
-    assertThat(series.getFirst().getData().getFirst().getNode().getPseudoClassStates(), not(contains(highlighted)));
-    assertThat(series.getFirst().getData().getLast().getNode().getPseudoClassStates(), not(contains(highlighted)));
-    assertThat(series.getLast().getData().getFirst().getNode().getPseudoClassStates(), not(contains(highlighted)));
-    assertThat(series.getLast().getData().getLast().getNode().getPseudoClassStates(), contains(highlighted));
+    assertThat(series.getFirst().getData().getFirst().getNode().getPseudoClassStates(), not(hasItem(highlighted)));
+    assertThat(series.getFirst().getData().getLast().getNode().getPseudoClassStates(), not(hasItem(highlighted)));
+    assertThat(series.getLast().getData().getFirst().getNode().getPseudoClassStates(), not(hasItem(highlighted)));
+    assertThat(series.getLast().getData().getLast().getNode().getPseudoClassStates(), hasItem(highlighted));
   }
 }

@@ -12,7 +12,6 @@ import com.faforever.client.domain.api.Replay.ChatMessage;
 import com.faforever.client.domain.api.Replay.GameOption;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -21,6 +20,7 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.DataPrefs;
+import com.faforever.client.preferences.ReplayHistoryPrefs;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.FileSizeReader;
@@ -37,7 +37,6 @@ import com.faforever.commons.replay.ReplayMetadata;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.compressors.CompressorException;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
@@ -90,7 +89,6 @@ public class ReplayService {
   private final LoginService loginService;
   private final ReplayFileReader replayFileReader;
   private final NotificationService notificationService;
-  private final GameService gameService;
   private final ReplayRunner replayRunner;
   private final TaskService taskService;
   private final I18n i18n;
@@ -102,6 +100,7 @@ public class ReplayService {
   private final ReplayMapper replayMapper;
   private final DataPrefs dataPrefs;
   private final ObjectFactory<ReplayDownloadTask> replayDownloadTaskFactory;
+  private final ReplayHistoryPrefs replayHistory;
 
   @VisibleForTesting
   static Integer parseSupComVersion(ReplayDataParser parser) {
@@ -179,7 +178,7 @@ public class ReplayService {
                                                                .toList();
 
       return Mono.fromFuture(CompletableFuture.allOf(replayFutures.toArray(new CompletableFuture[0]))
-                                              .thenApply(ignoredVoid -> replayFutures.stream()
+                                              .thenApply(_ -> replayFutures.stream()
                                                                                      .map(CompletableFuture::join)
                                                                                      .filter(Objects::nonNull)
                                                                                      .collect(Collectors.toList())))
@@ -198,7 +197,7 @@ public class ReplayService {
       CompletableFuture<MapVersion> mapVersionFuture = mapService.findByMapFolderName(replayMetadata.getMapname())
                                                                  .toFuture();
 
-      return CompletableFuture.allOf(featuredModFuture, mapVersionFuture).thenApply(ignoredVoid -> {
+      return CompletableFuture.allOf(featuredModFuture, mapVersionFuture).thenApply(_ -> {
         MapVersion mapVersion = mapVersionFuture.join();
         FeaturedMod featuredMod = featuredModFuture.join();
         if (mapVersion == null) {
@@ -259,6 +258,7 @@ public class ReplayService {
     if (item.replayFile() != null) {
       try {
         runReplayFile(item.replayFile());
+        replayHistory.getWatchedReplays().add(item.id());
       } catch (Exception e) {
         log.error("Could not read replay file `{}`", item.replayFile(), e);
         notificationService.addImmediateErrorNotification(e, "replay.couldNotParse");
@@ -282,7 +282,7 @@ public class ReplayService {
   /**
    * Reads the specified replay file in order to add more information to the specified replay instance.
    */
-  public ReplayDetails loadReplayDetails(Path path) throws CompressorException, IOException {
+  public ReplayDetails loadReplayDetails(Path path) throws IOException {
     ReplayDataParser replayDataParser = replayFileReader.parseReplay(path);
     List<ChatMessage> chatMessages = replayDataParser.getChatMessages().stream().map(replayMapper::map).toList();
     List<GameOption> gameOptions = Stream.concat(
@@ -318,7 +318,7 @@ public class ReplayService {
                      ratingJournal -> ratingJournal.meanAfter() != null && ratingJournal.deviationAfter() != null);
   }
 
-  public void runReplayFile(Path path) throws IOException, CompressorException {
+  public void runReplayFile(Path path) throws IOException {
     log.info("Starting replay file: `{}`", path.toAbsolutePath());
 
     String fileName = path.getFileName().toString();
@@ -333,7 +333,8 @@ public class ReplayService {
     downloadReplay(replayId).thenAccept((path) -> {
       try {
         runReplayFile(path);
-      } catch (IOException | CompressorException e) {
+        replayHistory.getWatchedReplays().add(replayId);
+      } catch (IOException e) {
         throw new RuntimeException(e);
       }
     }).exceptionally(throwable -> {
@@ -348,7 +349,7 @@ public class ReplayService {
     });
   }
 
-  private void runFafReplayFile(Path path) throws IOException, CompressorException {
+  private void runFafReplayFile(Path path) throws IOException {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
     byte[] rawReplayBytes = replayData.getData();
 
@@ -370,7 +371,7 @@ public class ReplayService {
     replayRunner.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods, mapName);
   }
 
-  private void runSupComReplayFile(Path path) throws IOException, CompressorException {
+  private void runSupComReplayFile(Path path) throws IOException {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
 
     Integer version = parseSupComVersion(replayData);

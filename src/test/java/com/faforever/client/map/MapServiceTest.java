@@ -81,6 +81,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class MapServiceTest extends PlatformTest {
@@ -425,6 +426,15 @@ public class MapServiceTest extends PlatformTest {
     StepVerifier.create(instance.findByMapFolderName("test")).expectNextCount(1).verifyComplete();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("folderName").eq("test"))));
+  }
+
+  @Test
+  public void testFindByMapFolderNameGeneratedMap() throws Exception {
+    when(mapGeneratorService.isGeneratedMap(anyString())).thenReturn(true);
+
+    StepVerifier.create(instance.findByMapFolderName("test")).verifyComplete();
+
+    verifyNoInteractions(fafApiAccessor);
   }
 
   @Test

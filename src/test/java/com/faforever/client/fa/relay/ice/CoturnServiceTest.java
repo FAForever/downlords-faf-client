@@ -19,6 +19,8 @@ import reactor.test.StepVerifier;
 
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
@@ -50,40 +52,49 @@ public class CoturnServiceTest extends ServiceTest {
   }
 
   @Test
-  public void TestGetSelectedCoturnsNoActiveSelected() {
+  public void TestGetIceSessionNoActiveSelected() {
     forgedAlliancePrefs.getPreferredCoturnIds().add("1");
 
     CoturnServer otherServer = new CoturnServer();
     otherServer.setId("0");
-    when(fafApiAccessor.getApiObject(any(), any())).thenReturn(Mono.just(new IceSession("someSessionId", List.of(otherServer))));
+    when(fafApiAccessor.getApiObject(any(), any())).thenReturn(
+        Mono.just(new IceSession("someSessionId", false, List.of(otherServer))));
 
-    StepVerifier.create(instance.getSelectedCoturns(123)).expectNext(otherServer).verifyComplete();
+    StepVerifier.create(instance.getIceSession(123))
+                .assertNext(session -> assertThat(session.servers(), contains(otherServer)))
+                .verifyComplete();
 
     verify(fafApiAccessor).getApiObject(endsWith("123"), eq(IceSession.class));
   }
 
   @Test
-  public void testGetSelectedCoturnsNoneSelected() {
+  public void testGetIceSessionNonePreferredSelected() {
     CoturnServer otherServer = new CoturnServer();
     otherServer.setId("0");
-    when(fafApiAccessor.getApiObject(any(), any())).thenReturn(Mono.just(new IceSession("someSessionId", List.of(otherServer))));
+    when(fafApiAccessor.getApiObject(any(), any())).thenReturn(
+        Mono.just(new IceSession("someSessionId", false, List.of(otherServer))));
 
-    StepVerifier.create(instance.getSelectedCoturns(123)).expectNext(otherServer).verifyComplete();
+    StepVerifier.create(instance.getIceSession(123))
+                .assertNext(session -> assertThat(session.servers(), contains(otherServer)))
+                .verifyComplete();
 
     verify(fafApiAccessor).getApiObject(endsWith("123"), eq(IceSession.class));
   }
 
   @Test
-  public void testGetSelectedCoturnsActiveSelected() {
+  public void testGetIceSessionActiveSelected() {
     forgedAlliancePrefs.getPreferredCoturnIds().add("1");
 
     CoturnServer otherServer = new CoturnServer();
     otherServer.setId("0");
     CoturnServer selectedServer = new CoturnServer();
     selectedServer.setId("1");
-    when(fafApiAccessor.getApiObject(any(), any())).thenReturn(Mono.just(new IceSession("someSessionId", List.of(otherServer, selectedServer))));
+    when(fafApiAccessor.getApiObject(any(), any())).thenReturn(
+        Mono.just(new IceSession("someSessionId", false, List.of(otherServer, selectedServer))));
 
-    StepVerifier.create(instance.getSelectedCoturns(123)).expectNext(selectedServer).verifyComplete();
+    StepVerifier.create(instance.getIceSession(123))
+                .assertNext(session -> assertThat(session.servers(), contains(selectedServer)))
+                .verifyComplete();
 
     verify(fafApiAccessor).getApiObject(endsWith("123"), eq(IceSession.class));
   }

@@ -4,7 +4,6 @@ import com.faforever.commons.replay.ReplayDataParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.compressors.CompressorException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +19,7 @@ public class ReplayFileReaderImpl implements ReplayFileReader {
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @Override
-  public ReplayDataParser parseReplay(Path path) throws IOException, CompressorException {
+  public ReplayDataParser parseReplay(Path path) throws IOException {
     return new ReplayDataParser(path, objectMapper);
   }
 }

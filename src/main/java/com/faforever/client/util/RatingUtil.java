@@ -54,6 +54,6 @@ public final class RatingUtil {
   }
 
   public static int getRating(Rating rating) {
-    return getRating(rating.getMean(), rating.getDeviation());
+    return getRating(rating.mean(), rating.deviation());
   }
 }

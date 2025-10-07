@@ -32,7 +32,7 @@ public class WebsocketNetworkHandler implements NetworkHandler {
   }
 
   @Override
-  public synchronized @NonNull WebSocketConnection connect(Client.@NonNull WithManagement client) {
+  public @NonNull WebSocketConnection connect(Client.@NonNull WithManagement client) {
     // STS Override
     if (client.getStsMachine().isPresent() && !client.isSecureConnection()) {
       String hostname = client.getServerAddress().getHost();

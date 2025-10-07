@@ -133,7 +133,6 @@ public class ClientConfigurationBuilder {
     public ServerEndpointsBuilder defaultValues() {
       lobby("lobby", 8001);
       chat("irc", 6667);
-      liveReplay("liveReplay", 15000);
       api("api");
       oauth("oauth");
       name("test");
@@ -152,11 +151,6 @@ public class ClientConfigurationBuilder {
 
     public ServerEndpointsBuilder chat(String host, int port) {
       serverEndpoints.setChat(SocketEndpointBuilder.create().host(host).port(port).get());
-      return this;
-    }
-
-    public ServerEndpointsBuilder liveReplay(String host, int port) {
-      serverEndpoints.setLiveReplay(SocketEndpointBuilder.create().host(host).port(port).get());
       return this;
     }
 

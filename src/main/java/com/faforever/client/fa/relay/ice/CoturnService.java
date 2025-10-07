@@ -10,8 +10,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Set;
+
 
 @Lazy
 @RequiredArgsConstructor
@@ -23,18 +26,25 @@ public class CoturnService {
 
   public Flux<IceServer> getActiveCoturns() {
     return fafApiAccessor.getApiObject("/ice/server", IceServerResponse.class)
-        .flatMapIterable(IceServerResponse::servers)
+                         .flatMapIterable(IceServerResponse::servers)
                          .switchIfEmpty(Flux.empty());
   }
 
-  public Flux<CoturnServer> getSelectedCoturns(int gameId) {
-    Flux<CoturnServer> coturnServerFlux = fafApiAccessor.getApiObject("/ice/session/game/" + gameId, IceSession.class)
-        .flatMapIterable(IceSession::servers);
+  public Mono<IceSession> getIceSession(int gameId) {
+    Set<String> preferredCoturns = forgedAlliancePrefs.getPreferredCoturnIds();
+    return fafApiAccessor.getApiObject("/ice/session/game/" + gameId, IceSession.class).map(session -> {
+      List<CoturnServer> preferredServers = session.servers()
+                                                   .stream()
+                                                   .filter(
+                                                       coturnServer -> preferredCoturns.contains(coturnServer.getId()))
+                                                   .toList();
 
-    Set<String> preferredCoturnIds = forgedAlliancePrefs.getPreferredCoturnIds();
-
-    return coturnServerFlux.filter(coturnServer -> preferredCoturnIds.contains(coturnServer.getId()))
-        .switchIfEmpty(coturnServerFlux)
-                           .switchIfEmpty(Flux.empty());
+      if (preferredServers.isEmpty()) {
+        return session;
+      } else {
+        return new IceSession(session.id(), session.forceRelay(), preferredServers);
+      }
+    });
   }
+
 }

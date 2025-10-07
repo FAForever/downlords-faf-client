@@ -152,7 +152,7 @@ public class ClientUpdateServiceTest extends ServiceTest {
     Path faExePath = Files.createFile(fafBinDirectory.resolve("ForgedAlliance.exe"));
     try {
       instance.install(faExePath);
-    } catch (InstallerExecutionException ignored) {
+    } catch (InstallerExecutionException _) {
     }
     verify(platformService).setUnixExecutableAndWritableBits(faExePath);
   }

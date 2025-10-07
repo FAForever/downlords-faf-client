@@ -191,8 +191,8 @@ public class TokenRetrieverTest extends ServiceTest {
                                                  TOKEN_TYPE, "bearer");
     prepareTokenResponse(tokenProperties);
 
-    StepVerifier.create(instance.getAccessToken())
-                .assertNext(accessToken -> assertEquals(accessToken, "test"))
+    StepVerifier.create(instance.getRefreshedTokenValue())
+                .assertNext(accessToken -> assertEquals("test", accessToken))
                 .verifyComplete();
   }
 }

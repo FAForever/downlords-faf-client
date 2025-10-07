@@ -19,6 +19,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.DataPrefs;
+import com.faforever.client.preferences.ReplayHistoryPrefs;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ApiTestUtil;
@@ -160,6 +161,8 @@ public class ReplayServiceTest extends ServiceTest {
   private ClientProperties clientProperties;
   @Spy
   private DataPrefs dataPrefs;
+  @Spy
+  private ReplayHistoryPrefs replayHistory;
 
   @BeforeEach
   public void setUp() throws Exception {

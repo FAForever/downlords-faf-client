@@ -131,7 +131,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   }
 
   @Override
-  public CompletableFuture<Integer> start(int gameId) {
+  public CompletableFuture<Integer> start(int gameId, boolean forceRelay) {
     return CompletableFuture.supplyAsync(() -> {
       Path workDirectory = Path.of(System.getProperty("nativeDir", "lib")).toAbsolutePath();
 
@@ -145,7 +145,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         throw new CompletionException("Unable to find open port for ICE and GPG", exception);
       }
 
-      List<String> cmd = buildCommand(workDirectory, adapterPort, gpgPort, gameId);
+      List<String> cmd = buildCommand(workDirectory, adapterPort, gpgPort, gameId, forceRelay);
       try {
         startIceAdapterProcess(workDirectory, cmd);
       } catch (IOException e) {
@@ -215,7 +215,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   }
 
   @VisibleForTesting
-  List<String> buildCommand(Path workDirectory, int adapterPort, int gpgPort, int gameId) {
+  List<String> buildCommand(Path workDirectory, int adapterPort, int gpgPort, int gameId, boolean forceRelay) {
     PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
     String classpath = getBinaryName(workDirectory) + JavaUtil.CLASSPATH_SEPARATOR + getJavaFXClassPathJars();
@@ -240,6 +240,11 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         clientProperties.getApi().getBaseUrl() + "/ice");
 
     cmd.addAll(standardIceOptions);
+
+    if (forceRelay) {
+      cmd.add("--force-relay");
+      log.debug("Forcing ice adapter relay connection");
+    }
 
     if (forgedAlliancePrefs.isShowIceAdapterDebugWindow()) {
       cmd.add("--debug-window");

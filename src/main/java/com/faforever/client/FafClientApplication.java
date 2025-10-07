@@ -13,7 +13,6 @@ import com.faforever.client.svg.SvgImageLoaderFactory;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
-import com.faforever.client.ui.taskbar.WindowsTaskbarProgressUpdater;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.text.Font;
@@ -73,10 +72,6 @@ public class FafClientApplication extends Application {
       fxStage.getStage().setOnCloseRequest(this::closeMainWindow);
 
       showMainWindow(fxStage);
-
-      if (!applicationContext.getBeansOfType(WindowsTaskbarProgressUpdater.class).isEmpty()) {
-        applicationContext.getBean(WindowsTaskbarProgressUpdater.class).initTaskBar();
-      }
     } catch (Exception e) {
       log.error("Unable to start", e);
       throw e;
@@ -116,7 +111,7 @@ public class FafClientApplication extends Application {
       log.info("Starting non-daemon detector thread");
       try {
         Thread.sleep(Duration.ofSeconds(10).toMillis());
-      } catch (InterruptedException ignored) {
+      } catch (InterruptedException _) {
       }
 
       Set<Entry<Thread, StackTraceElement[]>> threads = Thread.getAllStackTraces().entrySet();
@@ -136,7 +131,7 @@ public class FafClientApplication extends Application {
 
       try {
         Thread.sleep(Duration.ofSeconds(1).toMillis());
-      } catch (InterruptedException ignored) {
+      } catch (InterruptedException _) {
       }
 
       System.exit(-1);

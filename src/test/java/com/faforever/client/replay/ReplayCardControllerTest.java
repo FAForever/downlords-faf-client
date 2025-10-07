@@ -9,6 +9,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.preferences.ReplayHistoryPrefs;
 import com.faforever.client.rating.RatingService;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.scheduler.Schedulers;
 
@@ -86,6 +88,9 @@ public class ReplayCardControllerTest extends PlatformTest {
 
   @Mock
   private Consumer<Replay> onOpenDetailListener;
+
+  @Spy
+  private ReplayHistoryPrefs replayHistory;
 
   private Replay onlineReplay;
   private Replay localReplay;
@@ -286,5 +291,36 @@ public class ReplayCardControllerTest extends PlatformTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(notificationService).addNotification(any());
+  }
+
+  @Test
+  public void replayNotWatched() {
+    runOnFxThreadAndWait(() -> instance.setEntity(localReplay));
+
+    assertFalse(instance.replayTileRoot.getPseudoClassStates().contains(ReplayCardController.WATCHED_PSEUDO_CLASS));
+  }
+
+  @Test
+  public void replayWatched() {
+
+    runOnFxThreadAndWait(() -> {
+      replayHistory.getWatchedReplays().add(localReplay.id());
+      instance.setEntity(localReplay);
+    });
+
+    assertTrue(instance.replayTileRoot.getPseudoClassStates().contains(ReplayCardController.WATCHED_PSEUDO_CLASS));
+  }
+
+
+  @Test
+  public void replayAfterInitJustWatched() {
+
+    runOnFxThreadAndWait(() -> {
+      instance.setEntity(localReplay);
+      replayHistory.getWatchedReplays().add(localReplay.id());
+    });
+
+
+    assertTrue(instance.replayTileRoot.getPseudoClassStates().contains(ReplayCardController.WATCHED_PSEUDO_CLASS));
   }
 }

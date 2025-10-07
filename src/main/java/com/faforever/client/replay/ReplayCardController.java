@@ -18,14 +18,18 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.preferences.ReplayHistoryPrefs;
 import com.faforever.client.rating.RatingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.review.StarsController;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -35,6 +39,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -48,10 +53,13 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+@Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 public class ReplayCardController extends VaultEntityCardController<Replay> {
+
+  public static final PseudoClass WATCHED_PSEUDO_CLASS = PseudoClass.getPseudoClass("watched");
 
   private final UiService uiService;
   private final ReplayService replayService;
@@ -62,6 +70,7 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
   private final ImageViewHelper imageViewHelper;
   private final I18n i18n;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final ReplayHistoryPrefs replayHistory;
 
   public Label dateLabel;
   public ImageView mapThumbnailImageView;
@@ -81,6 +90,8 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
   public Button deleteButton;
   public TextField replayIdField;
   public StarsController starsController;
+
+  private final BooleanProperty isReplayWatched = new SimpleBooleanProperty();
 
   private Consumer<Replay> onOpenDetailListener;
   private Runnable onDeleteListener;
@@ -136,13 +147,23 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
                     .map(reviewsSummary -> reviewsSummary.score() / reviewsSummary.numReviews())
             .when(showing));
 
+    isReplayWatched.bind(replayHistory.watchedReplaysProperty()
+                                      .flatMap(watchedReplays -> entity.map(Replay::id).map(watchedReplays::contains))
+                                      .orElse(false)
+                                      .when(showing));
+    isReplayWatched.when(showing).subscribe((value) -> {
+      if (value) {
+        applyWatchedReplayHighlight();
+      }
+    });
+
     teams.bind(entity.map(Replay::teamPlayerStats).when(showing));
     teams.orElse(java.util.Map.of()).addListener(teamsListener);
   }
 
   private void populatePlayers(java.util.Map<String, List<GamePlayerStats>> newValue) {
     teamsContainer.getChildren().clear();
-    CompletableFuture.supplyAsync(() -> createTeams(newValue)).thenAcceptAsync(teamCards -> 
+    CompletableFuture.supplyAsync(() -> createTeams(newValue)).thenAcceptAsync(teamCards ->
       teamsContainer.getChildren().setAll(teamCards), fxApplicationThreadExecutor);
   }
 
@@ -170,7 +191,7 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
       return teamCard;
     }).toList();
     }
-    VBox helperLabel = new VBox(); 
+    VBox helperLabel = new VBox();
     helperLabel.getChildren().add(new Label("Click for teams"));
     ArrayList<VBox> helpers = new ArrayList<VBox>();
     helpers.add(helperLabel);
@@ -213,4 +234,9 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
       onDeleteListener.run();
     }
   }
+
+  private void applyWatchedReplayHighlight() {
+    replayTileRoot.pseudoClassStateChanged(WATCHED_PSEUDO_CLASS, true);
+  }
+
 }

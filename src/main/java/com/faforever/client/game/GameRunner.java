@@ -43,6 +43,7 @@ import com.faforever.client.ui.StageHolder;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.client.util.RatingUtil;
+import com.faforever.commons.lobby.GameJoinFailedException;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.NoticeInfo;
 import com.google.common.annotations.VisibleForTesting;
@@ -188,7 +189,7 @@ public class GameRunner implements InitializingBean {
     CompletableFuture<Integer> startIceAdapterFuture = startIceAdapter(uid);
 
     return CompletableFuture.allOf(downloadMapFuture, leagueFuture, startIceAdapterFuture, startReplayServerFuture)
-                            .thenApply(ignored -> gameMapper.map(gameLaunchResponse, leagueFuture.join()))
+                            .thenApply(_ -> gameMapper.map(gameLaunchResponse, leagueFuture.join()))
                             .thenApply(parameters -> launchOnlineGame(parameters, startIceAdapterFuture.join(),
                                                                       startReplayServerFuture.join()))
                             .whenCompleteAsync((process, throwable) -> {
@@ -199,12 +200,12 @@ public class GameRunner implements InitializingBean {
                             }, fxApplicationThreadExecutor)
                             .thenCompose(Process::onExit)
                             .thenAccept(this::handleTermination)
-                            .whenComplete((ignored, throwable) -> {
+                            .whenComplete((_, _) -> {
                               iceAdapter.stop();
                               replayServer.stop();
                               fafServerAccessor.notifyGameEnded();
                             })
-                            .whenCompleteAsync((ignored, throwable) -> {
+                            .whenCompleteAsync((_, _) -> {
                               process.set(null);
                               runningGameId.set(null);
                             }, fxApplicationThreadExecutor);
@@ -212,8 +213,8 @@ public class GameRunner implements InitializingBean {
 
   @VisibleForTesting
   CompletableFuture<Void> prepareAndLaunchGameWhenReady(String featuredModName, Set<String> simModUids,
-                                                                @Nullable String mapFolderName,
-                                                                Supplier<CompletableFuture<GameLaunchResponse>> gameLaunchSupplier) {
+                                                        @Nullable String mapFolderName,
+                                                        Supplier<CompletableFuture<GameLaunchResponse>> gameLaunchSupplier) {
     CompletableFuture<Void> updateFeaturedModFuture = featuredModService.updateFeaturedModToLatest(featuredModName,
                                                                                                    false);
 
@@ -222,7 +223,7 @@ public class GameRunner implements InitializingBean {
     CompletableFuture<Void> downloadMapFuture = mapFolderName == null || mapFolderName.isBlank() ? completedFuture(
         null) : mapService.downloadIfNecessary(mapFolderName).toFuture();
     return CompletableFuture.allOf(updateFeaturedModFuture, installSimModsFuture, downloadMapFuture)
-                            .thenCompose(ignored -> gameLaunchSupplier.get())
+                            .thenCompose(_ -> gameLaunchSupplier.get())
                             .thenCompose(this::startOnlineGame);
   }
 
@@ -299,8 +300,12 @@ public class GameRunner implements InitializingBean {
     prepareAndLaunchGameWhenReady(game.getFeaturedMod(), simModUIds, game.getMapFolderName(),
                                   () -> fafServerAccessor.requestJoinGame(game.getId(), password)).exceptionally(
         throwable -> {
-          log.error("Game could not be joined", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
+          if (throwable.getCause() instanceof GameJoinFailedException e) {
+            log.warn("Game with id '{}' could not be joined. Reason: {}", e.getGameId(), e.getFailureReason(), e);
+          } else {
+            log.error("Game could not be joined", throwable);
+            notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
+          }
           return null;
         });
   }
@@ -343,7 +348,7 @@ public class GameRunner implements InitializingBean {
     matchmakerFuture = prepareAndLaunchGameWhenReady(FAF.getTechnicalName(), Set.of(), null,
                                                      fafServerAccessor::startSearchMatchmaker);
 
-    matchmakerFuture.whenComplete((ignored, throwable) -> {
+    matchmakerFuture.whenComplete((_, throwable) -> {
       if (throwable != null) {
         throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
         if (throwable instanceof CancellationException) {
@@ -386,12 +391,12 @@ public class GameRunner implements InitializingBean {
   }
 
   private CompletableFuture<Integer> startIceAdapter(int uid) {
-    return iceAdapter.start(uid)
-                     .thenCompose(icePort -> coturnService.getSelectedCoturns(uid)
-                                                          .collectList()
-                                                          .doOnNext(iceAdapter::setIceServers)
-                                                          .thenReturn(icePort)
-                                                          .toFuture());
+    return coturnService.getIceSession(uid)
+                        .toFuture()
+                        .thenCompose(session -> iceAdapter.start(uid, session.forceRelay()).thenApply(result -> {
+                          iceAdapter.setIceServers(session.servers());
+                          return result;
+                        }));
   }
 
   private Mono<League> getDivisionInfo(String leaderboard) {
@@ -412,17 +417,16 @@ public class GameRunner implements InitializingBean {
     int exitCode = finishedProcess.exitValue();
     log.info("Forged Alliance terminated with exit code {}", exitCode);
     Optional<Path> logFilePath = loggingService.getMostRecentGameLogFile();
-    Optional<String> logFileContent = logFilePath
-        .map(file -> {
-          try {
-            final String logFileText = logMasker.maskMessage(Files.readString(file));
-            Files.writeString(file, logFileText);
-            return logFileText;
-          } catch (IOException e) {
-            log.warn("Could not open log file", e);
-            return null;
-          }
-        });
+    Optional<String> logFileContent = logFilePath.map(file -> {
+      try {
+        final String logFileText = logMasker.maskMessage(Files.readString(file));
+        Files.writeString(file, logFileText);
+        return logFileText;
+      } catch (IOException e) {
+        log.warn("Could not open log file", e);
+        return null;
+      }
+    });
 
     if (!gameKilled) {
       if (exitCode != 0) {
@@ -450,13 +454,11 @@ public class GameRunner implements InitializingBean {
     } else {
       notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
                                                                     i18n.get("game.crash", exitCode,
-                                                                             logFilePath.map(Path::toString).orElse("")),
-                                                                    WARN, List.of(new Action(i18n.get("game.open.log"),
-                                                                                             () -> platformService.reveal(
-                                                                                                 logFilePath.orElse(
-                                                                                                     operatingSystem.getLoggingDirectory()))),
-                                                                                  new DismissAction(i18n)),
-                                                                    getAnalysisButtonIfNecessary(logFileContent).orElse(null)));
+                                                                             logFilePath.map(Path::toString)
+                                                                                        .orElse("")), WARN, List.of(
+          new Action(i18n.get("game.open.log"),
+                     () -> platformService.reveal(logFilePath.orElse(operatingSystem.getLoggingDirectory()))),
+          new DismissAction(i18n)), getAnalysisButtonIfNecessary(logFileContent).orElse(null)));
     }
   }
 
@@ -517,8 +519,8 @@ public class GameRunner implements InitializingBean {
         TUTORIALS.getTechnicalName(), false);
 
     CompletableFuture.allOf(updateTutorialFuture, downloadMapFuture)
-                     .thenApply(ignored -> forgedAllianceLaunchService.launchOfflineGame(technicalMapName))
-                     .whenCompleteAsync((process, throwable) -> {
+                     .thenApply(_ -> forgedAllianceLaunchService.launchOfflineGame(technicalMapName))
+                     .whenCompleteAsync((process, _) -> {
                        if (process != null) {
                          this.process.set(process);
                        }

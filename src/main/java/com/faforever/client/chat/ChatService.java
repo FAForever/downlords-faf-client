@@ -49,8 +49,6 @@ public interface ChatService {
 
   boolean isDefaultChannel(ChatChannel chatChannel);
 
-  void close();
-
   ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
 
   ConnectionState getConnectionState();

@@ -68,28 +68,28 @@ public record GeneratorCommand(
         command.addAll(Arrays.asList("--seed", seed));
       }
 
-      if (symmetry != null && !symmetry.equals(MapGeneratorService.GENERATOR_RANDOM_OPTION)) {
+      if (symmetry != null) {
         command.addAll(Arrays.asList("--terrain-symmetry", symmetry));
       }
 
-      if (style != null && !style.equals(MapGeneratorService.GENERATOR_RANDOM_OPTION)) {
+      if (style != null) {
         command.addAll(Arrays.asList("--style", style));
         return command;
       }
 
-      if (terrainStyle != null && !terrainStyle.equals(MapGeneratorService.GENERATOR_RANDOM_OPTION)) {
+      if (terrainStyle != null) {
         command.addAll(Arrays.asList("--terrain-style", terrainStyle));
       }
 
-      if (textureStyle != null && !textureStyle.equals(MapGeneratorService.GENERATOR_RANDOM_OPTION)) {
+      if (textureStyle != null) {
         command.addAll(Arrays.asList("--texture-style", textureStyle));
       }
 
-      if (resourceStyle != null && !resourceStyle.equals(MapGeneratorService.GENERATOR_RANDOM_OPTION)) {
+      if (resourceStyle != null) {
         command.addAll(Arrays.asList("--resource-style", resourceStyle));
       }
 
-      if (propStyle != null && !propStyle.equals(MapGeneratorService.GENERATOR_RANDOM_OPTION)) {
+      if (propStyle != null) {
         command.addAll(Arrays.asList("--prop-style", propStyle));
       }
 

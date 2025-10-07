@@ -71,11 +71,11 @@ public class UserButtonControllerTest extends PlatformTest {
 
   @Test
   public void testCopyAccessToken() {
-    when(tokenRetriever.getAccessToken()).thenReturn(Mono.just("someToken"));
+    when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just("someToken"));
 
     instance.onCopyAccessToken();
 
-    verify(tokenRetriever).getAccessToken();
+    verify(tokenRetriever).getRefreshedTokenValue();
   }
 
   @Test

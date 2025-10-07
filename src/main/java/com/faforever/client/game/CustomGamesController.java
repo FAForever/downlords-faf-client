@@ -150,7 +150,7 @@ public class CustomGamesController extends NodeController<Node> {
 
   private void onCreateGame(@Nullable String mapFolderName) {
     if (preferences.getForgedAlliance().getInstallationPath() == null) {
-      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(ignored -> onCreateGame(null));
+      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(_ -> onCreateGame(null));
       return;
     }
 

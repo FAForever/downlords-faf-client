@@ -34,8 +34,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
-import static org.bridj.Platform.show;
-
 @Slf4j
 @Lazy
 @Component
@@ -87,13 +85,17 @@ public class PlatformService {
    */
   public void reveal(Path path) {
     try {
+      if (Files.isRegularFile(path)) {
+        path = path.getParent();
+      }
+
       switch (operatingSystem) {
-        case OsWindows osWindows -> show(path.toFile());
+        case OsWindows osWindows -> {
+          ProcessBuilder builder = new ProcessBuilder("explorer.exe", "/select,", path.toAbsolutePath().toString());
+          builder.start();
+        }
         case OsPosix osPosix -> {
           //Might not work on all linux distros but let's give it a try
-          if (Files.isRegularFile(path)) {
-            path = path.getParent();
-          }
           ProcessBuilder builder = new ProcessBuilder("xdg-open", path.toAbsolutePath().toString());
           builder.start();
         }
@@ -101,7 +103,7 @@ public class PlatformService {
           log.warn("Unknown OS, unable to reveal path");
         }
       }
-    } catch (IOException | NoSuchMethodException e) {
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }

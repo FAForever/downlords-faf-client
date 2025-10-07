@@ -282,8 +282,7 @@ public class ChatMessageController extends NodeController<VBox> {
 
   private void styleMessageNode(Node node) {
     switch (node) {
-      case ImageView ignored -> {}
-      case Hyperlink ignored -> {}
+      case ImageView _, Hyperlink _ -> {}
       case Text text when mentionPattern.matcher(text.getText()).matches() -> text.setStyle("-fx-fill: #FFA500");
       default -> node.styleProperty().bind(inlineTextColorStyleProperty);
     }
