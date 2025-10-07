@@ -256,13 +256,13 @@ dependencies {
     implementation("io.projectreactor.addons:reactor-extra")
     implementation("io.projectreactor:reactor-tools")
 
-  def commonsVersion = "317e19f0757f78fc3ace0736697ad8829b010b0d"
+  def commonsVersion = "20250913-317e19f"
 
-    implementation("com.github.faforever.faf-java-commons:data:${commonsVersion}") {
+    implementation("com.faforever.commons:data:${commonsVersion}") {
         exclude module: 'guava'
     }
-    implementation("com.github.faforever.faf-java-commons:api:${commonsVersion}")
-    implementation("com.github.faforever.faf-java-commons:lobby:${commonsVersion}")
+    implementation("com.faforever.commons:api:${commonsVersion}")
+    implementation("com.faforever.commons:lobby:${commonsVersion}")
     implementation("com.google.guava:guava:33.5.0-jre")
     implementation("org.apache.commons:commons-compress:1.28.0")
     implementation("net.java.dev.jna:jna:5.18.1")
