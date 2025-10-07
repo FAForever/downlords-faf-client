@@ -61,17 +61,12 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -185,35 +180,19 @@ public class ReplayService {
 
       int numPages = filesList.size() / pageSize;
 
-      List<Replay> replays;
-      try (ExecutorService executor = Executors.newFixedThreadPool(nThreads)) {
-        List<Callable<Replay>> tasks = new ArrayList<>();
-        int limit = Math.min(skippedReplays + pageSize, filesList.size());
-        for (int i = skippedReplays; i < limit; i++) {
-          var filePath = filesList.get(i);
-          var c = new Callable<Replay>() {
-            @Override
-            public Replay call() {
-              return tryLoadingLocalReplay(filePath).join();
-            }
-          };
-          tasks.add(c);
-        }
+      List<CompletableFuture<Replay>> replayFutures = filesList.stream()
+                                                               .skip(skippedReplays)
+                                                               .limit(pageSize)
+                                                               .map(this::tryLoadingLocalReplay)
+                                                               .filter(e -> !e.isCompletedExceptionally())
+                                                               .toList();
 
-        try {
-          replays = executor.invokeAll(tasks).stream().map(result -> {
-            try {
-              return result.get();
-            } catch (InterruptedException | ExecutionException e) {
-              throw new RuntimeException(e);
-            }
-          }).filter(Objects::nonNull).toList();
-        } catch (InterruptedException e) {
-          throw new RuntimeException(e);
-        }
-      }
-
-      return Mono.justOrEmpty(replays).zipWith(Mono.just(numPages));
+      return Mono.fromFuture(CompletableFuture.allOf(replayFutures.toArray(new CompletableFuture[0]))
+                                              .thenApply(_ -> replayFutures.stream()
+                                                                           .map(CompletableFuture::join)
+                                                                           .filter(Objects::nonNull)
+                                                                           .collect(Collectors.toList())))
+                 .zipWith(Mono.just(numPages));
     }
   }
 
