@@ -107,7 +107,8 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
                                  .retry()
                                  .subscribe();
 
-      getEvents(VetoesChangedInfo.class).doOnNext(this::onVetoesChanged)
+      getEvents(VetoesChangedInfo.class).publishOn(fxApplicationThreadExecutor.asScheduler())
+                                 .doOnNext(this::onVetoesChanged)
                                  .doOnError(throwable -> log.error("Error processing vetoes changed", throwable))
                                  .retry()
                                  .subscribe();
@@ -312,8 +313,15 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
   }
 
   private void onVetoesChanged(VetoesChangedInfo vetoesChangedInfo) {
-    log.debug("Received vetoes changed message {}", vetoesChangedInfo);
-    matchmakerPrefs.getAppliedVetoes().setAll(vetoesChangedInfo.getVetoesData());
+    matchmakerPrefs.getAppliedVetoes().setAll(vetoesChangedInfo.getVetoes());
+
+    if (vetoesChangedInfo.getForced()) {
+      notificationService.addNotification(
+          new ImmediateNotification(i18n.get("teammatchmaking.vetoes.forced.title"),
+                                   i18n.get("teammatchmaking.vetoes.forced.message"),
+                                   Severity.INFO,
+                                   Collections.singletonList(new DismissAction(i18n))));
+    }
   }
 
   public void restoreGameSession(int id) {

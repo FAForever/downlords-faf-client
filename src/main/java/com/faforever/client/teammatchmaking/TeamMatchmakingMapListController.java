@@ -125,9 +125,6 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
   private void bindProperties() {
     JavaFxUtil.bindManagedToVisible(loadingPane);
-    this.currentBracketIndex.subscribe(currentBracketIndex -> {
-      log.debug("CURRENT BRACKET INDEX: {}", currentBracketIndex);
-    });
 
     this.sortedMapPools.subscribe(pools -> {
       this.bracketComboBox.getItems().setAll(pools.stream().map(this::getBracketTitle).toList());
@@ -152,8 +149,6 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     currentBracket.subscribe(this::updateVetoes);
     vetoTokensApplied.subscribe(this::updateVetoes);
 
-    log.debug("INITIALLLLLLLLLLIIIIIIIIIIIIIIIIZIIIIIIIIIIIIIIIING");
-
     this.queue.when(showing).subscribe(value -> {
       if (value == null) {
         return;
@@ -163,11 +158,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     });
     this.playerBracketIndex.subscribe(currentBracketIndex::set);
 
-    this.brackets.subscribe(brackets -> {
-      log.debug("BRACKETS: {}", brackets);
-    });
     this.sortedMapPools.subscribe(pools -> {
-      log.debug("MAP POOLS: {}", pools);
       if(pools.size() > 0) {
         this.currentBracketIndex.setValue(Optional.ofNullable(this.currentBracketIndex.getValue()).orElse(0));
       }
@@ -235,12 +226,9 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
   private MatchmakerQueueMapPool getCurrentBracket() {
     Integer v = this.currentBracketIndex.get();
-    log.debug("CURRENT BRACKET v is: {}", v);
     if ((v == null) || (v > this.sortedMapPools.getValue().size() - 1) || (v < 0)) {
       return null;
     }
-
-    log.debug("CURRENT BRACKET UPDATED: {}", this.sortedMapPools.getValue().get(this.currentBracketIndex.get()));
 
     return this.sortedMapPools.getValue().get(this.currentBracketIndex.get());
   }
@@ -270,8 +258,6 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
       return Collections.emptyList();
     }
 
-    log.debug("getCURRENTBRACKETMAPS TRIGGERED WITH {}", this.brackets.getValue().get(currentBracket.getValue()));
-
     return this.brackets.getValue()
                         .get(currentBracket.getValue())
                         .stream()
@@ -282,7 +268,6 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
   private List<MatchmakerQueueMapPool> getSortedMapPools(
       Map<MatchmakerQueueMapPool, List<MapPoolAssignment>> brackets) {
-    log.debug("SORTED MAP POOLS UPDATED WITH BRACKET SIZE {}", brackets.size());
     return brackets.keySet().stream().sorted(MAP_POOL_COMPARATOR).toList();
   }
 
@@ -295,8 +280,6 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
                                                            .filter(
                                                                (data) -> data.getMatchmakerQueueMapPoolId() == getCurrentBracket().id())
                                                            .toList();
-    log.debug("VETOES IN CURRENT BRACKET:");
-    log.debug(vetoesInCurrentBracket.toString());
     return vetoesInCurrentBracket.stream().mapToInt(VetoData::getVetoTokensApplied).sum();
   }
 
@@ -372,7 +355,6 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
   private void updateContent() {
     List<Pane> mapTiles = currentBracketMaps.getValue().stream().map(this::createMapTile).toList();
-    log.debug("UPDATE CONTENT WITH BRACKET {} AND TILE LENGTH {}", currentBracket.getValue(), mapTiles.size());
     fxApplicationThreadExecutor.execute(() -> {
       //this.setBracketTitle();
       this.tilesContainer.getChildren().setAll(mapTiles);

@@ -261,8 +261,6 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void sendVetoes() {
-    log.debug("SENDING SOME VETOEEEEEEEEEEEEEEEEEEEES");
-    log.debug(matchmakerPrefs.getAppliedVetoes().toString());
     fafServerAccessor.setPlayerVetoes(matchmakerPrefs.getAppliedVetoes());
   }
 
