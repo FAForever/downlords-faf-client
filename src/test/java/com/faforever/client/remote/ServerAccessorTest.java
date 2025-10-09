@@ -10,6 +10,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.relay.ice.IceAdapter;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -128,6 +129,8 @@ public class ServerAccessorTest extends ServiceTest {
   private GameService gameService;
   @Mock
   private IceAdapter iceAdapter;
+  @Mock
+  private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Spy
   private ClientProperties clientProperties;
   @Spy
@@ -175,7 +178,7 @@ public class ServerAccessorTest extends ServiceTest {
                         .addHeader("Content-Type", "application/json;charset=utf-8"));
 
     instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenRetriever, uidService,
-                                     clientProperties, new FafLobbyClient(objectMapper), matchmakerPrefs, () -> webClient);
+                                     clientProperties, new FafLobbyClient(objectMapper), matchmakerPrefs, () -> webClient, fxApplicationThreadExecutor);
 
     instance.afterPropertiesSet();
     instance.getEvents(ServerMessage.class).doOnNext(serverMessage -> {

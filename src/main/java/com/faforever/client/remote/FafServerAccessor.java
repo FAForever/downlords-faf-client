@@ -6,6 +6,7 @@ import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.exception.UIDException;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.UidService;
@@ -86,6 +87,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
   private final MatchmakerPrefs matchmakerPrefs;
   @Qualifier("userWebClient")
   private final ObjectFactory<WebClient> userWebClientFactory;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private boolean autoReconnect;
   @Getter
