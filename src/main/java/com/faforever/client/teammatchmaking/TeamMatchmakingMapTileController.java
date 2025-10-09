@@ -97,7 +97,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
                       .bind(assignment.map(assignmentBean -> mapService.loadPreview(assignmentBean.mapVersion(), PreviewSize.SMALL))
                                       .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
 
-    // Bind map name
+
     nameLabel.textProperty().bind(mapObservable.map(map -> {
       String name = map.displayName();
       if (mapGeneratorService.isGeneratedMap(name)) {
@@ -106,7 +106,6 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
       return name;
     }));
 
-    // Bind author visibility and text
     authorBox.visibleProperty().bind(mapObservable.map(
         map -> (map.author() != null) || mapGeneratorService.isGeneratedMap(map.displayName())));
     authorLabel.textProperty().bind(mapObservable.map(map -> {
@@ -123,19 +122,15 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
                                             .map(MapVersion::size)
                                             .map(size -> i18n.get("mapPreview.size", size.widthInKm(), size.heightInKm())));
 
-    // Bind token counter label
     tokenCounterLabel.textProperty().bind(tokenCount.asString());
 
-    // Bind SVG fill color
     vetoSvg.fillProperty().bind(Bindings.when(tokenCount.greaterThan(0))
                                         .then(Paint.valueOf(VETO_ICON_ACTIVE_COLOR))
                                         .otherwise(Paint.valueOf(VETO_ICON_INACTIVE_COLOR)));
 
-    // Bind minus button visibility
     minusButton.visibleProperty().bind(vetoesBox.hoverProperty().and(tokenCount.greaterThan(0)));
     minusButton.managedProperty().bind(minusButton.visibleProperty());
 
-    // Set up click handlers
     vetoButton.setOnAction(event -> {
       int current = tokenCount.get();
       if (current < vetoTokensMax.get() && vetoTokensLeft.getValue() > 0) {
@@ -150,7 +145,6 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
       }
     });
 
-    // Handle banned class
     tokenCount.addListener((obs, oldValue, newValue) -> {
       if (newValue.intValue() >= vetoTokensMax.get()) {
         root.getStyleClass().add("banned");
@@ -159,7 +153,6 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
       }
     });
 
-    // Subscribe to veto token updates
     vetoTokensMax.subscribe(this::updateVetoes);
     matchmakerPrefs.getAppliedVetoes().subscribe(this::updateVetoes);
   }
