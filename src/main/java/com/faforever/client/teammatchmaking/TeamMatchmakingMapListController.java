@@ -107,6 +107,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   public ComboBox<String> bracketComboBox;
   public Button applyVetoesButton;
   public Button vetoTokensWallet;
+  public SVGPath applyVetoesSvg;
 
   private ObservableValue<Integer> vetoTokensApplied;
   private ObservableValue<Integer> vetoTokensLeft;
@@ -126,6 +127,8 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
   private void bindProperties() {
     JavaFxUtil.bindManagedToVisible(loadingPane);
+
+    applyVetoesSvg.setContent(VETO_ICON_SVG_PATH);
 
     this.sortedMapPools.subscribe(pools -> {
       this.bracketComboBox.getItems().setAll(pools.stream().map(this::getBracketTitle).toList());
