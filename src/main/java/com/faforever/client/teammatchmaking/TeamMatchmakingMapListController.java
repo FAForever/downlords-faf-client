@@ -53,6 +53,8 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
   private static final int TILE_SIZE = 180;
   private static final int PADDING = 20;
+  private static final String VETO_TOKEN_USED_COLOR = "#000000";
+  private static final String VETO_TOKEN_AVAILABLE_COLOR = "#ffffff";
 
   public static final String VETO_ICON_SVG_PATH = "M 11.8068 1.8587 L 11.8067 2.4721 L 11.8058 9.8249 L 13.3528 8.6739 C 14.0631 8.1453 15.0404 8.1616 15.7326 8.7136 L 17.008 9.7306 L 17.4413 10.0761 L 17.1686 10.5586 L 14.2707 15.6856 L 13.7992 16.5846 C 12.4816 19.0965 9.7937 20.5816 6.9659 20.3599 C 3.245 20.0681 0.3874 16.9418 0.4302 13.2098 L 0.5402 3.6419 L 0.547 3.0517 L 1.1351 3.0017 L 3.831 2.7726 L 3.9211 0.9443 L 3.9506 0.347 L 4.5483 0.3267 L 7.8067 0.2164 L 8.4872 0.1933 L 8.4786 0.8742 L 8.4687 1.665 L 11.1944 1.8232 L 11.8068 1.8587 Z M 8.4523 2.9663 L 8.3681 9.6469 L 7.0682 9.6305 L 7.1609 2.2698 L 7.1702 1.5387 L 5.1901 1.6057 L 5.1017 3.3995 L 4.8833 9.6389 L 3.5841 9.5935 L 3.777 4.0819 L 1.8333 4.2471 L 1.7302 13.2247 C 1.6951 16.2725 4.0288 18.8256 7.0675 19.0639 C 9.3769 19.2449 11.572 18.0322 12.6479 15.9807 L 13.1242 15.0728 L 13.1289 15.0638 L 13.1339 15.0548 L 15.7641 10.4014 L 14.9221 9.73 C 14.6914 9.546 14.3656 9.5406 14.1289 9.7168 L 11.5437 11.6405 L 10.5057 11.1189 L 10.5067 3.0854 L 8.4523 2.9663 Z";
 
@@ -127,7 +129,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     });
 
     bracketComboBox.getSelectionModel().selectedIndexProperty().subscribe(index -> this.currentBracketIndex.set(index.intValue()));
-    this.currentBracketIndex.addListener(v->bracketComboBox.getSelectionModel().select((Optional.ofNullable(this.currentBracketIndex.getValue()).orElse(0))));
+    this.currentBracketIndex.addListener(v -> bracketComboBox.getSelectionModel().select((Optional.ofNullable(this.currentBracketIndex.getValue()).orElse(0))));
 
     tilesContainer.getChildren().subscribe(() -> this.loadingPane.setVisible(false));
 
@@ -156,7 +158,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     this.playerBracketIndex.subscribe(currentBracketIndex::set);
 
     this.sortedMapPools.subscribe(pools -> {
-      if(pools.size() > 0) {
+      if (!pools.isEmpty()) {
         this.currentBracketIndex.setValue(Optional.ofNullable(this.currentBracketIndex.getValue()).orElse(0));
       }
     });
@@ -341,8 +343,10 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     for (int i = 0; i < maxTokens; i++) {
       SVGPath token = new SVGPath();
       token.setContent(VETO_ICON_SVG_PATH);
-      if (i >= maxTokens - usedTokens) {token.setFill(Paint.valueOf("#000000"));} else {
-        token.setFill(Paint.valueOf("#ffffff"));
+      if (i >= maxTokens - usedTokens) {
+        token.setFill(Paint.valueOf(VETO_TOKEN_USED_COLOR));
+      } else {
+        token.setFill(Paint.valueOf(VETO_TOKEN_AVAILABLE_COLOR));
       }
       tokens.add(token);
     }

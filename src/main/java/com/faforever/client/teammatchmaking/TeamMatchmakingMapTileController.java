@@ -13,7 +13,6 @@ import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.commons.lobby.VetoData;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -33,9 +32,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Controller for managing the UI representation of a map tile in the Team Matchmaking feature.
  * Displays map details such as thumbnail, name, author, size, and veto tokens.
@@ -44,6 +40,9 @@ import java.util.List;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 public class TeamMatchmakingMapTileController extends NodeController<Pane> {
+
+  private static final String VETO_ICON_ACTIVE_COLOR = "#FFD700";
+  private static final String VETO_ICON_INACTIVE_COLOR = "#FFFFFF";
 
   private final MapService mapService;
   private final I18n i18n;
@@ -129,8 +128,8 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
 
     // Bind SVG fill color
     vetoSvg.fillProperty().bind(Bindings.when(tokenCount.greaterThan(0))
-                                        .then(Paint.valueOf("#FFD700"))
-                                        .otherwise(Paint.valueOf("#FFFFFF")));
+                                        .then(Paint.valueOf(VETO_ICON_ACTIVE_COLOR))
+                                        .otherwise(Paint.valueOf(VETO_ICON_INACTIVE_COLOR)));
 
     // Bind minus button visibility
     minusButton.visibleProperty().bind(vetoesBox.hoverProperty().and(tokenCount.greaterThan(0)));
