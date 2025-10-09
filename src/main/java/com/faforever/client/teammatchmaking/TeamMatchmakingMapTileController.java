@@ -3,7 +3,6 @@ package com.faforever.client.teammatchmaking;
 import com.faforever.client.domain.api.Map;
 import com.faforever.client.domain.api.MapPoolAssignment;
 import com.faforever.client.domain.api.MapVersion;
-import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -48,7 +47,6 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   private final I18n i18n;
   private final ImageViewHelper imageViewHelper;
   private final MapGeneratorService mapGeneratorService;
-  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final MatchmakerPrefs matchmakerPrefs;
 
   public Pane root;
@@ -83,6 +81,8 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   public void setVetoTokensMax(int vetoTokensMax) {
     this.vetoTokensMax.set(vetoTokensMax);
   }
+
+  public void setVetoIconPath(String vetoIconPath) { this.vetoSvg.setContent(vetoIconPath); }
 
   public void bindVetoesBoxProperties() {
     vetoesBox.mouseTransparentProperty().bind(vetoModeEnabled.not());

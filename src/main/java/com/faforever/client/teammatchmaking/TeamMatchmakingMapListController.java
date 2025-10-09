@@ -302,6 +302,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   private Pane createMapTile(MapPoolAssignment mapAssignment) {
     TeamMatchmakingMapTileController controller = uiService.loadFxml(
         "theme/play/teammatchmaking/matchmaking_map_tile.fxml");
+    controller.setVetoIconPath(VETO_ICON_SVG_PATH);
     controller.setMapAssignment(mapAssignment);
     controller.setVetoTokensMax(currentBracket.getValue().vetoTokensPerPlayer());
     controller.setVetoTokensLeft(vetoTokensLeft);
