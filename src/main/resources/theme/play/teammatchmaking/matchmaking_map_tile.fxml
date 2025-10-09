@@ -32,7 +32,7 @@
             </rowConstraints>
             <HBox GridPane.rowIndex="0" prefWidth="178.0" styleClass="tmm-maplist-tile-top-line" >
                 <VBox fx:id="authorBox">
-                    <Label fx:id="authorLabel" textOverrun="ELLIPSIS" wrapText="false" maxWidth="130"/>
+                    <Label fx:id="authorLabel" maxWidth="130"/>
                 </VBox>
                 <Region HBox.hgrow="ALWAYS"/>
                 <HBox fx:id="vetoesBox" alignment="CENTER_RIGHT">
@@ -54,7 +54,7 @@
             <HBox prefHeight="10" styleClass="image-dimmer-light-reversed" GridPane.rowIndex="1"/>
             <HBox prefHeight="10" styleClass="image-dimmer-light" GridPane.rowIndex="3"/>
             <VBox alignment="BOTTOM_LEFT" prefWidth="178" spacing="-3" GridPane.rowIndex="4" styleClass="tmm-maplist-tile-bottom-line">
-                <Label fx:id="nameLabel" textOverrun="ELLIPSIS" wrapText="false" maxWidth="170" style="-fx-font-weight: 700;"/>
+                <Label fx:id="nameLabel" maxWidth="170" style="-fx-font-weight: 700;"/>
                 <Label fx:id="sizeLabel" style="-fx-font-size: 12; -fx-font-weight: 400"/>
             </VBox>
         </GridPane>
