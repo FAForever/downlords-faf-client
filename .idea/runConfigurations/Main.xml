@@ -1,16 +1,19 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Main" type="Application" factoryName="Application" singleton="false" nameIsGenerated="true">
-    <option name="ALTERNATIVE_JRE_PATH" value="$PROJECT_DIR$/../../../Program Files/Eclipse Adoptium/jdk-21.0.5.11-hotspot" />
-    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
-    <option name="MAIN_CLASS_NAME" value="com.faforever.client.Main" />
-    <module name="faf-client.main" />
-    <option name="VM_PARAMETERS" value="-Dio.netty.allocator.type=unpooled -DnativeDir=build/resources/native -Dprism.forceGPU=true -Xmx1g -XX:MinHeapFreeRatio=15 -XX:MaxHeapFreeRatio=33 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseZGC -XX:+UseCompactObjectHeaders -Djava.awt.headless=false -Djava.net.preferIPv4Stack=true -XX:TieredStopAtLevel=1 --add-opens=java.base/java.lang=ALL-UNNAMED" />
-    <RunnerSettings RunnerId="Profile ">
-      <option name="myExternalizedOptions" value="additional-options2=onexit\=snapshot,_no_java_version_check" />
-    </RunnerSettings>
-    <method v="2">
-      <option name="Make" enabled="true" />
-      <option name="Gradle.BeforeRunTask" enabled="true" tasks="fx2jClasses" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
-    </method>
-  </configuration>
+    <configuration default="false" name="Main" type="Application" factoryName="Application" singleton="false" nameIsGenerated="true">
+        <option name="ALTERNATIVE_JRE_PATH" value="temurin-21" />
+        <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+        <envs>
+            <env name="SPRING_PROFILES_ACTIVE" value="prod" />
+        </envs>
+        <option name="MAIN_CLASS_NAME" value="com.faforever.client.Main" />
+        <module name="faf-client.main" />
+        <option name="VM_PARAMETERS" value="-Dio.netty.allocator.type=unpooled -DnativeDir=build/resources/native -Dprism.forceGPU=true -Xmx1g -XX:MinHeapFreeRatio=15 -XX:MaxHeapFreeRatio=33 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseZGC -XX:+UseCompactObjectHeaders -Djava.awt.headless=false -Djava.net.preferIPv4Stack=true -XX:TieredStopAtLevel=1 --add-opens=java.base/java.lang=ALL-UNNAMED" />
+        <RunnerSettings RunnerId="Profile ">
+            <option name="myExternalizedOptions" value="additional-options2=onexit\=snapshot,_no_java_version_check" />
+        </RunnerSettings>
+        <method v="2">
+            <option name="Make" enabled="true" />
+            <option name="Gradle.BeforeRunTask" enabled="true" tasks="fx2jClasses" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
+        </method>
+    </configuration>
 </component>
