@@ -11,7 +11,6 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.DeepCopyUtil;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.lobby.VetoData;
 import javafx.beans.binding.Bindings;
@@ -23,11 +22,8 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -46,10 +42,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -139,8 +132,10 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     vetoTokensApplied = Bindings.createObjectBinding(this::calculateVetoTokensApplied, currentBracketMaps,
                                                      matchmakerPrefs.getAppliedVetoes(), currentBracket);
     vetoTokensLeft = Bindings.createObjectBinding(
-        () -> Optional.ofNullable(currentBracket.getValue().vetoTokensPerPlayer()).orElse(0) - Optional.ofNullable(
-            vetoTokensApplied.getValue()).orElse(0), currentBracket, vetoTokensApplied);
+        () -> Optional.ofNullable(currentBracket.getValue())
+                      .map(MatchmakerQueueMapPool::vetoTokensPerPlayer)
+                      .orElse(0) - Optional.ofNullable(vetoTokensApplied.getValue()).orElse(0),
+        currentBracket, vetoTokensApplied);
 
     this.currentBracket.subscribe(this::updateContent);
     this.currentBracketMaps.when(showing).subscribe(this::updateContent);
@@ -356,7 +351,6 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   private void updateContent() {
     List<Pane> mapTiles = currentBracketMaps.getValue().stream().map(this::createMapTile).toList();
     fxApplicationThreadExecutor.execute(() -> {
-      //this.setBracketTitle();
       this.tilesContainer.getChildren().setAll(mapTiles);
       this.resizeToContent();
     });

@@ -166,6 +166,10 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   }
 
   private void updateVetoes() {
+    if (assignment.getValue() == null) {
+      tokenCount.set(0);
+      return;
+    }
     int usedTokens = matchmakerPrefs.getAppliedVetoes().stream()
                                     .filter(veto -> veto.getMapPoolMapVersionId() == assignment.getValue().id())
                                     .findFirst()

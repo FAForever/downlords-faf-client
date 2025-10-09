@@ -3,14 +3,11 @@ package com.faforever.client.preferences;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.VetoData;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
 
-import java.util.Map;
 import java.util.stream.IntStream;
 
 import static javafx.collections.FXCollections.observableArrayList;
-import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.observableSet;
 
 public class MatchmakerPrefs {
