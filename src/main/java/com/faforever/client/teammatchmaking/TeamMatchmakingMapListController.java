@@ -254,7 +254,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
       return null;
     }
 
-    return this.sortedMapPools.getValue().get(this.currentBracketIndex.get());
+    return this.sortedMapPools.getValue().get(v);
   }
 
   private String getBracketTitle(MatchmakerQueueMapPool bracket) {
@@ -367,19 +367,23 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     int maxTokens = v.vetoTokensPerPlayer();
     int usedTokens = vetoTokensApplied.getValue();
 
-    while (tokenViews.size() < maxTokens) {
-      SVGPath token = new SVGPath();
-      token.setContent(VETO_ICON_SVG_PATH);
-      tokenViews.add(token);
-    }
+    fxApplicationThreadExecutor.execute(() -> {
+      while (tokenViews.size() < maxTokens) {
+        SVGPath token = new SVGPath();
+        token.setContent(VETO_ICON_SVG_PATH);
+        tokenViews.add(token);
+      }
 
-    for (int i = 0; i < maxTokens; i++) {
-      tokenViews.get(i).setFill(i >= maxTokens - usedTokens ? VETO_TOKEN_USED_PAINT : VETO_TOKEN_AVAILABLE_PAINT);
-    }
+      while (tokenViews.size() > maxTokens) {
+        tokenViews.remove(tokenViews.size() - 1);
+      }
 
-    fxApplicationThreadExecutor.execute(() ->
-      this.vetoTokensViewer.getChildren().setAll(tokenViews.subList(0, maxTokens))
-    );
+      for (int i = 0; i < maxTokens; i++) {
+        tokenViews.get(i).setFill(i >= maxTokens - usedTokens ? VETO_TOKEN_USED_PAINT : VETO_TOKEN_AVAILABLE_PAINT);
+      }
+
+      this.vetoTokensViewer.getChildren().setAll(tokenViews.subList(0, maxTokens));
+    });
   }
 
   private void updateContent() {

@@ -132,6 +132,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
     minusButton.managedProperty().bind(minusButton.visibleProperty());
 
     vetoButton.setOnAction(event -> {
+      if (assignment.getValue() == null) return;
       int current = tokenCount.get();
       if (current < vetoTokensMax.get() && vetoTokensLeft.getValue() > 0) {
         matchmakerPrefs.setVetoData(new VetoData(assignment.getValue().id(), current + 1, assignment.getValue().mapPool().mapPool().id()));
@@ -139,6 +140,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
     });
 
     minusButton.setOnAction(event -> {
+      if (assignment.getValue() == null) return;
       int current = tokenCount.get();
       if (current > 0) {
         matchmakerPrefs.setVetoData(new VetoData(assignment.getValue().id(), current - 1, assignment.getValue().mapPool().mapPool().id()));
