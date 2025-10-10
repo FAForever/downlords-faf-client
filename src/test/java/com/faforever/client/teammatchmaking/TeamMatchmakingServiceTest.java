@@ -6,6 +6,7 @@ import com.faforever.client.builders.GameInfoBuilder;
 import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.PartyInfoBuilder.PartyMemberBuilder;
 import com.faforever.client.builders.PlayerInfoBuilder;
+import com.faforever.client.builders.VetoDataBuilder;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.domain.server.PartyInfo.PartyMember;
 import com.faforever.client.domain.server.PlayerInfo;
@@ -616,5 +617,35 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     connectionState.set(ConnectionState.CONNECTED);
 
     verify(fafServerAccessor).setPartyFactions(anyList());
+  }
+
+  @Test
+  public void testSendVetoesOnConnection() {
+    matchmakerPrefs.getAppliedVetoes().add(VetoDataBuilder.create().defaultValues().get());
+
+    connectionState.set(ConnectionState.CONNECTED);
+
+    verify(fafServerAccessor).setPlayerVetoes(matchmakerPrefs.getAppliedVetoes());
+  }
+
+  @Test
+  public void testSendVetoesOnVetoesChange() {
+    connectionState.set(ConnectionState.CONNECTED);
+    when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
+    // Clear invocations from connection state change
+    org.mockito.Mockito.clearInvocations(fafServerAccessor);
+
+    matchmakerPrefs.getAppliedVetoes().add(VetoDataBuilder.create().defaultValues().get());
+
+    verify(fafServerAccessor, times(1)).setPlayerVetoes(matchmakerPrefs.getAppliedVetoes());
+  }
+
+  @Test
+  public void testVetoesNotSentWhenDisconnected() {
+    connectionState.set(ConnectionState.DISCONNECTED);
+
+    matchmakerPrefs.getAppliedVetoes().add(VetoDataBuilder.create().defaultValues().get());
+
+    verify(fafServerAccessor, never()).setPlayerVetoes(anyList());
   }
 }
