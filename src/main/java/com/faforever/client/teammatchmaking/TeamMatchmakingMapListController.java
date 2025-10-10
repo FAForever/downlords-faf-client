@@ -15,6 +15,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.lobby.VetoData;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -25,6 +26,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -98,6 +100,13 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   private final ObservableValue<MatchmakerQueueMapPool> currentBracket = Bindings.createObjectBinding(
       this::getCurrentBracket, sortedMapPools, currentBracketIndex);
 
+  private final ObservableValue<Boolean> hasVetoTokens = currentBracket.map(bracket -> bracket.vetoTokensPerPlayer() > 0)
+                                                                       .orElse(false);
+  private final BooleanBinding showVetoWallet = Bindings.createBooleanBinding(
+      () -> vetoModeEnabled.get() && hasVetoTokens.getValue(),
+      vetoModeEnabled, hasVetoTokens
+  );
+
   private final ObservableValue<List<MapPoolAssignment>> currentBracketMaps = Bindings.createObjectBinding(
       this::getCurrentBracketMaps, currentBracket);
 
@@ -108,6 +117,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   public Button applyVetoesButton;
   public Button vetoTokensWallet;
   public SVGPath applyVetoesSvg;
+  public Label applyVetoesLabel;
 
   private ObservableValue<Integer> vetoTokensApplied;
   private ObservableValue<Integer> vetoTokensLeft;
@@ -160,7 +170,9 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
         return;
       }
       loadingPane.setVisible(true);
-      mapService.getMatchmakerBrackets(value).subscribe(this.brackets::setValue);
+      mapService.getMatchmakerBrackets(value)
+                .publishOn(fxApplicationThreadExecutor.asScheduler())
+                .subscribe(this.brackets::setValue);
     });
     this.playerBracketIndex.subscribe(currentBracketIndex::set);
 
@@ -177,10 +189,16 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
                                    .orElse(0)
                                    .when(showing));
 
-    applyVetoesButton.visibleProperty().bind(vetoModeEnabled.not());
-    vetoTokensWallet.visibleProperty().bind(vetoModeEnabled);
-    applyVetoesButton.managedProperty().bind(vetoModeEnabled.not());
-    vetoTokensWallet.managedProperty().bind(vetoModeEnabled);
+    applyVetoesButton.visibleProperty().bind(showVetoWallet.not());
+    vetoTokensWallet.visibleProperty().bind(showVetoWallet);
+    applyVetoesButton.managedProperty().bind(applyVetoesButton.visibleProperty());
+    vetoTokensWallet.managedProperty().bind(vetoTokensWallet.visibleProperty());
+
+    applyVetoesLabel.textProperty().bind(hasVetoTokens.map(hasTokens ->
+        i18n.get(hasTokens ? "teammatchmaking.applyVetoes" : "teammatchmaking.noVetoes")));
+    applyVetoesButton.disableProperty().bind(hasVetoTokens.map(v -> !v));
+    applyVetoesSvg.visibleProperty().bind(hasVetoTokens);
+    applyVetoesSvg.managedProperty().bind(hasVetoTokens);
   }
 
   @Override
