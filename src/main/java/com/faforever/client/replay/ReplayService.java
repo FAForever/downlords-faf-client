@@ -89,7 +89,6 @@ public class ReplayService {
   public static final String SUP_COM_REPLAY_FILE_ENDING = ".scfareplay";
   private static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
   private static final Pattern invalidCharacters = Pattern.compile("[?@*%{}<>|\"]");
-  private static final int nThreads = Math.min(Runtime.getRuntime().availableProcessors(), 4);
 
   private final ClientProperties clientProperties;
   private final LoginService loginService;
