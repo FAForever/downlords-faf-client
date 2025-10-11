@@ -174,7 +174,8 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     this.currentBracketMaps.when(showing).subscribe(this::updateContent);
     this.currentBracketIndex.when(showing).subscribe(this::updateContent);
 
-    currentBracket.when(showing).subscribe(this::updateVetoes);
+    // .when(showing) on the next line causes bug when you switch veto modes (click on the button)
+    currentBracket.subscribe(this::updateVetoes);
     vetoTokensApplied.when(showing).subscribe(this::updateVetoes);
 
     this.queue.when(showing).subscribe(value -> {
