@@ -326,6 +326,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     controller.setVetoIconPath(VETO_ICON_SVG_PATH);
     controller.setMapAssignment(mapAssignment);
     controller.setVetoTokensMax(currentBracket.getValue().vetoTokensPerPlayer());
+    controller.setMaxPerMap(currentBracket.getValue().maxTokensPerMap());
     controller.setVetoTokensLeft(vetoTokensLeft);
     controller.setVetoModeEnabled(vetoModeEnabled);
     controller.bindVetoesBoxProperties();

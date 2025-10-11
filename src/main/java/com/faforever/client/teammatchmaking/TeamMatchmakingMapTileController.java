@@ -67,6 +67,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   @Setter
   private SimpleBooleanProperty vetoModeEnabled;
   private final SimpleIntegerProperty vetoTokensMax = new SimpleIntegerProperty(0);
+  private final SimpleIntegerProperty maxPerMap = new SimpleIntegerProperty(0);
   private final SimpleIntegerProperty tokenCount = new SimpleIntegerProperty(0);
 
   @Override
@@ -80,6 +81,10 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
 
   public void setVetoTokensMax(int vetoTokensMax) {
     this.vetoTokensMax.set(vetoTokensMax);
+  }
+
+  public void setMaxPerMap(int maxPerMap) {
+    this.maxPerMap.set(maxPerMap);
   }
 
   public void setVetoIconPath(String vetoIconPath) { this.vetoSvg.setContent(vetoIconPath); }
@@ -133,9 +138,11 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
 
     vetoButton.setOnAction(event -> {
       if (assignment.getValue() == null) return;
-      int current = tokenCount.get();
-      if (current < vetoTokensMax.get() && vetoTokensLeft.getValue() > 0) {
-        matchmakerPrefs.setVetoData(new VetoData(assignment.getValue().id(), current + 1, assignment.getValue().mapPool().mapPool().id()));
+      int currentTokenCount = tokenCount.get();
+      int currentMaxPerMap = maxPerMap.get();
+      boolean isDynamic = currentMaxPerMap == 0;
+      if ((isDynamic || currentTokenCount < currentMaxPerMap) && currentTokenCount < vetoTokensMax.get() && vetoTokensLeft.getValue() > 0) {
+        matchmakerPrefs.setVetoData(new VetoData(assignment.getValue().id(), currentTokenCount + 1, assignment.getValue().mapPool().mapPool().id()));
       }
     });
 
