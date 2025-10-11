@@ -108,14 +108,8 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
       currentBracket);
   private final BooleanBinding showVetoWallet = vetoModeEnabled.and(hasVetoTokens);
 
-  private final ObservableValue<List<MapPoolAssignment>> currentBracketMaps = currentBracket.flatMap(
-      bracket -> brackets.map(map -> map.get(bracket)))
-                                                                                       .map(list -> list == null ? Collections.emptyList()
-                                                                                                                 : list.stream()
-                                                                                                                       .sorted((m1, m2) -> MAP_VERSION_COMPARATOR.compare(
-                                                                                                                           m1.mapVersion(),
-                                                                                                                           m2.mapVersion()))
-                                                                                                                       .toList());
+  private final ObservableValue<List<MapPoolAssignment>> currentBracketMaps = Bindings.createObjectBinding(
+      this::getCurrentBracketMaps, currentBracket);
 
   private final ObservableValue<Integer> playerBracketIndex = Bindings.createObjectBinding(this::calculateBracketIndex,
                                                                                            sortedMapPools,
@@ -293,6 +287,18 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
       return rating + " > " + Math.round(Math.floor(min));
     }
     return rating + " " + Math.round(bracket.minRating()) + " - " + Math.round(bracket.maxRating());
+  }
+
+  private List<MapPoolAssignment> getCurrentBracketMaps() {
+    if (currentBracket.getValue() == null) {
+      return Collections.emptyList();
+    }
+
+    return this.brackets.getValue()
+                        .get(currentBracket.getValue())
+                        .stream()
+                        .sorted((m1, m2) -> MAP_VERSION_COMPARATOR.compare(m1.mapVersion(), m2.mapVersion()))
+                        .toList();
   }
 
   private List<MatchmakerQueueMapPool> getSortedMapPools(
