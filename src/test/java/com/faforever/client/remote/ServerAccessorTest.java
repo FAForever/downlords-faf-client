@@ -6,7 +6,6 @@ import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.MatchmakerQueueInfoBuilder;
 import com.faforever.client.builders.NewGameInfoBuilder;
 import com.faforever.client.builders.PlayerInfoBuilder;
-import com.faforever.client.builders.VetoDataBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.domain.server.PlayerInfo;
@@ -103,6 +102,8 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.Is.is;
+import static org.instancio.Instancio.of;
+import static org.instancio.Select.all;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
@@ -963,8 +964,12 @@ public class ServerAccessorTest extends ServiceTest {
   @Test
   public void testSetPlayerVetoes() {
     List<VetoData> vetoes = List.of(
-        VetoDataBuilder.create().defaultValues().get(),
-        VetoDataBuilder.create().defaultValues().mapPoolMapVersionId(2).get()
+        of(VetoData.class)
+            .supply(all(VetoData.class), () -> new VetoData(1, 1, 1))
+            .create(),
+        of(VetoData.class)
+            .supply(all(VetoData.class), () -> new VetoData(2, 1, 1))
+            .create()
     );
 
     instance.setPlayerVetoes(vetoes);
@@ -977,8 +982,12 @@ public class ServerAccessorTest extends ServiceTest {
 
   @Test
   public void testOnVetoesChangedUpdatesPreferences() throws Exception {
-    VetoData veto1 = VetoDataBuilder.create().defaultValues().get();
-    VetoData veto2 = VetoDataBuilder.create().defaultValues().mapPoolMapVersionId(2).get();
+    VetoData veto1 = of(VetoData.class)
+        .supply(all(VetoData.class), () -> new VetoData(1, 1, 1))
+        .create();
+    VetoData veto2 = of(VetoData.class)
+        .supply(all(VetoData.class), () -> new VetoData(2, 1, 1))
+        .create();
     VetoesChangedInfo vetoesChangedMessage = new VetoesChangedInfo(false, List.of(veto1, veto2));
 
     sendFromServer(vetoesChangedMessage);
@@ -990,7 +999,9 @@ public class ServerAccessorTest extends ServiceTest {
 
   @Test
   public void testOnVetoesChangedForcedShowsNotification() throws Exception {
-    VetoData veto = VetoDataBuilder.create().defaultValues().get();
+    VetoData veto = of(VetoData.class)
+        .supply(all(VetoData.class), () -> new VetoData(1, 1, 1))
+        .create();
     VetoesChangedInfo vetoesChangedMessage = new VetoesChangedInfo(true, List.of(veto));
 
     when(i18n.get("teammatchmaking.vetoes.forced.title")).thenReturn("Vetoes Updated");
@@ -1011,7 +1022,9 @@ public class ServerAccessorTest extends ServiceTest {
 
   @Test
   public void testOnVetoesChangedNotForcedNoNotification() throws Exception {
-    VetoData veto = VetoDataBuilder.create().defaultValues().get();
+    VetoData veto = of(VetoData.class)
+        .supply(all(VetoData.class), () -> new VetoData(1, 1, 1))
+        .create();
     VetoesChangedInfo vetoesChangedMessage = new VetoesChangedInfo(false, List.of(veto));
 
     sendFromServer(vetoesChangedMessage);

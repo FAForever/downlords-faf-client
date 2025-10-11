@@ -1,6 +1,5 @@
 package com.faforever.client.preferences;
 
-import com.faforever.client.builders.VetoDataBuilder;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.lobby.VetoData;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.instancio.Instancio.of;
+import static org.instancio.Select.all;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MatchmakerPrefsTest extends ServiceTest {
@@ -22,11 +23,9 @@ public class MatchmakerPrefsTest extends ServiceTest {
 
   @Test
   public void testSetVetoDataAddsNew() {
-    VetoData veto = VetoDataBuilder.create()
-        .mapPoolMapVersionId(1)
-        .vetoTokensApplied(1)
-        .matchmakerQueueMapPoolId(1)
-        .get();
+    VetoData veto = of(VetoData.class)
+        .supply(all(VetoData.class), () -> new VetoData(1, 1, 1))
+        .create();
 
     instance.setVetoData(veto);
 
@@ -36,19 +35,15 @@ public class MatchmakerPrefsTest extends ServiceTest {
 
   @Test
   public void testSetVetoDataUpdatesExisting() {
-    VetoData veto1 = VetoDataBuilder.create()
-        .mapPoolMapVersionId(1)
-        .vetoTokensApplied(1)
-        .matchmakerQueueMapPoolId(1)
-        .get();
+    VetoData veto1 = of(VetoData.class)
+        .supply(all(VetoData.class), () -> new VetoData(1, 1, 1))
+        .create();
 
     instance.setVetoData(veto1);
 
-    VetoData veto2 = VetoDataBuilder.create()
-        .mapPoolMapVersionId(1)
-        .vetoTokensApplied(2)
-        .matchmakerQueueMapPoolId(1)
-        .get();
+    VetoData veto2 = of(VetoData.class)
+        .supply(all(VetoData.class), () -> new VetoData(1, 2, 1))
+        .create();
 
     instance.setVetoData(veto2);
 
@@ -59,28 +54,22 @@ public class MatchmakerPrefsTest extends ServiceTest {
 
   @Test
   public void testSetVetoDataPreservesOthers() {
-    VetoData veto1 = VetoDataBuilder.create()
-        .mapPoolMapVersionId(1)
-        .vetoTokensApplied(1)
-        .matchmakerQueueMapPoolId(1)
-        .get();
+    VetoData veto1 = of(VetoData.class)
+        .supply(all(VetoData.class), () -> new VetoData(1, 1, 1))
+        .create();
 
-    VetoData veto2 = VetoDataBuilder.create()
-        .mapPoolMapVersionId(2)
-        .vetoTokensApplied(1)
-        .matchmakerQueueMapPoolId(1)
-        .get();
+    VetoData veto2 = of(VetoData.class)
+        .supply(all(VetoData.class), () -> new VetoData(2, 1, 1))
+        .create();
 
     instance.setVetoData(veto1);
     instance.setVetoData(veto2);
 
     assertThat(instance.getAppliedVetoes(), hasSize(2));
 
-    VetoData updatedVeto1 = VetoDataBuilder.create()
-        .mapPoolMapVersionId(1)
-        .vetoTokensApplied(3)
-        .matchmakerQueueMapPoolId(1)
-        .get();
+    VetoData updatedVeto1 = of(VetoData.class)
+        .supply(all(VetoData.class), () -> new VetoData(1, 3, 1))
+        .create();
 
     instance.setVetoData(updatedVeto1);
 
