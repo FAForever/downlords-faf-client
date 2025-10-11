@@ -100,12 +100,12 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   private final ObservableValue<MatchmakerQueueMapPool> currentBracket = Bindings.createObjectBinding(
       this::getCurrentBracket, sortedMapPools, currentBracketIndex);
 
-  private final ObservableValue<Boolean> hasVetoTokens = currentBracket.map(bracket -> bracket.vetoTokensPerPlayer() > 0)
-                                                                       .orElse(false);
-  private final BooleanBinding showVetoWallet = Bindings.createBooleanBinding(
-      () -> vetoModeEnabled.get() && hasVetoTokens.getValue(),
-      vetoModeEnabled, hasVetoTokens
-  );
+  private final BooleanBinding hasVetoTokens = Bindings.createBooleanBinding(
+      () -> Optional.ofNullable(currentBracket.getValue())
+                    .map(bracket -> bracket.vetoTokensPerPlayer() > 0)
+                    .orElse(false),
+      currentBracket);
+  private final BooleanBinding showVetoWallet = vetoModeEnabled.and(hasVetoTokens);
 
   private final ObservableValue<List<MapPoolAssignment>> currentBracketMaps = Bindings.createObjectBinding(
       this::getCurrentBracketMaps, currentBracket);
@@ -194,9 +194,10 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     applyVetoesButton.managedProperty().bind(applyVetoesButton.visibleProperty());
     vetoTokensWallet.managedProperty().bind(vetoTokensWallet.visibleProperty());
 
-    applyVetoesLabel.textProperty().bind(hasVetoTokens.map(hasTokens ->
-        i18n.get(hasTokens ? "teammatchmaking.applyVetoes" : "teammatchmaking.noVetoes")));
-    applyVetoesButton.disableProperty().bind(hasVetoTokens.map(v -> !v));
+    applyVetoesLabel.textProperty().bind(Bindings.when(hasVetoTokens)
+        .then(i18n.get("teammatchmaking.applyVetoes"))
+        .otherwise(i18n.get("teammatchmaking.noVetoes")));
+    applyVetoesButton.disableProperty().bind(hasVetoTokens.not());
     applyVetoesSvg.visibleProperty().bind(hasVetoTokens);
     applyVetoesSvg.managedProperty().bind(hasVetoTokens);
   }
