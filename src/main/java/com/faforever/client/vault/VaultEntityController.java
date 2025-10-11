@@ -264,14 +264,6 @@ public abstract class VaultEntityController<T> extends NodeController<Node> {
     return vaultEntityShowRoomController;
   }
 
-  protected void changePerPageCount() {
-    pageSize = perPageComboBox.getValue();
-    if (state.get() == State.RESULT) {
-      SearchConfig searchConfig = searchController.getLastSearchConfig();
-      onPageChange(searchConfig, true);
-    }
-  }
-
   protected void onPageChange(SearchConfig searchConfig, boolean firstLoad) {
     enterSearchingState();
     setSupplier(searchConfig);
