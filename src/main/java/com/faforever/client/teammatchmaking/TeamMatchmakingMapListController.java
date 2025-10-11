@@ -146,7 +146,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     });
 
     bracketComboBox.getSelectionModel().selectedIndexProperty().subscribe(index -> this.currentBracketIndex.set(index.intValue()));
-    this.currentBracketIndex.addListener(v -> bracketComboBox.getSelectionModel().select((Optional.ofNullable(this.currentBracketIndex.getValue()).orElse(0))));
+    this.currentBracketIndex.subscribe(value -> bracketComboBox.getSelectionModel().select(value != null ? value : 0));
 
     tilesContainer.getChildren().subscribe(() -> this.loadingPane.setVisible(false));
 
