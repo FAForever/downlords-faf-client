@@ -12,8 +12,8 @@ import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.commons.lobby.VetoData;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -65,7 +65,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   @Setter
   private ObservableValue<Integer> vetoTokensLeft;
   @Setter
-  private SimpleBooleanProperty vetoModeEnabled;
+  private BooleanProperty vetoModeEnabled;
   private final SimpleIntegerProperty vetoTokensMax = new SimpleIntegerProperty(0);
   private final SimpleIntegerProperty maxPerMap = new SimpleIntegerProperty(0);
   private final SimpleIntegerProperty tokenCount = new SimpleIntegerProperty(0);

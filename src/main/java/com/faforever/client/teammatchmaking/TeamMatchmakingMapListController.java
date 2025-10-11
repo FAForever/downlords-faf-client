@@ -16,6 +16,7 @@ import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.lobby.VetoData;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -88,7 +89,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
   private final DoubleProperty maxWidth = new SimpleDoubleProperty(0);
   private final DoubleProperty maxHeight = new SimpleDoubleProperty(0);
-  private final SimpleBooleanProperty vetoModeEnabled = new SimpleBooleanProperty(false);
+  private final BooleanProperty vetoModeEnabled = new SimpleBooleanProperty(false);
   private final ObjectProperty<Map<MatchmakerQueueMapPool, List<MapPoolAssignment>>> brackets = new SimpleObjectProperty<>(
       Map.of());
   private final IntegerProperty playerRating = new SimpleIntegerProperty();
@@ -107,8 +108,14 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
       currentBracket);
   private final BooleanBinding showVetoWallet = vetoModeEnabled.and(hasVetoTokens);
 
-  private final ObservableValue<List<MapPoolAssignment>> currentBracketMaps = Bindings.createObjectBinding(
-      this::getCurrentBracketMaps, currentBracket);
+  private final ObservableValue<List<MapPoolAssignment>> currentBracketMaps = currentBracket.flatMap(
+      bracket -> brackets.map(map -> map.get(bracket)))
+                                                                                       .map(list -> list == null ? Collections.emptyList()
+                                                                                                                 : list.stream()
+                                                                                                                       .sorted((m1, m2) -> MAP_VERSION_COMPARATOR.compare(
+                                                                                                                           m1.mapVersion(),
+                                                                                                                           m2.mapVersion()))
+                                                                                                                       .toList());
 
   private final ObservableValue<Integer> playerBracketIndex = Bindings.createObjectBinding(this::calculateBracketIndex,
                                                                                            sortedMapPools,
@@ -268,12 +275,14 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
       return "";
     }
 
-    Double min = bracket.minRating(), max = bracket.maxRating();
-    String rating = i18n.get("game.rating");
+    Double min = bracket.minRating();
+    Double max = bracket.maxRating();
 
     if (min == null && max == null) {
       return i18n.get("teammatchmaking.bracket.anyRating");
     }
+
+    String rating = i18n.get("game.rating");
 
     if (min == null) {
       return rating + " < " + Math.round(Math.ceil(max));
@@ -284,19 +293,6 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     }
     return rating + " " + Math.round(bracket.minRating()) + " - " + Math.round(bracket.maxRating());
   }
-
-  private List<MapPoolAssignment> getCurrentBracketMaps() {
-    if (currentBracket.getValue() == null) {
-      return Collections.emptyList();
-    }
-
-    return this.brackets.getValue()
-                        .get(currentBracket.getValue())
-                        .stream()
-                        .sorted((m1, m2) -> MAP_VERSION_COMPARATOR.compare(m1.mapVersion(), m2.mapVersion()))
-                        .toList();
-  }
-
 
   private List<MatchmakerQueueMapPool> getSortedMapPools(
       Map<MatchmakerQueueMapPool, List<MapPoolAssignment>> brackets) {
