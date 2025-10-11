@@ -257,12 +257,12 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   }
 
   private MatchmakerQueueMapPool getCurrentBracket() {
-    Integer v = this.currentBracketIndex.get();
-    if ((v == null) || (v > this.sortedMapPools.getValue().size() - 1) || (v < 0)) {
+    Integer currentBracketIndexValue = this.currentBracketIndex.get();
+    if ((currentBracketIndexValue == null) || (currentBracketIndexValue > this.sortedMapPools.getValue().size() - 1) || (currentBracketIndexValue < 0)) {
       return null;
     }
 
-    return this.sortedMapPools.getValue().get(v);
+    return this.sortedMapPools.getValue().get(currentBracketIndexValue);
   }
 
   private String getBracketTitle(MatchmakerQueueMapPool bracket) {
@@ -307,7 +307,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   }
 
   private Integer calculateVetoTokensApplied() {
-    if (matchmakerPrefs == null || getCurrentBracket() == null) {
+    if (getCurrentBracket() == null) {
       return 0;
     }
     List<VetoData> vetoesInCurrentBracket = matchmakerPrefs.getAppliedVetoes()
@@ -369,12 +369,12 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   }
 
   private void updateVetoes() {
-    MatchmakerQueueMapPool v = currentBracket.getValue();
-    if (v == null) {
+    MatchmakerQueueMapPool currentBracketValue = currentBracket.getValue();
+    if (currentBracketValue == null) {
       fxApplicationThreadExecutor.execute(() -> this.vetoTokensViewer.getChildren().clear());
       return;
     }
-    int maxTokens = v.vetoTokensPerPlayer();
+    int maxTokens = currentBracketValue.vetoTokensPerPlayer();
     int usedTokens = vetoTokensApplied.getValue();
 
     fxApplicationThreadExecutor.execute(() -> {
@@ -404,7 +404,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     });
   }
 
-  public void changeMode() {
+  public void toggleVetoMode() {
     vetoModeEnabled.set(!vetoModeEnabled.get());
   }
 }

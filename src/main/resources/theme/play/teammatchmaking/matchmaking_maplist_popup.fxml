@@ -30,7 +30,7 @@
                     <HBox maxWidth="840" alignment="CENTER" spacing="10" minHeight="34">
                         <ComboBox fx:id="bracketComboBox" prefWidth="180"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Button prefWidth="180" fx:id="applyVetoesButton" onAction="#changeMode" maxHeight="33"
+                        <Button prefWidth="180" fx:id="applyVetoesButton" onAction="#toggleVetoMode" maxHeight="33"
                                 style="-fx-padding: 0"
                                 styleClass="tmm-maplist-apply-vetoes-button">
                             <graphic>
@@ -40,7 +40,7 @@
                                 </HBox>
                             </graphic>
                         </Button>
-                        <Button minWidth="180" fx:id="vetoTokensWallet" onAction="#changeMode" style="-fx-padding: 0 10" maxHeight="33" alignment="CENTER">
+                        <Button minWidth="180" fx:id="vetoTokensWallet" onAction="#toggleVetoMode" style="-fx-padding: 0 10" maxHeight="33" alignment="CENTER">
                             <graphic>
                                 <HBox alignment="CENTER" spacing="20" fx:id="vetoTokensContainer" maxHeight="33">
                                     <HBox fx:id="vetoTokensViewer" spacing="10" maxHeight="33" alignment="CENTER"/>

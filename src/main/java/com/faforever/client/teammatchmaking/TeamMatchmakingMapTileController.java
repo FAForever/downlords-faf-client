@@ -13,6 +13,7 @@ import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.commons.lobby.VetoData;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -26,7 +27,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.SVGPath;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -62,13 +62,11 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   public SVGPath vetoSvg;
 
   protected final ObjectProperty<MapPoolAssignment> assignment = new SimpleObjectProperty<>();
-  @Setter
   private ObservableValue<Integer> vetoTokensLeft;
-  @Setter
   private BooleanProperty vetoModeEnabled;
-  private final SimpleIntegerProperty vetoTokensMax = new SimpleIntegerProperty(0);
-  private final SimpleIntegerProperty maxPerMap = new SimpleIntegerProperty(0);
-  private final SimpleIntegerProperty tokenCount = new SimpleIntegerProperty(0);
+  private final IntegerProperty vetoTokensMax = new SimpleIntegerProperty(0);
+  private final IntegerProperty maxPerMap = new SimpleIntegerProperty(0);
+  private final IntegerProperty tokenCount = new SimpleIntegerProperty(0);
 
   @Override
   public Pane getRoot() {
@@ -88,6 +86,14 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   }
 
   public void setVetoIconPath(String vetoIconPath) { this.vetoSvg.setContent(vetoIconPath); }
+
+  void setVetoTokensLeft(ObservableValue<Integer> vetoTokensLeft) {
+    this.vetoTokensLeft = vetoTokensLeft;
+  }
+
+  void setVetoModeEnabled(BooleanProperty vetoModeEnabled) {
+    this.vetoModeEnabled = vetoModeEnabled;
+  }
 
   public void bindVetoesBoxProperties() {
     vetoesBox.mouseTransparentProperty().bind(vetoModeEnabled.not());
@@ -137,7 +143,9 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
     minusButton.managedProperty().bind(minusButton.visibleProperty());
 
     vetoButton.setOnAction(event -> {
-      if (assignment.getValue() == null) return;
+      if (assignment.getValue() == null) {
+        return;
+        }
       int currentTokenCount = tokenCount.get();
       int currentMaxPerMap = maxPerMap.get();
       boolean isDynamic = currentMaxPerMap == 0;
@@ -147,14 +155,16 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
     });
 
     minusButton.setOnAction(event -> {
-      if (assignment.getValue() == null) return;
+      if (assignment.getValue() == null) {
+        return;
+      }
       int current = tokenCount.get();
       if (current > 0) {
         matchmakerPrefs.setVetoData(new VetoData(assignment.getValue().id(), current - 1, assignment.getValue().mapPool().mapPool().id()));
       }
     });
 
-    tokenCount.addListener((obs, oldValue, newValue) -> {
+    tokenCount.subscribe(newValue -> {
       if (newValue.intValue() >= vetoTokensMax.get()) {
         root.getStyleClass().add("banned");
       } else {

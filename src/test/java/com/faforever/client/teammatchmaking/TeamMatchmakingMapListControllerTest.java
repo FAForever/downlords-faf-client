@@ -178,7 +178,7 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> instance.setQueue(queue));
     waitFxEvents();
 
-    runOnFxThreadAndWait(() -> instance.changeMode());
+    runOnFxThreadAndWait(() -> instance.toggleVetoMode());
 
     assertTrue(instance.vetoTokensWallet.isVisible());
     assertFalse(instance.applyVetoesButton.isVisible());
@@ -208,7 +208,7 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
     });
     waitFxEvents();
 
-    runOnFxThreadAndWait(() -> instance.changeMode());
+    runOnFxThreadAndWait(() -> instance.toggleVetoMode());
 
     assertTrue(instance.vetoTokensWallet.isVisible());
     assertFalse(instance.applyVetoesButton.isVisible());
@@ -261,7 +261,7 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
     });
     waitFxEvents();
 
-    runOnFxThreadAndWait(() -> instance.changeMode());
+    runOnFxThreadAndWait(() -> instance.toggleVetoMode());
 
     assertThat(instance.vetoTokensViewer.getChildren().size(), is(3));
   }
@@ -282,7 +282,7 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
     });
     waitFxEvents();
 
-    runOnFxThreadAndWait(() -> instance.changeMode());
+    runOnFxThreadAndWait(() -> instance.toggleVetoMode());
 
     assertThat(instance.vetoTokensViewer.getChildren().size(), is(3));
   }
