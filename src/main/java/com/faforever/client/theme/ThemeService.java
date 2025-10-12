@@ -99,6 +99,7 @@ public class ThemeService implements InitializingBean, DisposableBean {
   public static final String AEON_STYLE_CLASS = "aeon-icon";
   public static final String CYBRAN_STYLE_CLASS = "cybran-icon";
   public static final String SERAPHIM_STYLE_CLASS = "seraphim-icon";
+  public static final String MOD_ICON_STYLE_CLASS = "mod-icon";
   public static final String UEF_STYLE_CLASS = "uef-icon";
   public static final String RANDOM_FACTION_IMAGE = "/images/factions/random.png";
 

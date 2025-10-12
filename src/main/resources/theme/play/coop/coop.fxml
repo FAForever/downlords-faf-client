@@ -55,6 +55,7 @@
                                         HBox.hgrow="ALWAYS"/>
                             </children>
                         </HBox>
+
                         <StackPane GridPane.rowIndex="1">
                             <ImageView fx:id="mapPreviewImageView" fitHeight="200.0" fitWidth="200.0"
                                        pickOnBounds="true" preserveRatio="true"/>
@@ -62,7 +63,11 @@
                                   styleClass="clickable" StackPane.alignment="CENTER"/>
                         </StackPane>
 
-                        <ComboBox fx:id="missionComboBox" prefHeight="25.0" prefWidth="200.0"/>
+                        <VBox spacing="2.0" GridPane.rowIndex="0">
+                            <ComboBox fx:id="categoryComboBox" prefHeight="25.0" prefWidth="200.0"/>
+                            <ComboBox fx:id="missionComboBox" prefHeight="25.0" prefWidth="200.0"/>
+                        </VBox>
+
                         <WebView fx:id="descriptionWebView" maxHeight="-1.0" minHeight="100.0" minWidth="-1.0"
                                  prefHeight="-1.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.rowIndex="1"
                                  GridPane.valignment="TOP"/>

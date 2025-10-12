@@ -1,5 +1,6 @@
 package com.faforever.client.coop;
 
+import com.faforever.client.domain.api.CoopCategory;
 import com.faforever.client.domain.api.CoopMission;
 import com.faforever.client.domain.api.CoopResult;
 import com.faforever.client.domain.server.GameInfo;
@@ -24,6 +25,7 @@ import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
+import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Strings;
@@ -47,6 +49,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.web.WebView;
+import javafx.util.StringConverter;
+import jdk.jfr.Category;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -55,6 +59,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -87,8 +93,10 @@ public class CoopController extends NodeController<Node> {
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final ObservableList<CoopResult> leaderboardUnFilteredList = FXCollections.observableArrayList();
   private final FilteredList<CoopResult> leaderboardFilteredList = new FilteredList<>(leaderboardUnFilteredList);
+  private final List<CoopMission> fullMissionList = new ArrayList<>();
 
   public GridPane coopRoot;
+  public ComboBox<CoopCategory> categoryComboBox;
   public ComboBox<CoopMission> missionComboBox;
   public WebView descriptionWebView;
   public Pane gameViewContainer;
@@ -114,6 +122,10 @@ public class CoopController extends NodeController<Node> {
     missionComboBox.setCellFactory(param -> missionListCell());
     missionComboBox.setButtonCell(missionListCell());
     missionComboBox.getSelectionModel().selectedItemProperty().when(showing).subscribe(this::setSelectedMission);
+
+    categoryComboBox.setCellFactory(param -> categoryListCell());
+    categoryComboBox.setButtonCell(categoryListCell());
+    categoryComboBox.getSelectionModel().selectedItemProperty().when(showing).subscribe(this::populateMissionList);
 
     mapPreviewImageView.imageProperty()
                        .bind(missionComboBox.getSelectionModel().selectedItemProperty().map(CoopMission::mapFolderName)
@@ -148,10 +160,10 @@ public class CoopController extends NodeController<Node> {
     playerCountColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
 
     playerNamesColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().replay().teams().values()
-                                                                           .stream()
-                                                                           .flatMap(Collection::stream)
-                                                                           .collect(Collectors.joining(
-                                                                               i18n.get("textSeparator")))));
+                                                                                   .stream()
+                                                                                   .flatMap(Collection::stream)
+                                                                                   .collect(Collectors.joining(
+                                                                                       i18n.get("textSeparator")))));
 
     playerNamesColumn.setCellFactory(param -> new StringCell<>(Function.identity()));
 
@@ -190,7 +202,10 @@ public class CoopController extends NodeController<Node> {
                .map(FXCollections::observableList)
                .publishOn(fxApplicationThreadExecutor.asScheduler())
                .subscribe(coopMaps -> {
-                 missionComboBox.setItems(coopMaps);
+                 fullMissionList.addAll(coopMaps);
+
+                 categoryComboBox.getItems().addAll(createCoopCategories());
+                 categoryComboBox.getSelectionModel().select(0);
 
                  gamesTableController.initializeGameTable(filteredItems,
                                                           mapFolderName -> coopMissionFromFolderName(coopMaps,
@@ -232,8 +247,28 @@ public class CoopController extends NodeController<Node> {
     }, fxApplicationThreadExecutor);
   }
 
+  private ListCell<CoopCategory> categoryListCell() {
+    return new StringListCell<>(fxApplicationThreadExecutor, CoopCategory::categoryName, category -> {
+      Label label = new Label();
+      Region iconRegion = new Region();
+      label.setGraphic(iconRegion);
+      iconRegion.getStyleClass().add(ThemeService.CSS_CLASS_ICON);
+      switch (category.coopCategory()) {
+        case AEON -> iconRegion.getStyleClass().add(ThemeService.AEON_STYLE_CLASS);
+        case CYBRAN -> iconRegion.getStyleClass().add(ThemeService.CYBRAN_STYLE_CLASS);
+        case UEF -> iconRegion.getStyleClass().add(ThemeService.UEF_STYLE_CLASS);
+        case FA -> iconRegion.getStyleClass().add(ThemeService.SERAPHIM_STYLE_CLASS);
+        case CUSTOM -> iconRegion.getStyleClass().add(ThemeService.MOD_ICON_STYLE_CLASS);
+        default -> {
+          return null;
+        }
+      }
+      return label;
+    }, Pos.CENTER_LEFT, "coop-category");
+  }
+
   private ListCell<CoopMission> missionListCell() {
-    return new StringListCell<>(fxApplicationThreadExecutor, CoopMission::name, mission -> {
+    return new StringListCell<>(fxApplicationThreadExecutor, CoopMission::ConcatName,  mission -> {
       Label label = new Label();
       Region iconRegion = new Region();
       label.setGraphic(iconRegion);
@@ -242,6 +277,8 @@ public class CoopController extends NodeController<Node> {
         case AEON -> iconRegion.getStyleClass().add(ThemeService.AEON_STYLE_CLASS);
         case CYBRAN -> iconRegion.getStyleClass().add(ThemeService.CYBRAN_STYLE_CLASS);
         case UEF -> iconRegion.getStyleClass().add(ThemeService.UEF_STYLE_CLASS);
+        case FA -> iconRegion.getStyleClass().add(ThemeService.SERAPHIM_STYLE_CLASS);
+        case CUSTOM -> iconRegion.getStyleClass().add(ThemeService.MOD_ICON_STYLE_CLASS);
         default -> {
           return null;
         }
@@ -279,6 +316,20 @@ public class CoopController extends NodeController<Node> {
     return missionComboBox.getSelectionModel().getSelectedItem();
   }
 
+  private void populateMissionList(CoopCategory missionCategory) {
+    if (missionCategory == null) {
+      return;
+    }
+
+    List<CoopMission> missionList = fullMissionList.stream()
+                                                   .filter(mission -> mission.category()
+                                                                             .name()
+                                                                             .equals(missionCategory.categoryName()))
+                                                   .toList();
+    missionComboBox.setItems(FXCollections.observableList(missionList));
+    missionComboBox.getSelectionModel().select(0);
+  }
+
   private void setSelectedMission(CoopMission mission) {
     if (mission == null) {
       return;
@@ -290,6 +341,14 @@ public class CoopController extends NodeController<Node> {
       }
     });
     loadLeaderboard();
+  }
+
+  private List<CoopCategory> createCoopCategories() {
+    List<CoopCategory> categories = new ArrayList<>();
+    for (CoopCategoryEnum category : CoopCategoryEnum.values()) {
+      categories.add(new CoopCategory(category.name(), category));
+    }
+    return categories;
   }
 
   public void onPlayButtonClicked() {

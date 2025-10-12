@@ -1,5 +1,5 @@
 package com.faforever.client.coop;
 
-public enum CoopCategory {
+public enum CoopCategoryEnum {
   FA, AEON, CYBRAN, UEF, CUSTOM
 }
