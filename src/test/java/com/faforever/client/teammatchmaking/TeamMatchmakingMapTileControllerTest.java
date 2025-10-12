@@ -10,7 +10,6 @@ import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.VetoKey;
 import com.faforever.client.test.PlatformTest;
-import com.faforever.commons.lobby.VetoData;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
