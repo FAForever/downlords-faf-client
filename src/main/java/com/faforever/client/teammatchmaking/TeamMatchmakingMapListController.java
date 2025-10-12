@@ -159,19 +159,6 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
                       .orElse(0) - Optional.ofNullable(vetoTokensApplied.getValue()).orElse(0),
         currentBracket, vetoTokensApplied);
 
-    /*
-        The next line is problematic: if i add when(showing), the whole mapList stucks at loading pane phase. The very first updateContent never triggers
-        I can think of multiple ways to fix that but neither of them feels good enough (to be accepted by Sheikah😭) so i left it as it is for now
-        (Also AI burned like 10k tokens on this to suggest complete nonsense so i wont torture it further either)
-     */
-    this.currentBracket.subscribe(this::updateContent);
-    this.currentBracketMaps.when(showing).subscribe(this::updateContent);
-    this.currentBracketIndex.when(showing).subscribe(this::updateContent);
-
-    // .when(showing) on the next line causes bug when you switch veto modes (click on the button)
-    currentBracket.subscribe(this::updateVetoes);
-    vetoTokensApplied.when(showing).subscribe(this::updateVetoes);
-
     this.queue.when(showing).subscribe(value -> {
       if (value == null) {
         return;
@@ -213,6 +200,9 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   protected void onShow() {
     addShownSubscription(this.maxWidth.subscribe(this::resizeToContent));
     addShownSubscription(this.maxHeight.subscribe(this::resizeToContent));
+    addShownSubscription(this.currentBracketMaps.subscribe(this::updateContent));
+    addShownSubscription(this.currentBracket.subscribe(this::updateVetoes));
+    addShownSubscription(this.vetoTokensApplied.subscribe(this::updateVetoes));
   }
 
   @Override
