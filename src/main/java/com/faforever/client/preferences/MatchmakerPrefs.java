@@ -3,11 +3,14 @@ package com.faforever.client.preferences;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.VetoData;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
 
-import java.util.stream.IntStream;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static javafx.collections.FXCollections.observableArrayList;
+import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.observableSet;
 
 public class MatchmakerPrefs {
@@ -15,7 +18,7 @@ public class MatchmakerPrefs {
                                                                        Faction.SERAPHIM);
   private final ObservableSet<Integer> unselectedQueueIds = observableSet();
 
-  private final ObservableList<VetoData> appliedVetoes = observableArrayList();
+  private final ObservableMap<VetoKey, Integer> appliedVetoes = observableHashMap();
 
   public ObservableList<Faction> getFactions() {
     return factions;
@@ -25,19 +28,31 @@ public class MatchmakerPrefs {
     return unselectedQueueIds;
   }
 
-  public ObservableList<VetoData> getAppliedVetoes() {
+  public ObservableMap<VetoKey, Integer> getAppliedVetoes() {
     return appliedVetoes;
   }
 
-  public void setVetoData(VetoData vetoData) {
-    int index = IntStream.range(0, appliedVetoes.size())
-        .filter(i -> appliedVetoes.get(i).getMapPoolMapVersionId() == vetoData.getMapPoolMapVersionId() && appliedVetoes.get(i).getMatchmakerQueueMapPoolId() == vetoData.getMatchmakerQueueMapPoolId())
-        .findFirst()
-        .orElse(-1);
-    if (index == -1) {
-      appliedVetoes.add(vetoData);
-    } else {
-      appliedVetoes.set(index, vetoData);
-    }
+  public void setTokensForMap(VetoKey vetoKey, Integer vetoTokensApplied) {
+    appliedVetoes.put(vetoKey, vetoTokensApplied);
   }
+
+  public void setAllVetoes(List<VetoData> vetoes) {
+    appliedVetoes.clear();
+    vetoes.forEach(v -> appliedVetoes.put(
+        new VetoKey(v.getMatchmakerQueueMapPoolId(), v.getMapPoolMapVersionId()),
+        v.getVetoTokensApplied()
+    ));
+  }
+
+  public List<VetoData> getVetoesAsList() {
+    return appliedVetoes.entrySet()
+                        .stream()
+                        .filter(entry -> entry.getValue() > 0)
+                        .map(entry -> new VetoData(
+                            entry.getKey().mapPoolMapVersionId(),
+                            entry.getValue(),
+                            entry.getKey().matchmakerQueueMapPoolId()))
+                        .collect(Collectors.toList());
+  }
+
 }

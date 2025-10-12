@@ -1149,6 +1149,11 @@
   -fx-font-weight: 600;
 }
 
+.tmm-maplist-tile-inner {
+    -fx-background-radius: 6;
+    -fx-background-color: #212121;
+}
+
 .tmm-maplist-tile-vetoset-counter {
   -fx-background-color: rgba(21, 21, 21, 0.8);
   -fx-background-radius: 4;
@@ -1165,12 +1170,28 @@
 
 .tmm-maplist-tile-top-line {
   -fx-padding: 5 5 0;
-  -fx-background-color:  #00000080;
+  -fx-background-color: #00000080;
 }
 
 .tmm-maplist-tile-bottom-line {
   -fx-padding: 0 5 5;
-  -fx-background-color:  #00000080;
+  -fx-background-color: #00000080;
+}
+
+.tmm-maplist-tile_banned {
+  -fx-background-color: linear-gradient(to bottom right, #ffffff4d, #ffffff1d);
+}
+
+.tmm-maplist-tile_banned .tmm-maplist-tile-top-line {
+  -fx-background-color: #00000026;
+}
+
+.tmm-maplist-tile_banned .tmm-maplist-tile-thumbnail,
+.tmm-maplist-tile_banned .tmm-maplist-tile-top-line-author,
+.tmm-maplist-tile_banned .image-dimmer-light,
+.tmm-maplist-tile_banned .image-dimmer-light-reversed,
+.tmm-maplist-tile_banned .tmm-maplist-tile-bottom-line {
+  -fx-opacity: 0.3;
 }
 
 /***************** Faction buttons *****************/

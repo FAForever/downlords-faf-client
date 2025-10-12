@@ -19,6 +19,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.ReplayHistoryPrefs;
 import com.faforever.client.preferences.UserPrefs;
 import com.faforever.client.preferences.VaultPrefs;
+import com.faforever.client.preferences.VetoKey;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.serialization.ColorMixin;
 import com.faforever.client.serialization.FactionMixin;
@@ -27,6 +28,7 @@ import com.faforever.client.serialization.PathSerializer;
 import com.faforever.client.serialization.SimpleListPropertyInstantiator;
 import com.faforever.client.serialization.SimpleMapPropertyInstantiator;
 import com.faforever.client.serialization.SimpleSetPropertyInstantiator;
+import com.faforever.client.serialization.VetoKeyDeserializer;
 import com.faforever.commons.api.dto.Faction;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -185,6 +187,7 @@ public class PreferencesConfig implements DisposableBean {
 
     Module preferencesModule = new SimpleModule().addSerializer(Path.class, new PathSerializer())
         .addDeserializer(Path.class, new PathDeserializer())
+        .addKeyDeserializer(VetoKey.class, new VetoKeyDeserializer())
         .addValueInstantiator(SimpleMapProperty.class, new SimpleMapPropertyInstantiator(configuredObjectMapper.getDeserializationConfig(), typeFactory.constructType(SimpleMapProperty.class)))
         .addValueInstantiator(SimpleListProperty.class, new SimpleListPropertyInstantiator(configuredObjectMapper.getDeserializationConfig(), typeFactory.constructType(SimpleListProperty.class)))
         .addValueInstantiator(SimpleSetProperty.class, new SimpleSetPropertyInstantiator(configuredObjectMapper.getDeserializationConfig(), typeFactory.constructType(SimpleSetProperty.class)))

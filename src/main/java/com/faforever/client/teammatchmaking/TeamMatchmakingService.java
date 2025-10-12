@@ -259,7 +259,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void sendVetoes() {
-    fafServerAccessor.setPlayerVetoes(matchmakerPrefs.getAppliedVetoes());
+    fafServerAccessor.setPlayerVetoes(matchmakerPrefs.getVetoesAsList());
   }
 
   private void onSearchInfo(SearchInfo message) {

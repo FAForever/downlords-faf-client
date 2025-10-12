@@ -310,7 +310,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
   }
 
   private void onVetoesChanged(VetoesChangedInfo vetoesChangedInfo) {
-    matchmakerPrefs.getAppliedVetoes().setAll(vetoesChangedInfo.getVetoes());
+    matchmakerPrefs.setAllVetoes(vetoesChangedInfo.getVetoes());
 
     if (vetoesChangedInfo.getForced()) {
       notificationService.addNotification(

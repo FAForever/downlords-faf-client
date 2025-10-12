@@ -17,11 +17,11 @@
            xmlns="http://javafx.com/javafx/11"
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingMapTileController">
-    <StackPane prefWidth="178.0" prefHeight="178.0" style="-fx-background-radius: 6;">
+    <StackPane prefWidth="178.0" prefHeight="178.0" styleClass="tmm-maplist-tile-inner">
         <clip>
             <Rectangle width="178" height="178" arcWidth="12" arcHeight="12" />
         </clip>
-        <ImageView fx:id="thumbnailImageView" fitHeight="178" fitWidth="178" preserveRatio="true"/>
+        <ImageView fx:id="thumbnailImageView" fitHeight="178" fitWidth="178" preserveRatio="true" styleClass="tmm-maplist-tile-thumbnail"/>
         <GridPane prefWidth="178.0" prefHeight="178.0">
             <rowConstraints>
                 <RowConstraints vgrow="NEVER"/>
@@ -31,7 +31,7 @@
                 <RowConstraints vgrow="NEVER"/>
             </rowConstraints>
             <HBox GridPane.rowIndex="0" prefWidth="178.0" styleClass="tmm-maplist-tile-top-line" >
-                <VBox fx:id="authorBox">
+                <VBox fx:id="authorBox" styleClass="tmm-maplist-tile-top-line-author">
                     <Label fx:id="authorLabel" maxWidth="130"/>
                 </VBox>
                 <Region HBox.hgrow="ALWAYS"/>

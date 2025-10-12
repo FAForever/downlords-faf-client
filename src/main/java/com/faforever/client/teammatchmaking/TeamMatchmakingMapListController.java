@@ -47,6 +47,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 @Slf4j
@@ -201,6 +202,13 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     addShownSubscription(this.currentBracketMaps.subscribe(this::updateContent));
     addShownSubscription(this.currentBracket.subscribe(this::updateVetoes));
     addShownSubscription(this.vetoTokensApplied.subscribe(this::updateVetoes));
+
+    if (!currentBracketMaps.getValue().isEmpty()) {
+      updateContent();
+    }
+    if (currentBracket.getValue() != null && vetoTokensApplied.getValue() != null) {
+      updateVetoes();
+    }
   }
 
   @Override
@@ -298,12 +306,13 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     if (getCurrentBracket() == null) {
       return 0;
     }
-    List<VetoData> vetoesInCurrentBracket = matchmakerPrefs.getAppliedVetoes()
-                                                           .stream()
-                                                           .filter(
-                                                               (data) -> data.getMatchmakerQueueMapPoolId() == getCurrentBracket().id())
-                                                           .toList();
-    return vetoesInCurrentBracket.stream().mapToInt(VetoData::getVetoTokensApplied).sum();
+    int currentBracketId = getCurrentBracket().id();
+    return matchmakerPrefs.getAppliedVetoes()
+                          .entrySet()
+                          .stream()
+                          .filter(entry -> entry.getKey().matchmakerQueueMapPoolId() == currentBracketId)
+                          .mapToInt(Entry::getValue)
+                          .sum();
   }
 
   private Integer calculateBracketIndex() {

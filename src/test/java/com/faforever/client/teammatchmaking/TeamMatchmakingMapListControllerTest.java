@@ -13,6 +13,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
+import com.faforever.client.preferences.VetoKey;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.VetoData;
@@ -278,7 +279,7 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
     waitFxEvents();
 
     runOnFxThreadAndWait(() -> {
-      matchmakerPrefs.setVetoData(new VetoData(maps1.get(0).id(), 2, bracket1.id()));
+      matchmakerPrefs.setTokensForMap(new VetoKey(bracket1.id(), maps1.get(0).id()), 2);
     });
     waitFxEvents();
 

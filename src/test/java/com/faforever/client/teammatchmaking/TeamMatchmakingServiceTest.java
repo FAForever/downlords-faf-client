@@ -26,6 +26,7 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.VetoKey;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
@@ -622,15 +623,11 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
   @Test
   public void testSendVetoesOnConnection() {
-    matchmakerPrefs.getAppliedVetoes().add(of(com.faforever.commons.lobby.VetoData.class)
-        .set(field(com.faforever.commons.lobby.VetoData.class, "mapPoolMapVersionId"), 1)
-        .set(field(com.faforever.commons.lobby.VetoData.class, "vetoTokensApplied"), 1)
-        .set(field(com.faforever.commons.lobby.VetoData.class, "matchmakerQueueMapPoolId"), 1)
-        .create());
+    matchmakerPrefs.getAppliedVetoes().put(new VetoKey(1, 1), 1);
 
     connectionState.set(ConnectionState.CONNECTED);
 
-    verify(fafServerAccessor).setPlayerVetoes(matchmakerPrefs.getAppliedVetoes());
+    verify(fafServerAccessor).setPlayerVetoes(matchmakerPrefs.getVetoesAsList());
   }
 
   @Test
@@ -640,24 +637,16 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     // Clear invocations from connection state change
     org.mockito.Mockito.clearInvocations(fafServerAccessor);
 
-    matchmakerPrefs.getAppliedVetoes().add(of(com.faforever.commons.lobby.VetoData.class)
-        .set(field(com.faforever.commons.lobby.VetoData.class, "mapPoolMapVersionId"), 1)
-        .set(field(com.faforever.commons.lobby.VetoData.class, "vetoTokensApplied"), 1)
-        .set(field(com.faforever.commons.lobby.VetoData.class, "matchmakerQueueMapPoolId"), 1)
-        .create());
+    matchmakerPrefs.getAppliedVetoes().put(new VetoKey(1, 1), 1);
 
-    verify(fafServerAccessor, times(1)).setPlayerVetoes(matchmakerPrefs.getAppliedVetoes());
+    verify(fafServerAccessor, times(1)).setPlayerVetoes(matchmakerPrefs.getVetoesAsList());
   }
 
   @Test
   public void testVetoesNotSentWhenDisconnected() {
     connectionState.set(ConnectionState.DISCONNECTED);
 
-    matchmakerPrefs.getAppliedVetoes().add(of(com.faforever.commons.lobby.VetoData.class)
-        .set(field(com.faforever.commons.lobby.VetoData.class, "mapPoolMapVersionId"), 1)
-        .set(field(com.faforever.commons.lobby.VetoData.class, "vetoTokensApplied"), 1)
-        .set(field(com.faforever.commons.lobby.VetoData.class, "matchmakerQueueMapPoolId"), 1)
-        .create());
+    matchmakerPrefs.getAppliedVetoes().put(new VetoKey(1, 1), 1);
 
     verify(fafServerAccessor, never()).setPlayerVetoes(anyList());
   }

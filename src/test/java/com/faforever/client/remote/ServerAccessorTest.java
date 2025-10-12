@@ -20,6 +20,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ServerNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.MatchmakerPrefs;
+import com.faforever.client.preferences.VetoKey;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.update.Version;
 import com.faforever.commons.lobby.AvatarListInfo;
@@ -994,7 +995,9 @@ public class ServerAccessorTest extends ServiceTest {
 
     assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(matchmakerPrefs.getAppliedVetoes().size(), is(2));
-    assertThat(matchmakerPrefs.getAppliedVetoes(), contains(veto1, veto2));
+
+    assertThat(matchmakerPrefs.getAppliedVetoes().get(new VetoKey(veto1.getMatchmakerQueueMapPoolId(), veto1.getMapPoolMapVersionId())), is(veto1.getVetoTokensApplied()));
+    assertThat(matchmakerPrefs.getAppliedVetoes().get(new VetoKey(veto2.getMatchmakerQueueMapPoolId(), veto2.getMapPoolMapVersionId())), is(veto2.getVetoTokensApplied()));
   }
 
   @Test
@@ -1011,7 +1014,7 @@ public class ServerAccessorTest extends ServiceTest {
 
     assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(matchmakerPrefs.getAppliedVetoes().size(), is(1));
-    assertThat(matchmakerPrefs.getAppliedVetoes(), contains(veto));
+    assertThat(matchmakerPrefs.getAppliedVetoes().get(new VetoKey(veto.getMatchmakerQueueMapPoolId(), veto.getMapPoolMapVersionId())), is(veto.getVetoTokensApplied()));
 
     ArgumentCaptor<ImmediateNotification> captor = ArgumentCaptor.forClass(ImmediateNotification.class);
     verify(notificationService, timeout(1000)).addNotification(captor.capture());
@@ -1031,7 +1034,7 @@ public class ServerAccessorTest extends ServiceTest {
 
     assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(matchmakerPrefs.getAppliedVetoes().size(), is(1));
-    assertThat(matchmakerPrefs.getAppliedVetoes(), contains(veto));
+    assertThat(matchmakerPrefs.getAppliedVetoes().get(new VetoKey(veto.getMatchmakerQueueMapPoolId(), veto.getMapPoolMapVersionId())), is(veto.getVetoTokensApplied()));
 
     verify(notificationService, timeout(1000).times(0)).addNotification(any(ImmediateNotification.class));
   }
