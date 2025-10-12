@@ -16,6 +16,7 @@ import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.lobby.VetoData;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -101,11 +102,8 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   private final ObservableValue<MatchmakerQueueMapPool> currentBracket = Bindings.createObjectBinding(
       this::getCurrentBracket, sortedMapPools, currentBracketIndex);
 
-  private final BooleanBinding hasVetoTokens = Bindings.createBooleanBinding(
-      () -> Optional.ofNullable(currentBracket.getValue())
-                    .map(bracket -> bracket.vetoTokensPerPlayer() > 0)
-                    .orElse(false),
-      currentBracket);
+  private final BooleanExpression hasVetoTokens = BooleanExpression.booleanExpression(
+      currentBracket.map(bracket -> bracket.vetoTokensPerPlayer() > 0).orElse(false));
   private final BooleanBinding showVetoWallet = vetoModeEnabled.and(hasVetoTokens);
 
   private final ObservableValue<List<MapPoolAssignment>> currentBracketMaps = Bindings.createObjectBinding(
