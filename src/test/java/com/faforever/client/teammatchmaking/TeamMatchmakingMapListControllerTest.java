@@ -16,7 +16,6 @@ import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.VetoKey;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
-import com.faforever.commons.lobby.VetoData;
 import javafx.beans.property.SimpleObjectProperty;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class TeamMatchmakingMapListControllerTest extends PlatformTest {
