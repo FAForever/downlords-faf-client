@@ -1,6 +1,6 @@
 package com.faforever.client.domain.api;
 
-import com.faforever.client.coop.CoopCategory;
+import com.faforever.client.coop.CoopCategoryEnum;
 
 import java.net.URL;
 
@@ -9,9 +9,13 @@ public record CoopMission(
     String name,
     String description,
     int version,
-    CoopCategory category,
+    CoopCategoryEnum category,
     URL downloadUrl,
     URL thumbnailUrlSmall,
     URL thumbnailUrlLarge,
     String mapFolderName
-) {}
+) {
+  public String ConcatName() {
+    return name + " - V" + version;
+  }
+}
