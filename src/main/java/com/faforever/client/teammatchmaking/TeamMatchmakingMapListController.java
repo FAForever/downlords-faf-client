@@ -205,7 +205,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     if (!currentBracketMaps.getValue().isEmpty()) {
       updateContent();
     }
-    if (currentBracket.getValue() != null && vetoTokensApplied.getValue() != null) {
+    if (vetoTokensApplied.getValue() != null) {
       updateVetoes();
     }
   }
