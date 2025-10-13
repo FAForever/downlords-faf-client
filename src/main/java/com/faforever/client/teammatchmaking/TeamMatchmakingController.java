@@ -2,6 +2,7 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.api.LeagueEntry;
+import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.domain.server.PartyInfo.PartyMember;
 import com.faforever.client.domain.server.PlayerInfo;
@@ -11,6 +12,7 @@ import com.faforever.client.fx.NodeController;
 import com.faforever.client.game.PlayerGameStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
+import com.faforever.client.map.MapDetailController;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
@@ -105,6 +107,7 @@ public class TeamMatchmakingController extends NodeController<Node> {
   public RowConstraints row2;
 
   private Map<Faction, ToggleButton> factionsToButtons;
+  private MapDetailController mapDetailController;
 
   private final InvalidationListener partyMembersListener = observable -> {
     refreshingLabel.setVisible(false);
@@ -340,8 +343,20 @@ public class TeamMatchmakingController extends NodeController<Node> {
     controller.maxWidthProperty().bind(teamMatchmakingRoot.widthProperty());
     controller.maxHeightProperty().bind(teamMatchmakingRoot.heightProperty());
     controller.setQueue(queue);
+    controller.setOnTileClickedListener(this::showMapDetail);
     Pane root = controller.getRoot();
     uiService.showInDialog(teamMatchmakingRoot, root, null, true, DialogTransition.CENTER);
+  }
+
+  private void showMapDetail(MapVersion mapVersion) {
+    if (mapDetailController == null) {
+      mapDetailController = uiService.loadFxml("theme/vault/map/map_detail.fxml");
+      mapDetailController.getRoot().setVisible(false);
+      teamMatchmakingRoot.getChildren().add(mapDetailController.getRoot());
+    }
+    mapDetailController.setMapVersion(mapVersion);
+    mapDetailController.getRoot().setVisible(true);
+    mapDetailController.getRoot().toFront();
   }
 
   private void renderQueues() {

@@ -37,6 +37,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.SVGPath;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -54,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @Slf4j
 @Component
@@ -122,6 +124,8 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   private ObservableValue<Integer> vetoTokensApplied;
   private ObservableValue<Integer> vetoTokensLeft;
   private String VETO_ICON_SVG_PATH;
+  @Setter
+  private Consumer<MapVersion> onTileClickedListener;
 
   public ComboBox<String> bracketComboBox;
   public Button applyVetoesButton;
@@ -355,6 +359,9 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     controller.setVetoTokensLeft(vetoTokensLeft);
     controller.setVetoModeEnabled(vetoModeEnabled);
     controller.bindVetoesBoxProperties();
+    if (onTileClickedListener != null) {
+      controller.setOnTileClickedListener(onTileClickedListener);
+    }
 
     return controller.getRoot();
   }

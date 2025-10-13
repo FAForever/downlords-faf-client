@@ -28,9 +28,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.SVGPath;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import java.util.function.Consumer;
 
 /**
  * Controller for managing the UI representation of a map tile in the Team Matchmaking feature. Displays map details
@@ -69,6 +71,8 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   private final IntegerProperty maxPerMap = new SimpleIntegerProperty(0);
   private final BooleanBinding isMaxPerMapDynamic = maxPerMap.isEqualTo(0);
   private final IntegerProperty tokenCount = new SimpleIntegerProperty(0);
+  @Setter
+  private Consumer<MapVersion> onTileClickedListener;
 
   @Override
   public Pane getRoot() {
@@ -148,7 +152,13 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
     minusButton.visibleProperty().bind(vetoesBox.hoverProperty().and(tokenCount.greaterThan(0)));
     minusButton.managedProperty().bind(minusButton.visibleProperty());
 
-    vetoButton.setOnAction(_ -> {
+    root.setOnMouseClicked(event -> {
+      if (onTileClickedListener != null && assignment.getValue() != null) {
+        onTileClickedListener.accept(assignment.getValue().mapVersion());
+      }
+    });
+
+    vetoButton.setOnAction(event -> {
       if (assignment.getValue() == null) {
         return;
       }
@@ -159,9 +169,10 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
             new VetoKey(assignment.getValue().mapPool().mapPool().id(), assignment.getValue().id()),
             currentTokenCount + 1);
       }
+      event.consume();
     });
 
-    minusButton.setOnAction(_ -> {
+    minusButton.setOnAction(event -> {
       if (assignment.getValue() == null) {
         return;
       }
@@ -170,6 +181,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
         matchmakerPrefs.setTokensForMap(
             new VetoKey(assignment.getValue().mapPool().mapPool().id(), assignment.getValue().id()), current - 1);
       }
+      event.consume();
     });
 
     tokenCount.when(showing).subscribe(_ -> updateBannedState());

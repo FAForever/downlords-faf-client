@@ -1147,11 +1147,12 @@
   -fx-padding: 1;
   -fx-font-size: 15;
   -fx-font-weight: 600;
+  -fx-cursor: hand;
 }
 
 .tmm-maplist-tile-inner {
-    -fx-background-radius: 6;
-    -fx-background-color: #212121;
+  -fx-background-radius: 6;
+  -fx-background-color: #212121;
 }
 
 .tmm-maplist-tile-vetoset-counter {
