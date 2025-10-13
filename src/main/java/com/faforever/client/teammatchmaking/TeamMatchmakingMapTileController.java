@@ -19,6 +19,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
@@ -109,6 +110,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   @Override
   protected void onInitialize() {
     ObservableValue<Map> mapObservable = assignment.map(assignment -> assignment.mapVersion().map());
+    ObservableValue<Boolean> isGeneratedMap = mapObservable.map(map -> mapGeneratorService.isGeneratedMap(map.displayName()));
 
     thumbnailImageView.imageProperty()
                       .bind(assignment.map(
@@ -117,20 +119,19 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
 
 
     nameLabel.textProperty().bind(mapObservable.map(map -> {
-      String name = map.displayName();
-      if (mapGeneratorService.isGeneratedMap(name)) {
+      if (isGeneratedMap.getValue()) {
         return "map generator";
       }
-      return name;
+      return map.displayName();
     }));
 
     authorBox.visibleProperty()
              .bind(mapObservable.map(
-                 map -> (map.author() != null) || mapGeneratorService.isGeneratedMap(map.displayName())));
+                 map -> (map.author() != null) || isGeneratedMap.getValue()));
     authorLabel.textProperty().bind(mapObservable.map(map -> {
       if (map.author() != null) {
         return map.author().getUsername();
-      } else if (mapGeneratorService.isGeneratedMap(map.displayName())) {
+      } else if (isGeneratedMap.getValue()) {
         return "Neroxis";
       } else {
         return i18n.get("map.unknownAuthor");
@@ -152,11 +153,14 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
     minusButton.visibleProperty().bind(vetoesBox.hoverProperty().and(tokenCount.greaterThan(0)));
     minusButton.managedProperty().bind(minusButton.visibleProperty());
 
-    root.setOnMouseClicked(event -> {
-      if (onTileClickedListener != null && assignment.getValue() != null) {
+    root.setOnMouseClicked(_ -> {
+      if (onTileClickedListener != null && assignment.getValue() != null && !isGeneratedMap.getValue()) {
         onTileClickedListener.accept(assignment.getValue().mapVersion());
       }
     });
+
+    root.cursorProperty()
+        .bind(isGeneratedMap.map(gen -> gen ? Cursor.DEFAULT : Cursor.HAND));
 
     vetoButton.setOnAction(event -> {
       if (assignment.getValue() == null) {
