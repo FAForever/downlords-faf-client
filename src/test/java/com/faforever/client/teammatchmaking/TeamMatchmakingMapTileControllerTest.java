@@ -14,6 +14,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,10 +24,13 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -251,5 +256,52 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
     });
 
     assertThat(instance.tokenCounterLabel.getText(), is("2"));
+  }
+
+  @Test
+  public void testMapTileClickTriggersListener() {
+    AtomicReference<MapVersion> clickedMap = new AtomicReference<>();
+
+    runOnFxThreadAndWait(() -> {
+      instance.setMapAssignment(mapPoolAssignment);
+      instance.setOnTileClickedListener(clickedMap::set);
+
+      MouseEvent mouseEvent = new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0,
+                                             MouseButton.PRIMARY, 1, false, false, false, false, true, false, false, false, false, false, null);
+      instance.root.fireEvent(mouseEvent);
+    });
+
+    assertNotNull(clickedMap.get());
+    assertThat(clickedMap.get(), is(mapPoolAssignment.mapVersion()));
+  }
+
+  @Test
+  public void testVetoButtonClickDoesNotTriggerListener() {
+    AtomicReference<MapVersion> clickedMap = new AtomicReference<>();
+
+    runOnFxThreadAndWait(() -> {
+      instance.setMapAssignment(mapPoolAssignment);
+      instance.setVetoTokensMax(3);
+      vetoTokensLeft.set(5);
+      instance.setOnTileClickedListener(clickedMap::set);
+      instance.vetoButton.fire();
+    });
+
+    assertNull(clickedMap.get());
+  }
+
+  @Test
+  public void testMinusButtonClickDoesNotTriggerListener() {
+    AtomicReference<MapVersion> clickedMap = new AtomicReference<>();
+
+    runOnFxThreadAndWait(() -> {
+      instance.setMapAssignment(mapPoolAssignment);
+      instance.setVetoTokensMax(3);
+      matchmakerPrefs.setTokensForMap(new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()), 2);
+      instance.setOnTileClickedListener(clickedMap::set);
+      instance.minusButton.fire();
+    });
+
+    assertNull(clickedMap.get());
   }
 }
