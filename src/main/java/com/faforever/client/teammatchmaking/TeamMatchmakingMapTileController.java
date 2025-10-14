@@ -190,8 +190,6 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
 
     tokenCount.when(showing).subscribe(_ -> updateBannedState());
     maxPerMap.when(showing).subscribe(_ -> updateBannedState());
-    updateBannedState();
-
     vetoTokensMax.when(showing).subscribe(this::updateVetoes);
   }
 
@@ -199,6 +197,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   protected void onShow() {
     addShownSubscription(matchmakerPrefs.getAppliedVetoes().subscribe(this::updateVetoes));
     this.updateVetoes();
+    this.updateBannedState();
   }
 
   private void updateBannedState() {
