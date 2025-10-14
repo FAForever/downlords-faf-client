@@ -113,10 +113,9 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
     ObservableValue<Boolean> isGeneratedMap = mapObservable.map(map -> mapGeneratorService.isGeneratedMap(map.displayName()));
 
     thumbnailImageView.imageProperty()
-                      .bind(assignment.map(
-                                          assignmentBean -> mapService.loadPreview(assignmentBean.mapVersion(), PreviewSize.SMALL))
-                                      .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
-
+                      .bind(assignment
+                                .map(assignmentBean -> mapService.loadPreview(assignmentBean.mapVersion(), PreviewSize.SMALL))
+                                .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
 
     nameLabel.textProperty().bind(mapObservable.map(map -> {
       if (isGeneratedMap.getValue()) {
@@ -128,6 +127,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
     authorBox.visibleProperty()
              .bind(mapObservable.map(
                  map -> (map.author() != null) || isGeneratedMap.getValue()));
+
     authorLabel.textProperty().bind(mapObservable.map(map -> {
       if (map.author() != null) {
         return map.author().getUsername();
