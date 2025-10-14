@@ -1146,7 +1146,6 @@
   -fx-max-height: 0;
   -fx-padding: 10 8.5;
   -fx-background-color: white;
-  transition: -fx-background-color 0.1s ease-out;
 }
 
 .tmm-maplist-palm_active {
