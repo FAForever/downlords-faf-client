@@ -15,6 +15,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.VetoKey;
 import com.faforever.client.test.PlatformTest;
+import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleObjectProperty;
 import org.instancio.Instancio;
@@ -51,6 +52,8 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
   private ImageViewHelper imageViewHelper;
   @Mock
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  @Mock
+  private ThemeService themeService;
   @Spy
   private MatchmakerPrefs matchmakerPrefs;
 
@@ -95,9 +98,11 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
       runnable.run();
       return null;
     }).when(fxApplicationThreadExecutor).execute(any(Runnable.class));
+    lenient().when(themeService.getThemeFile("theme/images/vector/veto_palm.svgpath"))
+        .thenReturn(getClass().getResource("/theme/images/vector/veto_palm.svgpath").toString());
 
     loadFxml("theme/play/teammatchmaking/matchmaking_maplist_popup.fxml", clazz -> instance);
-  }
+}
 
   @Test
   public void testBracketComboBoxPopulated() {
