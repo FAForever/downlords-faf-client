@@ -15,7 +15,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.VetoKey;
 import com.faforever.client.test.PlatformTest;
-import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleObjectProperty;
 import org.instancio.Instancio;
@@ -52,8 +51,6 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
   private ImageViewHelper imageViewHelper;
   @Mock
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
-  @Mock
-  private ThemeService themeService;
   @Spy
   private MatchmakerPrefs matchmakerPrefs;
 
@@ -96,8 +93,6 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
       runnable.run();
       return null;
     }).when(fxApplicationThreadExecutor).execute(any(Runnable.class));
-    lenient().when(themeService.getThemeFile("theme/images/vector/veto_palm.svgpath"))
-        .thenReturn(getClass().getResource("/theme/images/vector/veto_palm.svgpath").toString());
 
     loadFxml("theme/play/teammatchmaking/matchmaking_maplist_popup.fxml", clazz -> instance);
 }
@@ -317,5 +312,68 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
     waitFxEvents();
 
     assertThat(instance.bracketComboBox.getSelectionModel().getSelectedIndex(), is(1));
+  }
+
+  @Test
+  public void testVetoTokenUsedStyleApplied() {
+    Map<MatchmakerQueueMapPool, List<MapPoolAssignment>> brackets = Map.of(bracket1, maps1);
+
+    when(mapService.getMatchmakerBrackets(queue)).thenReturn(Mono.just(brackets));
+
+    runOnFxThreadAndWait(() -> {
+      instance.setQueue(queue);
+    });
+    waitFxEvents();
+
+    runOnFxThreadAndWait(() -> {
+      matchmakerPrefs.setTokensForMap(new VetoKey(bracket1.id(), maps1.get(0).id()), 2);
+    });
+    waitFxEvents();
+
+    runOnFxThreadAndWait(() -> instance.toggleVetoMode());
+
+    assertThat(instance.vetoTokensViewer.getChildren().size(), is(3));
+
+    long usedTokenCount = instance.vetoTokensViewer.getChildren().stream()
+        .filter(node -> node.getStyleClass().contains("tmm-maplist-palm_used"))
+        .count();
+
+    assertThat(usedTokenCount, is(2L));
+  }
+
+  @Test
+  public void testVetoTokenUsedStyleRemoved() {
+    Map<MatchmakerQueueMapPool, List<MapPoolAssignment>> brackets = Map.of(bracket1, maps1);
+
+    when(mapService.getMatchmakerBrackets(queue)).thenReturn(Mono.just(brackets));
+
+    runOnFxThreadAndWait(() -> {
+      instance.setQueue(queue);
+    });
+    waitFxEvents();
+
+    runOnFxThreadAndWait(() -> {
+      matchmakerPrefs.setTokensForMap(new VetoKey(bracket1.id(), maps1.get(0).id()), 2);
+    });
+    waitFxEvents();
+
+    runOnFxThreadAndWait(() -> instance.toggleVetoMode());
+
+    long usedTokenCount = instance.vetoTokensViewer.getChildren().stream()
+        .filter(node -> node.getStyleClass().contains("tmm-maplist-palm_used"))
+        .count();
+
+    assertThat(usedTokenCount, is(2L));
+
+    runOnFxThreadAndWait(() -> {
+      matchmakerPrefs.setTokensForMap(new VetoKey(bracket1.id(), maps1.get(0).id()), 0);
+    });
+    waitFxEvents();
+
+    usedTokenCount = instance.vetoTokensViewer.getChildren().stream()
+        .filter(node -> node.getStyleClass().contains("tmm-maplist-palm_used"))
+        .count();
+
+    assertThat(usedTokenCount, is(0L));
   }
 }

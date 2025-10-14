@@ -11,7 +11,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
-import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import javafx.beans.binding.Bindings;
@@ -34,8 +33,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Paint;
-import javafx.scene.shape.SVGPath;
+import javafx.scene.layout.Region;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -43,11 +41,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -64,12 +57,8 @@ import java.util.function.Consumer;
 
 public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
-
   private static final int TILE_SIZE = 180;
   private static final int PADDING = 20;
-  private static final Paint VETO_TOKEN_USED_PAINT = Paint.valueOf("#000000");
-  private static final Paint VETO_TOKEN_AVAILABLE_PAINT = Paint.valueOf("#ffffff");
-
 
   private static final Comparator<MapVersion> MAP_VERSION_COMPARATOR = Comparator.nullsFirst(
                                                                                      Comparator.comparing(MapVersion::size))
@@ -86,13 +75,12 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
                                                                                                   Double::compare));
 
 
-  private final ThemeService themeService;
   private final MapService mapService;
   private final UiService uiService;
   private final PlayerService playerService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final I18n i18n;
-  private final List<SVGPath> tokenViews = new ArrayList<>();
+  private final List<Region> tokenViews = new ArrayList<>();
 
   private final MatchmakerPrefs matchmakerPrefs;
 
@@ -123,14 +111,13 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
   private ObservableValue<Integer> vetoTokensApplied;
   private ObservableValue<Integer> vetoTokensLeft;
-  private String VETO_ICON_SVG_PATH;
   @Setter
   private Consumer<MapVersion> onTileClickedListener;
 
   public ComboBox<String> bracketComboBox;
   public Button applyVetoesButton;
   public Button vetoTokensWallet;
-  public SVGPath applyVetoesSvg;
+  public Region applyVetoesSvg;
   public Label applyVetoesLabel;
   public Pane root;
   public TilePane tilesContainer;
@@ -142,26 +129,11 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
   @Override
   protected void onInitialize() {
-    this.getSvgPath();
     this.bindProperties();
-  }
-
-  private void getSvgPath() {
-    try {
-      URL url = URI.create(themeService.getThemeFile("theme/images/vector/veto_palm.svgpath")).toURL();
-      try (InputStream inputStream = url.openStream()) {
-        VETO_ICON_SVG_PATH = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8).trim();
-      }
-    } catch (IOException e) {
-      log.error("Failed to load veto icon", e);
-      VETO_ICON_SVG_PATH = "";
-    }
   }
 
   private void bindProperties() {
     JavaFxUtil.bindManagedToVisible(loadingPane);
-
-    applyVetoesSvg.setContent(VETO_ICON_SVG_PATH);
 
     this.sortedMapPools.subscribe(pools -> {
       this.bracketComboBox.getItems().setAll(pools.stream().map(this::getBracketTitle).toList());
@@ -352,7 +324,6 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
   private Pane createMapTile(MapPoolAssignment mapAssignment) {
     TeamMatchmakingMapTileController controller = uiService.loadFxml(
         "theme/play/teammatchmaking/matchmaking_map_tile.fxml");
-    controller.setVetoIconPath(VETO_ICON_SVG_PATH);
     controller.setMapAssignment(mapAssignment);
     controller.setVetoTokensMax(currentBracket.getValue().vetoTokensPerPlayer());
     controller.setMaxPerMap(currentBracket.getValue().maxTokensPerMap());
@@ -402,8 +373,8 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
 
     fxApplicationThreadExecutor.execute(() -> {
       while (tokenViews.size() < maxTokens) {
-        SVGPath token = new SVGPath();
-        token.setContent(VETO_ICON_SVG_PATH);
+        Region token = new Region();
+        token.getStyleClass().addAll("veto-palm", "tmm-maplist-palm");
         tokenViews.add(token);
       }
 
@@ -412,7 +383,14 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
       }
 
       for (int i = 0; i < maxTokens; i++) {
-        tokenViews.get(i).setFill(i >= maxTokens - usedTokens ? VETO_TOKEN_USED_PAINT : VETO_TOKEN_AVAILABLE_PAINT);
+        Region token = tokenViews.get(i);
+        if (i >= maxTokens - usedTokens) {
+          if (!token.getStyleClass().contains("tmm-maplist-palm_used")) {
+            token.getStyleClass().add("tmm-maplist-palm_used");
+          }
+        } else {
+          token.getStyleClass().remove("tmm-maplist-palm_used");
+        }
       }
 
       this.vetoTokensViewer.getChildren().setAll(tokenViews.subList(0, maxTokens));

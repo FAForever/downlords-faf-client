@@ -1141,6 +1141,22 @@
  -fx-padding: 0 12 0 0; //related to PADDING constant, do not change without adjusting it
 }
 
+.tmm-maplist-palm {
+    -fx-max-width: 0;
+    -fx-max-height: 0;
+    -fx-padding: 10 8.5;
+    -fx-background-color: white;
+    transition: -fx-background-color 0.1s ease-out;
+}
+
+.tmm-maplist-palm_active {
+    -fx-background-color: #FFD700;
+}
+
+.tmm-maplist-palm_used {
+    -fx-background-color: black;
+}
+
 .tmm-maplist-tile {
   -fx-background-color: linear-gradient(to bottom right, #fff, #ffffff60);
   -fx-background-radius: 6;

@@ -11,7 +11,6 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.VetoKey;
-import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -26,8 +25,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Paint;
-import javafx.scene.shape.SVGPath;
+import javafx.scene.layout.Region;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -43,9 +41,6 @@ import java.util.function.Consumer;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 public class TeamMatchmakingMapTileController extends NodeController<Pane> {
-
-  private static final String VETO_ICON_ACTIVE_COLOR = "#FFD700";
-  private static final String VETO_ICON_INACTIVE_COLOR = "#FFFFFF";
 
   private final MapService mapService;
   private final I18n i18n;
@@ -63,7 +58,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   public Button minusButton;
   public Button vetoButton;
   public Label tokenCounterLabel;
-  public SVGPath vetoSvg;
+  public Region vetoSvg;
 
   protected final ObjectProperty<MapPoolAssignment> assignment = new SimpleObjectProperty<>();
   private ObservableValue<Integer> vetoTokensLeft;
@@ -91,8 +86,6 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   public void setMaxPerMap(int maxPerMap) {
     this.maxPerMap.set(maxPerMap);
   }
-
-  public void setVetoIconPath(String vetoIconPath) {this.vetoSvg.setContent(vetoIconPath);}
 
   void setVetoTokensLeft(ObservableValue<Integer> vetoTokensLeft) {
     this.vetoTokensLeft = vetoTokensLeft;
@@ -145,10 +138,15 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
 
     tokenCounterLabel.textProperty().bind(tokenCount.asString());
 
-    vetoSvg.fillProperty()
-           .bind(Bindings.when(tokenCount.greaterThan(0))
-                         .then(Paint.valueOf(VETO_ICON_ACTIVE_COLOR))
-                         .otherwise(Paint.valueOf(VETO_ICON_INACTIVE_COLOR)));
+    tokenCount.subscribe(count -> {
+      if (count.intValue() > 0) {
+        if (!vetoSvg.getStyleClass().contains("tmm-maplist-palm_active")) {
+          vetoSvg.getStyleClass().add("tmm-maplist-palm_active");
+        }
+      } else {
+        vetoSvg.getStyleClass().remove("tmm-maplist-palm_active");
+      }
+    });
 
     minusButton.visibleProperty().bind(vetoesBox.hoverProperty().and(tokenCount.greaterThan(0)));
     minusButton.managedProperty().bind(minusButton.visibleProperty());

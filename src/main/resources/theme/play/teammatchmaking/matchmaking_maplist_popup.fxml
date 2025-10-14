@@ -11,7 +11,6 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.shape.SVGPath?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="root" styleClass="tmm-maplist"
       fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingMapListController">
     <ScrollPane fx:id="scrollContainer" hbarPolicy="NEVER">
@@ -36,7 +35,7 @@
                             <graphic>
                                 <HBox alignment="CENTER" spacing="5" maxHeight="33">
                                     <Label fx:id="applyVetoesLabel" maxHeight="33" style="-fx-font-size: 16;"/>
-                                    <SVGPath fx:id="applyVetoesSvg" fill="white"/>
+                                    <Region fx:id="applyVetoesSvg" styleClass="veto-palm, tmm-maplist-palm"/>
                                 </HBox>
                             </graphic>
                         </Button>

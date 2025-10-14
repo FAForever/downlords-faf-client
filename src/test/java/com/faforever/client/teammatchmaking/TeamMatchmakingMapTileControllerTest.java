@@ -244,7 +244,7 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
                                       1);
     });
 
-    assertThat(instance.vetoSvg.getFill().toString(), is("0xffd700ff"));
+    assertTrue(instance.vetoSvg.getStyleClass().contains("tmm-maplist-palm_active"));
   }
 
   @Test
@@ -254,7 +254,7 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
       instance.setVetoTokensMax(3);
     });
 
-    assertThat(instance.vetoSvg.getFill().toString(), is("0xffffffff"));
+    assertFalse(instance.vetoSvg.getStyleClass().contains("tmm-maplist-palm_active"));
   }
 
   @Test
