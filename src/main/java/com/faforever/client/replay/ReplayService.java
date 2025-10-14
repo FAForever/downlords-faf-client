@@ -34,9 +34,13 @@ import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.api.elide.ElideNavigatorOnId;
 import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
+import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
@@ -45,11 +49,11 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -63,6 +67,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -101,6 +106,10 @@ public class ReplayService {
   private final DataPrefs dataPrefs;
   private final ObjectFactory<ReplayDownloadTask> replayDownloadTaskFactory;
   private final ReplayHistoryPrefs replayHistory;
+  private final Cache<@NotNull Path, @NotNull Replay> replayCache = CacheBuilder.newBuilder()
+                                                                                .maximumSize(500)
+                                                                                .expireAfterWrite(20, TimeUnit.MINUTES)
+                                                                                .build();
 
   @VisibleForTesting
   static Integer parseSupComVersion(ReplayDataParser parser) {
@@ -179,16 +188,20 @@ public class ReplayService {
 
       return Mono.fromFuture(CompletableFuture.allOf(replayFutures.toArray(new CompletableFuture[0]))
                                               .thenApply(_ -> replayFutures.stream()
-                                                                                     .map(CompletableFuture::join)
-                                                                                     .filter(Objects::nonNull)
-                                                                                     .collect(Collectors.toList())))
+                                                                           .map(CompletableFuture::join)
+                                                                           .filter(Objects::nonNull)
+                                                                           .collect(Collectors.toList())))
                  .zipWith(Mono.just(numPages));
     }
   }
 
-
   private CompletableFuture<Replay> tryLoadingLocalReplay(Path replayFile) {
     try {
+      final Replay cachedReplay = this.replayCache.getIfPresent(replayFile);
+      if (cachedReplay != null) {
+        return CompletableFuture.completedFuture(cachedReplay);
+      }
+
       ReplayDataParser replayData = replayFileReader.parseReplay(replayFile);
       ReplayMetadata replayMetadata = replayData.getMetadata();
 
@@ -203,7 +216,10 @@ public class ReplayService {
         if (mapVersion == null) {
           log.warn("Could not find map for replay file `{}`", replayFile);
         }
-        return replayMapper.map(replayData, replayFile, featuredMod, mapVersion);
+
+        final Replay replay = replayMapper.map(replayData, replayFile, featuredMod, mapVersion);
+        this.replayCache.put(replayFile, replay);
+        return replay;
       }).exceptionally(throwable -> {
         log.warn("Could not read replay file `{}`", replayFile, throwable);
         moveCorruptedReplayFile(replayFile);
@@ -287,7 +303,10 @@ public class ReplayService {
     List<ChatMessage> chatMessages = replayDataParser.getChatMessages().stream().map(replayMapper::map).toList();
     List<GameOption> gameOptions = Stream.concat(
         Stream.of(new GameOption("FAF Version", String.valueOf(parseSupComVersion(replayDataParser)))),
-        replayDataParser.getGameOptions().stream().map(replayMapper::map).sorted(Comparator.comparing(GameOption::key, String.CASE_INSENSITIVE_ORDER))).toList();
+        replayDataParser.getGameOptions()
+                        .stream()
+                        .map(replayMapper::map)
+                        .sorted(Comparator.comparing(GameOption::key, String.CASE_INSENSITIVE_ORDER))).toList();
 
     String mapFolderName = parseMapFolderName(replayDataParser);
     Map map = new Map(null, mapFolderName, 0, null, false, null, null);
@@ -351,12 +370,13 @@ public class ReplayService {
 
   private void runFafReplayFile(Path path) throws IOException {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
-    byte[] rawReplayBytes = replayData.getData();
+    ByteBuffer rawReplayByteBuffer = replayData.getData();
 
     Path tempSupComReplayFile = dataPrefs.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
 
     Files.createDirectories(tempSupComReplayFile.getParent());
-    Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
+    Files.copy(new ByteBufferBackedInputStream(rawReplayByteBuffer), tempSupComReplayFile,
+               StandardCopyOption.REPLACE_EXISTING);
 
     ReplayMetadata replayMetadata = replayData.getMetadata();
     String gameType = replayMetadata.getFeaturedMod();
@@ -445,8 +465,7 @@ public class ReplayService {
   @Cacheable(value = CacheNames.REPLAYS_SEARCH, sync = true)
   public Mono<Replay> findById(int id) {
     ElideNavigatorOnId<Game> navigator = ElideNavigator.of(Game.class).id(String.valueOf(id));
-    return fafApiAccessor.getOne(navigator).map(replayMapper::map)
-                         .cache();
+    return fafApiAccessor.getOne(navigator).map(replayMapper::map).cache();
   }
 
   @Cacheable(value = CacheNames.REPLAYS_MINE, sync = true)
@@ -467,10 +486,13 @@ public class ReplayService {
   }
 
   public Flux<LeagueScoreJournal> getLeagueScoreJournalForReplay(Replay replay) {
-    ElideNavigatorOnCollection<com.faforever.commons.api.dto.LeagueScoreJournal> navigator = ElideNavigator.of(com.faforever.commons.api.dto.LeagueScoreJournal.class).collection()
-        .setFilter(qBuilder().intNum("gameId").eq(replay.id()));
-    return fafApiAccessor.getMany(navigator)
-        .map(replayMapper::map)
-        .cache();
+    ElideNavigatorOnCollection<com.faforever.commons.api.dto.LeagueScoreJournal> navigator = ElideNavigator.of(
+                                                                                                               com.faforever.commons.api.dto.LeagueScoreJournal.class)
+                                                                                                           .collection()
+                                                                                                           .setFilter(
+                                                                                                               qBuilder().intNum(
+                                                                                                                             "gameId")
+                                                                                                                         .eq(replay.id()));
+    return fafApiAccessor.getMany(navigator).map(replayMapper::map).cache();
   }
 }

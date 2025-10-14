@@ -70,7 +70,7 @@ public class VaultEntityControllerTest extends PlatformTest {
 
   private List<Integer> getMockPageElements(List<Integer> elements, int pageSize, int page) {
     return elements.subList(Math.min((page) * pageSize, elements.size()),
-        Math.min((page + 1) * pageSize, elements.size()));
+                            Math.min((page + 1) * pageSize, elements.size()));
   }
 
   private Mono<Tuple2<List<Integer>, Integer>> mocksAsMono(List<Integer> elements, int pageSize, int page) {
@@ -94,7 +94,8 @@ public class VaultEntityControllerTest extends PlatformTest {
     when(vaultEntityShowRoomController.getPane()).thenReturn(showRoomPane);
 
     items = IntStream.range(0, 50).boxed().toList();
-    instance = new VaultEntityController<>(uiService, notificationService, i18n, reportingService, vaultPrefs, fxApplicationThreadExecutor) {
+    instance = new VaultEntityController<>(uiService, notificationService, i18n, reportingService, vaultPrefs,
+                                           fxApplicationThreadExecutor) {
       @Override
       protected void initSearchController() {
         //Do Nothing
@@ -258,8 +259,6 @@ public class VaultEntityControllerTest extends PlatformTest {
     assertEquals(instance.pageSize, instance.searchResultPane.getChildren().size());
 
     instance.perPageComboBox.setValue(newPageSize);
-    WaitForAsyncUtils.waitForFxEvents();
-    instance.changePerPageCount();
     WaitForAsyncUtils.waitForFxEvents();
 
     moreButton.fire();
