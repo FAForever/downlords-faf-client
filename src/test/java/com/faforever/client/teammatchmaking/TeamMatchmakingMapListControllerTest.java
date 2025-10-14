@@ -61,8 +61,6 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
   private TeamMatchmakingMapListController instance;
 
   private MatchmakerQueueInfo queue;
-  private PlayerInfo player;
-  private Leaderboard leaderboard;
   private MatchmakerQueueMapPool bracket1;
   private MatchmakerQueueMapPool bracket2;
   private MatchmakerQueueMapPool bracket3;
@@ -72,9 +70,9 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    leaderboard = Instancio.create(Leaderboard.class);
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().get();
+    Leaderboard leaderboard = Instancio.create(Leaderboard.class);
     queue = MatchmakerQueueInfoBuilder.create().defaultValues().leaderboard(leaderboard).get();
-    player = PlayerInfoBuilder.create().defaultValues().get();
 
     bracket1 = new MatchmakerQueueMapPool(1, null, 1000.0, queue, 3, 2, 0.5f);
     bracket2 = new MatchmakerQueueMapPool(2, 1000.0, 1500.0, queue, 5, 3, 0.5f);
