@@ -10,6 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.control.Button?>
+<?import javafx.geometry.Insets?>
 
 <StackPane fx:id="root" prefWidth="180.0" prefHeight="180.0"
            styleClass="tmm-maplist-tile"
@@ -43,6 +44,9 @@
                     <Button fx:id="vetoButton" styleClass="tmm-maplist-tile-vetoset-counter">
                         <graphic>
                             <HBox spacing="5">
+                                <padding>
+                                  <Insets right="1" />
+                                </padding>
                                 <Label fx:id="tokenCounterLabel" text="0" />
                                 <Region fx:id="vetoSvg" styleClass="veto-palm, tmm-maplist-palm"/>
                             </HBox>
