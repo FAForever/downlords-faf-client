@@ -38,6 +38,9 @@ import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.replay.ReplayServer;
+import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.CompletableTask.Priority;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.util.ConcurrentUtil;
@@ -118,6 +121,7 @@ public class GameRunner implements InitializingBean {
   private final NotificationPrefs notificationPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final LogAnalyzerService logAnalyzerService;
+  private final TaskService taskService;
 
   private final MaskPatternLayout logMasker = new MaskPatternLayout();
   private final SimpleObjectProperty<Integer> runningGameId = new SimpleObjectProperty<>();
@@ -183,16 +187,16 @@ public class GameRunner implements InitializingBean {
     String mapFolderName = gameLaunchResponse.getMapName();
     CompletableFuture<Void> downloadMapFuture = mapFolderName == null ? completedFuture(
         null) : mapService.downloadIfNecessary(mapFolderName).toFuture();
-    CompletableFuture<League> leagueFuture = hasLeague ? completedFuture(null) : getDivisionInfo(
-        leaderboard).toFuture();
-    CompletableFuture<Integer> startReplayServerFuture = replayServer.start(uid);
-    CompletableFuture<Integer> startIceAdapterFuture = startIceAdapter(uid);
 
-    return CompletableFuture.allOf(downloadMapFuture, leagueFuture, startIceAdapterFuture, startReplayServerFuture)
-                            .thenApply(_ -> gameMapper.map(gameLaunchResponse, leagueFuture.join()))
-                            .thenApply(parameters -> launchOnlineGame(parameters, startIceAdapterFuture.join(),
-                                                                      startReplayServerFuture.join()))
-                            .whenCompleteAsync((process, throwable) -> {
+    CompletableFuture<League> loadLeagueInfoTask = runInBackgroundAndShowStatus("Loading a league information", hasLeague ? completedFuture(null) : getDivisionInfo(leaderboard).toFuture());
+    CompletableFuture<Integer> runReplayServerTask = runInBackgroundAndShowStatus("Connecting to Replay Server", replayServer.start(uid));
+    CompletableFuture<Integer> runIceAdapterTask = runInBackgroundAndShowStatus("Connecting to ICE Adapter", startIceAdapter(uid));
+
+    return CompletableFuture.allOf(downloadMapFuture, loadLeagueInfoTask, runReplayServerTask, runIceAdapterTask)
+                            .thenApply(_ -> gameMapper.map(gameLaunchResponse, loadLeagueInfoTask.join()))
+                            .thenApply(parameters -> launchOnlineGame(parameters, runIceAdapterTask.join(),
+                                                                      runReplayServerTask.join()))
+                            .whenCompleteAsync((process, _) -> {
                               if (process != null) {
                                 this.process.set(process);
                                 runningGameId.set(uid);
@@ -209,6 +213,16 @@ public class GameRunner implements InitializingBean {
                               process.set(null);
                               runningGameId.set(null);
                             }, fxApplicationThreadExecutor);
+  }
+
+  private <T> CompletableFuture<T> runInBackgroundAndShowStatus(String taskTitle, CompletableFuture<T> task) {
+    return taskService.submitTask(new CompletableTask<T>(Priority.MEDIUM) {
+      @Override
+      protected T call() {
+        updateTitle(taskTitle);
+        return task.join();
+      }
+    }).getFuture();
   }
 
   @VisibleForTesting
