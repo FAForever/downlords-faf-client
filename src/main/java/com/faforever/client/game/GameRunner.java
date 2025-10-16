@@ -152,7 +152,7 @@ public class GameRunner implements InitializingBean {
 
     fafServerAccessor.getEvents(NoticeInfo.class)
                      .filter(notice -> Objects.equals(notice.getStyle(), "kill"))
-                     .doOnNext(notice -> {
+                     .doOnNext(_ -> {
                        log.info("Game close requested by server");
                        String linksRules = clientProperties.getLinks().get("linksRules");
                        ImmediateNotification notification = new ImmediateNotification(i18n.get("game.kicked.title"),
@@ -167,7 +167,7 @@ public class GameRunner implements InitializingBean {
                      .subscribe();
 
 
-    fafServerAccessor.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+    fafServerAccessor.connectionStateProperty().addListener((_, oldValue, newValue) -> {
       if (isRunning() && newValue == ConnectionState.CONNECTED && oldValue != ConnectionState.CONNECTED) {
         fafServerAccessor.restoreGameSession(runningGameId.get());
       }
@@ -497,7 +497,7 @@ public class GameRunner implements InitializingBean {
         infoIcon.getStyleClass().add("info-icon");
         final Button showAnalysisBtn = new Button(i18n.get("game.log.analysis.solutionBtn"), infoIcon);
         showAnalysisBtn.setDefaultButton(true);
-        showAnalysisBtn.setOnAction(event -> notificationService.addNotification(
+        showAnalysisBtn.setOnAction(_ -> notificationService.addNotification(
             new ImmediateNotification(i18n.get("game.log.analysis"), message.toString(), WARN, actions)));
 
         return showAnalysisBtn;
@@ -523,7 +523,7 @@ public class GameRunner implements InitializingBean {
     }
 
     if (!preferencesService.hasValidGamePath()) {
-      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(path -> launchTutorial(mapVersion, technicalMapName));
+      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(_ -> launchTutorial(mapVersion, technicalMapName));
       return;
     }
 
@@ -561,12 +561,12 @@ public class GameRunner implements InitializingBean {
     }
 
     if (!preferencesService.hasValidGamePath()) {
-      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(path -> startOffline());
+      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(_ -> startOffline());
       return;
     }
 
     CompletableFuture.supplyAsync(() -> forgedAllianceLaunchService.launchOfflineGame(null))
-                     .whenCompleteAsync((process, throwable) -> {
+                     .whenCompleteAsync((process, _) -> {
                        if (process != null) {
                          this.process.set(process);
                        }
