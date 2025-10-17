@@ -189,9 +189,9 @@ public class GameRunner implements InitializingBean {
     CompletableFuture<Void> downloadMapFuture = mapFolderName == null ? completedFuture(
         null) : mapService.downloadIfNecessary(mapFolderName).toFuture();
 
-    CompletableFuture<League> loadLeagueInfoFuture = runInBackground("Loading a league information", hasLeague ? completedFuture(null) : getDivisionInfo(leaderboard).toFuture());
-    CompletableFuture<Integer> runReplayServerFuture = runInBackground("Connecting to Replay Server", replayServer.start(uid));
-    CompletableFuture<Integer> runIceAdapterFuture = runInBackground("Connecting to ICE Adapter", startIceAdapter(uid));
+    CompletableFuture<League> loadLeagueInfoFuture = runInBackground(i18n.get("league.loadInfo"), hasLeague ? completedFuture(null) : getDivisionInfo(leaderboard).toFuture());
+    CompletableFuture<Integer> runReplayServerFuture = runInBackground(i18n.get("replayServer.connecting"), replayServer.start(uid));
+    CompletableFuture<Integer> runIceAdapterFuture = runInBackground(i18n.get("iceAdapter.connecting"), startIceAdapter(uid));
 
     return CompletableFuture.allOf(downloadMapFuture, loadLeagueInfoFuture, runReplayServerFuture, runIceAdapterFuture)
                             .thenApply(_ -> gameMapper.map(gameLaunchResponse, loadLeagueInfoFuture.join()))
