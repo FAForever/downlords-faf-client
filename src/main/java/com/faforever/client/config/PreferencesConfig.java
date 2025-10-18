@@ -29,6 +29,7 @@ import com.faforever.client.serialization.SimpleListPropertyInstantiator;
 import com.faforever.client.serialization.SimpleMapPropertyInstantiator;
 import com.faforever.client.serialization.SimpleSetPropertyInstantiator;
 import com.faforever.client.serialization.VetoKeyDeserializer;
+import com.faforever.client.serialization.VetoKeySerializer;
 import com.faforever.commons.api.dto.Faction;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -187,6 +188,7 @@ public class PreferencesConfig implements DisposableBean {
 
     Module preferencesModule = new SimpleModule().addSerializer(Path.class, new PathSerializer())
         .addDeserializer(Path.class, new PathDeserializer())
+        .addKeySerializer(VetoKey.class, new VetoKeySerializer())
         .addKeyDeserializer(VetoKey.class, new VetoKeyDeserializer())
         .addValueInstantiator(SimpleMapProperty.class, new SimpleMapPropertyInstantiator(configuredObjectMapper.getDeserializationConfig(), typeFactory.constructType(SimpleMapProperty.class)))
         .addValueInstantiator(SimpleListProperty.class, new SimpleListPropertyInstantiator(configuredObjectMapper.getDeserializationConfig(), typeFactory.constructType(SimpleListProperty.class)))

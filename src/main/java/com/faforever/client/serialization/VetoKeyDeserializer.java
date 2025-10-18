@@ -10,6 +10,7 @@ public class VetoKeyDeserializer extends KeyDeserializer {
 
   @Override
   public Object deserializeKey(String key, DeserializationContext ctxt) throws IOException {
-    return VetoKey.fromString(key);
+    String[] parts = key.split(":");
+    return new VetoKey(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
   }
 }
