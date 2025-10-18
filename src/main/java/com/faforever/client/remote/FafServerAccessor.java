@@ -13,11 +13,11 @@ import com.faforever.client.io.UidService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.teammatchmaking.TeamMatchmakingService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ServerNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.update.Version;
-import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.commons.lobby.ConnectionStatus;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.FafLobbyClient;
@@ -76,13 +76,14 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
       ConnectionState.DISCONNECTED);
 
   private final NotificationService notificationService;
+  @Lazy
+  private final TeamMatchmakingService teamMatchmakingService;
   private final I18n i18n;
   private final TaskScheduler taskScheduler;
   private final TokenRetriever tokenRetriever;
   private final UidService uidService;
   private final ClientProperties clientProperties;
   private final FafLobbyClient lobbyClient;
-  private final MatchmakerPrefs matchmakerPrefs;
   @Qualifier("userWebClient")
   private final ObjectFactory<WebClient> userWebClientFactory;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
@@ -310,7 +311,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
   }
 
   private void onVetoesChanged(VetoesChangedInfo vetoesChangedInfo) {
-    matchmakerPrefs.setAllVetoes(vetoesChangedInfo.getVetoes());
+    teamMatchmakingService.setAllVetoes(vetoesChangedInfo.getVetoes());
 
     if (vetoesChangedInfo.getForced()) {
       notificationService.addNotification(

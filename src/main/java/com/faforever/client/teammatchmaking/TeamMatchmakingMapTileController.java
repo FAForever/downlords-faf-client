@@ -47,6 +47,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   private final ImageViewHelper imageViewHelper;
   private final MapGeneratorService mapGeneratorService;
   private final MatchmakerPrefs matchmakerPrefs;
+  private final TeamMatchmakingService teamMatchmakingService;
 
   public Pane root;
   public ImageView thumbnailImageView;
@@ -167,7 +168,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
       int currentTokenCount = tokenCount.get();
       int currentMaxPerMap = maxPerMap.get();
       if ((isMaxPerMapDynamic.get() || currentTokenCount < currentMaxPerMap) && currentTokenCount < vetoTokensMax.get() && vetoTokensLeft.getValue() > 0) {
-        matchmakerPrefs.setTokensForMap(
+        teamMatchmakingService.setTokensForMap(
             new VetoKey(assignment.getValue().mapPool().mapPool().id(), assignment.getValue().id()),
             currentTokenCount + 1);
       }
@@ -180,7 +181,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
       }
       int current = tokenCount.get();
       if (current > 0) {
-        matchmakerPrefs.setTokensForMap(
+        teamMatchmakingService.setTokensForMap(
             new VetoKey(assignment.getValue().mapPool().mapPool().id(), assignment.getValue().id()), current - 1);
       }
       event.consume();

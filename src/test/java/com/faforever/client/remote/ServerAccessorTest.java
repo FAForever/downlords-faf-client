@@ -107,6 +107,8 @@ import static org.instancio.Instancio.of;
 import static org.instancio.Select.all;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -137,6 +139,8 @@ public class ServerAccessorTest extends ServiceTest {
   private IceAdapter iceAdapter;
   @Mock
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  @Mock
+  private com.faforever.client.teammatchmaking.TeamMatchmakingService teamMatchmakingService;
   @Spy
   private ClientProperties clientProperties;
   @Spy
@@ -169,6 +173,16 @@ public class ServerAccessorTest extends ServiceTest {
     when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just(token));
     when(fxApplicationThreadExecutor.asScheduler()).thenReturn(reactor.core.scheduler.Schedulers.immediate());
 
+    lenient().doAnswer(invocation -> {
+      List<VetoData> vetoes = invocation.getArgument(0);
+      matchmakerPrefs.getAppliedVetoes().clear();
+      vetoes.forEach(v -> matchmakerPrefs.getAppliedVetoes().put(
+          new VetoKey(v.getMatchmakerQueueMapPoolId(), v.getMapPoolMapVersionId()),
+          v.getVetoTokensApplied()
+      ));
+      return null;
+    }).when(teamMatchmakingService).setAllVetoes(any());
+
     startFakeFafLobbyServer();
 
     clientProperties.getUser()
@@ -184,8 +198,8 @@ public class ServerAccessorTest extends ServiceTest {
                             new HmacAccess("http://localhost:%d".formatted(disposableServer.port()))))
                         .addHeader("Content-Type", "application/json;charset=utf-8"));
 
-    instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenRetriever, uidService,
-                                     clientProperties, new FafLobbyClient(objectMapper), matchmakerPrefs, () -> webClient, fxApplicationThreadExecutor);
+    instance = new FafServerAccessor(notificationService, teamMatchmakingService, i18n, taskScheduler, tokenRetriever, uidService,
+                                     clientProperties, new FafLobbyClient(objectMapper), () -> webClient, fxApplicationThreadExecutor);
 
     instance.afterPropertiesSet();
     instance.getEvents(ServerMessage.class).doOnNext(serverMessage -> {

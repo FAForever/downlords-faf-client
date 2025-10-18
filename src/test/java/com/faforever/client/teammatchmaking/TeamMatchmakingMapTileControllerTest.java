@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,6 +51,8 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
   private MapGeneratorService mapGeneratorService;
   @Spy
   private MatchmakerPrefs matchmakerPrefs;
+  @Mock
+  private TeamMatchmakingService teamMatchmakingService;
 
   @InjectMocks
   private TeamMatchmakingMapTileController instance;
@@ -141,8 +144,8 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
     assertFalse(instance.vetoesBox.isVisible());
 
     runOnFxThreadAndWait(() -> {
-      matchmakerPrefs.setTokensForMap(new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()),
-                                      1);
+      matchmakerPrefs.getAppliedVetoes().put(
+          new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()), 1);
     });
 
     assertTrue(instance.vetoesBox.isVisible());
@@ -157,7 +160,7 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
       instance.vetoButton.fire();
     });
 
-    verify(matchmakerPrefs).setTokensForMap(
+    verify(teamMatchmakingService).setTokensForMap(
         new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()), 1);
   }
 
@@ -166,13 +169,13 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> {
       instance.setMapAssignment(mapPoolAssignment);
       instance.setVetoTokensMax(3);
-      matchmakerPrefs.setTokensForMap(new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()),
-                                      2);
+      matchmakerPrefs.getAppliedVetoes().put(
+          new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()), 2);
     });
 
     runOnFxThreadAndWait(() -> instance.minusButton.fire());
 
-    verify(matchmakerPrefs).setTokensForMap(
+    verify(teamMatchmakingService).setTokensForMap(
         new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()), 1);
   }
 
@@ -182,8 +185,8 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
       instance.setMapAssignment(mapPoolAssignment);
       instance.setVetoTokensMax(2);
       vetoTokensLeft.set(5);
-      matchmakerPrefs.setTokensForMap(new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()),
-                                      2);
+      matchmakerPrefs.getAppliedVetoes().put(
+          new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()), 2);
       instance.vetoButton.fire();
     });
 
@@ -208,8 +211,8 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
       instance.setMapAssignment(mapPoolAssignment);
       instance.setVetoTokensMax(2);
       instance.setMaxPerMap(2);
-      matchmakerPrefs.setTokensForMap(new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()),
-                                      2);
+      matchmakerPrefs.getAppliedVetoes().put(
+          new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()), 2);
     });
 
     assertTrue(instance.root.getStyleClass().contains("tmm-maplist-tile_banned"));
@@ -221,15 +224,15 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
       instance.setMapAssignment(mapPoolAssignment);
       instance.setVetoTokensMax(2);
       instance.setMaxPerMap(2);
-      matchmakerPrefs.setTokensForMap(new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()),
-                                      2);
+      matchmakerPrefs.getAppliedVetoes().put(
+          new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()), 2);
     });
 
     assertTrue(instance.root.getStyleClass().contains("tmm-maplist-tile_banned"));
 
     runOnFxThreadAndWait(() -> {
-      matchmakerPrefs.setTokensForMap(new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()),
-                                      1);
+      matchmakerPrefs.getAppliedVetoes().put(
+          new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()), 1);
     });
 
     assertFalse(instance.root.getStyleClass().contains("tmm-maplist-tile_banned"));
@@ -240,8 +243,8 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> {
       instance.setMapAssignment(mapPoolAssignment);
       instance.setVetoTokensMax(3);
-      matchmakerPrefs.setTokensForMap(new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()),
-                                      1);
+      matchmakerPrefs.getAppliedVetoes().put(
+          new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()), 1);
     });
 
     assertTrue(instance.vetoSvg.getStyleClass().contains("tmm-maplist-palm_active"));
@@ -262,8 +265,8 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> {
       instance.setMapAssignment(mapPoolAssignment);
       instance.setVetoTokensMax(3);
-      matchmakerPrefs.setTokensForMap(new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()),
-                                      2);
+      matchmakerPrefs.getAppliedVetoes().put(
+          new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()), 2);
     });
 
     assertThat(instance.tokenCounterLabel.getText(), is("2"));
@@ -326,8 +329,8 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> {
       instance.setMapAssignment(mapPoolAssignment);
       instance.setVetoTokensMax(3);
-      matchmakerPrefs.setTokensForMap(new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()),
-                                      2);
+      matchmakerPrefs.getAppliedVetoes().put(
+          new VetoKey(mapPoolAssignment.mapPool().mapPool().id(), mapPoolAssignment.id()), 2);
       instance.setOnTileClickedListener(clickedMap::set);
       instance.minusButton.fire();
     });

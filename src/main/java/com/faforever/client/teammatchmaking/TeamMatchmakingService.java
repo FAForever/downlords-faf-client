@@ -31,6 +31,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.ServerStatus;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.VetoKey;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.ConcurrentUtil;
@@ -49,6 +50,7 @@ import com.faforever.commons.lobby.MatchmakerState;
 import com.faforever.commons.lobby.PartyInvite;
 import com.faforever.commons.lobby.PartyKick;
 import com.faforever.commons.lobby.SearchInfo;
+import com.faforever.commons.lobby.VetoData;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -259,7 +261,31 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void sendVetoes() {
-    fafServerAccessor.setPlayerVetoes(matchmakerPrefs.getVetoesAsList());
+    fafServerAccessor.setPlayerVetoes(getVetoesAsList());
+  }
+
+  public void setTokensForMap(VetoKey vetoKey, Integer vetoTokensApplied) {
+    matchmakerPrefs.getAppliedVetoes().put(vetoKey, vetoTokensApplied);
+  }
+
+  public void setAllVetoes(List<VetoData> vetoes) {
+    matchmakerPrefs.getAppliedVetoes().clear();
+    vetoes.forEach(v -> matchmakerPrefs.getAppliedVetoes().put(
+        new VetoKey(v.getMatchmakerQueueMapPoolId(), v.getMapPoolMapVersionId()),
+        v.getVetoTokensApplied()
+    ));
+  }
+
+  private List<VetoData> getVetoesAsList() {
+    return matchmakerPrefs.getAppliedVetoes()
+                          .entrySet()
+                          .stream()
+                          .filter(entry -> entry.getValue() > 0)
+                          .map(entry -> new VetoData(
+                              entry.getKey().mapPoolMapVersionId(),
+                              entry.getValue(),
+                              entry.getKey().matchmakerQueueMapPoolId()))
+                          .collect(Collectors.toList());
   }
 
   private void onSearchInfo(SearchInfo message) {

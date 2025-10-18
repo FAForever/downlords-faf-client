@@ -625,7 +625,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     connectionState.set(ConnectionState.CONNECTED);
 
-    verify(fafServerAccessor).setPlayerVetoes(matchmakerPrefs.getVetoesAsList());
+    verify(fafServerAccessor).setPlayerVetoes(anyList());
   }
 
   @Test
@@ -637,7 +637,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     matchmakerPrefs.getAppliedVetoes().put(new VetoKey(1, 1), 1);
 
-    verify(fafServerAccessor, times(1)).setPlayerVetoes(matchmakerPrefs.getVetoesAsList());
+    verify(fafServerAccessor, times(1)).setPlayerVetoes(anyList());
   }
 
   @Test

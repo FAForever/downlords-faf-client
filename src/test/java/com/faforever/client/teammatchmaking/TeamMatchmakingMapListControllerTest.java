@@ -53,6 +53,8 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Spy
   private MatchmakerPrefs matchmakerPrefs;
+  @Mock
+  private TeamMatchmakingService teamMatchmakingService;
 
   @InjectMocks
   private TeamMatchmakingMapListController instance;
@@ -275,7 +277,7 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
     waitFxEvents();
 
     runOnFxThreadAndWait(() -> {
-      matchmakerPrefs.setTokensForMap(new VetoKey(bracket1.id(), maps1.get(0).id()), 2);
+      matchmakerPrefs.getAppliedVetoes().put(new VetoKey(bracket1.id(), maps1.get(0).id()), 2);
     });
     waitFxEvents();
 
@@ -326,7 +328,7 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
     waitFxEvents();
 
     runOnFxThreadAndWait(() -> {
-      matchmakerPrefs.setTokensForMap(new VetoKey(bracket1.id(), maps1.get(0).id()), 2);
+      matchmakerPrefs.getAppliedVetoes().put(new VetoKey(bracket1.id(), maps1.get(0).id()), 2);
     });
     waitFxEvents();
 
@@ -353,7 +355,7 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
     waitFxEvents();
 
     runOnFxThreadAndWait(() -> {
-      matchmakerPrefs.setTokensForMap(new VetoKey(bracket1.id(), maps1.get(0).id()), 2);
+      matchmakerPrefs.getAppliedVetoes().put(new VetoKey(bracket1.id(), maps1.get(0).id()), 2);
     });
     waitFxEvents();
 
@@ -366,7 +368,7 @@ public class TeamMatchmakingMapListControllerTest extends PlatformTest {
     assertThat(usedTokenCount, is(2L));
 
     runOnFxThreadAndWait(() -> {
-      matchmakerPrefs.setTokensForMap(new VetoKey(bracket1.id(), maps1.get(0).id()), 0);
+      matchmakerPrefs.getAppliedVetoes().put(new VetoKey(bracket1.id(), maps1.get(0).id()), 0);
     });
     waitFxEvents();
 
