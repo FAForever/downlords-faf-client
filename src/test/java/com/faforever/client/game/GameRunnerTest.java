@@ -13,6 +13,7 @@ import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameParameters;
+import com.faforever.client.fa.GameParameters.League;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.featuredmod.FeaturedModService;
@@ -37,6 +38,9 @@ import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.replay.ReplayServer;
+import com.faforever.client.task.BackgroundTask;
+import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -51,6 +55,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -135,6 +140,8 @@ public class GameRunnerTest extends ServiceTest {
   @Mock
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Mock
+  private TaskService taskService;
+  @Mock
   private GamePathHandler gamePathHandler;
   @Spy
   private GameMapper gameMapper = Mappers.getMapper(GameMapper.class);
@@ -144,6 +151,8 @@ public class GameRunnerTest extends ServiceTest {
   private LastGamePrefs lastGamePrefs;
   @Spy
   private NotificationPrefs notificationPrefs;
+  @Captor
+  private ArgumentCaptor<BackgroundTask<?>> backgroundTaskCaptor;
 
   @Mock
   private EnterPasswordController enterPasswordController;
@@ -194,6 +203,11 @@ public class GameRunnerTest extends ServiceTest {
     lenient().when(iceAdapter.start(anyInt(), anyBoolean())).thenReturn(completedFuture(GPG_PORT));
     lenient().when(coturnService.getIceSession(anyInt()))
              .thenReturn(Mono.just(new IceSession("someSessionId", false, List.of())));
+    lenient().when(taskService.submitTask(backgroundTaskCaptor.capture())).thenAnswer(_ -> {
+      BackgroundTask<?> task = backgroundTaskCaptor.getValue();
+      task.getFuture().join();
+      return task;
+    });
     lenient().when(process.onExit()).thenReturn(new CompletableFuture<>());
     lenient().when(process.exitValue()).thenReturn(0);
     lenient().when(process.isAlive()).thenReturn(true);

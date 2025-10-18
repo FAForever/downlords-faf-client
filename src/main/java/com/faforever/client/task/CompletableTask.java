@@ -13,11 +13,15 @@ public abstract class CompletableTask<V> extends Task<V> implements PrioritizedC
   private Priority priority;
 
   public CompletableTask(Priority priority) {
+    this(priority, new CompletableFuture<>());
+  }
+
+  protected CompletableTask(Priority priority, CompletableFuture<V> future) {
     this.priority = priority;
-    this.future = new CompletableFuture<>();
-    setOnCancelled(event -> future.cancel(true));
-    setOnFailed(event -> future.completeExceptionally(getException()));
-    setOnSucceeded(event -> future.complete(getValue()));
+    this.future = future;
+    setOnCancelled(_ -> future.cancel(true));
+    setOnFailed(_ -> future.completeExceptionally(getException()));
+    setOnSucceeded(_ -> future.complete(getValue()));
   }
 
   @Override
