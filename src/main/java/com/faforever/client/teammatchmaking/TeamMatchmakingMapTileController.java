@@ -11,6 +11,7 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.VetoKey;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -63,6 +64,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
 
   protected final ObjectProperty<MapPoolAssignment> assignment = new SimpleObjectProperty<>();
   private ObservableValue<Integer> vetoTokensLeft;
+  private ObservableValue<Boolean> isGeneratedMap;
   private BooleanProperty vetoModeEnabled;
   private final IntegerProperty vetoTokensMax = new SimpleIntegerProperty(0);
   private final IntegerProperty maxPerMap = new SimpleIntegerProperty(0);
@@ -96,15 +98,18 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
     this.vetoModeEnabled = vetoModeEnabled;
   }
 
-  public void bindVetoesBoxProperties() {
+  public void bindVetoModeDependentProperties() {
     vetoesBox.mouseTransparentProperty().bind(vetoModeEnabled.not());
     vetoesBox.visibleProperty().bind(vetoModeEnabled.or(tokenCount.greaterThan(0)));
+    root.cursorProperty().bind(Bindings.when(
+        Bindings.createBooleanBinding(() -> isGeneratedMap.getValue() || vetoModeEnabled.get(), isGeneratedMap, vetoModeEnabled)
+    ).then(Cursor.DEFAULT).otherwise(Cursor.HAND));
   }
 
   @Override
   protected void onInitialize() {
     ObservableValue<Map> mapObservable = assignment.map(assignment -> assignment.mapVersion().map());
-    ObservableValue<Boolean> isGeneratedMap = mapObservable.map(map -> mapGeneratorService.isGeneratedMap(map.displayName())).orElse(false);
+    isGeneratedMap = mapObservable.map(map -> mapGeneratorService.isGeneratedMap(map.displayName())).orElse(false);
 
     thumbnailImageView.imageProperty()
                       .bind(assignment
@@ -154,13 +159,10 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
     minusButton.managedProperty().bind(minusButton.visibleProperty());
 
     root.setOnMouseClicked(_ -> {
-      if (onTileClickedListener != null && assignment.getValue() != null && !isGeneratedMap.getValue()) {
+      if (onTileClickedListener != null && assignment.getValue() != null && !isGeneratedMap.getValue() && !vetoModeEnabled.get()) {
         onTileClickedListener.accept(assignment.getValue().mapVersion());
       }
     });
-
-    root.cursorProperty()
-        .bind(isGeneratedMap.map(gen -> gen ? Cursor.DEFAULT : Cursor.HAND));
 
     vetoButton.setOnAction(event -> {
       if (assignment.getValue() == null) {

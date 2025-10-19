@@ -113,7 +113,7 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
   public void testVetoBoxHiddenWhenModeDisabled() {
     runOnFxThreadAndWait(() -> {
       instance.setMapAssignment(mapPoolAssignment);
-      instance.bindVetoesBoxProperties();
+      instance.bindVetoModeDependentProperties();
     });
 
     assertFalse(instance.vetoesBox.isVisible());
@@ -124,7 +124,7 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
   public void testVetoBoxVisibleWhenModeEnabled() {
     runOnFxThreadAndWait(() -> {
       instance.setMapAssignment(mapPoolAssignment);
-      instance.bindVetoesBoxProperties();
+      instance.bindVetoModeDependentProperties();
       vetoModeEnabled.set(true);
     });
 
@@ -137,7 +137,7 @@ public class TeamMatchmakingMapTileControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> {
       instance.setMapAssignment(mapPoolAssignment);
       instance.setVetoTokensMax(3);
-      instance.bindVetoesBoxProperties();
+      instance.bindVetoModeDependentProperties();
       vetoModeEnabled.set(false);
     });
 
