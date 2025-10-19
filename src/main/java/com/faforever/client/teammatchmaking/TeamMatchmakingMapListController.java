@@ -329,7 +329,7 @@ public class TeamMatchmakingMapListController extends NodeController<Pane> {
     controller.setMaxPerMap(currentBracket.getValue().maxTokensPerMap());
     controller.setVetoTokensLeft(vetoTokensLeft);
     controller.setVetoModeEnabled(vetoModeEnabled);
-    controller.bindVetoesBoxProperties();
+    controller.bindVetoModeDependentProperties();
     if (onTileClickedListener != null) {
       controller.setOnTileClickedListener(onTileClickedListener);
     }
