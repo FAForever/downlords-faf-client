@@ -638,7 +638,7 @@
   -fx-font-size: 2em;
 }
 
-.game-title-input:invalid {
+.invalid-text-field:invalid {
   -fx-border-color: -bad;
 }
 

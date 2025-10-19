@@ -6,6 +6,7 @@ import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.fx.ControllerTableCell;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.ObservableConstant;
 import com.faforever.client.fx.StringCell;
@@ -24,12 +25,16 @@ import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
+import com.faforever.client.util.Validator;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Strings;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -108,9 +113,13 @@ public class CoopController extends NodeController<Node> {
   public TableColumn<CoopResult, Duration> timeColumn;
   public TableColumn<CoopResult, String> replayColumn;
   public GamesTableController gamesTableController;
+  public Label titleWarningLabel;
+  public Label passwordWarningLabel;
 
   @Override
   protected void onInitialize() {
+    JavaFxUtil.bindManagedToVisible(titleWarningLabel, passwordWarningLabel);
+
     missionComboBox.setCellFactory(param -> missionListCell());
     missionComboBox.setButtonCell(missionListCell());
     missionComboBox.getSelectionModel().selectedItemProperty().when(showing).subscribe(this::setSelectedMission);
@@ -120,7 +129,20 @@ public class CoopController extends NodeController<Node> {
                                             .map(folderName -> mapService.loadPreview(folderName, PreviewSize.LARGE))
                                             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
                                             .when(showing));
-    playButton.disableProperty().bind(titleTextField.textProperty().isEmpty().when(showing));
+
+    PseudoClass invalidSelector = PseudoClass.getPseudoClass("invalid");
+    BooleanBinding invalidSelectorTitleFieldProperty = getCssSelectorProperty(titleTextField, invalidSelector);
+    BooleanBinding invalidSelectorPasswordFieldProperty = getCssSelectorProperty(passwordTextField, invalidSelector);
+    updatePseudoClassStateIfTextIsNotAcsii(titleTextField, invalidSelector);
+    updatePseudoClassStateIfTextIsNotAcsii(passwordTextField, invalidSelector);
+    playButton.disableProperty()
+              .bind(titleTextField.textProperty()
+                                  .isEmpty()
+                                  .or(invalidSelectorTitleFieldProperty)
+                                  .or(invalidSelectorPasswordFieldProperty)
+                                  .when(showing));
+    JavaFxUtil.bind(titleWarningLabel.visibleProperty(), invalidSelectorTitleFieldProperty);
+    JavaFxUtil.bind(passwordWarningLabel.visibleProperty(), invalidSelectorPasswordFieldProperty);
 
     numberOfPlayersComboBox.setButtonCell(numberOfPlayersCell());
     numberOfPlayersComboBox.setCellFactory(param -> numberOfPlayersCell());
@@ -206,6 +228,16 @@ public class CoopController extends NodeController<Node> {
                  }
                }, throwable -> notificationService.addPersistentErrorNotification("coop.couldNotLoad",
                                                                                   throwable.getLocalizedMessage()));
+  }
+
+  private BooleanBinding getCssSelectorProperty(Node component, PseudoClass pseudoClass) {
+    return Bindings.createBooleanBinding(() -> component.getPseudoClassStates().contains(pseudoClass), component.getPseudoClassStates());
+  }
+
+  private void updatePseudoClassStateIfTextIsNotAcsii(TextField field, PseudoClass pseudoClass) {
+    JavaFxUtil.addListener(field.textProperty(), _ -> field.pseudoClassStateChanged(pseudoClass,
+                                                                                    !Validator.isAscii(
+                                                                                        field.getText())));
   }
 
   private String coopMissionFromFolderName(List<CoopMission> coopMaps, String mapFolderName) {

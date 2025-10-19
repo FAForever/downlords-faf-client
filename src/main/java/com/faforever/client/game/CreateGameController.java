@@ -31,6 +31,7 @@ import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.PopupUtil;
+import com.faforever.client.util.Validator;
 import com.faforever.commons.lobby.GameVisibility;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -193,7 +194,7 @@ public class CreateGameController extends NodeController<Pane> {
     selectLastMap();
     setLastGameTitle();
     initPassword();
-    JavaFxUtil.addAndTriggerListener(titleTextField.textProperty(), (observable, oldValue, newValue) -> {
+    JavaFxUtil.addAndTriggerListener(titleTextField.textProperty(), (_, _, newValue) -> {
       lastGamePrefs.setLastGameTitle(newValue);
       validateTitle(newValue);
     });
@@ -265,10 +266,7 @@ public class CreateGameController extends NodeController<Pane> {
   }
 
   private void validateTitle(String gameTitle) {
-    titleTextField.pseudoClassStateChanged(PSEUDO_CLASS_INVALID,
-                                           StringUtils.isBlank(gameTitle) || !StandardCharsets.US_ASCII.newEncoder()
-                                                                                                       .canEncode(
-                                                                                                           gameTitle));
+    titleTextField.pseudoClassStateChanged(PSEUDO_CLASS_INVALID, StringUtils.isBlank(gameTitle) || !Validator.isAscii(gameTitle));
   }
 
   private void initPassword() {

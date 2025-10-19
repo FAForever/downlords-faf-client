@@ -5,7 +5,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
-import com.faforever.client.util.Validator;
 import com.faforever.commons.io.ByteCountListener;
 import com.faforever.commons.io.Zipper;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.faforever.commons.io.Bytes.formatSize;
 import static java.nio.file.Files.createTempFile;
@@ -52,8 +52,8 @@ public class MapUploadTask extends CompletableTask<Void> implements Initializing
 
   @Override
   protected Void call() throws Exception {
-    Validator.notNull(mapPath, "mapPath must not be null");
-    Validator.notNull(isRanked, "isRanked must not be null");
+    Objects.requireNonNull(mapPath, "mapPath must not be null");
+    Objects.requireNonNull(isRanked, "isRanked must not be null");
 
     ResourceLocks.acquireUploadLock();
     Path cacheDirectory = dataPrefs.getCacheDirectory();

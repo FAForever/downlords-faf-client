@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.Integer?>
 <?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
@@ -19,11 +20,11 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 <?import javafx.scene.web.WebView?>
-<?import java.lang.Integer?>
-<GridPane fx:id="coopRoot" gridLinesVisible="true" hgap="10.0" xmlns="http://javafx.com/javafx/17"
-          xmlns:fx="http://javafx.com/fxml/1"
-          fx:controller="com.faforever.client.coop.CoopController">
+
+<GridPane fx:id="coopRoot" gridLinesVisible="true" hgap="10.0" xmlns="http://javafx.com/javafx/25"
+          xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.coop.CoopController">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="55.0"/>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="45.0" prefWidth="100.0"/>
@@ -41,30 +42,55 @@
                     </columnConstraints>
                     <rowConstraints>
                         <RowConstraints minHeight="25.0" vgrow="SOMETIMES"/>
+                        <RowConstraints vgrow="SOMETIMES"/>
                         <RowConstraints minHeight="10.0" prefHeight="200.0" valignment="CENTER" vgrow="SOMETIMES"/>
                     </rowConstraints>
                     <children>
                         <HBox spacing="5.0" GridPane.columnIndex="1">
                             <children>
-                                <TextField fx:id="titleTextField" maxWidth="1.7976931348623157E308" minWidth="100.0"
-                                           prefWidth="400.0" promptText="%game.create.title"/>
-                                <PasswordField fx:id="passwordTextField" maxWidth="1.7976931348623157E308"
-                                               minWidth="100.0" prefWidth="350.0" promptText="%game.create.password"/>
+                                <VBox spacing="2.0">
+                                    <children>
+                                        <TextField fx:id="titleTextField" maxWidth="1.7976931348623157E308"
+                                                   minWidth="100.0" prefWidth="400.0" promptText="%game.create.title"
+                                                   styleClass="invalid-text-field"/>
+                                        <Label fx:id="titleWarningLabel" text="%game.create.titleNotAscii"
+                                               textFill="RED" wrapText="true">
+                                            <font>
+                                                <Font size="14.0"/>
+                                            </font>
+                                        </Label>
+                                    </children>
+                                </VBox>
+                                <VBox spacing="2.0">
+                                    <children>
+                                        <PasswordField fx:id="passwordTextField" maxWidth="1.7976931348623157E308"
+                                                       minWidth="100.0" prefWidth="350.0"
+                                                       promptText="%game.create.password"
+                                                       styleClass="invalid-text-field"/>
+                                        <Label fx:id="passwordWarningLabel" text="%game.create.passwordNotAscii"
+                                               textFill="RED" wrapText="true">
+                                            <font>
+                                                <Font size="14.0"/>
+                                            </font>
+                                        </Label>
+                                    </children>
+                                </VBox>
                                 <Button fx:id="playButton" defaultButton="true" minWidth="100.0" mnemonicParsing="false"
                                         onAction="#onPlayButtonClicked" text="%coop.host.button" textOverrun="CLIP"
                                         HBox.hgrow="ALWAYS"/>
                             </children>
                         </HBox>
-                        <StackPane GridPane.rowIndex="1">
+                        <StackPane GridPane.rowIndex="1" GridPane.rowSpan="2">
                             <ImageView fx:id="mapPreviewImageView" fitHeight="200.0" fitWidth="200.0"
                                        pickOnBounds="true" preserveRatio="true"/>
                             <Pane maxHeight="200.0" maxWidth="200.0" onMouseClicked="#onMapPreviewImageClicked"
                                   styleClass="clickable" StackPane.alignment="CENTER"/>
                         </StackPane>
 
-                        <ComboBox fx:id="missionComboBox" prefHeight="25.0" prefWidth="200.0"/>
+                        <ComboBox fx:id="missionComboBox" prefHeight="25.0" prefWidth="200.0"
+                                  GridPane.valignment="TOP"/>
                         <WebView fx:id="descriptionWebView" maxHeight="-1.0" minHeight="100.0" minWidth="-1.0"
-                                 prefHeight="-1.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                 prefHeight="-1.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.rowIndex="2"
                                  GridPane.valignment="TOP"/>
                     </children>
                     <padding>
@@ -85,8 +111,8 @@
             <children>
                 <HBox alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                     <children>
-                        <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%coop.leaderboard"
-                               HBox.hgrow="ALWAYS" contentDisplay="RIGHT">
+                        <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="h2"
+                               text="%coop.leaderboard" HBox.hgrow="ALWAYS">
                             <graphic>
                                 <Region fx:id="leaderboardInfoIcon" styleClass="icon, icon16x16, info-icon"/>
                             </graphic>

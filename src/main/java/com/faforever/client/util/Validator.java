@@ -1,5 +1,6 @@
 package com.faforever.client.util;
 
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 
 public final class Validator {
@@ -10,20 +11,11 @@ public final class Validator {
     // Utility class
   }
 
-  /**
-   * Throws a NullPointerException with the specified message when {@code object} is null.
-   *
-   * @param object the object to check for null
-   * @param message the exception message
-   */
-  public static void notNull(Object object, String message) {
-    if (object == null) {
-      throw new NullPointerException(message);
-    }
-  }
-
   public static boolean isInt(String string) {
     return INT_PATTERN.matcher(string).matches();
   }
 
+  public static boolean isAscii(String content) {
+    return StandardCharsets.US_ASCII.newEncoder().canEncode(content);
+  }
 }
