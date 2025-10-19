@@ -23,6 +23,8 @@ import com.faforever.client.mapstruct.MatchmakerMapper;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
+import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
@@ -51,6 +53,7 @@ import com.faforever.commons.lobby.PartyInvite;
 import com.faforever.commons.lobby.PartyKick;
 import com.faforever.commons.lobby.SearchInfo;
 import com.faforever.commons.lobby.VetoData;
+import com.faforever.commons.lobby.VetoesChangedInfo;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -217,6 +220,13 @@ public class TeamMatchmakingService implements InitializingBean {
                      .retry()
                      .subscribe();
 
+    fafServerAccessor.getEvents(VetoesChangedInfo.class)
+                     .publishOn(fxApplicationThreadExecutor.asScheduler())
+                     .doOnNext(this::onVetoesChanged)
+                     .doOnError(throwable -> log.error("Error processing vetoes changed", throwable))
+                     .retry()
+                     .subscribe();
+
     fafServerAccessor.getEvents(MatchmakerInfo.class)
                      .flatMapIterable(MatchmakerInfo::getQueues)
                      .concatMap(matchmakerQueue -> Mono.zip(Mono.just(matchmakerQueue),
@@ -274,6 +284,18 @@ public class TeamMatchmakingService implements InitializingBean {
         new VetoKey(v.getMatchmakerQueueMapPoolId(), v.getMapPoolMapVersionId()),
         v.getVetoTokensApplied()
     ));
+  }
+
+  private void onVetoesChanged(VetoesChangedInfo vetoesChangedInfo) {
+    setAllVetoes(vetoesChangedInfo.getVetoes());
+
+    if (vetoesChangedInfo.getForced()) {
+      notificationService.addNotification(
+          new ImmediateNotification(i18n.get("teammatchmaking.vetoes.forced.title"),
+                                   i18n.get("teammatchmaking.vetoes.forced.message"),
+                                   Severity.INFO,
+                                   Collections.singletonList(new DismissAction(i18n))));
+    }
   }
 
   private List<VetoData> getVetoesAsList() {

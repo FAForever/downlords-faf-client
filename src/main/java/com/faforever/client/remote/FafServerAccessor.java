@@ -6,14 +6,12 @@ import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.exception.UIDException;
-import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.UidService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
-import com.faforever.client.teammatchmaking.TeamMatchmakingService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ServerNotification;
 import com.faforever.client.notification.Severity;
@@ -33,7 +31,6 @@ import com.faforever.commons.lobby.Player;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.ServerMessage;
 import com.faforever.commons.lobby.VetoData;
-import com.faforever.commons.lobby.VetoesChangedInfo;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -76,8 +73,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
       ConnectionState.DISCONNECTED);
 
   private final NotificationService notificationService;
-  @Lazy
-  private final TeamMatchmakingService teamMatchmakingService;
   private final I18n i18n;
   private final TaskScheduler taskScheduler;
   private final TokenRetriever tokenRetriever;
@@ -86,7 +81,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
   private final FafLobbyClient lobbyClient;
   @Qualifier("userWebClient")
   private final ObjectFactory<WebClient> userWebClientFactory;
-  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private boolean autoReconnect;
   @Getter
@@ -105,12 +99,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
     if (!isRunning()) {
       getEvents(NoticeInfo.class).doOnNext(this::onNotice)
                                  .doOnError(throwable -> log.error("Error processing notice", throwable))
-                                 .retry()
-                                 .subscribe();
-
-      getEvents(VetoesChangedInfo.class).publishOn(fxApplicationThreadExecutor.asScheduler())
-                                 .doOnNext(this::onVetoesChanged)
-                                 .doOnError(throwable -> log.error("Error processing vetoes changed", throwable))
                                  .retry()
                                  .subscribe();
 
@@ -308,18 +296,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
     notificationService.addNotification(
         new ServerNotification(i18n.get("messageFromServer"), noticeMessage.getText(), severity,
                                Collections.singletonList(new DismissAction(i18n))));
-  }
-
-  private void onVetoesChanged(VetoesChangedInfo vetoesChangedInfo) {
-    teamMatchmakingService.setAllVetoes(vetoesChangedInfo.getVetoes());
-
-    if (vetoesChangedInfo.getForced()) {
-      notificationService.addNotification(
-          new ImmediateNotification(i18n.get("teammatchmaking.vetoes.forced.title"),
-                                   i18n.get("teammatchmaking.vetoes.forced.message"),
-                                   Severity.INFO,
-                                   Collections.singletonList(new DismissAction(i18n))));
-    }
   }
 
   public void restoreGameSession(int id) {

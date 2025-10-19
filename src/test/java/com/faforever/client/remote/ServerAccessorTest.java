@@ -10,7 +10,6 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.relay.ice.IceAdapter;
-import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -19,8 +18,6 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ServerNotification;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.preferences.MatchmakerPrefs;
-import com.faforever.client.preferences.VetoKey;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.update.Version;
 import com.faforever.commons.lobby.AvatarListInfo;
@@ -54,7 +51,6 @@ import com.faforever.commons.lobby.ServerMessage;
 import com.faforever.commons.lobby.SessionResponse;
 import com.faforever.commons.lobby.SocialInfo;
 import com.faforever.commons.lobby.VetoData;
-import com.faforever.commons.lobby.VetoesChangedInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -137,14 +133,8 @@ public class ServerAccessorTest extends ServiceTest {
   private GameService gameService;
   @Mock
   private IceAdapter iceAdapter;
-  @Mock
-  private FxApplicationThreadExecutor fxApplicationThreadExecutor;
-  @Mock
-  private com.faforever.client.teammatchmaking.TeamMatchmakingService teamMatchmakingService;
   @Spy
   private ClientProperties clientProperties;
-  @Spy
-  private MatchmakerPrefs matchmakerPrefs;
   @Spy
   private ObjectMapper objectMapper;
 
@@ -171,17 +161,6 @@ public class ServerAccessorTest extends ServiceTest {
                 .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
 
     when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just(token));
-    when(fxApplicationThreadExecutor.asScheduler()).thenReturn(reactor.core.scheduler.Schedulers.immediate());
-
-    lenient().doAnswer(invocation -> {
-      List<VetoData> vetoes = invocation.getArgument(0);
-      matchmakerPrefs.getAppliedVetoes().clear();
-      vetoes.forEach(v -> matchmakerPrefs.getAppliedVetoes().put(
-          new VetoKey(v.getMatchmakerQueueMapPoolId(), v.getMapPoolMapVersionId()),
-          v.getVetoTokensApplied()
-      ));
-      return null;
-    }).when(teamMatchmakingService).setAllVetoes(any());
 
     startFakeFafLobbyServer();
 
@@ -198,8 +177,8 @@ public class ServerAccessorTest extends ServiceTest {
                             new HmacAccess("http://localhost:%d".formatted(disposableServer.port()))))
                         .addHeader("Content-Type", "application/json;charset=utf-8"));
 
-    instance = new FafServerAccessor(notificationService, teamMatchmakingService, i18n, taskScheduler, tokenRetriever, uidService,
-                                     clientProperties, new FafLobbyClient(objectMapper), () -> webClient, fxApplicationThreadExecutor);
+    instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenRetriever, uidService,
+                                     clientProperties, new FafLobbyClient(objectMapper), () -> webClient);
 
     instance.afterPropertiesSet();
     instance.getEvents(ServerMessage.class).doOnNext(serverMessage -> {
@@ -993,63 +972,5 @@ public class ServerAccessorTest extends ServiceTest {
         "set_player_vetoes",
         "vetoes"
     );
-  }
-
-  @Test
-  public void testOnVetoesChangedUpdatesPreferences() throws Exception {
-    VetoData veto1 = of(VetoData.class)
-        .supply(all(VetoData.class), () -> new VetoData(1, 1, 1))
-        .create();
-    VetoData veto2 = of(VetoData.class)
-        .supply(all(VetoData.class), () -> new VetoData(2, 1, 1))
-        .create();
-    VetoesChangedInfo vetoesChangedMessage = new VetoesChangedInfo(false, List.of(veto1, veto2));
-
-    sendFromServer(vetoesChangedMessage);
-
-    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
-    assertThat(matchmakerPrefs.getAppliedVetoes().size(), is(2));
-
-    assertThat(matchmakerPrefs.getAppliedVetoes().get(new VetoKey(veto1.getMatchmakerQueueMapPoolId(), veto1.getMapPoolMapVersionId())), is(veto1.getVetoTokensApplied()));
-    assertThat(matchmakerPrefs.getAppliedVetoes().get(new VetoKey(veto2.getMatchmakerQueueMapPoolId(), veto2.getMapPoolMapVersionId())), is(veto2.getVetoTokensApplied()));
-  }
-
-  @Test
-  public void testOnVetoesChangedForcedShowsNotification() throws Exception {
-    VetoData veto = of(VetoData.class)
-        .supply(all(VetoData.class), () -> new VetoData(1, 1, 1))
-        .create();
-    VetoesChangedInfo vetoesChangedMessage = new VetoesChangedInfo(true, List.of(veto));
-
-    when(i18n.get("teammatchmaking.vetoes.forced.title")).thenReturn("Vetoes Updated");
-    when(i18n.get("teammatchmaking.vetoes.forced.message")).thenReturn("Vetoes were changed");
-
-    sendFromServer(vetoesChangedMessage);
-
-    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
-    assertThat(matchmakerPrefs.getAppliedVetoes().size(), is(1));
-    assertThat(matchmakerPrefs.getAppliedVetoes().get(new VetoKey(veto.getMatchmakerQueueMapPoolId(), veto.getMapPoolMapVersionId())), is(veto.getVetoTokensApplied()));
-
-    ArgumentCaptor<ImmediateNotification> captor = ArgumentCaptor.forClass(ImmediateNotification.class);
-    verify(notificationService, timeout(1000)).addNotification(captor.capture());
-    ImmediateNotification notification = captor.getValue();
-    assertThat(notification.title(), is("Vetoes Updated"));
-    assertThat(notification.text(), is("Vetoes were changed"));
-  }
-
-  @Test
-  public void testOnVetoesChangedNotForcedNoNotification() throws Exception {
-    VetoData veto = of(VetoData.class)
-        .supply(all(VetoData.class), () -> new VetoData(1, 1, 1))
-        .create();
-    VetoesChangedInfo vetoesChangedMessage = new VetoesChangedInfo(false, List.of(veto));
-
-    sendFromServer(vetoesChangedMessage);
-
-    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
-    assertThat(matchmakerPrefs.getAppliedVetoes().size(), is(1));
-    assertThat(matchmakerPrefs.getAppliedVetoes().get(new VetoKey(veto.getMatchmakerQueueMapPoolId(), veto.getMapPoolMapVersionId())), is(veto.getVetoTokensApplied()));
-
-    verify(notificationService, timeout(1000).times(0)).addNotification(any(ImmediateNotification.class));
   }
 }
