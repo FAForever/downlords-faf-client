@@ -104,7 +104,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   @Override
   protected void onInitialize() {
     ObservableValue<Map> mapObservable = assignment.map(assignment -> assignment.mapVersion().map());
-    ObservableValue<Boolean> isGeneratedMap = mapObservable.map(map -> mapGeneratorService.isGeneratedMap(map.displayName()));
+    ObservableValue<Boolean> isGeneratedMap = mapObservable.map(map -> mapGeneratorService.isGeneratedMap(map.displayName())).orElse(false);
 
     thumbnailImageView.imageProperty()
                       .bind(assignment
@@ -121,6 +121,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
     authorBox.visibleProperty()
              .bind(mapObservable.map(
                  map -> (map.author() != null) || isGeneratedMap.getValue()));
+    authorBox.managedProperty().bind(authorBox.visibleProperty());
 
     authorLabel.textProperty().bind(mapObservable.map(map -> {
       if (map.author() != null) {
