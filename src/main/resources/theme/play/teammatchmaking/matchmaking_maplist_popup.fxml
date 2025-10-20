@@ -7,10 +7,16 @@
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.TilePane?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="root" styleClass="tmm-maplist" fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingMapListController">
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.ComboBox?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="root" styleClass="tmm-maplist"
+      fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingMapListController">
     <ScrollPane fx:id="scrollContainer" hbarPolicy="NEVER">
         <StackPane styleClass="tmm-maplist-inner">
-            <VBox prefWidth="530" prefHeight="530" fx:id="loadingPane" alignment="CENTER" maxHeight="1.7976931348623157E308"
+            <VBox prefWidth="530" prefHeight="530" fx:id="loadingPane" alignment="CENTER"
+                  maxHeight="1.7976931348623157E308"
                   maxWidth="1.7976931348623157E308" mouseTransparent="true" spacing="10.0">
                 <Label contentDisplay="TOP" text="%loading">
                     <graphic>
@@ -18,7 +24,33 @@
                     </graphic>
                 </Label>
             </VBox>
-            <TilePane fx:id="tilesContainer"  vgap="10" hgap="10" />
+            <VBox spacing="20">
+                <VBox fx:id="headerContainer" spacing="20">
+                    <HBox maxWidth="840" alignment="CENTER" spacing="10" minHeight="34">
+                        <ComboBox fx:id="bracketComboBox" prefWidth="180"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button prefWidth="180" fx:id="applyVetoesButton" onAction="#toggleVetoMode" maxHeight="33"
+                                style="-fx-padding: 0"
+                                styleClass="tmm-maplist-apply-vetoes-button">
+                            <graphic>
+                                <HBox alignment="CENTER" spacing="5" maxHeight="33">
+                                    <Label fx:id="applyVetoesLabel" maxHeight="33" style="-fx-font-size: 16;"/>
+                                    <Region fx:id="applyVetoesSvg" styleClass="veto-palm, tmm-maplist-palm"/>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                        <Button minWidth="180" fx:id="vetoTokensWallet" onAction="#toggleVetoMode" style="-fx-padding: 0 10" maxHeight="33" alignment="CENTER">
+                            <graphic>
+                                <HBox alignment="CENTER" spacing="20" fx:id="vetoTokensContainer" maxHeight="33">
+                                    <HBox fx:id="vetoTokensViewer" spacing="10" maxHeight="33" alignment="CENTER"/>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                    </HBox>
+
+                </VBox>
+                <TilePane fx:id="tilesContainer" vgap="10" hgap="10"/>
+            </VBox>
         </StackPane>
     </ScrollPane>
 </VBox>

@@ -6,26 +6,60 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.Button?>
+<?import javafx.geometry.Insets?>
 
-
-
-<StackPane fx:id="root" prefWidth="125.0" fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingMapTileController" prefHeight="125.0" xmlns="http://javafx.com/javafx/11" xmlns:fx="http://javafx.com/fxml/1" style="-fx-margin:0 0 0 0;">
-    <ImageView fx:id="thumbnailImageView" fitHeight="125" fitWidth="125" preserveRatio="true"/>
-
-    <GridPane prefWidth="125.0" prefHeight="125.0">
-        <rowConstraints>
-            <RowConstraints vgrow="NEVER"/>
-            <RowConstraints vgrow="ALWAYS"/>
-            <RowConstraints vgrow="NEVER"/>
-        </rowConstraints>
-
-        <VBox fx:id="authorBox" prefHeight="40" alignment="TOP_CENTER" prefWidth="125" GridPane.rowIndex="0" styleClass="image-dimmer-light-reversed">
-            <Label textAlignment="CENTER" fx:id="authorLabel" wrapText="true" />
-        </VBox>
-
-        <VBox prefHeight="60" alignment="BOTTOM_CENTER" prefWidth="125" GridPane.rowIndex="2" styleClass="image-dimmer-light">
-            <Label fx:id="nameLabel" style="-fx-line-spacing: 0;"  alignment="TOP_CENTER" textAlignment="CENTER" wrapText="true"/>
-            <Label fx:id="sizeLabel" style="-fx-line-spacing: 0;"  alignment="BOTTOM_CENTER" textAlignment="CENTER" />
-        </VBox>
-    </GridPane>
+<StackPane fx:id="root" prefWidth="180.0" prefHeight="180.0"
+           styleClass="tmm-maplist-tile"
+           xmlns="http://javafx.com/javafx/11"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingMapTileController">
+    <StackPane prefWidth="178.0" prefHeight="178.0" styleClass="tmm-maplist-tile-inner">
+        <clip>
+            <Rectangle width="178" height="178" arcWidth="12" arcHeight="12" />
+        </clip>
+        <ImageView fx:id="thumbnailImageView" fitHeight="178" fitWidth="178" preserveRatio="true" styleClass="tmm-maplist-tile-thumbnail"/>
+        <GridPane prefWidth="178.0" prefHeight="178.0">
+            <rowConstraints>
+                <RowConstraints vgrow="NEVER"/>
+                <RowConstraints vgrow="NEVER"/>
+                <RowConstraints vgrow="ALWAYS"/>
+                <RowConstraints vgrow="NEVER"/>
+                <RowConstraints vgrow="NEVER"/>
+            </rowConstraints>
+            <HBox GridPane.rowIndex="0" prefWidth="178.0" styleClass="tmm-maplist-tile-top-line" >
+                <VBox fx:id="authorBox" styleClass="tmm-maplist-tile-top-line-author">
+                    <Label fx:id="authorLabel" maxWidth="130"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox fx:id="vetoesBox" alignment="CENTER_RIGHT">
+                    <Button prefWidth="20" fx:id="minusButton" visible="false" managed="false" styleClass="tmm-maplist-tile-vetoset-btn-minus">
+                        <graphic>
+                            <Label text="–" style="-fx-text-fill: white; -fx-font-weight: 600; -fx-scale-x: 1.1" />
+                        </graphic>
+                    </Button>
+                    <Button fx:id="vetoButton" styleClass="tmm-maplist-tile-vetoset-counter">
+                        <graphic>
+                            <HBox spacing="5">
+                                <padding>
+                                  <Insets right="1" />
+                                </padding>
+                                <Label fx:id="tokenCounterLabel" text="0" />
+                                <Region fx:id="vetoSvg" styleClass="veto-palm, tmm-maplist-palm"/>
+                            </HBox>
+                        </graphic>
+                    </Button>
+                </HBox>
+            </HBox>
+            <HBox prefHeight="10" styleClass="image-dimmer-light-reversed" GridPane.rowIndex="1"/>
+            <HBox prefHeight="10" styleClass="image-dimmer-light" GridPane.rowIndex="3"/>
+            <VBox alignment="BOTTOM_LEFT" prefWidth="178" spacing="-3" GridPane.rowIndex="4" styleClass="tmm-maplist-tile-bottom-line">
+                <Label fx:id="nameLabel" maxWidth="170" style="-fx-font-weight: 700;"/>
+                <Label fx:id="sizeLabel" style="-fx-font-size: 12; -fx-font-weight: 400"/>
+            </VBox>
+        </GridPane>
+    </StackPane>
 </StackPane>
