@@ -18,6 +18,7 @@ import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -26,7 +27,9 @@ import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Flux;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.lenient;
@@ -109,5 +112,52 @@ public class CoopControllerTest extends PlatformTest {
   public void testGetRoot() throws Exception {
     assertEquals(instance.coopRoot, instance.getRoot());
     assertNull(instance.getRoot().getParent());
+  }
+
+  @Test
+  @DisplayName("All text fields are empty and play button is disabled by default")
+  public void test1() {
+    assertTrue(instance.playButton.isDisabled());
+    assertTrue(instance.titleTextField.getText().isEmpty());
+    assertTrue(instance.passwordTextField.getText().isEmpty());
+  }
+
+  @Test
+  @DisplayName("Play button is disabled if title is not acsii or empty")
+  public void test0() {
+    runOnFxThreadAndWait(() -> instance.titleTextField.setText("Это не Acsii заголовок"));
+    assertTrue(instance.playButton.isDisabled());
+
+    runOnFxThreadAndWait(() -> instance.titleTextField.setText(""));
+    assertTrue(instance.playButton.isDisabled());
+  }
+
+  @Test
+  @DisplayName("Play button is enabled if title is not empty")
+  public void test4() {
+    runOnFxThreadAndWait(() -> instance.titleTextField.setText("coop game"));
+    assertFalse(instance.playButton.isDisabled());
+  }
+
+  @Test
+  @DisplayName("Play button is disabled if a password is not acsii")
+  public void test3() {
+    runOnFxThreadAndWait(() -> instance.passwordTextField.setText("Плохой пароль"));
+    assertTrue(instance.playButton.isDisabled());
+  }
+
+  @Test
+  @DisplayName("Display warnings if title and password are not ascii")
+  public void test2() {
+    assertFalse(instance.titleWarningLabel.isVisible());
+    assertFalse(instance.passwordWarningLabel.isVisible());
+
+    runOnFxThreadAndWait(() -> instance.titleTextField.setText("Это не Acsii заголовок"));
+    assertTrue(instance.titleWarningLabel.isVisible());
+    assertFalse(instance.passwordWarningLabel.isVisible());
+
+    runOnFxThreadAndWait(() -> instance.passwordTextField.setText("Плохой пароль"));
+    assertTrue(instance.titleWarningLabel.isVisible());
+    assertTrue(instance.passwordWarningLabel.isVisible());
   }
 }
