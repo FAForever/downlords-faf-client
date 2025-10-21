@@ -26,10 +26,10 @@ Post a bounty on Issue Hunt. You can reward and financially help developers that
 1. Select `Main` as run configuration next to the hammer button in the top right
 1. Compile and start the application by pressing the play button
 
-A video tutorial is available [here](https://youtu.be/6gsHnt02I_Y). Don't forget to `Enable annotation processing`.
+A video tutorial is available [here](https://www.youtube.com/watch?v=4Wm-yZpV_q8). Don't forget to `Enable annotation processing`.
 
 ### Linux
-Learn how to install the client on Linux [here](https://github.com/FAForever/downlords-faf-client/wiki/Install-on-Linux).
+Follow the official [FAF Linux installation guide](https://wiki.faforever.com/en/Linux-Install). It covers the recommended [`faf-linux` automation scripts](https://github.com/FAForever/faf-linux) and links to the latest video walkthrough.
 
 ## Open Source Licenses
 |                                                                                                                                                |                                                                                                                                                                                               |
