@@ -76,6 +76,7 @@ import static com.faforever.client.game.KnownFeaturedMod.COOP;
 @RequiredArgsConstructor
 public class CoopController extends NodeController<Node> {
 
+  public static final PseudoClass INVALID_PSEUDO_CLASS = PseudoClass.getPseudoClass("invalid");
   private static final Predicate<GameInfo> OPEN_COOP_GAMES_PREDICATE = gameInfoBean -> gameInfoBean.getStatus() == GameStatus.OPEN && gameInfoBean.getGameType() == GameType.COOP;
 
   private final GameRunner gameRunner;
@@ -130,11 +131,10 @@ public class CoopController extends NodeController<Node> {
                                             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
                                             .when(showing));
 
-    PseudoClass invalidSelector = PseudoClass.getPseudoClass("invalid");
-    BooleanBinding invalidSelectorTitleFieldProperty = getCssSelectorProperty(titleTextField, invalidSelector);
-    BooleanBinding invalidSelectorPasswordFieldProperty = getCssSelectorProperty(passwordTextField, invalidSelector);
-    updatePseudoClassStateIfTextIsNotAcsii(titleTextField, invalidSelector);
-    updatePseudoClassStateIfTextIsNotAcsii(passwordTextField, invalidSelector);
+    BooleanBinding invalidSelectorTitleFieldProperty = createInvalidSelectorProperty(titleTextField);
+    BooleanBinding invalidSelectorPasswordFieldProperty = createInvalidSelectorProperty(passwordTextField);
+    addListenerToUpdateInvalidSelectorStateIfTextIsNotAcsii(titleTextField);
+    addListenerToUpdateInvalidSelectorStateIfTextIsNotAcsii(passwordTextField);
     playButton.disableProperty()
               .bind(titleTextField.textProperty()
                                   .isEmpty()
@@ -230,12 +230,13 @@ public class CoopController extends NodeController<Node> {
                                                                                   throwable.getLocalizedMessage()));
   }
 
-  private BooleanBinding getCssSelectorProperty(Node component, PseudoClass pseudoClass) {
-    return Bindings.createBooleanBinding(() -> component.getPseudoClassStates().contains(pseudoClass), component.getPseudoClassStates());
+  private BooleanBinding createInvalidSelectorProperty(Node component) {
+    return Bindings.createBooleanBinding(() -> component.getPseudoClassStates().contains(INVALID_PSEUDO_CLASS),
+                                         component.getPseudoClassStates());
   }
 
-  private void updatePseudoClassStateIfTextIsNotAcsii(TextField field, PseudoClass pseudoClass) {
-    JavaFxUtil.addListener(field.textProperty(), _ -> field.pseudoClassStateChanged(pseudoClass,
+  private void addListenerToUpdateInvalidSelectorStateIfTextIsNotAcsii(TextField field) {
+    JavaFxUtil.addListener(field.textProperty(), _ -> field.pseudoClassStateChanged(INVALID_PSEUDO_CLASS,
                                                                                     !Validator.isAscii(
                                                                                         field.getText())));
   }
