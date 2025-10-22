@@ -16,6 +16,8 @@ import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
+import javafx.css.PseudoClass;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -159,5 +161,29 @@ public class CoopControllerTest extends PlatformTest {
     runOnFxThreadAndWait(() -> instance.passwordTextField.setText("Плохой пароль"));
     assertTrue(instance.titleWarningLabel.isVisible());
     assertTrue(instance.passwordWarningLabel.isVisible());
+  }
+
+  @Test
+  @DisplayName("State of `invalid` selector in a field is updated if title is not ascii")
+  public void test5() {
+    ObservableSet<PseudoClass> pseudoClassStates = instance.titleTextField.getPseudoClassStates();
+
+    assertFalse(pseudoClassStates.contains(CoopController.INVALID_PSEUDO_CLASS));
+
+    runOnFxThreadAndWait(() -> instance.titleTextField.setText("Это не Acsii заголовок"));
+
+    assertTrue(pseudoClassStates.contains(CoopController.INVALID_PSEUDO_CLASS));
+  }
+
+  @Test
+  @DisplayName("State of `invalid` selector in a field is updated if password is not ascii")
+  public void test6() {
+    ObservableSet<PseudoClass> pseudoClassStates = instance.passwordTextField.getPseudoClassStates();
+
+    assertFalse(pseudoClassStates.contains(CoopController.INVALID_PSEUDO_CLASS));
+
+    runOnFxThreadAndWait(() -> instance.passwordTextField.setText("Плохой пароль"));
+
+    assertTrue(pseudoClassStates.contains(CoopController.INVALID_PSEUDO_CLASS));
   }
 }
