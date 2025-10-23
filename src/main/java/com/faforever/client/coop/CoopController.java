@@ -236,9 +236,9 @@ public class CoopController extends NodeController<Node> {
   }
 
   private void addListenerToUpdateInvalidSelectorStateIfTextIsNotAcsii(TextField field) {
-    JavaFxUtil.addListener(field.textProperty(), _ -> field.pseudoClassStateChanged(INVALID_PSEUDO_CLASS,
-                                                                                    !Validator.isAscii(
-                                                                                        field.getText())));
+    field.textProperty()
+         .when(showing)
+         .subscribe(text -> field.pseudoClassStateChanged(INVALID_PSEUDO_CLASS, !Validator.isAscii(text)));
   }
 
   private String coopMissionFromFolderName(List<CoopMission> coopMaps, String mapFolderName) {

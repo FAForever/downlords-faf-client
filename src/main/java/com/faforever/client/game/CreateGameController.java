@@ -194,9 +194,9 @@ public class CreateGameController extends NodeController<Pane> {
     selectLastMap();
     setLastGameTitle();
     initPassword();
-    JavaFxUtil.addAndTriggerListener(titleTextField.textProperty(), (_, _, newValue) -> {
-      lastGamePrefs.setLastGameTitle(newValue);
-      validateTitle(newValue);
+    titleTextField.textProperty().subscribe(text -> {
+      lastGamePrefs.setLastGameTitle(text);
+      validateTitle(text);
     });
 
     JavaFxUtil.addAndTriggerListener(loginService.connectionStateProperty(),
