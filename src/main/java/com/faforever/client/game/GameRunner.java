@@ -167,8 +167,8 @@ public class GameRunner implements InitializingBean {
                      .subscribe();
 
 
-    fafServerAccessor.connectionStateProperty().addListener((_, oldValue, newValue) -> {
-      if (isRunning() && newValue == ConnectionState.CONNECTED && oldValue != ConnectionState.CONNECTED) {
+    fafServerAccessor.connectionStateProperty().subscribe((oldState, newState) -> {
+      if (isRunning() && newState == ConnectionState.CONNECTED && oldState != ConnectionState.CONNECTED) {
         fafServerAccessor.restoreGameSession(runningGameId.get());
       }
     });
