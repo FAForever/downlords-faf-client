@@ -65,6 +65,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -150,7 +151,7 @@ public class GameRunnerTest extends ServiceTest {
   @Spy
   private NotificationPrefs notificationPrefs;
   @Captor
-  private ArgumentCaptor<SimpleTask<?>> simpleTaskCaptor;
+  private ArgumentCaptor<Supplier<CompletableFuture<Object>>> simpleTaskCaptor;
 
   @Mock
   private EnterPasswordController enterPasswordController;
@@ -201,9 +202,9 @@ public class GameRunnerTest extends ServiceTest {
     lenient().when(iceAdapter.start(anyInt(), anyBoolean())).thenReturn(completedFuture(GPG_PORT));
     lenient().when(coturnService.getIceSession(anyInt()))
              .thenReturn(Mono.just(new IceSession("someSessionId", false, List.of())));
-    lenient().when(taskService.submitTask(simpleTaskCaptor.capture())).thenAnswer(_ -> {
-      SimpleTask<?> task = simpleTaskCaptor.getValue();
-      task.getFuture().join();
+    lenient().when(taskService.submitFutureTask(anyString(), simpleTaskCaptor.capture())).thenAnswer(_ -> {
+      CompletableFuture<Object> task = simpleTaskCaptor.getValue().get();
+      task.join();
       return task;
     });
     lenient().when(process.onExit()).thenReturn(new CompletableFuture<>());
