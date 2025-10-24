@@ -13,7 +13,6 @@ import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameParameters;
-import com.faforever.client.fa.GameParameters.League;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.featuredmod.FeaturedModService;
@@ -38,8 +37,7 @@ import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.replay.ReplayServer;
-import com.faforever.client.task.BackgroundTask;
-import com.faforever.client.task.CompletableTask;
+import com.faforever.client.task.SimpleTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.theme.UiService;
@@ -152,7 +150,7 @@ public class GameRunnerTest extends ServiceTest {
   @Spy
   private NotificationPrefs notificationPrefs;
   @Captor
-  private ArgumentCaptor<BackgroundTask<?>> backgroundTaskCaptor;
+  private ArgumentCaptor<SimpleTask<?>> simpleTaskCaptor;
 
   @Mock
   private EnterPasswordController enterPasswordController;
@@ -203,8 +201,8 @@ public class GameRunnerTest extends ServiceTest {
     lenient().when(iceAdapter.start(anyInt(), anyBoolean())).thenReturn(completedFuture(GPG_PORT));
     lenient().when(coturnService.getIceSession(anyInt()))
              .thenReturn(Mono.just(new IceSession("someSessionId", false, List.of())));
-    lenient().when(taskService.submitTask(backgroundTaskCaptor.capture())).thenAnswer(_ -> {
-      BackgroundTask<?> task = backgroundTaskCaptor.getValue();
+    lenient().when(taskService.submitTask(simpleTaskCaptor.capture())).thenAnswer(_ -> {
+      SimpleTask<?> task = simpleTaskCaptor.getValue();
       task.getFuture().join();
       return task;
     });

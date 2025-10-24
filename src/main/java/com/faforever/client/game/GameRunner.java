@@ -38,8 +38,6 @@ import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.replay.ReplayServer;
-import com.faforever.client.task.BackgroundTask;
-import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -188,9 +186,9 @@ public class GameRunner implements InitializingBean {
     CompletableFuture<Void> downloadMapFuture = mapFolderName == null ? completedFuture(
         null) : mapService.downloadIfNecessary(mapFolderName).toFuture();
 
-    CompletableFuture<League> loadLeagueInfoFuture = hasLeague ? completedFuture(null) : runInBackground("league.loadInfo", getDivisionInfo(leaderboard).toFuture());
-    CompletableFuture<Integer> runReplayServerFuture = runInBackground("replayServer.connecting", replayServer.start(uid));
-    CompletableFuture<Integer> runIceAdapterFuture = runInBackground("iceAdapter.connecting", startIceAdapter(uid));
+    CompletableFuture<League> loadLeagueInfoFuture = hasLeague ? completedFuture(null) : taskService.submitFutureTask("league.loadInfo", () -> getDivisionInfo(leaderboard).toFuture());
+    CompletableFuture<Integer> runReplayServerFuture = taskService.submitFutureTask("replayServer.connecting", () -> replayServer.start(uid));
+    CompletableFuture<Integer> runIceAdapterFuture = taskService.submitFutureTask("iceAdapter.connecting", () -> startIceAdapter(uid));
 
     return CompletableFuture.allOf(downloadMapFuture, loadLeagueInfoFuture, runReplayServerFuture, runIceAdapterFuture)
                             .thenApply(_ -> gameMapper.map(gameLaunchResponse, loadLeagueInfoFuture.join()))
@@ -213,10 +211,6 @@ public class GameRunner implements InitializingBean {
                               process.set(null);
                               runningGameId.set(null);
                             }, fxApplicationThreadExecutor);
-  }
-
-  private <T> CompletableFuture<T> runInBackground(String taskTitleI18nKey, CompletableFuture<T> task) {
-    return taskService.submitTask(new BackgroundTask<>(i18n.get(taskTitleI18nKey), task, Priority.MEDIUM)).getFuture();
   }
 
   @VisibleForTesting
