@@ -1,8 +1,8 @@
 package com.faforever.client.domain.api;
 
-import com.faforever.client.coop.CoopCategoryEnum;
+import com.faforever.client.coop.CoopFaction;
 
 public record CoopCategory(
     String categoryName,
-    CoopCategoryEnum coopCategory
+    CoopFaction coopCategory
 ) {}

@@ -101,6 +101,7 @@ public class ThemeService implements InitializingBean, DisposableBean {
   public static final String SERAPHIM_STYLE_CLASS = "seraphim-icon";
   public static final String MOD_ICON_STYLE_CLASS = "mod-icon";
   public static final String UEF_STYLE_CLASS = "uef-icon";
+  public static final String WRENCH_STYLE_CLASS = "wrench-icon";
   public static final String RANDOM_FACTION_IMAGE = "/images/factions/random.png";
 
   public static Theme DEFAULT_THEME = new Theme("Default", "Downlord", 1, "1");
