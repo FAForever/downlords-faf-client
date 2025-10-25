@@ -37,6 +37,8 @@ import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.replay.ReplayServer;
+import com.faforever.client.task.SimpleTask;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -51,6 +53,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -62,6 +65,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -135,6 +139,8 @@ public class GameRunnerTest extends ServiceTest {
   @Mock
   private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Mock
+  private TaskService taskService;
+  @Mock
   private GamePathHandler gamePathHandler;
   @Spy
   private GameMapper gameMapper = Mappers.getMapper(GameMapper.class);
@@ -144,6 +150,8 @@ public class GameRunnerTest extends ServiceTest {
   private LastGamePrefs lastGamePrefs;
   @Spy
   private NotificationPrefs notificationPrefs;
+  @Captor
+  private ArgumentCaptor<Supplier<CompletableFuture<Object>>> simpleTaskCaptor;
 
   @Mock
   private EnterPasswordController enterPasswordController;
@@ -194,6 +202,11 @@ public class GameRunnerTest extends ServiceTest {
     lenient().when(iceAdapter.start(anyInt(), anyBoolean())).thenReturn(completedFuture(GPG_PORT));
     lenient().when(coturnService.getIceSession(anyInt()))
              .thenReturn(Mono.just(new IceSession("someSessionId", false, List.of())));
+    lenient().when(taskService.submitFutureTask(anyString(), simpleTaskCaptor.capture())).thenAnswer(_ -> {
+      CompletableFuture<Object> task = simpleTaskCaptor.getValue().get();
+      task.join();
+      return task;
+    });
     lenient().when(process.onExit()).thenReturn(new CompletableFuture<>());
     lenient().when(process.exitValue()).thenReturn(0);
     lenient().when(process.isAlive()).thenReturn(true);
