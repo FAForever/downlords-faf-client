@@ -2,9 +2,12 @@ package com.faforever.client.mapstruct;
 
 import com.faforever.client.domain.api.CoopMission;
 import com.faforever.client.domain.api.CoopResult;
+import com.faforever.client.domain.api.CoopScenario;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+
+import java.util.List;
 
 @Mapper(uses = {ReplayMapper.class}, config = MapperConfiguration.class)
 public interface CoopMapper {
@@ -14,6 +17,11 @@ public interface CoopMapper {
 
   @InheritInverseConfiguration
   com.faforever.commons.api.dto.CoopMission map(CoopMission bean);
+
+  CoopScenario map(com.faforever.commons.api.dto.CoopScenario dto);
+
+  @InheritInverseConfiguration
+  com.faforever.commons.api.dto.CoopScenario map(CoopScenario bean);
 
   @Mapping(target = "replay", source = "dto.game")
   @Mapping(target = "ranking", source = "ranking")
