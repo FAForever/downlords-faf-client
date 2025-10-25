@@ -1,7 +1,6 @@
 package com.faforever.client.player;
 
 import com.faforever.client.achievements.AchievementService;
-import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.domain.api.Leaderboard;
 import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.domain.server.PlayerInfo;
@@ -25,6 +24,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -63,7 +63,8 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
   public Label unlockedAchievementsLabel;
   public Separator separator;
 
-  private final ObjectProperty<ChatChannelUser> chatUser = new SimpleObjectProperty<>();
+  @Getter
+  private final ObjectProperty<PlayerInfo> playerProperty = new SimpleObjectProperty<>();
 
   private final ChangeListener<PlayerInfo> playerChangeListener = (observable, oldValue, newValue) -> {
     if (newValue != null && !Objects.equals(oldValue, newValue)) {
@@ -85,8 +86,7 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
     gameDetailController.setPlaytimeVisible(true);
     gameDetailWrapper.setVisible(false);
 
-    ObservableValue<Boolean> playerExistsProperty = chatUser.flatMap(user -> user.playerProperty().isNotNull())
-                                                            .when(showing);
+    ObservableValue<Boolean> playerExistsProperty = playerProperty.isNotNull().when(showing);
     userImageView.visibleProperty().bind(playerExistsProperty);
     country.visibleProperty().bind(playerExistsProperty);
     ratingsLabels.visibleProperty().bind(playerExistsProperty);
@@ -96,36 +96,21 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
     unlockedAchievements.visibleProperty().bind(playerExistsProperty);
     unlockedAchievementsLabel.visibleProperty().bind(playerExistsProperty);
 
-    ObservableValue<PlayerInfo> playerObservable = chatUser.flatMap(ChatChannelUser::playerProperty);
-
     gamesPlayed.textProperty()
-               .bind(playerObservable.flatMap(PlayerInfo::numberOfGamesProperty).map(i18n::number).when(showing));
+               .bind(playerProperty.flatMap(PlayerInfo::numberOfGamesProperty).map(i18n::number).when(showing));
 
-    username.textProperty().bind(chatUser.map(ChatChannelUser::getUsername).when(showing));
+    username.textProperty().bind(playerProperty.map(PlayerInfo::getUsername).when(showing));
     country.textProperty()
-           .bind(
-               playerObservable.flatMap(PlayerInfo::countryProperty).map(i18n::getCountryNameLocalized).when(showing));
+           .bind(playerProperty.flatMap(PlayerInfo::countryProperty).map(i18n::getCountryNameLocalized).when(showing));
     userImageView.imageProperty()
-                 .bind(playerObservable.map(PlayerInfo::getId).map(IdenticonUtil::createIdenticon).when(showing));
-    ObservableValue<GameInfo> gameObservable = playerObservable.flatMap(PlayerInfo::gameProperty);
+                 .bind(playerProperty.map(PlayerInfo::getId).map(IdenticonUtil::createIdenticon).when(showing));
+    ObservableValue<GameInfo> gameObservable = playerProperty.flatMap(PlayerInfo::gameProperty);
     gameDetailController.gameProperty().bind(gameObservable.when(showing));
     gameDetailWrapper.visibleProperty().bind(gameObservable.flatMap(GameInfo::statusProperty)
                                          .map(status -> status == GameStatus.OPEN || status == GameStatus.PLAYING)
                                          .orElse(false)
                                          .when(showing));
-    chatUser.flatMap(ChatChannelUser::playerProperty).addListener(playerChangeListener);
-  }
-
-  public void setChatUser(ChatChannelUser chatUser) {
-    this.chatUser.set(chatUser);
-  }
-
-  public ChatChannelUser getChatUser() {
-    return chatUser.get();
-  }
-
-  public ObjectProperty<ChatChannelUser> chatUserProperty() {
-    return chatUser;
+    playerProperty.addListener(playerChangeListener);
   }
 
   private void populateUnlockedAchievementsLabel(PlayerInfo player) {
