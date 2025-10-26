@@ -17,7 +17,6 @@ import com.faforever.commons.api.dto.PlayerAchievement;
 import com.faforever.commons.lobby.GameStatus;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -33,7 +32,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.function.TupleUtils;
 
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -63,13 +61,6 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
   public Separator separator;
 
   private final ObjectProperty<PlayerInfo> player = new SimpleObjectProperty<>();
-
-  private final ChangeListener<PlayerInfo> playerChangeListener = (observable, oldValue, newValue) -> {
-    if (newValue != null && !Objects.equals(oldValue, newValue)) {
-      loadReceiverRatingInformation(newValue);
-      populateUnlockedAchievementsLabel(newValue);
-    }
-  };
 
   @Override
   public Node getRoot() {
@@ -108,7 +99,12 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
                                          .map(status -> status == GameStatus.OPEN || status == GameStatus.PLAYING)
                                          .orElse(false)
                                          .when(showing));
-    player.addListener(playerChangeListener);
+    player.when(showing).subscribe((playerInfo) -> {
+        if (playerInfo != null) {
+          loadReceiverRatingInformation(playerInfo);
+          populateUnlockedAchievementsLabel(playerInfo);
+        }
+    });
   }
 
   public ObjectProperty<PlayerInfo> playerProperty() {
