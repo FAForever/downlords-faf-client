@@ -141,8 +141,8 @@ public class CoopController extends NodeController<Node> {
                                   .or(invalidSelectorTitleFieldProperty)
                                   .or(invalidSelectorPasswordFieldProperty)
                                   .when(showing));
-    JavaFxUtil.bind(titleWarningLabel.visibleProperty(), invalidSelectorTitleFieldProperty);
-    JavaFxUtil.bind(passwordWarningLabel.visibleProperty(), invalidSelectorPasswordFieldProperty);
+    titleWarningLabel.visibleProperty().bind(invalidSelectorTitleFieldProperty.when(showing));
+    passwordWarningLabel.visibleProperty().bind(invalidSelectorPasswordFieldProperty.when(showing));
 
     numberOfPlayersComboBox.setButtonCell(numberOfPlayersCell());
     numberOfPlayersComboBox.setCellFactory(param -> numberOfPlayersCell());
