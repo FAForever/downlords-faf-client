@@ -24,7 +24,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -63,8 +62,7 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
   public Label unlockedAchievementsLabel;
   public Separator separator;
 
-  @Getter
-  private final ObjectProperty<PlayerInfo> playerProperty = new SimpleObjectProperty<>();
+  private final ObjectProperty<PlayerInfo> player = new SimpleObjectProperty<>();
 
   private final ChangeListener<PlayerInfo> playerChangeListener = (observable, oldValue, newValue) -> {
     if (newValue != null && !Objects.equals(oldValue, newValue)) {
@@ -86,7 +84,7 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
     gameDetailController.setPlaytimeVisible(true);
     gameDetailWrapper.setVisible(false);
 
-    ObservableValue<Boolean> playerExistsProperty = playerProperty.isNotNull().when(showing);
+    ObservableValue<Boolean> playerExistsProperty = player.isNotNull().when(showing);
     userImageView.visibleProperty().bind(playerExistsProperty);
     country.visibleProperty().bind(playerExistsProperty);
     ratingsLabels.visibleProperty().bind(playerExistsProperty);
@@ -97,20 +95,24 @@ public class PrivatePlayerInfoController extends NodeController<Node> {
     unlockedAchievementsLabel.visibleProperty().bind(playerExistsProperty);
 
     gamesPlayed.textProperty()
-               .bind(playerProperty.flatMap(PlayerInfo::numberOfGamesProperty).map(i18n::number).when(showing));
+               .bind(player.flatMap(PlayerInfo::numberOfGamesProperty).map(i18n::number).when(showing));
 
-    username.textProperty().bind(playerProperty.map(PlayerInfo::getUsername).when(showing));
+    username.textProperty().bind(player.map(PlayerInfo::getUsername).when(showing));
     country.textProperty()
-           .bind(playerProperty.flatMap(PlayerInfo::countryProperty).map(i18n::getCountryNameLocalized).when(showing));
+           .bind(player.flatMap(PlayerInfo::countryProperty).map(i18n::getCountryNameLocalized).when(showing));
     userImageView.imageProperty()
-                 .bind(playerProperty.map(PlayerInfo::getId).map(IdenticonUtil::createIdenticon).when(showing));
-    ObservableValue<GameInfo> gameObservable = playerProperty.flatMap(PlayerInfo::gameProperty);
+                 .bind(player.map(PlayerInfo::getId).map(IdenticonUtil::createIdenticon).when(showing));
+    ObservableValue<GameInfo> gameObservable = player.flatMap(PlayerInfo::gameProperty);
     gameDetailController.gameProperty().bind(gameObservable.when(showing));
     gameDetailWrapper.visibleProperty().bind(gameObservable.flatMap(GameInfo::statusProperty)
                                          .map(status -> status == GameStatus.OPEN || status == GameStatus.PLAYING)
                                          .orElse(false)
                                          .when(showing));
-    playerProperty.addListener(playerChangeListener);
+    player.addListener(playerChangeListener);
+  }
+
+  public ObjectProperty<PlayerInfo> playerProperty() {
+    return player;
   }
 
   private void populateUnlockedAchievementsLabel(PlayerInfo player) {

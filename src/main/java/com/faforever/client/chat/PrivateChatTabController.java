@@ -11,13 +11,11 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-@Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class PrivateChatTabController extends AbstractChatTabController {
@@ -51,10 +49,12 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
     privateChatTabRoot.textProperty().bind(channelName.when(attached));
 
-    ObservableValue<PlayerInfo> playerProperty = channelName.map(playerName -> playerService.getPlayerByNameIfOnline(playerName).orElse(null));
-    privatePlayerInfoController.getPlayerProperty().bind(playerProperty.when(showing));
+    ObservableValue<PlayerInfo> player = channelName.map(
+        playerName -> playerService.getPlayerByNameIfOnline(playerName).orElse(null));
+    privatePlayerInfoController.playerProperty().bind(player.when(showing));
 
-    avatarImageView.imageProperty().bind(playerProperty.flatMap(PlayerInfo::avatarProperty).map(avatarService::loadAvatar).when(showing));
+    avatarImageView.imageProperty()
+                   .bind(player.flatMap(PlayerInfo::avatarProperty).map(avatarService::loadAvatar).when(showing));
   }
 
   @Override
