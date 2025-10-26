@@ -19,7 +19,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Flux;
 
 import java.util.Map;
@@ -61,11 +60,7 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
     playerInfo = PlayerInfoBuilder.create()
                                   .defaultValues()
                                   .game(null)
-                                  .leaderboardRatings(LeaderboardRatingMapBuilder.create()
-                                                                                 .put(leaderboard.technicalName(),
-                                                                                      Instancio.create(
-                                                                                          LeaderboardRating.class))
-                                                                                 .get())
+                                  .leaderboardRatings(generateRandomLeaderboardRatingMap(leaderboard))
                                   .get();
     player = new SimpleObjectProperty<>(playerInfo);
     instance.playerProperty().bind(player);
@@ -89,6 +84,12 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
       }
       return instance;
     });
+  }
+
+  private Map<String, LeaderboardRating> generateRandomLeaderboardRatingMap(Leaderboard leaderboard) {
+    return LeaderboardRatingMapBuilder.create()
+                                      .put(leaderboard.technicalName(), Instancio.create(LeaderboardRating.class))
+                                      .get();
   }
 
   @Test
@@ -126,15 +127,11 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
   }
 
   @Test
-  public void testSetChatUserLeavesGame() {
-    runOnFxThreadAndWait(() -> instance.playerProperty().setValue(playerInfo));
-    playerInfo.setGame(GameInfoBuilder.create().defaultValues().get());
-    WaitForAsyncUtils.waitForFxEvents();
-
+  public void testCheckGameInfoIfPlayerLeavesGame() {
+    runOnFxThreadAndWait(() -> playerInfo.setGame(GameInfoBuilder.create().defaultValues().get()));
     assertTrue(instance.gameDetailWrapper.isVisible());
 
-    playerInfo.setGame(null);
-
+    runOnFxThreadAndWait(() -> playerInfo.setGame(null));
     assertFalse(instance.gameDetailWrapper.isVisible());
   }
 
@@ -146,7 +143,7 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
   }
 
   @Test
-  public void testSetChatUserWithNoPlayer() {
+  public void testCheckGameInfoIfPlayerIsNull() {
     runOnFxThreadAndWait(() -> player.setValue(null));
 
     assertFalse(instance.userImageView.isVisible());
@@ -160,7 +157,7 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
   }
 
   @Test
-  public void testSetChatUserWithNoPlayerThenGetsPlayer() {
+  public void testCheckGameInfoWhenPlayerIsNullThenNewPlayerAppears() {
     runOnFxThreadAndWait(() -> player.setValue(null));
 
     assertFalse(instance.userImageView.isVisible());
@@ -172,11 +169,11 @@ public class PrivatePlayerInfoControllerTest extends PlatformTest {
     assertFalse(instance.unlockedAchievements.isVisible());
     assertFalse(instance.unlockedAchievementsLabel.isVisible());
 
-    playerInfo.setLeaderboardRatings(LeaderboardRatingMapBuilder.create()
-                                                                .put(leaderboard.technicalName(),
-                                                                 Instancio.create(LeaderboardRating.class))
-                                                                .get());
-    runOnFxThreadAndWait(() -> player.setValue(playerInfo));
+    runOnFxThreadAndWait(() -> player.setValue(PlayerInfoBuilder.create()
+                                                                .defaultValues()
+                                                                .leaderboardRatings(
+                                                                    generateRandomLeaderboardRatingMap(leaderboard))
+                                                                .get()));
 
     assertTrue(instance.userImageView.isVisible());
     assertTrue(instance.country.isVisible());
