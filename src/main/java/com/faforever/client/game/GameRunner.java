@@ -38,6 +38,7 @@ import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.replay.ReplayServer;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.util.ConcurrentUtil;
@@ -118,6 +119,7 @@ public class GameRunner implements InitializingBean {
   private final NotificationPrefs notificationPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final LogAnalyzerService logAnalyzerService;
+  private final TaskService taskService;
 
   private final MaskPatternLayout logMasker = new MaskPatternLayout();
   private final SimpleObjectProperty<Integer> runningGameId = new SimpleObjectProperty<>();
@@ -148,7 +150,7 @@ public class GameRunner implements InitializingBean {
 
     fafServerAccessor.getEvents(NoticeInfo.class)
                      .filter(notice -> Objects.equals(notice.getStyle(), "kill"))
-                     .doOnNext(notice -> {
+                     .doOnNext(_ -> {
                        log.info("Game close requested by server");
                        String linksRules = clientProperties.getLinks().get("linksRules");
                        ImmediateNotification notification = new ImmediateNotification(i18n.get("game.kicked.title"),
@@ -163,8 +165,8 @@ public class GameRunner implements InitializingBean {
                      .subscribe();
 
 
-    fafServerAccessor.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
-      if (isRunning() && newValue == ConnectionState.CONNECTED && oldValue != ConnectionState.CONNECTED) {
+    fafServerAccessor.connectionStateProperty().subscribe((oldState, newState) -> {
+      if (isRunning() && newState == ConnectionState.CONNECTED && oldState != ConnectionState.CONNECTED) {
         fafServerAccessor.restoreGameSession(runningGameId.get());
       }
     });
@@ -183,16 +185,16 @@ public class GameRunner implements InitializingBean {
     String mapFolderName = gameLaunchResponse.getMapName();
     CompletableFuture<Void> downloadMapFuture = mapFolderName == null ? completedFuture(
         null) : mapService.downloadIfNecessary(mapFolderName).toFuture();
-    CompletableFuture<League> leagueFuture = hasLeague ? completedFuture(null) : getDivisionInfo(
-        leaderboard).toFuture();
-    CompletableFuture<Integer> startReplayServerFuture = replayServer.start(uid);
-    CompletableFuture<Integer> startIceAdapterFuture = startIceAdapter(uid);
 
-    return CompletableFuture.allOf(downloadMapFuture, leagueFuture, startIceAdapterFuture, startReplayServerFuture)
-                            .thenApply(_ -> gameMapper.map(gameLaunchResponse, leagueFuture.join()))
-                            .thenApply(parameters -> launchOnlineGame(parameters, startIceAdapterFuture.join(),
-                                                                      startReplayServerFuture.join()))
-                            .whenCompleteAsync((process, throwable) -> {
+    CompletableFuture<League> loadLeagueInfoFuture = hasLeague ? completedFuture(null) : taskService.submitFutureTask("league.loadInfo", () -> getDivisionInfo(leaderboard).toFuture());
+    CompletableFuture<Integer> runReplayServerFuture = taskService.submitFutureTask("replayServer.connecting", () -> replayServer.start(uid));
+    CompletableFuture<Integer> runIceAdapterFuture = taskService.submitFutureTask("iceAdapter.connecting", () -> startIceAdapter(uid));
+
+    return CompletableFuture.allOf(downloadMapFuture, loadLeagueInfoFuture, runReplayServerFuture, runIceAdapterFuture)
+                            .thenApply(_ -> gameMapper.map(gameLaunchResponse, loadLeagueInfoFuture.join()))
+                            .thenApply(parameters -> launchOnlineGame(parameters, runIceAdapterFuture.join(),
+                                                                      runReplayServerFuture.join()))
+                            .whenCompleteAsync((process, _) -> {
                               if (process != null) {
                                 this.process.set(process);
                                 runningGameId.set(uid);
@@ -483,7 +485,7 @@ public class GameRunner implements InitializingBean {
         infoIcon.getStyleClass().add("info-icon");
         final Button showAnalysisBtn = new Button(i18n.get("game.log.analysis.solutionBtn"), infoIcon);
         showAnalysisBtn.setDefaultButton(true);
-        showAnalysisBtn.setOnAction(event -> notificationService.addNotification(
+        showAnalysisBtn.setOnAction(_ -> notificationService.addNotification(
             new ImmediateNotification(i18n.get("game.log.analysis"), message.toString(), WARN, actions)));
 
         return showAnalysisBtn;
@@ -509,7 +511,7 @@ public class GameRunner implements InitializingBean {
     }
 
     if (!preferencesService.hasValidGamePath()) {
-      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(path -> launchTutorial(mapVersion, technicalMapName));
+      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(_ -> launchTutorial(mapVersion, technicalMapName));
       return;
     }
 
@@ -547,12 +549,12 @@ public class GameRunner implements InitializingBean {
     }
 
     if (!preferencesService.hasValidGamePath()) {
-      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(path -> startOffline());
+      gamePathHandler.chooseAndValidateGameDirectory().thenAccept(_ -> startOffline());
       return;
     }
 
     CompletableFuture.supplyAsync(() -> forgedAllianceLaunchService.launchOfflineGame(null))
-                     .whenCompleteAsync((process, throwable) -> {
+                     .whenCompleteAsync((process, _) -> {
                        if (process != null) {
                          this.process.set(process);
                        }
