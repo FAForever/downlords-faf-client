@@ -14,6 +14,7 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.UidService;
+import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ServerNotification;
 import com.faforever.client.notification.Severity;
@@ -49,6 +50,7 @@ import com.faforever.commons.lobby.SearchInfo;
 import com.faforever.commons.lobby.ServerMessage;
 import com.faforever.commons.lobby.SessionResponse;
 import com.faforever.commons.lobby.SocialInfo;
+import com.faforever.commons.lobby.VetoData;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -97,8 +99,12 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.Is.is;
+import static org.instancio.Instancio.of;
+import static org.instancio.Select.all;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -947,5 +953,24 @@ public class ServerAccessorTest extends ServiceTest {
                                                           }""");
 
     assertThat(parsedMessage, equalTo(disconnectFromPeerMessage));
+  }
+
+  @Test
+  public void testSetPlayerVetoes() {
+    List<VetoData> vetoes = List.of(
+        of(VetoData.class)
+            .supply(all(VetoData.class), () -> new VetoData(1, 1, 1))
+            .create(),
+        of(VetoData.class)
+            .supply(all(VetoData.class), () -> new VetoData(2, 1, 1))
+            .create()
+    );
+
+    instance.setPlayerVetoes(vetoes);
+
+    assertMessageContainsComponents(
+        "set_player_vetoes",
+        "vetoes"
+    );
   }
 }

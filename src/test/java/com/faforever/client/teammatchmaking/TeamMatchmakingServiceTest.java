@@ -20,12 +20,14 @@ import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.MatchmakerMapper;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.VetoKey;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
@@ -45,6 +47,8 @@ import com.faforever.commons.lobby.PartyInfo;
 import com.faforever.commons.lobby.PartyInvite;
 import com.faforever.commons.lobby.PartyKick;
 import com.faforever.commons.lobby.SearchInfo;
+import com.faforever.commons.lobby.VetoData;
+import com.faforever.commons.lobby.VetoesChangedInfo;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -142,6 +146,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   private final TestPublisher<PartyInfo> partyInfoTestPublisher = TestPublisher.create();
   private final TestPublisher<SearchInfo> searchInfoTestPublisher = TestPublisher.create();
   private final TestPublisher<GameLaunchResponse> gameLaunchResponseTestPublisher = TestPublisher.create();
+  private final TestPublisher<VetoesChangedInfo> vetoesChangedTestPublisher = TestPublisher.create();
   private final SimpleObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(
       ConnectionState.DISCONNECTED);
 
@@ -167,6 +172,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     lenient().when(fafServerAccessor.getEvents(SearchInfo.class)).thenReturn(searchInfoTestPublisher.flux());
     lenient().when(fafServerAccessor.getEvents(GameLaunchResponse.class))
              .thenReturn(gameLaunchResponseTestPublisher.flux());
+    lenient().when(fafServerAccessor.getEvents(VetoesChangedInfo.class))
+             .thenReturn(vetoesChangedTestPublisher.flux());
     lenient().when(fafServerAccessor.connectionStateProperty()).thenReturn(connectionState);
 
     lenient().when(preferencesService.hasValidGamePath()).thenReturn(true);
@@ -616,5 +623,81 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     connectionState.set(ConnectionState.CONNECTED);
 
     verify(fafServerAccessor).setPartyFactions(anyList());
+  }
+
+  @Test
+  public void testSendVetoesOnConnection() {
+    matchmakerPrefs.getAppliedVetoes().put(new VetoKey(1, 1), 1);
+
+    connectionState.set(ConnectionState.CONNECTED);
+
+    verify(fafServerAccessor).setPlayerVetoes(anyList());
+  }
+
+  @Test
+  public void testSendVetoesOnVetoesChange() {
+    connectionState.set(ConnectionState.CONNECTED);
+    when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
+    // Clear invocations from connection state change
+    org.mockito.Mockito.clearInvocations(fafServerAccessor);
+
+    matchmakerPrefs.getAppliedVetoes().put(new VetoKey(1, 1), 1);
+
+    verify(fafServerAccessor, times(1)).setPlayerVetoes(anyList());
+  }
+
+  @Test
+  public void testVetoesNotSentWhenDisconnected() {
+    connectionState.set(ConnectionState.DISCONNECTED);
+
+    matchmakerPrefs.getAppliedVetoes().put(new VetoKey(1, 1), 1);
+
+    verify(fafServerAccessor, never()).setPlayerVetoes(anyList());
+  }
+
+  @Test
+  public void testOnVetoesChangedUpdatesPreferences() {
+    VetoData veto1 = new VetoData(1, 1, 1);
+    VetoData veto2 = new VetoData(2, 1, 1);
+    VetoesChangedInfo vetoesChangedMessage = new VetoesChangedInfo(false, List.of(veto1, veto2));
+
+    vetoesChangedTestPublisher.next(vetoesChangedMessage);
+
+    assertThat(matchmakerPrefs.getAppliedVetoes().size(), is(2));
+    assertThat(matchmakerPrefs.getAppliedVetoes().get(new VetoKey(veto1.getMatchmakerQueueMapPoolId(), veto1.getMapPoolMapVersionId())), is(veto1.getVetoTokensApplied()));
+    assertThat(matchmakerPrefs.getAppliedVetoes().get(new VetoKey(veto2.getMatchmakerQueueMapPoolId(), veto2.getMapPoolMapVersionId())), is(veto2.getVetoTokensApplied()));
+  }
+
+  @Test
+  public void testOnVetoesChangedForcedShowsNotification() {
+    VetoData veto = new VetoData(1, 1, 1);
+    VetoesChangedInfo vetoesChangedMessage = new VetoesChangedInfo(true, List.of(veto));
+
+    when(i18n.get("teammatchmaking.vetoes.forced.title")).thenReturn("Vetoes Updated");
+    when(i18n.get("teammatchmaking.vetoes.forced.message")).thenReturn("Vetoes were changed");
+
+    vetoesChangedTestPublisher.next(vetoesChangedMessage);
+
+    assertThat(matchmakerPrefs.getAppliedVetoes().size(), is(1));
+    assertThat(matchmakerPrefs.getAppliedVetoes().get(new VetoKey(veto.getMatchmakerQueueMapPoolId(), veto.getMapPoolMapVersionId())), is(veto.getVetoTokensApplied()));
+
+    ArgumentCaptor<ImmediateNotification> captor = ArgumentCaptor.forClass(ImmediateNotification.class);
+    verify(notificationService).addNotification(captor.capture());
+    ImmediateNotification notification = captor.getValue();
+    assertThat(notification.title(), is("Vetoes Updated"));
+    assertThat(notification.text(), is("Vetoes were changed"));
+  }
+
+  @Test
+  public void testOnVetoesChangedNotForcedNoNotification() {
+    VetoData veto = new VetoData(1, 1, 1);
+    VetoesChangedInfo vetoesChangedMessage = new VetoesChangedInfo(false, List.of(veto));
+
+    vetoesChangedTestPublisher.next(vetoesChangedMessage);
+
+    assertThat(matchmakerPrefs.getAppliedVetoes().size(), is(1));
+    assertThat(matchmakerPrefs.getAppliedVetoes().get(new VetoKey(veto.getMatchmakerQueueMapPoolId(), veto.getMapPoolMapVersionId())), is(veto.getVetoTokensApplied()));
+
+    verify(notificationService, never()).addNotification(any(ImmediateNotification.class));
   }
 }
