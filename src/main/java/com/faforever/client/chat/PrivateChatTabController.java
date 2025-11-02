@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PrivatePlayerInfoController;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
 public class PrivateChatTabController extends AbstractChatTabController {
 
   private final AvatarService avatarService;
+  private final PlayerService playerService;
 
   public Tab privateChatTabRoot;
   public ImageView avatarImageView;
@@ -29,9 +31,10 @@ public class PrivateChatTabController extends AbstractChatTabController {
   public ScrollPane gameDetailScrollPane;
 
   @Autowired
-  public PrivateChatTabController(ChatService chatService, AvatarService avatarService) {
+  public PrivateChatTabController(ChatService chatService, AvatarService avatarService, PlayerService playerService) {
     super(chatService);
     this.avatarService = avatarService;
+    this.playerService = playerService;
   }
 
   @Override
@@ -46,14 +49,12 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
     privateChatTabRoot.textProperty().bind(channelName.when(attached));
 
-    ObservableValue<ChatChannelUser> chatUser = chatChannel.flatMap(
-        channel -> channelName.map(chanName -> channel.getUser(chanName).orElse(null)));
-    privatePlayerInfoController.chatUserProperty().bind(chatUser.when(showing));
+    ObservableValue<PlayerInfo> player = channelName.map(
+        playerName -> playerService.getPlayerByNameIfOnline(playerName).orElse(null));
+    privatePlayerInfoController.playerProperty().bind(player.when(showing));
 
-    avatarImageView.imageProperty().bind(chatUser
-                                             .flatMap(ChatChannelUser::playerProperty)
-                                             .flatMap(PlayerInfo::avatarProperty)
-                                             .map(avatarService::loadAvatar).when(showing));
+    avatarImageView.imageProperty()
+                   .bind(player.flatMap(PlayerInfo::avatarProperty).map(avatarService::loadAvatar).when(showing));
   }
 
   @Override

@@ -13,6 +13,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PrivatePlayerInfoController;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.replay.WatchButtonController;
@@ -33,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 
 import java.io.InputStream;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -76,6 +78,8 @@ public class PrivateChatTabControllerTest extends PlatformTest {
   @Mock
   private AvatarService avatarService;
   @Mock
+  private PlayerService playerService;
+  @Mock
   private ChatService chatService;
   @Spy
   private ChatPrefs chatPrefs;
@@ -88,22 +92,22 @@ public class PrivateChatTabControllerTest extends PlatformTest {
   @InjectMocks
   private PrivateChatTabController instance;
 
-  private String playerName;
   private PlayerInfo player;
 
   @BeforeEach
   public void setUp() throws Exception {
     player = PlayerInfoBuilder.create().defaultValues().get();
-    playerName = player.getUsername();
+    String playerName = player.getUsername();
 
+    lenient().when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(player));
     lenient().when(chatMessageViewController.chatChannelProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(chatService.getCurrentUsername()).thenReturn(playerName);
     lenient().when(themeService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
-    lenient().when(privatePlayerInfoController.chatUserProperty()).thenReturn(new SimpleObjectProperty<>());
+    lenient().when(privatePlayerInfoController.playerProperty()).thenReturn(new SimpleObjectProperty<>());
     lenient().when(avatarService.loadAvatar(player.getAvatar())).thenReturn(new Image(InputStream.nullInputStream()));
 
     ChatChannel chatChannel = new ChatChannel(playerName);
-    ChatChannelUser chatChannelUser = new ChatChannelUser(playerName, new ChatChannel(playerName));
+    ChatChannelUser chatChannelUser = new ChatChannelUser(playerName, chatChannel);
     chatChannelUser.setPlayer(player);
     chatChannel.addUser(chatChannelUser);
 
