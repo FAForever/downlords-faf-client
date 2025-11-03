@@ -216,7 +216,7 @@ public class LaunchCommandBuilder {
 
     List<GameLaunchLocalParameter> defaultGameParameters = Lists.newArrayList(INIT_FILE, NO_BUG_REPORT);
     defaultGameParameters.addAll(gameLaunchLocalParameters != null ? gameLaunchLocalParameters : List.of());
-    defaultGameParameters.forEach(parameter -> command.addAll(parameter.get()));
+    defaultGameParameters.forEach(parameter -> command.addAll(parameter.getCommand()));
 
 
     if (faction != null) {

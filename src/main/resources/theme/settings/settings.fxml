@@ -703,18 +703,18 @@
                                                        styleClass="setting-title" text="Game settings" GridPane.rowIndex="0"/>
                                                 <VBox style="-fx-padding: 0 0 0 10px" spacing="5" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
                                                       GridPane.rowIndex="1">
-                                                    <Label styleClass="h3" text="Immediately exit the game when it is over"/>
-                                                    <Label styleClass="setting-description" text="Game statistic will be skipped"/>
+                                                    <Label styleClass="h3" text="%settings.fa.skipStatistic"/>
+                                                    <Label styleClass="setting-description" text="%settings.fa.skipStatistic.description"/>
                                                 </VBox>
-                                                <CheckBox fx:id="gameOverCheckBox" contentDisplay="GRAPHIC_ONLY"
+                                                <CheckBox fx:id="skipStatistic" contentDisplay="GRAPHIC_ONLY"
                                                           mnemonicParsing="false" GridPane.columnIndex="1"
                                                           GridPane.rowIndex="1"/>
                                                 <VBox style="-fx-padding: 0 0 0 10px" spacing="5" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
                                                       GridPane.rowIndex="2">
-                                                    <Label styleClass="h3" text="No sounds"/>
-                                                    <Label styleClass="setting-description" text="Can be useful when you have sound issues"/>
+                                                    <Label styleClass="h3" text="%settings.fa.noGameSound"/>
+                                                    <Label styleClass="setting-description" text="%settings.fa.noGameSound.description"/>
                                                 </VBox>
-                                                <CheckBox fx:id="noGameSoundsCheckBox" contentDisplay="GRAPHIC_ONLY"
+                                                <CheckBox fx:id="noGameSoundCheckBox" contentDisplay="GRAPHIC_ONLY"
                                                           mnemonicParsing="false" GridPane.columnIndex="1"
                                                           GridPane.rowIndex="2"/>
                                             </children>

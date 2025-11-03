@@ -43,6 +43,7 @@ public class ForgedAllianceLaunchService {
   private final LoggingService loggingService;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final DataPrefs dataPrefs;
+  private final GameLaunchLocalParametersResolver gameLaunchLocalParametersResolver;
 
   public Process launchOfflineGame(String map) {
     List<String> launchCommand = defaultLaunchCommand().map(map).logFile(loggingService.getNewGameLogFile(0)).build();
@@ -126,7 +127,7 @@ public class ForgedAllianceLaunchService {
         .executableDecorator(forgedAlliancePrefs.getExecutableDecorator())
         .executable(getExecutablePath());
 
-    return addDebugger(baseCommandBuilder).gameLaunchLocalParameters(collectGameLaunchLocalParameters());
+    return addDebugger(baseCommandBuilder).gameLaunchLocalParameters(gameLaunchLocalParametersResolver.getParameters());
   }
 
   private LaunchCommandBuilder replayLaunchCommand() {
@@ -142,19 +143,6 @@ public class ForgedAllianceLaunchService {
       baseCommandBuilder = baseCommandBuilder.debuggerExecutable(getDebuggerExecutablePath());
     }
     return baseCommandBuilder;
-  }
-
-  private List<GameLaunchLocalParameter> collectGameLaunchLocalParameters() {
-    List<GameLaunchLocalParameter> parameters = new ArrayList<>();
-
-    if (forgedAlliancePrefs.isGameOver()) {
-      parameters.add(GameLaunchLocalParameter.GAME_OVER);
-    }
-    if (forgedAlliancePrefs.isNoGameSounds()) {
-      parameters.add(GameLaunchLocalParameter.NO_SOUND);
-    }
-
-    return parameters;
   }
 
   @NotNull

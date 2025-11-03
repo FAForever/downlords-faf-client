@@ -12,19 +12,19 @@ public enum GameLaunchLocalParameter {
   GAME_OVER("/exitongameover"),
   NO_SOUND("/nosound");
 
-  private final String parameterName;
+  private final String name;
   private final String value;
 
-  GameLaunchLocalParameter(String parameterName, String value) {
-    this.parameterName = parameterName;
+  GameLaunchLocalParameter(String name, String value) {
+    this.name = name;
     this.value = value;
   }
 
-  GameLaunchLocalParameter(String parameterName) {
-    this(parameterName, "");
+  GameLaunchLocalParameter(String name) {
+    this(name, "");
   }
 
-  public List<String> get() {
-    return StringUtils.isNotBlank(value) ? List.of(parameterName, value) : List.of(parameterName);
+  public List<String> getCommand() {
+    return StringUtils.isNotBlank(value) ? List.of(name, value) : List.of(name);
   }
 }
