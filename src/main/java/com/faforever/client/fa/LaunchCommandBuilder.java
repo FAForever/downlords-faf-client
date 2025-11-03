@@ -1,8 +1,8 @@
 package com.faforever.client.fa;
 
-import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.commons.lobby.Faction;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
 
@@ -10,7 +10,6 @@ import java.net.Inet4Address;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -18,6 +17,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.faforever.client.fa.GameLaunchLocalParameter.*;
 import static com.faforever.client.util.Assert.checkNullIllegalState;
 
 public class LaunchCommandBuilder {
@@ -50,6 +50,7 @@ public class LaunchCommandBuilder {
   private Integer team;
   private String map;
   private Map<String, String> gameOptions;
+  private List<GameLaunchLocalParameter> gameLaunchLocalParameters;
 
   public static LaunchCommandBuilder create() {
     return new LaunchCommandBuilder();
@@ -194,6 +195,11 @@ public class LaunchCommandBuilder {
     return this;
   }
 
+  public LaunchCommandBuilder gameLaunchLocalParameters(List<GameLaunchLocalParameter> gameLaunchLocalParameters) {
+    this.gameLaunchLocalParameters = gameLaunchLocalParameters;
+    return this;
+  }
+
   public List<String> build() {
     checkNullIllegalState(executableDecorator, "executableDecorator has not been set");
     checkNullIllegalState(executable, "executable has not been set");
@@ -207,10 +213,11 @@ public class LaunchCommandBuilder {
     }
 
     command.addAll(split(String.format(executableDecorator, "\"" + executable.toAbsolutePath() + "\"")));
-    command.addAll(Arrays.asList(
-        "/init", ForgedAlliancePrefs.INIT_FILE_NAME,
-        "/nobugreport"
-    ));
+
+    List<GameLaunchLocalParameter> defaultGameParameters = Lists.newArrayList(INIT_FILE, NO_BUG_REPORT);
+    defaultGameParameters.addAll(gameLaunchLocalParameters != null ? gameLaunchLocalParameters : List.of());
+    defaultGameParameters.forEach(parameter -> command.addAll(parameter.get()));
+
 
     if (faction != null) {
       command.add(String.format("/%s", faction.toString().toLowerCase(Locale.ROOT)));

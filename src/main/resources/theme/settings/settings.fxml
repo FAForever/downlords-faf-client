@@ -695,6 +695,38 @@
                                             </columnConstraints>
                                             <rowConstraints>
                                                 <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" valignment="TOP"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" valignment="TOP"/>
+                                            </rowConstraints>
+                                            <children>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
+                                                       styleClass="setting-title" text="Game settings" GridPane.rowIndex="0"/>
+                                                <VBox style="-fx-padding: 0 0 0 10px" spacing="5" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
+                                                      GridPane.rowIndex="1">
+                                                    <Label styleClass="h3" text="Immediately exit the game when it is over"/>
+                                                    <Label styleClass="setting-description" text="Game statistic will be skipped"/>
+                                                </VBox>
+                                                <CheckBox fx:id="gameOverCheckBox" contentDisplay="GRAPHIC_ONLY"
+                                                          mnemonicParsing="false" GridPane.columnIndex="1"
+                                                          GridPane.rowIndex="1"/>
+                                                <VBox style="-fx-padding: 0 0 0 10px" spacing="5" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
+                                                      GridPane.rowIndex="2">
+                                                    <Label styleClass="h3" text="No sounds"/>
+                                                    <Label styleClass="setting-description" text="Can be useful when you have sound issues"/>
+                                                </VBox>
+                                                <CheckBox fx:id="noGameSoundsCheckBox" contentDisplay="GRAPHIC_ONLY"
+                                                          mnemonicParsing="false" GridPane.columnIndex="1"
+                                                          GridPane.rowIndex="2"/>
+                                            </children>
+                                        </GridPane>
+                                        <GridPane styleClass="setting-container">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES"
+                                                                   minWidth="10.0"/>
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
                                                 <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
                                             </rowConstraints>
                                             <children>

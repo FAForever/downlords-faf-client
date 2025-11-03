@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -125,7 +126,7 @@ public class ForgedAllianceLaunchService {
         .executableDecorator(forgedAlliancePrefs.getExecutableDecorator())
         .executable(getExecutablePath());
 
-    return addDebugger(baseCommandBuilder);
+    return addDebugger(baseCommandBuilder).gameLaunchLocalParameters(collectGameLaunchLocalParameters());
   }
 
   private LaunchCommandBuilder replayLaunchCommand() {
@@ -141,6 +142,19 @@ public class ForgedAllianceLaunchService {
       baseCommandBuilder = baseCommandBuilder.debuggerExecutable(getDebuggerExecutablePath());
     }
     return baseCommandBuilder;
+  }
+
+  private List<GameLaunchLocalParameter> collectGameLaunchLocalParameters() {
+    List<GameLaunchLocalParameter> parameters = new ArrayList<>();
+
+    if (forgedAlliancePrefs.isGameOver()) {
+      parameters.add(GameLaunchLocalParameter.GAME_OVER);
+    }
+    if (forgedAlliancePrefs.isNoGameSounds()) {
+      parameters.add(GameLaunchLocalParameter.NO_SOUND);
+    }
+
+    return parameters;
   }
 
   @NotNull

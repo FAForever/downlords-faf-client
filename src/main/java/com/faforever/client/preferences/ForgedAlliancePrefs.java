@@ -39,6 +39,8 @@ public class ForgedAlliancePrefs {
   private final BooleanProperty showIceAdapterDebugWindow = new SimpleBooleanProperty(false);
   private final BooleanProperty relativeGamePaths = new SimpleBooleanProperty(false);
   private final ObservableSet<String> preferredCoturnIds = FXCollections.observableSet();
+  private final BooleanProperty gameOver = new SimpleBooleanProperty(false);
+  private final BooleanProperty noGameSounds = new SimpleBooleanProperty(false);
 
   public Path getPreferencesFile() {
     return preferencesFile.get();
@@ -182,5 +184,21 @@ public class ForgedAlliancePrefs {
 
   public BooleanProperty warnNonAsciiVaultPathProperty() {
     return warnNonAsciiVaultPath;
+  }
+
+  public BooleanProperty gameOverProperty() {
+    return gameOver;
+  }
+
+  public BooleanProperty noGameSoundsProperty() {
+    return noGameSounds;
+  }
+
+  public boolean isGameOver() {
+    return gameOver.get();
+  }
+
+  public boolean isNoGameSounds() {
+    return noGameSounds.get();
   }
 }
