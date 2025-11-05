@@ -1,6 +1,5 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.game.GameService;
@@ -46,7 +45,6 @@ public class ReplayServer {
    */
   private static final byte[] LIVE_REPLAY_PREFIX = new byte[]{'P', '/'};
 
-  private final ClientProperties clientProperties;
   private final LoginService loginService;
   private final ReplayFileWriter replayFileWriter;
   private final PlayerService playerService;
@@ -76,6 +74,7 @@ public class ReplayServer {
 
   public CompletableFuture<Integer> start(int gameId) {
     ReplayMetadata replayInfo = initReplayInfo(gameId);
+    GameInfo game = gameService.getByUid(gameId).orElseThrow();
 
     return TcpServer.create()
                     .doOnBound(server -> {
@@ -133,8 +132,6 @@ public class ReplayServer {
 
                                                                        log.info(
                                                                            "FAF disconnected, writing replay data to file");
-                                                                       GameInfo game = gameService.getByUid(gameId)
-                                                                                                  .orElseThrow();
                                                                        finishReplayInfo(game, replayInfo);
                                                                        try {
                                                                          replayFileWriter.writeReplayDataToFile(
