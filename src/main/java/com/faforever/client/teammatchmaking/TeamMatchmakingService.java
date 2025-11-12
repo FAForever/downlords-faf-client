@@ -246,12 +246,6 @@ public class TeamMatchmakingService implements InitializingBean {
       }
     });
 
-    matchmakerPrefs.getAppliedVetoes().subscribe(() -> {
-      if (fafServerAccessor.getConnectionState() == ConnectionState.CONNECTED) {
-        sendVetoes();
-      }
-    });
-
     party.ownerProperty().subscribe((oldValue, newValue) -> {
       if (oldValue != null) {
         chatService.leaveChannel("#" + oldValue.getUsername() + PARTY_CHANNEL_SUFFIX);
@@ -275,21 +269,31 @@ public class TeamMatchmakingService implements InitializingBean {
     fafServerAccessor.setPlayerVetoes(getVetoesAsList());
   }
 
-  public void setTokensForMap(VetoKey vetoKey, Integer vetoTokensApplied) {
-    matchmakerPrefs.getAppliedVetoes().put(vetoKey, vetoTokensApplied);
+  public void setTokensForMap(VetoKey key, int vetoTokensApplied) {
+    Integer previousValue;
+    if (vetoTokensApplied == 0) {
+      previousValue = matchmakerPrefs.getAppliedVetoes().remove(key);
+    } else {
+      previousValue = matchmakerPrefs.getAppliedVetoes().put(key, vetoTokensApplied);
+    }
+
+    if ((previousValue == null && vetoTokensApplied > 0) || (previousValue != null && previousValue != vetoTokensApplied)) {
+      sendVetoes();
+    }
   }
 
-  public void setAllVetoes(List<VetoData> vetoes) {
+  public void updateVetoes(List<VetoData> vetoes) {
     Map<VetoKey, Integer> vetosMap = vetoes.stream()
                                            .collect(Collectors.toMap(
                                                vetoData -> new VetoKey(vetoData.getMatchmakerQueueMapPoolId(),
                                                                        vetoData.getMapPoolMapVersionId()),
                                                VetoData::getVetoTokensApplied));
+    matchmakerPrefs.getAppliedVetoes().clear();
     matchmakerPrefs.getAppliedVetoes().putAll(vetosMap);
   }
 
   private void onVetoesChanged(VetoesChangedInfo vetoesChangedInfo) {
-    setAllVetoes(vetoesChangedInfo.getVetoes());
+    updateVetoes(vetoesChangedInfo.getVetoes());
 
     if (vetoesChangedInfo.getForced()) {
       notificationService.addNotification(new ImmediateNotification(i18n.get("teammatchmaking.vetoes.forced.title"),

@@ -4,9 +4,9 @@ import com.faforever.client.domain.api.Map;
 import com.faforever.client.domain.api.MapPoolAssignment;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.fx.ImageViewHelper;
+import com.faforever.client.fx.NodeController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.fx.NodeController;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.preferences.MatchmakerPrefs;
@@ -25,13 +25,14 @@ import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
 import java.util.function.Consumer;
 
 /**
@@ -101,9 +102,10 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   public void bindVetoModeDependentProperties() {
     vetoesBox.mouseTransparentProperty().bind(vetoModeEnabled.not());
     vetoesBox.visibleProperty().bind(vetoModeEnabled.or(tokenCount.greaterThan(0)));
-    root.cursorProperty().bind(Bindings.when(
-        Bindings.createBooleanBinding(() -> isGeneratedMap.getValue() || vetoModeEnabled.get(), isGeneratedMap, vetoModeEnabled)
-    ).then(Cursor.DEFAULT).otherwise(Cursor.HAND));
+    root.cursorProperty()
+        .bind(Bindings.when(
+            Bindings.createBooleanBinding(() -> isGeneratedMap.getValue() || vetoModeEnabled.get(), isGeneratedMap,
+                                          vetoModeEnabled)).then(Cursor.DEFAULT).otherwise(Cursor.HAND));
   }
 
   @Override
@@ -112,9 +114,9 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
     isGeneratedMap = mapObservable.map(map -> mapGeneratorService.isGeneratedMap(map.displayName())).orElse(false);
 
     thumbnailImageView.imageProperty()
-                      .bind(assignment
-                                .map(assignmentBean -> mapService.loadPreview(assignmentBean.mapVersion(), PreviewSize.SMALL))
-                                .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
+                      .bind(assignment.map(
+                                          assignmentBean -> mapService.loadPreview(assignmentBean.mapVersion(), PreviewSize.SMALL))
+                                      .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
 
     nameLabel.textProperty().bind(mapObservable.map(map -> {
       if (isGeneratedMap.getValue()) {
@@ -123,9 +125,7 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
       return map.displayName();
     }));
 
-    authorBox.visibleProperty()
-             .bind(mapObservable.map(
-                 map -> (map.author() != null) || isGeneratedMap.getValue()));
+    authorBox.visibleProperty().bind(mapObservable.map(map -> (map.author() != null) || isGeneratedMap.getValue()));
     authorBox.managedProperty().bind(authorBox.visibleProperty());
 
     authorLabel.textProperty().bind(mapObservable.map(map -> {
@@ -165,27 +165,26 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
     });
 
     vetoButton.setOnAction(event -> {
-      if (assignment.getValue() == null) {
+      MapPoolAssignment value = assignment.getValue();
+      if (value == null) {
         return;
       }
       int currentTokenCount = tokenCount.get();
       int currentMaxPerMap = maxPerMap.get();
       if ((isMaxPerMapDynamic.get() || currentTokenCount < currentMaxPerMap) && currentTokenCount < vetoTokensMax.get() && vetoTokensLeft.getValue() > 0) {
-        teamMatchmakingService.setTokensForMap(
-            new VetoKey(assignment.getValue().mapPool().mapPool().id(), assignment.getValue().id()),
-            currentTokenCount + 1);
+        teamMatchmakingService.setTokensForMap(VetoKey.of(value), currentTokenCount + 1);
       }
       event.consume();
     });
 
     minusButton.setOnAction(event -> {
-      if (assignment.getValue() == null) {
+      MapPoolAssignment value = assignment.getValue();
+      if (value == null) {
         return;
       }
       int current = tokenCount.get();
       if (current > 0) {
-        teamMatchmakingService.setTokensForMap(
-            new VetoKey(assignment.getValue().mapPool().mapPool().id(), assignment.getValue().id()), current - 1);
+        teamMatchmakingService.setTokensForMap(VetoKey.of(value), current - 1);
       }
       event.consume();
     });
@@ -213,11 +212,12 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   }
 
   private void updateVetoes() {
-    if (assignment.getValue() == null) {
+    MapPoolAssignment value = assignment.getValue();
+    if (value == null) {
       tokenCount.set(0);
       return;
     }
-    VetoKey key = new VetoKey(assignment.getValue().mapPool().mapPool().id(), assignment.getValue().id());
+    VetoKey key = VetoKey.of(value);
     int usedTokens = matchmakerPrefs.getAppliedVetoes().getOrDefault(key, 0);
     tokenCount.set(usedTokens);
   }

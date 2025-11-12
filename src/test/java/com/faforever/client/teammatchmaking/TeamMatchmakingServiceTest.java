@@ -638,10 +638,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   public void testSendVetoesOnVetoesChange() {
     connectionState.set(ConnectionState.CONNECTED);
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
-    // Clear invocations from connection state change
-    org.mockito.Mockito.clearInvocations(fafServerAccessor);
 
-    matchmakerPrefs.getAppliedVetoes().put(new VetoKey(1, 1), 1);
+    instance.setTokensForMap(new VetoKey(1, 1), 1);
 
     verify(fafServerAccessor, times(1)).setPlayerVetoes(anyList());
   }
