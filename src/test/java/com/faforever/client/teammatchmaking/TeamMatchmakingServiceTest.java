@@ -637,11 +637,14 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Test
   public void testSendVetoesOnVetoesChange() {
     connectionState.set(ConnectionState.CONNECTED);
-    when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
 
     instance.setTokensForMap(new VetoKey(1, 1), 1);
 
-    verify(fafServerAccessor, times(1)).setPlayerVetoes(anyList());
+    verify(fafServerAccessor, times(1)).setPlayerVetoes(List.of(new VetoData(1, 1, 1)));
+
+    instance.setTokensForMap(new VetoKey(1, 1), 1);
+
+    verify(fafServerAccessor, times(1)).setPlayerVetoes(List.of(new VetoData(1, 1, 1)));
   }
 
   @Test
