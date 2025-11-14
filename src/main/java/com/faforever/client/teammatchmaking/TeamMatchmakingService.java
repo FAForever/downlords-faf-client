@@ -260,7 +260,14 @@ public class TeamMatchmakingService implements InitializingBean {
 
     partyMembersNotReady.bind(playersInGame.emptyProperty().map(empty -> !empty));
 
-    queues.forEach(queue -> listenToSelectedChange(queue));
+    gameService.getGames().subscribe(() -> queues.forEach(this::updateMatchmakerGameCount));
+
+    queues.forEach(queue -> {
+      if (queue.isSelected()) {
+        matchmakerPrefs.getSelectedQueueIds().add(queue.getId());
+      }
+      listenToSelectedChange(queue);
+    });
     queues.addListener((Change<? extends MatchmakerQueueInfo> change) -> {
       while (change.next()) {
         if (change.wasAdded()) {
@@ -457,22 +464,15 @@ public class TeamMatchmakingService implements InitializingBean {
   private Mono<MatchmakerQueueInfo> getQueueFromApi(MatchmakerInfo.MatchmakerQueue matchmakerQueue) {
     ElideNavigatorOnCollection<MatchmakerQueue> navigator = ElideNavigator.of(MatchmakerQueue.class)
                                                                           .collection()
-                                                                          .setFilter(qBuilder().string("technicalName")
-                                                                                               .eq(matchmakerQueue.getName()));
-    return fafApiAccessor.getMany(navigator)
-                         .next()
+                                                                          .setFilter(qBuilder().string("technicalName").eq(matchmakerQueue.getName()));
+    return fafApiAccessor.getMany(navigator).next()
                          .map(matchmakerMapper::map)
                          .map(queue -> matchmakerMapper.update(matchmakerQueue, queue))
                          .doOnNext(queue -> {
                            boolean isSelected = !matchmakerPrefs.getUnselectedQueueIds().contains(queue.getId());
                            queue.setSelected(isSelected);
                          })
-                         .doOnNext(queue -> {
-                           gameService.getGames().subscribe(() -> updateMatchmakerGameCount(queue));
-                         })
-                         .doOnNext(queue -> {
-                           nameToQueue.put(queue.getTechnicalName(), queue);
-                         });
+                         .doOnNext(queue -> nameToQueue.put(queue.getTechnicalName(), queue));
   }
 
   public CompletableFuture<Boolean> joinQueues() {
@@ -495,7 +495,6 @@ public class TeamMatchmakingService implements InitializingBean {
 
     validQueues.forEach(queue -> {
       queue.setSelected(true);
-      matchmakerPrefs.getSelectedQueueIds().add(queue.getId());
     });
 
     return featuredModService.updateFeaturedModToLatest(FAF.getTechnicalName(), false)

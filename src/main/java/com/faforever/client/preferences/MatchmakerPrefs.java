@@ -19,7 +19,6 @@ public class MatchmakerPrefs {
 
   private final ObservableSet<Integer> selectedQueueIds = observableSet();
 
-
   public ObservableList<Faction> getFactions() {
     return factions;
   }
