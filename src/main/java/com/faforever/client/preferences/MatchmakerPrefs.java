@@ -17,6 +17,9 @@ public class MatchmakerPrefs {
 
   private final ObservableMap<VetoKey, Integer> appliedVetoes = observableHashMap();
 
+  private final ObservableSet<Integer> selectedQueueIds = observableSet();
+
+
   public ObservableList<Faction> getFactions() {
     return factions;
   }
@@ -29,4 +32,7 @@ public class MatchmakerPrefs {
     return appliedVetoes;
   }
 
+  public ObservableSet<Integer> getSelectedQueueIds() {
+    return selectedQueueIds;
+  }
 }
