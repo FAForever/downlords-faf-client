@@ -45,6 +45,7 @@
                                     <HBox spacing="5.0" alignment="CENTER">
                                         <Button minWidth="50.0" mnemonicParsing="false" styleClass="primary-button" onAction="#onWikiButtonClicked" text="%coop.wiki.button" textAlignment="CENTER" textOverrun="CLIP" HBox.hgrow="ALWAYS" />
                                         <Button minWidth="50.0" mnemonicParsing="false" styleClass="discord-color" onAction="#onDiscordHyperLinkClicked" textAlignment="CENTER" textOverrun="CLIP" HBox.hgrow="ALWAYS">
+                                            <tooltip><Tooltip text="%coop.discord.button" /></tooltip>
                                             <graphic>
                                                 <Region styleClass="icon, icon24x24, discord-icon" />
                                             </graphic>
