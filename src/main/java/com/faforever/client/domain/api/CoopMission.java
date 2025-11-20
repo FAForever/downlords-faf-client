@@ -13,7 +13,7 @@ public record CoopMission(
     URL thumbnailUrlLarge,
     String mapFolderName
 ) {
-  public String ConcatName() {
+  public String concatName() {
     return name + " - V" + version;
   }
 }

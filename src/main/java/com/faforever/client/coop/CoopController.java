@@ -276,7 +276,7 @@ public class CoopController extends NodeController<Node> {
   }
 
   private ListCell<CoopMission> missionListCell() {
-    return new StringListCell<>(fxApplicationThreadExecutor, CoopMission::ConcatName, null, Pos.CENTER_LEFT, "coop-mission");
+    return new StringListCell<>(fxApplicationThreadExecutor, CoopMission::concatName, null, Pos.CENTER_LEFT, "coop-mission");
   }
 
   private void loadLeaderboard() {
@@ -331,20 +331,17 @@ public class CoopController extends NodeController<Node> {
   }
 
   private void desktopBrowserNavigateToURI(URI uri) {
-    Desktop desktop = java.awt.Desktop.getDesktop();
-
-    if (desktop == null)
-    {
+    if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+      log.warn("Desktop browsing is not supported on this platform.");
+      notificationService.addImmediateWarnNotification("coop.browser.notSupported");
       return;
     }
 
     try {
-      URI oURL = new URI(uri.toString());
-      desktop.browse(oURL);
-    } catch (URISyntaxException e) {
-      log.warn("Could not open the mission scripting wiki.", e);
+      Desktop.getDesktop().browse(uri);
     } catch (IOException e) {
-      log.error("Something went wrong when opening the default browser for this desktop.", e);
+      log.error("Could not open browser.", e);
+      notificationService.addImmediateErrorNotification(e, "coop.browser.error");
     }
   }
 
