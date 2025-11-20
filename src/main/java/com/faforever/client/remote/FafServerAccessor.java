@@ -30,6 +30,7 @@ import com.faforever.commons.lobby.NoticeInfo;
 import com.faforever.commons.lobby.Player;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.ServerMessage;
+import com.faforever.commons.lobby.VetoData;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -331,6 +332,10 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
 
   public void setPartyFactions(List<Faction> factions) {
     lobbyClient.setPartyFactions(new HashSet<>(factions));
+  }
+
+  public void setPlayerVetoes(List<VetoData> vetoes) {
+    lobbyClient.setPlayerVetoes(vetoes);
   }
 
   public void notifyGameEnded() {

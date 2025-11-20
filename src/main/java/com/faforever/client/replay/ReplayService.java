@@ -34,7 +34,6 @@ import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.api.elide.ElideNavigatorOnId;
 import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
-import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -49,11 +48,11 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -370,12 +369,12 @@ public class ReplayService {
 
   private void runFafReplayFile(Path path) throws IOException {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
-    ByteBuffer rawReplayByteBuffer = replayData.getData();
+    byte[] rawReplayBytes = replayData.getRawReplayData();
 
     Path tempSupComReplayFile = dataPrefs.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
 
     Files.createDirectories(tempSupComReplayFile.getParent());
-    Files.copy(new ByteBufferBackedInputStream(rawReplayByteBuffer), tempSupComReplayFile,
+    Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile,
                StandardCopyOption.REPLACE_EXISTING);
 
     ReplayMetadata replayMetadata = replayData.getMetadata();

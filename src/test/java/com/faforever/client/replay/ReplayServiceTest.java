@@ -51,7 +51,6 @@ import reactor.test.StepVerifier;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -186,7 +185,7 @@ public class ReplayServiceTest extends ServiceTest {
 
     lenient().when(replayFileReader.parseReplay(any())).thenReturn(replayDataParser);
     lenient().when(replayDataParser.getMetadata()).thenReturn(replayMetadata);
-    lenient().when(replayDataParser.getData()).thenReturn(ByteBuffer.wrap(REPLAY_FIRST_BYTES));
+    lenient().when(replayDataParser.getRawReplayData()).thenReturn(REPLAY_FIRST_BYTES);
     lenient().when(replayDataParser.getChatMessages()).thenReturn(List.of());
     lenient().when(replayDataParser.getGameOptions()).thenReturn(List.of());
     lenient().when(replayDataParser.getMods()).thenReturn(Map.of());

@@ -23,6 +23,8 @@ import com.faforever.client.mapstruct.MatchmakerMapper;
 import com.faforever.client.navigation.NavigationHandler;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
+import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
@@ -31,6 +33,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.ServerStatus;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.VetoKey;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.user.LoginService;
 import com.faforever.client.util.ConcurrentUtil;
@@ -49,6 +52,8 @@ import com.faforever.commons.lobby.MatchmakerState;
 import com.faforever.commons.lobby.PartyInvite;
 import com.faforever.commons.lobby.PartyKick;
 import com.faforever.commons.lobby.SearchInfo;
+import com.faforever.commons.lobby.VetoData;
+import com.faforever.commons.lobby.VetoesChangedInfo;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -79,6 +84,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -215,6 +221,13 @@ public class TeamMatchmakingService implements InitializingBean {
                      .retry()
                      .subscribe();
 
+    fafServerAccessor.getEvents(VetoesChangedInfo.class)
+                     .publishOn(fxApplicationThreadExecutor.asScheduler())
+                     .doOnNext(this::onVetoesChanged)
+                     .doOnError(throwable -> log.error("Error processing vetoes changed", throwable))
+                     .retry()
+                     .subscribe();
+
     fafServerAccessor.getEvents(MatchmakerInfo.class)
                      .flatMapIterable(MatchmakerInfo::getQueues)
                      .concatMap(matchmakerQueue -> Mono.zip(Mono.just(matchmakerQueue),
@@ -229,6 +242,7 @@ public class TeamMatchmakingService implements InitializingBean {
     fafServerAccessor.connectionStateProperty().subscribe(newValue -> {
       if (newValue == ConnectionState.CONNECTED) {
         sendFactions();
+        sendVetoes();
       }
     });
 
@@ -249,6 +263,54 @@ public class TeamMatchmakingService implements InitializingBean {
 
   private void sendFactions() {
     sendFactionSelection(matchmakerPrefs.getFactions());
+  }
+
+  private void sendVetoes() {
+    fafServerAccessor.setPlayerVetoes(getVetoesAsList());
+  }
+
+  public void setTokensForMap(VetoKey key, int vetoTokensApplied) {
+    Integer previousValue;
+    if (vetoTokensApplied == 0) {
+      previousValue = matchmakerPrefs.getAppliedVetoes().remove(key);
+    } else {
+      previousValue = matchmakerPrefs.getAppliedVetoes().put(key, vetoTokensApplied);
+    }
+
+    if ((previousValue == null && vetoTokensApplied > 0) || (previousValue != null && previousValue != vetoTokensApplied)) {
+      sendVetoes();
+    }
+  }
+
+  public void updateVetoes(List<VetoData> vetoes) {
+    Map<VetoKey, Integer> vetosMap = vetoes.stream()
+                                           .collect(Collectors.toMap(
+                                               vetoData -> new VetoKey(vetoData.getMatchmakerQueueMapPoolId(),
+                                                                       vetoData.getMapPoolMapVersionId()),
+                                               VetoData::getVetoTokensApplied));
+    matchmakerPrefs.getAppliedVetoes().clear();
+    matchmakerPrefs.getAppliedVetoes().putAll(vetosMap);
+  }
+
+  private void onVetoesChanged(VetoesChangedInfo vetoesChangedInfo) {
+    updateVetoes(vetoesChangedInfo.getVetoes());
+
+    if (vetoesChangedInfo.getForced()) {
+      notificationService.addNotification(new ImmediateNotification(i18n.get("teammatchmaking.vetoes.forced.title"),
+                                                                    i18n.get("teammatchmaking.vetoes.forced.message"),
+                                                                    Severity.INFO, Collections.singletonList(
+          new DismissAction(i18n))));
+    }
+  }
+
+  private List<VetoData> getVetoesAsList() {
+    return matchmakerPrefs.getAppliedVetoes()
+                          .entrySet()
+                          .stream()
+                          .filter(entry -> entry.getValue() > 0)
+                          .map(entry -> new VetoData(entry.getKey().mapPoolMapVersionId(), entry.getValue(),
+                                                     entry.getKey().matchmakerQueueMapPoolId()))
+                          .collect(Collectors.toList());
   }
 
   private void onSearchInfo(SearchInfo message) {
@@ -376,8 +438,7 @@ public class TeamMatchmakingService implements InitializingBean {
                                                                           .collection()
                                                                           .setFilter(qBuilder().string("technicalName")
                                                                                                .eq(matchmakerQueue.getName()));
-    return fafApiAccessor.getMany(navigator)
-                         .next().map(matchmakerMapper::map)
+    return fafApiAccessor.getMany(navigator).next().map(matchmakerMapper::map)
                          .map(queue -> matchmakerMapper.update(matchmakerQueue, queue))
                          .doOnNext(queue -> queue.setSelected(
                              !matchmakerPrefs.getUnselectedQueueIds().contains(queue.getId())))
@@ -405,20 +466,21 @@ public class TeamMatchmakingService implements InitializingBean {
 
     return featuredModService.updateFeaturedModToLatest(FAF.getTechnicalName(), false)
                              .thenCompose(aVoid -> validQueues.stream()
-                                                      .map(this::joinQueue)
-                                                      .reduce((future1, future2) -> future1.thenCombine(future2,
-                                                                                                        (result1, result2) -> result1 || result2))
-                                                      .orElse(CompletableFuture.completedFuture(false)))
+                                                              .map(this::joinQueue)
+                                                              .reduce((future1, future2) -> future1.thenCombine(future2,
+                                                                                                                (result1, result2) -> result1 || result2))
+                                                              .orElse(CompletableFuture.completedFuture(false)))
                              .exceptionally(throwable -> {
-                       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-                       log.error("Unable to join queues", throwable);
-                       if (throwable instanceof NotifiableException notifiableException) {
-                         notificationService.addErrorNotification(notifiableException);
-                       } else {
-                         notificationService.addImmediateErrorNotification(throwable, "teammatchmaking.couldNotStart");
-                       }
-                       return false;
-                     });
+                               throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+                               log.error("Unable to join queues", throwable);
+                               if (throwable instanceof NotifiableException notifiableException) {
+                                 notificationService.addErrorNotification(notifiableException);
+                               } else {
+                                 notificationService.addImmediateErrorNotification(throwable,
+                                                                                   "teammatchmaking.couldNotStart");
+                               }
+                               return false;
+                             });
   }
 
   public void leaveQueues() {

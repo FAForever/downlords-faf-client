@@ -10,12 +10,6 @@
 
 The official client for [Forged Alliance Forever (FAF)](https://www.faforever.com/)
 
-## Support Development
-
-Post a bounty on Issue Hunt. You can reward and financially help developers that solve the issue. For new features, it can be helpful to first ask whether other people also see your change as an improvement. This helps avoid feature requests that will not be accepted.
-
-[![Issue hunt](https://github.com/BoostIO/issuehunt-materials/raw/master/v1/issuehunt-button-v1.svg?sanitize=true)](https://issuehunt.io/r/FAForever/downlords-faf-client)
-
 ## How To Run
 1. Use [Temurin](https://adoptium.net/) 25 or Oracle JDK 25 (others might not work)
 1. Clone the project with Git

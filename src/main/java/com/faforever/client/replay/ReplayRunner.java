@@ -100,8 +100,8 @@ public class ReplayRunner implements InitializingBean {
     CompletableFuture<Void> updateFeaturedModFuture = featuredModService.updateFeaturedMod(featuredModName,
                                                                                            featuredModFileVersions,
                                                                                            baseFafVersion, true);
-    boolean hasSimMods = simMods == null || simMods.isEmpty();
-    CompletableFuture<Void> installAndActivateSimModsFuture = hasSimMods ? completedFuture(
+    boolean hasNoSimMods = simMods == null || simMods.isEmpty();
+    CompletableFuture<Void> installAndActivateSimModsFuture = hasNoSimMods ? completedFuture(
         null) : modService.downloadAndEnableMods(simMods).toFuture();
     CompletableFuture<Void> downloadMapFuture = downloadMapAskIfError(mapFolderName).toFuture();
     CompletableFuture.allOf(updateFeaturedModFuture, installAndActivateSimModsFuture, downloadMapFuture)

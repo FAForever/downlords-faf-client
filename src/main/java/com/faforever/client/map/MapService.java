@@ -632,17 +632,14 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   @Cacheable(value = CacheNames.MATCHMAKER_POOLS, sync = true)
-  public Mono <java.util.Map<MatchmakerQueueMapPool, List<MapVersion>>> getMatchmakerBrackets(MatchmakerQueueInfo matchmakerQueue) {
+  public Mono <java.util.Map<MatchmakerQueueMapPool, List<com.faforever.client.domain.api.MapPoolAssignment>>> getMatchmakerBrackets(MatchmakerQueueInfo matchmakerQueue) {
     ElideNavigatorOnCollection<MapPoolAssignment> navigator = ElideNavigator
         .of(MapPoolAssignment.class).collection()
         .setFilter(qBuilder().intNum("mapPool.matchmakerQueueMapPool.matchmakerQueue.id").eq(matchmakerQueue.getId()));
 
     return fafApiAccessor.getMany(navigator)
                          .map(matchmakerMapper::map)
-                         .collect(Collectors.groupingBy(assignment -> assignment.mapPool().mapPool(),
-                                                        Collectors.mapping(
-                                                            com.faforever.client.domain.api.MapPoolAssignment::mapVersion,
-                                                            Collectors.toList())));
+                         .collect(Collectors.groupingBy(assignment -> assignment.mapPool().mapPool()));
 
   }
 

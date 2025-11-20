@@ -1,6 +1,5 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.game.GameService;
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.SignalType;
 import reactor.netty.Connection;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.client.HttpClient;
@@ -46,7 +44,6 @@ public class ReplayServer {
    */
   private static final byte[] LIVE_REPLAY_PREFIX = new byte[]{'P', '/'};
 
-  private final ClientProperties clientProperties;
   private final LoginService loginService;
   private final ReplayFileWriter replayFileWriter;
   private final PlayerService playerService;
@@ -83,9 +80,20 @@ public class ReplayServer {
                       this.tcpServer = server;
                     })
                     .doOnUnbound(server -> log.debug("Closing local replay server on port {}", server.port()))
-                    .handle((inbound, _) -> {
+                    .doOnConnection(_ -> log.debug("Connected to game replay data stream"))
+                    .handle((inbound, outbound) -> {
+                      GameInfo game = gameService.getByUid(gameId).orElseThrow();
                       ByteArrayOutputStream replayData = new ByteArrayOutputStream();
-                      Flux<byte[]> incomingReplayData = inbound.receive().asByteArray().replay().refCount();
+                      Flux<byte[]> incomingReplayData = inbound.withConnection(
+                          connection -> connection.onDispose(() -> {
+                            log.info("FAF disconnected, writing replay data to file");
+                            finishReplayInfo(game, replayInfo);
+                            try {
+                              replayFileWriter.writeReplayDataToFile(replayData, replayInfo);
+                            } catch (IOException e) {
+                              log.warn("Unable to write replay data to file", e);
+                            }
+                          })).receive().asByteArray().replay().refCount();
 
                       Mono<Void> remoteReplayData = userWebClientFactory.getObject()
                                                                         .get()
@@ -105,8 +113,12 @@ public class ReplayServer {
                                                                                                   .websocket()
                                                                                                   .uri(url)
                                                                                                   .handle(
-                                                                                                      (_, outbound) -> outbound.sendByteArray(
-                                                                                                          incomingReplayData))
+                                                                                                      (websocketInbound, webSocketOutbound) -> Flux.merge(
+                                                                                                          outbound.sendByteArray(
+                                                                                                              websocketInbound.receive()
+                                                                                                                              .asByteArray()),
+                                                                                                          webSocketOutbound.sendByteArray(
+                                                                                                              incomingReplayData)))
                                                                                                   .then()
                                                                                                   .doOnError(
                                                                                                       throwable -> log.warn(
@@ -122,28 +134,10 @@ public class ReplayServer {
                                                                          replayData.writeBytes(buffer);
                                                                        }
                                                                      })
+                                                                     .doOnError(throwable -> log.warn(
+                                                                         "Error in local replay saving", throwable))
                                                                      .then()
-                                                                     .doOnError(
-                                                                         throwable -> log.warn("Error in replay server",
-                                                                                               throwable))
-                                                                     .doFinally(signalType -> {
-                                                                       if (signalType == SignalType.ON_ERROR) {
-                                                                         return;
-                                                                       }
-
-                                                                       log.info(
-                                                                           "FAF disconnected, writing replay data to file");
-                                                                       GameInfo game = gameService.getByUid(gameId)
-                                                                                                  .orElseThrow();
-                                                                       finishReplayInfo(game, replayInfo);
-                                                                       try {
-                                                                         replayFileWriter.writeReplayDataToFile(
-                                                                             replayData, replayInfo);
-                                                                       } catch (IOException e) {
-                                                                         log.warn("Unable to write replay data to file",
-                                                                                  e);
-                                                                       }
-                                                                     });
+                                                                     .onErrorComplete();
 
                       return Mono.when(remoteReplayData, localReplayData);
                     })
