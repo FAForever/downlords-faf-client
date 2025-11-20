@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.web.*?>
 
-<GridPane fx:id="coopRoot" gridLinesVisible="true" hgap="10.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.coop.CoopController">
+<GridPane fx:id="coopRoot" hgap="10.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.coop.CoopController">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="55.0" />
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="45.0" prefWidth="100.0" />
@@ -54,10 +54,7 @@
                                         <padding>
                                             <Insets top="15.0" />
                                         </padding>
-
-                                        Check out the FAF wiki to get tips on how to add stronger AI to your missions,
-                                        fix any issues you might be having and other things.
-                                        For contributing and creating your own, check out the campaign Discord server.
+                                        <text><![CDATA[%coop.info.label]]></text>
                                     </Label>
                                 </VBox>
                             </children>
