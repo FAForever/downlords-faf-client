@@ -38,7 +38,7 @@
                                         <Button fx:id="playButton" defaultButton="true" minWidth="100.0" mnemonicParsing="false" onAction="#onPlayButtonClicked" text="%coop.host.button" textOverrun="CLIP" HBox.hgrow="ALWAYS" />
                                     </HBox>
 
-                                    <WebView fx:id="descriptionWebView" maxHeight="-1.0" minHeight="100.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.valignment="TOP" />
+                                    <WebView fx:id="descriptionWebView" maxHeight="-1.0" minHeight="100.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" />
                                 </VBox>
 
                                 <VBox alignment="TOP_CENTER" minWidth="200" prefWidth="250">
