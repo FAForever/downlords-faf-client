@@ -130,7 +130,7 @@ public class CoopController extends NodeController<Node> {
 
     missionComboBox.getSelectionModel().selectedItemProperty().when(showing).subscribe(this::setSelectedMission);
     missionComboBox.setButtonCell(missionListCell());
-    missionComboBox.getSelectionModel().selectedItemProperty().when(showing).subscribe(this::setSelectedMission);
+    missionComboBox.setCellFactory(param -> missionListCell());
 
     mapPreviewImageView.imageProperty()
                        .bind(missionComboBox.getSelectionModel().selectedItemProperty().map(CoopMission::mapFolderName)
@@ -209,12 +209,15 @@ public class CoopController extends NodeController<Node> {
                .subscribe(coopScenarios -> {
                  scenarioComboBox.getItems().addAll(coopScenarios);
 
-//                 gamesTableController.initializeGameTable(filteredItems,
-//                                                          mapFolderName -> coopMissionFromFolderName(coopMaps,
-//                                                                                                     mapFolderName),
-//                                                          false);
+                 List<CoopMission> coopMissions = new ArrayList<>();
+                 for (CoopScenario coopScenario : coopScenarios) {
+                   coopMissions.addAll(coopScenario.maps());
+                 }
 
-                 gamesTableController.initializeGameTable(filteredItems);
+                 gamesTableController.initializeGameTable(filteredItems,
+                                                          mapFolderName -> coopMissionFromFolderName(coopMissions,
+                                                                                                     mapFolderName),
+                                                          false);
                  gamesTableController.getMapPreviewColumn().setVisible(false);
                  gamesTableController.getRatingRangeColumn().setVisible(false);
 
@@ -273,23 +276,7 @@ public class CoopController extends NodeController<Node> {
   }
 
   private ListCell<CoopMission> missionListCell() {
-    return new StringListCell<>(fxApplicationThreadExecutor, CoopMission::ConcatName,  mission -> {
-      Label label = new Label();
-      Region iconRegion = new Region();
-      label.setGraphic(iconRegion);
-      iconRegion.getStyleClass().add(ThemeService.CSS_CLASS_ICON);
-//      switch (mission.category()) {
-//        case AEON -> iconRegion.getStyleClass().add(ThemeService.AEON_STYLE_CLASS);
-//        case CYBRAN -> iconRegion.getStyleClass().add(ThemeService.CYBRAN_STYLE_CLASS);
-//        case UEF -> iconRegion.getStyleClass().add(ThemeService.UEF_STYLE_CLASS);
-//        case FA -> iconRegion.getStyleClass().add(ThemeService.SERAPHIM_STYLE_CLASS);
-//        case CUSTOM -> iconRegion.getStyleClass().add(ThemeService.MOD_ICON_STYLE_CLASS);
-//        default -> {
-//          return null;
-//        }
-//      }
-      return label;
-    }, Pos.CENTER_LEFT, "coop-mission");
+    return new StringListCell<>(fxApplicationThreadExecutor, CoopMission::ConcatName, null, Pos.CENTER_LEFT, "coop-mission");
   }
 
   private void loadLeaderboard() {
@@ -325,7 +312,8 @@ public class CoopController extends NodeController<Node> {
       return;
     }
 
-    missionComboBox.setItems(FXCollections.observableList(scenario.maps()));
+    missionComboBox.getItems().clear();
+    missionComboBox.getItems().addAll(scenario.maps());
     missionComboBox.getSelectionModel().select(0);
   }
 
@@ -351,7 +339,7 @@ public class CoopController extends NodeController<Node> {
     }
 
     try {
-      URI oURL = new URI("https://wiki.faforever.com/en/Development/Missions/Mission-Scripting");
+      URI oURL = new URI(uri.toString());
       desktop.browse(oURL);
     } catch (URISyntaxException e) {
       log.warn("Could not open the mission scripting wiki.", e);
