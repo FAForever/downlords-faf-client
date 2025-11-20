@@ -43,7 +43,7 @@ public class CoopService {
   @Cacheable(value = CacheNames.COOP_SCENARIOS, sync = true)
   public Flux<CoopScenario> getScenarios() {
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.CoopScenario> navigator = ElideNavigator.of(
-        com.faforever.commons.api.dto.CoopScenario.class).collection().pageSize(1000);
+        com.faforever.commons.api.dto.CoopScenario.class).collection().addInclude("maps").pageSize(1000);
     return fafApiAccessor.getMany(navigator).map(coopMapper::map).cache();
   }
 

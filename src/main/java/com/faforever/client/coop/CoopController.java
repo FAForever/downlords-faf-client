@@ -325,7 +325,7 @@ public class CoopController extends NodeController<Node> {
       return;
     }
 
-    missionComboBox.setItems(FXCollections.observableList(scenario.coopMissions()));
+    missionComboBox.setItems(FXCollections.observableList(scenario.maps()));
     missionComboBox.getSelectionModel().select(0);
   }
 
