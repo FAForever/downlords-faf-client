@@ -5,7 +5,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
-import com.faforever.client.util.Validator;
 import com.faforever.commons.io.ByteCountListener;
 import com.faforever.commons.io.Zipper;
 import lombok.Setter;
@@ -26,6 +25,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.faforever.commons.io.Bytes.formatSize;
@@ -59,7 +59,7 @@ public class ModUploadTask extends CompletableTask<Void> {
 
   @Override
   protected Void call() throws Exception {
-    Validator.notNull(modPath, "modPath must not be null");
+    Objects.requireNonNull(modPath, "modPath must not be null");
 
     ResourceLocks.acquireUploadLock();
     Path cacheDirectory = dataPrefs.getCacheDirectory();

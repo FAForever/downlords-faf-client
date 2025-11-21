@@ -39,7 +39,7 @@
     </rowConstraints>
     <children>
         <!-- Title, Password, Rating -->
-        <TextField fx:id="titleTextField" promptText="%game.create.title" styleClass="game-title-input"
+        <TextField fx:id="titleTextField" promptText="%game.create.title" styleClass="game-title-input, invalid-text-field"
                    GridPane.columnSpan="2147483647"/>
         <PasswordField fx:id="passwordTextField" promptText="%game.create.password" GridPane.rowIndex="1"/>
         <CheckBox fx:id="onlyForFriendsCheckBox" mnemonicParsing="false" text="%game.create.onlyFriends"

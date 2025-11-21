@@ -6,6 +6,7 @@ import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.fx.ControllerTableCell;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.ObservableConstant;
 import com.faforever.client.fx.StringCell;
@@ -24,12 +25,16 @@ import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
+import com.faforever.client.util.Validator;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Strings;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -71,6 +76,7 @@ import static com.faforever.client.game.KnownFeaturedMod.COOP;
 @RequiredArgsConstructor
 public class CoopController extends NodeController<Node> {
 
+  public static final PseudoClass INVALID_PSEUDO_CLASS = PseudoClass.getPseudoClass("invalid");
   private static final Predicate<GameInfo> OPEN_COOP_GAMES_PREDICATE = gameInfoBean -> gameInfoBean.getStatus() == GameStatus.OPEN && gameInfoBean.getGameType() == GameType.COOP;
 
   private final GameRunner gameRunner;
@@ -108,9 +114,13 @@ public class CoopController extends NodeController<Node> {
   public TableColumn<CoopResult, Duration> timeColumn;
   public TableColumn<CoopResult, String> replayColumn;
   public GamesTableController gamesTableController;
+  public Label titleWarningLabel;
+  public Label passwordWarningLabel;
 
   @Override
   protected void onInitialize() {
+    JavaFxUtil.bindManagedToVisible(titleWarningLabel, passwordWarningLabel);
+
     missionComboBox.setCellFactory(param -> missionListCell());
     missionComboBox.setButtonCell(missionListCell());
     missionComboBox.getSelectionModel().selectedItemProperty().when(showing).subscribe(this::setSelectedMission);
@@ -120,7 +130,19 @@ public class CoopController extends NodeController<Node> {
                                             .map(folderName -> mapService.loadPreview(folderName, PreviewSize.LARGE))
                                             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable)
                                             .when(showing));
-    playButton.disableProperty().bind(titleTextField.textProperty().isEmpty().when(showing));
+
+    BooleanBinding invalidSelectorTitleFieldProperty = createInvalidSelectorProperty(titleTextField);
+    BooleanBinding invalidSelectorPasswordFieldProperty = createInvalidSelectorProperty(passwordTextField);
+    addListenerToUpdateInvalidSelectorStateIfTextIsNotAcsii(titleTextField);
+    addListenerToUpdateInvalidSelectorStateIfTextIsNotAcsii(passwordTextField);
+    playButton.disableProperty()
+              .bind(titleTextField.textProperty()
+                                  .isEmpty()
+                                  .or(invalidSelectorTitleFieldProperty)
+                                  .or(invalidSelectorPasswordFieldProperty)
+                                  .when(showing));
+    titleWarningLabel.visibleProperty().bind(invalidSelectorTitleFieldProperty.when(showing));
+    passwordWarningLabel.visibleProperty().bind(invalidSelectorPasswordFieldProperty.when(showing));
 
     numberOfPlayersComboBox.setButtonCell(numberOfPlayersCell());
     numberOfPlayersComboBox.setCellFactory(param -> numberOfPlayersCell());
@@ -206,6 +228,17 @@ public class CoopController extends NodeController<Node> {
                  }
                }, throwable -> notificationService.addPersistentErrorNotification("coop.couldNotLoad",
                                                                                   throwable.getLocalizedMessage()));
+  }
+
+  private BooleanBinding createInvalidSelectorProperty(Node component) {
+    return Bindings.createBooleanBinding(() -> component.getPseudoClassStates().contains(INVALID_PSEUDO_CLASS),
+                                         component.getPseudoClassStates());
+  }
+
+  private void addListenerToUpdateInvalidSelectorStateIfTextIsNotAcsii(TextField field) {
+    field.textProperty()
+         .when(showing)
+         .subscribe(text -> field.pseudoClassStateChanged(INVALID_PSEUDO_CLASS, !Validator.isAscii(text)));
   }
 
   private String coopMissionFromFolderName(List<CoopMission> coopMaps, String mapFolderName) {
