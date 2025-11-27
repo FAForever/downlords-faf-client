@@ -10,6 +10,7 @@ import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.ObservableConstant;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -89,6 +90,7 @@ public class CoopController extends NodeController<Node> {
   private final ReplayService replayService;
   private final GameService gameService;
   private final CoopService coopService;
+  private final PlatformService platformService;
   private final ImageViewHelper imageViewHelper;
   private final NotificationService notificationService;
   private final I18n i18n;
@@ -276,7 +278,7 @@ public class CoopController extends NodeController<Node> {
   }
 
   private ListCell<CoopMission> missionListCell() {
-    return new StringListCell<>(fxApplicationThreadExecutor, CoopMission::concatName, null, Pos.CENTER_LEFT, "coop-mission");
+    return new StringListCell<>(fxApplicationThreadExecutor, this::getMissionConcatDisplayName, null, Pos.CENTER_LEFT, "coop-mission");
   }
 
   private void loadLeaderboard() {
@@ -330,36 +332,25 @@ public class CoopController extends NodeController<Node> {
     loadLeaderboard();
   }
 
-  private void desktopBrowserNavigateToURI(URI uri) {
-    if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-      log.warn("Desktop browsing is not supported on this platform.");
-      notificationService.addImmediateWarnNotification("coop.browser.notSupported");
-      return;
-    }
-
-    try {
-      Desktop.getDesktop().browse(uri);
-    } catch (IOException e) {
-      log.error("Could not open browser.", e);
-      notificationService.addImmediateErrorNotification(e, "coop.browser.error");
-    }
-  }
-
   public void onPlayButtonClicked() {
     gameRunner.host(new NewGameInfo(titleTextField.getText(), Strings.emptyToNull(passwordTextField.getText()),
                                     COOP.getTechnicalName(), getSelectedMission().mapFolderName(), Set.of()));
   }
 
   public void onWikiButtonClicked() {
-    desktopBrowserNavigateToURI(URI.create("https://wiki.faforever.com/en/Development/Missions/Mission-Scripting"));
+    platformService.showDocument("https://wiki.faforever.com/en/Development/Missions/Mission-Scripting");
   }
 
   public void onDiscordHyperLinkClicked() {
-    desktopBrowserNavigateToURI(URI.create("https://discord.gg/ayzAVr9JUV"));
+    platformService.showDocument("https://discord.gg/ayzAVr9JUV");
   }
 
   public void onMapPreviewImageClicked() {
     Optional.ofNullable(mapPreviewImageView.getImage()).ifPresent(PopupUtil::showImagePopup);
+  }
+
+  public String getMissionConcatDisplayName(CoopMission mission) {
+    return mission.name() + " - V" + mission.version();
   }
 
   @Override
