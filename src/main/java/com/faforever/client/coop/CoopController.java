@@ -213,7 +213,10 @@ public class CoopController extends NodeController<Node> {
 
                  List<CoopMission> coopMissions = new ArrayList<>();
                  for (CoopScenario coopScenario : coopScenarios) {
-                   coopMissions.addAll(coopScenario.maps());
+                   List<CoopMission> maps = coopScenario.maps();
+                   if (maps != null) {
+                     coopMissions.addAll(coopScenario.maps());
+                   }
                  }
 
                  gamesTableController.initializeGameTable(filteredItems,
@@ -314,7 +317,12 @@ public class CoopController extends NodeController<Node> {
       return;
     }
 
+    List<CoopMission> missions = scenario.maps();
     missionComboBox.getItems().clear();
+    if (missions == null || missions.isEmpty()) {
+      return;
+    }
+
     missionComboBox.getItems().addAll(scenario.maps());
     missionComboBox.getSelectionModel().select(0);
   }
