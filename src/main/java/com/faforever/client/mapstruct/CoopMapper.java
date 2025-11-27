@@ -18,7 +18,6 @@ public interface CoopMapper {
   @InheritInverseConfiguration
   com.faforever.commons.api.dto.CoopMission map(CoopMission bean);
 
-  @Mapping(target = ".", source = "dto")
   CoopScenario map(com.faforever.commons.api.dto.CoopScenario dto);
 
   @InheritInverseConfiguration

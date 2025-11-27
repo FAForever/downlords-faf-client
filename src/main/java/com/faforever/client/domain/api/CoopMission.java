@@ -1,6 +1,5 @@
 package com.faforever.client.domain.api;
 
-import com.faforever.client.coop.CoopFaction;
 import java.net.URL;
 
 public record CoopMission(
@@ -12,8 +11,4 @@ public record CoopMission(
     URL thumbnailUrlSmall,
     URL thumbnailUrlLarge,
     String mapFolderName
-) {
-  public String concatName() {
-    return name + " - V" + version;
-  }
-}
+) {}

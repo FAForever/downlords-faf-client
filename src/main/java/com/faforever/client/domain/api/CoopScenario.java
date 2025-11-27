@@ -12,8 +12,4 @@ public record CoopScenario (
   CoopFaction faction,
   CoopType type,
   List<CoopMission> maps
-) {
-  public CoopScenario {
-    maps = maps == null ? List.of() : List.copyOf(maps);
-  }
-}
+) { }
