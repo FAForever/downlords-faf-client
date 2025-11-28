@@ -1,6 +1,5 @@
 package com.faforever.client.coop;
 
-import com.faforever.client.domain.api.CoopCategory;
 import com.faforever.client.domain.api.CoopMission;
 import com.faforever.client.domain.api.CoopResult;
 import com.faforever.client.domain.api.CoopScenario;
@@ -27,11 +26,9 @@ import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
-import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Strings;
-import javafx.application.HostServices;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -52,24 +49,17 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.web.WebView;
-import javafx.util.StringConverter;
-import jdk.jfr.Category;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.awt.Desktop;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -211,13 +201,11 @@ public class CoopController extends NodeController<Node> {
                .subscribe(coopScenarios -> {
                  scenarioComboBox.getItems().addAll(coopScenarios);
 
-                 List<CoopMission> coopMissions = new ArrayList<>();
-                 for (CoopScenario coopScenario : coopScenarios) {
-                   List<CoopMission> maps = coopScenario.maps();
-                   if (maps != null) {
-                     coopMissions.addAll(coopScenario.maps());
-                   }
-                 }
+                 List<CoopMission> coopMissions = coopScenarios.stream()
+                                                               .map(CoopScenario::maps)
+                                                               .filter(Objects::nonNull)
+                                                               .flatMap(Collection::stream)
+                                                               .toList();
 
                  gamesTableController.initializeGameTable(filteredItems,
                                                           mapFolderName -> coopMissionFromFolderName(coopMissions,
@@ -318,12 +306,12 @@ public class CoopController extends NodeController<Node> {
     }
 
     List<CoopMission> missions = scenario.maps();
-    missionComboBox.getItems().clear();
     if (missions == null || missions.isEmpty()) {
+      missionComboBox.getItems().clear();
       return;
     }
 
-    missionComboBox.getItems().addAll(scenario.maps());
+    missionComboBox.getItems().setAll(missions);
     missionComboBox.getSelectionModel().select(0);
   }
 
