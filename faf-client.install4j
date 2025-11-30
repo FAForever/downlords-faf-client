@@ -57,6 +57,7 @@
       <vmOptionsFile mode="content" overwriteMode="3">
         <content># Enter one VM parameter per line
 -Xmx1g
+-XX:+EnableDynamicAgentLoading
 -XX:+HeapDumpOnOutOfMemoryError
 -Djava.net.preferIPv4Stack=true
 -DnativeDir=natives
