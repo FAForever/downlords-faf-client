@@ -28,3 +28,8 @@ faf-client:
     exe-url: https://content.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
 
   use-remote-preferences: true
+
+spring:
+  reactor:
+    debug-agent:
+      enabled: false
