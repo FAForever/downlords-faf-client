@@ -7,6 +7,7 @@ import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.commons.api.dto.ApiException;
 import com.faforever.commons.api.dto.Clan;
 import com.faforever.commons.api.dto.CoopResult;
+import com.faforever.commons.api.dto.CoopScenario;
 import com.faforever.commons.api.dto.CoturnServer;
 import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GameReviewsSummary;
@@ -108,7 +109,8 @@ public class FafApiAccessor implements InitializingBean {
       java.util.Map.entry(ModerationReport.class, List.of("reporter", "lastModerator", "reportedUsers", "game", "game.playerStats", "game.playerStats.player")),
       java.util.Map.entry(MatchmakerQueue.class, List.of("leaderboard")),
       java.util.Map.entry(TutorialCategory.class, List.of("tutorials", "tutorials.mapVersion.map", "tutorials.mapVersion.map.latestVersion",
-          "tutorials.mapVersion.map.author"))
+          "tutorials.mapVersion.map.author")),
+      java.util.Map.entry(CoopScenario.class, List.of("maps"))
   );
 
   @VisibleForTesting
