@@ -69,6 +69,7 @@ public class ClientProperties {
   public static class Irc {
     private String host;
     private int port;
+    private boolean secure = true;
     /**
      * Channel to join by default.
      *
@@ -162,6 +163,7 @@ public class ClientProperties {
     if (chat != null) {
       this.irc.setHost(chat.getHost());
       this.irc.setPort(chat.getPort());
+      this.irc.setSecure(!serverEndpoints.getName().contains("Local server"));
     }
 
     UrlEndpoint api = serverEndpoints.getApi();

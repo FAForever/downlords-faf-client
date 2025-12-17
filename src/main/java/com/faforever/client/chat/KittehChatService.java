@@ -738,7 +738,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                     .nick(username)
                                     .server()
                                     .host(irc.getHost())
-                                    .port(irc.getPort(), SecurityType.SECURE)
+                                    .port(irc.getPort(), irc.isSecure() ? SecurityType.SECURE : SecurityType.INSECURE)
                                     .then()
                                     .listeners()
                                     .input(this::onMessage)
