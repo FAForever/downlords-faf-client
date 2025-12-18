@@ -12,6 +12,6 @@
     </padding>
     <children>
         <Label fx:id="name" maxHeight="1.7976931348623157E308" prefWidth="200.0" text="Label" wrapText="true"/>
-        <Button onAction="#open" text="Open in Browser"/>
+        <Button onAction="#open" text="%open.in.browser"/>
     </children>
 </HBox>
