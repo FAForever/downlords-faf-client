@@ -199,6 +199,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
              .subscribe(maxMessages -> channels.values()
                                                .forEach(channel -> channel.setMaxNumMessages(maxMessages.intValue())));
     connectionState.subscribe((oldValue, newValue) -> {
+      log.debug("Connection state changed from {} to {}", oldValue, newValue);
       if (autoReconnect && oldValue == ConnectionState.CONNECTED && newValue == ConnectionState.DISCONNECTED) {
         connect();
       }
