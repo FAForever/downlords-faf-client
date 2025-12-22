@@ -326,7 +326,7 @@ public class FafApiAccessor implements InitializingBean {
     return requestSpec.retrieve().onStatus(HttpStatusCode::isError, response -> {
       HttpStatusCode httpStatus = response.statusCode();
       return switch (httpStatus) {
-        case HttpStatus.BAD_REQUEST, HttpStatus.UNPROCESSABLE_ENTITY ->
+        case HttpStatus.BAD_REQUEST, HttpStatus.UNPROCESSABLE_CONTENT ->
             /* onStatus expects a mono which emits an exception so here we map it to an Exception, however
               this map is never executed since bodyToMono will throw its own ResourceParseException if there are
               any errors in the JSONAPIDocument which we expect with a BAD REQUEST and UNPROCESSABLE response so this
