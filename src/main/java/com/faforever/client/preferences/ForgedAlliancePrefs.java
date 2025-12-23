@@ -42,7 +42,7 @@ public class ForgedAlliancePrefs {
   /**
    * Force CPU Affinity when launching the FA game process
    */
-  private final BooleanProperty forceAffinity = new SimpleBooleanProperty(false);
+  private final BooleanProperty forceAffinity = new SimpleBooleanProperty(true);
 
   public Path getPreferencesFile() {
     return preferencesFile.get();

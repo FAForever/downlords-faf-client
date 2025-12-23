@@ -110,7 +110,7 @@ public class GameUpdaterImpl implements GameUpdater {
         vaultPathString = vaultPathString.substring(homeDirString.length());
       }
     }
-    boolean isForceCPUAffinity = forgedAlliancePrefs.forceAffinityProperty().get();
+    boolean isForceCPUAffinity = forgedAlliancePrefs.isForceAffinity();
 
     String pathFileFormat = """
         fa_path = "%s"
