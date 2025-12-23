@@ -146,6 +146,8 @@ public class SettingsController extends NodeController<Node> {
   public CheckBox playPmReceivedSoundCheckBox;
   public CheckBox afterGameReviewCheckBox;
   public CheckBox disableSteamStartCheckBox;
+  public CheckBox skipStatistic;
+  public CheckBox noGameSoundCheckBox;
   public Region settingsRoot;
   public ComboBox<Theme> themeComboBox;
   public ToggleGroup toastPositionToggleGroup;
@@ -331,6 +333,9 @@ public class SettingsController extends NodeController<Node> {
     executableDecoratorField.textProperty().bindBidirectional(forgedAlliancePrefs.executableDecoratorProperty());
     executionDirectoryField.textProperty()
         .bindBidirectional(forgedAlliancePrefs.executionDirectoryProperty(), PATH_STRING_CONVERTER);
+
+    skipStatistic.selectedProperty().bindBidirectional(forgedAlliancePrefs.skipStatisticProperty());
+    noGameSoundCheckBox.selectedProperty().bindBidirectional(forgedAlliancePrefs.noGameSoundProperty());
   }
 
   private void initPreferredCoturnListView() {

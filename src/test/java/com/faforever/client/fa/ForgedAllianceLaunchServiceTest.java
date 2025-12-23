@@ -29,6 +29,8 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
   private PlayerService playerService ;
   @Mock
   private LoggingService loggingService;
+  @Mock
+  private GameLaunchLocalParametersResolver gameLaunchLocalParametersResolver;
 
   @Spy
   private ForgedAlliancePrefs forgedAlliancePrefs;

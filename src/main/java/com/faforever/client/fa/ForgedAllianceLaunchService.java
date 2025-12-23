@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -42,6 +43,7 @@ public class ForgedAllianceLaunchService {
   private final LoggingService loggingService;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final DataPrefs dataPrefs;
+  private final GameLaunchLocalParametersResolver gameLaunchLocalParametersResolver;
 
   public Process launchOfflineGame(String map) {
     List<String> launchCommand = defaultLaunchCommand().map(map).logFile(loggingService.getNewGameLogFile(0)).build();
@@ -125,7 +127,7 @@ public class ForgedAllianceLaunchService {
         .executableDecorator(forgedAlliancePrefs.getExecutableDecorator())
         .executable(getExecutablePath());
 
-    return addDebugger(baseCommandBuilder);
+    return addDebugger(baseCommandBuilder).gameLaunchLocalParameters(gameLaunchLocalParametersResolver.getParameters());
   }
 
   private LaunchCommandBuilder replayLaunchCommand() {
