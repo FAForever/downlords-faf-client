@@ -39,6 +39,10 @@ public class ForgedAlliancePrefs {
   private final BooleanProperty showIceAdapterDebugWindow = new SimpleBooleanProperty(false);
   private final BooleanProperty relativeGamePaths = new SimpleBooleanProperty(false);
   private final ObservableSet<String> preferredCoturnIds = FXCollections.observableSet();
+  /**
+   * Force CPU Affinity when launching the FA game process
+   */
+  private final BooleanProperty forceAffinity = new SimpleBooleanProperty(false);
 
   public Path getPreferencesFile() {
     return preferencesFile.get();
@@ -182,5 +186,17 @@ public class ForgedAlliancePrefs {
 
   public BooleanProperty warnNonAsciiVaultPathProperty() {
     return warnNonAsciiVaultPath;
+  }
+
+  public boolean isForceAffinity() {
+    return forceAffinity.get();
+  }
+
+  public BooleanProperty forceAffinityProperty() {
+    return forceAffinity;
+  }
+
+  public void setForceAffinity(boolean forceAffinity) {
+    this.forceAffinity.set(forceAffinity);
   }
 }
