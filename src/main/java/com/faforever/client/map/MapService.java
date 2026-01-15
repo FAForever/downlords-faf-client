@@ -582,7 +582,7 @@ public class MapService implements InitializingBean, DisposableBean {
                                                                                                          qBuilder().string(
                                                                                                                        "folderName")
                                                                                                                    .eq(folderName));
-      apiMapVersion = fafApiAccessor.getMany(navigator).next().map(mapMapper::map);
+      apiMapVersion = fafApiAccessor.getAll(navigator).next().map(mapMapper::map);
     }
 
     return Mono.justOrEmpty(getMapLocallyFromName(folderName)).switchIfEmpty(apiMapVersion);
@@ -604,7 +604,7 @@ public class MapService implements InitializingBean, DisposableBean {
                                                                                                               "versions.folderName")
                                                                                                           .eq(folderName))
                                                                                             .pageSize(1);
-    return fafApiAccessor.getMany(navigator)
+    return fafApiAccessor.getAll(navigator)
                          .next()
                          .map(com.faforever.commons.api.dto.Map::getLatestVersion)
                          .map(mapMapper::map)
@@ -618,7 +618,7 @@ public class MapService implements InitializingBean, DisposableBean {
                                                                             .setFilter(qBuilder().intNum(
                                                                                                      "mapPool.matchmakerQueueMapPool.matchmakerQueue.id")
                                                                                                  .eq(matchmakerQueue.getId()));
-    return fafApiAccessor.getMany(navigator).map(mapMapper::mapFromPoolAssignment)
+    return fafApiAccessor.getAll(navigator).map(mapMapper::mapFromPoolAssignment)
                          .distinct()
                          .filter(mapVersion -> !mapGeneratorService.isGeneratedMap(mapVersion.folderName()))
                          .flatMap(
@@ -637,7 +637,7 @@ public class MapService implements InitializingBean, DisposableBean {
         .of(MapPoolAssignment.class).collection()
         .setFilter(qBuilder().intNum("mapPool.matchmakerQueueMapPool.matchmakerQueue.id").eq(matchmakerQueue.getId()));
 
-    return fafApiAccessor.getMany(navigator)
+    return fafApiAccessor.getAll(navigator)
                          .map(matchmakerMapper::map)
                          .collect(Collectors.groupingBy(assignment -> assignment.mapPool().mapPool()));
 
@@ -653,7 +653,7 @@ public class MapService implements InitializingBean, DisposableBean {
                                                                                     .eq(player.getId()))
                                                                .addSortingRule("endTime", false)
                                                                .pageSize(1);
-    return fafApiAccessor.getMany(navigator).hasElements();
+    return fafApiAccessor.getAll(navigator).hasElements();
   }
 
   public Mono<Tuple2<List<MapVersion>, Integer>> getOwnedMapsWithPageCount(int count, int page) {

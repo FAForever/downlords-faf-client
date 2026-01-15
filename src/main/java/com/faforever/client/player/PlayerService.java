@@ -183,7 +183,7 @@ public class PlayerService implements InitializingBean {
                                                                               .collection()
                                                                               .setFilter(qBuilder().intNum("id")
                                                                                                    .in(offlineIds));
-                 return fafApiAccessor.getMany(navigator).map(playerMapper::map);
+                 return fafApiAccessor.getAll(navigator).map(playerMapper::map);
                }).concatWithValues(onlinePlayers.toArray(new PlayerInfo[0]));
   }
 
@@ -192,7 +192,7 @@ public class PlayerService implements InitializingBean {
                                                                  .collection()
                                                                  .setFilter(qBuilder().string("login").eq(playerName));
 
-    Mono<PlayerInfo> apiPlayer = fafApiAccessor.getMany(navigator)
+    Mono<PlayerInfo> apiPlayer = fafApiAccessor.getAll(navigator)
                                                .next().map(playerMapper::map);
 
     return Mono.justOrEmpty(getPlayerByNameIfOnline(playerName)).switchIfEmpty(apiPlayer);
@@ -203,7 +203,7 @@ public class PlayerService implements InitializingBean {
         com.faforever.commons.api.dto.NameRecord.class).collection().setFilter(qBuilder().intNum("player.id")
                                                                                           .eq(player.getId()));
 
-    return fafApiAccessor.getMany(navigator).map(playerMapper::map)
+    return fafApiAccessor.getAll(navigator).map(playerMapper::map)
                          .sort(Comparator.comparing(NameRecord::changeTime));
   }
 

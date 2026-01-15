@@ -43,8 +43,8 @@ public class TutorialServiceTest extends ServiceTest {
   public void testGetTutorialCategories() throws Exception {
     TutorialCategory tutorialCategory = Instancio.create(TutorialCategory.class);
     Flux<ElideEntity> resultFlux = Flux.just(tutorialMapper.map(tutorialCategory));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getTutorialCategories()).expectNextCount(1).verifyComplete();
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1000)));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasPageSize(1000)));
   }
 }

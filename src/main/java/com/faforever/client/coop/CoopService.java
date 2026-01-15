@@ -37,14 +37,14 @@ public class CoopService {
   public Flux<CoopMission> getMissions() {
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.CoopMission> navigator = ElideNavigator.of(
         com.faforever.commons.api.dto.CoopMission.class).collection().pageSize(1000);
-    return fafApiAccessor.getMany(navigator).map(coopMapper::map).cache();
+    return fafApiAccessor.getAll(navigator).map(coopMapper::map).cache();
   }
 
   @Cacheable(value = CacheNames.COOP_SCENARIOS, sync = true)
   public Flux<CoopScenario> getScenarios() {
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.CoopScenario> navigator = ElideNavigator.of(
         com.faforever.commons.api.dto.CoopScenario.class).collection();
-    return fafApiAccessor.getMany(navigator).map(coopMapper::map).cache();
+    return fafApiAccessor.getAll(navigator).map(coopMapper::map).cache();
   }
 
 
@@ -62,7 +62,7 @@ public class CoopService {
                                                                                                    .addSortingRule(
                                                                                                        "duration", true)
                                                                                                    .pageSize(1000);
-    return fafApiAccessor.getMany(navigator)
+    return fafApiAccessor.getAll(navigator)
                          .distinct(this::getAllPlayerNamesFromTeams)
                          .index((index, dto) -> coopMapper.map(dto, index.intValue()))
                          .cache();

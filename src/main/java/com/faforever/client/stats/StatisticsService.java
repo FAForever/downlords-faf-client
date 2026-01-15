@@ -40,6 +40,6 @@ public class StatisticsService {
                              .eq(leaderboard.id()))
                                                                                                                  .pageSize(
                                                                                                                      fafApiAccessor.getMaxPageSize());
-    return fafApiAccessor.getMany(navigator).map(leaderboardMapper::map).cache();
+    return fafApiAccessor.getAll(navigator).map(leaderboardMapper::map).cache();
   }
 }

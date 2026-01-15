@@ -53,7 +53,7 @@ public class LeaderboardService {
   public Flux<Leaderboard> getLeaderboards() {
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.Leaderboard> navigator = ElideNavigator.of(
         com.faforever.commons.api.dto.Leaderboard.class).collection();
-    return fafApiAccessor.getMany(navigator).map(leaderboardMapper::map)
+    return fafApiAccessor.getAll(navigator).map(leaderboardMapper::map)
                          .cache();
   }
 
@@ -66,7 +66,7 @@ public class LeaderboardService {
                                                                                                              qBuilder().intNum(
                                                                                                                            "player.id")
                                                                                                                        .eq(player.getId()));
-    return fafApiAccessor.getMany(navigator).map(leaderboardMapper::map)
+    return fafApiAccessor.getAll(navigator).map(leaderboardMapper::map)
                          .cache();
   }
 
@@ -74,7 +74,7 @@ public class LeaderboardService {
   public Flux<League> getLeagues() {
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.League> navigator = ElideNavigator.of(
         com.faforever.commons.api.dto.League.class).collection().setFilter(qBuilder().bool("enabled").isTrue());
-    return fafApiAccessor.getMany(navigator).map(leaderboardMapper::map)
+    return fafApiAccessor.getAll(navigator).map(leaderboardMapper::map)
                          .cache();
   }
 
@@ -97,7 +97,7 @@ public class LeaderboardService {
                                                                                                                        OffsetDateTime.now()
                                                                                                                                      .toInstant(),
                                                                                                                        false));
-    return fafApiAccessor.getMany(navigator).map(leaderboardMapper::map)
+    return fafApiAccessor.getAll(navigator).map(leaderboardMapper::map)
                          .cache();
   }
 
@@ -115,7 +115,7 @@ public class LeaderboardService {
                                                                                                      .addSortingRule(
                                                                                                          "startDate",
                                                                                                          false);
-    return fafApiAccessor.getMany(navigator).map(leaderboardMapper::map)
+    return fafApiAccessor.getAll(navigator).map(leaderboardMapper::map)
                          .cache();
   }
 
@@ -129,7 +129,7 @@ public class LeaderboardService {
                                                                                                  .intNum(
                                                                                                      "leagueSeason.id")
                                                                                                  .eq(leagueSeason.id()));
-    return fafApiAccessor.getMany(navigator)
+    return fafApiAccessor.getAll(navigator)
                          .next().map(dto -> leaderboardMapper.map(dto, player, null))
                          .cache();
   }
@@ -148,7 +148,7 @@ public class LeaderboardService {
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class)
                                                                             .collection()
                                                                             .setFilter(filter);
-    return fafApiAccessor.getMany(navigator).map(dto -> leaderboardMapper.map(dto, player, null))
+    return fafApiAccessor.getAll(navigator).map(dto -> leaderboardMapper.map(dto, player, null))
                          .filter(leagueEntryBean -> leagueEntryBean.subdivision() != null)
                          .sort(Comparator.comparing(LeagueEntry::subdivision,
                                                     Comparator.comparing(Subdivision::division,
@@ -183,7 +183,7 @@ public class LeaderboardService {
                                                                                                      OffsetDateTime.now()
                                                                                                                    .toInstant(),
                                                                                                      false));
-    return fafApiAccessor.getMany(navigator)
+    return fafApiAccessor.getAll(navigator)
                          .filter(leagueEntry -> leagueEntry.getLeagueSeasonDivisionSubdivision() != null)
                          .next().map(dto -> leaderboardMapper.map(dto, player, null))
                          .cache();
@@ -204,7 +204,7 @@ public class LeaderboardService {
                                                                                 false).addSortingRule("score", false)
                                                                             .pageSize(fafApiAccessor.getMaxPageSize());
 
-    return fafApiAccessor.getMany(navigator).index().collectList().flatMapMany(this::mapLeagueEntryDtoToBean).cache();
+    return fafApiAccessor.getAll(navigator).index().collectList().flatMapMany(this::mapLeagueEntryDtoToBean).cache();
   }
 
   private Flux<LeagueEntry> mapLeagueEntryDtoToBean(List<Tuple2<Long, LeagueSeasonScore>> seasonScoresWithRank) {
@@ -228,7 +228,7 @@ public class LeaderboardService {
                                                                                                                    "leagueSeasonDivision.leagueSeason.id")
                                                                                                                .eq(String.valueOf(
                                                                                                                    leagueSeason.id())));
-    return fafApiAccessor.getMany(navigator).map(leaderboardMapper::map)
+    return fafApiAccessor.getAll(navigator).map(leaderboardMapper::map)
                          .cache();
   }
 

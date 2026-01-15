@@ -421,7 +421,7 @@ public class ModService implements InitializingBean, DisposableBean {
                                                                                                                  .eq(uid))
                                                                                                    .pageSize(1)
                                                                                                    .pageNumber(1);
-    return fafApiAccessor.getMany(navigator).next();
+    return fafApiAccessor.getAll(navigator).next();
   }
 
   @Cacheable(value = CacheNames.MODS, sync = true)

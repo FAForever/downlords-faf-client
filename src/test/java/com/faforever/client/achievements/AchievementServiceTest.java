@@ -49,13 +49,13 @@ public class AchievementServiceTest extends ServiceTest {
   @Test
   public void testGetPlayerAchievementsForAnotherUser() throws Exception {
     List<PlayerAchievement> achievements = Arrays.asList(new PlayerAchievement(), new PlayerAchievement());
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.fromIterable(achievements));
+    when(fafApiAccessor.getAll(any())).thenReturn(Flux.fromIterable(achievements));
     when(fafApiAccessor.getMaxPageSize()).thenReturn(10000);
 
     StepVerifier.create(instance.getPlayerAchievements(PLAYER_ID)).expectNextSequence(achievements).verifyComplete();
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(10000)));
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("player.id").eq(PLAYER_ID))));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasPageSize(10000)));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasFilter(qBuilder().intNum("player.id").eq(PLAYER_ID))));
   }
 
   @Test
@@ -63,12 +63,12 @@ public class AchievementServiceTest extends ServiceTest {
     AchievementDefinition achievementDefinition = AchievementDefinitionBuilder.create().defaultValues().get();
     when(fafApiAccessor.getMaxPageSize()).thenReturn(10000);
 
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(achievementDefinition));
+    when(fafApiAccessor.getAll(any())).thenReturn(Flux.just(achievementDefinition));
 
     StepVerifier.create(instance.getAchievementDefinitions()).expectNext(achievementDefinition).verifyComplete();
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(10000)));
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("order", true)));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasPageSize(10000)));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasSort("order", true)));
   }
 
   @Test

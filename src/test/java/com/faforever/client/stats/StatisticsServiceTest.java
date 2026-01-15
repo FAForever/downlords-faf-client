@@ -49,15 +49,15 @@ public class StatisticsServiceTest extends ServiceTest {
     LeaderboardRatingJournal leaderboardRatingJournal = Instancio.create(LeaderboardRatingJournal.class);
     PlayerInfo player = PlayerInfoBuilder.create().defaultValues().username("junit").get();
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboardRatingJournal));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getRatingHistory(player, leaderboard)).expectNextCount(1)
                 .expectComplete()
                 .verify();
-    verify(fafApiAccessor).getMany(argThat(
+    verify(fafApiAccessor).getAll(argThat(
         ElideMatchers.hasFilter(qBuilder().intNum("gamePlayerStats.player.id").eq(player.getId()).and()
                                           .intNum("leaderboard.id")
                                           .eq(leaderboard.id()))
     ));
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(10000)));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasPageSize(10000)));
   }
 }

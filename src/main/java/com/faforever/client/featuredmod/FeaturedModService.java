@@ -46,7 +46,7 @@ public class FeaturedModService {
   public Flux<FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version) {
     String endpoint = format("/featuredMods/%s/files/%s", featuredMod.id(),
                              Optional.ofNullable(version).map(String::valueOf).orElse("latest"));
-    return fafApiAccessor.getMany(FeaturedModFile.class, endpoint, fafApiAccessor.getMaxPageSize(), Map.of()).cache();
+    return fafApiAccessor.getAll(FeaturedModFile.class, endpoint, fafApiAccessor.getMaxPageSize(), Map.of()).cache();
   }
 
   @Cacheable(value = CacheNames.FEATURED_MODS, sync = true)
@@ -61,7 +61,7 @@ public class FeaturedModService {
                                                                                                     .addSortingRule(
                                                                                                         "order", true)
                                                                                                     .pageSize(1);
-    return fafApiAccessor.getMany(navigator)
+    return fafApiAccessor.getAll(navigator)
                          .next()
                          .switchIfEmpty(
                              Mono.error(new IllegalArgumentException("Not a valid featured mod: " + technicalName)))
@@ -81,7 +81,7 @@ public class FeaturedModService {
                                                                                                     .addSortingRule(
                                                                                                         "order", true)
                                                                                                     .pageSize(50);
-    return fafApiAccessor.getMany(navigator).map(featuredModMapper::map)
+    return fafApiAccessor.getAll(navigator).map(featuredModMapper::map)
                          .cache();
   }
 }

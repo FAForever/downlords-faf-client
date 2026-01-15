@@ -166,15 +166,15 @@ public class PlayerServiceTest extends ServiceTest {
   public void testGetPlayerByName() {
     PlayerInfo playerInfo = PlayerInfoBuilder.create().defaultValues().get();
     Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerInfo));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getPlayerByName("test")).expectNext(playerInfo).verifyComplete();
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("login").eq("test"))));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasFilter(qBuilder().string("login").eq("test"))));
   }
 
   @Test
   public void testGetPlayerByNamePlayerOnline() {
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
+    when(fafApiAccessor.getAll(any())).thenReturn(Flux.empty());
 
     StepVerifier.create(instance.getPlayerByName("junit2")).expectNextCount(1).verifyComplete();
   }
@@ -183,17 +183,17 @@ public class PlayerServiceTest extends ServiceTest {
   public void testGetPlayersByIds() {
     PlayerInfo playerInfo = PlayerInfoBuilder.create().defaultValues().username("junit4").id(4).get();
     Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerInfo));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
     instance.getPlayersByIds(List.of(1, 2, 3, 4)).blockLast();
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("id").in(List.of(4)))));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasFilter(qBuilder().intNum("id").in(List.of(4)))));
   }
 
   @Test
   public void testGetPlayersByIdsAllPlayersOnline() {
     StepVerifier.create(instance.getPlayersByIds(List.of(2, 3))).expectNextCount(2).verifyComplete();
 
-    verify(fafApiAccessor, never()).getMany(any());
+    verify(fafApiAccessor, never()).getAll(any());
   }
 
   @Test

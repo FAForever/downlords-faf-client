@@ -360,7 +360,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   public void testOnMatchmakerInfoMessage() {
     matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("technicalName").eq("queue1"))));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasFilter(qBuilder().string("technicalName").eq("queue1"))));
   }
 
   @NotNull
@@ -378,7 +378,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     MatchmakerQueue matchmakerQueue2 = new MatchmakerQueue().setId("2")
         .setTechnicalName("queue2")
         .setLeaderboard(new Leaderboard());
-    when(fafApiAccessor.getMany(any(ElideNavigatorOnCollection.class))).thenReturn(Flux.just(matchmakerQueue1), Flux.just(matchmakerQueue2));
+    when(fafApiAccessor.getAll(any(ElideNavigatorOnCollection.class))).thenReturn(Flux.just(matchmakerQueue1),
+                                                                                  Flux.just(matchmakerQueue2));
     return new MatchmakerInfo(queues);
   }
 

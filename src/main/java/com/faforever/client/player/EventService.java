@@ -56,6 +56,6 @@ public class EventService {
         .collection()
         .setFilter(qBuilder().intNum("player.id").eq(playerId))
         .pageSize(fafApiAccessor.getMaxPageSize());
-    return fafApiAccessor.getMany(navigator).cache();
+    return fafApiAccessor.getAll(navigator).cache();
   }
 }

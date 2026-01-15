@@ -64,21 +64,21 @@ public class LeaderboardServiceTest extends ServiceTest {
     Leaderboard leaderboard = Instancio.create(Leaderboard.class);
 
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboard));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
 
     StepVerifier.create(instance.getLeaderboards()).expectNext(leaderboard).verifyComplete();
 
-    verify(fafApiAccessor).getMany(any());
+    verify(fafApiAccessor).getAll(any());
   }
 
   @Test
   public void testGetEntriesForPlayer() {
     LeaderboardEntry leaderboardEntry = Instancio.create(LeaderboardEntry.class);
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboardEntry));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
 
     StepVerifier.create(instance.getEntriesForPlayer(player)).expectNext(leaderboardEntry).verifyComplete();
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("player.id").eq(player.getId()))));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasFilter(qBuilder().intNum("player.id").eq(player.getId()))));
   }
 
   @Test
@@ -86,12 +86,12 @@ public class LeaderboardServiceTest extends ServiceTest {
     League league = Instancio.create(League.class);
 
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(league));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
 
     StepVerifier.create(instance.getLeagues()).expectNext(league).verifyComplete();
 
-    verify(fafApiAccessor).getMany(any());
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().bool("enabled").isTrue())));
+    verify(fafApiAccessor).getAll(any());
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasFilter(qBuilder().bool("enabled").isTrue())));
   }
 
   @Test
@@ -99,20 +99,20 @@ public class LeaderboardServiceTest extends ServiceTest {
     LeagueSeason leagueSeason = Instancio.create(LeagueSeason.class);
 
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leagueSeason));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
 
     StepVerifier.create(instance.getActiveSeasons()).expectNext(leagueSeason).verifyComplete();
   }
 
   @Test
   public void testGetSeasons() {
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
+    when(fafApiAccessor.getAll(any())).thenReturn(Flux.empty());
     League league = Instancio.create(League.class);
 
     StepVerifier.create(instance.getSeasons(league)).verifyComplete();
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("startDate", false)));
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.filterPresent()));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasSort("startDate", false)));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.filterPresent()));
   }
 
   @Test
@@ -123,10 +123,10 @@ public class LeaderboardServiceTest extends ServiceTest {
                                        .create();
     LeagueSeason season = Instancio.of(LeagueSeason.class).set(field(LeagueSeason::id), 2).create();
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leagueEntry));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
 
     StepVerifier.create(instance.getLeagueEntryForPlayer(player, season)).expectNext(leagueEntry).verifyComplete();
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasFilter(
         qBuilder().intNum("loginId").eq(player.getId()).and().intNum("leagueSeason.id").eq(2))));
   }
 
@@ -159,12 +159,12 @@ public class LeaderboardServiceTest extends ServiceTest {
 
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leagueEntry1), leaderboardMapper.map(leagueEntry2),
                                              leaderboardMapper.map(leagueEntry3));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
 
     StepVerifier.create(instance.getHighestActiveLeagueEntryForPlayer(player)).expectNext(leagueEntry2)
                 .verifyComplete();
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId()))));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId()))));
   }
 
   @Test
@@ -184,16 +184,18 @@ public class LeaderboardServiceTest extends ServiceTest {
                                         .create();
 
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leagueEntry1), leaderboardMapper.map(leagueEntry2));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
 
     StepVerifier.create(instance.getActiveLeagueEntryForPlayer(player, "ladder")).expectNext(leagueEntry2)
                 .verifyComplete();
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId())
-                                                                             .and()
-                                                                             .string(
+    verify(fafApiAccessor).getAll(
+        argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId")
+                                                  .eq(player.getId())
+                                                  .and()
+                                                  .string(
                                                                                  "leagueSeason.leaderboard.technicalName")
-                                                                             .eq(leaderboard.technicalName()))));
+                                                  .eq(leaderboard.technicalName()))));
   }
 
   @Test
@@ -201,10 +203,10 @@ public class LeaderboardServiceTest extends ServiceTest {
     LeagueEntry leagueEntry = Instancio.of(LeagueEntry.class).set(field(LeagueEntry::subdivision), null).create();
 
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leagueEntry));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getHighestActiveLeagueEntryForPlayer(player)).verifyComplete();
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId()))));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId()))));
   }
 
   @Test
@@ -215,7 +217,7 @@ public class LeaderboardServiceTest extends ServiceTest {
                                        .set(field(LeagueEntry::player), player)
                                        .create();
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leagueEntry));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
     when(playerService.getPlayersByIds(anyCollection())).thenReturn(
         Flux.just(PlayerInfoBuilder.create().id(1).username("junit").get()));
 
@@ -225,7 +227,7 @@ public class LeaderboardServiceTest extends ServiceTest {
   @Test
   public void testGetLeagueEntriesEmpty() {
     LeagueSeason leagueSeason = Instancio.create(LeagueSeason.class);
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
+    when(fafApiAccessor.getAll(any())).thenReturn(Flux.empty());
     when(playerService.getPlayersByIds(anyCollection())).thenReturn(Flux.empty());
     StepVerifier.create(instance.getActiveEntries(leagueSeason)).verifyComplete();
   }
@@ -236,10 +238,10 @@ public class LeaderboardServiceTest extends ServiceTest {
     LeagueSeason season = Instancio.create(LeagueSeason.class);
     Subdivision subdivision = Instancio.create(Subdivision.class);
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(subdivision));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
 
     StepVerifier.create(instance.getAllSubdivisions(season)).expectNext(subdivision).verifyComplete();
-    verify(fafApiAccessor).getMany(argThat(
+    verify(fafApiAccessor).getAll(argThat(
         ElideMatchers.hasFilter(qBuilder().string("leagueSeasonDivision.leagueSeason.id").eq(season.id().toString()))));
   }
 

@@ -44,7 +44,7 @@ public class AchievementService {
         .collection()
         .setFilter(qBuilder().intNum("player.id").eq(playerId))
         .pageSize(fafApiAccessor.getMaxPageSize());
-    return fafApiAccessor.getMany(navigator).cache();
+    return fafApiAccessor.getAll(navigator).cache();
   }
 
 
@@ -54,7 +54,7 @@ public class AchievementService {
         .collection()
         .addSortingRule("order", true)
         .pageSize(fafApiAccessor.getMaxPageSize());
-    return fafApiAccessor.getMany(navigator).cache();
+    return fafApiAccessor.getAll(navigator).cache();
   }
 
   @Cacheable(value = CacheNames.ACHIEVEMENT_IMAGES, sync = true)

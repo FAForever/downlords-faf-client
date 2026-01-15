@@ -114,7 +114,7 @@ public class ReviewService {
                                                                              .addInclude("reviews")
                                                                              .addInclude("reviews.player");
 
-    return fafApiAccessor.getMany(versionsNavigator)
+    return fafApiAccessor.getAll(versionsNavigator)
         .map(MapVersion::getReviews)
         .flatMap(Flux::fromIterable).map(reviewMapper::map);
   }
@@ -129,7 +129,7 @@ public class ReviewService {
                                                                              .addInclude("reviews")
                                                                              .addInclude("reviews.player");
 
-    return fafApiAccessor.getMany(versionsNavigator)
+    return fafApiAccessor.getAll(versionsNavigator)
         .map(ModVersion::getReviews)
         .flatMap(Flux::fromIterable).map(reviewMapper::map);
   }
@@ -141,6 +141,6 @@ public class ReviewService {
         .collection()
         .addInclude("player");
 
-    return fafApiAccessor.getMany(versionsNavigator).map(reviewMapper::map);
+    return fafApiAccessor.getAll(versionsNavigator).map(reviewMapper::map);
   }
 }

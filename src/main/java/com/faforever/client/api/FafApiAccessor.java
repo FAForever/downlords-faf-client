@@ -69,6 +69,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
@@ -238,8 +239,7 @@ public class FafApiAccessor implements InitializingBean {
         .doOnNext(object -> log.trace("Retrieved {} from {} with type {}", object, endpointPath, type));
   }
 
-  public <T> Flux<T> getMany(Class<T> type, String endpointPath, int count,
-                             java.util.Map<String, Serializable> params) {
+  public <T> Flux<T> getAll(Class<T> type, String endpointPath, int count, java.util.Map<String, Serializable> params) {
     java.util.Map<String, List<String>> multiValues = params.entrySet()
         .stream()
         .collect(Collectors.toMap(Entry::getKey, entry -> List.of(String.valueOf(entry.getValue()))));
@@ -257,21 +257,23 @@ public class FafApiAccessor implements InitializingBean {
         .doOnNext(list -> log.trace("Retrieved {} from {}", list, url));
   }
 
-  public <T extends ElideEntity> Flux<T> getMany(ElideNavigatorOnCollection<T> navigator) {
-    return getMany(navigator, "");
+  public <T extends ElideEntity> Flux<T> getAll(ElideNavigatorOnCollection<T> navigator) {
+    return getAll(navigator, "");
   }
 
-  public <T extends ElideEntity> Flux<T> getMany(ElideNavigatorOnCollection<T> navigator, String customFilter) {
-    enrichBuilder(navigator);
-    enrichCollectionFilter(navigator);
-    String endpointPath;
-    if (!customFilter.isBlank()) {
-      endpointPath = enrichWithCustomFilter(navigator.build(), customFilter);
-    } else {
-      endpointPath = navigator.build();
-    }
-
-    return retrieveFluxWithErrorHandling(navigator.getDtoClass(), apiWebClient.get().uri(endpointPath)).cache()
+  public <T extends ElideEntity> Flux<T> getAll(ElideNavigatorOnCollection<T> navigator, String customFilter) {
+    String endpointPath = navigator.build();
+    AtomicInteger pageNumber = new AtomicInteger();
+    navigator.pageNumber(pageNumber.incrementAndGet());
+    return getManyWithPageCount(navigator, customFilter).expand(itemsPage -> {
+                                                          int nextPage = pageNumber.incrementAndGet();
+                                                          if (nextPage <= itemsPage.getT2()) {
+                                                            navigator.pageNumber(nextPage);
+                                                            return getManyWithPageCount(navigator, customFilter);
+                                                          } else {
+                                                            return Mono.empty();
+                                                          }
+                                                        }, 1).flatMapIterable(Tuple2::getT1).cache()
         .doOnNext(object -> log.trace("Retrieved {} from {}", object, endpointPath));
   }
 
