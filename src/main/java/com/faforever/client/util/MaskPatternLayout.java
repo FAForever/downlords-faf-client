@@ -30,9 +30,10 @@ public class MaskPatternLayout extends PatternLayout {
   }
 
   public String maskMessage(String message) {
-    return message
-        .replaceAll("(?i)" + Pattern.quote(userProfile), "%USER_PROFILE%")
-        .replaceAll("(?i)" + Pattern.quote(machineName), "%CPU_NAME%")
-        .replaceAll("(?i)" + Pattern.quote(user), "%USER%");
+    String masked = message.replaceAll("(?i)" + Pattern.quote(userProfile), "%USER_PROFILE%")
+                           .replaceAll("(?i)" + Pattern.quote(machineName), "%CPU_NAME%")
+                           .replaceAll("(?i)" + Pattern.quote(user), "%USER%");
+
+    return LogMaskingRegistry.maskMessage(masked);
   }
 }

@@ -1,5 +1,7 @@
 package com.faforever.client.preferences;
 
+import com.faforever.client.util.LogMaskingRegistry;
+import com.faforever.client.util.LogMaskingRegistry.SensitiveValueType;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -9,8 +11,13 @@ import javafx.beans.property.StringProperty;
 
 public class LoginPrefs {
   private final StringProperty endpoint = new SimpleStringProperty();
-  private final StringProperty refreshToken = new SimpleStringProperty();
+  private final StringProperty refreshToken;
   private final BooleanProperty rememberMe = new SimpleBooleanProperty(true);
+
+  public LoginPrefs() {
+    refreshToken = new SimpleStringProperty();
+    refreshToken.addListener((_, _, newValue) -> LogMaskingRegistry.update(SensitiveValueType.REFRESH_TOKEN, newValue));
+  }
 
   public String getEndpoint() {
     return endpoint.get();
