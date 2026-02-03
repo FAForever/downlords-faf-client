@@ -2,6 +2,7 @@ package com.faforever.client.util;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -41,12 +42,13 @@ public final class LogMaskingRegistry {
    * Masks log message
    */
   static String maskMessage(String message) {
-    if (message == null || message.isEmpty()) {return message;}
+    if (StringUtils.isBlank(message)) {
+      return message;
+    }
 
     String maskedMessage = message;
     for (LogMaskingRegistry.SensitiveValueType type : LogMaskingRegistry.SensitiveValueType.values()) {
       List<String> secrets = LogMaskingRegistry.STORE.get(type).get();
-      if (secrets.isEmpty()) {continue;}
       for (String secret : secrets) {
         maskedMessage = maskedMessage.replace(secret, "%" + type.name() + "%");
       }
