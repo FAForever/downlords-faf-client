@@ -5,6 +5,8 @@ import com.faforever.client.config.ClientProperties.Oauth;
 import com.faforever.client.login.NoRefreshTokenException;
 import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.client.preferences.LoginPrefs;
+import com.faforever.client.util.LogMaskingRegistry;
+import com.faforever.client.util.LogMaskingRegistry.SensitiveValueType;
 import com.nimbusds.jwt.JWTParser;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -47,6 +49,8 @@ public class TokenRetriever implements InitializingBean {
 
   @Override
   public void afterPropertiesSet() throws Exception {
+    refreshTokenValue.addListener(
+        (_, _, newValue) -> LogMaskingRegistry.update(SensitiveValueType.REFRESH_TOKEN, newValue));
     refreshTokenValue.set(loginPrefs.getRefreshToken());
     loginPrefs.refreshTokenProperty()
               .bind(loginPrefs.rememberMeProperty().flatMap(remember -> remember ? refreshTokenValue : null));
@@ -65,7 +69,8 @@ public class TokenRetriever implements InitializingBean {
   public Mono<String> getRefreshedHmacValue() {
     return getRefreshedTokenValue().flatMap(tokenValue -> {
       try {
-        return Mono.just(JWTParser.parse(tokenValue).getJWTClaimsSet().getJSONObjectClaim("ext").get("hmac").toString());
+        return Mono.just(JWTParser.parse(tokenValue).getJWTClaimsSet().getJSONObjectClaim("ext").get("hmac").toString())
+                   .doOnNext(value -> LogMaskingRegistry.update(SensitiveValueType.HMAC, value));
       } catch (Exception e) {
         return Mono.error(e);
       }
@@ -128,7 +133,10 @@ public class TokenRetriever implements InitializingBean {
                              refreshTokenValue.set(refreshToken != null ? refreshToken.getTokenValue() : null);
                            })
                            .map(OAuth2AccessTokenResponse::getAccessToken)
-                           .doOnNext(token -> log.info("Token valid until {}", token.getExpiresAt()));
+                           .doOnNext(token -> {
+                             LogMaskingRegistry.update(SensitiveValueType.ACCESS_TOKEN, token.getTokenValue());
+                             log.info("Token valid until {}", token.getExpiresAt());
+                           });
   }
 
   public void invalidateToken() {
