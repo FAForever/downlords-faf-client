@@ -49,9 +49,9 @@ public class TokenRetriever implements InitializingBean {
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    refreshTokenValue.set(loginPrefs.getRefreshToken());
     refreshTokenValue.addListener(
         (_, _, newValue) -> LogMaskingRegistry.update(SensitiveValueType.REFRESH_TOKEN, newValue));
+    refreshTokenValue.set(loginPrefs.getRefreshToken());
     loginPrefs.refreshTokenProperty()
               .bind(loginPrefs.rememberMeProperty().flatMap(remember -> remember ? refreshTokenValue : null));
   }
