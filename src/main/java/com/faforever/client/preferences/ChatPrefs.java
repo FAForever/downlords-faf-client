@@ -8,11 +8,13 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleSetProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -52,6 +54,7 @@ public class ChatPrefs {
   private final BooleanProperty showMapPreview = new SimpleBooleanProperty(false);
   private final ObservableMap<String, ObservableSet<ChatUserCategory>> channelNameToHiddenCategories = FXCollections.synchronizedObservableMap(
       FXCollections.observableHashMap());
+  private final SetProperty<String> mutedUsernames = new SimpleSetProperty<>(FXCollections.observableSet());
 
   public ChatPrefs() {
     Optional.ofNullable(LOCALE_LANGUAGES_TO_CHANNELS.get(Locale.of(Locale.getDefault().getLanguage())))
@@ -201,5 +204,43 @@ public class ChatPrefs {
   public void setChannelNameToHiddenCategories(Map<String, ObservableSet<ChatUserCategory>> channelNameToHiddenCategories) {
     this.channelNameToHiddenCategories.clear();
     this.channelNameToHiddenCategories.putAll(channelNameToHiddenCategories);
+  }
+
+  public ObservableSet<String> getMutedUsernames() {
+    return mutedUsernames.get();
+  }
+
+  public void setMutedUsernames(ObservableSet<String> mutedUsernames) {
+    this.mutedUsernames.clear();
+    if (mutedUsernames != null) {
+      mutedUsernames.forEach(username -> this.mutedUsernames.add(normalizeUsername(username)));
+    }
+  }
+
+  public SetProperty<String> mutedUsernamesProperty() {
+    return mutedUsernames;
+  }
+
+  public boolean isUserMuted(String username) {
+    if (username == null) {
+      return false;
+    }
+    return mutedUsernames.contains(normalizeUsername(username));
+  }
+
+  public void addMutedUser(String username) {
+    if (username != null) {
+      mutedUsernames.add(normalizeUsername(username));
+    }
+  }
+
+  public void removeMutedUser(String username) {
+    if (username != null) {
+      mutedUsernames.remove(normalizeUsername(username));
+    }
+  }
+
+  private String normalizeUsername(String username) {
+    return username.toLowerCase(Locale.ROOT);
   }
 }

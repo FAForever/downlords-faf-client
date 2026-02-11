@@ -481,12 +481,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     String senderNick = user.getNick();
     boolean hideFoeMessages = chatPrefs.isHideFoeMessages();
+    boolean isMutedUser = chatPrefs.isUserMuted(senderNick);
     ChatChannelUser sender = switch (event) {
       case ChannelMessageEvent channelMessageEvent -> getOrCreateChatUser(user, channelMessageEvent.getChannel());
       case PrivateMessageEvent privateMessageEvent when playerService.getPlayerByNameIfOnline(senderNick)
                                                                      .map(PlayerInfo::getSocialStatus)
                                                                      .map(SocialStatus.FOE::equals)
-                                                                     .map(isFoe -> !(hideFoeMessages && isFoe))
+                                                                     .map(isFoe -> !(hideFoeMessages && isFoe) && !isMutedUser)
                                                                      .orElse(true) -> {
         String target = getPrivateMessageTarget(privateMessageEvent, senderNick);
         yield getOrCreateChatUser(senderNick, target);
@@ -536,6 +537,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   private void notifyIfMentioned(ChatMessage chatMessage) {
     ChatChannelUser sender = chatMessage.getSender();
+    if (chatPrefs.isUserMuted(sender.getUsername())) {
+      log.debug("Ignored mention from muted user {}", sender);
+      return;
+    }
     if (sender.getCategory() == ChatUserCategory.FOE) {
       log.debug("Ignored mention from foe {}", sender);
       return;
@@ -568,6 +573,9 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   private void notifyOnPrivateMessage(ChatMessage chatMessage) {
     ChatChannelUser sender = chatMessage.getSender();
+    if (chatPrefs.isUserMuted(sender.getUsername())) {
+      return;
+    }
     ChatChannel channel = sender.getChannel();
     if (channel.isPrivateChannel() && !channel.isOpen()) {
       audioService.playPrivateMessageSound();
