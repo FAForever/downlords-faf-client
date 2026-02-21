@@ -72,6 +72,8 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
 
     assertThrows(GameLaunchException.class, () -> instance.launchOfflineGame("test"));
 
+    verify(renderingWrapperService).ensureWrapperAvailable(RenderingBackend.DIRECTX_12);
+    verify(renderingWrapperService).getWrapperDirectory(RenderingBackend.DIRECTX_12);
     // Wrapper is injected, process fails to start, wrapper is cleaned up
     assertFalse(Files.exists(tempDir.resolve("exec/d3d9.dll")));
   }

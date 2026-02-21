@@ -81,6 +81,7 @@ import org.springframework.stereotype.Component;
 
 import java.text.NumberFormat;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -499,7 +500,7 @@ public class SettingsController extends NodeController<Node> {
         .selectedItemProperty()
         .addListener((SimpleChangeListener<RenderingBackend>) newBackend -> {
           preferences.getForgedAlliance().setRenderingBackend(newBackend);
-          renderingWrapperService.ensureWrapperAvailableAsync(newBackend);
+          CompletableFuture.runAsync(() -> renderingWrapperService.ensureWrapperAvailableAsync(newBackend));
         });
   }
 

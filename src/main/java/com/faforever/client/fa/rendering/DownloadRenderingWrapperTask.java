@@ -1,7 +1,6 @@
 package com.faforever.client.fa.rendering;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.RenderingBackend;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
@@ -31,8 +30,10 @@ import java.util.zip.ZipInputStream;
 @Slf4j
 public class DownloadRenderingWrapperTask extends CompletableTask<Void> {
 
+  private static final int CONNECT_TIMEOUT_MS = 30_000;
+  private static final int READ_TIMEOUT_MS = 300_000;
+
   private final I18n i18n;
-  private final DataPrefs dataPrefs;
 
   @Setter
   private RenderingBackend backend;
@@ -40,18 +41,19 @@ public class DownloadRenderingWrapperTask extends CompletableTask<Void> {
   private URL downloadUrl;
   @Setter
   private String version;
+  @Setter
+  private Path wrapperDirectory;
 
-  public DownloadRenderingWrapperTask(I18n i18n, DataPrefs dataPrefs) {
+  public DownloadRenderingWrapperTask(I18n i18n) {
     super(Priority.HIGH);
     this.i18n = i18n;
-    this.dataPrefs = dataPrefs;
   }
 
   @Override
   protected Void call() throws Exception {
     updateTitle(i18n.get("rendering.download.title", backend.name()));
 
-    Path wrapperDir = getWrapperDirectory();
+    Path wrapperDir = wrapperDirectory;
     Files.createDirectories(wrapperDir);
 
     Path tempFile = Files.createTempFile(wrapperDir, "rendering-wrapper", null);
@@ -74,13 +76,15 @@ public class DownloadRenderingWrapperTask extends CompletableTask<Void> {
 
   private void downloadArchive(Path tempFile) throws IOException {
     URLConnection urlConnection = downloadUrl.openConnection();
+    urlConnection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+    urlConnection.setReadTimeout(READ_TIMEOUT_MS);
 
     ResourceLocks.acquireDownloadLock();
     try (InputStream inputStream = urlConnection.getInputStream();
          OutputStream outputStream = Files.newOutputStream(tempFile)) {
       ByteCopier.from(inputStream)
           .to(outputStream)
-          .totalBytes(urlConnection.getContentLength())
+          .totalBytes(urlConnection.getContentLengthLong())
           .listener(this::updateProgress)
           .copy();
     } finally {
@@ -136,11 +140,5 @@ public class DownloadRenderingWrapperTask extends CompletableTask<Void> {
       }
     }
     throw new IOException("DLL not found in archive: " + dllPath);
-  }
-
-  private Path getWrapperDirectory() {
-    return dataPrefs.getBinDirectory()
-        .resolve("rendering")
-        .resolve(backend.name().toLowerCase());
   }
 }

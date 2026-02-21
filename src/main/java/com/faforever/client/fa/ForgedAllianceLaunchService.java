@@ -22,11 +22,11 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
@@ -164,7 +164,7 @@ public class ForgedAllianceLaunchService {
 
     log.info("Starting Forged Alliance with command: {} in directory: {}", processBuilder.command(), executeDirectory);
 
-    Set<Path> injectedFiles = injectRenderingWrapper(executeDirectory);
+    Map<Path, Path> injectedFiles = injectRenderingWrapper(executeDirectory);
 
     try {
       Process process = processBuilder.start();
@@ -176,18 +176,18 @@ public class ForgedAllianceLaunchService {
     }
   }
 
-  private Set<Path> injectRenderingWrapper(Path executeDirectory) {
+  private Map<Path, Path> injectRenderingWrapper(Path executeDirectory) {
     RenderingBackend backend = forgedAlliancePrefs.getRenderingBackend();
     if (!backend.requiresDownload()) {
-      return Set.of();
+      return Map.of();
     }
 
     if (!renderingWrapperService.ensureWrapperAvailable(backend)) {
       log.warn("Rendering wrapper for {} not available, falling back to DirectX 9", backend);
-      return Set.of();
+      return Map.of();
     }
 
-    Set<Path> injectedFiles = new HashSet<>();
+    Map<Path, Path> injectedFiles = new HashMap<>();
     Path wrapperDir = renderingWrapperService.getWrapperDirectory(backend);
     try {
       if (Files.isDirectory(wrapperDir)) {
@@ -197,8 +197,14 @@ public class ForgedAllianceLaunchService {
               .forEach(sourceDll -> {
                 Path targetDll = executeDirectory.resolve(sourceDll.getFileName());
                 try {
+                  Path backup = null;
+                  if (Files.exists(targetDll)) {
+                    backup = targetDll.resolveSibling(targetDll.getFileName() + ".faf-backup");
+                    Files.move(targetDll, backup, StandardCopyOption.REPLACE_EXISTING);
+                    log.debug("Backed up existing DLL: {} -> {}", targetDll, backup);
+                  }
                   Files.copy(sourceDll, targetDll, StandardCopyOption.REPLACE_EXISTING);
-                  injectedFiles.add(targetDll);
+                  injectedFiles.put(targetDll, backup);
                   log.debug("Injected wrapper DLL: {}", targetDll);
                 } catch (IOException e) {
                   log.warn("Failed to inject wrapper DLL: {}", sourceDll.getFileName(), e);
@@ -212,13 +218,20 @@ public class ForgedAllianceLaunchService {
     return injectedFiles;
   }
 
-  private void removeRenderingWrapper(Set<Path> injectedFiles) {
-    for (Path targetDll : injectedFiles) {
+  private void removeRenderingWrapper(Map<Path, Path> injectedFiles) {
+    for (Map.Entry<Path, Path> entry : injectedFiles.entrySet()) {
+      Path targetDll = entry.getKey();
+      Path backup = entry.getValue();
       try {
         Files.deleteIfExists(targetDll);
-        log.debug("Removed wrapper DLL: {}", targetDll);
+        if (backup != null && Files.exists(backup)) {
+          Files.move(backup, targetDll, StandardCopyOption.REPLACE_EXISTING);
+          log.debug("Restored original DLL: {}", targetDll);
+        } else {
+          log.debug("Removed wrapper DLL: {}", targetDll);
+        }
       } catch (IOException e) {
-        log.warn("Failed to remove wrapper DLL: {}", targetDll, e);
+        log.warn("Failed to remove/restore wrapper DLL: {}", targetDll, e);
       }
     }
   }

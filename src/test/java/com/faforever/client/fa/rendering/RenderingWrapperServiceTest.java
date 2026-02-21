@@ -79,6 +79,7 @@ public class RenderingWrapperServiceTest extends ServiceTest {
     Path wrapperDir = instance.getWrapperDirectory(RenderingBackend.VULKAN_DXVK);
     Files.createDirectories(wrapperDir);
     Files.createFile(wrapperDir.resolve("d3d9.dll"));
+    Files.writeString(wrapperDir.resolve("version.txt"), "v2.5.3");
 
     assertTrue(instance.ensureWrapperAvailable(RenderingBackend.VULKAN_DXVK));
     verify(defaultWebClient, never()).get();
@@ -87,9 +88,11 @@ public class RenderingWrapperServiceTest extends ServiceTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testEnsureWrapperAvailableTriggersDownload() throws Exception {
+    URL expectedUrl = new URL("https://github.com/doitsujin/dxvk/releases/download/v2.5.3/dxvk-2.5.3.tar.gz");
+
     GitHubAssets asset = new GitHubAssets();
     asset.setName("dxvk-2.5.3.tar.gz");
-    asset.setBrowserDownloadUrl(new URL("https://github.com/doitsujin/dxvk/releases/download/v2.5.3/dxvk-2.5.3.tar.gz"));
+    asset.setBrowserDownloadUrl(expectedUrl);
 
     GitHubRelease release = new GitHubRelease();
     release.setTagName("v2.5.3");
@@ -114,6 +117,8 @@ public class RenderingWrapperServiceTest extends ServiceTest {
     verify(taskService).submitTask(task);
     verify(task).setBackend(RenderingBackend.VULKAN_DXVK);
     verify(task).setVersion("v2.5.3");
+    verify(task).setDownloadUrl(expectedUrl);
+    verify(task).setWrapperDirectory(instance.getWrapperDirectory(RenderingBackend.VULKAN_DXVK));
   }
 
   @Test

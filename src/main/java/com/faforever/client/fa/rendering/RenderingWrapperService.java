@@ -16,16 +16,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Lazy
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class RenderingWrapperService {
+
+  private static final Duration GITHUB_API_TIMEOUT = Duration.ofSeconds(30);
+  private static final long DOWNLOAD_TIMEOUT_MINUTES = 10;
 
   private final ClientProperties clientProperties;
   private final DataPrefs dataPrefs;
@@ -34,11 +43,8 @@ public class RenderingWrapperService {
   private final WebClient defaultWebClient;
   private final ObjectFactory<DownloadRenderingWrapperTask> downloadTaskFactory;
 
-  /**
-   * Ensures the wrapper DLLs for the given backend are available.
-   * Returns true if the wrapper is ready, false if download failed.
-   * Blocks the calling thread while downloading (with progress shown in UI).
-   */
+  private final Map<RenderingBackend, CompletableFuture<?>> inProgressDownloads = new ConcurrentHashMap<>();
+
   public boolean ensureWrapperAvailable(RenderingBackend backend) {
     if (!backend.requiresDownload()) {
       return true;
@@ -51,7 +57,7 @@ public class RenderingWrapperService {
 
     log.info("Rendering wrapper for {} not found, downloading...", backend);
     try {
-      downloadWrapper(backend);
+      buildAndSubmitDownloadTask(backend).get(DOWNLOAD_TIMEOUT_MINUTES, TimeUnit.MINUTES);
       return true;
     } catch (Exception e) {
       log.error("Failed to download rendering wrapper for {}", backend, e);
@@ -60,10 +66,6 @@ public class RenderingWrapperService {
     }
   }
 
-  /**
-   * Triggers a non-blocking download of the wrapper DLLs for the given backend.
-   * Used for pre-downloading when the user changes settings.
-   */
   public void ensureWrapperAvailableAsync(RenderingBackend backend) {
     if (!backend.requiresDownload()) {
       return;
@@ -74,19 +76,20 @@ public class RenderingWrapperService {
       return;
     }
 
+    if (inProgressDownloads.containsKey(backend)) {
+      log.debug("Download already in progress for {}", backend);
+      return;
+    }
+
     log.info("Pre-downloading rendering wrapper for {}", backend);
     try {
-      GitHubRelease release = queryLatestRelease(backend);
-      URL assetUrl = resolveAssetUrl(backend, release);
-
-      DownloadRenderingWrapperTask task = downloadTaskFactory.getObject();
-      task.setBackend(backend);
-      task.setDownloadUrl(assetUrl);
-      task.setVersion(release.getTagName());
-
-      taskService.submitTask(task).getFuture().exceptionally(throwable -> {
-        log.warn("Pre-download of rendering wrapper for {} failed", backend, throwable);
-        return null;
+      CompletableFuture<?> future = buildAndSubmitDownloadTask(backend);
+      inProgressDownloads.put(backend, future);
+      future.whenComplete((result, throwable) -> {
+        inProgressDownloads.remove(backend);
+        if (throwable != null) {
+          log.warn("Pre-download of rendering wrapper for {} failed", backend, throwable);
+        }
       });
     } catch (Exception e) {
       log.warn("Failed to initiate pre-download of rendering wrapper for {}", backend, e);
@@ -100,11 +103,23 @@ public class RenderingWrapperService {
   }
 
   private boolean isWrapperInstalled(Path wrapperDir) {
-    return Files.isDirectory(wrapperDir)
-        && Files.exists(wrapperDir.resolve("d3d9.dll"));
+    if (!Files.isDirectory(wrapperDir) || !Files.exists(wrapperDir.resolve("d3d9.dll"))) {
+      return false;
+    }
+    Path versionFile = wrapperDir.resolve("version.txt");
+    if (!Files.exists(versionFile)) {
+      return false;
+    }
+    try {
+      String installedVersion = Files.readString(versionFile).strip();
+      return !installedVersion.isEmpty();
+    } catch (IOException e) {
+      log.warn("Failed to read version file: {}", versionFile, e);
+      return false;
+    }
   }
 
-  private void downloadWrapper(RenderingBackend backend) {
+  private CompletableFuture<Void> buildAndSubmitDownloadTask(RenderingBackend backend) {
     GitHubRelease release = queryLatestRelease(backend);
     URL assetUrl = resolveAssetUrl(backend, release);
 
@@ -112,8 +127,9 @@ public class RenderingWrapperService {
     task.setBackend(backend);
     task.setDownloadUrl(assetUrl);
     task.setVersion(release.getTagName());
+    task.setWrapperDirectory(getWrapperDirectory(backend));
 
-    taskService.submitTask(task).getFuture().join();
+    return taskService.submitTask(task).getFuture();
   }
 
   private GitHubRelease queryLatestRelease(RenderingBackend backend) {
@@ -124,7 +140,7 @@ public class RenderingWrapperService {
         .retrieve()
         .bodyToMono(GitHubRelease.class)
         .switchIfEmpty(Mono.error(new RuntimeException("No release found for " + backend)))
-        .block();
+        .block(GITHUB_API_TIMEOUT);
   }
 
   private URL resolveAssetUrl(RenderingBackend backend, GitHubRelease release) {
@@ -135,6 +151,7 @@ public class RenderingWrapperService {
     String archiveFormat = backend.getArchiveFormat();
     return assets.stream()
         .filter(asset -> asset.getName().endsWith("." + archiveFormat))
+        .filter(asset -> !asset.getName().contains("-native"))
         .findFirst()
         .map(GitHubAssets::getBrowserDownloadUrl)
         .orElseThrow(() -> new RuntimeException(
