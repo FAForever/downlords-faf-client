@@ -58,6 +58,7 @@ public class UnitsController extends NodeController<StackPane> {
     externalBrowserPane.setVisible(isExternal);
 
     if (isExternal) {
+      platformService.showDocument(type.getUrl(clientProperties.getUnitDatabase()));
       String dbName = i18n.get(type.getI18nKey());
       titleLabel.setText(i18n.get("unitDatabase.external.message", dbName));
       loadBackgroundImage(type);
