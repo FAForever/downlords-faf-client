@@ -141,6 +141,30 @@
   -fx-border-color: -fx-box-border;
 }
 
+/***************** Unit Database External *****************/
+
+.unit-database-overlay {
+  -fx-background-color: rgba(0, 0, 0, 0.75);
+}
+
+.unit-database-content {
+  -fx-background-color: -fx-base;
+  -fx-border-radius: 3;
+  -fx-border-color: -fx-box-border;
+  -fx-padding: 15 0 0 0;
+}
+
+.unit-database-title {
+  -fx-font-size: 28px;
+  -fx-padding: 0 0 10 0;
+  -fx-text-fill: white;
+}
+
+.unit-database-subtitle {
+  -fx-padding: 0 0 20 0;
+  -fx-text-fill: #eee;
+}
+
 /*******************************************************************************
  *                                                                             *
  * Pagination                                                                  *
