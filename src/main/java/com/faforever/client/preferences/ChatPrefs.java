@@ -12,7 +12,9 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleMapProperty;
+import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleSetProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -52,6 +54,7 @@ public class ChatPrefs {
   private final BooleanProperty showMapPreview = new SimpleBooleanProperty(false);
   private final ObservableMap<String, ObservableSet<ChatUserCategory>> channelNameToHiddenCategories = FXCollections.synchronizedObservableMap(
       FXCollections.observableHashMap());
+  private final SetProperty<String> mutedUsers = new SimpleSetProperty<>(FXCollections.observableSet());
 
   public ChatPrefs() {
     Optional.ofNullable(LOCALE_LANGUAGES_TO_CHANNELS.get(Locale.of(Locale.getDefault().getLanguage())))
@@ -201,5 +204,41 @@ public class ChatPrefs {
   public void setChannelNameToHiddenCategories(Map<String, ObservableSet<ChatUserCategory>> channelNameToHiddenCategories) {
     this.channelNameToHiddenCategories.clear();
     this.channelNameToHiddenCategories.putAll(channelNameToHiddenCategories);
+  }
+
+  public ObservableSet<String> getMutedUsers() {
+    return mutedUsers.get();
+  }
+
+  public SetProperty<String> mutedUsersProperty() {
+    return mutedUsers;
+  }
+
+  public void setMutedUsers(ObservableSet<String> mutedUsers) {
+    this.mutedUsers.clear();
+    if (mutedUsers != null) {
+      mutedUsers.forEach(this::muteUser);
+    }
+  }
+
+  public boolean isUserMuted(String username) {
+    if (username == null) {
+      return false;
+    }
+    return mutedUsers.contains(username.toLowerCase(Locale.ROOT));
+  }
+
+  public void muteUser(String username) {
+    if (username == null) {
+      return;
+    }
+    mutedUsers.add(username.toLowerCase(Locale.ROOT));
+  }
+
+  public void unmuteUser(String username) {
+    if (username == null) {
+      return;
+    }
+    mutedUsers.remove(username.toLowerCase(Locale.ROOT));
   }
 }
