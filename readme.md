@@ -23,7 +23,12 @@ The official client for [Forged Alliance Forever (FAF)](https://www.faforever.co
 A video tutorial is available [here](https://youtu.be/6gsHnt02I_Y). Don't forget to `Enable annotation processing`.
 
 ### Linux
-Please see this [guide](https://wiki.faforever.com/en/Play/Linux-Install) for instructions on how to install FAF on Linux. Alternatively, a youtube [guide](https://www.youtube.com/watch?v=4Wm-yZpV_q8) is available.
+For Linux setup, start with the official guide:
+- [FAF Linux install guide](https://wiki.faforever.com/en/Play/Linux-Install)
+- [Video walkthrough](https://www.youtube.com/watch?v=4Wm-yZpV_q8)
+
+If you prefer automation, use the maintained installer scripts:
+- [FAForever/faf-linux](https://github.com/FAForever/faf-linux)
 
 ## Open Source Licenses
 |                                                                                                                                                |                                                                                                                                                                                               |
