@@ -271,13 +271,5 @@ public class Preferences {
       this.i18nKey = i18nKey;
       this.external = external;
     }
-
-    public String getUrl(UnitDatabase db) {
-      return switch (this) {
-        case SPOOKY -> db.getSpookiesUrl();
-        case RACKOVER -> db.getRackOversUrl();
-        case ETFREEMAN -> db.getEtfreemanUrl();
-      };
-    }
   }
 }

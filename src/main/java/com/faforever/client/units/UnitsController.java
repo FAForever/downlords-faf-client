@@ -35,8 +35,6 @@ public class UnitsController extends NodeController<StackPane> {
   private final I18n i18n;
   private final ThemeService themeService;
 
-  private UnitDataBaseType currentType;
-
   public StackPane unitsRoot;
   public WebView webView;
   public StackPane externalBrowserPane;
@@ -51,19 +49,18 @@ public class UnitsController extends NodeController<StackPane> {
   }
 
   private void loadUnitDataBase(UnitDataBaseType type) {
-    currentType = type;
     boolean isExternal = type.isExternal();
 
     webView.setVisible(!isExternal);
     externalBrowserPane.setVisible(isExternal);
 
     if (isExternal) {
-      platformService.showDocument(type.getUrl(clientProperties.getUnitDatabase()));
+      platformService.showDocument(getUnitDbUrl(type));
       String dbName = i18n.get(type.getI18nKey());
       titleLabel.setText(i18n.get("unitDatabase.external.message", dbName));
       loadBackgroundImage(type);
     } else {
-      String url = type.getUrl(clientProperties.getUnitDatabase());
+      String url = getUnitDbUrl(type);
       webView.getEngine().load(url);
     }
   }
@@ -88,10 +85,20 @@ public class UnitsController extends NodeController<StackPane> {
   }
 
   public void onOpenExternalBrowserClicked() {
-    if (currentType == null || !currentType.isExternal()) {
+    UnitDataBaseType type = preferences.getUnitDataBaseType();
+    if (!type.isExternal()) {
       return;
     }
-    platformService.showDocument(currentType.getUrl(clientProperties.getUnitDatabase()));
+    platformService.showDocument(getUnitDbUrl(type));
+  }
+
+  private String getUnitDbUrl(UnitDataBaseType type) {
+    ClientProperties.UnitDatabase db = clientProperties.getUnitDatabase();
+    return switch (type) {
+      case SPOOKY -> db.getSpookiesUrl();
+      case RACKOVER -> db.getRackOversUrl();
+      case ETFREEMAN -> db.getEtfreemanUrl();
+    };
   }
 
   @Override
