@@ -1,5 +1,6 @@
 package com.faforever.client.preferences;
 
+import com.faforever.client.config.ClientProperties.UnitDatabase;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.fasterxml.jackson.annotation.JsonMerge;
 import javafx.beans.property.BooleanProperty;
@@ -257,14 +258,18 @@ public class Preferences {
   }
 
   public enum UnitDataBaseType {
-    SPOOKY("unitDatabase.spooky"),
-    RACKOVER("unitDatabase.rackover");
+    SPOOKY("unitDatabase.spooky", false),
+    RACKOVER("unitDatabase.rackover", false),
+    ETFREEMAN("unitDatabase.etfreeman", true);
 
     @Getter
     private final String i18nKey;
+    @Getter
+    private final boolean external;
 
-    UnitDataBaseType(String i18nKey) {
+    UnitDataBaseType(String i18nKey, boolean external) {
       this.i18nKey = i18nKey;
+      this.external = external;
     }
   }
 }
