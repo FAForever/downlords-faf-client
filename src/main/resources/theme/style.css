@@ -1221,16 +1221,31 @@
   -fx-background-color: linear-gradient(to bottom right, #ffffff4d, #ffffff1d);
 }
 
-.tmm-maplist-tile_banned .tmm-maplist-tile-top-line {
+.tmm-maplist-tile_banned .tmm-maplist-tile-top-line,
+.tmm-maplist-tile_banned .tmm-maplist-tile-bottom-line {
   -fx-background-color: #00000026;
 }
 
 .tmm-maplist-tile_banned .tmm-maplist-tile-thumbnail,
-.tmm-maplist-tile_banned .tmm-maplist-tile-top-line-author,
 .tmm-maplist-tile_banned .image-dimmer-light,
-.tmm-maplist-tile_banned .image-dimmer-light-reversed,
-.tmm-maplist-tile_banned .tmm-maplist-tile-bottom-line {
+.tmm-maplist-tile_banned .image-dimmer-light-reversed {
   -fx-opacity: 0.3;
+}
+
+.tmm-maplist-tile_banned .tmm-maplist-tile-top-line-author Label,
+.tmm-maplist-tile_banned .tmm-maplist-tile-bottom-line Label{
+  -fx-text-fill: #888;
+}
+
+.tmm-maplist-tile-banned-stripe {
+  -fx-background-color: rgba(21, 21, 21, 0.8);
+  -fx-font-size: 20px;
+  -fx-font-weight: 600;
+  -fx-text-alignment: center;
+  -fx-alignment: center;
+  -fx-pref-width: 180;
+  -fx-line-spacing: -10;
+  -fx-min-height: 40;
 }
 
 /***************** Faction buttons *****************/
