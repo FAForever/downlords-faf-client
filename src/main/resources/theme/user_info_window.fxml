@@ -57,7 +57,7 @@
                                       <Insets top="10.0"/>
                                   </padding>
                                   <children>
-                            <ComboBox fx:id="timePeriodComboBox" onAction="#plotPlayerRatingGraph"/>
+                            <ComboBox fx:id="timePeriodComboBox" onAction="#onRatingTypeChange"/>
                             <ComboBox fx:id="ratingTypeComboBox" onAction="#onRatingTypeChange"/>
                                   </children>
                               </HBox>

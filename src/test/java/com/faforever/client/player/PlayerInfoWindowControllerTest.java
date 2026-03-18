@@ -97,7 +97,7 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
     lenient().when(leaderboardService.getLeaderboards()).thenReturn(Flux.just(leaderboard));
     lenient().when(leaderboardService.getEntriesForPlayer(eq(player)))
              .thenReturn(Flux.just(Instancio.create(LeaderboardEntry.class)));
-    lenient().when(statisticsService.getRatingHistory(eq(player), any()))
+    lenient().when(statisticsService.getRatingHistory(eq(player), any(), any()))
              .thenReturn(Flux.fromIterable(Instancio.ofList(LeaderboardRatingJournal.class)
                                                     .size(2)
                                                     .set(field(LeaderboardRatingJournal::meanBefore), 1500d)
@@ -183,6 +183,6 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
     testSetPlayerInfoBean();
     instance.ratingTypeComboBox.setValue(leaderboard);
     instance.onRatingTypeChange();
-    verify(statisticsService, times(2)).getRatingHistory(player, leaderboard);
+    verify(statisticsService, times(2)).getRatingHistory(eq(player), eq(leaderboard), any());
   }
 }
