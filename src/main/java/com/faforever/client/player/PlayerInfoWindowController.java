@@ -472,7 +472,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
   }
 
   private Mono<Void> loadStatistics(Leaderboard leaderboard) {
-    TimePeriod timePeriod = timePeriodComboBox.getValue();
+    TimePeriod timePeriod = timePeriodComboBox.getValue() != null ? timePeriodComboBox.getValue() : TimePeriod.ALL_TIME;
     OffsetDateTime since = timePeriod == TimePeriod.ALL_TIME
         ? null
         : OffsetDateTime.of(timePeriod.getDate(), ZoneOffset.UTC);
