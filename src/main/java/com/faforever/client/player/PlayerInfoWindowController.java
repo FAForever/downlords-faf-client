@@ -179,7 +179,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
     timePeriodComboBox.setConverter(timePeriodStringConverter());
 
     timePeriodComboBox.getItems().addAll(TimePeriod.values());
-    timePeriodComboBox.setValue(TimePeriod.ALL_TIME);
+    timePeriodComboBox.setValue(TimePeriod.LAST_MONTH);
 
     ratingTypeComboBox.setConverter(leaderboardStringConverter());
 
@@ -472,7 +472,11 @@ public class PlayerInfoWindowController extends NodeController<Node> {
   }
 
   private Mono<Void> loadStatistics(Leaderboard leaderboard) {
-    return statisticsService.getRatingHistory(player, leaderboard)
+    TimePeriod timePeriod = timePeriodComboBox.getValue() != null ? timePeriodComboBox.getValue() : TimePeriod.ALL_TIME;
+    OffsetDateTime since = timePeriod == TimePeriod.ALL_TIME
+        ? null
+        : OffsetDateTime.of(timePeriod.getDate(), ZoneOffset.UTC);
+    return statisticsService.getRatingHistory(player, leaderboard, since)
                             .collectList()
                             .doOnNext(ratingHistory -> ratingData = ratingHistory)
                             .doOnError(throwable -> {
