@@ -1569,6 +1569,23 @@
   -fx-background-color: -fx-base;
 }
 
+/***************** Rating Chart Selection *****************/
+
+.rating-selection-rect {
+  -fx-fill: rgba(100, 160, 255, 0.20);
+  -fx-stroke: rgba(100, 160, 255, 0.60);
+  -fx-stroke-width: 1;
+}
+
+.selection-stats-range {
+  -fx-font-style: italic;
+  -fx-opacity: 0.8;
+}
+
+.selection-stats-value {
+  -fx-font-weight: bold;
+}
+
 /***************** Emoticons Window ***************************/
 
 .emoticons-window {

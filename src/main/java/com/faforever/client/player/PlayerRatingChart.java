@@ -14,6 +14,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.Path;
 import javafx.scene.shape.PathElement;
+import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Player rating line chart with support for displaying more accurate values via the tooltip on mouse hover
@@ -30,14 +32,20 @@ public class PlayerRatingChart extends LineChart<Number, Number> {
 
   private static final int OFFSET_TOOLTIP_FROM_CURSOR_BY_X = 20; // in px
   private static final int OFFSET_TOOLTIP_FROM_CURSOR_BY_Y = 15; // in px
+  private static final int DRAG_THRESHOLD_PX = 5; // minimum pixels before drag is recognized
 
   private final Region chartBackground;
   private final Line verticalLine = new Line(0, 0, 0, 0);
+  private final Rectangle selectionRect = new Rectangle();
   private PlayerRatingChartTooltipController tooltipController;
   private Tooltip hoverTooltip;
   private boolean available = true;
 
   private boolean valid = false;
+  private boolean isDragging = false;
+  private double selectionStartX;
+  private Consumer<long[]> selectionListener;
+
   private final Map<Integer, Integer> ratingMap = new HashMap<>(); // key - X coordinate of chart background
 
   public PlayerRatingChart(@NamedArg("xAxis") Axis<Number> xAxis, @NamedArg("yAxis") Axis<Number> yAxis) {
@@ -54,13 +62,84 @@ public class PlayerRatingChart extends LineChart<Number, Number> {
         setValues(event);
         moveTooltipAndLineToCursor(event);
       });
+      chartBackground.setOnMousePressed(this::onMousePressed);
+      chartBackground.setOnMouseDragged(this::onMouseDragged);
+      chartBackground.setOnMouseReleased(this::onMouseReleased);
       addVerticalLine();
+      addSelectionRect();
     }
   }
 
   private void addVerticalLine() {
     getPlotChildren().add(verticalLine);
     JavaFxUtil.bind(verticalLine.endYProperty(), chartBackground.heightProperty());
+  }
+
+  private void addSelectionRect() {
+    selectionRect.setVisible(false);
+    selectionRect.getStyleClass().add("rating-selection-rect");
+    JavaFxUtil.bind(selectionRect.heightProperty(), chartBackground.heightProperty());
+    getPlotChildren().add(selectionRect);
+  }
+
+  public void setSelectionListener(Consumer<long[]> listener) {
+    this.selectionListener = listener;
+  }
+
+  public void clearSelection() {
+    isDragging = false;
+    selectionRect.setVisible(false);
+    if (selectionListener != null) {
+      selectionListener.accept(null);
+    }
+  }
+
+  private void onMousePressed(MouseEvent event) {
+    selectionStartX = event.getX();
+    isDragging = false;
+  }
+
+  private void onMouseDragged(MouseEvent event) {
+    if (!valid) {
+      return;
+    }
+    double currentX = event.getX();
+    if (!isDragging && Math.abs(currentX - selectionStartX) < DRAG_THRESHOLD_PX) {
+      return;
+    }
+    isDragging = true;
+
+    double startX = Math.min(selectionStartX, currentX);
+    double endX = Math.max(selectionStartX, currentX);
+    selectionRect.setX(startX);
+    selectionRect.setY(0);
+    selectionRect.setWidth(endX - startX);
+    selectionRect.setVisible(true);
+
+    // hide hover elements during drag
+    if (hoverTooltip != null) {
+      hoverTooltip.hide();
+    }
+    verticalLine.setVisible(false);
+  }
+
+  private void onMouseReleased(MouseEvent event) {
+    if (isDragging) {
+      isDragging = false;
+      verticalLine.setVisible(true);
+      if (selectionListener != null && valid) {
+        double startX = Math.min(selectionStartX, event.getX());
+        double endX = Math.max(selectionStartX, event.getX());
+        long startTime = getDisplayedDateValue(startX);
+        long endTime = getDisplayedDateValue(endX);
+        if (startTime != Long.MIN_VALUE && endTime != Long.MIN_VALUE) {
+          selectionListener.accept(new long[]{startTime, endTime});
+        }
+      }
+    } else {
+      // plain click — clear the selection
+      clearSelection();
+    }
   }
 
   public void initializeTooltip(UiService uiService) {
@@ -80,7 +159,7 @@ public class PlayerRatingChart extends LineChart<Number, Number> {
   }
 
   private void setValues(MouseEvent event) {
-    if (valid) {
+    if (valid && !isDragging) {
       int x = (int) event.getX();
       long dateValueInSec = getDisplayedDateValue(x);
       Integer rating = ratingMap.get(x);
@@ -93,9 +172,11 @@ public class PlayerRatingChart extends LineChart<Number, Number> {
   }
 
   private void moveTooltipAndLineToCursor(MouseEvent event) {
-    hoverTooltip.setX(event.getScreenX() + OFFSET_TOOLTIP_FROM_CURSOR_BY_X);
-    hoverTooltip.setY(event.getScreenY() + OFFSET_TOOLTIP_FROM_CURSOR_BY_Y);
-    verticalLine.setLayoutX(event.getX());
+    if (!isDragging) {
+      hoverTooltip.setX(event.getScreenX() + OFFSET_TOOLTIP_FROM_CURSOR_BY_X);
+      hoverTooltip.setY(event.getScreenY() + OFFSET_TOOLTIP_FROM_CURSOR_BY_Y);
+      verticalLine.setLayoutX(event.getX());
+    }
   }
 
   private void recalculateData() {
