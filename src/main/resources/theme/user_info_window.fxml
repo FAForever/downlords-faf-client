@@ -64,12 +64,6 @@
                                           </padding>
                                           <children>
                                               <Label fx:id="selectionDateRangeLabel" styleClass="selection-stats-range"/>
-                                              <Label text="%chart.selection.gamesPlayed"/>
-                                              <Label fx:id="selectionGamesPlayedLabel" styleClass="selection-stats-value"/>
-                                              <Label text="%chart.selection.wins"/>
-                                              <Label fx:id="selectionWinsLabel" styleClass="selection-stats-value"/>
-                                              <Label text="%chart.selection.losses"/>
-                                              <Label fx:id="selectionLossesLabel" styleClass="selection-stats-value"/>
                                               <Label text="%chart.selection.minRating"/>
                                               <Label fx:id="selectionMinRatingLabel" styleClass="selection-stats-value"/>
                                               <Label text="%chart.selection.maxRating"/>

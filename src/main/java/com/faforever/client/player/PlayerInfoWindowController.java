@@ -129,9 +129,6 @@ public class PlayerInfoWindowController extends NodeController<Node> {
   public VBox loadingHistoryPane;
   public HBox selectionStatsPane;
   public Label selectionDateRangeLabel;
-  public Label selectionGamesPlayedLabel;
-  public Label selectionWinsLabel;
-  public Label selectionLossesLabel;
   public Label selectionMinRatingLabel;
   public Label selectionMaxRatingLabel;
   public ComboBox<TimePeriod> timePeriodComboBox;
@@ -547,22 +544,12 @@ public class PlayerInfoWindowController extends NodeController<Node> {
         return;
       }
 
-      int gamesPlayed = selected.size();
-      int wins = (int) selected.stream()
-          .filter(j -> j.meanAfter() != null && j.meanBefore() != null && j.meanAfter() > j.meanBefore())
-          .count();
-      int losses = (int) selected.stream()
-          .filter(j -> j.meanAfter() != null && j.meanBefore() != null && j.meanAfter() < j.meanBefore())
-          .count();
       int minRating = selected.stream().mapToInt(RatingUtil::getRating).min().orElse(0);
       int maxRating = selected.stream().mapToInt(RatingUtil::getRating).max().orElse(0);
 
       String startDate = timeService.asDate(Instant.ofEpochSecond(range[0]));
       String endDate = timeService.asDate(Instant.ofEpochSecond(range[1]));
       selectionDateRangeLabel.setText(startDate + " – " + endDate);
-      selectionGamesPlayedLabel.setText(i18n.number(gamesPlayed));
-      selectionWinsLabel.setText(i18n.number(wins));
-      selectionLossesLabel.setText(i18n.number(losses));
       selectionMinRatingLabel.setText(i18n.number(minRating));
       selectionMaxRatingLabel.setText(i18n.number(maxRating));
       selectionStatsPane.setVisible(true);
