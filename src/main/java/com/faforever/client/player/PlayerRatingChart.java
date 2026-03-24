@@ -44,6 +44,8 @@ public class PlayerRatingChart extends LineChart<Number, Number> {
   private boolean valid = false;
   private boolean isDragging = false;
   private double selectionStartX;
+  private long selectionStartTimeSec = Long.MIN_VALUE;
+  private long selectionEndTimeSec = Long.MIN_VALUE;
   private Consumer<long[]> selectionListener;
 
   private final Map<Integer, Integer> ratingMap = new HashMap<>(); // key - X coordinate of chart background
@@ -88,6 +90,8 @@ public class PlayerRatingChart extends LineChart<Number, Number> {
 
   public void clearSelection() {
     isDragging = false;
+    selectionStartTimeSec = Long.MIN_VALUE;
+    selectionEndTimeSec = Long.MIN_VALUE;
     selectionRect.setVisible(false);
     if (selectionListener != null) {
       selectionListener.accept(null);
@@ -133,6 +137,8 @@ public class PlayerRatingChart extends LineChart<Number, Number> {
         long startTime = getDisplayedDateValue(startX);
         long endTime = getDisplayedDateValue(endX);
         if (startTime != Long.MIN_VALUE && endTime != Long.MIN_VALUE) {
+          selectionStartTimeSec = startTime;
+          selectionEndTimeSec = endTime;
           selectionListener.accept(new long[]{startTime, endTime});
         }
       }
@@ -256,12 +262,28 @@ public class PlayerRatingChart extends LineChart<Number, Number> {
     valid = false;
   }
 
+  private void repositionSelectionRect() {
+    if (selectionStartTimeSec == Long.MIN_VALUE || selectionEndTimeSec == Long.MIN_VALUE) {
+      return;
+    }
+    double startPx = getXAxis().getDisplayPosition(selectionStartTimeSec);
+    double endPx = getXAxis().getDisplayPosition(selectionEndTimeSec);
+    if (startPx >= 0 && endPx > startPx) {
+      selectionRect.setX(startPx);
+      selectionRect.setWidth(endPx - startPx);
+      selectionRect.setVisible(true);
+    }
+  }
+
   @Override
   protected void layoutPlotChildren() {
     super.layoutPlotChildren();
     if (!valid && available) {
       recalculateData();
       valid = true;
+    }
+    if (available && !isDragging) {
+      repositionSelectionRect();
     }
   }
 
