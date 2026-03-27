@@ -3,6 +3,8 @@ package com.faforever.client.player;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.theme.UiService;
 import com.google.common.annotations.VisibleForTesting;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.NamedArg;
 import javafx.collections.ListChangeListener.Change;
 import javafx.scene.chart.Axis;
@@ -37,6 +39,7 @@ public class PlayerRatingChart extends LineChart<Number, Number> {
   private final Region chartBackground;
   private final Line verticalLine = new Line(0, 0, 0, 0);
   private final Rectangle selectionRect = new Rectangle();
+  private final ReadOnlyObjectWrapper<SelectionRange> selectionRange = new ReadOnlyObjectWrapper<>();
   private PlayerRatingChartTooltipController tooltipController;
   private Tooltip hoverTooltip;
   private boolean available = true;
@@ -44,11 +47,11 @@ public class PlayerRatingChart extends LineChart<Number, Number> {
   private boolean valid = false;
   private boolean isDragging = false;
   private double selectionStartX;
-  private long selectionStartTimeSec = Long.MIN_VALUE;
-  private long selectionEndTimeSec = Long.MIN_VALUE;
-  private Consumer<long[]> selectionListener;
 
   private final Map<Integer, Integer> ratingMap = new HashMap<>(); // key - X coordinate of chart background
+
+  public record SelectionRange(long startTimeSec, long endTimeSec) {
+  }
 
   public PlayerRatingChart(@NamedArg("xAxis") Axis<Number> xAxis, @NamedArg("yAxis") Axis<Number> yAxis) {
     super(xAxis, yAxis);
@@ -84,18 +87,26 @@ public class PlayerRatingChart extends LineChart<Number, Number> {
     getPlotChildren().add(selectionRect);
   }
 
-  public void setSelectionListener(Consumer<long[]> listener) {
-    this.selectionListener = listener;
+  public void setSelectionListener(Consumer<SelectionRange> listener) {
+    selectionRangeProperty().addListener((observable, oldRange, newRange) -> listener.accept(newRange));
+  }
+
+  public ReadOnlyObjectProperty<SelectionRange> selectionRangeProperty() {
+    return selectionRange.getReadOnlyProperty();
+  }
+
+  public SelectionRange getSelectionRange() {
+    return selectionRange.get();
+  }
+
+  private void setSelectionRange(SelectionRange range) {
+    selectionRange.set(range);
   }
 
   public void clearSelection() {
     isDragging = false;
-    selectionStartTimeSec = Long.MIN_VALUE;
-    selectionEndTimeSec = Long.MIN_VALUE;
     selectionRect.setVisible(false);
-    if (selectionListener != null) {
-      selectionListener.accept(null);
-    }
+    setSelectionRange(null);
   }
 
   private void onMousePressed(MouseEvent event) {
@@ -131,15 +142,13 @@ public class PlayerRatingChart extends LineChart<Number, Number> {
     if (isDragging) {
       isDragging = false;
       verticalLine.setVisible(true);
-      if (selectionListener != null && valid) {
+      if (valid) {
         double startX = Math.min(selectionStartX, event.getX());
         double endX = Math.max(selectionStartX, event.getX());
-        long startTime = getDisplayedDateValue(startX);
-        long endTime = getDisplayedDateValue(endX);
-        if (startTime != Long.MIN_VALUE && endTime != Long.MIN_VALUE) {
-          selectionStartTimeSec = startTime;
-          selectionEndTimeSec = endTime;
-          selectionListener.accept(new long[]{startTime, endTime});
+        Long startTime = getDisplayedDateValue(startX);
+        Long endTime = getDisplayedDateValue(endX);
+        if (startTime != null && endTime != null) {
+          setSelectionRange(new SelectionRange(startTime, endTime));
         }
       }
     } else {
@@ -167,9 +176,9 @@ public class PlayerRatingChart extends LineChart<Number, Number> {
   private void setValues(MouseEvent event) {
     if (valid && !isDragging) {
       int x = (int) event.getX();
-      long dateValueInSec = getDisplayedDateValue(x);
+      Long dateValueInSec = getDisplayedDateValue(x);
       Integer rating = ratingMap.get(x);
-      if (rating != null && dateValueInSec != Long.MIN_VALUE) {
+      if (rating != null && dateValueInSec != null) {
         tooltipController.setDateAndRating(dateValueInSec, rating);
       } else {
         tooltipController.clear();
@@ -232,10 +241,10 @@ public class PlayerRatingChart extends LineChart<Number, Number> {
     ratingMap.merge(xCoordinate, (int) rating, (currentRating, newRating) -> (currentRating + newRating) / 2); // average
   }
 
-  private long getDisplayedDateValue(double displayPosition) {
+  private Long getDisplayedDateValue(double displayPosition) {
     return Optional.ofNullable(getXAxis().getValueForDisplay(displayPosition))
         .map(Number::longValue)
-        .orElse(Long.MIN_VALUE);
+        .orElse(null);
   }
 
   private int getDisplayedRatingValue(double displayPosition) {
@@ -263,11 +272,12 @@ public class PlayerRatingChart extends LineChart<Number, Number> {
   }
 
   private void repositionSelectionRect() {
-    if (selectionStartTimeSec == Long.MIN_VALUE || selectionEndTimeSec == Long.MIN_VALUE) {
+    SelectionRange range = getSelectionRange();
+    if (range == null) {
       return;
     }
-    double startPx = getXAxis().getDisplayPosition(selectionStartTimeSec);
-    double endPx = getXAxis().getDisplayPosition(selectionEndTimeSec);
+    double startPx = getXAxis().getDisplayPosition(range.startTimeSec());
+    double endPx = getXAxis().getDisplayPosition(range.endTimeSec());
     if (startPx >= 0 && endPx > startPx) {
       selectionRect.setX(startPx);
       selectionRect.setWidth(endPx - startPx);

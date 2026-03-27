@@ -198,7 +198,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
 
     ratingData = List.of();
     ratingHistoryChart.initializeTooltip(uiService);
-    ratingHistoryChart.setSelectionListener(this::onChartSelection);
+    ratingHistoryChart.selectionRangeProperty().addListener((observable, oldRange, newRange) -> onChartSelection(newRange));
   }
 
   @Override
@@ -524,7 +524,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
     ratingHistoryChart.clearSelection();
   }
 
-  private void onChartSelection(long[] range) {
+  private void onChartSelection(PlayerRatingChart.SelectionRange range) {
     fxApplicationThreadExecutor.execute(() -> {
       if (range == null) {
         selectionStatsPane.setVisible(false);
@@ -535,7 +535,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
           .filter(j -> j.scoreTime() != null && j.scoreTime().isAfter(afterDate))
           .filter(j -> {
             long t = j.scoreTime().toEpochSecond();
-            return t >= range[0] && t <= range[1];
+            return t >= range.startTimeSec() && t <= range.endTimeSec();
           })
           .toList();
 
@@ -547,8 +547,8 @@ public class PlayerInfoWindowController extends NodeController<Node> {
       int minRating = selected.stream().mapToInt(RatingUtil::getRating).min().orElse(0);
       int maxRating = selected.stream().mapToInt(RatingUtil::getRating).max().orElse(0);
 
-      String startDate = timeService.asDate(Instant.ofEpochSecond(range[0]));
-      String endDate = timeService.asDate(Instant.ofEpochSecond(range[1]));
+      String startDate = timeService.asDate(Instant.ofEpochSecond(range.startTimeSec()));
+      String endDate = timeService.asDate(Instant.ofEpochSecond(range.endTimeSec()));
       selectionDateRangeLabel.setText(startDate + " – " + endDate);
       selectionMinRatingLabel.setText(i18n.number(minRating));
       selectionMaxRatingLabel.setText(i18n.number(maxRating));
