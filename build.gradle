@@ -258,7 +258,7 @@ dependencies {
     implementation("io.projectreactor.addons:reactor-extra")
     implementation("io.projectreactor:reactor-tools")
 
-    def commonsVersion = "20251112-0a26247"
+    def commonsVersion = "20260407-92612a0"
 
     implementation("com.faforever.commons:data:${commonsVersion}") {
         exclude module: 'guava'
