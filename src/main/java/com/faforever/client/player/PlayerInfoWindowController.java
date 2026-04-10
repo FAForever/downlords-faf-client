@@ -127,6 +127,10 @@ public class PlayerInfoWindowController extends NodeController<Node> {
   public NumberAxis xAxis;
   public PlayerRatingChart ratingHistoryChart;
   public VBox loadingHistoryPane;
+  public HBox selectionStatsPane;
+  public Label selectionDateRangeLabel;
+  public Label selectionMinRatingLabel;
+  public Label selectionMaxRatingLabel;
   public ComboBox<TimePeriod> timePeriodComboBox;
   public ComboBox<Leaderboard> ratingTypeComboBox;
   public Label usernameLabel;
@@ -149,7 +153,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
     JavaFxUtil.bindManagedToVisible(loadingHistoryPane, loadingProgressLabel, achievementsPane,
                                     mostRecentAchievementPane, unlockedAchievementsHeader,
                                     unlockedAchievementsContainer, lockedAchievementsHeader,
-                                    lockedAchievementsContainer, ratingHistoryChart);
+                                    lockedAchievementsContainer, ratingHistoryChart, selectionStatsPane);
 
     unlockedAchievementsHeader.visibleProperty().bind(unlockedAchievementsContainer.visibleProperty());
     unlockedAchievementsContainer.visibleProperty()
@@ -194,6 +198,7 @@ public class PlayerInfoWindowController extends NodeController<Node> {
 
     ratingData = List.of();
     ratingHistoryChart.initializeTooltip(uiService);
+    ratingHistoryChart.selectionRangeProperty().addListener((observable, oldRange, newRange) -> onChartSelection(newRange));
   }
 
   @Override
@@ -515,6 +520,40 @@ public class PlayerInfoWindowController extends NodeController<Node> {
     ratingHistoryChart.setData(FXCollections.observableList(Collections.singletonList(series)));
     loadingHistoryPane.setVisible(false);
     ratingHistoryChart.setVisible(true);
+    // clear any previous drag selection when new data is loaded
+    ratingHistoryChart.clearSelection();
+  }
+
+  private void onChartSelection(PlayerRatingChart.SelectionRange range) {
+    fxApplicationThreadExecutor.execute(() -> {
+      if (range == null) {
+        selectionStatsPane.setVisible(false);
+        return;
+      }
+      OffsetDateTime afterDate = OffsetDateTime.of(timePeriodComboBox.getValue().getDate(), ZoneOffset.UTC);
+      List<LeaderboardRatingJournal> selected = ratingData.stream()
+          .filter(j -> j.scoreTime() != null && j.scoreTime().isAfter(afterDate))
+          .filter(j -> {
+            long t = j.scoreTime().toEpochSecond();
+            return t >= range.startTimeSec() && t <= range.endTimeSec();
+          })
+          .toList();
+
+      if (selected.isEmpty()) {
+        selectionStatsPane.setVisible(false);
+        return;
+      }
+
+      int minRating = selected.stream().mapToInt(RatingUtil::getRating).min().orElse(0);
+      int maxRating = selected.stream().mapToInt(RatingUtil::getRating).max().orElse(0);
+
+      String startDate = timeService.asDate(Instant.ofEpochSecond(range.startTimeSec()));
+      String endDate = timeService.asDate(Instant.ofEpochSecond(range.endTimeSec()));
+      selectionDateRangeLabel.setText(startDate + " – " + endDate);
+      selectionMinRatingLabel.setText(i18n.number(minRating));
+      selectionMaxRatingLabel.setText(i18n.number(maxRating));
+      selectionStatsPane.setVisible(true);
+    });
   }
 
   @NotNull
