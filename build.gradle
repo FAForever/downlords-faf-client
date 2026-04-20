@@ -127,6 +127,12 @@ bootRun {
             // Needed for getting process handle via reflection
             "--add-opens=java.base/java.lang=ALL-UNNAMED",
     ]
+    if (OperatingSystem.current().isMacOsX()) {
+        // Fix HeadlessException in install4j's StartupNotification (FileOpeningHandler)
+        jvmArgs += "-Djava.awt.headless=false"
+        // Activate 'mac' profile so @Profile("!mac") beans (e.g. DiscordRichPresenceService) are excluded
+        environment "SPRING_PROFILES_ACTIVE", "prod,mac"
+    }
 }
 
 jar {
