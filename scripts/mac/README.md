@@ -1,32 +1,11 @@
 # Running FAF on macOS (Apple Silicon)
 
 These scripts run the FAF client natively on arm64 and launch Supreme
-Commander: Forged Alliance through a CrossOver-derived Wine under
-Apple's Rosetta 2. Rosetta 2 provides a full software x87 FPU
-implementation, giving IEEE 754 bit-identical single-precision results
-to x86 hardware — which is what keeps the lockstep simulation in sync
-with other players.
-
-## Known issues (work in progress)
-
-- **Apple's Game Porting Toolkit (`gcenx/wine/game-porting-toolkit`) does
-  not work for SC:FA.** GPTK 3.0-2 ships wine-7.7, whose
-  `pages_vprot` page-protection tracking table is undersized for the
-  `ForgedAlliance.exe` memory layout. The game dies on startup with:
-  `Assertion failed: (end <= pages_vprot_size << pages_vprot_shift),
-  function alloc_pages_vprot, file virtual.c, line 1032`. This is why
-  the install steps below point at WineHQ's mac builds instead.
-- **Intermittent mid-game crash with WineHQ 11.0_1** — game has been
-  observed to exit with code 5 after ~20 minutes of play. Cause
-  not yet diagnosed; the wine launcher (`faf-run.sh`) now writes wine's
-  stderr to `~/.faforever/logs/wine-*.log` so the next occurrence can
-  be captured.
-- **wine-crossover 23.7.1-1** (wine-8.0.1, the build with 50+ games of
-  stable soak-testing in the original PR) is no longer publicly
-  distributable — the `Gcenx/winecx` repo and the `wine-crossover`
-  Homebrew cask were both removed in early 2026. If you have the
-  tarball cached locally from a prior install, you can use it; see
-  "Alternative: wine-crossover" below.
+Commander: Forged Alliance through CrossOver's Wine under Apple's
+Rosetta 2. Rosetta 2 provides a full software x87 FPU implementation,
+giving IEEE 754 bit-identical single-precision results to x86
+hardware — which is what keeps the lockstep simulation in sync with
+other players.
 
 ## Requirements
 
@@ -39,22 +18,26 @@ with other players.
 ## One-time setup
 
 ```sh
-# Wine that runs through Rosetta 2. Gcenx packages upstream WineHQ's
-# macOS builds as a GitHub release; they include wine32on64 and are
-# new enough (wine 11.0) to avoid the GPTK alloc_pages_vprot bug.
-WINE_VER=11.0_1
-curl -L -o /tmp/wine-stable.tar.xz \
-  "https://github.com/Gcenx/macOS_Wine_builds/releases/download/${WINE_VER}/wine-stable-${WINE_VER}-osx64.tar.xz"
-sudo tar -xf /tmp/wine-stable.tar.xz -C /Applications
-sudo xattr -drs com.apple.quarantine "/Applications/Wine Stable.app"
-sudo codesign --force --deep -s - "/Applications/Wine Stable.app"
-export PATH="/Applications/Wine Stable.app/Contents/Resources/wine/bin:$PATH"
+# Wine that runs through Rosetta 2. This is wine-crossover 23.7.1-1
+# (wine-8.0.1, CrossOver's FOSS Wine) — the build this PR was
+# soak-tested against (50+ multiplayer games, no desync).
+# Mirrored at github.com/jfuruness/wine-crossover-mac because the
+# upstream Gcenx/winecx repo and homebrew-wine cask were removed in
+# early 2026. See "Alternative: upstream WineHQ" below if this
+# mirror is unavailable.
+WINECX_VER=23.7.1-1
+curl -L -o /tmp/wine-crossover.tar.xz \
+  "https://github.com/jfuruness/wine-crossover-mac/releases/download/${WINECX_VER}/wine-crossover-${WINECX_VER}-osx64.tar.xz"
+sudo tar -xf /tmp/wine-crossover.tar.xz -C /Applications
+sudo xattr -drs com.apple.quarantine "/Applications/Wine Crossover.app"
+sudo codesign --force --deep -s - "/Applications/Wine Crossover.app"
+export PATH="/Applications/Wine Crossover.app/Contents/Resources/wine/bin:$PATH"
 
 brew install winetricks
 
 # A prefix for the game, plus the libraries it needs
 export WINEPREFIX="$HOME/faf-mac/wine-prefix"
-wine wineboot --init
+wine64 wineboot --init
 winetricks -q d3dx9 xact
 
 # Build the client distribution for Apple Silicon
@@ -79,24 +62,38 @@ Copy your Supreme Commander files into
 `$WINEPREFIX/drive_c/games/SupremeCommander/` (the directory should
 contain the `gamedata/` folder).
 
-### Alternative: wine-crossover
+### Alternative: upstream WineHQ
 
-If you already have `wine-crossover-23.7.1-1-osx64.tar.xz` cached from
-a previous install (typically at
-`~/Library/Caches/Homebrew/downloads/*wine-crossover*`), you can use it
-instead of WineHQ's build — that's what the original PR's soak-testing
-was done against. The setup is the same shape; replace the `curl`/`tar`
-block above with:
+If the wine-crossover mirror above is unavailable, upstream WineHQ's
+macOS build (packaged by Gcenx at `Gcenx/macOS_Wine_builds`) is a
+usable fallback — newer Wine (11.0+) that includes wine32on64 for
+32-bit PE support. Known caveat: occasional mid-game crashes (exit
+code 5) have been observed under WineHQ 11.0_1 that haven't appeared
+under wine-crossover 23.7.1-1.
 
 ```sh
-tar -xf ~/Library/Caches/Homebrew/downloads/*wine-crossover-23.7.1-1-osx64.tar.xz -C /Applications
-sudo xattr -drs com.apple.quarantine "/Applications/Wine Crossover.app"
-sudo codesign --force --deep -s - "/Applications/Wine Crossover.app"
-export PATH="/Applications/Wine Crossover.app/Contents/Resources/wine/bin:$PATH"
+WINE_VER=11.0_1
+curl -L -o /tmp/wine-stable.tar.xz \
+  "https://github.com/Gcenx/macOS_Wine_builds/releases/download/${WINE_VER}/wine-stable-${WINE_VER}-osx64.tar.xz"
+sudo tar -xf /tmp/wine-stable.tar.xz -C /Applications
+sudo xattr -drs com.apple.quarantine "/Applications/Wine Stable.app"
+sudo codesign --force --deep -s - "/Applications/Wine Stable.app"
+export PATH="/Applications/Wine Stable.app/Contents/Resources/wine/bin:$PATH"
 ```
 
-`faf-run.sh` auto-detects both `Wine Stable.app` and `Wine Crossover.app`
-and picks whichever is installed.
+WineHQ 11.0 ships only a `wine` binary (no separate `wine64` — the
+wine/wine64 split was merged upstream). Substitute `wine` for
+`wine64` in the `wineboot --init` step if you go this route.
+`faf-run.sh` auto-detects both Wine Stable and Wine Crossover.
+
+### What does not work
+
+Apple's Game Porting Toolkit (`gcenx/wine/game-porting-toolkit`, wine
+7.7) is **not** usable for SC:FA: its `pages_vprot` page-protection
+tracking table is undersized for `ForgedAlliance.exe`'s memory
+layout, and the game dies on startup with `Assertion failed:
+(end <= pages_vprot_size << pages_vprot_shift), function
+alloc_pages_vprot, file virtual.c, line 1032`.
 
 ## Running
 
@@ -128,3 +125,6 @@ the `%s` placeholder is already quoted by the client.
   `$WINEPREFIX/drive_c/users/<username>/AppData/Local/Gas Powered Games/Supreme Commander Forged Alliance/Game.prefs`.
   Changing it in-game freezes Wine because it cannot switch display
   modes mid-session.
+- The `faf-run.sh` launcher captures wine's stderr to
+  `~/.faforever/logs/wine-<timestamp>.log` on every launch so abnormal
+  exits can be diagnosed post-mortem.
