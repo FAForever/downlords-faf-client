@@ -62,38 +62,24 @@ Copy your Supreme Commander files into
 `$WINEPREFIX/drive_c/games/SupremeCommander/` (the directory should
 contain the `gamedata/` folder).
 
-### Alternative: upstream WineHQ
+### Wine builds that do not work — do not use
 
-If the wine-crossover mirror above is unavailable, upstream WineHQ's
-macOS build (packaged by Gcenx at `Gcenx/macOS_Wine_builds`) is a
-usable fallback — newer Wine (11.0+) that includes wine32on64 for
-32-bit PE support. Known caveat: occasional mid-game crashes (exit
-code 5) have been observed under WineHQ 11.0_1 that haven't appeared
-under wine-crossover 23.7.1-1.
+Only **wine-crossover 23.7.1-1** is known to run SC:FA reliably.
+The two other obvious candidates both have wine bugs that make the
+game unplayable:
 
-```sh
-WINE_VER=11.0_1
-curl -L -o /tmp/wine-stable.tar.xz \
-  "https://github.com/Gcenx/macOS_Wine_builds/releases/download/${WINE_VER}/wine-stable-${WINE_VER}-osx64.tar.xz"
-sudo tar -xf /tmp/wine-stable.tar.xz -C /Applications
-sudo xattr -drs com.apple.quarantine "/Applications/Wine Stable.app"
-sudo codesign --force --deep -s - "/Applications/Wine Stable.app"
-export PATH="/Applications/Wine Stable.app/Contents/Resources/wine/bin:$PATH"
-```
-
-WineHQ 11.0 ships only a `wine` binary (no separate `wine64` — the
-wine/wine64 split was merged upstream). Substitute `wine` for
-`wine64` in the `wineboot --init` step if you go this route.
-`faf-run.sh` auto-detects both Wine Stable and Wine Crossover.
-
-### What does not work
-
-Apple's Game Porting Toolkit (`gcenx/wine/game-porting-toolkit`, wine
-7.7) is **not** usable for SC:FA: its `pages_vprot` page-protection
-tracking table is undersized for `ForgedAlliance.exe`'s memory
-layout, and the game dies on startup with `Assertion failed:
-(end <= pages_vprot_size << pages_vprot_shift), function
-alloc_pages_vprot, file virtual.c, line 1032`.
+- **Apple's Game Porting Toolkit** (`gcenx/wine/game-porting-toolkit`,
+  wine 7.7) — the game dies on startup with `Assertion failed:
+  (end <= pages_vprot_size << pages_vprot_shift), function
+  alloc_pages_vprot, file virtual.c, line 1032`. GPTK's
+  `pages_vprot` page-protection tracking table is undersized for
+  `ForgedAlliance.exe`'s memory layout.
+- **Upstream WineHQ 11.0_1** (`Gcenx/macOS_Wine_builds`) — the game
+  starts and plays but crashes mid-match with a non-zero exit code
+  (observed exit 5 after ~20 min of multiplayer). This is a wine
+  bug, not a setup issue. Do not use it. If the wine-crossover
+  mirror ever goes down, wait for it to come back or open an issue
+  rather than falling back to WineHQ.
 
 ## Running
 
