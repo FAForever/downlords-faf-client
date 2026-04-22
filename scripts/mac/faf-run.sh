@@ -14,10 +14,31 @@ set -eu
 export WINEPREFIX
 export WINEDEBUG="${WINEDEBUG:--all}"
 
-WINE_BIN="${WINE_BIN:-$(command -v wine64 || command -v wine || true)}"
+# Prefer an explicit WINE_BIN, then auto-detect. WineHQ's macOS build
+# ships `wine` (which handles 32-bit PE via wine32on64); wine-crossover
+# ships both `wine` and `wine64`. Either works for ForgedAlliance.exe.
+WINE_CANDIDATES=(
+    "${WINE_BIN:-}"
+    "/Applications/Wine Stable.app/Contents/Resources/wine/bin/wine"
+    "/Applications/Wine Crossover.app/Contents/Resources/wine/bin/wine64"
+    "$(command -v wine || true)"
+    "$(command -v wine64 || true)"
+)
+WINE_BIN=""
+for candidate in "${WINE_CANDIDATES[@]}"; do
+    if [ -n "$candidate" ] && [ -x "$candidate" ]; then
+        WINE_BIN="$candidate"
+        break
+    fi
+done
 if [ -z "$WINE_BIN" ]; then
-    echo "Wine not found. Install: brew install --cask gcenx/wine/game-porting-toolkit" >&2
+    echo "Wine not found. See scripts/mac/README.md for install instructions." >&2
     exit 1
 fi
 
-exec "$WINE_BIN" "$@"
+# Capture wine's stderr to a timestamped log so abnormal exits (non-zero
+# code with empty game log) can be diagnosed post-mortem.
+WINE_LOG_DIR="$HOME/.faforever/logs"
+mkdir -p "$WINE_LOG_DIR"
+WINE_LOG="$WINE_LOG_DIR/wine-$(date +%Y%m%d-%H%M%S).log"
+exec "$WINE_BIN" "$@" 2> "$WINE_LOG"
