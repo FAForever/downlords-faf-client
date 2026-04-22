@@ -47,12 +47,21 @@ winetricks -q d3dx9 xact
 # on macOS and must be overwritten. Official uid releases do not
 # yet ship a macOS build, so we build one from FAForever/uid PR #17.
 #
-# Once that PR is merged and a macOS binary is published to the
+# IMPORTANT — if you're building from source, you also need the
+# production RSA public key. The CMakeLists.txt ships with an
+# example key (for testing); faf-uid built with it will be rejected
+# by the lobby server. In the official release pipeline the real key
+# is passed in via -DUID_PUBKEY_BYTES=... by a GitHub Actions secret.
+# To build locally for your own use, pass the same flag with the
+# production key bytes — otherwise lobby login fails.
+#
+# Once PR #17 is merged and a macOS binary is published to the
 # official FAForever/uid releases, delete this whole block and let
 # :downloadUnixUid fetch the real thing.
 brew install cmake pkg-config cryptopp jsoncpp
 git clone -b add-macos-support https://github.com/jfuruness/uid.git "$HOME/faf-mac/uid-src"
-cmake -S "$HOME/faf-mac/uid-src" -B "$HOME/faf-mac/uid-src/build"
+cmake -S "$HOME/faf-mac/uid-src" -B "$HOME/faf-mac/uid-src/build" \
+      -DUID_PUBKEY_BYTES="$UID_PUBKEY_BYTES"   # production key, not the example
 cmake --build "$HOME/faf-mac/uid-src/build"
 cp "$HOME/faf-mac/uid-src/build/faf-uid" build/install/faf-client/
 ```
