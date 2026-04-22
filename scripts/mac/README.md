@@ -4,7 +4,7 @@ These scripts run the FAF client natively on arm64 and launch Supreme
 Commander: Forged Alliance through CrossOver's Wine under Apple's
 Rosetta 2. Rosetta 2 provides a full software x87 FPU implementation,
 giving IEEE 754 bit-identical single-precision results to x86
-hardware — which is what keeps the lockstep simulation in sync with
+hardware, which is what keeps the lockstep simulation in sync with
 other players.
 
 ## Requirements
@@ -23,8 +23,7 @@ other players.
 # soak-tested against (50+ multiplayer games, no desync).
 # Mirrored at github.com/jfuruness/wine-crossover-mac because the
 # upstream Gcenx/winecx repo and homebrew-wine cask were removed in
-# early 2026. See "Alternative: upstream WineHQ" below if this
-# mirror is unavailable.
+# early 2026.
 WINECX_VER=23.7.1-1
 curl -L -o /tmp/wine-crossover.tar.xz \
   "https://github.com/jfuruness/wine-crossover-mac/releases/download/${WINECX_VER}/wine-crossover-${WINECX_VER}-osx64.tar.xz"
@@ -77,9 +76,8 @@ game unplayable:
 - **Upstream WineHQ 11.0_1** (`Gcenx/macOS_Wine_builds`) — the game
   starts and plays but crashes mid-match with a non-zero exit code
   (observed exit 5 after ~20 min of multiplayer). This is a wine
-  bug, not a setup issue. Do not use it. If the wine-crossover
-  mirror ever goes down, wait for it to come back or open an issue
-  rather than falling back to WineHQ.
+  bug, not a setup issue. Maybe some debugging could get this to work,
+  but I wouldn't count on it.
 
 ## Running
 
