@@ -16,7 +16,7 @@ export WINEDEBUG="${WINEDEBUG:--all}"
 
 WINE_BIN="${WINE_BIN:-$(command -v wine64 || command -v wine || true)}"
 if [ -z "$WINE_BIN" ]; then
-    echo "Wine not found. Install: brew install --cask --no-quarantine gcenx/wine/wine-crossover" >&2
+    echo "Wine not found. Install: brew install --cask gcenx/wine/game-porting-toolkit" >&2
     exit 1
 fi
 
