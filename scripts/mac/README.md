@@ -9,7 +9,7 @@ other players.
 
 ## Requirements
 
-- Apple Silicon Mac (M1 or later) running macOS 10.15 or later
+- Apple Silicon Mac (M1 or later) running macOS 14 (Sonoma) or later
 - Rosetta 2: `softwareupdate --install-rosetta --agree-to-license`
 - [Homebrew](https://brew.sh)
 - JDK 25 aarch64 ([Temurin](https://adoptium.net/temurin/releases/?version=25))
@@ -76,13 +76,16 @@ export WINEPREFIX="$HOME/faf-mac/wine-prefix"
 ./scripts/mac/faf-client.sh
 ```
 
-In the client's settings, under **Forged Alliance Forever**:
+In the client's settings, under **Forged Alliance Forever**, enter the
+**fully-expanded** paths below — substitute your own macOS username for
+`<you>`. The client uses Java's `Path.of()` to parse these, which does
+not expand shell variables like `$WINEPREFIX` or `$HOME`:
 
-| Setting                                    | Value                                                            |
-|--------------------------------------------|------------------------------------------------------------------|
-| Forged Alliance install location           | `$WINEPREFIX/drive_c/games/SupremeCommander`                     |
-| Command line format for executable         | `/absolute/path/to/scripts/mac/faf-run.sh %s`                    |
-| Execution directory                        | `$HOME/.faforever/bin`                                           |
+| Setting                                    | Value                                                                                |
+|--------------------------------------------|--------------------------------------------------------------------------------------|
+| Forged Alliance install location           | `/Users/<you>/faf-mac/wine-prefix/drive_c/games/SupremeCommander`                     |
+| Command line format for executable         | `/Users/<you>/path/to/downlords-faf-client/scripts/mac/faf-run.sh %s`                |
+| Execution directory                        | `/Users/<you>/.faforever/bin`                                                        |
 
 Do not add leading spaces or extra quotes to the command line format —
 the `%s` placeholder is already quoted by the client.

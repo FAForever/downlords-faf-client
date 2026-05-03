@@ -14,15 +14,17 @@ set -eu
 export WINEPREFIX
 export WINEDEBUG="${WINEDEBUG:--all}"
 
-# Prefer an explicit WINE_BIN, then auto-detect. WineHQ's macOS build
-# ships `wine` (which handles 32-bit PE via wine32on64); wine-crossover
-# ships both `wine` and `wine64`. Either works for ForgedAlliance.exe.
+# Prefer an explicit WINE_BIN, then auto-detect wine-crossover at its
+# canonical install path, then fall back to whatever `wine`/`wine64` is
+# on PATH. WineHQ and GPTK are NOT auto-detected here even if installed
+# — see the "Wine builds that do not work" section in
+# scripts/mac/README.md. To force a specific wine for testing, set
+# WINE_BIN explicitly in the environment.
 WINE_CANDIDATES=(
     "${WINE_BIN:-}"
-    "/Applications/Wine Stable.app/Contents/Resources/wine/bin/wine"
     "/Applications/Wine Crossover.app/Contents/Resources/wine/bin/wine64"
-    "$(command -v wine || true)"
     "$(command -v wine64 || true)"
+    "$(command -v wine || true)"
 )
 WINE_BIN=""
 for candidate in "${WINE_CANDIDATES[@]}"; do
