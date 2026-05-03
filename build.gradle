@@ -201,9 +201,16 @@ tasks.register('downloadIceAdapter', Download) {
     onlyIfNewer true
 }
 
+// faf-uid v4.0.7 added a native macOS arm64 binary (faf-uid-macos);
+// for Apple Silicon builds we pull that asset instead of the Linux
+// ELF, but write it to the same `faf-uid` path so downstream
+// install/launch logic is platform-agnostic.
+def fafUidVersion = "v4.0.7"
+def fafUidUnixAsset = javafxPlatform == "mac-aarch64" ? "faf-uid-macos" : "faf-uid"
+
 tasks.register('downloadUnixUid', Download) {
     group "native dependencies"
-    src "https://github.com/FAForever/uid/releases/download/v4.0.4/faf-uid"
+    src "https://github.com/FAForever/uid/releases/download/${fafUidVersion}/${fafUidUnixAsset}"
     dest file("${buildDir}/resources/native/faf-uid")
     onlyIfNewer true
     it.doLast {
@@ -213,7 +220,7 @@ tasks.register('downloadUnixUid', Download) {
 
 tasks.register('downloadWindowsUid', Download) {
     group "native dependencies"
-    src "https://github.com/FAForever/uid/releases/download/v4.0.4/faf-uid.exe"
+    src "https://github.com/FAForever/uid/releases/download/${fafUidVersion}/faf-uid.exe"
     dest file("${buildDir}/resources/native/faf-uid.exe")
     onlyIfNewer true
 }

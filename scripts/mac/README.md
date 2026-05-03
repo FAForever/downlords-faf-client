@@ -39,31 +39,11 @@ export WINEPREFIX="$HOME/faf-mac/wine-prefix"
 wine64 wineboot --init
 winetricks -q d3dx9 xact
 
-# Build the client distribution for Apple Silicon
+# Build the client distribution for Apple Silicon. The :downloadUnixUid
+# gradle task pulls the official faf-uid-macos arm64 binary from
+# FAForever/uid v4.0.7 (which shipped macOS support after #17 merged)
+# and stages it next to the JARs — no manual faf-uid build needed.
 ./gradlew installDist -PjavafxPlatform=mac-aarch64
-
-# Drop a macOS faf-uid binary next to the JARs. The Linux binary
-# downloaded by :downloadUnixUid during `installDist` will not run
-# on macOS and must be overwritten. Official uid releases do not
-# yet ship a macOS build, so we build one from FAForever/uid PR #17.
-#
-# IMPORTANT — if you're building from source, you also need the
-# production RSA public key. The CMakeLists.txt ships with an
-# example key (for testing); faf-uid built with it will be rejected
-# by the lobby server. In the official release pipeline the real key
-# is passed in via -DUID_PUBKEY_BYTES=... by a GitHub Actions secret.
-# To build locally for your own use, pass the same flag with the
-# production key bytes — otherwise lobby login fails.
-#
-# Once PR #17 is merged and a macOS binary is published to the
-# official FAForever/uid releases, delete this whole block and let
-# :downloadUnixUid fetch the real thing.
-brew install cmake pkg-config cryptopp jsoncpp
-git clone -b add-macos-support https://github.com/jfuruness/uid.git "$HOME/faf-mac/uid-src"
-cmake -S "$HOME/faf-mac/uid-src" -B "$HOME/faf-mac/uid-src/build" \
-      -DUID_PUBKEY_BYTES="$UID_PUBKEY_BYTES"   # production key, not the example
-cmake --build "$HOME/faf-mac/uid-src/build"
-cp "$HOME/faf-mac/uid-src/build/faf-uid" build/install/faf-client/
 ```
 
 Copy your Supreme Commander files into
