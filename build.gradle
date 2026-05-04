@@ -103,7 +103,8 @@ distributions {
                         jar,
                         downloadIceAdapter.outputs.files,
                         downloadUnixUid.outputs.files,
-                        downloadWindowsUid.outputs.files
+                        downloadWindowsUid.outputs.files,
+                        downloadMacOsUid.outputs.files
                 ]
             }
             exclude('**/i4jruntime*.jar')
@@ -195,24 +196,11 @@ tasks.register('downloadIceAdapter', Download) {
     onlyIfNewer true
 }
 
-// faf-uid v4.0.7 added a native macOS arm64 binary (faf-uid-macos);
-// for Apple Silicon builds we pull that asset instead of the Linux
-// ELF, but write it to the same `faf-uid` path so downstream
-// install/launch logic is platform-agnostic.
-def fafUidVersion = "v4.0.7"
-def fafUidUnixAsset = javafxPlatform == "mac-aarch64" ? "faf-uid-macos" : "faf-uid"
-
 tasks.register('downloadUnixUid', Download) {
     group "native dependencies"
-    src "https://github.com/FAForever/uid/releases/download/${fafUidVersion}/${fafUidUnixAsset}"
+    src "https://github.com/FAForever/uid/releases/download/${fafUidVersion}/faf-uid"
     dest file("${buildDir}/resources/native/faf-uid")
-    // No `onlyIfNewer true`: the source URL switches between `faf-uid` (Linux)
-    // and `faf-uid-macos` based on javafxPlatform, but both write to the same
-    // destination filename. onlyIfNewer compares the local file's mtime to
-    // the remote Last-Modified header, which would skip a needed re-download
-    // when switching platform in the same workspace and silently leave a
-    // platform-mismatched binary in place. Re-downloading every build is
-    // cheap (~2 MB).
+    onlyIfNewer true
     it.doLast {
         file("${buildDir}/resources/native/faf-uid").setExecutable(true, false)
     }
@@ -225,8 +213,26 @@ tasks.register('downloadWindowsUid', Download) {
     onlyIfNewer true
 }
 
+tasks.register('downloadMacOsUid', Download) {
+    group "native dependencies"
+    src "https://github.com/FAForever/uid/releases/download/${fafUidVersion}/faf-uid-macos"
+    dest file("${buildDir}/resources/native/faf-uid-macos")
+    onlyIfNewer true
+    it.doLast {
+        def macosUid = "${buildDir}/resources/native/faf-uid-macos"
+        // On macOS hosts, downloaded binaries get tagged with
+        // `com.apple.quarantine` and Gatekeeper blocks execution until
+        // the xattr is removed. Strip it on macOS builds; the command
+        // exits non-zero if the attr isn't set, which we ignore.
+        if (OperatingSystem.current().isMacOsX()) {
+            ['xattr', '-d', 'com.apple.quarantine', macosUid].execute().waitFor()
+        }
+        file(macosUid).setExecutable(true, false)
+    }
+}
+
 tasks.register('downloadNativeDependencies') {
-    dependsOn downloadUnixUid, downloadWindowsUid, downloadIceAdapter
+    dependsOn downloadUnixUid, downloadWindowsUid, downloadMacOsUid, downloadIceAdapter
     group "native dependencies"
 }
 

@@ -1,6 +1,7 @@
 package com.faforever.client.fx;
 
 import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.os.OsMac;
 import com.faforever.client.os.OsPosix;
 import com.faforever.client.os.OsUnknown;
 import com.faforever.client.os.OsWindows;
@@ -97,6 +98,10 @@ public class PlatformService {
         case OsPosix osPosix -> {
           //Might not work on all linux distros but let's give it a try
           ProcessBuilder builder = new ProcessBuilder("xdg-open", path.toAbsolutePath().toString());
+          builder.start();
+        }
+        case OsMac osMac -> {
+          ProcessBuilder builder = new ProcessBuilder("open", "-R", path.toAbsolutePath().toString());
           builder.start();
         }
         case OsUnknown osUnknown -> {
