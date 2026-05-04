@@ -212,7 +212,13 @@ tasks.register('downloadUnixUid', Download) {
     group "native dependencies"
     src "https://github.com/FAForever/uid/releases/download/${fafUidVersion}/${fafUidUnixAsset}"
     dest file("${buildDir}/resources/native/faf-uid")
-    onlyIfNewer true
+    // No `onlyIfNewer true`: the source URL switches between `faf-uid` (Linux)
+    // and `faf-uid-macos` based on javafxPlatform, but both write to the same
+    // destination filename. onlyIfNewer compares the local file's mtime to
+    // the remote Last-Modified header, which would skip a needed re-download
+    // when switching platform in the same workspace and silently leave a
+    // platform-mismatched binary in place. Re-downloading every build is
+    // cheap (~2 MB).
     it.doLast {
         file("${buildDir}/resources/native/faf-uid").setExecutable(true, false)
     }
