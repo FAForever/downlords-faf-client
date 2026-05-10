@@ -334,12 +334,46 @@ public class ServerAccessorTest extends ServiceTest {
   }
 
   @Test
+  public void testLocalizedNoticeTextUsesI18nMetadataWhenPresent() {
+    LocalizableNoticeInfo noticeMessage = new LocalizableNoticeInfo("login.error.banned", List.of("2026-06-01"));
+
+    when(i18n.getOrDefault("You are banned from FAF until 2026-06-01", "login.error.banned", "2026-06-01"))
+        .thenReturn("Localized ban notice");
+
+    String text = instance.getLocalizedNoticeText(noticeMessage, "You are banned from FAF until 2026-06-01");
+
+    assertThat(text, is("Localized ban notice"));
+  }
+
+  @Test
+  public void testLocalizedNoticeTextSupportsMetadataOnlyNotices() {
+    LocalizableNoticeInfo noticeMessage = new LocalizableNoticeInfo("login.error.banned", List.of("2026-06-01"));
+
+    when(i18n.getOrDefault((String) null, "login.error.banned", "2026-06-01"))
+        .thenReturn("Localized ban notice");
+
+    String text = instance.getLocalizedNoticeText(noticeMessage, null);
+
+    assertThat(text, is("Localized ban notice"));
+  }
+
+  @Test
   public void onKickNoticeStopsApplication() throws Exception {
     NoticeInfo noticeMessage = new NoticeInfo("kick", null);
 
     sendFromServer(noticeMessage);
 
     verify(taskScheduler, timeout(10000)).scheduleWithFixedDelay(any(Runnable.class), any(Duration.class));
+  }
+
+  private record LocalizableNoticeInfo(String i18nKey, List<Object> i18nArgs) {
+    public String getI18nKey() {
+      return i18nKey;
+    }
+
+    public List<Object> getI18nArgs() {
+      return i18nArgs;
+    }
   }
 
   @Test

@@ -54,8 +54,10 @@ import reactor.function.TupleUtils;
 import reactor.util.retry.Retry;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -278,7 +280,8 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
       taskScheduler.scheduleWithFixedDelay(Platform::exit, Duration.ofSeconds(10));
     }
 
-    if (noticeMessage.getText() == null) {
+    String localizedText = getLocalizedNoticeText(noticeMessage, noticeMessage.getText());
+    if (localizedText == null) {
       return;
     }
 
@@ -294,8 +297,31 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
       };
     }
     notificationService.addNotification(
-        new ServerNotification(i18n.get("messageFromServer"), noticeMessage.getText(), severity,
+        new ServerNotification(i18n.get("messageFromServer"), localizedText, severity,
                                Collections.singletonList(new DismissAction(i18n))));
+  }
+
+  String getLocalizedNoticeText(Object noticeMessage, String fallbackText) {
+    Optional<String> i18nKey = getOptionalNoticeValue(noticeMessage, "getI18nKey", String.class);
+    if (i18nKey.isEmpty()) {
+      return fallbackText;
+    }
+
+    Object[] args = getOptionalNoticeValue(noticeMessage, "getI18nArgs", Object.class)
+        .map(value -> value instanceof Collection<?> collection ? collection.toArray() : new Object[] {value})
+        .orElseGet(() -> new Object[] {});
+
+    return i18n.getOrDefault(fallbackText, i18nKey.get(), args);
+  }
+
+  private <T> Optional<T> getOptionalNoticeValue(Object noticeMessage, String methodName, Class<T> type) {
+    try {
+      Method method = noticeMessage.getClass().getMethod(methodName);
+      Object value = method.invoke(noticeMessage);
+      return type.isInstance(value) ? Optional.of(type.cast(value)) : Optional.empty();
+    } catch (ReflectiveOperationException e) {
+      return Optional.empty();
+    }
   }
 
   public void restoreGameSession(int id) {
