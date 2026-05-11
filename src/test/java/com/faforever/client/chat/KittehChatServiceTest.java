@@ -618,6 +618,21 @@ public class KittehChatServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testChatMessageEventNotTriggeredByPrivateMessageFromMutedUser() {
+    String message = "private message";
+
+    chatPrefs.addMutedUser(user1.getNick());
+
+    connect();
+
+    ChatChannel channel = instance.getOrCreateChannel(user1.getNick());
+
+    sendPrivateMessage(user1, message);
+
+    assertThat(channel.getMessages(), empty());
+  }
+
+  @Test
   public void testAddModerator() {
     connect();
 
@@ -1116,6 +1131,21 @@ public class KittehChatServiceTest extends ServiceTest {
     verify(audioService).playChatMentionSound();
     verify(notificationService).addNotification(any(TransientNotification.class));
     assertEquals(1, channel.getNumUnreadMessages());
+  }
+
+  @Test
+  public void testMutedUserMentionDoesNotTriggerNotification() {
+    connect();
+
+    join(defaultChannel, user1);
+    chatPrefs.addMutedUser(user1.getNick());
+
+    messageChannel(defaultChannel, user1, CHAT_USER_NAME);
+
+    ChatChannel channel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
+    verify(audioService, never()).playChatMentionSound();
+    verify(notificationService, never()).addNotification(any(TransientNotification.class));
+    assertEquals(0, channel.getNumUnreadMessages());
   }
 
   @Test
