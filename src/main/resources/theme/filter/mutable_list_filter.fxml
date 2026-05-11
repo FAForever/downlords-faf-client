@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.CustomMenuItem?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.MenuButton?>
@@ -11,6 +12,7 @@
         <CustomMenuItem hideOnClick="false" styleClass="query-item">
             <content>
                 <VBox spacing="4.0">
+                    <CheckBox fx:id="enableToggle" selected="true"/>
                     <TextField fx:id="addItemTextField" prefWidth="248.0" onAction="#onAddItem"/>
                     <ListView fx:id="listView" prefHeight="150"/>
                 </VBox>

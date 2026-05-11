@@ -60,5 +60,6 @@ public class CustomGamesFilterController extends AbstractFilterController<GameIn
     privateGameFilter.valueProperty().bindBidirectional(preferences.hidePrivateGamesProperty());
     simModsFilter.valueProperty().bindBidirectional(preferences.hideModdedGamesProperty());
     mapFolderNameBlackListFilter.valueProperty().bindBidirectional(filtersPrefs.mapNameBlacklistProperty());
+    mapFolderNameBlackListFilter.enabledProperty().bindBidirectional(filtersPrefs.mapNameBlacklistEnabledProperty());
   }
 }
