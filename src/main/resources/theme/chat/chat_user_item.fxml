@@ -9,7 +9,7 @@
 <HBox alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
       xmlns="http://javafx.com/javafx/11.0.1"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.ChatUserItemController"
-      fx:id="root" styleClass="chat-user-item" spacing="4.0" onMouseClicked="#onItemClicked"
+      fx:id="root" styleClass="clickable, chat-user-item" spacing="4.0" onMouseClicked="#onItemClicked"
       onContextMenuRequested="#onContextMenuRequested">
     <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true"/>
     <VBox fx:id="userContainer" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">

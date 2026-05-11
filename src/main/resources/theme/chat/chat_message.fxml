@@ -21,7 +21,7 @@
         <ImageView fx:id="avatarImageView" fitWidth="40" fitHeight="20"/>
         <ImageView fx:id="countryImageView" fitHeight="20" fitWidth="20"/>
         <Label fx:id="clanLabel" styleClass="clan"/>
-        <Label fx:id="authorLabel" styleClass="author"/>
+        <Label fx:id="authorLabel" styleClass="clickable, author"/>
     </HBox>
     <HBox fx:id="replyContainer" alignment="CENTER_LEFT" visible="false" spacing="5">
         <padding>

@@ -926,6 +926,10 @@
   -fx-padding: 0;
 }
 
+.division-table .name-cell {
+  -fx-cursor: hand;
+}
+
 .leaderboardChart {
   chart_color_1: #2b71d9;
   chart_color_2: #2b71d9;

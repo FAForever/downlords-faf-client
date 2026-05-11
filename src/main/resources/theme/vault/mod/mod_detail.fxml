@@ -75,12 +75,12 @@
                                             <VBox>
                                                 <Label styleClass="h3" text="%modVault.details.uploader"/>
                                                 <Label fx:id="uploaderLabel" text="&lt;Authors&gt;"
-                                                       style="-fx-padding: 0 0 0 6" wrapText="true"/>
+                                                       style="-fx-padding: 0 0 0 6" wrapText="true" styleClass="clickable"/>
                                             </VBox>
 
                                             <VBox>
                                                 <Label styleClass="h3" text="%modVault.details.author"/>
-                                                <Label fx:id="authorLabel" text="&lt;Authors&gt;" style="-fx-padding: 0 0 0 6" wrapText="true"/>
+                                                <VBox fx:id="authorContainer" style="-fx-padding: 0 0 0 6"/>
                                             </VBox>
 
                                         </HBox>

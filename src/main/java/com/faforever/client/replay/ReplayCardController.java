@@ -36,6 +36,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
@@ -212,6 +214,21 @@ public class ReplayCardController extends VaultEntityCardController<Replay> {
   }
 
   public void onShowReplayDetail() {
+    MouseEvent defaultEvent = new MouseEvent(
+        MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0,
+        MouseButton.PRIMARY, 1,
+        false, false, false, false,
+        true, false, false,
+        false, false, false, null);
+
+    onShowReplayDetail(defaultEvent);
+  }
+
+  public void onShowReplayDetail(MouseEvent event) {
+    if (event.getButton() == MouseButton.SECONDARY) {
+      event.consume();
+      return;
+    }
     onOpenDetailListener.accept(entity.get());
   }
 

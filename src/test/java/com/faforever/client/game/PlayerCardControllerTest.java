@@ -4,9 +4,7 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.GameInfoBuilder;
 import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.domain.api.GamePlayerStats;
-import com.faforever.client.domain.api.Subdivision;
 import com.faforever.client.domain.server.PlayerInfo;
-import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.helper.TooltipHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -16,6 +14,7 @@ import com.faforever.client.replay.DisplayType;
 import com.faforever.client.test.PlatformTest;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.ContextMenuUtil;
 import com.faforever.commons.api.dto.Faction;
 import javafx.scene.image.Image;
 import org.instancio.Instancio;
@@ -44,13 +43,13 @@ public class PlayerCardControllerTest extends PlatformTest {
   @Mock
   private AvatarService avatarService;
   @Mock
-  private ContextMenuBuilder contextMenuBuilder;
+  private ContextMenuUtil contextMenuUtil;
 
   private PlayerCardController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new PlayerCardController(uiService, countryFlagService, avatarService, leaderboardService, contextMenuBuilder, i18n);
+    instance = new PlayerCardController(uiService, countryFlagService, avatarService, leaderboardService, contextMenuUtil, i18n);
 
     when(uiService.getImage(ThemeService.RANDOM_FACTION_IMAGE)).thenReturn(
         new Image(ThemeService.RANDOM_FACTION_IMAGE));

@@ -18,12 +18,15 @@ import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
 import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.util.ContextMenuUtil;
 import impl.org.controlsfx.autocompletion.SuggestionProvider;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.scene.Cursor;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
@@ -58,6 +61,7 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
   private final I18n i18n;
   private final PlayerService playerService;
   private final ContextMenuBuilder contextMenuBuilder;
+  private final ContextMenuUtil contextMenuUtil;
 
   public VBox rankingsRoot;
   public HBox subdivisionButtons;
@@ -166,7 +170,13 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
     rankColumn.setCellFactory(param -> new StringCell<>(rank -> i18n.number(rank.intValue())));
 
     nameColumn.setCellValueFactory(param -> param.getValue().player().usernameProperty());
-    nameColumn.setCellFactory(param -> new StringCell<>(name -> name));
+    nameColumn.setCellFactory(param -> new StringCell<>(name -> name){
+      @Override
+      public void updateItem(String item, boolean empty) {
+        super.updateItem(item, empty);
+        setCursor(empty ? Cursor.DEFAULT : Cursor.HAND);
+      }
+    });
     nameColumn.prefWidthProperty().bind(ratingTable.widthProperty().subtract(250));
 
     gamesPlayedColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().gamesPlayed()));
@@ -212,21 +222,10 @@ public class LeaderboardRankingsController extends NodeController<VBox> {
       if (leagueEntry == null) {
         return;
       }
-      PlayerInfo player = leagueEntry.player();
-      contextMenuBuilder.newBuilder()
-                        .addItem(ShowPlayerInfoMenuItem.class, player)
-                        .addItem(CopyUsernameMenuItem.class, player.getUsername())
-                        .addSeparator()
-                        .addItem(AddFriendMenuItem.class, player)
-                        .addItem(RemoveFriendMenuItem.class, player)
-                        .addItem(AddFoeMenuItem.class, player)
-                        .addItem(RemoveFoeMenuItem.class, player)
-                        .addSeparator()
-                        .addItem(ViewReplaysMenuItem.class, player)
-                        .build()
-                        .show(getRoot().getScene().getWindow(), event.getScreenX(), event.getScreenY());
+      PlayerInfo playerInfo = leagueEntry.player();
+      ContextMenu contextMenu = contextMenuUtil.createContextMenu(event, getRoot(), playerInfo);
+      contextMenu.show(getRoot().getScene().getWindow(), event.getScreenX(), event.getScreenY());
     });
-
     return row;
   }
 

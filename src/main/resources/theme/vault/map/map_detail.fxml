@@ -95,7 +95,7 @@
                     </VBox>
                     <HBox alignment="CENTER_LEFT" spacing="5.0" GridPane.columnIndex="1"
                           GridPane.columnSpan="5" GridPane.rowIndex="1">
-                        <Label fx:id="authorLabel" styleClass="secondary"
+                        <Label fx:id="authorLabel" styleClass="secondary, clickable"
                                text="&lt;Author&gt;"/>
                         <Label maxWidth="1.7976931348623157E308" styleClass="secondary"
                                text="%map.version"/>

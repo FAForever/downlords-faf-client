@@ -28,6 +28,7 @@ import com.faforever.client.player.SocialStatus;
 import com.faforever.client.replay.DisplayType;
 import com.faforever.client.theme.ThemeService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.ContextMenuUtil;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.Faction;
 import javafx.beans.property.ObjectProperty;
@@ -35,9 +36,11 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -64,7 +67,7 @@ public class PlayerCardController extends NodeController<Node> {
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
   private final LeaderboardService leaderboardService;
-  private final ContextMenuBuilder contextMenuBuilder;
+  private final ContextMenuUtil contextMenuUtil;
   private final I18n i18n;
 
   public Label playerInfo;
@@ -167,27 +170,11 @@ public class PlayerCardController extends NodeController<Node> {
     return root;
   }
 
-  public void openContextMenu(MouseEvent event) {
+  public void onContextMenuRequested(ContextMenuEvent event) {
     PlayerInfo playerInfo = player.get();
     if (playerInfo != null) {
-      contextMenuBuilder.newBuilder()
-                        .addItem(ShowPlayerInfoMenuItem.class, playerInfo)
-                        .addItem(SendPrivateMessageMenuItem.class, playerInfo.getUsername())
-                        .addItem(CopyUsernameMenuItem.class, playerInfo.getUsername())
-          .addSeparator()
-                        .addItem(AddFriendMenuItem.class, playerInfo)
-                        .addItem(RemoveFriendMenuItem.class, playerInfo)
-                        .addItem(AddFoeMenuItem.class, playerInfo)
-                        .addItem(RemoveFoeMenuItem.class, playerInfo)
-          .addSeparator()
-                        .addItem(AddEditPlayerNoteMenuItem.class, playerInfo)
-                        .addItem(RemovePlayerNoteMenuItem.class, playerInfo)
-          .addSeparator()
-                        .addItem(ReportPlayerMenuItem.class, playerInfo)
-          .addSeparator()
-                        .addItem(ViewReplaysMenuItem.class, playerInfo)
-          .build()
-          .show(getRoot().getScene().getWindow(), event.getScreenX(), event.getScreenY());
+      ContextMenu contextMenu = contextMenuUtil.createContextMenu(event, root, playerInfo);
+      contextMenu.show(root.getScene().getWindow(), event.getScreenX(), event.getScreenY());
     }
     event.consume();
   }

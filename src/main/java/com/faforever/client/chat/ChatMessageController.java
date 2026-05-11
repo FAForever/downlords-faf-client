@@ -12,9 +12,11 @@ import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.ContextMenuUtil;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import javafx.beans.binding.Bindings;
@@ -27,6 +29,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
+import javafx.collections.MapChangeListener.Change;
 import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -34,10 +37,12 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
@@ -71,6 +76,7 @@ public class ChatMessageController extends NodeController<VBox> {
 
   private final AvatarService avatarService;
   private final CountryFlagService countryFlagService;
+  private final ContextMenuBuilder contextMenuBuilder;
   private final TimeService timeService;
   private final PlatformService platformService;
   private final ChatService chatService;
@@ -79,6 +85,7 @@ public class ChatMessageController extends NodeController<VBox> {
   private final ImageViewHelper imageViewHelper;
   private final I18n i18n;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
+  private final ContextMenuUtil contextMenuUtil;
 
   public VBox root;
   public HBox detailsContainer;
@@ -141,6 +148,7 @@ public class ChatMessageController extends NodeController<VBox> {
         chatService.joinPrivateChat(username);
       }
     });
+    authorLabel.setOnContextMenuRequested(this::onContextMenuRequested);
     timeLabel.textProperty()
              .bind(chatMessage.map(message -> message.getType() != Type.PENDING ? message.getTime() : null)
                               .map(timeService::asShortTime)
@@ -193,8 +201,17 @@ public class ChatMessageController extends NodeController<VBox> {
                                        .when(showing));
   }
 
+  private void onContextMenuRequested(ContextMenuEvent event) {
+    chatMessage.map(ChatMessage::getSender)
+               .flatMap(ChatChannelUser::playerProperty)
+               .subscribe(playerInfo -> {
+                 ContextMenu contextMenu = contextMenuUtil.createContextMenu(event, root, playerInfo);
+                 contextMenu.show(root.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+               });
+  }
+
   private void onReactionChange(
-      MapChangeListener.Change<? extends Emoticon, ? extends ObservableMap<String, String>> change) {
+      Change<? extends Emoticon, ? extends ObservableMap<String, String>> change) {
     Emoticon reaction = change.getKey();
     if (change.wasRemoved()) {
       HBox reactionRoot = reactionNodeMap.remove(reaction);
