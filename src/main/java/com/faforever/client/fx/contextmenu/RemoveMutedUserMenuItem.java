@@ -1,6 +1,7 @@
 package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.chat.ChatChannelUser;
+import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.util.Assert;
@@ -25,7 +26,9 @@ public class RemoveMutedUserMenuItem extends AbstractMenuItem<ChatChannelUser> {
 
   @Override
   protected boolean isDisplayed() {
-    return object != null && chatPrefs.isUserMuted(object.getUsername());
+    return object != null
+        && object.getCategory() != ChatUserCategory.SELF
+        && chatPrefs.isUserMuted(object.getUsername());
   }
 
   @Override
