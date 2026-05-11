@@ -21,14 +21,14 @@ public class AddMutedUserMenuItem extends AbstractMenuItem<ChatChannelUser> {
   @Override
   protected void onClicked() {
     Assert.checkNullIllegalState(object, "no chat user has been set");
-    chatPrefs.addMutedUser(object.getUsername());
+    chatPrefs.getMutedUsers().add(object.getUsername());
   }
 
   @Override
   protected boolean isDisplayed() {
     return object != null
         && object.getCategory() != ChatUserCategory.SELF
-        && !chatPrefs.isUserMuted(object.getUsername());
+        && !chatPrefs.getMutedUsers().contains(object.getUsername());
   }
 
   @Override

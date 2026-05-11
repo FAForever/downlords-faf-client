@@ -20,6 +20,7 @@ import javafx.collections.ObservableSet;
 import javafx.scene.paint.Color;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -164,28 +165,8 @@ public class ChatPrefs {
   public void setMutedUsers(Collection<String> mutedUsers) {
     this.mutedUsers.clear();
     if (mutedUsers != null) {
-      mutedUsers.forEach(this::addMutedUser);
+      this.mutedUsers.addAll(new HashSet<>(mutedUsers));
     }
-  }
-
-  public boolean isUserMuted(String username) {
-    return username != null && mutedUsers.contains(normalizeUsername(username));
-  }
-
-  public void addMutedUser(String username) {
-    if (username != null) {
-      mutedUsers.add(normalizeUsername(username));
-    }
-  }
-
-  public void removeMutedUser(String username) {
-    if (username != null) {
-      mutedUsers.remove(normalizeUsername(username));
-    }
-  }
-
-  private String normalizeUsername(String username) {
-    return username.toLowerCase(Locale.ROOT);
   }
 
   public ObservableList<String> getAutoJoinChannels() {

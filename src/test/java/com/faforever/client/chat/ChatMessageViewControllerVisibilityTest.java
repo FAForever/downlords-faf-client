@@ -20,8 +20,21 @@ public class ChatMessageViewControllerVisibilityTest {
 
     assertTrue(instance.isVisibleMessage(message));
 
-    chatPrefs.addMutedUser(user.getUsername().toUpperCase());
+    chatPrefs.getMutedUsers().add(user.getUsername());
 
     assertFalse(instance.isVisibleMessage(message));
+  }
+
+  @Test
+  public void testMutedUserMatchingIsCaseSensitive() {
+    ChatPrefs chatPrefs = new ChatPrefs();
+    ChatMessageViewController instance = new ChatMessageViewController(null, null, null, null, null, chatPrefs);
+    ChatChannel chatChannel = new ChatChannel("#testChannel");
+    ChatChannelUser user = new ChatChannelUser("junit", chatChannel);
+    ChatMessage message = new ChatMessage("1", Instant.now(), user, "message", ChatMessage.Type.MESSAGE, null);
+
+    chatPrefs.getMutedUsers().add(user.getUsername().toUpperCase());
+
+    assertTrue(instance.isVisibleMessage(message));
   }
 }

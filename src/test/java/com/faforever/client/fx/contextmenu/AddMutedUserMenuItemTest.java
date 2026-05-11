@@ -35,7 +35,7 @@ public class AddMutedUserMenuItemTest extends PlatformTest {
     instance.setObject(chatUser);
     instance.onClicked();
 
-    assertTrue(chatPrefs.isUserMuted(chatUser.getUsername()));
+    assertTrue(chatPrefs.getMutedUsers().contains(chatUser.getUsername()));
   }
 
   @Test
@@ -47,7 +47,7 @@ public class AddMutedUserMenuItemTest extends PlatformTest {
 
   @Test
   public void testInvisibleItemIfUserIsMuted() {
-    chatPrefs.addMutedUser(chatUser.getUsername());
+    chatPrefs.getMutedUsers().add(chatUser.getUsername());
 
     instance.setObject(chatUser);
 

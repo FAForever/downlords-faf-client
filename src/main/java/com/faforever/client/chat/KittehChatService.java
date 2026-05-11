@@ -488,7 +488,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                                                      .map(SocialStatus.FOE::equals)
                                                                      .map(isFoe -> !(hideFoeMessages && isFoe))
                                                                      .orElse(true)
-                                                                     && !chatPrefs.isUserMuted(senderNick) -> {
+                                                                     && !chatPrefs.getMutedUsers().contains(senderNick) -> {
         String target = getPrivateMessageTarget(privateMessageEvent, senderNick);
         yield getOrCreateChatUser(senderNick, target);
       }
@@ -537,7 +537,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   private void notifyIfMentioned(ChatMessage chatMessage) {
     ChatChannelUser sender = chatMessage.getSender();
-    if (chatPrefs.isUserMuted(sender.getUsername())) {
+    if (chatPrefs.getMutedUsers().contains(sender.getUsername())) {
       log.debug("Ignored mention from muted user {}", sender);
       return;
     }

@@ -198,7 +198,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
 
   boolean isVisibleMessage(ChatMessage message) {
     ChatChannelUser sender = message.getSender();
-    return !chatPrefs.isUserMuted(sender.getUsername())
+    return !chatPrefs.getMutedUsers().contains(sender.getUsername())
         && (!chatPrefs.isHideFoeMessages() || sender.getCategory() != ChatUserCategory.FOE);
   }
 

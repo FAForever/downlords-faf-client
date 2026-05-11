@@ -32,17 +32,17 @@ public class RemoveMutedUserMenuItemTest extends PlatformTest {
 
   @Test
   public void testRemoveMutedUser() {
-    chatPrefs.addMutedUser(chatUser.getUsername());
+    chatPrefs.getMutedUsers().add(chatUser.getUsername());
 
     instance.setObject(chatUser);
     instance.onClicked();
 
-    assertFalse(chatPrefs.isUserMuted(chatUser.getUsername()));
+    assertFalse(chatPrefs.getMutedUsers().contains(chatUser.getUsername()));
   }
 
   @Test
   public void testVisibleItemIfUserIsMuted() {
-    chatPrefs.addMutedUser(chatUser.getUsername());
+    chatPrefs.getMutedUsers().add(chatUser.getUsername());
 
     instance.setObject(chatUser);
 
@@ -58,7 +58,7 @@ public class RemoveMutedUserMenuItemTest extends PlatformTest {
 
   @Test
   public void testInvisibleItemIfUserIsSelf() {
-    chatPrefs.addMutedUser(chatUser.getUsername());
+    chatPrefs.getMutedUsers().add(chatUser.getUsername());
     chatUser.setPlayer(PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get());
 
     instance.setObject(chatUser);
