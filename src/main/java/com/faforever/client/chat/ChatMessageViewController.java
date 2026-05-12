@@ -103,13 +103,10 @@ public class ChatMessageViewController extends NodeController<VBox> {
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(replyContainer);
 
-    filteredMessages.predicateProperty().bind(chatPrefs.hideFoeMessagesProperty().map(hideFoes -> {
-      if (!hideFoes) {
-        return message -> true;
-      } else {
-        return message -> message.getSender().getCategory() != ChatUserCategory.FOE;
-      }
-    }));
+    filteredMessages.predicateProperty()
+                    .bind(Bindings.createObjectBinding(() -> this::shouldShowMessage,
+                                                       chatPrefs.hideFoeMessagesProperty(),
+                                                       chatPrefs.getMutedUsers()));
 
     messageTextField.setOnKeyPressed(this::handleKeyEvent);
     messageTextField.textProperty().subscribe(this::updateTypingState);
@@ -197,6 +194,14 @@ public class ChatMessageViewController extends NodeController<VBox> {
     }
 
     return !Objects.equals(previousMessage.getSender(), currentMessage.getSender());
+  }
+
+  boolean shouldShowMessage(ChatMessage message) {
+    if (chatPrefs.isUserMuted(message.getSender().getUsername())) {
+      return false;
+    }
+
+    return !chatPrefs.isHideFoeMessages() || message.getSender().getCategory() != ChatUserCategory.FOE;
   }
 
   private void scrollToEnd() {

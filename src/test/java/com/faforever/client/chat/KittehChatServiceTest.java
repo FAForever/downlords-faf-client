@@ -618,6 +618,21 @@ public class KittehChatServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testChatMessageEventNotTriggeredByPrivateMessageFromMutedUser() {
+    String message = "private message";
+
+    chatPrefs.muteUser(user1.getNick());
+
+    connect();
+
+    ChatChannel channel = instance.getOrCreateChannel(user1.getNick());
+
+    sendPrivateMessage(user1, message);
+
+    assertThat(channel.getMessages(), empty());
+  }
+
+  @Test
   public void testAddModerator() {
     connect();
 

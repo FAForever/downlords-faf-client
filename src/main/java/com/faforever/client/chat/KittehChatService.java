@@ -483,7 +483,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     boolean hideFoeMessages = chatPrefs.isHideFoeMessages();
     ChatChannelUser sender = switch (event) {
       case ChannelMessageEvent channelMessageEvent -> getOrCreateChatUser(user, channelMessageEvent.getChannel());
-      case PrivateMessageEvent privateMessageEvent when playerService.getPlayerByNameIfOnline(senderNick)
+      case PrivateMessageEvent privateMessageEvent when !chatPrefs.isUserMuted(senderNick)
+          && playerService.getPlayerByNameIfOnline(senderNick)
                                                                      .map(PlayerInfo::getSocialStatus)
                                                                      .map(SocialStatus.FOE::equals)
                                                                      .map(isFoe -> !(hideFoeMessages && isFoe))
@@ -536,6 +537,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   private void notifyIfMentioned(ChatMessage chatMessage) {
     ChatChannelUser sender = chatMessage.getSender();
+    if (chatPrefs.isUserMuted(sender.getUsername())) {
+      log.debug("Ignored mention from muted user {}", sender);
+      return;
+    }
+
     if (sender.getCategory() == ChatUserCategory.FOE) {
       log.debug("Ignored mention from foe {}", sender);
       return;

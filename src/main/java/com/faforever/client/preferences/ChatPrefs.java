@@ -22,6 +22,7 @@ import javafx.scene.paint.Color;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
 import static com.faforever.client.preferences.LanguageChannel.FRENCH;
@@ -48,6 +49,7 @@ public class ChatPrefs {
   private final BooleanProperty playerListShown = new SimpleBooleanProperty(true);
   private final ObjectProperty<TimeInfo> timeFormat = new SimpleObjectProperty<>(TimeInfo.AUTO);
   private final ObservableList<String> autoJoinChannels = FXCollections.observableArrayList();
+  private final ObservableSet<String> mutedUsers = FXCollections.observableSet();
   private final BooleanProperty showMapName = new SimpleBooleanProperty(false);
   private final BooleanProperty showMapPreview = new SimpleBooleanProperty(false);
   private final ObservableMap<String, ObservableSet<ChatUserCategory>> channelNameToHiddenCategories = FXCollections.synchronizedObservableMap(
@@ -156,6 +158,37 @@ public class ChatPrefs {
 
   public ObservableList<String> getAutoJoinChannels() {
     return autoJoinChannels;
+  }
+
+  public ObservableSet<String> getMutedUsers() {
+    return mutedUsers;
+  }
+
+  public void setMutedUsers(Set<String> mutedUsers) {
+    this.mutedUsers.clear();
+    this.mutedUsers.addAll(mutedUsers);
+  }
+
+  public boolean isUserMuted(String username) {
+    return findMutedUser(username).isPresent();
+  }
+
+  public void muteUser(String username) {
+    if (username != null && !username.isBlank() && !isUserMuted(username)) {
+      mutedUsers.add(username);
+    }
+  }
+
+  public void unmuteUser(String username) {
+    findMutedUser(username).ifPresent(mutedUsers::remove);
+  }
+
+  private Optional<String> findMutedUser(String username) {
+    if (username == null) {
+      return Optional.empty();
+    }
+
+    return mutedUsers.stream().filter(username::equalsIgnoreCase).findFirst();
   }
 
   public boolean isPlayerListShown() {

@@ -18,6 +18,7 @@ import com.faforever.client.fx.contextmenu.InvitePlayerMenuItem;
 import com.faforever.client.fx.contextmenu.JoinGameMenuItem;
 import com.faforever.client.fx.contextmenu.KickGameMenuItem;
 import com.faforever.client.fx.contextmenu.KickLobbyMenuItem;
+import com.faforever.client.fx.contextmenu.MuteChatUserMenuItem;
 import com.faforever.client.fx.contextmenu.OpenClanUrlMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFoeMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFriendMenuItem;
@@ -26,6 +27,7 @@ import com.faforever.client.fx.contextmenu.ReportPlayerMenuItem;
 import com.faforever.client.fx.contextmenu.SendPrivateMessageClanLeaderMenuItem;
 import com.faforever.client.fx.contextmenu.SendPrivateMessageMenuItem;
 import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
+import com.faforever.client.fx.contextmenu.UnmuteChatUserMenuItem;
 import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
 import com.faforever.client.fx.contextmenu.WatchGameMenuItem;
 import com.faforever.client.game.GameTooltipController;
@@ -158,6 +160,8 @@ public class ChatUserItemController extends NodeController<Node> {
         .addItem(SendPrivateMessageMenuItem.class, username)
         .addItem(CopyUsernameMenuItem.class, username)
         .addItem(ChangeUsernameColorMenuItem.class, chatChannelUser)
+        .addItem(MuteChatUserMenuItem.class, chatChannelUser)
+        .addItem(UnmuteChatUserMenuItem.class, chatChannelUser)
         .addSeparator()
         .addItem(SendPrivateMessageClanLeaderMenuItem.class, player)
         .addItem(OpenClanUrlMenuItem.class, player)
