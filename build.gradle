@@ -2,7 +2,7 @@ import com.install4j.gradle.Install4jTask
 import org.gradle.internal.os.OperatingSystem
 
 plugins {
-    id("org.springframework.boot") version "4.0.5"
+    id("org.springframework.boot") version "4.0.6"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.install4j.gradle") version "11.0.1"
     id("de.undercouch.download") version "5.7.0"
@@ -284,7 +284,7 @@ dependencies {
     }
     implementation("com.faforever.commons:api:${commonsVersion}")
     implementation("com.faforever.commons:lobby:${commonsVersion}")
-    implementation("com.google.guava:guava:33.5.0-jre")
+    implementation("com.google.guava:guava:33.6.0-jre")
     implementation("org.apache.commons:commons-compress:1.28.0")
     implementation("net.java.dev.jna:jna:5.18.1")
     implementation("net.java.dev.jna:jna-platform:5.18.1")
@@ -316,8 +316,8 @@ dependencies {
     }
     implementation("org.fxmisc.flowless:flowless:0.7.4")
 
-    implementation("org.javassist:javassist:3.30.2-GA")
-    implementation("org.checkerframework:checker-qual:4.0.0")
+    implementation("org.javassist:javassist:3.31.0-GA")
+    implementation("org.checkerframework:checker-qual:4.1.0")
 
     implementation("io.github.sheikah45.fx2j:fx2j-api:0.1.0")
     implementation("com.install4j:install4j-runtime:11.0.1")

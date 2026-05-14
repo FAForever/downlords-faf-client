@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -103,13 +104,9 @@ public class ChatMessageViewController extends NodeController<VBox> {
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(replyContainer);
 
-    filteredMessages.predicateProperty().bind(chatPrefs.hideFoeMessagesProperty().map(hideFoes -> {
-      if (!hideFoes) {
-        return message -> true;
-      } else {
-        return message -> message.getSender().getCategory() != ChatUserCategory.FOE;
-      }
-    }));
+    filteredMessages.predicateProperty().bind(Bindings.createObjectBinding(() -> (Predicate<ChatMessage>) this::isVisibleMessage,
+                                                                            chatPrefs.hideFoeMessagesProperty(),
+                                                                            chatPrefs.getMutedUsers()));
 
     messageTextField.setOnKeyPressed(this::handleKeyEvent);
     messageTextField.textProperty().subscribe(this::updateTypingState);
@@ -197,6 +194,12 @@ public class ChatMessageViewController extends NodeController<VBox> {
     }
 
     return !Objects.equals(previousMessage.getSender(), currentMessage.getSender());
+  }
+
+  boolean isVisibleMessage(ChatMessage message) {
+    ChatChannelUser sender = message.getSender();
+    return !chatPrefs.getMutedUsers().contains(sender.getUsername())
+        && (!chatPrefs.isHideFoeMessages() || sender.getCategory() != ChatUserCategory.FOE);
   }
 
   private void scrollToEnd() {

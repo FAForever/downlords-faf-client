@@ -19,6 +19,8 @@ import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
 import javafx.scene.paint.Color;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -45,6 +47,8 @@ public class ChatPrefs {
   private final MapProperty<ChatUserCategory, Color> groupToColor = new SimpleMapProperty<>(
       FXCollections.observableHashMap());
   private final BooleanProperty hideFoeMessages = new SimpleBooleanProperty(true);
+  private final ObservableSet<String> mutedUsers = FXCollections.synchronizedObservableSet(
+      FXCollections.observableSet());
   private final BooleanProperty playerListShown = new SimpleBooleanProperty(true);
   private final ObjectProperty<TimeInfo> timeFormat = new SimpleObjectProperty<>(TimeInfo.AUTO);
   private final ObservableList<String> autoJoinChannels = FXCollections.observableArrayList();
@@ -152,6 +156,17 @@ public class ChatPrefs {
 
   public BooleanProperty hideFoeMessagesProperty() {
     return hideFoeMessages;
+  }
+
+  public ObservableSet<String> getMutedUsers() {
+    return mutedUsers;
+  }
+
+  public void setMutedUsers(Collection<String> mutedUsers) {
+    this.mutedUsers.clear();
+    if (mutedUsers != null) {
+      this.mutedUsers.addAll(new HashSet<>(mutedUsers));
+    }
   }
 
   public ObservableList<String> getAutoJoinChannels() {
