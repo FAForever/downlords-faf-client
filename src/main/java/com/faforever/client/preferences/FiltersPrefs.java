@@ -11,7 +11,7 @@ import javafx.collections.ObservableList;
 public class FiltersPrefs {
 
   private final ListProperty<String> mapNameBlacklist = new SimpleListProperty<>(FXCollections.observableArrayList());
-  private final BooleanProperty mapNameBlacklistEnabled = new SimpleBooleanProperty(true);
+  private final BooleanProperty mapNameBlacklistEnabled = new SimpleBooleanProperty(false);
 
   public ObservableList<String> getMapNameBlacklist() {
     return mapNameBlacklist.getValue();

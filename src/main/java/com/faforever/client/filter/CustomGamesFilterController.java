@@ -27,6 +27,7 @@ public class CustomGamesFilterController extends AbstractFilterController<GameIn
   private MutableListFilterController<GameInfo> mapFolderNameBlackListFilter;
   private FilterCheckboxController<GameInfo> privateGameFilter;
   private FilterCheckboxController<GameInfo> simModsFilter;
+  private FilterCheckboxController<GameInfo> mapBlacklistEnabledFilter;
 
   public CustomGamesFilterController(UiService uiService, I18n i18n, FeaturedModService featuredModService,
                                      Preferences preferences,
@@ -50,6 +51,8 @@ public class CustomGamesFilterController extends AbstractFilterController<GameIn
 
     featuredModService.getFeaturedMods().collectList().subscribe(featuredModFilter::setItems);
 
+    mapBlacklistEnabledFilter = filterBuilder.checkbox(i18n.get("blacklist.mapFolderName.enabled"), (enabled, game) -> true);
+
     mapFolderNameBlackListFilter = filterBuilder.mutableList(i18n.get("blacklist.mapFolderName"), i18n.get("blacklist.mapFolderName.promptText"),
         (folderNames, game) -> !filtersPrefs.isMapNameBlacklistEnabled() || folderNames.isEmpty() || folderNames.stream()
             .noneMatch(name -> StringUtils.containsIgnoreCase(game.getMapFolderName(), name)));
@@ -59,6 +62,7 @@ public class CustomGamesFilterController extends AbstractFilterController<GameIn
   protected void afterBuilt() {
     privateGameFilter.valueProperty().bindBidirectional(preferences.hidePrivateGamesProperty());
     simModsFilter.valueProperty().bindBidirectional(preferences.hideModdedGamesProperty());
+    mapBlacklistEnabledFilter.valueProperty().bindBidirectional(filtersPrefs.mapNameBlacklistEnabledProperty());
     mapFolderNameBlackListFilter.valueProperty().bindBidirectional(filtersPrefs.mapNameBlacklistProperty());
     addExternalFilter(filtersPrefs.mapNameBlacklistEnabledProperty(), (enabled, game) -> true);
   }
