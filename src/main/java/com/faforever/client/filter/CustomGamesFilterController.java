@@ -51,7 +51,7 @@ public class CustomGamesFilterController extends AbstractFilterController<GameIn
     featuredModService.getFeaturedMods().collectList().subscribe(featuredModFilter::setItems);
 
     mapFolderNameBlackListFilter = filterBuilder.mutableList(i18n.get("blacklist.mapFolderName"), i18n.get("blacklist.mapFolderName.promptText"),
-        (folderNames, game) -> folderNames.isEmpty() || folderNames.stream()
+        (folderNames, game) -> !filtersPrefs.isMapNameBlacklistEnabled() || folderNames.isEmpty() || folderNames.stream()
             .noneMatch(name -> StringUtils.containsIgnoreCase(game.getMapFolderName(), name)));
   }
 
@@ -60,6 +60,6 @@ public class CustomGamesFilterController extends AbstractFilterController<GameIn
     privateGameFilter.valueProperty().bindBidirectional(preferences.hidePrivateGamesProperty());
     simModsFilter.valueProperty().bindBidirectional(preferences.hideModdedGamesProperty());
     mapFolderNameBlackListFilter.valueProperty().bindBidirectional(filtersPrefs.mapNameBlacklistProperty());
-    mapFolderNameBlackListFilter.enabledProperty().bindBidirectional(filtersPrefs.mapNameBlacklistEnabledProperty());
+    addExternalFilter(filtersPrefs.mapNameBlacklistEnabledProperty(), (enabled, game) -> true);
   }
 }

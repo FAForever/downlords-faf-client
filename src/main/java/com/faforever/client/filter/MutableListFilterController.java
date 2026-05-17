@@ -7,11 +7,9 @@ import com.faforever.client.preferences.ui.RemovableListCell;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.list.NoFocusModelListView;
 import com.faforever.client.ui.list.NoSelectionModel;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
@@ -22,7 +20,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.function.BiFunction;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -35,16 +32,13 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public MenuButton root;
-  public CheckBox enableToggle;
   public ListView<String> listView;
   public TextField addItemTextField;
 
   private final ListProperty<String> itemListProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
-  private BiFunction<List<String>, T, Boolean> filterFunction;
 
   @Override
   protected void onInitialize() {
-    enableToggle.setText(i18n.get("filter.enabled"));
     JavaFxUtil.bindManagedToVisible(listView);
     listView.setSelectionModel(new NoSelectionModel<>());
     listView.setFocusModel(new NoFocusModelListView<>());
@@ -54,25 +48,6 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
       JavaFxUtil.bind(listView.visibleProperty(), itemListProperty.emptyProperty().not());
     });
     listView.setCellFactory(param -> new RemovableListCell<>(uiService, fxApplicationThreadExecutor));
-  }
-
-  @Override
-  public void registerListener(BiFunction<List<String>, T, Boolean> filter) {
-    this.filterFunction = filter;
-    JavaFxUtil.addAndTriggerListener(valueProperty(), observable -> updatePredicate());
-    JavaFxUtil.addAndTriggerListener(enableToggle.selectedProperty(), observable -> updatePredicate());
-  }
-
-  private void updatePredicate() {
-    if (enableToggle.isSelected()) {
-      predicateProperty().set(item -> filterFunction.apply(getValue(), item));
-    } else {
-      predicateProperty().set(item -> true);
-    }
-  }
-
-  public BooleanProperty enabledProperty() {
-    return enableToggle.selectedProperty();
   }
 
   public void onAddItem() {

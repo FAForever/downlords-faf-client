@@ -67,7 +67,6 @@ public class CustomGamesFilterControllerTest extends PlatformTest {
     );
     when(featuredModService.getFeaturedMods()).thenReturn(Flux.empty());
     when(mapFolderNameBlackListFilter.valueProperty()).thenReturn(new SimpleListProperty<>());
-    when(mapFolderNameBlackListFilter.enabledProperty()).thenReturn(new SimpleBooleanProperty(true));
     when(privateGameFilter.valueProperty()).thenReturn(new SimpleBooleanProperty());
     when(simModsFilter.valueProperty()).thenReturn(new SimpleBooleanProperty());
 
