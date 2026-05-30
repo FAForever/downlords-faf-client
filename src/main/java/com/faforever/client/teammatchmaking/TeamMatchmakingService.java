@@ -243,6 +243,9 @@ public class TeamMatchmakingService implements InitializingBean {
       if (newValue == ConnectionState.CONNECTED) {
         sendFactions();
         sendVetoes();
+        if (isSearching()) {
+          joinQueues();
+        }
       }
     });
 
