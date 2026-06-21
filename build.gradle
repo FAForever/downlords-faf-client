@@ -2,10 +2,10 @@ import com.install4j.gradle.Install4jTask
 import org.gradle.internal.os.OperatingSystem
 
 plugins {
-    id("org.springframework.boot") version "3.5.7"
+    id("org.springframework.boot") version "4.1.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.install4j.gradle") version "11.0.1"
-    id("de.undercouch.download") version "5.6.0"
+    id("de.undercouch.download") version "5.7.0"
     id("jacoco")
     id("java")
     id("distribution")
@@ -103,7 +103,8 @@ distributions {
                         jar,
                         downloadIceAdapter.outputs.files,
                         downloadUnixUid.outputs.files,
-                        downloadWindowsUid.outputs.files
+                        downloadWindowsUid.outputs.files,
+                        downloadMacOsUid.outputs.files
                 ]
             }
             exclude('**/i4jruntime*.jar')
@@ -127,6 +128,12 @@ bootRun {
             // Needed for getting process handle via reflection
             "--add-opens=java.base/java.lang=ALL-UNNAMED",
     ]
+    if (OperatingSystem.current().isMacOsX()) {
+        // Fix HeadlessException in install4j's StartupNotification (FileOpeningHandler)
+        jvmArgs += "-Djava.awt.headless=false"
+        // Activate 'mac' profile so @Profile("!mac") beans (e.g. DiscordRichPresenceService) are excluded
+        environment "SPRING_PROFILES_ACTIVE", "prod,mac"
+    }
 }
 
 jar {
@@ -197,7 +204,7 @@ tasks.register('downloadIceAdapter', Download) {
 
 tasks.register('downloadUnixUid', Download) {
     group "native dependencies"
-    src "https://github.com/FAForever/uid/releases/download/v4.0.4/faf-uid"
+    src "https://github.com/FAForever/uid/releases/download/${fafUidVersion}/faf-uid"
     dest file("${buildDir}/resources/native/faf-uid")
     onlyIfNewer true
     it.doLast {
@@ -207,13 +214,31 @@ tasks.register('downloadUnixUid', Download) {
 
 tasks.register('downloadWindowsUid', Download) {
     group "native dependencies"
-    src "https://github.com/FAForever/uid/releases/download/v4.0.4/faf-uid.exe"
+    src "https://github.com/FAForever/uid/releases/download/${fafUidVersion}/faf-uid.exe"
     dest file("${buildDir}/resources/native/faf-uid.exe")
     onlyIfNewer true
 }
 
+tasks.register('downloadMacOsUid', Download) {
+    group "native dependencies"
+    src "https://github.com/FAForever/uid/releases/download/${fafUidVersion}/faf-uid-macos"
+    dest file("${buildDir}/resources/native/faf-uid-macos")
+    onlyIfNewer true
+    it.doLast {
+        def macosUid = "${buildDir}/resources/native/faf-uid-macos"
+        // On macOS hosts, downloaded binaries get tagged with
+        // `com.apple.quarantine` and Gatekeeper blocks execution until
+        // the xattr is removed. Strip it on macOS builds; the command
+        // exits non-zero if the attr isn't set, which we ignore.
+        if (OperatingSystem.current().isMacOsX()) {
+            ['xattr', '-d', 'com.apple.quarantine', macosUid].execute().waitFor()
+        }
+        file(macosUid).setExecutable(true, false)
+    }
+}
+
 tasks.register('downloadNativeDependencies') {
-    dependsOn downloadUnixUid, downloadWindowsUid, downloadIceAdapter
+    dependsOn downloadUnixUid, downloadWindowsUid, downloadMacOsUid, downloadIceAdapter
     group "native dependencies"
 }
 
@@ -249,28 +274,30 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-logging")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-webclient")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+    implementation("org.springframework.boot:spring-boot-jackson2")
     implementation("org.springframework:spring-web")
     implementation("org.springframework:spring-websocket")
 
     implementation("io.projectreactor.addons:reactor-extra")
     implementation("io.projectreactor:reactor-tools")
 
-    def commonsVersion = "20251112-0a26247"
+    def commonsVersion = "20260407-92612a0"
 
     implementation("com.faforever.commons:data:${commonsVersion}") {
         exclude module: 'guava'
     }
     implementation("com.faforever.commons:api:${commonsVersion}")
     implementation("com.faforever.commons:lobby:${commonsVersion}")
-    implementation("com.google.guava:guava:33.5.0-jre")
+    implementation("com.google.guava:guava:33.6.0-jre")
     implementation("org.apache.commons:commons-compress:1.28.0")
-    implementation("net.java.dev.jna:jna:5.18.1")
-    implementation("net.java.dev.jna:jna-platform:5.18.1")
-    implementation("org.jetbrains:annotations:26.0.2-1")
+    implementation("net.java.dev.jna:jna:5.19.1")
+    implementation("net.java.dev.jna:jna-platform:5.19.1")
+    implementation("org.jetbrains:annotations:26.1.0")
     implementation("com.neovisionaries:nv-i18n:1.29")
     implementation("org.luaj:luaj-jse:3.0.1")
-    implementation("commons-validator:commons-validator:1.10.0") {
+    implementation("commons-validator:commons-validator:1.10.1") {
         exclude module: 'commons-logging'
     }
     implementation("com.github.micheljung:JJsonRpc:01a7fba5f4")
@@ -278,7 +305,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.github.rutledgepaulv:q-builders:1.6")
     implementation("com.github.nsp:JSkills:8b333ec63d")
-    implementation("com.github.jasminb:jsonapi-converter:0.14")
+    implementation("com.github.jasminb:jsonapi-converter:0.15")
     implementation("javax.annotation:javax.annotation-api:1.3.2")
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("io.github.micheljung:fxstage:0.8.3")
@@ -289,21 +316,21 @@ dependencies {
     implementation("com.code-disaster.steamworks4j:steamworks4j:1.9.0")
 
     implementation("com.github.1-alex98:discord-rpc:1.6.2-jna")
-    implementation("org.controlsfx:controlsfx:11.2.2")
+    implementation("org.controlsfx:controlsfx:11.2.3")
     implementation("de.codecentric.centerdevice:javafxsvg:1.3.0") {
         exclude module: 'commons-logging'
     }
     implementation("org.fxmisc.flowless:flowless:0.7.4")
 
-    implementation("org.javassist:javassist:3.30.2-GA")
-    implementation("org.checkerframework:checker-qual:3.52.0")
+    implementation("org.javassist:javassist:3.31.0-GA")
+    implementation("org.checkerframework:checker-qual:4.2.0")
 
     implementation("io.github.sheikah45.fx2j:fx2j-api:0.1.0")
     implementation("com.install4j:install4j-runtime:11.0.1")
 
-    testImplementation("org.instancio:instancio-junit:5.5.1")
-    testImplementation("com.squareup.okhttp3:okhttp:5.3.0")
-    testImplementation("com.squareup.okhttp3:mockwebserver:5.3.0")
+    testImplementation("org.instancio:instancio-junit:5.6.0")
+    testImplementation("com.squareup.okhttp3:okhttp:5.4.0")
+    testImplementation("com.squareup.okhttp3:mockwebserver:5.4.0")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation("org.testfx:testfx-core:4.0.18") {
         exclude module: 'guava'

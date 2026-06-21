@@ -2,6 +2,7 @@ package com.faforever.client.update;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.os.OsMac;
 import com.faforever.client.os.OsPosix;
 import com.faforever.client.os.OsUnknown;
 import com.faforever.client.os.OsWindows;
@@ -46,6 +47,8 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
       URL downloadUrl = switch (operatingSystem) {
         case OsWindows osWindows -> latestRelease.getWindowsUrl();
         case OsPosix osPosix -> latestRelease.getLinuxUrl();
+        // No auto-update on macOS yet — Mac users rebuild from source.
+        case OsMac osMac -> null;
         case OsUnknown osUnknown -> null;
       };
 

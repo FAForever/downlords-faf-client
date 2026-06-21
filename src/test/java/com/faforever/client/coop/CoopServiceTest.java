@@ -49,9 +49,9 @@ public class CoopServiceTest extends ServiceTest {
     CoopMission coopMission = Instancio.create(CoopMission.class);
 
     Flux<ElideEntity> resultFlux = Flux.just(coopMapper.map(coopMission));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getMissions()).expectNext(coopMission).verifyComplete();
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1000)));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasPageSize(1000)));
   }
 
   @Test
@@ -63,12 +63,12 @@ public class CoopServiceTest extends ServiceTest {
 
     com.faforever.commons.api.dto.CoopResult result = coopMapper.map(coopResult);
     Flux<ElideEntity> resultFlux = Flux.just(result, result);
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
     CoopMission mission = Instancio.create(CoopMission.class);
     StepVerifier.create(instance.getLeaderboard(mission, 2)).expectNext(coopResult).verifyComplete();
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1000)));
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("mission").eq(mission.id())
-        .and().intNum("playerCount").eq(2))));
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("duration", true)));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasPageSize(1000)));
+    verify(fafApiAccessor).getAll(argThat(
+        ElideMatchers.hasFilter(qBuilder().intNum("mission").eq(mission.id()).and().intNum("playerCount").eq(2))));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasSort("duration", true)));
   }
 }

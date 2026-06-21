@@ -62,4 +62,5 @@
             </VBox>
         </GridPane>
     </StackPane>
+    <Label fx:id="bannedStripe" visible="false" styleClass="tmm-maplist-tile-banned-stripe"/>
 </StackPane>

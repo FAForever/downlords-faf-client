@@ -30,7 +30,7 @@ public class ClanService {
 
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.Clan> navigator = ElideNavigator.of(
         com.faforever.commons.api.dto.Clan.class).collection().setFilter(qBuilder().string("tag").eq(tag)).pageSize(1);
-    return fafApiAccessor.getMany(navigator).next().map(clanMapper::map).cache();
+    return fafApiAccessor.getAll(navigator).next().map(clanMapper::map).cache();
   }
 }
 

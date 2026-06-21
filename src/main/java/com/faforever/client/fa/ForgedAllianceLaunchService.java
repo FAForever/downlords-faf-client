@@ -52,7 +52,7 @@ public class ForgedAllianceLaunchService {
   public Process launchOnlineGame(GameParameters gameParameters, int gpgPort, int replayPort) {
     PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
-    Optional<LeaderboardRating> leaderboardRating = Optional.of(currentPlayer.getLeaderboardRatings()).map(
+    Optional<LeaderboardRating> leaderboardRating = Optional.ofNullable(currentPlayer.getLeaderboardRatings()).map(
                                                                     rating -> rating.get(gameParameters.leaderboard()));
 
     double mean = leaderboardRating.map(LeaderboardRating::mean).orElse(0d);

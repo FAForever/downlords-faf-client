@@ -492,6 +492,6 @@ public class ReplayService {
                                                                                                                qBuilder().intNum(
                                                                                                                              "gameId")
                                                                                                                          .eq(replay.id()));
-    return fafApiAccessor.getMany(navigator).map(replayMapper::map).cache();
+    return fafApiAccessor.getAll(navigator).map(replayMapper::map).cache();
   }
 }

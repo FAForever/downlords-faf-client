@@ -43,7 +43,7 @@ public class ModerationService {
                                                                                                          .addSortingRule(
                                                                                                              "createTime",
                                                                                                              false);
-    return fafApiAccessor.getMany(navigator).map(moderationReportMapper::map).cache();
+    return fafApiAccessor.getAll(navigator).map(moderationReportMapper::map).cache();
   }
 
   @CacheEvict(value = CacheNames.MODERATION_REPORTS)

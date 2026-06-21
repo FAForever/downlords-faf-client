@@ -22,6 +22,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -62,6 +63,9 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   public Button vetoButton;
   public Label tokenCounterLabel;
   public Region vetoSvg;
+  public Label bannedStripe;
+
+  private static final ColorAdjust GRAYSCALE_EFFECT = new ColorAdjust(0, -1, 0, 0);
 
   protected final ObjectProperty<MapPoolAssignment> assignment = new SimpleObjectProperty<>();
   private ObservableValue<Integer> vetoTokensLeft;
@@ -202,12 +206,27 @@ public class TeamMatchmakingMapTileController extends NodeController<Pane> {
   }
 
   private void updateBannedState() {
-    if (!isMaxPerMapDynamic.get() && tokenCount.get() >= maxPerMap.get()) {
+    int tokens = tokenCount.get();
+    boolean isFullBan = !isMaxPerMapDynamic.get() && tokens >= maxPerMap.get();
+    boolean hasTokens = tokens > 0;
+
+    if (isFullBan) {
       if (!root.getStyleClass().contains("tmm-maplist-tile_banned")) {
         root.getStyleClass().add("tmm-maplist-tile_banned");
       }
+      thumbnailImageView.setEffect(GRAYSCALE_EFFECT);
     } else {
       root.getStyleClass().remove("tmm-maplist-tile_banned");
+      thumbnailImageView.setEffect(null);
+    }
+
+    bannedStripe.setVisible(hasTokens);
+    if (hasTokens) {
+      if (isFullBan) {
+        bannedStripe.setText(i18n.get("map.banned_thinSpaced"));
+      } else {
+        bannedStripe.setText(i18n.get("map.partiallyBanned"));
+      }
     }
   }
 

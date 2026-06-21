@@ -42,10 +42,10 @@ public class TournamentServiceTest extends ServiceTest {
   public void testAllTournaments() throws Exception {
     Tournament tournament = Instancio.create(Tournament.class);
     Flux<com.faforever.commons.api.dto.Tournament> resultFlux = Flux.just(tournamentMapper.map(tournament));
-    when(fafApiAccessor.getMany(eq(com.faforever.commons.api.dto.Tournament.class), anyString(), anyInt(),
-                                any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(eq(com.faforever.commons.api.dto.Tournament.class), anyString(), anyInt(),
+                               any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getAllTournaments()).expectNext(tournament).verifyComplete();
-    verify(fafApiAccessor).getMany(eq(com.faforever.commons.api.dto.Tournament.class),
-                                   eq("/challonge/v1/tournaments.json"), eq(100), any());
+    verify(fafApiAccessor).getAll(eq(com.faforever.commons.api.dto.Tournament.class),
+                                  eq("/challonge/v1/tournaments.json"), eq(100), any());
   }
 }

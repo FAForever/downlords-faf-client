@@ -23,7 +23,7 @@ public class TutorialService {
   public Flux<TutorialCategory> getTutorialCategories() {
     ElideNavigatorOnCollection<com.faforever.commons.api.dto.TutorialCategory> navigator = ElideNavigator.of(
         com.faforever.commons.api.dto.TutorialCategory.class).collection().pageSize(1000);
-    return fafApiAccessor.getMany(navigator).map(tutorialMapper::map).cache();
+    return fafApiAccessor.getAll(navigator).map(tutorialMapper::map).cache();
   }
 
   public void launchTutorial(Tutorial tutorial) {

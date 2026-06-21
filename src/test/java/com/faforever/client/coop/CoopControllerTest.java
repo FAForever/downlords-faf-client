@@ -1,6 +1,7 @@
 package com.faforever.client.coop;
 
 import com.faforever.client.domain.api.CoopMission;
+import com.faforever.client.domain.api.CoopScenario;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -69,6 +70,7 @@ public class CoopControllerTest extends PlatformTest {
   public void setUp() throws Exception {
     lenient().when(coopService.getLeaderboard(any(), anyInt())).thenReturn(Flux.empty());
     lenient().when(coopService.getMissions()).thenReturn(Flux.empty());
+    lenient().when(coopService.getScenarios()).thenReturn(Flux.empty());
     lenient().when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
     lenient().when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
 
@@ -89,18 +91,18 @@ public class CoopControllerTest extends PlatformTest {
 
   @Test
   public void onPlayButtonClicked() {
-    CoopMission coopMission = Instancio.create(CoopMission.class);
-    when(coopService.getMissions()).thenReturn(Flux.just(coopMission));
+    CoopScenario coopScenario = Instancio.create(CoopScenario.class);
+    when(coopService.getScenarios()).thenReturn(Flux.just(coopScenario));
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
-    instance.missionComboBox.getSelectionModel().select(coopMission);
+    instance.scenarioComboBox.getSelectionModel().select(coopScenario);
+    instance.missionComboBox.getSelectionModel().selectFirst();
 
     WaitForAsyncUtils.waitForFxEvents();
     instance.onPlayButtonClicked();
 
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
     verify(gameRunner).host(captor.capture());
-
     NewGameInfo newGameInfo = captor.getValue();
     assertEquals("coop", newGameInfo.featuredModName());
   }

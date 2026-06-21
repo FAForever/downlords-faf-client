@@ -32,6 +32,8 @@ import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 import static org.instancio.Select.field;
 import static org.instancio.Select.scope;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,7 +41,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -97,7 +102,7 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
     lenient().when(leaderboardService.getLeaderboards()).thenReturn(Flux.just(leaderboard));
     lenient().when(leaderboardService.getEntriesForPlayer(eq(player)))
              .thenReturn(Flux.just(Instancio.create(LeaderboardEntry.class)));
-    lenient().when(statisticsService.getRatingHistory(eq(player), any()))
+    lenient().when(statisticsService.getRatingHistory(eq(player), any(), any()))
              .thenReturn(Flux.fromIterable(Instancio.ofList(LeaderboardRatingJournal.class)
                                                     .size(2)
                                                     .set(field(LeaderboardRatingJournal::meanBefore), 1500d)
@@ -183,6 +188,26 @@ public class PlayerInfoWindowControllerTest extends PlatformTest {
     testSetPlayerInfoBean();
     instance.ratingTypeComboBox.setValue(leaderboard);
     instance.onRatingTypeChange();
-    verify(statisticsService, times(2)).getRatingHistory(player, leaderboard);
+    verify(statisticsService, times(2)).getRatingHistory(eq(player), eq(leaderboard), any());
+  }
+
+  @Test
+  public void testOnRatingTypeChangeWithLastMonthSuppliesNonNullSince() {
+    testSetPlayerInfoBean();
+    instance.timePeriodComboBox.setValue(TimePeriod.LAST_MONTH);
+    instance.ratingTypeComboBox.setValue(leaderboard);
+    instance.onRatingTypeChange();
+    waitForFxEvents();
+    verify(statisticsService, atLeastOnce()).getRatingHistory(eq(player), eq(leaderboard), argThat(Objects::nonNull));
+  }
+
+  @Test
+  public void testOnRatingTypeChangeWithAllTimeSuppliesNullSince() {
+    testSetPlayerInfoBean();
+    instance.timePeriodComboBox.setValue(TimePeriod.ALL_TIME);
+    instance.ratingTypeComboBox.setValue(leaderboard);
+    instance.onRatingTypeChange();
+    waitForFxEvents();
+    verify(statisticsService, atLeastOnce()).getRatingHistory(eq(player), eq(leaderboard), isNull());
   }
 }

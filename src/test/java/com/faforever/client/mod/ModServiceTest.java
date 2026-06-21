@@ -293,7 +293,7 @@ public class ModServiceTest extends PlatformTest {
 
     com.faforever.commons.api.dto.ModVersion dto = modMapper.map(modVersion);
 
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(dto));
+    when(fafApiAccessor.getAll(any())).thenReturn(Flux.just(dto));
 
     StepVerifier.create(instance.updateAndActivateModVersions(List.of(modVersion)))
                 .expectNext(List.of(modVersion))
@@ -311,7 +311,7 @@ public class ModServiceTest extends PlatformTest {
                 .expectNext(List.of(modVersion))
                 .verifyComplete();
 
-    verify(fafApiAccessor, times(0)).getMany(any());
+    verify(fafApiAccessor, times(0)).getAll(any());
   }
 
   @Test
@@ -322,7 +322,7 @@ public class ModServiceTest extends PlatformTest {
 
     com.faforever.commons.api.dto.ModVersion dto = modMapper.map(modVersion);
 
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(dto));
+    when(fafApiAccessor.getAll(any())).thenReturn(Flux.just(dto));
 
     when(downloadModTaskFactory.getObject()).thenReturn(stubDownloadModTask());
 

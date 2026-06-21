@@ -185,27 +185,33 @@ public class ModService implements InitializingBean, DisposableBean {
       @Override
       protected Void call() {
         updateTitle(i18n.get("modVault.loadingMods"));
-        try (Stream<Path> customModsDirectory = list(forgedAlliancePrefs.getModsDirectory())) {
-          List<Path> modPaths = new ArrayList<>();
-          customModsDirectory.collect(toCollection(() -> modPaths));
+        Path modsDirectory = forgedAlliancePrefs.getModsDirectory();
+
+        try (Stream<Path> walker = Files.walk(modsDirectory, 2)) {
+          List<Path> modPaths = walker
+              .filter(path -> !path.equals(modsDirectory))
+              .filter(Files::isDirectory)
+              .filter(path -> Files.exists(path.resolve("mod_info.lua")))
+              .collect(toCollection(ArrayList::new));
 
           long totalMods = modPaths.size();
           long modsRead = 0;
+
           for (Path modPath : modPaths) {
             updateProgress(++modsRead, totalMods);
             try {
               addInstalledMod(modPath);
             } catch (Exception e) {
               log.warn("Corrupt mod: `{}`", modPath, e);
-
               notificationService.addPersistentWarnNotification(
                   List.of(new Action(i18n.get("corruptedMods.show"), () -> platformService.reveal(modPath))),
                   "corruptedModsError.notification", modPath.getFileName());
             }
           }
         } catch (IOException e) {
-          log.error("Mods could not be read from: `{}`", forgedAlliancePrefs.getModsDirectory(), e);
+          log.error("Mods could not be read from: `{}`", modsDirectory, e);
         }
+
         return null;
       }
     });
@@ -421,7 +427,7 @@ public class ModService implements InitializingBean, DisposableBean {
                                                                                                                  .eq(uid))
                                                                                                    .pageSize(1)
                                                                                                    .pageNumber(1);
-    return fafApiAccessor.getMany(navigator).next();
+    return fafApiAccessor.getAll(navigator).next();
   }
 
   @Cacheable(value = CacheNames.MODS, sync = true)

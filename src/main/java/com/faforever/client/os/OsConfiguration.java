@@ -27,7 +27,7 @@ public class OsConfiguration {
   @Profile(FafClientApplication.PROFILE_MAC)
   @Bean
   public OperatingSystem macos() {
-    return new OsPosix();
+    return new OsMac();
   }
 
   @Bean
@@ -38,7 +38,7 @@ public class OsConfiguration {
     } else if (SystemUtils.IS_OS_LINUX) {
       return new OsPosix();
     } else if (SystemUtils.IS_OS_MAC_OSX) {
-      return new OsPosix();
+      return new OsMac();
     } else {
       log.warn("Detected unsupported operating system. Feature may not work. Use on your own risk.");
       return new OsUnknown();

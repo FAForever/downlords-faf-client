@@ -2,12 +2,14 @@ package com.faforever.client.coop;
 
 import com.faforever.client.domain.api.CoopMission;
 import com.faforever.client.domain.api.CoopResult;
+import com.faforever.client.domain.api.CoopScenario;
 import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.fx.ControllerTableCell;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.ObservableConstant;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -57,6 +59,7 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -77,6 +80,7 @@ public class CoopController extends NodeController<Node> {
   private final ReplayService replayService;
   private final GameService gameService;
   private final CoopService coopService;
+  private final PlatformService platformService;
   private final ImageViewHelper imageViewHelper;
   private final NotificationService notificationService;
   private final I18n i18n;
@@ -89,6 +93,7 @@ public class CoopController extends NodeController<Node> {
   private final FilteredList<CoopResult> leaderboardFilteredList = new FilteredList<>(leaderboardUnFilteredList);
 
   public GridPane coopRoot;
+  public ComboBox<CoopScenario> scenarioComboBox;
   public ComboBox<CoopMission> missionComboBox;
   public WebView descriptionWebView;
   public Pane gameViewContainer;
@@ -111,9 +116,13 @@ public class CoopController extends NodeController<Node> {
 
   @Override
   protected void onInitialize() {
-    missionComboBox.setCellFactory(param -> missionListCell());
-    missionComboBox.setButtonCell(missionListCell());
+    scenarioComboBox.setCellFactory(param -> scenarioListCell());
+    scenarioComboBox.setButtonCell(scenarioListCell());
+    scenarioComboBox.getSelectionModel().selectedItemProperty().when(showing).subscribe(this::populateMissionList);
+
     missionComboBox.getSelectionModel().selectedItemProperty().when(showing).subscribe(this::setSelectedMission);
+    missionComboBox.setButtonCell(missionListCell());
+    missionComboBox.setCellFactory(param -> missionListCell());
 
     mapPreviewImageView.imageProperty()
                        .bind(missionComboBox.getSelectionModel().selectedItemProperty().map(CoopMission::mapFolderName)
@@ -148,10 +157,10 @@ public class CoopController extends NodeController<Node> {
     playerCountColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
 
     playerNamesColumn.setCellValueFactory(param -> ObservableConstant.valueOf(param.getValue().replay().teams().values()
-                                                                           .stream()
-                                                                           .flatMap(Collection::stream)
-                                                                           .collect(Collectors.joining(
-                                                                               i18n.get("textSeparator")))));
+                                                                                   .stream()
+                                                                                   .flatMap(Collection::stream)
+                                                                                   .collect(Collectors.joining(
+                                                                                       i18n.get("textSeparator")))));
 
     playerNamesColumn.setCellFactory(param -> new StringCell<>(Function.identity()));
 
@@ -185,25 +194,32 @@ public class CoopController extends NodeController<Node> {
     FilteredList<GameInfo> filteredItems = new FilteredList<>(gameService.getGames());
     filteredItems.setPredicate(OPEN_COOP_GAMES_PREDICATE);
 
-    coopService.getMissions()
+    coopService.getScenarios()
                .collectList()
                .map(FXCollections::observableList)
                .publishOn(fxApplicationThreadExecutor.asScheduler())
-               .subscribe(coopMaps -> {
-                 missionComboBox.setItems(coopMaps);
+               .subscribe(coopScenarios -> {
+                 scenarioComboBox.getItems().addAll(coopScenarios);
+
+                 List<CoopMission> coopMissions = coopScenarios.stream()
+                                                               .map(CoopScenario::maps)
+                                                               .filter(Objects::nonNull)
+                                                               .flatMap(Collection::stream)
+                                                               .toList();
 
                  gamesTableController.initializeGameTable(filteredItems,
-                                                          mapFolderName -> coopMissionFromFolderName(coopMaps,
+                                                          mapFolderName -> coopMissionFromFolderName(coopMissions,
                                                                                                      mapFolderName),
                                                           false);
                  gamesTableController.getMapPreviewColumn().setVisible(false);
                  gamesTableController.getRatingRangeColumn().setVisible(false);
 
+                 SingleSelectionModel<CoopScenario> selectionModel = scenarioComboBox.getSelectionModel();
 
-                 SingleSelectionModel<CoopMission> selectionModel = missionComboBox.getSelectionModel();
                  if (selectionModel.isEmpty()) {
                    selectionModel.selectFirst();
                  }
+
                }, throwable -> notificationService.addPersistentErrorNotification("coop.couldNotLoad",
                                                                                   throwable.getLocalizedMessage()));
   }
@@ -232,22 +248,28 @@ public class CoopController extends NodeController<Node> {
     }, fxApplicationThreadExecutor);
   }
 
-  private ListCell<CoopMission> missionListCell() {
-    return new StringListCell<>(fxApplicationThreadExecutor, CoopMission::name, mission -> {
+  private ListCell<CoopScenario> scenarioListCell() {
+    return new StringListCell<>(fxApplicationThreadExecutor, CoopScenario::name, category -> {
       Label label = new Label();
       Region iconRegion = new Region();
       label.setGraphic(iconRegion);
       iconRegion.getStyleClass().add(ThemeService.CSS_CLASS_ICON);
-      switch (mission.category()) {
+      switch (category.faction()) {
         case AEON -> iconRegion.getStyleClass().add(ThemeService.AEON_STYLE_CLASS);
         case CYBRAN -> iconRegion.getStyleClass().add(ThemeService.CYBRAN_STYLE_CLASS);
         case UEF -> iconRegion.getStyleClass().add(ThemeService.UEF_STYLE_CLASS);
+        case SERAPHIM -> iconRegion.getStyleClass().add(ThemeService.SERAPHIM_STYLE_CLASS);
+        case CUSTOM -> iconRegion.getStyleClass().add(ThemeService.WRENCH_STYLE_CLASS);
         default -> {
           return null;
         }
       }
       return label;
-    }, Pos.CENTER_LEFT, "coop-mission");
+    }, Pos.CENTER_LEFT, "coop-category");
+  }
+
+  private ListCell<CoopMission> missionListCell() {
+    return new StringListCell<>(fxApplicationThreadExecutor, this::getMissionConcatDisplayName, null, Pos.CENTER_LEFT, "coop-mission");
   }
 
   private void loadLeaderboard() {
@@ -274,9 +296,23 @@ public class CoopController extends NodeController<Node> {
                      .collect(Collectors.toUnmodifiableSet());
   }
 
-
   private CoopMission getSelectedMission() {
     return missionComboBox.getSelectionModel().getSelectedItem();
+  }
+
+  private void populateMissionList(CoopScenario scenario) {
+    if (scenario == null) {
+      return;
+    }
+
+    List<CoopMission> missions = scenario.maps();
+    if (missions == null || missions.isEmpty()) {
+      missionComboBox.getItems().clear();
+      return;
+    }
+
+    missionComboBox.getItems().setAll(missions);
+    missionComboBox.getSelectionModel().select(0);
   }
 
   private void setSelectedMission(CoopMission mission) {
@@ -297,8 +333,20 @@ public class CoopController extends NodeController<Node> {
                                     COOP.getTechnicalName(), getSelectedMission().mapFolderName(), Set.of()));
   }
 
+  public void onWikiButtonClicked() {
+    platformService.showDocument("https://wiki.faforever.com/en/Development/Missions/Mission-Scripting");
+  }
+
+  public void onDiscordHyperLinkClicked() {
+    platformService.showDocument("https://discord.gg/ayzAVr9JUV");
+  }
+
   public void onMapPreviewImageClicked() {
     Optional.ofNullable(mapPreviewImageView.getImage()).ifPresent(PopupUtil::showImagePopup);
+  }
+
+  public String getMissionConcatDisplayName(CoopMission mission) {
+    return mission.name() + " - V" + mission.version();
   }
 
   @Override

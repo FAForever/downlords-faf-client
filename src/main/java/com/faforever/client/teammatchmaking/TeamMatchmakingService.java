@@ -441,7 +441,7 @@ public class TeamMatchmakingService implements InitializingBean {
                                                                           .collection()
                                                                           .setFilter(qBuilder().string("technicalName")
                                                                                                .eq(matchmakerQueue.getName()));
-    return fafApiAccessor.getMany(navigator).next().map(matchmakerMapper::map)
+    return fafApiAccessor.getAll(navigator).next().map(matchmakerMapper::map)
                          .map(queue -> matchmakerMapper.update(matchmakerQueue, queue))
                          .doOnNext(queue -> queue.setSelected(
                              !matchmakerPrefs.getUnselectedQueueIds().contains(queue.getId())))

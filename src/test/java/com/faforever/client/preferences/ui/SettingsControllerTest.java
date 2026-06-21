@@ -60,6 +60,7 @@ import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -310,5 +311,14 @@ public class SettingsControllerTest extends PlatformTest {
 
     verify(taskService).submitTask(any(DownloadFAFDebuggerTask.class));
     verify(notificationService).addImmediateErrorNotification(any(FakeTestException.class), eq("settings.fa.updateDebugger.failed"));
+  }
+
+  @Test
+  void testIsAffinityPropertyBound() {
+    preferences.getForgedAlliance().setForceAffinity(true);
+    assertTrue(instance.forceAffinityToggle.isSelected());
+
+    preferences.getForgedAlliance().setForceAffinity(false);
+    assertFalse(instance.forceAffinityToggle.isSelected());
   }
 }

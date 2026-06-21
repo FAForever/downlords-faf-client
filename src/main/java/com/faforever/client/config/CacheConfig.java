@@ -22,6 +22,7 @@ import static com.faforever.client.config.CacheNames.AVATARS;
 import static com.faforever.client.config.CacheNames.CLAN;
 import static com.faforever.client.config.CacheNames.COOP_LEADERBOARD;
 import static com.faforever.client.config.CacheNames.COOP_MAPS;
+import static com.faforever.client.config.CacheNames.COOP_SCENARIOS;
 import static com.faforever.client.config.CacheNames.COTURN;
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
 import static com.faforever.client.config.CacheNames.COUNTRY_NAMES;
@@ -91,6 +92,7 @@ public class CacheConfig implements CachingConfigurer {
                                   newBuilder().maximumSize(1).expireAfterAccess(5, MINUTES).buildAsync(), true),
                 new CaffeineCache(AVAILABLE_AVATARS, newBuilder().expireAfterAccess(10, MINUTES).buildAsync(), true),
                 new CaffeineCache(COOP_MAPS, newBuilder().expireAfterAccess(10, MINUTES).buildAsync(), true),
+                new CaffeineCache(COOP_SCENARIOS, newBuilder().expireAfterAccess(10, MINUTES).buildAsync(), true),
                 new CaffeineCache(NEWS, newBuilder().expireAfterWrite(5, MINUTES).buildAsync(), true),
                 new CaffeineCache(RATING_HISTORY, newBuilder().expireAfterWrite(1, MINUTES).buildAsync(), true),
                 new CaffeineCache(COOP_LEADERBOARD, newBuilder().expireAfterWrite(1, MINUTES).buildAsync(), true),

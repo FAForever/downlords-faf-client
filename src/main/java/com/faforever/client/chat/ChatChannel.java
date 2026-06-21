@@ -70,8 +70,7 @@ public class ChatChannel {
     if (numMessages > maxNumMessages) {
       messages.stream()
               .sorted(Comparator.comparing(ChatMessage::getTime))
-              .limit(numMessages - maxNumMessages)
-              .forEach(message -> messagesById.remove(message.getId()));
+              .limit(numMessages - maxNumMessages).map(ChatMessage::getId).forEach(this::removeMessage);
     }
   }
 

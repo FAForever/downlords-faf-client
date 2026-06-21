@@ -46,23 +46,22 @@ public class FeaturedModServiceTest extends ServiceTest {
   public void testGetFeaturedFiles() {
     when(fafApiAccessor.getMaxPageSize()).thenReturn(100);
     FeaturedMod featuredMod = Instancio.create(FeaturedMod.class);
-    when(fafApiAccessor.getMany(eq(FeaturedModFile.class), anyString(), anyInt(), any())).thenReturn(
+    when(fafApiAccessor.getAll(eq(FeaturedModFile.class), anyString(), anyInt(), any())).thenReturn(
         Flux.just(new FeaturedModFile()));
 
     StepVerifier.create(instance.getFeaturedModFiles(featuredMod, 0)).expectNextCount(1).verifyComplete();
-    verify(fafApiAccessor).getMany(eq(FeaturedModFile.class),
-                                   eq(String.format("/featuredMods/%s/files/%s", featuredMod.id(), 0)), eq(100),
-                                   any());
+    verify(fafApiAccessor).getAll(eq(FeaturedModFile.class),
+                                  eq(String.format("/featuredMods/%s/files/%s", featuredMod.id(), 0)), eq(100), any());
   }
 
   @Test
   public void testGetFeaturedMod() {
     FeaturedMod featuredMod = Instancio.create(FeaturedMod.class);
     Flux<ElideEntity> resultFlux = Flux.just(featuredModMapper.map(featuredMod));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getFeaturedMod("test")).expectNext(featuredMod).verifyComplete();
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("technicalName").eq("test"))));
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("order", true)));
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1)));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasFilter(qBuilder().string("technicalName").eq("test"))));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasSort("order", true)));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasPageSize(1)));
   }
 }

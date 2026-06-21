@@ -229,6 +229,8 @@ public class GameUpdaterImplTest extends ServiceTest {
     String gameType = FAF.getTechnicalName();
     Integer gameVersion = 3711;
     String clientVersion = Version.getCurrentVersion();
+    final boolean isForceAffinity = true;
+    forgedAlliancePrefs.setForceAffinity(isForceAffinity);
 
     instance.update(gameType, Map.of(), gameVersion, false).join();
 
@@ -236,6 +238,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     assertTrue(content.contains("GameType = \"" + gameType + "\""));
     assertTrue(content.contains("GameVersion = \"" + gameVersion + "\""));
     assertTrue(content.contains("ClientVersion = \"" + clientVersion + "\""));
+    assertTrue(content.contains("ForceAffinity = \"" + isForceAffinity + "\""));
   }
 
 }

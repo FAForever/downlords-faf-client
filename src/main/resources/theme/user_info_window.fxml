@@ -52,13 +52,27 @@
                               <Insets right="15.0"/>
                           </padding>
                           <children>
-                              <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                              <HBox alignment="CENTER_LEFT" spacing="10.0" HBox.hgrow="ALWAYS">
                                   <padding>
                                       <Insets top="10.0"/>
                                   </padding>
                                   <children>
-                            <ComboBox fx:id="timePeriodComboBox" onAction="#plotPlayerRatingGraph"/>
-                            <ComboBox fx:id="ratingTypeComboBox" onAction="#onRatingTypeChange"/>
+                                      <HBox fx:id="selectionStatsPane" visible="false" spacing="10.0"
+                                            alignment="CENTER_LEFT">
+                                          <padding>
+                                              <Insets left="5.0"/>
+                                          </padding>
+                                          <children>
+                                              <Label fx:id="selectionDateRangeLabel" styleClass="selection-stats-range"/>
+                                              <Label text="%chart.selection.minRating"/>
+                                              <Label fx:id="selectionMinRatingLabel" styleClass="selection-stats-value"/>
+                                              <Label text="%chart.selection.maxRating"/>
+                                              <Label fx:id="selectionMaxRatingLabel" styleClass="selection-stats-value"/>
+                                          </children>
+                                      </HBox>
+                                      <Region HBox.hgrow="ALWAYS"/>
+                                      <ComboBox fx:id="timePeriodComboBox" onAction="#onRatingTypeChange"/>
+                                      <ComboBox fx:id="ratingTypeComboBox" onAction="#onRatingTypeChange"/>
                                   </children>
                               </HBox>
                               <PlayerRatingChart fx:id="ratingHistoryChart" createSymbols="false" legendVisible="false"
@@ -80,6 +94,7 @@
                                       </graphic>
                                   </Label>
                               </VBox>
+
                           </children>
                       </VBox>
                   </children>

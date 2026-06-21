@@ -90,8 +90,7 @@ public class PersistentNotificationsControllerTest extends PlatformTest {
   @Test()
   public void testOnErrorNotificationAdded() throws Exception {
     CompletableFuture<Void> future = new CompletableFuture<>();
-    doAnswer(
-        invocation -> future.complete(null)
+    doAnswer(_ -> future.complete(null)
     ).when(audioService).playErrorNotificationSound();
 
     onNotificationAdded(Severity.ERROR);

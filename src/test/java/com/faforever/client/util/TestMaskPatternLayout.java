@@ -2,6 +2,7 @@ package com.faforever.client.util;
 
 
 import com.faforever.client.test.ServiceTest;
+import com.faforever.client.util.LogMaskingRegistry.SensitiveValueType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,13 +32,16 @@ public class TestMaskPatternLayout extends ServiceTest {
     } catch (UnknownHostException e) {
       machineName = "";
     }
+    String refreshToken = "refreshToken123";
+    LogMaskingRegistry.update(SensitiveValueType.REFRESH_TOKEN, refreshToken);
 
-    String logMessage = String.format("%ssdfe%segfd%seew", userProfile, userName, machineName);
+    String logMessage = String.format("%ssdfe%segfd%secwafasf%s", userProfile, userName, machineName, refreshToken);
     String cleanLogMessage = instance.maskMessage(logMessage);
 
     assertThat(cleanLogMessage, not(containsString(userProfile)));
     assertThat(cleanLogMessage, not(containsString(userName)));
     assertThat(cleanLogMessage, not(containsString(machineName)));
+    assertThat(cleanLogMessage, not(containsString(refreshToken)));
 
   }
 }

@@ -20,6 +20,8 @@ import org.mockito.Spy;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import java.time.OffsetDateTime;
+
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -49,15 +51,38 @@ public class StatisticsServiceTest extends ServiceTest {
     LeaderboardRatingJournal leaderboardRatingJournal = Instancio.create(LeaderboardRatingJournal.class);
     PlayerInfo player = PlayerInfoBuilder.create().defaultValues().username("junit").get();
     Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboardRatingJournal));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    StepVerifier.create(instance.getRatingHistory(player, leaderboard)).expectNextCount(1)
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
+    StepVerifier.create(instance.getRatingHistory(player, leaderboard, null)).expectNextCount(1)
                 .expectComplete()
                 .verify();
-    verify(fafApiAccessor).getMany(argThat(
+    verify(fafApiAccessor).getAll(argThat(
         ElideMatchers.hasFilter(qBuilder().intNum("gamePlayerStats.player.id").eq(player.getId()).and()
                                           .intNum("leaderboard.id")
                                           .eq(leaderboard.id()))
     ));
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(10000)));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasPageSize(10000)));
+  }
+
+  @Test
+  public void testGetStatisticsForPlayerWithSince() throws Exception {
+    LeaderboardRatingJournal leaderboardRatingJournal = Instancio.create(LeaderboardRatingJournal.class);
+    PlayerInfo player = PlayerInfoBuilder.create().defaultValues().username("junit").get();
+    OffsetDateTime since = OffsetDateTime.now().minusDays(1);
+    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboardRatingJournal));
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
+    StepVerifier.create(instance.getRatingHistory(player, leaderboard, since)).expectNextCount(1)
+                .expectComplete()
+                .verify();
+    verify(fafApiAccessor).getAll(argThat(
+        ElideMatchers.hasFilter(qBuilder().instant("gamePlayerStats.scoreTime")
+                                          .after(since.toInstant(), false)
+                                          .and()
+                                          .intNum("gamePlayerStats.player.id")
+                                          .eq(player.getId())
+                                          .and()
+                                          .intNum("leaderboard.id")
+                                          .eq(leaderboard.id()))
+    ));
+    verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasPageSize(10000)));
   }
 }

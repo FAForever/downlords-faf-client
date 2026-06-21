@@ -176,6 +176,7 @@ public class SettingsController extends NodeController<Node> {
   public ComboBox<Level> logLevelComboBox;
   public CheckBox mapAndModAutoUpdateCheckBox;
   public ListView<IceServer> preferredCoturnListView;
+  public CheckBox forceAffinityToggle;
 
   private final SimpleChangeListener<Theme> selectedThemeChangeListener = this::onThemeChanged;
   private final SimpleChangeListener<Theme> currentThemeChangeListener = newValue -> themeComboBox.getSelectionModel()
@@ -317,6 +318,8 @@ public class SettingsController extends NodeController<Node> {
     allowIpv6Toggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.allowIpv6Property());
     showIceAdapterDebugWindowToggle.selectedProperty()
         .bindBidirectional(forgedAlliancePrefs.showIceAdapterDebugWindow());
+    forceAffinityToggle.selectedProperty()
+                       .bindBidirectional(forgedAlliancePrefs.forceAffinityProperty());
     vaultLocationTextField.textProperty()
         .bindBidirectional(forgedAlliancePrefs.vaultBaseDirectoryProperty(), PATH_STRING_CONVERTER);
     JavaFxUtil.addAndTriggerListener(vaultLocationTextField.textProperty(), (observable) ->

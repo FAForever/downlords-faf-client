@@ -55,10 +55,10 @@ public class ModerationServiceTest extends ServiceTest {
   public void testGetModerationReports() {
     ModerationReport report = Instancio.create(ModerationReport.class);
     Flux<ElideEntity> resultFlux = Flux.just(moderationReportMapper.map(report));
-    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
     StepVerifier.create(instance.getModerationReports()).expectNextCount(1).verifyComplete();
     ;
-    verify(fafApiAccessor).getMany(argThat(
+    verify(fafApiAccessor).getAll(argThat(
         ElideMatchers.hasFilter(qBuilder().intNum("reporter.id").eq(player.getId())
     )));
   }

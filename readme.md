@@ -23,7 +23,10 @@ The official client for [Forged Alliance Forever (FAF)](https://www.faforever.co
 A video tutorial is available [here](https://youtu.be/6gsHnt02I_Y). Don't forget to `Enable annotation processing`.
 
 ### Linux
-Learn how to install the client on Linux [here](https://github.com/FAForever/downlords-faf-client/wiki/Install-on-Linux).
+Please see this [guide](https://wiki.faforever.com/en/Play/Linux-Install) for instructions on how to install FAF on Linux. Alternatively, a youtube [guide](https://www.youtube.com/watch?v=4Wm-yZpV_q8) is available.
+
+### macOS (Apple Silicon)
+See [`scripts/mac/README.md`](scripts/mac/README.md) for the setup and launcher scripts. The client runs natively on arm64; the game runs under `wine-crossover` through Rosetta 2.
 
 ## Open Source Licenses
 |                                                                                                                                                |                                                                                                                                                                                               |

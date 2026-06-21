@@ -199,6 +199,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
              .subscribe(maxMessages -> channels.values()
                                                .forEach(channel -> channel.setMaxNumMessages(maxMessages.intValue())));
     connectionState.subscribe((oldValue, newValue) -> {
+      log.debug("Connection state changed from {} to {}", oldValue, newValue);
       if (autoReconnect && oldValue == ConnectionState.CONNECTED && newValue == ConnectionState.DISCONNECTED) {
         connect();
       }
@@ -486,7 +487,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                                                      .map(PlayerInfo::getSocialStatus)
                                                                      .map(SocialStatus.FOE::equals)
                                                                      .map(isFoe -> !(hideFoeMessages && isFoe))
-                                                                     .orElse(true) -> {
+                                                                     .orElse(true)
+                                                                     && !chatPrefs.getMutedUsers().contains(senderNick) -> {
         String target = getPrivateMessageTarget(privateMessageEvent, senderNick);
         yield getOrCreateChatUser(senderNick, target);
       }
@@ -535,6 +537,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   private void notifyIfMentioned(ChatMessage chatMessage) {
     ChatChannelUser sender = chatMessage.getSender();
+    if (chatPrefs.getMutedUsers().contains(sender.getUsername())) {
+      log.debug("Ignored mention from muted user {}", sender);
+      return;
+    }
+
     if (sender.getCategory() == ChatUserCategory.FOE) {
       log.debug("Ignored mention from foe {}", sender);
       return;
@@ -738,7 +745,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                     .nick(username)
                                     .server()
                                     .host(irc.getHost())
-                                    .port(irc.getPort(), SecurityType.SECURE)
+                                    .port(irc.getPort(), irc.isSecure() ? SecurityType.SECURE : SecurityType.INSECURE)
                                     .then()
                                     .listeners()
                                     .input(this::onMessage)

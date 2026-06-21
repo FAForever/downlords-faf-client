@@ -20,7 +20,7 @@ public class TournamentService {
   private final TournamentMapper tournamentMapper;
 
   public Flux<Tournament> getAllTournaments() {
-    return fafApiAccessor.getMany(com.faforever.commons.api.dto.Tournament.class, "/challonge/v1/tournaments.json", 100,
-                                  Map.of()).map(tournamentMapper::map).cache();
+    return fafApiAccessor.getAll(com.faforever.commons.api.dto.Tournament.class, "/challonge/v1/tournaments.json", 100,
+                                 Map.of()).map(tournamentMapper::map).cache();
   }
 }

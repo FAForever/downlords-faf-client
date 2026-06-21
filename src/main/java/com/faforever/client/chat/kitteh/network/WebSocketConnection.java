@@ -56,6 +56,7 @@ public final class WebSocketConnection implements ClientConnection {
   public WebSocketConnection(final Client.@NonNull WithManagement client) {
     this.client = Sanity.nullCheck(client, "Client");
     HostWithPort serverAddress = this.client.getServerAddress();
+    String scheme = client.isSecureConnection() ? "wss" : "ws";
     HttpClient.newConnection()
               .resolver(DefaultAddressResolverGroup.INSTANCE)
               .doOnConnected(connection -> {
@@ -88,7 +89,7 @@ public final class WebSocketConnection implements ClientConnection {
                 this.client.getExceptionListener().queue(new KittehConnectionException(throwable, false));
               })
               .websocket()
-              .uri(URI.create("wss://%s:%d".formatted(serverAddress.getHost(), serverAddress.getPort())))
+              .uri(URI.create(("%s://%s:%d").formatted(scheme, serverAddress.getHost(), serverAddress.getPort())))
               .handle((inbound, outbound) -> {
                 outbound.sendString(outboundMessages.doOnNext(message -> this.client.getOutputListener().queue(message))
                                                     .doOnError(this::handleException))

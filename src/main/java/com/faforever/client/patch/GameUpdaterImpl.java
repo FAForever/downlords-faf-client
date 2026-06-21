@@ -110,6 +110,7 @@ public class GameUpdaterImpl implements GameUpdater {
         vaultPathString = vaultPathString.substring(homeDirString.length());
       }
     }
+    boolean isForceCPUAffinity = forgedAlliancePrefs.isForceAffinity();
 
     String pathFileFormat = """
         fa_path = "%s"
@@ -117,9 +118,10 @@ public class GameUpdaterImpl implements GameUpdater {
         GameType = "%s"
         GameVersion = "%s"
         ClientVersion = "%s"
+        ForceAffinity = "%s"
         """.stripIndent();
     String content = String.format(pathFileFormat, installationPathString, vaultPathString, featuredModName, gameVersion.toString(),
-                                   Version.getCurrentVersion());
+                                   Version.getCurrentVersion(), isForceCPUAffinity);
     Path baseDirectory;
     if (forReplays) {
       baseDirectory = dataPrefs.getReplayDataDirectory();

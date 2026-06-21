@@ -125,6 +125,8 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
                                      .orElseThrow(() -> new IllegalStateException(
                                          "No version found for featured mod: " + featuredMod.technicalName()));
 
+    log.info("Featured mod `{}` updated to version `{}`", featuredMod.technicalName(), maxVersion);
+
     return new PatchResult(new ComparableVersion(String.valueOf(maxVersion)), initFile);
   }
 
