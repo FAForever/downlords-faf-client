@@ -98,7 +98,8 @@ public class MapGeneratorServiceTest extends ServiceTest {
         .build(), generateMapTaskFactory, downloadMapGeneratorTaskFactory, generatorOptionsTaskFactory);
 
     lenient().when(downloadMapGeneratorTask.getMono()).thenReturn(Mono.empty());
-    lenient().when(generateMapTask.getMono()).thenReturn(Mono.empty());
+    // Make generateMapTask return a successful result with map name
+    lenient().doAnswer(invocation -> Mono.just("neroxis_map_generator_2.0.0_123456789")).when(generateMapTask).getMono();
     lenient().when(generatorOptionsTask.getMono()).thenReturn(Mono.just(new ArrayList<>(List.of("TEST"))));
     lenient().doAnswer(invocation -> {
       CompletableTask<Void> task = invocation.getArgument(0);
@@ -109,7 +110,9 @@ public class MapGeneratorServiceTest extends ServiceTest {
 
   @Test
   public void testGenerateMapNoGeneratorPresent() {
-    StepVerifier.create(instance.generateMap(testMapNameNoGenerator)).verifyComplete();
+    StepVerifier.create(instance.generateMap(testMapNameNoGenerator))
+        .expectNext("neroxis_map_generator_2.0.0_123456789")
+        .verifyComplete();
 
     verify(taskService).submitTask(downloadMapGeneratorTask);
     verify(downloadMapGeneratorTask).setVersion(versionNoGeneratorPresent);
@@ -120,7 +123,9 @@ public class MapGeneratorServiceTest extends ServiceTest {
 
   @Test
   public void testGenerateMapGeneratorPresent() throws Exception {
-    StepVerifier.create(instance.generateMap(testMapNameGenerator)).verifyComplete();
+    StepVerifier.create(instance.generateMap(testMapNameGenerator))
+        .expectNext("neroxis_map_generator_2.0.0_123456789")
+        .verifyComplete();
 
     verify(taskService).submitTask(generateMapTask);
 
@@ -152,7 +157,9 @@ public class MapGeneratorServiceTest extends ServiceTest {
   public void testGenerateMapWithGeneratorOptions() {
     ReflectionTestUtils.setField(instance, "defaultGeneratorVersion", versionGeneratorPresent);
     GeneratorOptions generatorOptions = GeneratorOptions.builder().build();
-    StepVerifier.create(instance.generateMap(generatorOptions)).verifyComplete();
+    StepVerifier.create(instance.generateMap(generatorOptions))
+        .expectNext("neroxis_map_generator_2.0.0_123456789")
+        .verifyComplete();
 
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
     verify(generateMapTask).setGeneratorExecutableFile(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
@@ -171,4 +178,111 @@ public class MapGeneratorServiceTest extends ServiceTest {
     verify(generatorOptionsTask).setVersion(versionGeneratorPresent);
     verify(generatorOptionsTask).setQuery("--styles");
   }
+
+  @Test
+  public void testGenerateMultipleMapsWithValidInputs() {
+    ReflectionTestUtils.setField(instance, "defaultGeneratorVersion", versionGeneratorPresent);
+    GeneratorOptions generatorOptions = GeneratorOptions.builder()
+        .spawnCount(spawnCount)
+        .numTeams(numTeams)
+        .mapSize(mapSize)
+        .seed(seed)
+        .build();
+    
+    List<Long> seeds = List.of(123L, 456L, 789L);
+    
+    StepVerifier.create(instance.generateMultipleMaps(generatorOptions, 3, seeds))
+        .expectNextMatches(results -> results.size() == 3)
+        .verifyComplete();
+  }
+
+  @Test
+  public void testGenerateMultipleMapsWithNullBaseOptions() {
+    List<Long> seeds = List.of(123L);
+    
+    StepVerifier.create(instance.generateMultipleMaps(null, 1, seeds))
+        .expectError(IllegalStateException.class)
+        .verify();
+  }
+
+  @Test
+  public void testGenerateMultipleMapsWithNullSeeds() {
+    ReflectionTestUtils.setField(instance, "defaultGeneratorVersion", versionGeneratorPresent);
+    GeneratorOptions generatorOptions = GeneratorOptions.builder().build();
+    
+    StepVerifier.create(instance.generateMultipleMaps(generatorOptions, 1, null))
+        .expectError(IllegalStateException.class)
+        .verify();
+  }
+
+  @Test
+  public void testGenerateMultipleMapsWithMismatchedSeedsSize() {
+    ReflectionTestUtils.setField(instance, "defaultGeneratorVersion", versionGeneratorPresent);
+    GeneratorOptions generatorOptions = GeneratorOptions.builder().build();
+    
+    StepVerifier.create(instance.generateMultipleMaps(generatorOptions, 3, List.of(123L, 456L)))
+        .expectError(IllegalArgumentException.class)
+        .verify();
+  }
+
+  @Test
+  public void testGenerateMultipleMapsWithEmptySeeds() {
+    ReflectionTestUtils.setField(instance, "defaultGeneratorVersion", versionGeneratorPresent);
+    GeneratorOptions generatorOptions = GeneratorOptions.builder().build();
+    
+    StepVerifier.create(instance.generateMultipleMaps(generatorOptions, 0, List.of()))
+        .expectError(IllegalArgumentException.class)
+        .verify();
+  }
+
+  @Test
+  public void testCreateOptionsWithSeed() {
+    ReflectionTestUtils.setField(instance, "defaultGeneratorVersion", versionGeneratorPresent);
+    GeneratorOptions baseOptions = GeneratorOptions.builder()
+        .spawnCount(spawnCount)
+        .numTeams(numTeams)
+        .mapSize(mapSize)
+        .seed("originalSeed")
+        .generationType(GenerationType.CASUAL)
+        .symmetry("Horizontal")
+        .style("Urban")
+        .terrainStyle("Grass")
+        .textureStyle("Normal")
+        .resourceStyle("High")
+        .propStyle("None")
+        .reclaimDensity(0.5f)
+        .resourceDensity(0.7f)
+        .commandLineArgs("")
+        .build();
+    
+    Long newSeed = 999L;
+    
+    // Use reflection to access the private method
+    MapGeneratorService service = instance;
+    GeneratorOptions result = null;
+    try {
+      var method = MapGeneratorService.class.getDeclaredMethod("createOptionsWithSeed", GeneratorOptions.class, Long.class);
+      method.setAccessible(true);
+      result = (GeneratorOptions) method.invoke(service, baseOptions, newSeed);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    
+    // Verify all fields are the same except seed
+    assert result.spawnCount().equals(spawnCount);
+    assert result.numTeams().equals(numTeams);
+    assert result.mapSize().equals(mapSize);
+    assert result.seed().equals(Long.toString(newSeed));
+    assert result.generationType() == GenerationType.CASUAL;
+    assert result.symmetry().equals("Horizontal");
+    assert result.style().equals("Urban");
+    assert result.terrainStyle().equals("Grass");
+    assert result.textureStyle().equals("Normal");
+    assert result.resourceStyle().equals("High");
+    assert result.propStyle().equals("None");
+    assert result.reclaimDensity().equals(0.5f);
+    assert result.resourceDensity().equals(0.7f);
+    assert result.commandLineArgs().equals("");
+  }
+
 }

@@ -457,6 +457,8 @@ public class CreateGameController extends NodeController<Pane> {
                          Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generateMap.dialog"));
                          generateMapController.setOnCloseButtonClickedListener(dialog::close);
 
+                         generateMapController.setCreateGameController(this);
+
                          root.requestFocus();
                        });
   }

@@ -5,6 +5,7 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TextField?>
@@ -19,6 +20,7 @@
           xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GenerateMapController">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" maxWidth="200.0" minWidth="10.0" prefWidth="200.0"/>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
     </columnConstraints>
     <rowConstraints>
@@ -104,25 +106,46 @@
     <Label text="%game.generateMap.reclaim.density" GridPane.rowIndex="15"/>
     <RangeSlider fx:id="reclaimDensitySlider" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="15" min="0"
                  max="127" snapToTicks="true" showTickLabels="true"/>
-    <Separator GridPane.columnSpan="2" GridPane.rowIndex="16"/>
-    <Label styleClass="h2" text="%game.generateMap.recreate" GridPane.columnSpan="2" GridPane.rowIndex="17"/>
-    <Label text="%game.generateMap.generatedName" GridPane.rowIndex="18"/>
+    <Label text="%game.generateMap.mapCount" GridPane.rowIndex="16"/>
+    <Spinner fx:id="mapCountSpinner" maxHeight="Infinity" style="-fx-pref-width: 7.5em" GridPane.columnIndex="1" GridPane.rowIndex="16">
+    </Spinner>
+    <Label text="%game.generateMap.parallelMode" GridPane.rowIndex="17"/>
+    <CheckBox fx:id="parallelGenerationCheckBox" mnemonicParsing="false" selected="true" GridPane.columnIndex="1" GridPane.rowIndex="17">
+        <tooltip>
+            <Tooltip text="%game.generateMap.parallelMode.tooltip"/>
+        </tooltip>
+    </CheckBox>
+    <Separator GridPane.columnSpan="2" GridPane.rowIndex="19"/>
+    <Label styleClass="h2" text="%game.generateMap.recreate" GridPane.columnSpan="2" GridPane.rowIndex="19"/>
+    <Label text="%game.generateMap.generatedName" GridPane.rowIndex="20"/>
     <TextField fx:id="previousMapName" maxHeight="Infinity"
                promptText="neroxis_map_generator_(version)_(seed)_(options)" style="-fx-pref-width: 5em"
-               GridPane.columnIndex="1" GridPane.rowIndex="18">
+               GridPane.columnIndex="1" GridPane.rowIndex="20">
         <tooltip>
             <Tooltip text="%game.generateMap.nameCaution"/>
         </tooltip>
     </TextField>
 
-
-    <Button fx:id="generateMapButton" contentDisplay="RIGHT" defaultButton="true" mnemonicParsing="false"
-            onAction="#onGenerateMapButtonClicked" styleClass="game-generate-map" text="%game.generateMap"
-            GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="19">
-    </Button>
-
     <!-- Cancel, Ok -->
     <Button mnemonicParsing="false" onAction="#onCloseButtonClicked" text="%cancel" GridPane.columnIndex="0"
-            GridPane.halignment="LEFT" GridPane.rowIndex="19">
+            GridPane.halignment="LEFT" GridPane.rowIndex="24">
     </Button>
+
+    <Button fx:id="generateMapButton" contentDisplay="RIGHT" defaultButton="true" mnemonicParsing="false"
+            onAction="#onGenerateMapButtonClicked" text="%game.generateMap"
+            GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="24">
+    </Button>
+
+    <Button fx:id="generateMultipleMapsButton" contentDisplay="RIGHT" defaultButton="true" mnemonicParsing="false"
+            onAction="#onGenerateMultipleMapsButtonClicked" text="%game.generateMap.generateMultiple"
+            GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="24">
+    </Button>
+
+    <Label fx:id="progressLabel" visible="false" GridPane.columnIndex="1" GridPane.rowIndex="24">
+        <graphic>
+            <ProgressIndicator maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                               prefHeight="20.0"/>
+        </graphic>
+    </Label>
+
 </GridPane>

@@ -53,6 +53,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     generatorPrefs.seedProperty().unbind();
     generatorPrefs.fixedSeedProperty().unbind();
     generatorPrefs.customStyleProperty().unbind();
+    generatorPrefs.parallelGenerationProperty().unbind();
     generatorPrefs.commandLineArgsProperty().unbind();
     generatorPrefs.reclaimDensityMinProperty().unbind();
     generatorPrefs.reclaimDensityMaxProperty().unbind();
@@ -241,6 +242,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertFalse(instance.symmetryCheckComboBox.isDisabled());
     assertFalse(instance.fixedSeedCheckBox.isDisabled());
     assertFalse(instance.customStyleCheckBox.isDisabled());
+    assertFalse(instance.parallelGenerationCheckBox.isDisabled());
   }
 
   @Test
@@ -260,6 +262,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertTrue(instance.seedRerollButton.isDisabled());
     assertTrue(instance.mapStyleCheckComboBox.isDisabled());
     assertTrue(instance.customStyleCheckBox.isDisabled());
+    assertTrue(instance.parallelGenerationCheckBox.isDisabled());
     assertTrue(instance.terrainCheckComboBox.isDisabled());
     assertTrue(instance.biomeCheckComboBox.isDisabled());
     assertTrue(instance.resourcesCheckComboBox.isDisabled());
@@ -283,6 +286,7 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertTrue(instance.seedRerollButton.isDisabled());
     assertTrue(instance.mapStyleCheckComboBox.isDisabled());
     assertTrue(instance.customStyleCheckBox.isDisabled());
+    assertTrue(instance.parallelGenerationCheckBox.isDisabled());
     assertTrue(instance.terrainCheckComboBox.isDisabled());
     assertTrue(instance.biomeCheckComboBox.isDisabled());
     assertTrue(instance.resourcesCheckComboBox.isDisabled());
@@ -584,6 +588,56 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     assertTrue(instance.reclaimDensitySlider.isDisabled());
     assertTrue(instance.resourcesDensitySlider.isDisabled());
+  }
+
+  @Test
+  public void testParallelGenerationCheckBoxSelected() {
+    generatorPrefs.setParallelGeneration(true);
+
+    runOnFxThreadAndWait(() -> reinitialize(instance));
+
+    assertTrue(instance.parallelGenerationCheckBox.isSelected());
+  }
+
+  @Test
+  public void testParallelGenerationCheckBoxNotSelected() {
+    generatorPrefs.setParallelGeneration(false);
+
+    runOnFxThreadAndWait(() -> reinitialize(instance));
+
+    assertFalse(instance.parallelGenerationCheckBox.isSelected());
+  }
+
+  @Test
+  public void testParallelGenerationCheckBoxBoundToPreference() {
+    runOnFxThreadAndWait(() -> reinitialize(instance));
+
+    instance.parallelGenerationCheckBox.setSelected(true);
+
+    assertTrue(generatorPrefs.isParallelGeneration());
+  }
+
+  @Test
+  public void testParallelGenerationCheckBoxDisabledWithMapName() {
+    runOnFxThreadAndWait(() -> reinitialize(instance));
+    instance.previousMapName.setText("neroxis_map_generator");
+
+    assertTrue(instance.parallelGenerationCheckBox.isDisabled());
+  }
+
+  @Test
+  public void testParallelGenerationCheckBoxDisabledWithCommandLine() {
+    runOnFxThreadAndWait(() -> reinitialize(instance));
+    instance.commandLineArgsText.setText("--help");
+
+    assertTrue(instance.parallelGenerationCheckBox.isDisabled());
+  }
+
+  @Test
+  public void testParallelGenerationCheckBoxEnabledWithoutMapNameAndCommandLine() {
+    runOnFxThreadAndWait(() -> reinitialize(instance));
+
+    assertFalse(instance.parallelGenerationCheckBox.isDisabled());
   }
 }
 

@@ -34,6 +34,9 @@ public class GeneratorPrefs {
   private final IntegerProperty reclaimDensityMax = new SimpleIntegerProperty(127);
   private final IntegerProperty resourceDensityMin = new SimpleIntegerProperty(0);
   private final IntegerProperty resourceDensityMax = new SimpleIntegerProperty(127);
+  private final IntegerProperty defaultMapCount = new SimpleIntegerProperty(3);
+  private final BooleanProperty parallelGeneration = new SimpleBooleanProperty(false);
+  private IntegerProperty mapCount = new SimpleIntegerProperty(3);
 
   public GenerationType getGenerationType() {
     return generationType.get();
@@ -210,4 +213,33 @@ public class GeneratorPrefs {
   public void setResourceDensityMax(int max) {
     this.resourceDensityMax.set(max);
   }
+
+  public int getDefaultMapCount() {
+    return defaultMapCount.get();
+  }
+
+  public void setDefaultMapCount(int defaultMapCount) {
+    this.defaultMapCount.set(defaultMapCount);
+  }
+
+  public boolean getParallelGeneration() {
+    return parallelGeneration.get();
+  }
+
+  public void setParallelGeneration(boolean parallelGeneration) {
+    this.parallelGeneration.set(parallelGeneration);
+  }
+
+  public BooleanProperty parallelGenerationProperty() {
+    return parallelGeneration;
+  }
+
+  public boolean isParallelGeneration() {
+    return parallelGeneration.get();
+  }
+
+  public IntegerProperty mapCountProperty() {
+    return mapCount;
+  }
+
 }
