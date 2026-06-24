@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.ToStringOnlyConverter;
@@ -52,7 +53,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javafx.application.Platform;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -68,6 +68,7 @@ public class GenerateMapController extends NodeController<Pane> {
   private final I18n i18n;
   private final GeneratorPrefs generatorPrefs;
   private final UiService uiService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   public Pane generateMapRoot;
   public Button generateMapButton;
@@ -550,48 +551,42 @@ public class GenerateMapController extends NodeController<Pane> {
 
     progressLabel.setVisible(true);
 
-    mapGeneratorService.getNewestGenerator().subscribe(null, throwable -> {
-      log.error("Failed to download map generator", throwable);
-      Platform.runLater(() -> {
-        progressLabel.setVisible(false);
-      });
-      handleGenerationException(throwable);
-    });
+    mapGeneratorService.getNewestGenerator()
+        .doOnError(throwable -> log.error("Failed to download map generator", throwable))
+        .onErrorResume(throwable -> Mono.empty())
+        .subscribeOn(fxApplicationThreadExecutor.asScheduler())
+        .subscribe(aVoid -> {}, aVoid -> {});
     
     if (generatorPrefs.isParallelGeneration()) {
       mapGeneratorService.generateMultipleMapsParallel(baseOptions, mapCount, seeds)
-          .subscribe(results -> {
-            Platform.runLater(() -> {
-              progressLabel.setVisible(false);
-              if (results.isEmpty()) {
-                notificationService.addImmediateWarnNotification("game.generateMap.selection.noMaps");
-                return;
-              }
-              showMapSelectionDialog(results);
-            });
-          }, throwable -> {
-            Platform.runLater(() -> {
-              progressLabel.setVisible(false);
-              handleGenerationException(throwable);
-            });
-          });
+          .publishOn(fxApplicationThreadExecutor.asScheduler())
+          .doOnSuccess(results -> progressLabel.setVisible(false))
+          .doOnError(throwable -> progressLabel.setVisible(false))
+          .subscribe(
+              results -> {
+                if (results.isEmpty()) {
+                  notificationService.addImmediateWarnNotification("game.generateMap.selection.noMaps");
+                  return;
+                }
+                showMapSelectionDialog(results);
+              },
+              this::handleGenerationException
+          );
     } else {
       mapGeneratorService.generateMultipleMaps(baseOptions, mapCount, seeds)
-          .subscribe(results -> {
-            Platform.runLater(() -> {
-              progressLabel.setVisible(false);
-              if (results.isEmpty()) {
-                notificationService.addImmediateWarnNotification("game.generateMap.selection.noMaps");
-                return;
-              }
-              showMapSelectionDialog(results);
-            });
-          }, throwable -> {
-            Platform.runLater(() -> {
-              progressLabel.setVisible(false);
-              handleGenerationException(throwable);
-            });
-          });
+          .publishOn(fxApplicationThreadExecutor.asScheduler())
+          .doOnSuccess(results -> progressLabel.setVisible(false))
+          .doOnError(throwable -> progressLabel.setVisible(false))
+          .subscribe(
+              results -> {
+                if (results.isEmpty()) {
+                  notificationService.addImmediateWarnNotification("game.generateMap.selection.noMaps");
+                  return;
+                }
+                showMapSelectionDialog(results);
+              },
+              this::handleGenerationException
+          );
     }
   }
   
