@@ -81,7 +81,7 @@ public class MapSelectionController extends NodeController<Pane> {
 
     if (mapResults.isEmpty()) {
       Label noMapsLabel = new Label(i18n.get("game.generateMap.selection.noMaps"));
-      noMapsLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #888;");
+      noMapsLabel.getStyleClass().add("no-maps-label");
       mapsGrid.add(noMapsLabel, 0, 0);
       return;
     }
@@ -141,6 +141,7 @@ public class MapSelectionController extends NodeController<Pane> {
 
   private VBox createMapCard(MapGenerationResult result) {
     VBox card = new VBox(8);
+    card.getStyleClass().add("map-card");
 
     ImageView previewImageView = new ImageView();
     previewImageView.setFitWidth(PREVIEW_WIDTH);
@@ -166,17 +167,13 @@ public class MapSelectionController extends NodeController<Pane> {
     card.getChildren().add(previewImageView);
 
     if (selectedResult.get() == result) {
-      card.setStyle(
-          "-fx-padding: 10; -fx-border-radius: 5; -fx-background-radius: 5; -fx-background-color: #FFFFFF33;");
+      card.getStyleClass().add("selected");
     } else if (result.isChosen()) {
-      card.setStyle(
-          "-fx-padding: 10; -fx-border-radius: 5; -fx-background-radius: 5; -fx-background-color: #FFFFFF33;");
-    } else {
-      card.setStyle("-fx-padding: 10; -fx-border-radius: 5; -fx-background-radius: 5;");
+      card.getStyleClass().add("chosen");
     }
 
     Label mapNameLabel = new Label(result.getMapName());
-    mapNameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
+    mapNameLabel.getStyleClass().add("map-card-label");
     mapNameLabel.setWrapText(true);
     mapNameLabel.setMaxWidth(PREVIEW_WIDTH);
 
