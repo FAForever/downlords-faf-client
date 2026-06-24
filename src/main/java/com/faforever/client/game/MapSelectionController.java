@@ -187,13 +187,13 @@ public class MapSelectionController extends NodeController<Pane> {
 
   private String createTooltipText(MapGenerationResult result) {
     StringBuilder sb = new StringBuilder();
-    sb.append("Map: ").append(result.getMapName()).append("\n");
-    sb.append("Seed: ").append(result.getGeneratorOptions().seed()).append("\n");
-    sb.append("Teams: ").append(result.getGeneratorOptions().numTeams()).append("\n");
-    sb.append("Spawn Count: ").append(result.getGeneratorOptions().spawnCount());
+    sb.append(i18n.get("mapSelection.tooltip.map", result.getMapName())).append("\n");
+    sb.append(i18n.get("mapSelection.tooltip.seed", result.getGeneratorOptions().seed())).append("\n");
+    sb.append(i18n.get("mapSelection.tooltip.teams", result.getGeneratorOptions().numTeams())).append("\n");
+    sb.append(i18n.get("mapSelection.tooltip.spawnCount", result.getGeneratorOptions().spawnCount()));
 
     if (!result.isSuccess() && result.getErrorMessage().isPresent()) {
-      sb.append("\n\nError: ").append(result.getErrorMessage().get());
+      sb.append("\n\n").append(i18n.get("mapSelection.tooltip.error", result.getErrorMessage().get()));
     }
 
     return sb.toString();
