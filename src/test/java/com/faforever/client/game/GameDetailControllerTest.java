@@ -372,7 +372,7 @@ public class GameDetailControllerTest extends PlatformTest {
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenAnswer(invocation -> {
       assertEquals(image, instance.mapImageView.getImage());
       runOnFxThreadAndWait(() -> instance.setGame(anotherGame));
-      return CompletableFuture.completedFuture(game.getMapFolderName());
+      return Mono.just(game.getMapFolderName());
     });
 
     runOnFxThreadAndWait(() -> {

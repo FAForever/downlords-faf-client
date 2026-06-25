@@ -3,8 +3,8 @@ package com.faforever.client.game;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
-import com.faforever.client.map.generator.MapGenerationResult;
 import com.faforever.client.map.generator.GeneratorOptions;
+import com.faforever.client.map.generator.MapGenerationResult;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.GeneratorPrefs;
@@ -23,8 +23,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(MockitoExtension.class)
 public class MapSelectionControllerTest extends PlatformTest {
@@ -70,7 +70,6 @@ public class MapSelectionControllerTest extends PlatformTest {
         "neroxis_map_generator_2.0.0_seed1",
         options,
         mapDir1,
-        false,
         Optional.empty(),
         true
     );
@@ -79,7 +78,6 @@ public class MapSelectionControllerTest extends PlatformTest {
         "neroxis_map_generator_2.0.0_seed2",
         options,
         mapDir2,
-        false,
         Optional.empty(),
         true
     );
@@ -118,7 +116,6 @@ public class MapSelectionControllerTest extends PlatformTest {
         "neroxis_map_generator_2.0.0_test",
         options,
         mapDir,
-        false,
         Optional.empty(),
         true
     );
@@ -148,18 +145,20 @@ public class MapSelectionControllerTest extends PlatformTest {
         "neroxis_map_generator_2.0.0_test",
         options,
         mapDir,
-        false,
         Optional.empty(),
         true
     );
 
     controller.setMapResults(List.of(result));
 
+    // Set the selected result first
+    controller.setSelectedResult(result);
+
     // Simulate closing the dialog
     controller.onCloseButtonClicked();
 
-    // Verify that the defaultMapCount was set
-    verify(generatorPrefs).setDefaultMapCount(1);
+    // Verify that the result was set
+    assertEquals(result, controller.getResult());
   }
 
   @Test
@@ -173,7 +172,6 @@ public class MapSelectionControllerTest extends PlatformTest {
         "neroxis_map_generator_2.0.0_test",
         options,
         mapDir,
-        false,
         Optional.empty(),
         true
     );
@@ -195,7 +193,6 @@ public class MapSelectionControllerTest extends PlatformTest {
         "neroxis_map_generator_2.0.0_test",
         options,
         mapDir,
-        false,
         Optional.empty(),
         true
     );
@@ -217,37 +214,6 @@ public class MapSelectionControllerTest extends PlatformTest {
         "neroxis_map_generator_2.0.0_test",
         options,
         mapDir,
-        false,
-        Optional.empty(),
-        true
-    );
-
-    // Use reflection to access the private createMapCard method
-    MapGenerationResult finalResult = result;
-    Pane card = null;
-    try {
-      var method = MapSelectionController.class.getDeclaredMethod("createMapCard", MapGenerationResult.class);
-      method.setAccessible(true);
-      card = (Pane) method.invoke(controller, finalResult);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-
-    assertNotNull(card);
-  }
-
-  @Test
-  public void testCreateMapCardWithChosenFlag() throws IOException {
-    Path tempDir = Files.createTempDirectory("test_maps");
-    Path mapDir = tempDir.resolve("test_map");
-
-    GeneratorOptions options = GeneratorOptions.builder().build();
-
-    MapGenerationResult result = new MapGenerationResult(
-        "neroxis_map_generator_2.0.0_test",
-        options,
-        mapDir,
-        true, // chosen
         Optional.empty(),
         true
     );
@@ -277,7 +243,6 @@ public class MapSelectionControllerTest extends PlatformTest {
         "neroxis_map_generator_2.0.0_test",
         options,
         mapDir,
-        false,
         Optional.empty(),
         true
     );
@@ -299,7 +264,6 @@ public class MapSelectionControllerTest extends PlatformTest {
         "neroxis_map_generator_2.0.0_test",
         options,
         mapDir,
-        false,
         Optional.empty(),
         true
     );

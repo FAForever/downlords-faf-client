@@ -14,5 +14,6 @@ public record GeneratorOptions(
     String terrainStyle,
     String textureStyle,
     String resourceStyle, String propStyle, Float reclaimDensity, Float resourceDensity,
-    String commandLineArgs
+    String commandLineArgs,
+    Integer numToGenerate
 ) {}

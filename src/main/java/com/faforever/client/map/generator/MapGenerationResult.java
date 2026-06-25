@@ -7,7 +7,7 @@ import java.util.Optional;
 
 /**
  * Represents the result of a map generation operation.
- * Used to track multiple generated maps and select the best one.
+ * Used to track generated maps and their status.
  */
 @Value
 public class MapGenerationResult {
@@ -26,11 +26,6 @@ public class MapGenerationResult {
    * Path to the map directory.
    */
   Path mapDirectory;
-
-  /**
-   * Flag indicating if this map was chosen.
-   */
-  boolean isChosen;
 
   /**
    * Optional error message if generation failed.

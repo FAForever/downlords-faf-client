@@ -21,13 +21,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
-import lombok.Getter;
 
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Setter
-@Getter
 public class GenerateMapTask extends CompletableTask<String> {
   private static final Logger generatorLogger = LoggerFactory.getLogger("faf-map-generator");
 
@@ -40,9 +38,6 @@ public class GenerateMapTask extends CompletableTask<String> {
   private ComparableVersion version;
   private GeneratorOptions generatorOptions;
   private String mapName;
-  
-  private int currentMapIndex;
-  private int totalMaps;
 
   @Autowired
   public GenerateMapTask(NotificationService notificationService, I18n i18n, OperatingSystem operatingSystem,
@@ -59,10 +54,6 @@ public class GenerateMapTask extends CompletableTask<String> {
     Objects.requireNonNull(version, "Version hasn't been set.");
 
     updateTitle(i18n.get("game.mapGeneration.generateMap.title", version));
-    if (totalMaps > 0) {
-      updateMessage(i18n.get("game.generateMap.generationProgress", currentMapIndex, totalMaps));
-      updateProgress(currentMapIndex, totalMaps);
-    }
 
     GeneratorCommand.GeneratorCommandBuilder generatorCommandBuilder = GeneratorCommand.builder()
                                                                                        .version(version)

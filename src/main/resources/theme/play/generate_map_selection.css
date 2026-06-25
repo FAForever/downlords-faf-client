@@ -7,8 +7,7 @@
     -fx-background-radius: 5;
 }
 
-.map-card.selected,
-.map-card.chosen {
+.map-card.selected {
     -fx-background-color: rgba(255, 255, 255, 0.2);
 }
 

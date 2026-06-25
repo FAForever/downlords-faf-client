@@ -109,13 +109,7 @@
     <Label text="%game.generateMap.mapCount" GridPane.rowIndex="16"/>
     <Spinner fx:id="mapCountSpinner" maxHeight="Infinity" style="-fx-pref-width: 7.5em" GridPane.columnIndex="1" GridPane.rowIndex="16">
     </Spinner>
-    <Label text="%game.generateMap.parallelMode" GridPane.rowIndex="17"/>
-    <CheckBox fx:id="parallelGenerationCheckBox" mnemonicParsing="false" selected="true" GridPane.columnIndex="1" GridPane.rowIndex="17">
-        <tooltip>
-            <Tooltip text="%game.generateMap.parallelMode.tooltip"/>
-        </tooltip>
-    </CheckBox>
-    <Separator GridPane.columnSpan="2" GridPane.rowIndex="19"/>
+    <Separator GridPane.columnSpan="2" GridPane.rowIndex="18"/>
     <Label styleClass="h2" text="%game.generateMap.recreate" GridPane.columnSpan="2" GridPane.rowIndex="19"/>
     <Label text="%game.generateMap.generatedName" GridPane.rowIndex="20"/>
     <TextField fx:id="previousMapName" maxHeight="Infinity"
@@ -128,20 +122,20 @@
 
     <!-- Cancel, Ok -->
     <Button mnemonicParsing="false" onAction="#onCloseButtonClicked" text="%cancel" GridPane.columnIndex="0"
-            GridPane.halignment="LEFT" GridPane.rowIndex="24">
+            GridPane.halignment="LEFT" GridPane.rowIndex="23">
     </Button>
 
     <Button fx:id="generateMapButton" contentDisplay="RIGHT" defaultButton="true" mnemonicParsing="false"
             onAction="#onGenerateMapButtonClicked" text="%game.generateMap"
-            GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="24">
+            GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="23">
     </Button>
 
     <Button fx:id="generateMultipleMapsButton" contentDisplay="RIGHT" defaultButton="true" mnemonicParsing="false"
             onAction="#onGenerateMultipleMapsButtonClicked" text="%game.generateMap.generateMultiple"
-            GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="24">
+            GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="23">
     </Button>
 
-    <Label fx:id="progressLabel" visible="false" GridPane.columnIndex="1" GridPane.rowIndex="24">
+    <Label fx:id="progressLabel" visible="false" GridPane.columnIndex="1" GridPane.rowIndex="23">
         <graphic>
             <ProgressIndicator maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                                prefHeight="20.0"/>

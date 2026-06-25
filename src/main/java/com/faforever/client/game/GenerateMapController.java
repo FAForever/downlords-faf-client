@@ -11,10 +11,10 @@ import com.faforever.client.map.generator.MapGenerationResult;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.map.generator.OutdatedVersionException;
 import com.faforever.client.map.generator.UnsupportedVersionException;
-import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.GeneratorPrefs;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.dialog.Dialog;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
@@ -27,8 +27,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import lombok.Setter;
-import org.controlsfx.control.RangeSlider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory;
 import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
@@ -39,8 +37,10 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.controlsfx.control.CheckComboBox;
+import org.controlsfx.control.RangeSlider;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -82,7 +82,6 @@ public class GenerateMapController extends NodeController<Pane> {
   public Spinner<Integer> spawnCountSpinner;
   public Spinner<Double> mapSizeSpinner;
   public CheckComboBox<String> symmetryCheckComboBox;
-  public CheckBox parallelGenerationCheckBox;
   public CheckBox customStyleCheckBox;
   public CheckBox fixedSeedCheckBox;
   public TextField seedTextField;
@@ -128,7 +127,6 @@ public class GenerateMapController extends NodeController<Pane> {
     initMapSizeSpinner();
     initMapCountSpinner();
     initSeedField();
-    initParallelGeneartionCheckBox();
     initButtons();
 
     bindCheckComboBoxTitle(terrainCheckComboBox, biomeCheckComboBox, resourcesCheckComboBox, propsCheckComboBox,
@@ -265,8 +263,10 @@ public class GenerateMapController extends NodeController<Pane> {
     int defaultMapCount = generatorPrefs.getDefaultMapCount();
     mapCountSpinner.setValueFactory(new IntegerSpinnerValueFactory(1, 10, defaultMapCount));
     mapCountSpinner.disableProperty()
-                  .bind(
-                      previousMapName.textProperty().isNotEmpty().or(commandLineArgsText.textProperty().isNotEmpty()));
+                   .bind(previousMapName.textProperty()
+                                        .isNotEmpty()
+                                        .or(commandLineArgsText.textProperty().isNotEmpty())
+                                        .or(fixedSeedCheckBox.selectedProperty()));
     generatorPrefs.mapCountProperty().bind(mapCountSpinner.valueProperty());
   }
 
@@ -310,14 +310,6 @@ public class GenerateMapController extends NodeController<Pane> {
 
     seedTextField.disableProperty().bind(customizationAllowedOrNoFixedSeed);
     seedRerollButton.disableProperty().bind(customizationAllowedOrNoFixedSeed);
-  }
-
-  private void initParallelGeneartionCheckBox() {
-    parallelGenerationCheckBox.disableProperty()
-                              .bind(previousMapName.textProperty().isNotEmpty()
-                                                   .or(commandLineArgsText.textProperty().isNotEmpty()));
-    parallelGenerationCheckBox.setSelected(generatorPrefs.getParallelGeneration());
-    generatorPrefs.parallelGenerationProperty().bind(parallelGenerationCheckBox.selectedProperty());
   }
 
   private void initButtons() {
@@ -419,8 +411,7 @@ public class GenerateMapController extends NodeController<Pane> {
       generateFuture = mapGeneratorService.generateMap(getGeneratorOptions());
     }
 
-    generateFuture.subscribe(null, this::handleGenerationException);
-    onCloseButtonClicked();
+    generateFuture.subscribe(_ -> onCloseButtonClicked(), this::handleGenerationException);
   }
 
   private void handleGenerationException(Throwable e) {
@@ -538,56 +529,25 @@ public class GenerateMapController extends NodeController<Pane> {
   }
 
   public void onGenerateMultipleMapsButtonClicked() {
-    int mapCount = mapCountSpinner.getValue();
-    
-    Random random = new Random();
-    List<Long> seeds = random.longs(mapCount, Long.MIN_VALUE, Long.MAX_VALUE)
-        .boxed()
-        .collect(Collectors.toList());
-    
-    log.debug("Starting multiple map generation: {} maps", mapCount);
-    
     GeneratorOptions baseOptions = getGeneratorOptions();
 
     progressLabel.setVisible(true);
 
-    mapGeneratorService.getNewestGenerator()
-        .doOnError(throwable -> log.error("Failed to download map generator", throwable))
-        .onErrorResume(throwable -> Mono.empty())
-        .subscribeOn(fxApplicationThreadExecutor.asScheduler())
-        .subscribe(aVoid -> {}, aVoid -> {});
-    
-    if (generatorPrefs.isParallelGeneration()) {
-      mapGeneratorService.generateMultipleMapsParallel(baseOptions, mapCount, seeds)
-          .publishOn(fxApplicationThreadExecutor.asScheduler())
-          .doOnSuccess(results -> progressLabel.setVisible(false))
-          .doOnError(throwable -> progressLabel.setVisible(false))
-          .subscribe(
-              results -> {
-                if (results.isEmpty()) {
-                  notificationService.addImmediateWarnNotification("game.generateMap.selection.noMaps");
-                  return;
-                }
-                showMapSelectionDialog(results);
-              },
-              this::handleGenerationException
-          );
-    } else {
-      mapGeneratorService.generateMultipleMaps(baseOptions, mapCount, seeds)
-          .publishOn(fxApplicationThreadExecutor.asScheduler())
-          .doOnSuccess(results -> progressLabel.setVisible(false))
-          .doOnError(throwable -> progressLabel.setVisible(false))
-          .subscribe(
-              results -> {
-                if (results.isEmpty()) {
-                  notificationService.addImmediateWarnNotification("game.generateMap.selection.noMaps");
-                  return;
-                }
-                showMapSelectionDialog(results);
-              },
-              this::handleGenerationException
-          );
-    }
+    Long seed = baseOptions.seed() != null ? Long.parseLong(baseOptions.seed()) : new Random().nextLong();
+    int mapCount = baseOptions.seed() != null ? 1 : mapCountSpinner.getValue();
+    log.debug("Starting multiple map generation: {} maps", mapCount);
+
+    mapGeneratorService.generateMultipleMapsWithResults(baseOptions, mapCount, seed)
+                       .publishOn(fxApplicationThreadExecutor.asScheduler())
+                       .doOnSuccess(results -> progressLabel.setVisible(false))
+                       .doOnError(throwable -> progressLabel.setVisible(false))
+                       .subscribe(results -> {
+                         if (results.isEmpty()) {
+                           notificationService.addImmediateWarnNotification("game.generateMap.selection.noMaps");
+                           return;
+                         }
+                         showMapSelectionDialog(results);
+                       }, this::handleGenerationException);
   }
   
   private void showMapSelectionDialog(List<MapGenerationResult> results) {
@@ -610,8 +570,6 @@ public class GenerateMapController extends NodeController<Pane> {
         createGameController.selectMap(mapName);
         log.debug("Automatically selected map in CreateGame: {}", mapName);
       }
-      
-      generatorPrefs.setDefaultMapCount(results.size());
     });
   }
 

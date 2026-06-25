@@ -1,12 +1,12 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fx.NodeController;
-import com.faforever.client.util.PopupUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGenerationResult;
 import com.faforever.client.preferences.GeneratorPrefs;
+import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -29,7 +29,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -102,32 +101,7 @@ public class MapSelectionController extends NodeController<Pane> {
       columnIndex.incrementAndGet();
 
       mapCard.setOnMouseClicked(event -> {
-        for (int i = 0; i < mapResults.size(); i++) {
-          MapGenerationResult mapResult = mapResults.get(i);
-          if (mapResult.isChosen() && !Objects.equals(result, mapResult)) {
-            MapGenerationResult resetResult = new MapGenerationResult(mapResult.getMapName(),
-                                                                      mapResult.getGeneratorOptions(),
-                                                                      mapResult.getMapDirectory(),
-                                                                      false,
-                                                                      mapResult.getErrorMessage(),
-                                                                      mapResult.isSuccess());
-            mapResults.set(i, resetResult);
-          }
-        }
-
-        if (result.isChosen()) {
-          updateMapDisplay();
-          return;
-        }
-
         selectedResult.set(result);
-        MapGenerationResult chosenResult = new MapGenerationResult(result.getMapName(), result.getGeneratorOptions(),
-                                                                   result.getMapDirectory(), true, // chosen
-                                                                   result.getErrorMessage(), result.isSuccess());
-        int index = mapResults.indexOf(result);
-        if (index >= 0) {
-          mapResults.set(index, chosenResult);
-        }
         updateMapDisplay();
       });
     }
@@ -168,8 +142,6 @@ public class MapSelectionController extends NodeController<Pane> {
 
     if (selectedResult.get() == result) {
       card.getStyleClass().add("selected");
-    } else if (result.isChosen()) {
-      card.getStyleClass().add("chosen");
     }
 
     Label mapNameLabel = new Label(result.getMapName());
@@ -206,14 +178,12 @@ public class MapSelectionController extends NodeController<Pane> {
   }
 
   public void onCloseButtonClicked() {
-    MapGenerationResult chosenMap = mapResults.stream().filter(MapGenerationResult::isChosen).findFirst().orElse(null);
+    MapGenerationResult chosenMap = selectedResult.get();
 
     if (chosenMap != null) {
       result.set(chosenMap);
       log.info("Chosen map: {}", chosenMap.getMapName());
     }
-
-    generatorPrefs.setDefaultMapCount(mapResults.size());
 
     if (onOkButtonClickedListener != null) {
       onOkButtonClickedListener.run();

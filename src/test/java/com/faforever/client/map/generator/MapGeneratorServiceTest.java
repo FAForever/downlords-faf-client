@@ -65,6 +65,8 @@ public class MapGeneratorServiceTest extends ServiceTest {
   @Mock
   private GenerateMapTask generateMapTask;
   @Mock
+  private GenerateMultipleMapsTask generateMultipleMapsTask;
+  @Mock
   private ClientProperties clientProperties;
   @Mock
   private MapGenerator mapGenerator;
@@ -74,6 +76,8 @@ public class MapGeneratorServiceTest extends ServiceTest {
   private ObjectFactory<DownloadMapGeneratorTask> downloadMapGeneratorTaskFactory;
   @Mock
   private ObjectFactory<GeneratorOptionsTask> generatorOptionsTaskFactory;
+  @Mock
+  private ObjectFactory<GenerateMultipleMapsTask> generateMultipleMapsTaskFactory;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -90,12 +94,15 @@ public class MapGeneratorServiceTest extends ServiceTest {
     lenient().when(downloadMapGeneratorTaskFactory.getObject()).thenReturn(downloadMapGeneratorTask);
     lenient().when(generateMapTaskFactory.getObject()).thenReturn(generateMapTask);
     lenient().when(generatorOptionsTaskFactory.getObject()).thenReturn(generatorOptionsTask);
+    lenient().when(generateMultipleMapsTaskFactory.getObject()).thenReturn(generateMultipleMapsTask);
     lenient().when(clientProperties.getMapGenerator()).thenReturn(mapGenerator);
     lenient().when(mapGenerator.getMaxSupportedMajorVersion()).thenReturn(maxVersion);
     lenient().when(mapGenerator.getMinSupportedMajorVersion()).thenReturn(minVersion);
 
     instance = new MapGeneratorService(taskService, clientProperties, forgedAlliancePrefs, dataPrefs, WebClient.builder()
-        .build(), generateMapTaskFactory, downloadMapGeneratorTaskFactory, generatorOptionsTaskFactory);
+                                                                                                               .build(),
+                                       generateMapTaskFactory, downloadMapGeneratorTaskFactory,
+                                       generatorOptionsTaskFactory, generateMultipleMapsTaskFactory);
 
     lenient().when(downloadMapGeneratorTask.getMono()).thenReturn(Mono.empty());
     // Make generateMapTask return a successful result with map name
@@ -188,25 +195,25 @@ public class MapGeneratorServiceTest extends ServiceTest {
         .mapSize(mapSize)
         .seed(seed)
         .build();
-    
-    List<Long> seeds = List.of(123L, 456L, 789L);
-    
-    StepVerifier.create(instance.generateMultipleMaps(generatorOptions, 3, seeds))
-        .expectNextMatches(results -> results.size() == 3)
+
+    Long seed = 123L;
+
+    StepVerifier.create(instance.generateMultipleMaps(generatorOptions, 3, seed))
+                .expectNextMatches(results -> results.size() == 1)
         .verifyComplete();
   }
 
   @Test
   public void testGenerateMultipleMapsWithNullBaseOptions() {
-    List<Long> seeds = List.of(123L);
-    
-    StepVerifier.create(instance.generateMultipleMaps(null, 1, seeds))
+    Long seed = 123L;
+
+    StepVerifier.create(instance.generateMultipleMaps(null, 1, seed))
         .expectError(IllegalStateException.class)
         .verify();
   }
 
   @Test
-  public void testGenerateMultipleMapsWithNullSeeds() {
+  public void testGenerateMultipleMapsWithNullSeed() {
     ReflectionTestUtils.setField(instance, "defaultGeneratorVersion", versionGeneratorPresent);
     GeneratorOptions generatorOptions = GeneratorOptions.builder().build();
     
@@ -215,25 +222,6 @@ public class MapGeneratorServiceTest extends ServiceTest {
         .verify();
   }
 
-  @Test
-  public void testGenerateMultipleMapsWithMismatchedSeedsSize() {
-    ReflectionTestUtils.setField(instance, "defaultGeneratorVersion", versionGeneratorPresent);
-    GeneratorOptions generatorOptions = GeneratorOptions.builder().build();
-    
-    StepVerifier.create(instance.generateMultipleMaps(generatorOptions, 3, List.of(123L, 456L)))
-        .expectError(IllegalArgumentException.class)
-        .verify();
-  }
-
-  @Test
-  public void testGenerateMultipleMapsWithEmptySeeds() {
-    ReflectionTestUtils.setField(instance, "defaultGeneratorVersion", versionGeneratorPresent);
-    GeneratorOptions generatorOptions = GeneratorOptions.builder().build();
-    
-    StepVerifier.create(instance.generateMultipleMaps(generatorOptions, 0, List.of()))
-        .expectError(IllegalArgumentException.class)
-        .verify();
-  }
 
   @Test
   public void testCreateOptionsWithSeed() {
@@ -283,6 +271,33 @@ public class MapGeneratorServiceTest extends ServiceTest {
     assert result.reclaimDensity().equals(0.5f);
     assert result.resourceDensity().equals(0.7f);
     assert result.commandLineArgs().equals("");
+  }
+
+  @Test
+  public void testGenerateMultipleMapsWithResultsNullBaseOptions() {
+    StepVerifier.create(instance.generateMultipleMapsWithResults(null, 3, 123L))
+                .expectError(IllegalStateException.class)
+                .verify();
+  }
+
+  @Test
+  public void testGenerateMultipleMapsWithResultsNullSeed() {
+    ReflectionTestUtils.setField(instance, "defaultGeneratorVersion", versionGeneratorPresent);
+    GeneratorOptions generatorOptions = GeneratorOptions.builder().build();
+
+    StepVerifier.create(instance.generateMultipleMapsWithResults(generatorOptions, 3, null))
+                .expectError(IllegalStateException.class)
+                .verify();
+  }
+
+  @Test
+  public void testGenerateMultipleMapsWithResultsNegativeMapCount() {
+    ReflectionTestUtils.setField(instance, "defaultGeneratorVersion", versionGeneratorPresent);
+    GeneratorOptions generatorOptions = GeneratorOptions.builder().build();
+
+    StepVerifier.create(instance.generateMultipleMapsWithResults(generatorOptions, 0, 123L))
+                .expectError(IllegalArgumentException.class)
+                .verify();
   }
 
 }
