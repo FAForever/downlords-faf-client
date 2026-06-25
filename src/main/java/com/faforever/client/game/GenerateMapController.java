@@ -51,6 +51,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -96,9 +97,11 @@ public class GenerateMapController extends NodeController<Pane> {
   public Spinner<Integer> mapCountSpinner;
   public Label progressLabel;
 
+  @Setter
   private Runnable onCloseButtonClickedListener;
   @Setter
-  private CreateGameController createGameController;
+  private Consumer<MapGenerationResult> mapGenerationSelected;
+
   private final ObservableList<Integer> validTeamSizes = FXCollections.observableList(
       IntStream.range(0, 17).filter(value -> value != 1).boxed().collect(Collectors.toList()));
   private final FilteredList<Integer> selectableTeamSizes = new FilteredList<>(validTeamSizes);
@@ -520,10 +523,6 @@ public class GenerateMapController extends NodeController<Pane> {
     return generateMapRoot;
   }
 
-  void setOnCloseButtonClickedListener(Runnable onCloseButtonClickedListener) {
-    this.onCloseButtonClickedListener = onCloseButtonClickedListener;
-  }
-
   public void onSeedRerollButtonClicked() {
     seedTextField.setText(String.valueOf(new Random().nextLong()));
   }
@@ -564,11 +563,9 @@ public class GenerateMapController extends NodeController<Pane> {
     });
     
     dialog.addEventHandler(Dialog.DialogEvent.CLOSED, event -> {
-      MapGenerationResult chosenMap = selectionController.getResult();
-      if (chosenMap != null && createGameController != null) {
-        String mapName = chosenMap.getMapName();
-        createGameController.selectMap(mapName);
-        log.debug("Automatically selected map in CreateGame: {}", mapName);
+      MapGenerationResult selectedMap = selectionController.getResult();
+      if (selectedMap != null && mapGenerationSelected != null) {
+        mapGenerationSelected.accept(selectedMap);
       }
     });
   }

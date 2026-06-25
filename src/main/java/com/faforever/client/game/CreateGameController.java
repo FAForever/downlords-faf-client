@@ -20,6 +20,7 @@ import com.faforever.client.fx.contextmenu.CopyLabelMenuItem;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.map.generator.MapGenerationResult;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModManagerController;
 import com.faforever.client.mod.ModService;
@@ -79,6 +80,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -457,7 +459,11 @@ public class CreateGameController extends NodeController<Pane> {
                          Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generateMap.dialog"));
                          generateMapController.setOnCloseButtonClickedListener(dialog::close);
 
-                         generateMapController.setCreateGameController(this);
+                         Consumer<MapGenerationResult> mapResultConsumer = result -> {
+                           String mapName = result.getMapName();
+                           selectMap(mapName);
+                         };
+                         generateMapController.setMapGenerationSelected(mapResultConsumer);
 
                          root.requestFocus();
                        });
