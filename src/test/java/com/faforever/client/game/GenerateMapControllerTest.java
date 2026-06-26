@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -500,7 +501,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), anyLong());
+    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), isNull());
 
     GeneratorOptions result = captor.getValue();
 
@@ -517,7 +518,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), anyLong());
+    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), isNull());
 
     GeneratorOptions result = captor.getValue();
 
@@ -542,7 +543,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), anyLong());
+    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), isNull());
 
     GeneratorOptions result = captor.getValue();
     assertNull(result.resourceStyle());
@@ -565,7 +566,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), anyLong());
+    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), isNull());
 
     GeneratorOptions result = captor.getValue();
     assertNull(result.propStyle());

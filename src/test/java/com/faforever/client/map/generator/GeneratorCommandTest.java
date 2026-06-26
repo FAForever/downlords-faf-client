@@ -321,7 +321,7 @@ public class GeneratorCommandTest extends ServiceTest {
                                            .generatorExecutableFile(Path.of("mapGenerator_1.0.0.jar"))
                                            .version(new ComparableVersion("1.0.0"))
                                            .generatorOptions(generatorOptions)
-                                           .numToGenerate(3)
+                                           .numToGenerate(3).spawnCount(6).numTeams(2).mapSize(512)
                                            .build()
                                            .getCommand();
 

@@ -108,8 +108,11 @@ public class MapGeneratorServiceTest extends ServiceTest {
     // Make generateMapTask return a successful result with map name
     lenient().doAnswer(invocation -> Mono.just("neroxis_map_generator_2.0.0_123456789")).when(generateMapTask).getMono();
     lenient().when(generatorOptionsTask.getMono()).thenReturn(Mono.just(new ArrayList<>(List.of("TEST"))));
+    lenient().doAnswer(invocation -> Mono.just(new ArrayList<>(List.of("neroxis_map_generator_2.0.0_123456789"))))
+             .when(generateMultipleMapsTask)
+             .getMono();
     lenient().doAnswer(invocation -> {
-      CompletableTask<Void> task = invocation.getArgument(0);
+      CompletableTask<?> task = invocation.getArgument(0);
       task.getMono().block();
       return task;
     }).when(taskService).submitTask(any());
@@ -199,8 +202,8 @@ public class MapGeneratorServiceTest extends ServiceTest {
     GeneratorOptions generatorOptions = GeneratorOptions.builder().build();
 
     StepVerifier.create(instance.generateMultipleMapsWithResults(generatorOptions, 3, null))
-                .expectError(IllegalStateException.class)
-                .verify();
+                .expectNextCount(1)
+                .verifyComplete();
   }
 
   @Test

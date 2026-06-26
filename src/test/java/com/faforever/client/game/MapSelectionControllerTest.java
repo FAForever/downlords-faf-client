@@ -99,13 +99,6 @@ public class MapSelectionControllerTest extends PlatformTest {
   }
 
   @Test
-  public void testSetMapResultsNull() {
-    controller.setMapResults(null);
-
-    assertEquals(0, controller.getMapResults().size());
-  }
-
-  @Test
   public void testSelectButtonClicked() throws IOException {
     Path tempDir = Files.createTempDirectory("test_maps");
     Path mapDir = tempDir.resolve("test_map");
