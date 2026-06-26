@@ -5,7 +5,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGenerationResult;
-import com.faforever.client.preferences.GeneratorPrefs;
 import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.ObjectProperty;
@@ -39,15 +38,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-@Getter
-@Setter
 public class MapSelectionController extends NodeController<Pane> {
 
   private static final int PREVIEW_WIDTH = 200;
   private static final int PREVIEW_HEIGHT = 200;
 
   private final I18n i18n;
-  private final GeneratorPrefs generatorPrefs;
   private final MapService mapService;
 
   public Pane selectionRoot;
@@ -56,9 +52,12 @@ public class MapSelectionController extends NodeController<Pane> {
   public Button okButton;
 
   private final ObjectProperty<MapGenerationResult> selectedResult = new SimpleObjectProperty<>();
+  @Getter
   private final ObservableList<MapGenerationResult> mapResults = FXCollections.observableArrayList();
-  private Runnable onOkButtonClickedListener;
-  private Runnable onCancelButtonClickedListener;
+  @Setter
+  private Runnable onOkButtonClickedListener = () -> {};
+  @Setter
+  private Runnable onCancelButtonClickedListener = () -> {};
 
   @Override
   protected void onInitialize() {
@@ -171,15 +170,11 @@ public class MapSelectionController extends NodeController<Pane> {
   }
 
   public void onCancelButtonClicked() {
-    if (onCancelButtonClickedListener != null) {
-      onCancelButtonClickedListener.run();
-    }
+    onCancelButtonClickedListener.run();
   }
 
   public void onOkButtonClicked() {
-    if (onOkButtonClickedListener != null) {
-      onOkButtonClickedListener.run();
-    }
+    onOkButtonClickedListener.run();
   }
 
   public MapGenerationResult getSelectedResult() {

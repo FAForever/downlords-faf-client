@@ -1,14 +1,9 @@
 package com.faforever.client.game;
 
-import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.generator.GeneratorOptions;
 import com.faforever.client.map.generator.MapGenerationResult;
-import com.faforever.client.map.generator.MapGeneratorService;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.GeneratorPrefs;
-import com.faforever.client.remote.AssetService;
 import com.faforever.client.test.PlatformTest;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,28 +23,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(MockitoExtension.class)
 public class MapSelectionControllerTest extends PlatformTest {
-
-  @Mock
-  private NotificationService notificationService;
-  @Mock
-  private MapGeneratorService mapGeneratorService;
   @Mock
   private I18n i18n;
   @Mock
-  private GeneratorPrefs generatorPrefs;
-  @Mock
-  private AssetService assetService;
-  @Mock
   private MapService mapService;
-  @Mock
-  private ImageViewHelper imageViewHelper;
 
   private MapSelectionController controller;
   private Pane root;
 
   @BeforeEach
   public void setUp() throws Exception {
-    controller = new MapSelectionController(i18n, generatorPrefs, mapService);
+    controller = new MapSelectionController(i18n, mapService);
 
     loadFxml("theme/play/generate_map_selection.fxml", clazz -> controller);
     root = controller.getRoot();
