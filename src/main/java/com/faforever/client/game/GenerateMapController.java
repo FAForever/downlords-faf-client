@@ -35,6 +35,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -73,7 +74,7 @@ public class GenerateMapController extends NodeController<Pane> {
   private final UiService uiService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  public Pane generateMapRoot;
+  public StackPane generateMapRoot;
   public Button generateMapButton;
   public TextField previousMapName;
   public Label commandLineLabel;
@@ -99,9 +100,9 @@ public class GenerateMapController extends NodeController<Pane> {
   public Label progressLabel;
 
   @Setter
-  private Runnable onCloseButtonClickedListener;
+  private Runnable onCloseButtonClickedListener = () -> {};
   @Setter
-  private Consumer<MapGenerationResult> mapGenerationSelected;
+  private Consumer<MapGenerationResult> mapGenerationSelected = (_) -> {};
 
   private final ObservableList<Integer> validTeamSizes = FXCollections.observableList(
       IntStream.range(0, 17).filter(value -> value != 1).boxed().collect(Collectors.toList()));
@@ -387,9 +388,7 @@ public class GenerateMapController extends NodeController<Pane> {
   }
 
   public void onCloseButtonClicked() {
-    if (onCloseButtonClickedListener != null) {
-      onCloseButtonClickedListener.run();
-    }
+    onCloseButtonClickedListener.run();
   }
 
   public void onGenerateMapButtonClicked() {
@@ -547,14 +546,15 @@ public class GenerateMapController extends NodeController<Pane> {
 
     MapSelectionController selectionController = uiService.loadFxml("theme/play/generate_map_selection.fxml");
     selectionController.setMapResults(results);
-    
-    Dialog dialog = uiService.showInDialog((javafx.scene.layout.StackPane) generateMapRoot.getParent(), selectionController.getRoot(), i18n.get("game.generateMap.selection.dialogTitle"));
+
+    Dialog dialog = uiService.showInDialog(generateMapRoot, selectionController.getRoot(),
+                                           i18n.get("game.generateMap.selection.dialogTitle"));
     
     selectionController.setOnCancelButtonClickedListener(dialog::close);
     
     selectionController.setOnOkButtonClickedListener(() -> {
       MapGenerationResult selectedMap = selectionController.getSelectedResult();
-      if (selectedMap != null && mapGenerationSelected != null) {
+      if (selectedMap != null) {
         mapGenerationSelected.accept(selectedMap);
       }
       dialog.close();
