@@ -11,6 +11,7 @@ import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -59,7 +60,7 @@ public class MapSelectionController extends NodeController<Pane> {
 
   @Override
   protected void onInitialize() {
-    updateMapDisplay();
+    mapResults.addListener((ListChangeListener<? super MapGenerationResult>) _ -> updateMapDisplay());
 
     okButton.disableProperty().bind(selectedResult.isNull());
   }
@@ -68,7 +69,6 @@ public class MapSelectionController extends NodeController<Pane> {
     selectedResult.set(null);
     mapResults.setAll(results);
     log.info("Setting {} map results for selection", results.size());
-    updateMapDisplay();
   }
 
   private void updateMapDisplay() {
