@@ -162,7 +162,7 @@ public class MapSelectionController extends NodeController<Pane> {
     sb.append(i18n.get("mapSelection.tooltip.teams", result.generatorOptions().numTeams())).append("\n");
     sb.append(i18n.get("mapSelection.tooltip.spawnCount", result.generatorOptions().spawnCount()));
 
-    if (!result.isSuccess() && result.errorMessage().isPresent()) {
+    if (result.errorMessage().isPresent()) {
       sb.append("\n\n").append(i18n.get("mapSelection.tooltip.error", result.errorMessage().get()));
     }
 

@@ -10,13 +10,9 @@ import java.util.Optional;
  * @param generatorOptions The options that were used for generation.
  * @param mapDirectory Path to the map directory.
  * @param errorMessage Optional error message if generation failed.
- * @param isSuccess Flag indicating if generation was successful.
  */
 public record MapGenerationResult(
     String mapName,
-    GeneratorOptions generatorOptions,
-    Path mapDirectory,
-    Optional<String> errorMessage,
-    boolean isSuccess
+    GeneratorOptions generatorOptions, Path mapDirectory, Optional<String> errorMessage
 ) {
 }
