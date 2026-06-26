@@ -460,6 +460,7 @@ public class CreateGameController extends NodeController<Pane> {
                          generateMapController.setMapGenerationSelected(result -> {
                            String mapName = result.mapName();
                            selectMap(mapName);
+                           dialog.close();
                          });
 
                          root.requestFocus();
