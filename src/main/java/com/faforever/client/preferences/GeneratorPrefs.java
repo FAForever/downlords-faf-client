@@ -13,7 +13,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import lombok.Getter;
 
 
 public class GeneratorPrefs {
@@ -35,7 +34,6 @@ public class GeneratorPrefs {
   private final IntegerProperty reclaimDensityMax = new SimpleIntegerProperty(127);
   private final IntegerProperty resourceDensityMin = new SimpleIntegerProperty(0);
   private final IntegerProperty resourceDensityMax = new SimpleIntegerProperty(127);
-  @Getter
   private final IntegerProperty defaultMapCount = new SimpleIntegerProperty(3);
 
   public GenerationType getGenerationType() {
@@ -214,8 +212,15 @@ public class GeneratorPrefs {
     this.resourceDensityMax.set(max);
   }
 
-  public void setDefaultMapCount(int defaultMapCount) {
-    this.defaultMapCount.set(defaultMapCount);
+  public int getDefaultMapCount() {
+    return defaultMapCount.get();
   }
 
+  public IntegerProperty defaultMapCount() {
+    return defaultMapCount;
+  }
+
+  public void setDefaultMapCount(int max) {
+    this.defaultMapCount.set(max);
+  }
 }
