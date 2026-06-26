@@ -248,112 +248,6 @@ public class MapGeneratorService implements DisposableBean {
   }
 
   /**
-   * Creates a GeneratorOptions with a specific seed from base options.
-   *
-   * @param baseOptions the base options to copy from
-   * @param seed the seed to use
-   * @return a new GeneratorOptions with the specified seed
-   */
-  private GeneratorOptions createOptionsWithSeed(GeneratorOptions baseOptions, Long seed) {
-    return GeneratorOptions.builder()
-                           .spawnCount(baseOptions.spawnCount())
-                           .numTeams(baseOptions.numTeams())
-                           .mapSize(baseOptions.mapSize())
-                           .seed(seed.toString())
-                           .generationType(baseOptions.generationType())
-                           .symmetry(baseOptions.symmetry())
-                           .style(baseOptions.style())
-                           .terrainStyle(baseOptions.terrainStyle())
-                           .textureStyle(baseOptions.textureStyle())
-                           .resourceStyle(baseOptions.resourceStyle())
-                           .propStyle(baseOptions.propStyle())
-                           .reclaimDensity(baseOptions.reclaimDensity())
-                           .resourceDensity(baseOptions.resourceDensity())
-                           .commandLineArgs(baseOptions.commandLineArgs())
-                           .build();
-  }
-
-  /**
-   * Creates a GeneratorOptions with numToGenerate for multiple map generation.
-   * Only the first seed from the list is used, as the generator handles all seeds internally.
-   *
-   * @param baseOptions the base options to copy from
-   * @param seed the seed to use (only first seed)
-   * @param numToGenerate the number of maps to generate
-   * @return a new GeneratorOptions with numToGenerate set
-   */
-  private GeneratorOptions createOptionsWithNumToGenerate(GeneratorOptions baseOptions, Long seed, int numToGenerate) {
-    return GeneratorOptions.builder()
-                           .spawnCount(baseOptions.spawnCount())
-                           .numTeams(baseOptions.numTeams())
-                           .mapSize(baseOptions.mapSize())
-                           .seed(seed.toString())
-                           .generationType(baseOptions.generationType())
-                           .symmetry(baseOptions.symmetry())
-                           .style(baseOptions.style())
-                           .terrainStyle(baseOptions.terrainStyle())
-                           .textureStyle(baseOptions.textureStyle())
-                           .resourceStyle(baseOptions.resourceStyle())
-                           .propStyle(baseOptions.propStyle())
-                           .reclaimDensity(baseOptions.reclaimDensity())
-                           .resourceDensity(baseOptions.resourceDensity())
-                           .commandLineArgs(baseOptions.commandLineArgs())
-                           .numToGenerate(numToGenerate)
-                           .build();
-  }
-
-  /**
-   * Generates multiple maps using the --num-to-generate option.
-   * This is more efficient than sequential generation because the map generator itself is already parallel.
-   * 
-   * @param baseOptions the base options for map generation (same for all maps)
-   * @param mapCount the number of maps to generate
-   * @param seed the seed to use (generator handles all seeds internally via --num-to-generate)
-   * @return Mono emitting a list of MapGenerationResult objects
-   */
-  public Mono<List<MapGenerationResult>> generateMultipleMaps(
-      GeneratorOptions baseOptions, 
-      int mapCount, Long seed
-  ) {
-    if (baseOptions == null) {
-      return Mono.error(new IllegalStateException("baseOptions must not be null"));
-    }
-    if (seed == null) {
-      return Mono.error(new IllegalStateException("seed must not be null"));
-    }
-    
-    if (mapCount <= 0) {
-      return Mono.error(new IllegalArgumentException("mapCount must be positive"));
-    }
-
-    log.info("Starting multiple map generation: {} maps with seed {}", mapCount, seed);
-
-    if (mapCount > 1) {
-      GeneratorOptions optionsWithNumGenerate = createOptionsWithNumToGenerate(baseOptions, seed, mapCount);
-
-      return downloadGeneratorIfNecessary(defaultGeneratorVersion).then(Mono.defer(() -> {
-        GenerateMapTask task = generateMapTaskFactory.getObject();
-        Path generatorExecutablePath = getGeneratorExecutablePath(defaultGeneratorVersion);
-        task.setVersion(defaultGeneratorVersion);
-        task.setGeneratorExecutableFile(generatorExecutablePath);
-        task.setGeneratorOptions(optionsWithNumGenerate);
-
-        return taskService.submitTask(task).getMono();
-      })).map(mapName -> {
-        Path mapDirectory = forgedAlliancePrefs.getMapsDirectory().resolve(mapName);
-        return List.of(new MapGenerationResult(mapName, baseOptions, mapDirectory, Optional.empty(), true));
-      });
-    }
-
-    GeneratorOptions optionsWithSeed = createOptionsWithSeed(baseOptions, seed);
-    return downloadGeneratorIfNecessary(defaultGeneratorVersion).then(
-        Mono.defer(() -> generateMap(optionsWithSeed).map(name -> {
-          Path mapDirectory = forgedAlliancePrefs.getMapsDirectory().resolve(name);
-          return List.of(new MapGenerationResult(name, optionsWithSeed, mapDirectory, Optional.empty(), true));
-        })));
-  }
-
-  /**
    * Generates multiple maps using the new GenerateMultipleMapsTask.
    * This method properly handles multiple map generation and extracts all generated map names from the generator log.
    * Uses only the first seed, as the generator handles all seeds internally via --num-to-generate.
@@ -372,9 +266,6 @@ public class MapGeneratorService implements DisposableBean {
     }
     if (mapCount <= 0) {
       return Mono.error(new IllegalArgumentException("mapCount must be positive"));
-    }
-    if (seed == null) {
-      return Mono.error(new IllegalStateException("seed must not be null"));
     }
 
     log.debug("Starting multiple map generation with results: {} maps with seed {}", mapCount, seed);

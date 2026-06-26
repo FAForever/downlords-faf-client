@@ -18,14 +18,13 @@ public record GeneratorCommand(
     Integer spawnCount,
     Integer numTeams,
     Integer mapSize,
-    String seed,
+    String seed, Integer numToGenerate,
     GenerationType generationType,
     String symmetry,
     String style,
     String terrainStyle,
     String textureStyle,
-    String resourceStyle,
-    String propStyle, Float reclaimDensity, Float resourceDensity, String commandLineArgs, Integer numToGenerate
+    String resourceStyle, String propStyle, Float reclaimDensity, Float resourceDensity, String commandLineArgs
 ) {
 
   public List<String> getCommand() {
@@ -38,9 +37,6 @@ public record GeneratorCommand(
     if (version.compareTo(new ComparableVersion("1")) >= 0) {
       if (commandLineArgs != null) {
         command.addAll(Arrays.asList(commandLineArgs.split(" ")));
-        if (numToGenerate != null && numToGenerate > 1) {
-          command.addAll(Arrays.asList("--num-to-generate", String.valueOf(numToGenerate)));
-        }
         return command;
       }
 
@@ -68,7 +64,9 @@ public record GeneratorCommand(
 
       if (numToGenerate != null && numToGenerate > 1) {
         command.addAll(Arrays.asList("--num-to-generate", String.valueOf(numToGenerate)));
-      } else if (seed != null) {
+      }
+
+      if (seed != null) {
         command.addAll(Arrays.asList("--seed", seed));
       }
 
@@ -103,12 +101,6 @@ public record GeneratorCommand(
 
       if (reclaimDensity != null) {
         command.addAll(Arrays.asList("--reclaim-density", String.valueOf(reclaimDensity)));
-      }
-
-      if (commandLineArgs != null) {
-        command.addAll(Arrays.asList(commandLineArgs.split(" ")));
-      } else if (generatorOptions != null && generatorOptions.commandLineArgs() != null) {
-        command.addAll(Arrays.asList(generatorOptions.commandLineArgs().split(" ")));
       }
 
       return command;

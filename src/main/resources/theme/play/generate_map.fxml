@@ -113,7 +113,7 @@
     <Label styleClass="h2" text="%game.generateMap.recreate" GridPane.columnSpan="2" GridPane.rowIndex="19"/>
     <Label text="%game.generateMap.generatedName" GridPane.rowIndex="20"/>
     <TextField fx:id="previousMapName" maxHeight="Infinity"
-               promptText="%game.generateMap.mapNamePrompt" style="-fx-pref-width: 5em"
+               promptText="neroxis_map_generator_(version)_(seed)_(options)" style="-fx-pref-width: 5em"
                GridPane.columnIndex="1" GridPane.rowIndex="20">
         <tooltip>
             <Tooltip text="%game.generateMap.nameCaution"/>

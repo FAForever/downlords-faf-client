@@ -24,6 +24,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -52,7 +53,6 @@ public class MapSelectionController extends NodeController<Pane> {
   public Button okButton;
 
   private final ObjectProperty<MapGenerationResult> selectedResult = new SimpleObjectProperty<>();
-  private final ObjectProperty<MapGenerationResult> result = new SimpleObjectProperty<>();
   private final ObservableList<MapGenerationResult> mapResults = FXCollections.observableArrayList();
   private Runnable onOkButtonClickedListener;
   private Runnable onCancelButtonClickedListener;
@@ -65,9 +65,6 @@ public class MapSelectionController extends NodeController<Pane> {
   }
 
   public void setMapResults(List<MapGenerationResult> results) {
-    if (results == null) {
-      results = List.of();
-    }
     selectedResult.set(null);
     mapResults.setAll(results);
     log.info("Setting {} map results for selection", results.size());
@@ -126,7 +123,7 @@ public class MapSelectionController extends NodeController<Pane> {
     SimpleObjectProperty<Image> previewImageProperty = new SimpleObjectProperty<>();
     previewImageView.imageProperty().bind(previewImageProperty);
 
-    String mapName = result.getMapName();
+    String mapName = result.mapName();
     previewImageProperty.set(mapService.loadPreview(mapName, PreviewSize.LARGE));
 
     previewImageView.setOnMouseClicked(event -> {
@@ -144,7 +141,7 @@ public class MapSelectionController extends NodeController<Pane> {
       card.getStyleClass().add("selected");
     }
 
-    Label mapNameLabel = new Label(result.getMapName());
+    Label mapNameLabel = new Label(result.mapName());
     mapNameLabel.getStyleClass().add("map-card-label");
     mapNameLabel.setWrapText(true);
     mapNameLabel.setMaxWidth(PREVIEW_WIDTH);
@@ -159,13 +156,16 @@ public class MapSelectionController extends NodeController<Pane> {
 
   private String createTooltipText(MapGenerationResult result) {
     StringBuilder sb = new StringBuilder();
-    sb.append(i18n.get("mapSelection.tooltip.map", result.getMapName())).append("\n");
-    sb.append(i18n.get("mapSelection.tooltip.seed", result.getGeneratorOptions().seed())).append("\n");
-    sb.append(i18n.get("mapSelection.tooltip.teams", result.getGeneratorOptions().numTeams())).append("\n");
-    sb.append(i18n.get("mapSelection.tooltip.spawnCount", result.getGeneratorOptions().spawnCount()));
+    sb.append(i18n.get("mapSelection.tooltip.map", result.mapName())).append("\n");
+    String seed = result.generatorOptions().seed();
+    if (StringUtils.isNotEmpty(seed)) {
+      sb.append(i18n.get("mapSelection.tooltip.seed", result.generatorOptions().seed())).append("\n");
+    }
+    sb.append(i18n.get("mapSelection.tooltip.teams", result.generatorOptions().numTeams())).append("\n");
+    sb.append(i18n.get("mapSelection.tooltip.spawnCount", result.generatorOptions().spawnCount()));
 
-    if (!result.isSuccess() && result.getErrorMessage().isPresent()) {
-      sb.append("\n\n").append(i18n.get("mapSelection.tooltip.error", result.getErrorMessage().get()));
+    if (!result.isSuccess() && result.errorMessage().isPresent()) {
+      sb.append("\n\n").append(i18n.get("mapSelection.tooltip.error", result.errorMessage().get()));
     }
 
     return sb.toString();
@@ -177,25 +177,10 @@ public class MapSelectionController extends NodeController<Pane> {
     }
   }
 
-  public void onCloseButtonClicked() {
-    MapGenerationResult chosenMap = selectedResult.get();
-
-    if (chosenMap != null) {
-      result.set(chosenMap);
-      log.info("Chosen map: {}", chosenMap.getMapName());
-    }
-
+  public void onOkButtonClicked() {
     if (onOkButtonClickedListener != null) {
       onOkButtonClickedListener.run();
     }
-  }
-
-  public MapGenerationResult getResult() {
-    return result.get();
-  }
-
-  public void setResult(MapGenerationResult result) {
-    this.result.set(result);
   }
 
   public MapGenerationResult getSelectedResult() {

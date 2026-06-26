@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
@@ -56,48 +57,56 @@ public class GenerateMultipleMapsTask extends CompletableTask<List<String>> {
   @Override
   protected List<String> call() throws Exception {
     Objects.requireNonNull(version, "Version hasn't been set.");
-    Objects.requireNonNull(seed, "Seed hasn't been set.");
     Objects.requireNonNull(baseOptions, "Base options haven't been set.");
 
     updateTitle(i18n.get("game.mapGeneration.generateMap.title", version));
 
-    GeneratorOptions options = createOptionsWithNumToGenerate(baseOptions, seed, mapCount);
+    GeneratorOptions options = GeneratorOptions.builder()
+                                               .spawnCount(baseOptions.spawnCount())
+                                               .numTeams(baseOptions.numTeams())
+                                               .mapSize(baseOptions.mapSize())
+                                               .seed(Optional.ofNullable(seed).map(Object::toString).orElse(null))
+                                               .generationType(baseOptions.generationType())
+                                               .symmetry(baseOptions.symmetry())
+                                               .style(baseOptions.style())
+                                               .terrainStyle(baseOptions.terrainStyle())
+                                               .textureStyle(baseOptions.textureStyle())
+                                               .resourceStyle(baseOptions.resourceStyle())
+                                               .propStyle(baseOptions.propStyle())
+                                               .reclaimDensity(baseOptions.reclaimDensity())
+                                               .resourceDensity(baseOptions.resourceDensity())
+                                               .commandLineArgs(baseOptions.commandLineArgs())
+                                               .build();
 
     Path workingDirectory = forgedAlliancePrefs.getMapsDirectory();
 
-    GeneratorCommand.GeneratorCommandBuilder generatorCommandBuilder = GeneratorCommand.builder()
-                                                                                       .version(version)
-                                                                                       .generatorExecutableFile(
-                                                                                           generatorExecutableFile)
-                                                                                       .javaExecutable(
-                                                                                           operatingSystem.getJavaExecutablePath())
-                                                                                       .generatorOptions(options)
-                                                                                       .spawnCount(options.spawnCount())
-                                                                                       .numTeams(options.numTeams())
-                                                                                       .mapSize(options.mapSize())
-                                                                                       .seed(options.seed())
-                                                                                       .generationType(
-                                                                                           options.generationType())
-                                                                                       .symmetry(options.symmetry())
-                                                                                       .style(options.style())
-                                                                                       .terrainStyle(
-                                                                                           options.terrainStyle())
-                                                                                       .textureStyle(
-                                                                                           options.textureStyle())
-                                                                                       .resourceStyle(
-                                                                                           options.resourceStyle())
-                                                                                       .propStyle(options.propStyle())
-                                                                                       .reclaimDensity(
-                                                                                           options.reclaimDensity())
-                                                                                       .resourceDensity(
-                                                                                           options.resourceDensity())
-                                                                                       .commandLineArgs(
-                                                                                           options.commandLineArgs())
-                                                                                       .numToGenerate(
-                                                                                           options.numToGenerate());
+    GeneratorCommand.GeneratorCommandBuilder commandBuilder = GeneratorCommand.builder()
+                                                                              .version(version)
+                                                                              .generatorExecutableFile(
+                                                                                  generatorExecutableFile)
+                                                                              .javaExecutable(
+                                                                                  operatingSystem.getJavaExecutablePath())
+                                                                              .numToGenerate(mapCount)
+                                                                              .generatorOptions(options)
+                                                                              .spawnCount(options.spawnCount())
+                                                                              .numTeams(options.numTeams())
+                                                                              .mapSize(options.mapSize())
+                                                                              .seed(options.seed())
+                                                                              .generationType(options.generationType())
+                                                                              .symmetry(options.symmetry())
+                                                                              .style(options.style())
+                                                                              .terrainStyle(options.terrainStyle())
+                                                                              .textureStyle(options.textureStyle())
+                                                                              .resourceStyle(options.resourceStyle())
+                                                                              .propStyle(options.propStyle())
+                                                                              .reclaimDensity(options.reclaimDensity())
+                                                                              .resourceDensity(
+                                                                                  options.resourceDensity())
+                                                                              .commandLineArgs(
+                                                                                  options.commandLineArgs());
 
     try {
-      List<String> command = generatorCommandBuilder.build().getCommand();
+      List<String> command = commandBuilder.build().getCommand();
 
       ProcessBuilder processBuilder = new ProcessBuilder();
       processBuilder.directory(workingDirectory.toFile());
@@ -139,31 +148,4 @@ public class GenerateMultipleMapsTask extends CompletableTask<List<String>> {
     }
   }
 
-  /**
-   * Creates a GeneratorOptions with numToGenerate for multiple map generation.
-   *
-   * @param baseOptions the base options to copy from
-   * @param seed the seed to use (only first seed, generator handles all seeds internally)
-   * @param numToGenerate the number of maps to generate
-   * @return a new GeneratorOptions with numToGenerate set
-   */
-  private GeneratorOptions createOptionsWithNumToGenerate(GeneratorOptions baseOptions, Long seed, int numToGenerate) {
-    return GeneratorOptions.builder()
-                           .spawnCount(baseOptions.spawnCount())
-                           .numTeams(baseOptions.numTeams())
-                           .mapSize(baseOptions.mapSize())
-                           .seed(seed.toString())
-                           .generationType(baseOptions.generationType())
-                           .symmetry(baseOptions.symmetry())
-                           .style(baseOptions.style())
-                           .terrainStyle(baseOptions.terrainStyle())
-                           .textureStyle(baseOptions.textureStyle())
-                           .resourceStyle(baseOptions.resourceStyle())
-                           .propStyle(baseOptions.propStyle())
-                           .reclaimDensity(baseOptions.reclaimDensity())
-                           .resourceDensity(baseOptions.resourceDensity())
-                           .commandLineArgs(baseOptions.commandLineArgs())
-                           .numToGenerate(numToGenerate)
-                           .build();
-  }
 }

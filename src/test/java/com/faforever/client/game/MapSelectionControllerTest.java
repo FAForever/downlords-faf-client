@@ -135,7 +135,7 @@ public class MapSelectionControllerTest extends PlatformTest {
   }
 
   @Test
-  public void testOnCloseButtonClicked() throws IOException {
+  public void testOnOkButtonClicked() throws IOException {
     Path tempDir = Files.createTempDirectory("test_maps");
     Path mapDir = tempDir.resolve("test_map");
 
@@ -155,10 +155,10 @@ public class MapSelectionControllerTest extends PlatformTest {
     controller.setSelectedResult(result);
 
     // Simulate closing the dialog
-    controller.onCloseButtonClicked();
+    controller.onOkButtonClicked();
 
     // Verify that the result was set
-    assertEquals(result, controller.getResult());
+    assertEquals(result, controller.getSelectedResult());
   }
 
   @Test

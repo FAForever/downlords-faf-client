@@ -1,40 +1,22 @@
 package com.faforever.client.map.generator;
 
-import lombok.Value;
-
 import java.nio.file.Path;
 import java.util.Optional;
 
 /**
- * Represents the result of a map generation operation.
- * Used to track generated maps and their status.
+ * Represents the result of a map generation operation. Used to track generated maps and their status.
+ *
+ * @param mapName Name of the generated map.
+ * @param generatorOptions The options that were used for generation.
+ * @param mapDirectory Path to the map directory.
+ * @param errorMessage Optional error message if generation failed.
+ * @param isSuccess Flag indicating if generation was successful.
  */
-@Value
-public class MapGenerationResult {
-
-  /**
-   * Name of the generated map.
-   */
-  String mapName;
-
-  /**
-   * The options that were used for generation.
-   */
-  GeneratorOptions generatorOptions;
-
-  /**
-   * Path to the map directory.
-   */
-  Path mapDirectory;
-
-  /**
-   * Optional error message if generation failed.
-   */
-  Optional<String> errorMessage;
-
-  /**
-   * Flag indicating if generation was successful.
-   */
-  boolean isSuccess;
-
+public record MapGenerationResult(
+    String mapName,
+    GeneratorOptions generatorOptions,
+    Path mapDirectory,
+    Optional<String> errorMessage,
+    boolean isSuccess
+) {
 }

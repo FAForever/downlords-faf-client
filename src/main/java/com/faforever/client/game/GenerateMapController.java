@@ -45,6 +45,7 @@ import org.controlsfx.control.RangeSlider;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Mono;
 
 import java.security.InvalidParameterException;
@@ -262,14 +263,14 @@ public class GenerateMapController extends NodeController<Pane> {
   }
 
   private void initMapCountSpinner() {
-    int defaultMapCount = generatorPrefs.getDefaultMapCount();
+    int defaultMapCount = generatorPrefs.getDefaultMapCount().get();
     mapCountSpinner.setValueFactory(new IntegerSpinnerValueFactory(1, 50, defaultMapCount));
     mapCountSpinner.disableProperty()
                    .bind(previousMapName.textProperty()
                                         .isNotEmpty()
                                         .or(commandLineArgsText.textProperty().isNotEmpty())
                                         .or(fixedSeedCheckBox.selectedProperty()));
-    generatorPrefs.mapCountProperty().bind(mapCountSpinner.valueProperty());
+    generatorPrefs.getDefaultMapCount().bind(mapCountSpinner.valueProperty());
   }
 
   private void initSymmetryComboBox() {
@@ -412,7 +413,7 @@ public class GenerateMapController extends NodeController<Pane> {
     } else {
       GeneratorOptions baseOptions = getGeneratorOptions();
 
-      Long seed = baseOptions.seed() != null ? Long.parseLong(baseOptions.seed()) : new Random().nextLong();
+      Long seed = baseOptions.seed() != null ? Long.parseLong(baseOptions.seed()) : null;
       int mapCount = baseOptions.seed() != null ? 1 : mapCountSpinner.getValue();
       log.debug("Starting multiple map generation: {} maps", mapCount);
 
@@ -540,6 +541,10 @@ public class GenerateMapController extends NodeController<Pane> {
   }
 
   private void showMapSelectionDialog(List<MapGenerationResult> results) {
+    if (CollectionUtils.isEmpty(results)) {
+      return;
+    }
+
     MapSelectionController selectionController = uiService.loadFxml("theme/play/generate_map_selection.fxml");
     selectionController.setMapResults(results);
     
@@ -553,7 +558,7 @@ public class GenerateMapController extends NodeController<Pane> {
     });
     
     dialog.addEventHandler(Dialog.DialogEvent.CLOSED, event -> {
-      MapGenerationResult selectedMap = selectionController.getResult();
+      MapGenerationResult selectedMap = selectionController.getSelectedResult();
       if (selectedMap != null && mapGenerationSelected != null) {
         mapGenerationSelected.accept(selectedMap);
       }
