@@ -18,6 +18,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -124,13 +126,7 @@ public class MapSelectionController extends NodeController<Pane> {
     Image previewImage = mapService.loadPreview(mapName, PreviewSize.LARGE);
     previewImageView.setImage(previewImage);
 
-    previewImageView.setOnMouseClicked(event -> {
-      if (event.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
-        if (previewImage != null) {
-          PopupUtil.showImagePopup(previewImage);
-        }
-      }
-    });
+    previewImageView.setOnMouseClicked(event -> onMapPreviewImageClicked(event, mapName));
 
     card.getChildren().add(previewImageView);
 
@@ -149,6 +145,12 @@ public class MapSelectionController extends NodeController<Pane> {
     Tooltip.install(card, tooltip);
 
     return card;
+  }
+
+  public void onMapPreviewImageClicked(MouseEvent event, String mapName) {
+    if (event.getButton() == MouseButton.PRIMARY) {
+      PopupUtil.showImagePopup(mapService.loadPreview(mapName, PreviewSize.LARGE));
+    }
   }
 
   private String createTooltipText(MapGenerationResult result) {
