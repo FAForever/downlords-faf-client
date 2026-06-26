@@ -553,15 +553,11 @@ public class GenerateMapController extends NodeController<Pane> {
     selectionController.setOnCancelButtonClickedListener(dialog::close);
     
     selectionController.setOnOkButtonClickedListener(() -> {
-      dialog.close();
-      onCloseButtonClicked();
-    });
-    
-    dialog.addEventHandler(Dialog.DialogEvent.CLOSED, event -> {
       MapGenerationResult selectedMap = selectionController.getSelectedResult();
       if (selectedMap != null && mapGenerationSelected != null) {
         mapGenerationSelected.accept(selectedMap);
       }
+      dialog.close();
     });
   }
 
