@@ -24,6 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -469,7 +471,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    verify(mapGeneratorService).generateMap(captor.capture());
+    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), anyLong());
 
     GeneratorOptions result = captor.getValue();
 
@@ -498,7 +500,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    verify(mapGeneratorService).generateMap(captor.capture());
+    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), anyLong());
 
     GeneratorOptions result = captor.getValue();
 
@@ -515,7 +517,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    verify(mapGeneratorService).generateMap(captor.capture());
+    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), anyLong());
 
     GeneratorOptions result = captor.getValue();
 
@@ -540,7 +542,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    verify(mapGeneratorService).generateMap(captor.capture());
+    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), anyLong());
 
     GeneratorOptions result = captor.getValue();
     assertNull(result.resourceStyle());
@@ -563,7 +565,7 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    verify(mapGeneratorService).generateMap(captor.capture());
+    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), anyLong());
 
     GeneratorOptions result = captor.getValue();
     assertNull(result.propStyle());

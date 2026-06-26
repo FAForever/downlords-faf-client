@@ -130,11 +130,6 @@
             GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="23">
     </Button>
 
-    <Button fx:id="generateMultipleMapsButton" contentDisplay="RIGHT" defaultButton="true" mnemonicParsing="false"
-            onAction="#onGenerateMultipleMapsButtonClicked" text="%game.generateMap.generateMultiple"
-            GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="23">
-    </Button>
-
     <Label fx:id="progressLabel" visible="false" GridPane.columnIndex="1" GridPane.rowIndex="23">
         <graphic>
             <ProgressIndicator maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"

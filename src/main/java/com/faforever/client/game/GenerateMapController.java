@@ -39,6 +39,7 @@ import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.RangeSlider;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -73,7 +74,6 @@ public class GenerateMapController extends NodeController<Pane> {
 
   public Pane generateMapRoot;
   public Button generateMapButton;
-  public Button generateMultipleMapsButton;
   public TextField previousMapName;
   public Label commandLineLabel;
   public TextField commandLineArgsText;
@@ -130,7 +130,6 @@ public class GenerateMapController extends NodeController<Pane> {
     initMapSizeSpinner();
     initMapCountSpinner();
     initSeedField();
-    initButtons();
 
     bindCheckComboBoxTitle(terrainCheckComboBox, biomeCheckComboBox, resourcesCheckComboBox, propsCheckComboBox,
                            resourcesCheckComboBox, symmetryCheckComboBox, mapStyleCheckComboBox);
@@ -315,11 +314,6 @@ public class GenerateMapController extends NodeController<Pane> {
     seedRerollButton.disableProperty().bind(customizationAllowedOrNoFixedSeed);
   }
 
-  private void initButtons() {
-    generateMapButton.visibleProperty().bind(previousMapName.textProperty().isNotEmpty());
-    generateMultipleMapsButton.visibleProperty().bind(previousMapName.textProperty().isEmpty());
-  }
-
   private void bindCustomStyleDisabledPropertyNonSliders(Node... nodes) {
     for (Node node : nodes) {
       node.disableProperty().bind(disableCustomization.or(customStyleCheckBox.selectedProperty().not()));
@@ -402,19 +396,37 @@ public class GenerateMapController extends NodeController<Pane> {
   }
 
   public void onGenerateMap() {
-    Mono<String> generateFuture;
-    if (!previousMapName.getText().isEmpty()) {
-      if (!mapGeneratorService.isGeneratedMap(previousMapName.getText())) {
-        log.warn(String.format("Invalid Generated Map Name %s", previousMapName.getText()));
+    progressLabel.setVisible(true);
+
+    String mapName = previousMapName.getText();
+    if (StringUtils.isNotEmpty(mapName)) {
+      if (!mapGeneratorService.isGeneratedMap(mapName)) {
+        log.warn(String.format("Invalid Generated Map Name %s", mapName));
         notificationService.addImmediateWarnNotification("mapGenerator.invalidName");
         return;
       }
-      generateFuture = mapGeneratorService.generateMap(previousMapName.getText());
-    } else {
-      generateFuture = mapGeneratorService.generateMap(getGeneratorOptions());
-    }
+      Mono<String> generateFuture = mapGeneratorService.generateMap(mapName);
 
-    generateFuture.subscribe(_ -> onCloseButtonClicked(), this::handleGenerationException);
+      generateFuture.doOnTerminate(() -> progressLabel.setVisible(false))
+                    .subscribe(_ -> onCloseButtonClicked(), this::handleGenerationException);
+    } else {
+      GeneratorOptions baseOptions = getGeneratorOptions();
+
+      Long seed = baseOptions.seed() != null ? Long.parseLong(baseOptions.seed()) : new Random().nextLong();
+      int mapCount = baseOptions.seed() != null ? 1 : mapCountSpinner.getValue();
+      log.debug("Starting multiple map generation: {} maps", mapCount);
+
+      mapGeneratorService.generateMultipleMapsWithResults(baseOptions, mapCount, seed)
+                         .publishOn(fxApplicationThreadExecutor.asScheduler())
+                         .doOnTerminate(() -> progressLabel.setVisible(false))
+                         .subscribe(results -> {
+                           if (results.isEmpty()) {
+                             notificationService.addImmediateWarnNotification("game.generateMap.selection.noMaps");
+                             return;
+                           }
+                           showMapSelectionDialog(results);
+                         }, this::handleGenerationException);
+    }
   }
 
   private void handleGenerationException(Throwable e) {
@@ -527,28 +539,6 @@ public class GenerateMapController extends NodeController<Pane> {
     seedTextField.setText(String.valueOf(new Random().nextLong()));
   }
 
-  public void onGenerateMultipleMapsButtonClicked() {
-    GeneratorOptions baseOptions = getGeneratorOptions();
-
-    progressLabel.setVisible(true);
-
-    Long seed = baseOptions.seed() != null ? Long.parseLong(baseOptions.seed()) : new Random().nextLong();
-    int mapCount = baseOptions.seed() != null ? 1 : mapCountSpinner.getValue();
-    log.debug("Starting multiple map generation: {} maps", mapCount);
-
-    mapGeneratorService.generateMultipleMapsWithResults(baseOptions, mapCount, seed)
-                       .publishOn(fxApplicationThreadExecutor.asScheduler())
-                       .doOnSuccess(results -> progressLabel.setVisible(false))
-                       .doOnError(throwable -> progressLabel.setVisible(false))
-                       .subscribe(results -> {
-                         if (results.isEmpty()) {
-                           notificationService.addImmediateWarnNotification("game.generateMap.selection.noMaps");
-                           return;
-                         }
-                         showMapSelectionDialog(results);
-                       }, this::handleGenerationException);
-  }
-  
   private void showMapSelectionDialog(List<MapGenerationResult> results) {
     MapSelectionController selectionController = uiService.loadFxml("theme/play/generate_map_selection.fxml");
     selectionController.setMapResults(results);
