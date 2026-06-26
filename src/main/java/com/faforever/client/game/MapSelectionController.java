@@ -120,17 +120,14 @@ public class MapSelectionController extends NodeController<Pane> {
     previewImageView.setPreserveRatio(true);
     previewImageView.setSmooth(true);
 
-    SimpleObjectProperty<Image> previewImageProperty = new SimpleObjectProperty<>();
-    previewImageView.imageProperty().bind(previewImageProperty);
-
     String mapName = result.mapName();
-    previewImageProperty.set(mapService.loadPreview(mapName, PreviewSize.LARGE));
+    Image previewImage = mapService.loadPreview(mapName, PreviewSize.LARGE);
+    previewImageView.setImage(previewImage);
 
     previewImageView.setOnMouseClicked(event -> {
       if (event.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
-        Image image = previewImageProperty.get();
-        if (image != null) {
-          PopupUtil.showImagePopup(image);
+        if (previewImage != null) {
+          PopupUtil.showImagePopup(previewImage);
         }
       }
     });
