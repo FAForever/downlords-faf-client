@@ -282,7 +282,7 @@ public class MapGeneratorService implements DisposableBean {
       return taskService.submitTask(task).getMono();
     })).map(mapNames -> mapNames.stream().map(mapName -> {
       Path mapDirectory = forgedAlliancePrefs.getMapsDirectory().resolve(mapName);
-      return new MapGenerationResult(mapName, baseOptions, mapDirectory, Optional.empty(), true);
+      return new MapGenerationResult(mapName, baseOptions, mapDirectory, Optional.empty());
     }).collect(java.util.stream.Collectors.toList()));
   }
 

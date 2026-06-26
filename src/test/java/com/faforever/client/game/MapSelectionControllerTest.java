@@ -53,17 +53,13 @@ public class MapSelectionControllerTest extends PlatformTest {
     MapGenerationResult result1 = new MapGenerationResult(
         "neroxis_map_generator_2.0.0_seed1",
         options,
-        mapDir1,
-        Optional.empty(),
-        true
+        mapDir1, Optional.empty()
     );
     
     MapGenerationResult result2 = new MapGenerationResult(
         "neroxis_map_generator_2.0.0_seed2",
         options,
-        mapDir2,
-        Optional.empty(),
-        true
+        mapDir2, Optional.empty()
     );
 
     List<MapGenerationResult> results = List.of(result1, result2);
@@ -92,9 +88,7 @@ public class MapSelectionControllerTest extends PlatformTest {
     MapGenerationResult result = new MapGenerationResult(
         "neroxis_map_generator_2.0.0_test",
         options,
-        mapDir,
-        Optional.empty(),
-        true
+        mapDir, Optional.empty()
     );
 
     controller.setMapResults(List.of(result));
@@ -121,9 +115,7 @@ public class MapSelectionControllerTest extends PlatformTest {
     MapGenerationResult result = new MapGenerationResult(
         "neroxis_map_generator_2.0.0_test",
         options,
-        mapDir,
-        Optional.empty(),
-        true
+        mapDir, Optional.empty()
     );
 
     controller.setMapResults(List.of(result));
@@ -148,9 +140,7 @@ public class MapSelectionControllerTest extends PlatformTest {
     MapGenerationResult result = new MapGenerationResult(
         "neroxis_map_generator_2.0.0_test",
         options,
-        mapDir,
-        Optional.empty(),
-        true
+        mapDir, Optional.empty()
     );
 
     controller.setMapResults(List.of(result));
@@ -169,9 +159,7 @@ public class MapSelectionControllerTest extends PlatformTest {
     MapGenerationResult result = new MapGenerationResult(
         "neroxis_map_generator_2.0.0_test",
         options,
-        mapDir,
-        Optional.empty(),
-        true
+        mapDir, Optional.empty()
     );
 
     controller.setMapResults(List.of(result));
@@ -190,9 +178,7 @@ public class MapSelectionControllerTest extends PlatformTest {
     MapGenerationResult result = new MapGenerationResult(
         "neroxis_map_generator_2.0.0_test",
         options,
-        mapDir,
-        Optional.empty(),
-        true
+        mapDir, Optional.empty()
     );
 
     // Use reflection to access the private createMapCard method
@@ -219,9 +205,7 @@ public class MapSelectionControllerTest extends PlatformTest {
     MapGenerationResult result = new MapGenerationResult(
         "neroxis_map_generator_2.0.0_test",
         options,
-        mapDir,
-        Optional.empty(),
-        true
+        mapDir, Optional.empty()
     );
 
     controller.setMapResults(List.of(result));
@@ -240,9 +224,7 @@ public class MapSelectionControllerTest extends PlatformTest {
     MapGenerationResult result = new MapGenerationResult(
         "neroxis_map_generator_2.0.0_test",
         options,
-        mapDir,
-        Optional.empty(),
-        true
+        mapDir, Optional.empty()
     );
 
     controller.setMapResults(List.of(result));
