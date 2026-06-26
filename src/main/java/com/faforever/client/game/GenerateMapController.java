@@ -263,14 +263,14 @@ public class GenerateMapController extends NodeController<Pane> {
   }
 
   private void initMapCountSpinner() {
-    int defaultMapCount = generatorPrefs.getDefaultMapCount().get();
+    int defaultMapCount = generatorPrefs.getDefaultMapCount();
     mapCountSpinner.setValueFactory(new IntegerSpinnerValueFactory(1, 50, defaultMapCount));
     mapCountSpinner.disableProperty()
                    .bind(previousMapName.textProperty()
                                         .isNotEmpty()
                                         .or(commandLineArgsText.textProperty().isNotEmpty())
                                         .or(fixedSeedCheckBox.selectedProperty()));
-    generatorPrefs.getDefaultMapCount().bind(mapCountSpinner.valueProperty());
+    generatorPrefs.defaultMapCount().bind(mapCountSpinner.valueProperty());
   }
 
   private void initSymmetryComboBox() {
