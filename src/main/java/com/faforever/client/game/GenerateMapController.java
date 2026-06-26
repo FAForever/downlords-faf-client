@@ -264,7 +264,7 @@ public class GenerateMapController extends NodeController<Pane> {
 
   private void initMapCountSpinner() {
     int defaultMapCount = generatorPrefs.getDefaultMapCount();
-    mapCountSpinner.setValueFactory(new IntegerSpinnerValueFactory(1, 10, defaultMapCount));
+    mapCountSpinner.setValueFactory(new IntegerSpinnerValueFactory(1, 50, defaultMapCount));
     mapCountSpinner.disableProperty()
                    .bind(previousMapName.textProperty()
                                         .isNotEmpty()
