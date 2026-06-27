@@ -5,6 +5,7 @@ import com.faforever.client.config.ClientProperties.Api;
 import com.faforever.client.io.CountingFileSystemResource;
 import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.commons.api.dto.ApiException;
+import com.faforever.commons.api.dto.AvatarAssignment;
 import com.faforever.commons.api.dto.Clan;
 import com.faforever.commons.api.dto.CoopResult;
 import com.faforever.commons.api.dto.CoopScenario;
@@ -83,6 +84,7 @@ public class FafApiAccessor implements InitializingBean {
 
   @VisibleForTesting
   static final java.util.Map<Class<? extends ElideEntity>, List<String>> INCLUDES = java.util.Map.ofEntries(
+      java.util.Map.entry(AvatarAssignment.class, List.of("avatar")),
       java.util.Map.entry(CoopResult.class, List.of("game.playerStats.player")),
       java.util.Map.entry(Clan.class, List.of("leader", "founder", "memberships", "memberships.player")),
       java.util.Map.entry(LeaderboardEntry.class, List.of("player", "leaderboard")),
@@ -218,6 +220,26 @@ public class FafApiAccessor implements InitializingBean {
         .uri(endpointPath)
         .contentType(MediaType.parseMediaType(JSONAPI_MEDIA_TYPE))
         .bodyValue(request)).doOnSuccess(aVoid -> log.trace("Patched {} at {}", request, endpointPath));
+  }
+
+  /**
+   * Patches a to-one relationship via the JSON:API relationship endpoint
+   * ({@code PATCH /data/{type}/{id}/relationships/{name}}). Unlike a resource PATCH built from a DTO,
+   * this can explicitly clear a relationship by sending {@code {"data": null}}, which the
+   * DTO serializer (configured with {@code Include.NON_NULL}) cannot express.
+   *
+   * @param relatedId the related resource id, or {@code null} to clear the relationship
+   */
+  public Mono<Void> patchToOneRelationship(String type, String id, String relationshipName,
+                                           String relatedType, String relatedId) {
+    String body = relatedId == null
+        ? "{\"data\":null}"
+        : "{\"data\":{\"type\":\"" + relatedType + "\",\"id\":\"" + relatedId + "\"}}";
+    String endpointPath = "/data/" + type + "/" + id + "/relationships/" + relationshipName;
+    return retrieveMonoWithErrorHandling(Void.class, apiWebClient.patch()
+        .uri(endpointPath)
+        .contentType(MediaType.parseMediaType(JSONAPI_MEDIA_TYPE))
+        .bodyValue(body)).doOnSuccess(aVoid -> log.trace("Patched relationship {} at {}", relatedId, endpointPath));
   }
 
   public Mono<Void> delete(ElideNavigatorOnId<?> navigator) {

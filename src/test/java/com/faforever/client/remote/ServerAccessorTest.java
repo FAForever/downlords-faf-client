@@ -45,7 +45,6 @@ import com.faforever.commons.lobby.PartyInfo;
 import com.faforever.commons.lobby.PartyInfo.PartyMember;
 import com.faforever.commons.lobby.PartyInvite;
 import com.faforever.commons.lobby.PartyKick;
-import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.SearchInfo;
 import com.faforever.commons.lobby.ServerMessage;
 import com.faforever.commons.lobby.SessionResponse;
@@ -80,8 +79,6 @@ import reactor.test.StepVerifier;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -491,23 +488,6 @@ public class ServerAccessorTest extends ServiceTest {
   }
 
   @Test
-  public void testGetAvailableAvatars() throws Exception {
-
-    instance.getAvailableAvatars();
-
-    assertMessageContainsComponents(
-        "avatar", "list_avatar", "action"
-    );
-
-    AvatarListInfo avatarList = new AvatarListInfo(
-        List.of(new Avatar("google.com", "test"), new Avatar("google.com", "test")));
-    sendFromServer(avatarList);
-
-    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
-    assertThat(receivedMessage, is(avatarList));
-  }
-
-  @Test
   public void testRestoreGameSession() {
 
     instance.restoreGameSession(1);
@@ -601,17 +581,6 @@ public class ServerAccessorTest extends ServiceTest {
         "set_party_factions",
         "factions",
         "aeon", "uef", "cybran", "seraphim");
-  }
-
-  @Test
-  public void testSelectAvatar() throws MalformedURLException {
-    URL url = new URL("http://google.com");
-
-    instance.selectAvatar(url);
-
-    assertMessageContainsComponents("avatar", "action",
-        url.toString()
-    );
   }
 
   @Test
@@ -779,7 +748,6 @@ public class ServerAccessorTest extends ServiceTest {
   public void testOnAvatarMessage() throws InterruptedException, JsonProcessingException {
     AvatarListInfo avatarMessage = new AvatarListInfo(List.of());
 
-    instance.getAvailableAvatars();
     sendFromServer(avatarMessage);
     assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(avatarMessage));

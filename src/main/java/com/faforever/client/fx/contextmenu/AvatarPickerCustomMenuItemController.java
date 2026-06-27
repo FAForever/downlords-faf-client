@@ -18,6 +18,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.net.URL;
 import java.util.Objects;
 
 import static com.faforever.client.player.SocialStatus.SELF;
@@ -65,9 +66,12 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
       items.addFirst(noAvatar);
 
       Avatar currentAvatar = object.getAvatar();
+      // The current avatar may originate from the lobby feed (no id) while the available avatars come
+      // from the API (with id), so match on the url, which is present in both representations.
+      URL currentAvatarUrl = currentAvatar == null ? null : currentAvatar.url();
       avatarComboBox.getItems().setAll(items);
       avatarComboBox.getSelectionModel().select(items.stream()
-          .filter(avatarBean -> Objects.equals(avatarBean, currentAvatar))
+          .filter(avatarBean -> Objects.equals(avatarBean.url(), currentAvatarUrl))
           .findFirst()
           .orElse(null));
 
