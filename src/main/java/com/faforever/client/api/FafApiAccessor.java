@@ -225,13 +225,15 @@ public class FafApiAccessor implements InitializingBean {
 
   /**
    * Removes the named member from a relationship via the JSON:API relationship endpoint
-   * ({@code DELETE /data/{type}/{id}/relationships/{name}}). Elide requires the related resource to be named
-   * in the body, so for a to-one relationship this clears it only when {@code relatedId} is the current value.
+   * ({@code DELETE /data/{type}/{id}/relationships/{name}}). The owning resource path is built from
+   * {@code navigator}; the relationship segment is appended since the navigator only models the
+   * related-resource path. Elide requires the related resource to be named in the body, so for a
+   * to-one relationship this clears it only when {@code relatedId} is the current value.
    */
-  public Mono<Void> deleteToOneRelationship(String type, String id, String relationshipName,
-                                            String relatedType, String relatedId) {
+  public Mono<Void> deleteFromRelationship(ElideNavigatorOnId<?> navigator, String relationshipName,
+                                           String relatedType, String relatedId) {
     RelationshipDocument body = new RelationshipDocument(new ResourceIdentifier(relatedType, relatedId));
-    String endpointPath = "/data/" + type + "/" + id + "/relationships/" + relationshipName;
+    String endpointPath = navigator.build() + "/relationships/" + relationshipName;
     return retrieveMonoWithErrorHandling(Void.class, apiWebClient.method(HttpMethod.DELETE)
         .uri(endpointPath)
         .contentType(MediaType.parseMediaType(JSONAPI_MEDIA_TYPE))

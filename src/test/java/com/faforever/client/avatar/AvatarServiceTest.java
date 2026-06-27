@@ -35,6 +35,7 @@ import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -151,11 +152,12 @@ public class AvatarServiceTest extends ServiceTest {
     player.setId("1");
     player.setCurrentAvatar(avatarDto);
     when(fafApiAccessor.getOne(any())).thenReturn(Mono.just(player));
-    when(fafApiAccessor.deleteToOneRelationship(any(), any(), any(), any(), any())).thenReturn(Mono.empty());
+    when(fafApiAccessor.deleteFromRelationship(any(), any(), any(), any())).thenReturn(Mono.empty());
 
     instance.changeAvatar(new Avatar(null, null, "no avatar"));
 
-    verify(fafApiAccessor).deleteToOneRelationship("player", "1", "currentAvatar", "avatar", "7");
+    verify(fafApiAccessor).deleteFromRelationship(argThat(ElideMatchers.hasId(1)), eq("currentAvatar"), eq("avatar"),
+        eq("7"));
   }
 
   @Test
@@ -169,6 +171,6 @@ public class AvatarServiceTest extends ServiceTest {
 
     instance.changeAvatar(new Avatar(null, null, "no avatar"));
 
-    verify(fafApiAccessor, never()).deleteToOneRelationship(any(), any(), any(), any(), any());
+    verify(fafApiAccessor, never()).deleteFromRelationship(any(), any(), any(), any());
   }
 }
