@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,6 +34,7 @@ public class AvatarPickerCustomMenuItemControllerTest extends PlatformTest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    lenient().when(avatarService.getCurrentAvatar()).thenReturn(CompletableFuture.completedFuture(null));
     loadFxml("theme/chat/avatar_picker_menu_item.fxml", clazz -> instance);
   }
 
@@ -83,10 +85,11 @@ public class AvatarPickerCustomMenuItemControllerTest extends PlatformTest {
   public void testSelectNoAvatar() throws Exception {
     Avatar avatar = Instancio.create(Avatar.class);
     when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(avatar)));
+    when(avatarService.getCurrentAvatar()).thenReturn(CompletableFuture.completedFuture(avatar));
     when(i18n.get("chat.userContext.noAvatar")).thenReturn("no avatar");
 
     runOnFxThreadAndWait(() -> instance.setObject(
-        PlayerInfoBuilder.create().defaultValues().avatar(avatar).socialStatus(SocialStatus.SELF).get()));
+        PlayerInfoBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get()));
     assertEquals(avatar, instance.avatarComboBox.getSelectionModel().getSelectedItem());
 
     runOnFxThreadAndWait(() -> instance.avatarComboBox.getSelectionModel().select(0)); // 0 index - no avatar

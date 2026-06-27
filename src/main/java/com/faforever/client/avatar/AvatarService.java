@@ -5,8 +5,10 @@ import com.faforever.client.mapstruct.AvatarMapper;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.commons.api.dto.AvatarAssignment;
+import com.faforever.commons.api.dto.Player;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
+import com.faforever.commons.api.elide.ElideNavigatorOnId;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
@@ -47,6 +49,17 @@ public class AvatarService {
         .map(AvatarAssignment::getAvatar)
         .map(avatarMapper::map)
         .collectList()
+        .toFuture();
+  }
+
+  public CompletableFuture<Avatar> getCurrentAvatar() {
+    String playerId = String.valueOf(playerService.getCurrentPlayer().getId());
+    ElideNavigatorOnId<Player> navigator = ElideNavigator.of(Player.class)
+        .id(playerId)
+        .addInclude("currentAvatar");
+    return fafApiAccessor.getOne(navigator)
+        .mapNotNull(Player::getCurrentAvatar)
+        .map(avatarMapper::map)
         .toFuture();
   }
 

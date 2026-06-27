@@ -29,6 +29,9 @@ import java.util.List;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -91,6 +94,37 @@ public class AvatarServiceTest extends ServiceTest {
 
     assertThat(result, hasSize(1));
     verify(fafApiAccessor).getAll(argThat(ElideMatchers.hasFilter(qBuilder().string("player.id").eq("1"))));
+  }
+
+  @Test
+  public void getCurrentAvatar() {
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().defaultValues().get());
+
+    com.faforever.commons.api.dto.Avatar avatarDto = new com.faforever.commons.api.dto.Avatar();
+    avatarDto.setId("5");
+    avatarDto.setUrl("https://example.com/avatar.png");
+    avatarDto.setTooltip("tooltip");
+    com.faforever.commons.api.dto.Player player = new com.faforever.commons.api.dto.Player();
+    player.setId("1");
+    player.setCurrentAvatar(avatarDto);
+    when(fafApiAccessor.getOne(any())).thenReturn(Mono.just(player));
+
+    Avatar result = instance.getCurrentAvatar().join();
+
+    assertThat(result, notNullValue());
+    assertThat(result.id(), is(5));
+  }
+
+  @Test
+  public void getCurrentAvatarWhenNoneSelected() {
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().defaultValues().get());
+
+    com.faforever.commons.api.dto.Player player = new com.faforever.commons.api.dto.Player();
+    player.setId("1");
+    player.setCurrentAvatar(null);
+    when(fafApiAccessor.getOne(any())).thenReturn(Mono.just(player));
+
+    assertThat(instance.getCurrentAvatar().join(), nullValue());
   }
 
   @Test

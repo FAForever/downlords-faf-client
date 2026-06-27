@@ -18,7 +18,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.net.URL;
 import java.util.Objects;
 
 import static com.faforever.client.player.SocialStatus.SELF;
@@ -61,26 +60,27 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
   }
 
   private void loadAvailableAvatars() {
-    avatarService.getAvailableAvatars().thenAcceptAsync(avatars -> {
-      ObservableList<Avatar> items = FXCollections.observableArrayList(avatars);
-      items.addFirst(noAvatar);
+    avatarService.getAvailableAvatars()
+        .thenCombineAsync(avatarService.getCurrentAvatar(), (avatars, currentAvatar) -> {
+          ObservableList<Avatar> items = FXCollections.observableArrayList(avatars);
+          items.addFirst(noAvatar);
+          avatarComboBox.getItems().setAll(items);
 
-      Avatar currentAvatar = object.getAvatar();
-      // The current avatar may originate from the lobby feed (no id) while the available avatars come
-      // from the API (with id), so match on the url, which is present in both representations.
-      URL currentAvatarUrl = currentAvatar == null ? null : currentAvatar.url();
-      avatarComboBox.getItems().setAll(items);
-      avatarComboBox.getSelectionModel().select(items.stream()
-          .filter(avatarBean -> Objects.equals(avatarBean.url(), currentAvatarUrl))
-          .findFirst()
-          .orElse(null));
+          // The current avatar is read from the API (player.currentAvatar), so it shares the id with the
+          // available avatars and can be matched reliably regardless of what the lobby feed reports.
+          Integer currentAvatarId = currentAvatar == null ? null : currentAvatar.id();
+          avatarComboBox.getSelectionModel().select(items.stream()
+              .filter(avatarBean -> Objects.equals(avatarBean.id(), currentAvatarId))
+              .findFirst()
+              .orElse(noAvatar));
 
-      // Only after the box has been populated, and we selected the current value, we add the listener.
-      // Otherwise, the code above already triggers a changeAvatar()
-      JavaFxUtil.addListener(avatarComboBox.getSelectionModel()
-          .selectedItemProperty(), new WeakInvalidationListener(selectedItemPropertyListener));
-      getRoot().setVisible(isItemVisible());
-    }, fxApplicationThreadExecutor);
+          // Only after the box has been populated, and we selected the current value, we add the listener.
+          // Otherwise, the code above already triggers a changeAvatar()
+          JavaFxUtil.addListener(avatarComboBox.getSelectionModel()
+              .selectedItemProperty(), new WeakInvalidationListener(selectedItemPropertyListener));
+          getRoot().setVisible(isItemVisible());
+          return null;
+        }, fxApplicationThreadExecutor);
   }
 
   private void setAvatar() {
