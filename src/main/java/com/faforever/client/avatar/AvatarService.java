@@ -11,6 +11,7 @@ import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.api.elide.ElideNavigatorOnId;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 
 @Lazy
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AvatarService {
 
@@ -64,9 +66,36 @@ public class AvatarService {
   }
 
   public void changeAvatar(Avatar avatar) {
+    // We don't update the local player here: the API writes login.avatar_id, the lobby server consumes the
+    // resulting event and broadcasts a player_info back to us, which refreshes the avatar authoritatively.
+    if (avatar == null || avatar.id() == null) {
+      removeCurrentAvatar();
+    } else {
+      selectAvatar(avatar);
+    }
+  }
+
+  private void selectAvatar(Avatar avatar) {
     String playerId = String.valueOf(playerService.getCurrentPlayer().getId());
-    String avatarId = avatar == null || avatar.id() == null ? null : String.valueOf(avatar.id());
-    fafApiAccessor.patchToOneRelationship("player", playerId, "currentAvatar", "avatar", avatarId).subscribe();
-    playerService.getCurrentPlayer().setAvatar(avatar);
+    com.faforever.commons.api.dto.Avatar avatarDto = new com.faforever.commons.api.dto.Avatar();
+    avatarDto.setId(String.valueOf(avatar.id()));
+    Player playerDto = new Player();
+    playerDto.setId(playerId);
+    playerDto.setCurrentAvatar(avatarDto);
+    fafApiAccessor.patch(ElideNavigator.of(Player.class).id(playerId), playerDto)
+        .subscribe(null, throwable -> log.error("Could not select avatar ''{}''", avatar.id(), throwable));
+  }
+
+  private void removeCurrentAvatar() {
+    String playerId = String.valueOf(playerService.getCurrentPlayer().getId());
+    // The relationship DELETE must name the avatar to remove, so resolve the currently selected one first.
+    getCurrentAvatar().thenAccept(currentAvatar -> {
+      if (currentAvatar == null || currentAvatar.id() == null) {
+        return;
+      }
+      fafApiAccessor.deleteToOneRelationship("player", playerId, "currentAvatar", "avatar",
+              String.valueOf(currentAvatar.id()))
+          .subscribe(null, throwable -> log.error("Could not remove current avatar", throwable));
+    });
   }
 }

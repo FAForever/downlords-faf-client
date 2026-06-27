@@ -61,7 +61,8 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
 
   private void loadAvailableAvatars() {
     avatarService.getAvailableAvatars()
-        .thenCombineAsync(avatarService.getCurrentAvatar(), (avatars, currentAvatar) -> {
+        // The current avatar is only used to preselect; a failure here must not stop the list from showing.
+        .thenCombineAsync(avatarService.getCurrentAvatar().exceptionally(throwable -> null), (avatars, currentAvatar) -> {
           ObservableList<Avatar> items = FXCollections.observableArrayList(avatars);
           items.addFirst(noAvatar);
           avatarComboBox.getItems().setAll(items);

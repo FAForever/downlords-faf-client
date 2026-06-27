@@ -46,6 +46,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -223,24 +224,24 @@ public class FafApiAccessor implements InitializingBean {
   }
 
   /**
-   * Patches a to-one relationship via the JSON:API relationship endpoint
-   * ({@code PATCH /data/{type}/{id}/relationships/{name}}). Unlike a resource PATCH built from a DTO,
-   * this can explicitly clear a relationship by sending {@code {"data": null}}, which the
-   * DTO serializer (configured with {@code Include.NON_NULL}) cannot express.
-   *
-   * @param relatedId the related resource id, or {@code null} to clear the relationship
+   * Removes the named member from a relationship via the JSON:API relationship endpoint
+   * ({@code DELETE /data/{type}/{id}/relationships/{name}}). Elide requires the related resource to be named
+   * in the body, so for a to-one relationship this clears it only when {@code relatedId} is the current value.
    */
-  public Mono<Void> patchToOneRelationship(String type, String id, String relationshipName,
-                                           String relatedType, String relatedId) {
-    String body = relatedId == null
-        ? "{\"data\":null}"
-        : "{\"data\":{\"type\":\"" + relatedType + "\",\"id\":\"" + relatedId + "\"}}";
+  public Mono<Void> deleteToOneRelationship(String type, String id, String relationshipName,
+                                            String relatedType, String relatedId) {
+    RelationshipDocument body = new RelationshipDocument(new ResourceIdentifier(relatedType, relatedId));
     String endpointPath = "/data/" + type + "/" + id + "/relationships/" + relationshipName;
-    return retrieveMonoWithErrorHandling(Void.class, apiWebClient.patch()
+    return retrieveMonoWithErrorHandling(Void.class, apiWebClient.method(HttpMethod.DELETE)
         .uri(endpointPath)
         .contentType(MediaType.parseMediaType(JSONAPI_MEDIA_TYPE))
-        .bodyValue(body)).doOnSuccess(aVoid -> log.trace("Patched relationship {} at {}", relatedId, endpointPath));
+        .bodyValue(body)).doOnSuccess(aVoid -> log.trace("Deleted relationship member {} at {}", relatedId, endpointPath));
   }
+
+  /** Minimal JSON:API relationship payload (`{"data": {"type": ..., "id": ...}}`) for relationship endpoints. */
+  record RelationshipDocument(ResourceIdentifier data) {}
+
+  record ResourceIdentifier(String type, String id) {}
 
   public Mono<Void> delete(ElideNavigatorOnId<?> navigator) {
     String endpointPath = navigator.build();

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -21,8 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.net.URI;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -36,7 +35,7 @@ import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -128,23 +127,48 @@ public class AvatarServiceTest extends ServiceTest {
   }
 
   @Test
-  public void changeAvatar() throws Exception {
+  public void changeAvatarSelectsViaPlayerPatch() {
     when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().defaultValues().get());
-    when(fafApiAccessor.patchToOneRelationship(any(), any(), any(), any(), any())).thenReturn(Mono.empty());
+    when(fafApiAccessor.patch(any(), any())).thenReturn(Mono.empty());
 
-    URL url = URI.create("https://example.com").toURL();
-    instance.changeAvatar(Instancio.of(Avatar.class).set(field(Avatar::id), 42).set(field(Avatar::url), url).create());
+    instance.changeAvatar(Instancio.of(Avatar.class).set(field(Avatar::id), 42).create());
 
-    verify(fafApiAccessor).patchToOneRelationship("player", "1", "currentAvatar", "avatar", "42");
+    ArgumentCaptor<com.faforever.commons.api.dto.Player> captor =
+        ArgumentCaptor.forClass(com.faforever.commons.api.dto.Player.class);
+    verify(fafApiAccessor).patch(any(), captor.capture());
+    assertThat(captor.getValue().getId(), is("1"));
+    assertThat(captor.getValue().getCurrentAvatar().getId(), is("42"));
   }
 
   @Test
-  public void changeAvatarToNoAvatarClearsSelection() {
+  public void changeAvatarToNoAvatarDeletesCurrentAvatarRelationship() {
     when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().defaultValues().get());
-    when(fafApiAccessor.patchToOneRelationship(any(), any(), any(), any(), any())).thenReturn(Mono.empty());
+
+    com.faforever.commons.api.dto.Avatar avatarDto = new com.faforever.commons.api.dto.Avatar();
+    avatarDto.setId("7");
+    avatarDto.setUrl("https://example.com/avatar.png");
+    com.faforever.commons.api.dto.Player player = new com.faforever.commons.api.dto.Player();
+    player.setId("1");
+    player.setCurrentAvatar(avatarDto);
+    when(fafApiAccessor.getOne(any())).thenReturn(Mono.just(player));
+    when(fafApiAccessor.deleteToOneRelationship(any(), any(), any(), any(), any())).thenReturn(Mono.empty());
 
     instance.changeAvatar(new Avatar(null, null, "no avatar"));
 
-    verify(fafApiAccessor).patchToOneRelationship(eq("player"), eq("1"), eq("currentAvatar"), eq("avatar"), eq(null));
+    verify(fafApiAccessor).deleteToOneRelationship("player", "1", "currentAvatar", "avatar", "7");
+  }
+
+  @Test
+  public void changeAvatarToNoAvatarWithoutCurrentAvatarDoesNothing() {
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().defaultValues().get());
+
+    com.faforever.commons.api.dto.Player player = new com.faforever.commons.api.dto.Player();
+    player.setId("1");
+    player.setCurrentAvatar(null);
+    when(fafApiAccessor.getOne(any())).thenReturn(Mono.just(player));
+
+    instance.changeAvatar(new Avatar(null, null, "no avatar"));
+
+    verify(fafApiAccessor, never()).deleteToOneRelationship(any(), any(), any(), any(), any());
   }
 }
