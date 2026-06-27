@@ -95,7 +95,6 @@ public class GenerateMapController extends NodeController<Pane> {
   public RangeSlider reclaimDensitySlider;
   public RangeSlider resourcesDensitySlider;
 
-  // UI for multiple map generation
   public Spinner<Integer> mapCountSpinner;
   public Label progressLabel;
 
