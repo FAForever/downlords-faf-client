@@ -33,8 +33,10 @@ import com.faforever.commons.api.elide.ElideEndpointBuilder;
 import com.faforever.commons.api.elide.ElideEntity;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.api.elide.ElideNavigatorOnId;
+import com.faforever.commons.api.elide.ElideNavigatorOnRelationshipLink;
 import com.faforever.commons.io.ByteCountListener;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
+import com.github.jasminb.jsonapi.annotations.Type;
 import com.github.jasminb.jsonapi.exceptions.ResourceParseException;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
@@ -225,15 +227,14 @@ public class FafApiAccessor implements InitializingBean {
 
   /**
    * Removes the named member from a relationship via the JSON:API relationship endpoint
-   * ({@code DELETE /data/{type}/{id}/relationships/{name}}). The owning resource path is built from
-   * {@code navigator}; the relationship segment is appended since the navigator only models the
-   * related-resource path. Elide requires the related resource to be named in the body, so for a
+   * ({@code DELETE /data/{type}/{id}/relationships/{name}}). The related resource type is derived from the
+   * navigator's entity type. Elide requires the related resource to be named in the body, so for a
    * to-one relationship this clears it only when {@code relatedId} is the current value.
    */
-  public Mono<Void> deleteFromRelationship(ElideNavigatorOnId<?> navigator, String relationshipName,
-                                           String relatedType, String relatedId) {
+  public Mono<Void> deleteFromRelationship(ElideNavigatorOnRelationshipLink<?> relationshipLink, String relatedId) {
+    String relatedType = relationshipLink.getDtoClass().getAnnotation(Type.class).value();
     RelationshipDocument body = new RelationshipDocument(new ResourceIdentifier(relatedType, relatedId));
-    String endpointPath = navigator.build() + "/relationships/" + relationshipName;
+    String endpointPath = relationshipLink.build();
     return retrieveMonoWithErrorHandling(Void.class, apiWebClient.method(HttpMethod.DELETE)
         .uri(endpointPath)
         .contentType(MediaType.parseMediaType(JSONAPI_MEDIA_TYPE))

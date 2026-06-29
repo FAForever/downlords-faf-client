@@ -9,6 +9,7 @@ import com.faforever.client.remote.AssetService;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.AvatarAssignment;
+import com.faforever.commons.api.elide.ElideNavigatorOnRelationshipLink;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -152,12 +153,14 @@ public class AvatarServiceTest extends ServiceTest {
     player.setId("1");
     player.setCurrentAvatar(avatarDto);
     when(fafApiAccessor.getOne(any())).thenReturn(Mono.just(player));
-    when(fafApiAccessor.deleteFromRelationship(any(), any(), any(), any())).thenReturn(Mono.empty());
+    when(fafApiAccessor.deleteFromRelationship(any(), any())).thenReturn(Mono.empty());
 
     instance.changeAvatar(new Avatar(null, null, "no avatar"));
 
-    verify(fafApiAccessor).deleteFromRelationship(argThat(ElideMatchers.hasId(1)), eq("currentAvatar"), eq("avatar"),
-        eq("7"));
+    ArgumentCaptor<ElideNavigatorOnRelationshipLink> linkCaptor =
+        ArgumentCaptor.forClass(ElideNavigatorOnRelationshipLink.class);
+    verify(fafApiAccessor).deleteFromRelationship(linkCaptor.capture(), eq("7"));
+    assertThat(linkCaptor.getValue().build(), is("/data/player/1/relationships/currentAvatar"));
   }
 
   @Test
@@ -171,6 +174,6 @@ public class AvatarServiceTest extends ServiceTest {
 
     instance.changeAvatar(new Avatar(null, null, "no avatar"));
 
-    verify(fafApiAccessor, never()).deleteFromRelationship(any(), any(), any(), any());
+    verify(fafApiAccessor, never()).deleteFromRelationship(any(), any());
   }
 }

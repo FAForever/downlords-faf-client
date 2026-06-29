@@ -93,8 +93,9 @@ public class AvatarService {
       if (currentAvatar == null || currentAvatar.id() == null) {
         return;
       }
-      fafApiAccessor.deleteFromRelationship(ElideNavigator.of(Player.class).id(playerId), "currentAvatar",
-              "avatar", String.valueOf(currentAvatar.id()))
+      fafApiAccessor.deleteFromRelationship(ElideNavigator.of(Player.class).id(playerId)
+              .relationshipLink(com.faforever.commons.api.dto.Avatar.class, "currentAvatar"),
+              String.valueOf(currentAvatar.id()))
           .subscribe(null, throwable -> log.error("Could not remove current avatar", throwable));
     });
   }
