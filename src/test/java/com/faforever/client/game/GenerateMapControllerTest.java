@@ -468,6 +468,9 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
+    when(mapGeneratorService.generateMultipleMapsWithResults(any(GeneratorOptions.class), anyInt(),
+                                                             anyLong())).thenReturn(Mono.just(List.of()));
+
     ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
@@ -497,6 +500,9 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
+    when(mapGeneratorService.generateMultipleMapsWithResults(any(GeneratorOptions.class), anyInt(),
+                                                             isNull())).thenReturn(Mono.just(List.of()));
+
     ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
@@ -513,6 +519,9 @@ public class GenerateMapControllerTest extends PlatformTest {
     generatorPrefs.setCustomStyle(false);
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
+
+    when(mapGeneratorService.generateMultipleMapsWithResults(any(GeneratorOptions.class), anyInt(),
+                                                             isNull())).thenReturn(Mono.just(List.of()));
 
     ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
 
@@ -539,6 +548,9 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
+    when(mapGeneratorService.generateMultipleMapsWithResults(any(GeneratorOptions.class), anyInt(),
+                                                             isNull())).thenReturn(Mono.just(List.of()));
+
     ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
@@ -561,6 +573,9 @@ public class GenerateMapControllerTest extends PlatformTest {
     instance.resourcesCheckComboBox.getCheckModel().check(0);
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
+
+    when(mapGeneratorService.generateMultipleMapsWithResults(any(GeneratorOptions.class), anyInt(),
+                                                             isNull())).thenReturn(Mono.just(List.of()));
 
     ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
 

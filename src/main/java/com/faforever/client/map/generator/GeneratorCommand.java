@@ -53,6 +53,10 @@ public record GeneratorCommand(
           Arrays.asList("--map-size", mapSize.toString(), "--spawn-count", spawnCount.toString(), "--num-teams",
                         numTeams.toString()));
 
+      if (numToGenerate != null && numToGenerate > 1) {
+        command.addAll(Arrays.asList("--num-to-generate", String.valueOf(numToGenerate)));
+      }
+
       if (generationType != null && generationType != GenerationType.CASUAL) {
         switch (generationType) {
           case BLIND -> command.add("--blind");
@@ -60,10 +64,6 @@ public record GeneratorCommand(
           case UNEXPLORED -> command.add("--unexplored");
         }
         return command;
-      }
-
-      if (numToGenerate != null && numToGenerate > 1) {
-        command.addAll(Arrays.asList("--num-to-generate", String.valueOf(numToGenerate)));
       }
 
       if (seed != null) {

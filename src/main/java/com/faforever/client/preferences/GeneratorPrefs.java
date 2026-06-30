@@ -13,8 +13,9 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import lombok.extern.slf4j.Slf4j;
 
-
+@Slf4j
 public class GeneratorPrefs {
   private final ObjectProperty<GenerationType> generationType = new SimpleObjectProperty<>(GenerationType.CASUAL);
   private final StringProperty commandLineArgs = new SimpleStringProperty("");
@@ -221,6 +222,11 @@ public class GeneratorPrefs {
   }
 
   public void setDefaultMapCount(int max) {
+    if (defaultMapCount.isBound()) {
+      log.warn(
+          "Cannot set defaultMapCount: property is bound to spinner. Call before initMapCountSpinner() or unbind first.");
+      return;
+    }
     this.defaultMapCount.set(max);
   }
 }

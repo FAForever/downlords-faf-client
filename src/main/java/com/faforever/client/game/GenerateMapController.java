@@ -402,6 +402,7 @@ public class GenerateMapController extends NodeController<Pane> {
       if (!mapGeneratorService.isGeneratedMap(mapName)) {
         log.warn(String.format("Invalid Generated Map Name %s", mapName));
         notificationService.addImmediateWarnNotification("mapGenerator.invalidName");
+        progressLabel.setVisible(false);
         return;
       }
       Mono<String> generateFuture = mapGeneratorService.generateMap(mapName);

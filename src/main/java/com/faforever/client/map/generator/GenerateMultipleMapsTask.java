@@ -130,6 +130,7 @@ public class GenerateMultipleMapsTask extends CompletableTask<List<String>> {
         process.destroyForcibly();
         notificationService.addImmediateErrorNotification(new RuntimeException("Multiple map generation timed out"),
                                                           "game.mapGeneration.failed.message");
+        return new ArrayList<>();
       }
 
       List<String> generatedMapNamesList = allLogLines.stream()
