@@ -58,7 +58,6 @@ public class MapGeneratorService implements DisposableBean {
   private final ObjectFactory<GenerateMapTask> generateMapTaskFactory;
   private final ObjectFactory<DownloadMapGeneratorTask> downloadMapGeneratorTaskFactory;
   private final ObjectFactory<GeneratorOptionsTask> generatorOptionsTaskFactory;
-  private final ObjectFactory<GenerateMultipleMapsTask> generateMultipleMapsTaskFactory;
 
   private ComparableVersion defaultGeneratorVersion;
 
@@ -108,7 +107,7 @@ public class MapGeneratorService implements DisposableBean {
                            .switchIfEmpty(Mono.error(new RuntimeException("No valid generator version found")));
   }
 
-  public Mono<String> generateMap(String mapName) {
+  public Mono<List<String>> generateMap(String mapName) {
     Matcher matcher = GENERATED_MAP_PATTERN.matcher(mapName);
     if (!matcher.find()) {
       return Mono.error(new InvalidParameterException("Map name is not a generated map"));
@@ -129,7 +128,7 @@ public class MapGeneratorService implements DisposableBean {
     return downloadGeneratorFuture.then(Mono.defer(() -> taskService.submitTask(generateMapTask).getMono()));
   }
 
-  public Mono<String> generateMap(GeneratorOptions generatorOptions) {
+  public Mono<List<String>> generateMap(GeneratorOptions generatorOptions) {
     Path generatorExecutablePath = getGeneratorExecutablePath(defaultGeneratorVersion);
 
     Mono<Void> downloadGeneratorFuture = downloadGeneratorIfNecessary(defaultGeneratorVersion);
@@ -248,7 +247,7 @@ public class MapGeneratorService implements DisposableBean {
   }
 
   /**
-   * Generates multiple maps using the new GenerateMultipleMapsTask.
+   * Generates multiple maps using GenerateMapTask.
    * This method properly handles multiple map generation and extracts all generated map names from the generator log.
    * Uses only the first seed, as the generator handles all seeds internally via --num-to-generate.
    * 
@@ -271,13 +270,13 @@ public class MapGeneratorService implements DisposableBean {
     log.debug("Starting multiple map generation with results: {} maps with seed {}", mapCount, seed);
 
     return downloadGeneratorIfNecessary(defaultGeneratorVersion).then(Mono.defer(() -> {
-      GenerateMultipleMapsTask task = generateMultipleMapsTaskFactory.getObject();
+      GenerateMapTask task = generateMapTaskFactory.getObject();
       Path generatorExecutablePath = getGeneratorExecutablePath(defaultGeneratorVersion);
       task.setVersion(defaultGeneratorVersion);
       task.setGeneratorExecutableFile(generatorExecutablePath);
-      task.setBaseOptions(baseOptions);
-      task.setSeed(seed);
+      task.setGeneratorOptions(baseOptions);
       task.setMapCount(mapCount);
+      task.setSeed(seed);
 
       return taskService.submitTask(task).getMono();
     })).map(mapNames -> mapNames.stream().map(mapName -> {

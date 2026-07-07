@@ -405,7 +405,7 @@ public class GenerateMapController extends NodeController<Pane> {
         progressLabel.setVisible(false);
         return;
       }
-      Mono<String> generateFuture = mapGeneratorService.generateMap(mapName);
+      Mono<List<String>> generateFuture = mapGeneratorService.generateMap(mapName);
 
       generateFuture.doOnTerminate(() -> progressLabel.setVisible(false))
                     .subscribe(_ -> onCloseButtonClicked(), this::handleGenerationException);

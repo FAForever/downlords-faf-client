@@ -349,7 +349,7 @@ public class GameDetailControllerTest extends PlatformTest {
     GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(i18n.get("game.create.generatedMap")).thenReturn("text");
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(
-        succeed ? Mono.just(game.getMapFolderName()) : Mono.error(new RuntimeException("failed")));
+        succeed ? Mono.just(List.of(game.getMapFolderName())) : Mono.error(new RuntimeException("failed")));
 
     runOnFxThreadAndWait(() -> {
       instance.setGame(game);

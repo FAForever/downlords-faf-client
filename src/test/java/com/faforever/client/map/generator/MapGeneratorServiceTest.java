@@ -65,8 +65,6 @@ public class MapGeneratorServiceTest extends ServiceTest {
   @Mock
   private GenerateMapTask generateMapTask;
   @Mock
-  private GenerateMultipleMapsTask generateMultipleMapsTask;
-  @Mock
   private ClientProperties clientProperties;
   @Mock
   private MapGenerator mapGenerator;
@@ -76,8 +74,6 @@ public class MapGeneratorServiceTest extends ServiceTest {
   private ObjectFactory<DownloadMapGeneratorTask> downloadMapGeneratorTaskFactory;
   @Mock
   private ObjectFactory<GeneratorOptionsTask> generatorOptionsTaskFactory;
-  @Mock
-  private ObjectFactory<GenerateMultipleMapsTask> generateMultipleMapsTaskFactory;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -94,7 +90,6 @@ public class MapGeneratorServiceTest extends ServiceTest {
     lenient().when(downloadMapGeneratorTaskFactory.getObject()).thenReturn(downloadMapGeneratorTask);
     lenient().when(generateMapTaskFactory.getObject()).thenReturn(generateMapTask);
     lenient().when(generatorOptionsTaskFactory.getObject()).thenReturn(generatorOptionsTask);
-    lenient().when(generateMultipleMapsTaskFactory.getObject()).thenReturn(generateMultipleMapsTask);
     lenient().when(clientProperties.getMapGenerator()).thenReturn(mapGenerator);
     lenient().when(mapGenerator.getMaxSupportedMajorVersion()).thenReturn(maxVersion);
     lenient().when(mapGenerator.getMinSupportedMajorVersion()).thenReturn(minVersion);
@@ -102,15 +97,14 @@ public class MapGeneratorServiceTest extends ServiceTest {
     instance = new MapGeneratorService(taskService, clientProperties, forgedAlliancePrefs, dataPrefs, WebClient.builder()
                                                                                                                .build(),
                                        generateMapTaskFactory, downloadMapGeneratorTaskFactory,
-                                       generatorOptionsTaskFactory, generateMultipleMapsTaskFactory);
+                                       generatorOptionsTaskFactory);
 
     lenient().when(downloadMapGeneratorTask.getMono()).thenReturn(Mono.empty());
     // Make generateMapTask return a successful result with map name
-    lenient().doAnswer(invocation -> Mono.just("neroxis_map_generator_2.0.0_123456789")).when(generateMapTask).getMono();
-    lenient().when(generatorOptionsTask.getMono()).thenReturn(Mono.just(new ArrayList<>(List.of("TEST"))));
-    lenient().doAnswer(invocation -> Mono.just(new ArrayList<>(List.of("neroxis_map_generator_2.0.0_123456789"))))
-             .when(generateMultipleMapsTask)
+    lenient().doAnswer(invocation -> Mono.just(List.of("neroxis_map_generator_2.0.0_123456789")))
+             .when(generateMapTask)
              .getMono();
+    lenient().when(generatorOptionsTask.getMono()).thenReturn(Mono.just(new ArrayList<>(List.of("TEST"))));
     lenient().doAnswer(invocation -> {
       CompletableTask<?> task = invocation.getArgument(0);
       task.getMono().block();
@@ -121,7 +115,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
   @Test
   public void testGenerateMapNoGeneratorPresent() {
     StepVerifier.create(instance.generateMap(testMapNameNoGenerator))
-        .expectNext("neroxis_map_generator_2.0.0_123456789")
+                .expectNext(List.of("neroxis_map_generator_2.0.0_123456789"))
         .verifyComplete();
 
     verify(taskService).submitTask(downloadMapGeneratorTask);
@@ -134,7 +128,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
   @Test
   public void testGenerateMapGeneratorPresent() throws Exception {
     StepVerifier.create(instance.generateMap(testMapNameGenerator))
-        .expectNext("neroxis_map_generator_2.0.0_123456789")
+                .expectNext(List.of("neroxis_map_generator_2.0.0_123456789"))
         .verifyComplete();
 
     verify(taskService).submitTask(generateMapTask);
@@ -168,7 +162,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
     ReflectionTestUtils.setField(instance, "defaultGeneratorVersion", versionGeneratorPresent);
     GeneratorOptions generatorOptions = GeneratorOptions.builder().build();
     StepVerifier.create(instance.generateMap(generatorOptions))
-        .expectNext("neroxis_map_generator_2.0.0_123456789")
+                .expectNext(List.of("neroxis_map_generator_2.0.0_123456789"))
         .verifyComplete();
 
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
@@ -204,6 +198,9 @@ public class MapGeneratorServiceTest extends ServiceTest {
     StepVerifier.create(instance.generateMultipleMapsWithResults(generatorOptions, 3, null))
                 .expectNextCount(1)
                 .verifyComplete();
+
+    verify(generateMapTask).setMapCount(3);
+    verify(generateMapTask).setSeed(null);
   }
 
   @Test

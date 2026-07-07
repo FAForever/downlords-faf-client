@@ -18,13 +18,18 @@ public record GeneratorCommand(
     Integer spawnCount,
     Integer numTeams,
     Integer mapSize,
-    String seed, Integer numToGenerate,
+    String seed,
+    Integer numToGenerate,
     GenerationType generationType,
     String symmetry,
     String style,
     String terrainStyle,
     String textureStyle,
-    String resourceStyle, String propStyle, Float reclaimDensity, Float resourceDensity, String commandLineArgs
+    String resourceStyle,
+    String propStyle,
+    Float reclaimDensity,
+    Float resourceDensity,
+    String commandLineArgs
 ) {
 
   public List<String> getCommand() {
