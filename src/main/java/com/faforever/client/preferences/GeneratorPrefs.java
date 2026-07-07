@@ -35,7 +35,7 @@ public class GeneratorPrefs {
   private final IntegerProperty reclaimDensityMax = new SimpleIntegerProperty(127);
   private final IntegerProperty resourceDensityMin = new SimpleIntegerProperty(0);
   private final IntegerProperty resourceDensityMax = new SimpleIntegerProperty(127);
-  private final IntegerProperty defaultMapCount = new SimpleIntegerProperty(3);
+  private final IntegerProperty mapCountGeneration = new SimpleIntegerProperty(3);
 
   public GenerationType getGenerationType() {
     return generationType.get();
@@ -213,20 +213,15 @@ public class GeneratorPrefs {
     this.resourceDensityMax.set(max);
   }
 
-  public int getDefaultMapCount() {
-    return defaultMapCount.get();
+  public int getMapCountGeneration() {
+    return mapCountGeneration.get();
   }
 
   public IntegerProperty defaultMapCount() {
-    return defaultMapCount;
+    return mapCountGeneration;
   }
 
-  public void setDefaultMapCount(int max) {
-    if (defaultMapCount.isBound()) {
-      log.warn(
-          "Cannot set defaultMapCount: property is bound to spinner. Call before initMapCountSpinner() or unbind first.");
-      return;
-    }
-    this.defaultMapCount.set(max);
+  public void setMapCountGeneration(int max) {
+    this.mapCountGeneration.set(max);
   }
 }
