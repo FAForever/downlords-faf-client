@@ -12,6 +12,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -31,8 +32,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Collection;
+import java.util.Objects;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -59,17 +60,42 @@ public class MapSelectionController extends NodeController<Pane> {
   @Setter
   private Runnable onCancelButtonClickedListener = () -> {};
 
+  private final ObservableMap<MapGenerationResult, VBox> mapCards = FXCollections.observableHashMap();
+
   @Override
   protected void onInitialize() {
     mapResults.addListener((ListChangeListener<? super MapGenerationResult>) _ -> updateMapDisplay());
+    selectedResult.addListener((observable, oldValue, newValue) -> {
+      // Update selection style when selectedResult changes
+      if (oldValue != null) {
+        VBox oldCard = mapCards.get(oldValue);
+        if (oldCard != null) {
+          oldCard.getStyleClass().remove("selected");
+        }
+      }
+      if (newValue != null) {
+        VBox newCard = mapCards.get(newValue);
+        if (newCard != null) {
+          newCard.getStyleClass().add("selected");
+        }
+      }
+    });
 
     okButton.disableProperty().bind(selectedResult.isNull());
   }
 
-  public void setMapResults(List<MapGenerationResult> results) {
-    selectedResult.set(null);
+  public void setMapResults(Collection<MapGenerationResult> results) {
+    setSelectedResult(null);
     mapResults.setAll(results);
     log.info("Setting {} map results for selection", results.size());
+  }
+
+  private void updateMapCardSelection(VBox card, MapGenerationResult result) {
+    if (Objects.equals(selectedResult.get(), result)) {
+      card.getStyleClass().add("selected");
+    } else {
+      card.getStyleClass().remove("selected");
+    }
   }
 
   private void updateMapDisplay() {
@@ -83,29 +109,24 @@ public class MapSelectionController extends NodeController<Pane> {
       return;
     }
 
-    AtomicInteger rowIndex = new AtomicInteger(0);
-    AtomicInteger columnIndex = new AtomicInteger(0);
+    int rowIndex = 0;
+    int columnIndex = 0;
     int maxColumns = 3;
 
     for (MapGenerationResult result : mapResults) {
-      VBox mapCard = createMapCard(result);
+      VBox mapCard = mapCards.computeIfAbsent(result, this::createMapCard);
 
-      if (columnIndex.get() >= maxColumns) {
-        columnIndex.set(0);
-        rowIndex.incrementAndGet();
+      if (columnIndex >= maxColumns) {
+        columnIndex = 0;
+        rowIndex++;
       }
 
-      mapsGrid.add(mapCard, columnIndex.get(), rowIndex.get());
-      columnIndex.incrementAndGet();
+      mapsGrid.add(mapCard, columnIndex, rowIndex);
+      columnIndex++;
 
       mapCard.setOnMouseClicked(event -> {
-        selectedResult.set(result);
-        updateMapDisplay();
+        setSelectedResult(result);
       });
-    }
-
-    if (columnIndex.get() > 0) {
-      rowIndex.incrementAndGet();
     }
 
     statusLabel.setText(i18n.get("game.generateMap.selection.description"));
@@ -128,10 +149,6 @@ public class MapSelectionController extends NodeController<Pane> {
     previewImageView.setOnMouseClicked(event -> onMapPreviewImageClicked(event, mapName));
 
     card.getChildren().add(previewImageView);
-
-    if (selectedResult.get() == result) {
-      card.getStyleClass().add("selected");
-    }
 
     Label mapNameLabel = new Label(result.mapName());
     mapNameLabel.getStyleClass().add("map-card-label");
@@ -188,6 +205,21 @@ public class MapSelectionController extends NodeController<Pane> {
 
   @VisibleForTesting
   void setSelectedResult(MapGenerationResult result) {
+    MapGenerationResult previousResult = selectedResult.get();
     selectedResult.set(result);
+
+    if (result != null) {
+      VBox card = mapCards.get(result);
+      if (card != null) {
+        updateMapCardSelection(card, result);
+      }
+    }
+
+    if (previousResult != null && previousResult != result) {
+      VBox previousCard = mapCards.get(previousResult);
+      if (previousCard != null) {
+        updateMapCardSelection(previousCard, previousResult);
+      }
+    }
   }
 }

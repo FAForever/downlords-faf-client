@@ -269,17 +269,16 @@ public class MapGeneratorService implements DisposableBean {
 
     log.debug("Starting multiple map generation with results: {} maps with seed {}", mapCount, seed);
 
-    return downloadGeneratorIfNecessary(defaultGeneratorVersion).then(Mono.defer(() -> {
-      GenerateMapTask task = generateMapTaskFactory.getObject();
-      Path generatorExecutablePath = getGeneratorExecutablePath(defaultGeneratorVersion);
-      task.setVersion(defaultGeneratorVersion);
-      task.setGeneratorExecutableFile(generatorExecutablePath);
-      task.setGeneratorOptions(baseOptions);
-      task.setMapCount(mapCount);
-      task.setSeed(seed);
+    GenerateMapTask task = generateMapTaskFactory.getObject();
+    Path generatorExecutablePath = getGeneratorExecutablePath(defaultGeneratorVersion);
+    task.setVersion(defaultGeneratorVersion);
+    task.setGeneratorExecutableFile(generatorExecutablePath);
+    task.setGeneratorOptions(baseOptions);
+    task.setMapCount(mapCount);
+    task.setSeed(seed);
 
-      return taskService.submitTask(task).getMono();
-    })).map(mapNames -> mapNames.stream().map(mapName -> {
+    return downloadGeneratorIfNecessary(defaultGeneratorVersion).then(
+        Mono.defer(() -> taskService.submitTask(task).getMono())).map(mapNames -> mapNames.stream().map(mapName -> {
       Path mapDirectory = forgedAlliancePrefs.getMapsDirectory().resolve(mapName);
       return new MapGenerationResult(mapName, baseOptions, mapDirectory, Optional.empty());
     }).collect(java.util.stream.Collectors.toList()));

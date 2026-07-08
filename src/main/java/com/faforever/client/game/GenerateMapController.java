@@ -46,12 +46,12 @@ import org.controlsfx.control.RangeSlider;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Mono;
 
 import java.security.InvalidParameterException;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
@@ -539,8 +539,8 @@ public class GenerateMapController extends NodeController<Pane> {
     seedTextField.setText(String.valueOf(new Random().nextLong()));
   }
 
-  private void showMapSelectionDialog(List<MapGenerationResult> results) {
-    if (CollectionUtils.isEmpty(results)) {
+  private void showMapSelectionDialog(Collection<MapGenerationResult> results) {
+    if (results.isEmpty()) {
       return;
     }
 
