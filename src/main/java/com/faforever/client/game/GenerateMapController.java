@@ -270,7 +270,7 @@ public class GenerateMapController extends NodeController<Pane> {
                                         .isNotEmpty()
                                         .or(commandLineArgsText.textProperty().isNotEmpty())
                                         .or(fixedSeedCheckBox.selectedProperty()));
-    generatorPrefs.defaultMapCount().bind(mapCountSpinner.valueProperty());
+    generatorPrefs.mapCountGeneration().bind(mapCountSpinner.valueProperty());
   }
 
   private void initSymmetryComboBox() {

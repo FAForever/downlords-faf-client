@@ -217,7 +217,7 @@ public class GeneratorPrefs {
     return mapCountGeneration.get();
   }
 
-  public IntegerProperty defaultMapCount() {
+  public IntegerProperty mapCountGeneration() {
     return mapCountGeneration;
   }
 
