@@ -8,7 +8,6 @@ import com.faforever.commons.api.dto.AvatarAssignment;
 import com.faforever.commons.api.dto.Player;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
-import com.faforever.commons.api.elide.ElideNavigatorOnId;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,17 +53,6 @@ public class AvatarService {
         .toFuture();
   }
 
-  public CompletableFuture<Avatar> getCurrentAvatar() {
-    String playerId = String.valueOf(playerService.getCurrentPlayer().getId());
-    ElideNavigatorOnId<Player> navigator = ElideNavigator.of(Player.class)
-        .id(playerId)
-        .addInclude("currentAvatar");
-    return fafApiAccessor.getOne(navigator)
-        .mapNotNull(Player::getCurrentAvatar)
-        .map(avatarMapper::map)
-        .toFuture();
-  }
-
   public void changeAvatar(Avatar avatar) {
     // We don't update the local player here: the API writes login.avatar_id, the lobby server consumes the
     // resulting event and broadcasts a player_info back to us, which refreshes the avatar authoritatively.
@@ -88,15 +76,15 @@ public class AvatarService {
 
   private void removeCurrentAvatar() {
     String playerId = String.valueOf(playerService.getCurrentPlayer().getId());
-    // The relationship DELETE must name the avatar to remove, so resolve the currently selected one first.
-    getCurrentAvatar().thenAccept(currentAvatar -> {
-      if (currentAvatar == null || currentAvatar.id() == null) {
-        return;
-      }
-      fafApiAccessor.deleteFromRelationship(ElideNavigator.of(Player.class).id(playerId)
-              .relationshipLink(com.faforever.commons.api.dto.Avatar.class, "currentAvatar"),
-              String.valueOf(currentAvatar.id()))
-          .subscribe(null, throwable -> log.error("Could not remove current avatar", throwable));
-    });
+    Avatar currentAvatar = playerService.getCurrentPlayer().getAvatar();
+
+    if (currentAvatar == null || currentAvatar.id() == null) {
+      return;
+    }
+
+    fafApiAccessor.deleteFromRelationship(ElideNavigator.of(Player.class).id(playerId)
+            .relationshipLink(com.faforever.commons.api.dto.Avatar.class, "currentAvatar"),
+            String.valueOf(currentAvatar.id()))
+        .subscribe(null, throwable -> log.error("Could not remove current avatar", throwable));
   }
 }
