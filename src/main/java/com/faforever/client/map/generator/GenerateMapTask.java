@@ -17,9 +17,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
@@ -99,10 +100,13 @@ public class GenerateMapTask extends CompletableTask<List<String>> {
                String.join(" ", processBuilder.command()));
 
       Process process = processBuilder.start();
-      List<String> allLogLines = new ArrayList<>();
+      Set<String> generatedMapNames = new HashSet<>();
       OsUtils.gobbleLines(process.getInputStream(), msg -> {
         generatorLogger.info(msg);
-        allLogLines.add(msg);
+        Matcher matcher = MapGeneratorService.GENERATED_MAP_PATTERN.matcher(msg);
+        if (matcher.find()) {
+          generatedMapNames.add(matcher.group());
+        }
       });
       OsUtils.gobbleLines(process.getErrorStream(), generatorLogger::error);
       process.waitFor(MapGeneratorService.GENERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -115,17 +119,8 @@ public class GenerateMapTask extends CompletableTask<List<String>> {
                                                           "game.mapGeneration.failed.message");
       }
 
-      // Extract all generated map names from log lines
-      List<String> generatedMapNames = allLogLines.stream()
-                                                  .map(MapGeneratorService.GENERATED_MAP_PATTERN::matcher)
-                                                  .filter(Matcher::find)
-                                                  .map(Matcher::group)
-                                                  .distinct()
-                                                  .toList();
-
       log.info("Successfully generated {} map(s): {}", generatedMapNames.size(), generatedMapNames);
-
-      return generatedMapNames;
+      return generatedMapNames.stream().toList();
     } catch (Exception e) {
       log.error("Could not start map generator", e);
       throw new RuntimeException(e);

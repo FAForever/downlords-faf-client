@@ -10,7 +10,6 @@ import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.Button;
@@ -64,23 +63,7 @@ public class MapSelectionController extends NodeController<Pane> {
 
   @Override
   protected void onInitialize() {
-    mapResults.addListener((ListChangeListener<? super MapGenerationResult>) _ -> updateMapDisplay());
-    selectedResult.addListener((observable, oldValue, newValue) -> {
-      // Update selection style when selectedResult changes
-      if (oldValue != null) {
-        VBox oldCard = mapCards.get(oldValue);
-        if (oldCard != null) {
-          oldCard.getStyleClass().remove("selected");
-        }
-      }
-      if (newValue != null) {
-        VBox newCard = mapCards.get(newValue);
-        if (newCard != null) {
-          newCard.getStyleClass().add("selected");
-        }
-      }
-    });
-
+    mapResults.subscribe(this::updateMapDisplay);
     okButton.disableProperty().bind(selectedResult.isNull());
   }
 
