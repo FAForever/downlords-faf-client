@@ -755,6 +755,28 @@
   -fx-scale-shape: true;
 }
 
+.user-code-caption {
+  -fx-text-fill: derive(-fx-light-text-color, -25%);
+  -fx-underline: true;
+}
+
+.copy-code-button {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+  -fx-padding: 0.25em;
+  -fx-cursor: hand;
+}
+
+.copy-code-button:hover .icon {
+  -fx-background-color: -fx-accent;
+}
+
+.user-code {
+  -fx-font-family: monospace;
+  -fx-font-size: 1.5em;
+  -fx-font-weight: bold;
+}
+
 .login-root .announcement {
   -fx-background-color: -warn-transparent;
   -fx-border-color: -warn;

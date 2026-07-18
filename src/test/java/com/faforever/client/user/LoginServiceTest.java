@@ -1,5 +1,6 @@
 package com.faforever.client.user;
 
+import com.faforever.client.api.DeviceCodeResponse;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.config.ClientProperties;
@@ -21,7 +22,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import reactor.test.publisher.TestPublisher;
 
-import java.net.URI;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,10 +37,11 @@ public class LoginServiceTest extends ServiceTest {
 
   private static final String BASE_URL = "https://example.com";
   private static final String CLIENT_ID = "test";
-  private static final URI REDIRECT_URI = URI.create("http://localhost");
   private static final String SCOPES = "scope";
-  public static final String STATE = "abc";
-  public static final String VERIFIER = "def";
+  private static final DeviceCodeResponse DEVICE_CODE = new DeviceCodeResponse("device", "USER-CODE",
+                                                                               "https://verify.faforever.com",
+                                                                               "https://verify.faforever.com?user_code=USER-CODE",
+                                                                               600, 5);
 
   @Spy
   private ClientProperties clientProperties;
@@ -80,12 +81,12 @@ public class LoginServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testGetHydraUrl() {
-    String url = instance.getHydraUrl(STATE, VERIFIER, REDIRECT_URI);
-    assertTrue(url.contains(BASE_URL));
-    assertTrue(url.contains(CLIENT_ID));
-    assertTrue(url.contains(REDIRECT_URI.toASCIIString()));
-    assertTrue(url.contains(SCOPES));
+  public void testStartDeviceLogin() {
+    when(tokenRetriever.initializeDeviceFlow()).thenReturn(Mono.just(DEVICE_CODE));
+
+    StepVerifier.create(instance.startDeviceLogin()).expectNext(DEVICE_CODE).verifyComplete();
+
+    verify(tokenRetriever).initializeDeviceFlow();
   }
 
   @Test
@@ -93,14 +94,14 @@ public class LoginServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
-    when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
+    when(tokenRetriever.loginWithDeviceCode(DEVICE_CODE)).thenReturn(Mono.empty());
 
-    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyComplete();
+    StepVerifier.create(instance.login(DEVICE_CODE)).verifyComplete();
 
     assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
     assertEquals(meResult.getUserName(), instance.getUsername());
     assertTrue(instance.isLoggedIn());
-    verify(tokenRetriever).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
+    verify(tokenRetriever).loginWithDeviceCode(DEVICE_CODE);
     verify(fafApiAccessor).getMe();
     verify(fafServerAccessor).connectAndLogIn();
   }
@@ -109,53 +110,53 @@ public class LoginServiceTest extends ServiceTest {
   public void testReLoginWhenConnected() throws Exception {
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
-    when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
+    when(tokenRetriever.loginWithDeviceCode(DEVICE_CODE)).thenReturn(Mono.empty());
 
-    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyComplete();
+    StepVerifier.create(instance.login(DEVICE_CODE)).verifyComplete();
 
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
 
-    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyComplete();
+    StepVerifier.create(instance.login(DEVICE_CODE)).verifyComplete();
 
     assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
     assertEquals(meResult.getUserName(), instance.getUsername());
     assertTrue(instance.isLoggedIn());
-    verify(tokenRetriever, times(2)).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
+    verify(tokenRetriever, times(2)).loginWithDeviceCode(DEVICE_CODE);
     verify(fafApiAccessor, times(2)).getMe();
     verify(fafServerAccessor, times(1)).connectAndLogIn();
   }
 
   @Test
-  public void testLoginHydraCodeError() throws Exception {
+  public void testLoginTokenError() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
     FakeTestException testException = new FakeTestException("failed");
-    when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.error(testException));
+    when(tokenRetriever.loginWithDeviceCode(DEVICE_CODE)).thenReturn(Mono.error(testException));
 
-    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyError();
+    StepVerifier.create(instance.login(DEVICE_CODE)).verifyError();
 
     assertNull(instance.getOwnUser());
     assertNull(instance.getOwnPlayer());
     assertFalse(instance.isLoggedIn());
-    verify(tokenRetriever).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
+    verify(tokenRetriever).loginWithDeviceCode(DEVICE_CODE);
   }
 
   @Test
   public void testLoginApiAuthorizeError() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
-    when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
+    when(tokenRetriever.loginWithDeviceCode(DEVICE_CODE)).thenReturn(Mono.empty());
     FakeTestException testException = new FakeTestException("failed");
     when(fafApiAccessor.getMe()).thenReturn(Mono.error(testException));
 
-    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyError();
+    StepVerifier.create(instance.login(DEVICE_CODE)).verifyError();
 
     assertNull(instance.getOwnUser());
     assertNull(instance.getOwnPlayer());
     assertFalse(instance.isLoggedIn());
     verify(fafApiAccessor).getMe();
     verify(fafServerAccessor).connectAndLogIn();
-    verify(tokenRetriever).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
+    verify(tokenRetriever).loginWithDeviceCode(DEVICE_CODE);
   }
 
   @Test
@@ -163,18 +164,18 @@ public class LoginServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
-    when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
+    when(tokenRetriever.loginWithDeviceCode(DEVICE_CODE)).thenReturn(Mono.empty());
     FakeTestException testException = new FakeTestException("failed");
     when(fafApiAccessor.getMe()).thenReturn(Mono.error(testException));
 
-    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyError();
+    StepVerifier.create(instance.login(DEVICE_CODE)).verifyError();
 
     assertNull(instance.getOwnUser());
     assertNull(instance.getOwnPlayer());
     assertFalse(instance.isLoggedIn());
     verify(fafApiAccessor).getMe();
     verify(fafServerAccessor).connectAndLogIn();
-    verify(tokenRetriever).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
+    verify(tokenRetriever).loginWithDeviceCode(DEVICE_CODE);
   }
 
   @Test
@@ -182,16 +183,16 @@ public class LoginServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
-    when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
+    when(tokenRetriever.loginWithDeviceCode(DEVICE_CODE)).thenReturn(Mono.empty());
     FakeTestException testException = new FakeTestException("failed");
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.error(testException));
 
-    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyError();
+    StepVerifier.create(instance.login(DEVICE_CODE)).verifyError();
 
     assertNull(instance.getOwnUser());
     assertNull(instance.getOwnPlayer());
     assertFalse(instance.isLoggedIn());
-    verify(tokenRetriever).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
+    verify(tokenRetriever).loginWithDeviceCode(DEVICE_CODE);
     verify(fafApiAccessor).getMe();
     verify(fafServerAccessor).connectAndLogIn();
   }
@@ -202,16 +203,16 @@ public class LoginServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(notMe));
-    when(tokenRetriever.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).thenReturn(Mono.empty());
+    when(tokenRetriever.loginWithDeviceCode(DEVICE_CODE)).thenReturn(Mono.empty());
     FakeTestException testException = new FakeTestException("failed");
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.error(testException));
 
-    StepVerifier.create(instance.login("abc", VERIFIER, REDIRECT_URI)).verifyError();
+    StepVerifier.create(instance.login(DEVICE_CODE)).verifyError();
 
     assertNull(instance.getOwnUser());
     assertNull(instance.getOwnPlayer());
     assertFalse(instance.isLoggedIn());
-    verify(tokenRetriever).loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI);
+    verify(tokenRetriever).loginWithDeviceCode(DEVICE_CODE);
     verify(fafApiAccessor).getMe();
     verify(fafServerAccessor).connectAndLogIn();
   }

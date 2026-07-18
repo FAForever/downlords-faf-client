@@ -4,8 +4,10 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -53,6 +55,38 @@
                         <Insets top="14.0"/>
                     </VBox.margin>
                 </Label>
+                <VBox fx:id="deviceCodePane" alignment="CENTER" maxWidth="500.0" spacing="10.0" visible="false">
+                    <children>
+                        <Label alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="hint"
+                               text="%login.device.instructions" textAlignment="CENTER" wrapText="true"/>
+                        <Hyperlink fx:id="verificationUriHyperlink" alignment="CENTER" focusTraversable="false"
+                                   maxWidth="1.7976931348623157E308" onAction="#onVerificationUriClicked"/>
+                        <VBox alignment="CENTER" spacing="2.0">
+                            <children>
+                                <Label text="%login.device.userCode" styleClass="user-code-caption"/>
+                                <HBox alignment="CENTER" spacing="8.0">
+                                    <children>
+                                        <Region fx:id="copyButtonSpacer"/>
+                                        <Label fx:id="userCodeLabel" styleClass="user-code"/>
+                                        <Button fx:id="copyCodeButton" focusTraversable="false"
+                                                styleClass="copy-code-button"
+                                                onAction="#onCopyUserCodeButtonClicked">
+                                            <graphic>
+                                                <Region styleClass="icon, icon16x16, copy-icon"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="%login.device.copyCode"/>
+                                            </tooltip>
+                                        </Button>
+                                    </children>
+                                </HBox>
+                            </children>
+                        </VBox>
+                    </children>
+                    <VBox.margin>
+                        <Insets top="20.0"/>
+                    </VBox.margin>
+                </VBox>
             </children>
         </VBox>
         <Pane maxHeight="1.7976931348623157E308" minHeight="0.0" VBox.vgrow="ALWAYS"/>

@@ -1,12 +1,12 @@
 package com.faforever.client.login;
 
 import com.faforever.client.builders.ClientConfigurationBuilder;
+import com.faforever.client.api.DeviceCodeResponse;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.login.OAuthValuesReceiver.Values;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsPosix;
@@ -40,7 +40,6 @@ import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
 
 import java.net.SocketTimeoutException;
-import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -59,8 +58,10 @@ import static org.mockito.Mockito.when;
 
 public class LoginControllerTest extends PlatformTest {
 
-  public static final String CODE = "asda";
-  private static final URI REDIRECT_URI = URI.create("http://localhost");
+  private static final DeviceCodeResponse DEVICE_CODE = new DeviceCodeResponse("device", "USER-CODE",
+                                                                               "https://verify.faforever.com",
+                                                                               "https://verify.faforever.com?user_code=USER-CODE",
+                                                                               600, 5);
 
   @InjectMocks
   private LoginController instance;
@@ -82,8 +83,6 @@ public class LoginControllerTest extends PlatformTest {
   private I18n i18n;
   @Mock
   private ClientUpdateService clientUpdateService;
-  @Mock
-  private OAuthValuesReceiver oAuthValuesReceiver;
 
   @Spy
   private ClientProperties clientProperties;
@@ -114,57 +113,43 @@ public class LoginControllerTest extends PlatformTest {
 
   @Test
   public void testLoginSucceeds() throws Exception {
-    when(loginService.login(anyString(), anyString(), any())).thenReturn(Mono.empty());
-    when(oAuthValuesReceiver.receiveValues(anyString(), anyString())).thenAnswer(
-        invocation -> CompletableFuture.completedFuture(new Values(CODE, invocation.getArgument(0), REDIRECT_URI)));
+    when(loginService.startDeviceLogin()).thenReturn(Mono.just(DEVICE_CODE));
+    when(loginService.login(DEVICE_CODE)).thenReturn(Mono.empty());
 
     instance.onLoginButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(oAuthValuesReceiver).receiveValues(anyString(), anyString());
-    verify(loginService).login(eq(CODE), anyString(), eq(REDIRECT_URI));
+    verify(loginService).startDeviceLogin();
+    verify(loginService).login(DEVICE_CODE);
+    verify(platformService).showDocument(DEVICE_CODE.verificationUriComplete());
+    assertThat(instance.userCodeLabel.getText(), is(DEVICE_CODE.userCode()));
+    assertThat(instance.verificationUriHyperlink.getText(), is(DEVICE_CODE.verificationUri()));
     assertTrue(instance.loginProgressPane.isVisible());
     assertFalse(instance.loginFormPane.isVisible());
   }
 
   @Test
-  public void testLoginFailsWrongState() throws Exception {
-    String wrongState = "a";
-
-    when(oAuthValuesReceiver.receiveValues(anyString(), anyString()))
-        .thenReturn(CompletableFuture.completedFuture(new Values(CODE, wrongState, REDIRECT_URI)));
-
-    instance.onLoginButtonClicked();
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(oAuthValuesReceiver).receiveValues(anyString(), anyString());
-    verify(loginService, never()).login(anyString(), anyString(), any());
-    verify(notificationService).addImmediateErrorNotification(any(IllegalStateException.class), eq("login.failed"));
-  }
-
-  @Test
   public void testLoginFails() throws Exception {
-    when(loginService.login(eq(CODE), anyString(), eq(REDIRECT_URI))).thenReturn(Mono.error(new FakeTestException()));
-    when(oAuthValuesReceiver.receiveValues(anyString(), anyString())).thenAnswer(
-        invocation -> CompletableFuture.completedFuture(new Values(CODE, invocation.getArgument(0), REDIRECT_URI)));
+    when(loginService.startDeviceLogin()).thenReturn(Mono.just(DEVICE_CODE));
+    when(loginService.login(DEVICE_CODE)).thenReturn(Mono.error(new FakeTestException()));
 
     instance.onLoginButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(loginService).login(eq(CODE), anyString(), eq(REDIRECT_URI));
+    verify(loginService).login(DEVICE_CODE);
     verify(notificationService).addImmediateErrorNotification(any(), eq("login.failed"));
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
   }
 
   @Test
-  public void testLoginFailsNoPorts() throws Exception {
-    when(oAuthValuesReceiver.receiveValues(anyString(), anyString()))
-        .thenReturn(CompletableFuture.failedFuture(new IllegalStateException("")));
+  public void testLoginFailsToStart() throws Exception {
+    when(loginService.startDeviceLogin()).thenReturn(Mono.error(new IllegalStateException("")));
 
     instance.onLoginButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
+    verify(loginService, never()).login(any());
     verify(notificationService).addImmediateErrorNotification(any(), eq("login.failed"));
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
@@ -172,8 +157,7 @@ public class LoginControllerTest extends PlatformTest {
 
   @Test
   public void testLoginFailsKnownError() throws Exception {
-    when(oAuthValuesReceiver.receiveValues(anyString(), anyString()))
-        .thenReturn(CompletableFuture.failedFuture(new KnownLoginErrorException("", "login.known")));
+    when(loginService.startDeviceLogin()).thenReturn(Mono.error(new KnownLoginErrorException("", "login.known")));
 
     instance.onLoginButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
@@ -185,8 +169,7 @@ public class LoginControllerTest extends PlatformTest {
 
   @Test
   public void testLoginFailsTimeout() throws Exception {
-    when(oAuthValuesReceiver.receiveValues(anyString(), anyString()))
-        .thenReturn(CompletableFuture.failedFuture(new SocketTimeoutException()));
+    when(loginService.startDeviceLogin()).thenReturn(Mono.error(new SocketTimeoutException()));
 
     instance.onLoginButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
@@ -198,8 +181,7 @@ public class LoginControllerTest extends PlatformTest {
 
   @Test
   public void testLoginFailsTimeoutAlreadyLoggedIn() throws Exception {
-    when(oAuthValuesReceiver.receiveValues(anyString(), anyString()))
-        .thenReturn(CompletableFuture.failedFuture(new SocketTimeoutException()));
+    when(loginService.startDeviceLogin()).thenReturn(Mono.error(new SocketTimeoutException()));
     when(loginService.getOwnUser()).thenReturn(new MeResult());
     when(loginService.getOwnPlayer()).thenReturn(new Player(0, "junit", null, null, "US", Map.of(), Map.of(), null));
 
@@ -334,7 +316,7 @@ public class LoginControllerTest extends PlatformTest {
     verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
     verify(i18n).get("login.clientTooOldError", "1.2.0", "2.1.2");
     verify(loginService, never()).loginWithRefreshToken();
-    verify(loginService, never()).login(anyString(), anyString(), any());
+    verify(loginService, never()).login(any());
   }
 
   @ParameterizedTest
@@ -375,7 +357,7 @@ public class LoginControllerTest extends PlatformTest {
     verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
     verify(i18n).get("login.clientTooOldError", "1.2.0", "2.1.2");
     verify(loginService, never()).loginWithRefreshToken();
-    verify(loginService, never()).login(anyString(), anyString(), any());
+    verify(loginService, never()).login(any());
   }
 
   @Test
