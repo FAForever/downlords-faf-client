@@ -363,6 +363,7 @@ public class ThemeService implements InitializingBean, DisposableBean {
           getThemeFile("theme/colors.css"),
           getThemeFile("theme/icons.css"),
           getSceneStyleSheet(),
+          getThemeFile("theme/play/generate_map_selection.css"),
           getThemeFile("theme/style_extension.css")
       };
     } catch (IOException e) {

@@ -384,9 +384,9 @@ public class MapService implements InitializingBean, DisposableBean {
     return Bindings.createBooleanBinding(() -> isInstalled(mapFolderName), installedMaps);
   }
 
-  public Mono<String> generateIfNotInstalled(String mapName) {
+  public Mono<List<String>> generateIfNotInstalled(String mapName) {
     if (isInstalled(mapName)) {
-      return Mono.just(mapName);
+      return Mono.just(List.of(mapName));
     }
     return mapGeneratorService.generateMap(mapName);
   }
