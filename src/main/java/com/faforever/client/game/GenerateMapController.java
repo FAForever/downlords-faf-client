@@ -51,9 +51,9 @@ import reactor.core.publisher.Mono;
 import java.security.InvalidParameterException;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.SequencedCollection;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -539,8 +539,13 @@ public class GenerateMapController extends NodeController<Pane> {
     seedTextField.setText(String.valueOf(new Random().nextLong()));
   }
 
-  private void showMapSelectionDialog(Collection<MapGenerationResult> results) {
+  private void showMapSelectionDialog(SequencedCollection<MapGenerationResult> results) {
     if (results.isEmpty()) {
+      return;
+    }
+
+    if (results.size() == 1) {
+      mapGenerationSelected.accept(results.getFirst());
       return;
     }
 

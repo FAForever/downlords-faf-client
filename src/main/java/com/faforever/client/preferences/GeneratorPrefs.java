@@ -35,7 +35,7 @@ public class GeneratorPrefs {
   private final IntegerProperty reclaimDensityMax = new SimpleIntegerProperty(127);
   private final IntegerProperty resourceDensityMin = new SimpleIntegerProperty(0);
   private final IntegerProperty resourceDensityMax = new SimpleIntegerProperty(127);
-  private final IntegerProperty mapCountGeneration = new SimpleIntegerProperty(3);
+  private final IntegerProperty mapCountGeneration = new SimpleIntegerProperty(1);
 
   public GenerationType getGenerationType() {
     return generationType.get();
