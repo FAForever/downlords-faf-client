@@ -113,7 +113,6 @@ public class GamesTableController extends NodeController<Node> {
     gamesTable.setItems(sortedList);
 
     applyLastSorting(gamesTable);
-    fxApplicationThreadExecutor.runLater(gamesTable::sort);
     gamesTable.setOnSort(this::onColumnSorted);
 
     passwordProtectionColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty().when(showing));
@@ -198,6 +197,7 @@ public class GamesTableController extends NodeController<Node> {
         sortOrder.add(gameTableColumn);
       }
     });
+    fxApplicationThreadExecutor.runLater(gamesTable::sort);
   }
 
   private void onColumnSorted(@NotNull SortEvent<TableView<GameInfo>> event) {
