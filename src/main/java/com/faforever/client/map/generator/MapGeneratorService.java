@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.security.InvalidParameterException;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -106,7 +107,7 @@ public class MapGeneratorService implements DisposableBean {
                            .switchIfEmpty(Mono.error(new RuntimeException("No valid generator version found")));
   }
 
-  public Mono<String> generateMap(String mapName) {
+  public Mono<List<String>> generateMap(String mapName) {
     Matcher matcher = GENERATED_MAP_PATTERN.matcher(mapName);
     if (!matcher.find()) {
       return Mono.error(new InvalidParameterException("Map name is not a generated map"));
@@ -127,7 +128,7 @@ public class MapGeneratorService implements DisposableBean {
     return downloadGeneratorFuture.then(Mono.defer(() -> taskService.submitTask(generateMapTask).getMono()));
   }
 
-  public Mono<String> generateMap(GeneratorOptions generatorOptions) {
+  public Mono<List<String>> generateMap(GeneratorOptions generatorOptions) {
     Path generatorExecutablePath = getGeneratorExecutablePath(defaultGeneratorVersion);
 
     Mono<Void> downloadGeneratorFuture = downloadGeneratorIfNecessary(defaultGeneratorVersion);
@@ -244,4 +245,43 @@ public class MapGeneratorService implements DisposableBean {
   public boolean isGeneratedMap(String mapName) {
     return GENERATED_MAP_PATTERN.matcher(mapName).matches();
   }
+
+  /**
+   * Generates multiple maps using GenerateMapTask.
+   * This method properly handles multiple map generation and extracts all generated map names from the generator log.
+   * Uses only the first seed, as the generator handles all seeds internally via --num-to-generate.
+   * 
+   * @param baseOptions the base options for map generation (same for all maps)
+   * @param mapCount the number of maps to generate
+   * @param seed the seed to use (only first seed, generator handles all seeds internally)
+   * @return Mono emitting a list of MapGenerationResult objects
+   */
+  public Mono<List<MapGenerationResult>> generateMultipleMapsWithResults(
+      GeneratorOptions baseOptions, 
+      int mapCount, Long seed
+  ) {
+    if (baseOptions == null) {
+      return Mono.error(new IllegalStateException("baseOptions must not be null"));
+    }
+    if (mapCount <= 0) {
+      return Mono.error(new IllegalArgumentException("mapCount must be positive"));
+    }
+
+    log.debug("Starting multiple map generation with results: {} maps with seed {}", mapCount, seed);
+
+    GenerateMapTask task = generateMapTaskFactory.getObject();
+    Path generatorExecutablePath = getGeneratorExecutablePath(defaultGeneratorVersion);
+    task.setVersion(defaultGeneratorVersion);
+    task.setGeneratorExecutableFile(generatorExecutablePath);
+    task.setGeneratorOptions(baseOptions);
+    task.setMapCount(mapCount);
+    task.setSeed(seed);
+
+    return downloadGeneratorIfNecessary(defaultGeneratorVersion).then(
+        Mono.defer(() -> taskService.submitTask(task).getMono())).map(mapNames -> mapNames.stream().map(mapName -> {
+      Path mapDirectory = forgedAlliancePrefs.getMapsDirectory().resolve(mapName);
+      return new MapGenerationResult(mapName, baseOptions, mapDirectory, Optional.empty());
+    }).collect(java.util.stream.Collectors.toList()));
+  }
+
 }

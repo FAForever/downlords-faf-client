@@ -226,7 +226,17 @@ public class GeneratorCommandTest extends ServiceTest {
 
   @Test
   public void testCommandLineRemovesArgs() {
+    // With commandLineArgs, only command line args and numToGenerate are added
+    // Other parameters (style, seed, symmetry, etc.) are ignored
     List<String> command = maximumArgsBuilder().commandLineArgs("--test").build().getCommand();
+
+    // commandLineArgs is added
+    assertTrue(command.contains("--test"));
+
+    // numToGenerate is not set, so it should not be added
+    assertFalse(command.contains("--num-to-generate"));
+
+    // Other parameters are ignored when commandLineArgs is set
     assertFalse(command.contains("--terrain-style"));
     assertFalse(command.contains("--texture-style"));
     assertFalse(command.contains("--resource-style"));
@@ -284,6 +294,45 @@ public class GeneratorCommandTest extends ServiceTest {
         .getCommand();
     assertEquals(command, List.of(JAVA_PATH.toAbsolutePath().toString(), "-jar", Path.of("mapGenerator_0.1.5.jar").toAbsolutePath().toString(),
         ".", "0", "0.1.5", "neroxis_map_generator_0.1.5_0"));
+  }
+
+  @Test
+  public void testNumToGenerate() {
+    List<String> command = defaultBuilder().version(new ComparableVersion("1.0.0"))
+                                           .numToGenerate(3)
+                                           .build()
+                                           .getCommand();
+    assertTrue(command.contains("--num-to-generate"));
+    assertTrue(command.contains("3"));
+  }
+
+  @Test
+  public void testNumToGenerateWithGeneratorOptions() {
+    GeneratorOptions generatorOptions = GeneratorOptions.builder()
+                                                        .spawnCount(6)
+                                                        .numTeams(2)
+                                                        .mapSize(512)
+                                                        .seed("100")
+                                                        .generationType(GenerationType.CASUAL)
+                                                        .build();
+
+    List<String> command = GeneratorCommand.builder()
+                                           .javaExecutable(JAVA_PATH)
+                                           .generatorExecutableFile(Path.of("mapGenerator_1.0.0.jar"))
+                                           .version(new ComparableVersion("1.0.0"))
+                                           .generatorOptions(generatorOptions)
+                                           .numToGenerate(3).spawnCount(6).numTeams(2).mapSize(512)
+                                           .build()
+                                           .getCommand();
+
+    assertTrue(command.contains("--num-to-generate"));
+    assertTrue(command.contains("3"));
+    assertTrue(command.contains("--map-size"));
+    assertTrue(command.contains("512"));
+    assertTrue(command.contains("--spawn-count"));
+    assertTrue(command.contains("6"));
+    assertTrue(command.contains("--num-teams"));
+    assertTrue(command.contains("2"));
   }
 
 }

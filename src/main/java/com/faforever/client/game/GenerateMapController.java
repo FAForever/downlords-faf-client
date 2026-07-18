@@ -1,16 +1,20 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.fx.ToStringOnlyConverter;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.GenerationType;
 import com.faforever.client.map.generator.GeneratorOptions;
+import com.faforever.client.map.generator.MapGenerationResult;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.map.generator.OutdatedVersionException;
 import com.faforever.client.map.generator.UnsupportedVersionException;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.GeneratorPrefs;
+import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.dialog.Dialog;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
@@ -25,14 +29,18 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory;
+import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
 import javafx.scene.control.SpinnerValueFactory.ListSpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.RangeSlider;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -45,6 +53,8 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Random;
+import java.util.SequencedCollection;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -61,8 +71,10 @@ public class GenerateMapController extends NodeController<Pane> {
   private final MapGeneratorService mapGeneratorService;
   private final I18n i18n;
   private final GeneratorPrefs generatorPrefs;
+  private final UiService uiService;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
-  public Pane generateMapRoot;
+  public StackPane generateMapRoot;
   public Button generateMapButton;
   public TextField previousMapName;
   public Label commandLineLabel;
@@ -83,7 +95,14 @@ public class GenerateMapController extends NodeController<Pane> {
   public RangeSlider reclaimDensitySlider;
   public RangeSlider resourcesDensitySlider;
 
-  private Runnable onCloseButtonClickedListener;
+  public Spinner<Integer> mapCountSpinner;
+  public Label progressLabel;
+
+  @Setter
+  private Runnable onCloseButtonClickedListener = () -> {};
+  @Setter
+  private Consumer<MapGenerationResult> mapGenerationSelected = (_) -> {};
+
   private final ObservableList<Integer> validTeamSizes = FXCollections.observableList(
       IntStream.range(0, 17).filter(value -> value != 1).boxed().collect(Collectors.toList()));
   private final FilteredList<Integer> selectableTeamSizes = new FilteredList<>(validTeamSizes);
@@ -110,6 +129,7 @@ public class GenerateMapController extends NodeController<Pane> {
     initNumTeamsSpinner();
     initSpawnCountSpinner();
     initMapSizeSpinner();
+    initMapCountSpinner();
     initSeedField();
 
     bindCheckComboBoxTitle(terrainCheckComboBox, biomeCheckComboBox, resourcesCheckComboBox, propsCheckComboBox,
@@ -242,6 +262,17 @@ public class GenerateMapController extends NodeController<Pane> {
                       previousMapName.textProperty().isNotEmpty().or(commandLineArgsText.textProperty().isNotEmpty()));
   }
 
+  private void initMapCountSpinner() {
+    int defaultMapCount = generatorPrefs.getMapCountGeneration();
+    mapCountSpinner.setValueFactory(new IntegerSpinnerValueFactory(1, 50, defaultMapCount));
+    mapCountSpinner.disableProperty()
+                   .bind(previousMapName.textProperty()
+                                        .isNotEmpty()
+                                        .or(commandLineArgsText.textProperty().isNotEmpty())
+                                        .or(fixedSeedCheckBox.selectedProperty()));
+    generatorPrefs.mapCountGeneration().bind(mapCountSpinner.valueProperty());
+  }
+
   private void initSymmetryComboBox() {
     symmetryCheckComboBox.disableProperty().bind(disableCustomization);
   }
@@ -356,9 +387,7 @@ public class GenerateMapController extends NodeController<Pane> {
   }
 
   public void onCloseButtonClicked() {
-    if (onCloseButtonClickedListener != null) {
-      onCloseButtonClickedListener.run();
-    }
+    onCloseButtonClickedListener.run();
   }
 
   public void onGenerateMapButtonClicked() {
@@ -366,20 +395,38 @@ public class GenerateMapController extends NodeController<Pane> {
   }
 
   public void onGenerateMap() {
-    Mono<String> generateFuture;
-    if (!previousMapName.getText().isEmpty()) {
-      if (!mapGeneratorService.isGeneratedMap(previousMapName.getText())) {
-        log.warn(String.format("Invalid Generated Map Name %s", previousMapName.getText()));
+    progressLabel.setVisible(true);
+
+    String mapName = previousMapName.getText();
+    if (StringUtils.isNotEmpty(mapName)) {
+      if (!mapGeneratorService.isGeneratedMap(mapName)) {
+        log.warn(String.format("Invalid Generated Map Name %s", mapName));
         notificationService.addImmediateWarnNotification("mapGenerator.invalidName");
+        progressLabel.setVisible(false);
         return;
       }
-      generateFuture = mapGeneratorService.generateMap(previousMapName.getText());
-    } else {
-      generateFuture = mapGeneratorService.generateMap(getGeneratorOptions());
-    }
+      Mono<List<String>> generateFuture = mapGeneratorService.generateMap(mapName);
 
-    generateFuture.subscribe(null, this::handleGenerationException);
-    onCloseButtonClicked();
+      generateFuture.doOnTerminate(() -> progressLabel.setVisible(false))
+                    .subscribe(_ -> onCloseButtonClicked(), this::handleGenerationException);
+    } else {
+      GeneratorOptions baseOptions = getGeneratorOptions();
+
+      Long seed = baseOptions.seed() != null ? Long.parseLong(baseOptions.seed()) : null;
+      int mapCount = baseOptions.seed() != null ? 1 : mapCountSpinner.getValue();
+      log.debug("Starting multiple map generation: {} maps", mapCount);
+
+      mapGeneratorService.generateMultipleMapsWithResults(baseOptions, mapCount, seed)
+                         .publishOn(fxApplicationThreadExecutor.asScheduler())
+                         .doOnTerminate(() -> progressLabel.setVisible(false))
+                         .subscribe(results -> {
+                           if (results.isEmpty()) {
+                             notificationService.addImmediateWarnNotification("game.generateMap.selection.noMaps");
+                             return;
+                           }
+                           showMapSelectionDialog(results);
+                         }, this::handleGenerationException);
+    }
   }
 
   private void handleGenerationException(Throwable e) {
@@ -488,12 +535,35 @@ public class GenerateMapController extends NodeController<Pane> {
     return generateMapRoot;
   }
 
-  void setOnCloseButtonClickedListener(Runnable onCloseButtonClickedListener) {
-    this.onCloseButtonClickedListener = onCloseButtonClickedListener;
-  }
-
   public void onSeedRerollButtonClicked() {
     seedTextField.setText(String.valueOf(new Random().nextLong()));
+  }
+
+  private void showMapSelectionDialog(SequencedCollection<MapGenerationResult> results) {
+    if (results.isEmpty()) {
+      return;
+    }
+
+    if (results.size() == 1) {
+      mapGenerationSelected.accept(results.getFirst());
+      return;
+    }
+
+    MapSelectionController selectionController = uiService.loadFxml("theme/play/generate_map_selection.fxml");
+    selectionController.setMapResults(results);
+
+    Dialog dialog = uiService.showInDialog(generateMapRoot, selectionController.getRoot(),
+                                           i18n.get("game.generateMap.selection.dialogTitle"));
+    
+    selectionController.setOnCancelButtonClickedListener(dialog::close);
+    
+    selectionController.setOnOkButtonClickedListener(() -> {
+      MapGenerationResult selectedMap = selectionController.getSelectedResult();
+      if (selectedMap != null) {
+        mapGenerationSelected.accept(selectedMap);
+      }
+      dialog.close();
+    });
   }
 
   private class LessMoreStringConverter extends ToStringOnlyConverter<Number> {

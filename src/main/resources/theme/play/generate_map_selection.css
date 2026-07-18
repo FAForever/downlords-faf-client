@@ -1,0 +1,24 @@
+/**
+ * Styles for generate_map_selection.fxml - Map selection dialog for multiple map generation.
+ */
+.map-card {
+    -fx-padding: 10;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}
+
+.map-card.selected {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+}
+
+.map-card-label {
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-wrap-text: true;
+    -fx-max-width: 200px;
+}
+
+.no-maps-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #888888;
+}

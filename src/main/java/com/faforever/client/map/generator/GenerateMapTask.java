@@ -17,8 +17,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
@@ -26,7 +28,7 @@ import java.util.regex.Matcher;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Setter
-public class GenerateMapTask extends CompletableTask<String> {
+public class GenerateMapTask extends CompletableTask<List<String>> {
   private static final Logger generatorLogger = LoggerFactory.getLogger("faf-map-generator");
 
   private final NotificationService notificationService;
@@ -38,6 +40,8 @@ public class GenerateMapTask extends CompletableTask<String> {
   private ComparableVersion version;
   private GeneratorOptions generatorOptions;
   private String mapName;
+  private int mapCount;
+  private Long seed;
 
   @Autowired
   public GenerateMapTask(NotificationService notificationService, I18n i18n, OperatingSystem operatingSystem,
@@ -50,7 +54,7 @@ public class GenerateMapTask extends CompletableTask<String> {
   }
 
   @Override
-  protected String call() throws Exception {
+  protected List<String> call() throws Exception {
     Objects.requireNonNull(version, "Version hasn't been set.");
 
     updateTitle(i18n.get("game.mapGeneration.generateMap.title", version));
@@ -61,7 +65,10 @@ public class GenerateMapTask extends CompletableTask<String> {
                                                                                            generatorExecutableFile)
                                                                                        .javaExecutable(
                                                                                            operatingSystem.getJavaExecutablePath())
-                                                                                       .mapName(mapName);
+                                                                                       .mapName(mapName)
+                                                                                       .numToGenerate(mapCount)
+                                                                                       .seed(
+                                                                                           seed != null ? seed.toString() : null);
 
     if (generatorOptions != null) {
       generatorCommandBuilder.spawnCount(generatorOptions.spawnCount())
@@ -93,13 +100,12 @@ public class GenerateMapTask extends CompletableTask<String> {
                String.join(" ", processBuilder.command()));
 
       Process process = processBuilder.start();
+      Set<String> generatedMapNames = new HashSet<>();
       OsUtils.gobbleLines(process.getInputStream(), msg -> {
         generatorLogger.info(msg);
-        if (mapName == null || mapName.isBlank()) {
-          Matcher mapNameMatcher = MapGeneratorService.GENERATED_MAP_PATTERN.matcher(msg);
-          if (mapNameMatcher.find()) {
-            mapName = mapNameMatcher.group();
-          }
+        Matcher matcher = MapGeneratorService.GENERATED_MAP_PATTERN.matcher(msg);
+        if (matcher.find()) {
+          generatedMapNames.add(matcher.group());
         }
       });
       OsUtils.gobbleLines(process.getErrorStream(), generatorLogger::error);
@@ -112,11 +118,12 @@ public class GenerateMapTask extends CompletableTask<String> {
         notificationService.addImmediateErrorNotification(new RuntimeException("Map generation timed out"),
                                                           "game.mapGeneration.failed.message");
       }
+
+      log.info("Successfully generated {} map(s): {}", generatedMapNames.size(), generatedMapNames);
+      return generatedMapNames.stream().toList();
     } catch (Exception e) {
       log.error("Could not start map generator", e);
       throw new RuntimeException(e);
     }
-
-    return mapName;
   }
 }
