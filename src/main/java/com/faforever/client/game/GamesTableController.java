@@ -197,6 +197,7 @@ public class GamesTableController extends NodeController<Node> {
         sortOrder.add(gameTableColumn);
       }
     });
+    fxApplicationThreadExecutor.runLater(gamesTable::sort);
   }
 
   private void onColumnSorted(@NotNull SortEvent<TableView<GameInfo>> event) {
