@@ -24,7 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -465,11 +468,14 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
+    when(mapGeneratorService.generateMultipleMapsWithResults(any(GeneratorOptions.class), anyInt(),
+                                                             anyLong())).thenReturn(Mono.just(List.of()));
+
     ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    verify(mapGeneratorService).generateMap(captor.capture());
+    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), anyLong());
 
     GeneratorOptions result = captor.getValue();
 
@@ -494,11 +500,14 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
+    when(mapGeneratorService.generateMultipleMapsWithResults(any(GeneratorOptions.class), anyInt(),
+                                                             isNull())).thenReturn(Mono.just(List.of()));
+
     ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    verify(mapGeneratorService).generateMap(captor.capture());
+    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), isNull());
 
     GeneratorOptions result = captor.getValue();
 
@@ -511,11 +520,14 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
+    when(mapGeneratorService.generateMultipleMapsWithResults(any(GeneratorOptions.class), anyInt(),
+                                                             isNull())).thenReturn(Mono.just(List.of()));
+
     ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    verify(mapGeneratorService).generateMap(captor.capture());
+    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), isNull());
 
     GeneratorOptions result = captor.getValue();
 
@@ -536,11 +548,14 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
+    when(mapGeneratorService.generateMultipleMapsWithResults(any(GeneratorOptions.class), anyInt(),
+                                                             isNull())).thenReturn(Mono.just(List.of()));
+
     ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    verify(mapGeneratorService).generateMap(captor.capture());
+    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), isNull());
 
     GeneratorOptions result = captor.getValue();
     assertNull(result.resourceStyle());
@@ -559,11 +574,14 @@ public class GenerateMapControllerTest extends PlatformTest {
 
     runOnFxThreadAndWait(() -> reinitialize(instance));
 
+    when(mapGeneratorService.generateMultipleMapsWithResults(any(GeneratorOptions.class), anyInt(),
+                                                             isNull())).thenReturn(Mono.just(List.of()));
+
     ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
 
     runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    verify(mapGeneratorService).generateMap(captor.capture());
+    verify(mapGeneratorService).generateMultipleMapsWithResults(captor.capture(), anyInt(), isNull());
 
     GeneratorOptions result = captor.getValue();
     assertNull(result.propStyle());
@@ -586,4 +604,3 @@ public class GenerateMapControllerTest extends PlatformTest {
     assertTrue(instance.resourcesDensitySlider.isDisabled());
   }
 }
-

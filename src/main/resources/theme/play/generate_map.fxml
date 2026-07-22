@@ -5,6 +5,7 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TextField?>
@@ -13,116 +14,133 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
 <?import org.controlsfx.control.CheckComboBox?>
 <?import org.controlsfx.control.RangeSlider?>
-<GridPane fx:id="generateMapRoot" hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/17.0.2-ea"
-          xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GenerateMapController">
-    <columnConstraints>
-        <ColumnConstraints hgrow="SOMETIMES" maxWidth="200.0" minWidth="10.0" prefWidth="200.0"/>
-        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
-    </columnConstraints>
-    <rowConstraints>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
-    </rowConstraints>
-    <padding>
-        <Insets left="20.0" right="20.0"/>
-    </padding>
-    <Label onMouseClicked="#onNewLabelClicked" styleClass="game-generate-map-heading"
-           text="%game.generateMap.generateNew" GridPane.columnSpan="2"/>
-    <Label fx:id="commandLineLabel" text="%game.generateMap.commandLine" visible="false" GridPane.columnIndex="0"
-           GridPane.rowIndex="1"/>
-    <TextField fx:id="commandLineArgsText" maxHeight="Infinity" visible="false" GridPane.columnIndex="1"
+<StackPane fx:id="generateMapRoot" xmlns="http://javafx.com/javafx/17.0.2-ea"
+           xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GenerateMapController">
+    <GridPane hgap="10.0" vgap="10.0">
+        <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="200.0" minWidth="10.0" prefWidth="200.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+            <RowConstraints minHeight="10.0" vgrow="NEVER"/>
+        </rowConstraints>
+        <padding>
+            <Insets left="20.0" right="20.0"/>
+        </padding>
+        <Label onMouseClicked="#onNewLabelClicked" styleClass="game-generate-map-heading"
+               text="%game.generateMap.generateNew" GridPane.columnSpan="2"/>
+        <Label fx:id="commandLineLabel" text="%game.generateMap.commandLine" visible="false" GridPane.columnIndex="0"
                GridPane.rowIndex="1"/>
-    <Label text="%game.create.spawnCount" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-    <Spinner fx:id="spawnCountSpinner" maxHeight="Infinity" style="-fx-pref-width: 7.5em" GridPane.columnIndex="1"
-             GridPane.rowIndex="2">
-    </Spinner>
-    <Label text="%game.create.numTeams" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-    <Spinner fx:id="numTeamsSpinner" maxHeight="Infinity" style="-fx-pref-width: 7.5em" GridPane.columnIndex="1"
-             GridPane.rowIndex="3">
-    </Spinner>
-    <Label text="%game.create.mapSize" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
-    <Spinner fx:id="mapSizeSpinner" maxHeight="Infinity" style="-fx-pref-width: 7.5em" GridPane.columnIndex="1"
-             GridPane.rowIndex="4">
-    </Spinner>
-    <Label text="%game.generateMap.generationType" GridPane.rowIndex="5"/>
-    <ComboBox fx:id="generationTypeComboBox" maxHeight="Infinity" prefWidth="150.0" GridPane.columnIndex="1"
-              GridPane.rowIndex="5">
-        <tooltip>
-            <Tooltip text="%game.create.generationType"/>
-        </tooltip>
-    </ComboBox>
-    <Label text="%game.generateMap.symmetry" GridPane.rowIndex="6"/>
-    <CheckComboBox fx:id="symmetryCheckComboBox" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
-    <Label text="%game.generateMap.seed" GridPane.rowIndex="7"/>
-    <HBox spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="7">
-        <children>
-            <HBox alignment="CENTER_LEFT" prefWidth="30.0">
-                <children>
-                    <CheckBox fx:id="fixedSeedCheckBox" mnemonicParsing="false"/>
-                </children>
-            </HBox>
-            <TextField fx:id="seedTextField" prefWidth="170.0" promptText="seed"/>
-            <Button fx:id="seedRerollButton" onAction="#onSeedRerollButtonClicked" mnemonicParsing="false"
-                    text="%game.generateMap.reroll"/>
-        </children>
-    </HBox>
-    <Label text="%game.generateMap.style" GridPane.rowIndex="8"/>
-    <CheckComboBox fx:id="mapStyleCheckComboBox" maxHeight="Infinity" prefWidth="190.0" GridPane.columnIndex="1"
-                   GridPane.rowIndex="8"/>
-    <Label text="%game.generateMap.custom" GridPane.rowIndex="9"/>
-    <CheckBox fx:id="customStyleCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="9"/>
-    <Label text="%game.generateMap.terrain" GridPane.rowIndex="10"/>
-    <CheckComboBox fx:id="terrainCheckComboBox" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="10"/>
-    <Label text="%game.generateMap.biome" GridPane.columnIndex="0" GridPane.rowIndex="11"/>
-    <CheckComboBox fx:id="biomeCheckComboBox" maxHeight="Infinity" prefWidth="190.0" GridPane.columnIndex="1"
-                   GridPane.rowIndex="11"/>
-    <Label text="%game.generateMap.resources" GridPane.rowIndex="12"/>
-    <CheckComboBox fx:id="resourcesCheckComboBox" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="12"/>
-    <Label text="%game.generateMap.resource.density" GridPane.rowIndex="13"/>
-    <RangeSlider fx:id="resourcesDensitySlider" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="13"
-                 min="0" max="127" snapToTicks="true" showTickLabels="true"/>
-    <Label text="%game.generateMap.props" GridPane.rowIndex="14"/>
-    <CheckComboBox fx:id="propsCheckComboBox" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="14"/>
-    <Label text="%game.generateMap.reclaim.density" GridPane.rowIndex="15"/>
-    <RangeSlider fx:id="reclaimDensitySlider" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="15" min="0"
-                 max="127" snapToTicks="true" showTickLabels="true"/>
-    <Separator GridPane.columnSpan="2" GridPane.rowIndex="16"/>
-    <Label styleClass="h2" text="%game.generateMap.recreate" GridPane.columnSpan="2" GridPane.rowIndex="17"/>
-    <Label text="%game.generateMap.generatedName" GridPane.rowIndex="18"/>
-    <TextField fx:id="previousMapName" maxHeight="Infinity"
-               promptText="neroxis_map_generator_(version)_(seed)_(options)" style="-fx-pref-width: 5em"
-               GridPane.columnIndex="1" GridPane.rowIndex="18">
-        <tooltip>
-            <Tooltip text="%game.generateMap.nameCaution"/>
-        </tooltip>
-    </TextField>
+        <TextField fx:id="commandLineArgsText" maxHeight="Infinity" visible="false" GridPane.columnIndex="1"
+                   GridPane.rowIndex="1"/>
+        <Label text="%game.create.spawnCount" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <Spinner fx:id="spawnCountSpinner" maxHeight="Infinity" style="-fx-pref-width: 7.5em" GridPane.columnIndex="1"
+                 GridPane.rowIndex="2">
+        </Spinner>
+        <Label text="%game.create.numTeams" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <Spinner fx:id="numTeamsSpinner" maxHeight="Infinity" style="-fx-pref-width: 7.5em" GridPane.columnIndex="1"
+                 GridPane.rowIndex="3">
+        </Spinner>
+        <Label text="%game.create.mapSize" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+        <Spinner fx:id="mapSizeSpinner" maxHeight="Infinity" style="-fx-pref-width: 7.5em" GridPane.columnIndex="1"
+                 GridPane.rowIndex="4">
+        </Spinner>
+        <Label text="%game.generateMap.generationType" GridPane.rowIndex="5"/>
+        <ComboBox fx:id="generationTypeComboBox" maxHeight="Infinity" prefWidth="150.0" GridPane.columnIndex="1"
+                  GridPane.rowIndex="5">
+            <tooltip>
+                <Tooltip text="%game.create.generationType"/>
+            </tooltip>
+        </ComboBox>
+        <Label text="%game.generateMap.symmetry" GridPane.rowIndex="6"/>
+        <CheckComboBox fx:id="symmetryCheckComboBox" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+        <Label text="%game.generateMap.seed" GridPane.rowIndex="7"/>
+        <HBox spacing="10.0" GridPane.columnIndex="1" GridPane.rowIndex="7">
+            <children>
+                <HBox alignment="CENTER_LEFT" prefWidth="30.0">
+                    <children>
+                        <CheckBox fx:id="fixedSeedCheckBox" mnemonicParsing="false"/>
+                    </children>
+                </HBox>
+                <TextField fx:id="seedTextField" prefWidth="170.0" promptText="%game.generateMap.seedPrompt"/>
+                <Button fx:id="seedRerollButton" onAction="#onSeedRerollButtonClicked" mnemonicParsing="false"
+                        text="%game.generateMap.reroll"/>
+            </children>
+        </HBox>
+        <Label text="%game.generateMap.style" GridPane.rowIndex="8"/>
+        <CheckComboBox fx:id="mapStyleCheckComboBox" maxHeight="Infinity" prefWidth="190.0" GridPane.columnIndex="1"
+                       GridPane.rowIndex="8"/>
+        <Label text="%game.generateMap.custom" GridPane.rowIndex="9"/>
+        <CheckBox fx:id="customStyleCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="9"/>
+        <Label text="%game.generateMap.terrain" GridPane.rowIndex="10"/>
+        <CheckComboBox fx:id="terrainCheckComboBox" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="10"/>
+        <Label text="%game.generateMap.biome" GridPane.columnIndex="0" GridPane.rowIndex="11"/>
+        <CheckComboBox fx:id="biomeCheckComboBox" maxHeight="Infinity" prefWidth="190.0" GridPane.columnIndex="1"
+                       GridPane.rowIndex="11"/>
+        <Label text="%game.generateMap.resources" GridPane.rowIndex="12"/>
+        <CheckComboBox fx:id="resourcesCheckComboBox" prefWidth="190.0" GridPane.columnIndex="1"
+                       GridPane.rowIndex="12"/>
+        <Label text="%game.generateMap.resource.density" GridPane.rowIndex="13"/>
+        <RangeSlider fx:id="resourcesDensitySlider" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="13"
+                     min="0" max="127" snapToTicks="true" showTickLabels="true"/>
+        <Label text="%game.generateMap.props" GridPane.rowIndex="14"/>
+        <CheckComboBox fx:id="propsCheckComboBox" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="14"/>
+        <Label text="%game.generateMap.reclaim.density" GridPane.rowIndex="15"/>
+        <RangeSlider fx:id="reclaimDensitySlider" prefWidth="190.0" GridPane.columnIndex="1" GridPane.rowIndex="15"
+                     min="0"
+                     max="127" snapToTicks="true" showTickLabels="true"/>
+        <Label text="%game.generateMap.mapCount" GridPane.rowIndex="16"/>
+        <Spinner fx:id="mapCountSpinner" maxHeight="Infinity" style="-fx-pref-width: 7.5em" GridPane.columnIndex="1"
+                 GridPane.rowIndex="16">
+        </Spinner>
+        <Separator GridPane.columnSpan="2" GridPane.rowIndex="18"/>
+        <Label styleClass="h2" text="%game.generateMap.recreate" GridPane.columnSpan="2" GridPane.rowIndex="19"/>
+        <Label text="%game.generateMap.generatedName" GridPane.rowIndex="20"/>
+        <TextField fx:id="previousMapName" maxHeight="Infinity"
+                   promptText="neroxis_map_generator_(version)_(seed)_(options)" style="-fx-pref-width: 5em"
+                   GridPane.columnIndex="1" GridPane.rowIndex="20">
+            <tooltip>
+                <Tooltip text="%game.generateMap.nameCaution"/>
+            </tooltip>
+        </TextField>
 
+        <!-- Cancel, Ok -->
+        <Button mnemonicParsing="false" onAction="#onCloseButtonClicked" text="%cancel" GridPane.columnIndex="0"
+                GridPane.halignment="LEFT" GridPane.rowIndex="23">
+        </Button>
 
-    <Button fx:id="generateMapButton" contentDisplay="RIGHT" defaultButton="true" mnemonicParsing="false"
-            onAction="#onGenerateMapButtonClicked" styleClass="game-generate-map" text="%game.generateMap"
-            GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="19">
-    </Button>
+        <Button fx:id="generateMapButton" contentDisplay="RIGHT" defaultButton="true" mnemonicParsing="false"
+                onAction="#onGenerateMapButtonClicked" text="%game.generateMap"
+                GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="23">
+        </Button>
 
-    <!-- Cancel, Ok -->
-    <Button mnemonicParsing="false" onAction="#onCloseButtonClicked" text="%cancel" GridPane.columnIndex="0"
-            GridPane.halignment="LEFT" GridPane.rowIndex="19">
-    </Button>
-</GridPane>
+        <Label fx:id="progressLabel" visible="false" GridPane.columnIndex="1" GridPane.rowIndex="23">
+            <graphic>
+                <ProgressIndicator maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                                   prefHeight="20.0"/>
+            </graphic>
+        </Label>
+
+    </GridPane>
+</StackPane>

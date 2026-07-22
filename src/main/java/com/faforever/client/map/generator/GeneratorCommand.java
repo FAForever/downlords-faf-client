@@ -19,13 +19,16 @@ public record GeneratorCommand(
     Integer numTeams,
     Integer mapSize,
     String seed,
+    Integer numToGenerate,
     GenerationType generationType,
     String symmetry,
     String style,
     String terrainStyle,
     String textureStyle,
     String resourceStyle,
-    String propStyle, Float reclaimDensity, Float resourceDensity,
+    String propStyle,
+    Float reclaimDensity,
+    Float resourceDensity,
     String commandLineArgs
 ) {
 
@@ -54,6 +57,10 @@ public record GeneratorCommand(
       command.addAll(
           Arrays.asList("--map-size", mapSize.toString(), "--spawn-count", spawnCount.toString(), "--num-teams",
                         numTeams.toString()));
+
+      if (numToGenerate != null && numToGenerate > 1) {
+        command.addAll(Arrays.asList("--num-to-generate", String.valueOf(numToGenerate)));
+      }
 
       if (generationType != null && generationType != GenerationType.CASUAL) {
         switch (generationType) {

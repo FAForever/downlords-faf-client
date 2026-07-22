@@ -322,8 +322,8 @@ dependencies {
     }
     implementation("org.fxmisc.flowless:flowless:0.7.4")
 
-    implementation("org.javassist:javassist:3.31.0-GA")
-    implementation("org.checkerframework:checker-qual:4.2.0")
+    implementation("org.javassist:javassist:3.32.0-GA")
+    implementation("org.checkerframework:checker-qual:4.2.1")
 
     implementation("io.github.sheikah45.fx2j:fx2j-api:0.1.0")
     implementation("com.install4j:install4j-runtime:11.0.1")
