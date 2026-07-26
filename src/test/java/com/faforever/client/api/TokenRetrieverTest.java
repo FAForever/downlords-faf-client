@@ -98,7 +98,7 @@ public class TokenRetrieverTest extends ServiceTest {
       assertEquals("https://verify.faforever.com", response.verificationUri());
       assertEquals("https://verify.faforever.com?user_code=USER-CODE", response.verificationUriComplete());
       assertEquals(600, response.expiresIn());
-      assertEquals(5, response.intervalOrDefault());
+      assertEquals(5, response.interval());
     }).verifyComplete();
 
     Map<String, String> requestParams = takeRequestParams();
@@ -122,7 +122,7 @@ public class TokenRetrieverTest extends ServiceTest {
   @Test
   public void testLoginWithDeviceCodePolls() throws Exception {
     DeviceCodeResponse deviceCode = new DeviceCodeResponse("device", "USER-CODE", "https://verify.faforever.com",
-                                                           "https://verify.faforever.com?user_code=USER-CODE", 600, 0);
+                                                           "https://verify.faforever.com?user_code=USER-CODE", 600, 1);
     prepareDeviceErrorResponse("authorization_pending");
     prepareDeviceErrorResponse("slow_down");
     prepareTokenResponse(Map.of(ACCESS_TOKEN, "test", REFRESH_TOKEN, "refresh", EXPIRES_IN, "90", TOKEN_TYPE, "bearer"));

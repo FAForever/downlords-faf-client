@@ -59,7 +59,7 @@
                     <children>
                         <Label alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="hint"
                                text="%login.device.instructions" textAlignment="CENTER" wrapText="true"/>
-                        <Hyperlink fx:id="verificationUriHyperlink" alignment="CENTER" focusTraversable="false"
+                        <Hyperlink fx:id="verificationUriHyperlink" alignment="CENTER"
                                    maxWidth="1.7976931348623157E308" onAction="#onVerificationUriClicked"/>
                         <VBox alignment="CENTER" spacing="2.0">
                             <children>
@@ -68,7 +68,7 @@
                                     <children>
                                         <Region fx:id="copyButtonSpacer"/>
                                         <Label fx:id="userCodeLabel" styleClass="user-code"/>
-                                        <Button fx:id="copyCodeButton" focusTraversable="false"
+                                        <Button fx:id="copyCodeButton"
                                                 styleClass="copy-code-button"
                                                 onAction="#onCopyUserCodeButtonClicked">
                                             <graphic>

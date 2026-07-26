@@ -29,6 +29,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -147,14 +149,15 @@ public class LoginServiceTest extends ServiceTest {
     when(fafServerAccessor.connectAndLogIn()).thenReturn(Mono.just(me));
     when(tokenRetriever.loginWithDeviceCode(DEVICE_CODE)).thenReturn(Mono.empty());
     FakeTestException testException = new FakeTestException("failed");
-    when(fafApiAccessor.getMe()).thenReturn(Mono.error(testException));
+    doThrow(testException).when(fafApiAccessor).authorize();
 
     StepVerifier.create(instance.login(DEVICE_CODE)).verifyError();
 
     assertNull(instance.getOwnUser());
     assertNull(instance.getOwnPlayer());
     assertFalse(instance.isLoggedIn());
-    verify(fafApiAccessor).getMe();
+    verify(fafApiAccessor).authorize();
+    verify(fafApiAccessor, never()).getMe();
     verify(fafServerAccessor).connectAndLogIn();
     verify(tokenRetriever).loginWithDeviceCode(DEVICE_CODE);
   }

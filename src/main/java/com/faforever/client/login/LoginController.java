@@ -262,11 +262,21 @@ public class LoginController extends NodeController<Pane> {
 
     showLoginProgress();
 
-    loginFuture = loginService.startDeviceLogin().toFuture().thenCompose(deviceCode -> {
-      fxApplicationThreadExecutor.execute(() -> showDeviceCode(deviceCode));
-      platformService.showDocument(deviceCode.verificationUriComplete());
-      return loginService.login(deviceCode).toFuture();
-    }).exceptionally(throwable -> onLoginFailed(ConcurrentUtil.unwrapIfCompletionException(throwable)));
+    loginFuture = loginService.startDeviceLogin()
+        .toFuture()
+        .thenApplyAsync(deviceCode -> {
+          showDeviceCode(deviceCode);
+          return deviceCode;
+        }, fxApplicationThreadExecutor)
+        .thenComposeAsync(deviceCode -> {
+          try {
+            platformService.showDocument(deviceCode.verificationUriComplete());
+          } catch (RuntimeException e) {
+            log.warn("Could not open the device authorization page; displaying the fallback UI", e);
+          }
+          return loginService.login(deviceCode).toFuture();
+        })
+        .exceptionally(throwable -> onLoginFailed(ConcurrentUtil.unwrapIfCompletionException(throwable)));
   }
 
   public void onCopyUserCodeButtonClicked() {

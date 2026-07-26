@@ -105,7 +105,7 @@ public class TokenRetriever implements InitializingBean {
 
                              return response.bodyToMono(DeviceCodeResponse.class);
                            })
-                           .doOnSubscribe(subscription -> log.debug("Initializing device authorization flow"));
+                           .doOnSubscribe(_ -> log.debug("Initializing device authorization flow"));
   }
 
   /**
@@ -120,19 +120,22 @@ public class TokenRetriever implements InitializingBean {
     map.add("client_id", oauth.getClientId());
     map.add("grant_type", "urn:ietf:params:oauth:grant-type:device_code");
 
-    AtomicInteger intervalSeconds = new AtomicInteger(deviceCode.intervalOrDefault());
+    AtomicInteger intervalSeconds = new AtomicInteger(deviceCode.interval());
 
-    return Mono.defer(() -> pollDeviceToken(map))
+    return Mono.delay(Duration.ofSeconds(intervalSeconds.get()))
+               .then(Mono.defer(() -> pollDeviceToken(map)))
                .retryWhen(Retry.from(signals -> signals.concatMap(signal -> {
                  Throwable failure = signal.failure();
-                 if (failure instanceof SlowDownException) {
-                   int newInterval = intervalSeconds.addAndGet(5);
-                   return Mono.delay(Duration.ofSeconds(newInterval));
-                 }
-                 if (failure instanceof AuthorizationPendingException) {
-                   return Mono.delay(Duration.ofSeconds(intervalSeconds.get()));
-                 }
-                 return Mono.error(failure);
+
+                 return switch (failure) {
+                   case SlowDownException _ -> {
+                     int newInterval = intervalSeconds.addAndGet(5);
+                     yield Mono.delay(Duration.ofSeconds(newInterval));
+                   }
+                   case AuthorizationPendingException _ ->
+                       Mono.delay(Duration.ofSeconds(intervalSeconds.get()));
+                   default -> Mono.<Long>error(failure);
+                 };
                })))
                .timeout(Duration.ofSeconds(deviceCode.expiresIn()))
                .then();
@@ -179,7 +182,7 @@ public class TokenRetriever implements InitializingBean {
                           return response.body(OAuth2BodyExtractors.oauth2AccessTokenResponse());
                         })
                         .doOnSubscribe(_ -> log.debug("Retrieving OAuth token"));
-    return handleTokenResponse(responseMono);
+    return handleTokenResponse(responseMono, false);
   }
 
   /**
@@ -205,13 +208,18 @@ public class TokenRetriever implements InitializingBean {
                           return response.body(OAuth2BodyExtractors.oauth2AccessTokenResponse());
                         })
                         .doOnSubscribe(subscription -> log.debug("Polling for device authorization token"));
-    return handleTokenResponse(responseMono);
+    return handleTokenResponse(responseMono, true);
   }
 
-  private Mono<OAuth2AccessToken> handleTokenResponse(Mono<OAuth2AccessTokenResponse> responseMono) {
+  private Mono<OAuth2AccessToken> handleTokenResponse(
+      Mono<OAuth2AccessTokenResponse> responseMono,
+      boolean clearRefreshTokenWhenMissing
+  ) {
     return responseMono.doOnNext(tokenResponse -> {
                          OAuth2RefreshToken refreshToken = tokenResponse.getRefreshToken();
-                         refreshTokenValue.set(refreshToken != null ? refreshToken.getTokenValue() : null);
+                         if (refreshToken != null || clearRefreshTokenWhenMissing) {
+                           refreshTokenValue.set(refreshToken != null ? refreshToken.getTokenValue() : null);
+                         }
                        })
                        .map(OAuth2AccessTokenResponse::getAccessToken)
                        .doOnNext(token -> {
@@ -222,16 +230,14 @@ public class TokenRetriever implements InitializingBean {
 
   private Throwable mapDeviceError(OAuthError error) {
     String errorCode = error.error();
-    if (errorCode == null) {
-      return new TokenRetrievalException(error.errorDescription());
-    }
 
     return switch (errorCode) {
       case "authorization_pending" -> new AuthorizationPendingException();
       case "slow_down" -> new SlowDownException();
       case "access_denied" -> new KnownLoginErrorException("Device authorization was denied", "login.device.accessDenied");
       case "expired_token" -> new KnownLoginErrorException("Device code expired", "login.device.expired");
-      default -> new TokenRetrievalException(error.errorDescription() != null ? error.errorDescription() : errorCode);
+      case null, default ->
+          new TokenRetrievalException(error.errorDescription() != null ? error.errorDescription() : errorCode);
     };
   }
 
@@ -244,7 +250,6 @@ public class TokenRetriever implements InitializingBean {
     return invalidateFlux;
   }
 
-  @JsonIgnoreProperties(ignoreUnknown = true)
   private record OAuthError(@JsonProperty("error") String error,
                             @JsonProperty("error_description") String errorDescription) {}
 
