@@ -2,6 +2,7 @@ package com.faforever.client.api;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Oauth;
+import com.faforever.client.login.KnownLoginErrorException;
 import com.faforever.client.login.NoRefreshTokenException;
 import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.client.preferences.LoginPrefs;
@@ -15,7 +16,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.test.StepVerifier;
 
-import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -28,12 +28,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TokenRetrieverTest extends ServiceTest {
 
-  private static final String VERIFIER = "def";
-  private static final URI REDIRECT_URI = URI.create("http://localhost:123");
   private static final String ACCESS_TOKEN = "access_token";
   private static final String REFRESH_TOKEN = "refresh_token";
   private static final String EXPIRES_IN = "expires_in";
   private static final String TOKEN_TYPE = "token_type";
+  private static final DeviceCodeResponse DEVICE_CODE = new DeviceCodeResponse("device", "USER-CODE",
+                                                                               "https://verify.faforever.com",
+                                                                               "https://verify.faforever.com?user_code=USER-CODE",
+                                                                               600, 1);
   private TokenRetriever instance;
 
   private LoginPrefs loginPrefs;
@@ -65,30 +67,85 @@ public class TokenRetrieverTest extends ServiceTest {
     mockApi.enqueue(new MockResponse().setResponseCode(400).addHeader("Content-Type", MediaType.APPLICATION_JSON));
   }
 
+  private void prepareDeviceErrorResponse(String error) {
+    mockApi.enqueue(new MockResponse().setResponseCode(400)
+                                      .setBody(String.format("{\"error\":\"%s\"}", error))
+                                      .addHeader("Content-Type", MediaType.APPLICATION_JSON));
+  }
+
+  private Map<String, String> takeRequestParams() throws Exception {
+    String request = URLDecoder.decode(mockApi.takeRequest().getBody().readString(StandardCharsets.UTF_8),
+                                       StandardCharsets.UTF_8);
+    return Arrays.stream(request.split("&"))
+                 .map(param -> param.split("="))
+                 .map(keyValue -> Map.entry(keyValue[0], keyValue[1]))
+                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+  }
+
   @Test
-  public void testLoginWithCode() throws Exception {
+  public void testInitializeDeviceFlow() throws Exception {
+    oauth.setScopes("openid offline");
+    Map<String, Object> deviceProperties = Map.of("device_code", "device", "user_code", "USER-CODE",
+                                                  "verification_uri", "https://verify.faforever.com",
+                                                  "verification_uri_complete", "https://verify.faforever.com?user_code=USER-CODE",
+                                                  "expires_in", 600, "interval", 5);
+    mockApi.enqueue(new MockResponse().setBody(objectMapper.writeValueAsString(deviceProperties))
+                                      .addHeader("Content-Type", MediaType.APPLICATION_JSON));
+
+    StepVerifier.create(instance.initializeDeviceFlow()).assertNext(response -> {
+      assertEquals("device", response.deviceCode());
+      assertEquals("USER-CODE", response.userCode());
+      assertEquals("https://verify.faforever.com", response.verificationUri());
+      assertEquals("https://verify.faforever.com?user_code=USER-CODE", response.verificationUriComplete());
+      assertEquals(600, response.expiresIn());
+      assertEquals(5, response.interval());
+    }).verifyComplete();
+
+    Map<String, String> requestParams = takeRequestParams();
+    assertEquals(oauth.getClientId(), requestParams.get("client_id"));
+    assertEquals("openid offline", requestParams.get("scope"));
+  }
+
+  @Test
+  public void testLoginWithDeviceCode() throws Exception {
     Map<String, String> tokenProperties = Map.of(ACCESS_TOKEN, "test", REFRESH_TOKEN, "refresh", EXPIRES_IN, "90", TOKEN_TYPE, "bearer");
     prepareTokenResponse(tokenProperties);
-    StepVerifier verifier = StepVerifier.create(instance.invalidationFlux())
-                                        .expectNextCount(0)
-                                        .thenCancel()
-                                        .verifyLater();
 
-    StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).verifyComplete();
-    String request = URLDecoder.decode(mockApi.takeRequest()
-        .getBody()
-        .readString(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
+    StepVerifier.create(instance.loginWithDeviceCode(DEVICE_CODE)).verifyComplete();
 
-    Map<String, String> requestParams = Arrays.stream(request.split("&"))
-        .map(param -> param.split("="))
-        .map(keyValue -> Map.entry(keyValue[0], keyValue[1]))
-        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-
-    assertEquals("abc", requestParams.get("code"));
-    assertEquals("authorization_code", requestParams.get("grant_type"));
+    Map<String, String> requestParams = takeRequestParams();
+    assertEquals(DEVICE_CODE.deviceCode(), requestParams.get("device_code"));
+    assertEquals("urn:ietf:params:oauth:grant-type:device_code", requestParams.get("grant_type"));
     assertEquals(oauth.getClientId(), requestParams.get("client_id"));
-    assertEquals(REDIRECT_URI.toString(), requestParams.get("redirect_uri"));
-    verifier.verify(Duration.ofSeconds(1));
+  }
+
+  @Test
+  public void testLoginWithDeviceCodePolls() throws Exception {
+    DeviceCodeResponse deviceCode = new DeviceCodeResponse("device", "USER-CODE", "https://verify.faforever.com",
+                                                           "https://verify.faforever.com?user_code=USER-CODE", 600, 1);
+    prepareDeviceErrorResponse("authorization_pending");
+    prepareDeviceErrorResponse("slow_down");
+    prepareTokenResponse(Map.of(ACCESS_TOKEN, "test", REFRESH_TOKEN, "refresh", EXPIRES_IN, "90", TOKEN_TYPE, "bearer"));
+
+    StepVerifier.create(instance.loginWithDeviceCode(deviceCode))
+                .expectComplete()
+                .verify(Duration.ofSeconds(30));
+
+    assertEquals(3, mockApi.getRequestCount());
+  }
+
+  @Test
+  public void testLoginWithDeviceCodeDenied() {
+    prepareDeviceErrorResponse("access_denied");
+
+    StepVerifier.create(instance.loginWithDeviceCode(DEVICE_CODE)).verifyError(KnownLoginErrorException.class);
+  }
+
+  @Test
+  public void testLoginWithDeviceCodeExpired() {
+    prepareDeviceErrorResponse("expired_token");
+
+    StepVerifier.create(instance.loginWithDeviceCode(DEVICE_CODE)).verifyError(KnownLoginErrorException.class);
   }
 
   @Test
@@ -167,10 +224,9 @@ public class TokenRetrieverTest extends ServiceTest {
   }
 
   @Test
-  public void testTokenError() throws Exception {
-    prepareErrorResponse();
-    StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI))
-        .verifyError(TokenRetrievalException.class);
+  public void testTokenError() {
+    prepareDeviceErrorResponse("invalid_request");
+    StepVerifier.create(instance.loginWithDeviceCode(DEVICE_CODE)).verifyError(TokenRetrievalException.class);
   }
 
   @Test
@@ -179,7 +235,7 @@ public class TokenRetrieverTest extends ServiceTest {
     Map<String, String> tokenProperties = Map.of(EXPIRES_IN, "3600", REFRESH_TOKEN, "refresh", ACCESS_TOKEN, "test", TOKEN_TYPE, "bearer");
     prepareTokenResponse(tokenProperties);
 
-    StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI)).verifyComplete();
+    StepVerifier.create(instance.loginWithDeviceCode(DEVICE_CODE)).verifyComplete();
 
     assertEquals(tokenProperties.get(REFRESH_TOKEN), loginPrefs.getRefreshToken());
   }

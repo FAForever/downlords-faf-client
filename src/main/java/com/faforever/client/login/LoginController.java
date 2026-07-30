@@ -1,5 +1,6 @@
 package com.faforever.client.login;
 
+import com.faforever.client.api.DeviceCodeResponse;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.config.ClientProperties.User;
@@ -22,6 +23,7 @@ import com.faforever.client.update.DownloadUpdateTask;
 import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.LoginService;
+import com.faforever.client.util.ClipboardUtil;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.commons.lobby.LoginException;
 import com.google.common.annotations.VisibleForTesting;
@@ -29,23 +31,22 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
 
 import java.net.SocketTimeoutException;
-import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -63,7 +64,6 @@ public class LoginController extends NodeController<Pane> {
   private final I18n i18n;
   private final ClientUpdateService clientUpdateService;
   private final PlatformService platformService;
-  private final OAuthValuesReceiver oAuthValuesReceiver;
   private final LoginPrefs loginPrefs;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
@@ -72,6 +72,11 @@ public class LoginController extends NodeController<Pane> {
   public Pane loginFormPane;
   public Button loginButton;
   public Pane loginProgressPane;
+  public Pane deviceCodePane;
+  public Label userCodeLabel;
+  public Region copyButtonSpacer;
+  public Button copyCodeButton;
+  public Hyperlink verificationUriHyperlink;
   public ComboBox<ServerEndpoints> environmentComboBox;
   public Button downloadUpdateButton;
   public Button playOfflineButton;
@@ -90,11 +95,12 @@ public class LoginController extends NodeController<Pane> {
   CompletableFuture<UpdateInfo> updateInfoFuture;
   private CompletableFuture<Void> initializeFuture;
   private CompletableFuture<Void> loginFuture;
+  private String verificationUriComplete;
 
   @Override
   protected void onInitialize() {
     JavaFxUtil.bindManagedToVisible(downloadUpdateButton, loginErrorLabel, loginFormPane,
-        serverConfigPane, errorPane, loginProgressPane, messagesContainer, loginButton);
+        serverConfigPane, errorPane, loginProgressPane, deviceCodePane, messagesContainer, loginButton);
     updateInfoFuture = clientUpdateService.getNewestUpdate();
 
     messagesContainer.setVisible(false);
@@ -102,6 +108,9 @@ public class LoginController extends NodeController<Pane> {
     errorPane.setVisible(false);
     loginErrorLabel.setVisible(false);
     serverConfigPane.setVisible(false);
+    deviceCodePane.setVisible(false);
+    // Mirror the copy button's width on the left so the code stays centered under its caption.
+    copyButtonSpacer.prefWidthProperty().bind(copyCodeButton.widthProperty());
     rememberMeCheckBox.setSelected(loginPrefs.isRememberMe());
     loginPrefs.rememberMeProperty().bindBidirectional(rememberMeCheckBox.selectedProperty());
 
@@ -236,7 +245,6 @@ public class LoginController extends NodeController<Pane> {
 
   public void onLoginButtonClicked() {
     if (loginFuture != null && !loginFuture.isDone()) {
-      oAuthValuesReceiver.openBrowserToLogin();
       return;
     }
 
@@ -252,22 +260,40 @@ public class LoginController extends NodeController<Pane> {
     clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
     clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText());
 
-    String state = RandomStringUtils.secureStrong().nextAlphanumeric(64, 128);
-    String verifier = RandomStringUtils.secureStrong().nextAlphanumeric(64, 128);
+    showLoginProgress();
 
-    loginFuture = oAuthValuesReceiver.receiveValues(state, verifier).thenCompose(values -> {
-      platformService.focusWindow(i18n.get("login.title"));
-      String actualState = values.state();
-      if (!state.equals(actualState)) {
-        throw new IllegalStateException("State returned by the server does not match expected state");
-      }
-      return loginWithCode(values.code(), values.redirectUri(), verifier).toFuture();
-    }).exceptionally(throwable -> onLoginFailed(ConcurrentUtil.unwrapIfCompletionException(throwable)));
+    loginFuture = loginService.startDeviceLogin()
+        .toFuture()
+        .thenApplyAsync(deviceCode -> {
+          showDeviceCode(deviceCode);
+          return deviceCode;
+        }, fxApplicationThreadExecutor)
+        .thenComposeAsync(deviceCode -> {
+          try {
+            platformService.showDocument(deviceCode.verificationUriComplete());
+          } catch (RuntimeException e) {
+            log.warn("Could not open the device authorization page; displaying the fallback UI", e);
+          }
+          return loginService.login(deviceCode).toFuture();
+        })
+        .exceptionally(throwable -> onLoginFailed(ConcurrentUtil.unwrapIfCompletionException(throwable)));
   }
 
-  private Mono<Void> loginWithCode(String code, URI redirectUri, String codeVerifier) {
-    showLoginProgress();
-    return loginService.login(code, codeVerifier, redirectUri);
+  public void onCopyUserCodeButtonClicked() {
+    ClipboardUtil.copyToClipboard(userCodeLabel.getText());
+  }
+
+  public void onVerificationUriClicked() {
+    // Open the complete URI (with the embedded user code and challenge); the bare verification URI is only shown as
+    // readable link text but is rejected by the server without the flow parameters.
+    platformService.showDocument(verificationUriComplete);
+  }
+
+  private void showDeviceCode(DeviceCodeResponse deviceCode) {
+    userCodeLabel.setText(deviceCode.userCode());
+    verificationUriHyperlink.setText(deviceCode.verificationUri());
+    verificationUriComplete = deviceCode.verificationUriComplete();
+    deviceCodePane.setVisible(true);
   }
 
   private Void onLoginFailed(Throwable throwable) {
@@ -311,6 +337,7 @@ public class LoginController extends NodeController<Pane> {
     fxApplicationThreadExecutor.execute(() -> {
       loginFormPane.setVisible(true);
       loginProgressPane.setVisible(false);
+      deviceCodePane.setVisible(false);
       loginButton.setVisible(true);
     });
   }
@@ -319,6 +346,7 @@ public class LoginController extends NodeController<Pane> {
     fxApplicationThreadExecutor.execute(() -> {
       loginFormPane.setVisible(false);
       loginProgressPane.setVisible(true);
+      deviceCodePane.setVisible(false);
       loginButton.setVisible(false);
     });
   }

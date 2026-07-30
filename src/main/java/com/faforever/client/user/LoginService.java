@@ -1,16 +1,15 @@
 package com.faforever.client.user;
 
+import com.faforever.client.api.DeviceCodeResponse;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.config.ClientProperties.Oauth;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.commons.api.dto.MeResult;
 import com.faforever.commons.lobby.Player;
-import com.google.common.hash.Hashing;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -20,23 +19,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 import reactor.function.TupleUtils;
-
-import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Base64.Encoder;
 
 @Lazy
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class LoginService implements InitializingBean {
-
-  private static final Encoder BASE64_ENCODER = Base64.getUrlEncoder().withoutPadding();
 
   private final ReadOnlyBooleanWrapper loggedIn = new ReadOnlyBooleanWrapper(false);
   private final ReadOnlyObjectWrapper<MeResult> ownUser = new ReadOnlyObjectWrapper<>();
@@ -59,29 +49,14 @@ public class LoginService implements InitializingBean {
     }).doOnError(throwable -> log.error("Error invalidation", throwable)).retry().subscribe();
   }
 
-  public String getHydraUrl(String state, String codeVerifier, URI redirectUri) {
-    Oauth oauth = clientProperties.getOauth();
-    String scopes = URLEncoder.encode(oauth.getScopes(), StandardCharsets.UTF_8);
-    String codeChallenge = BASE64_ENCODER.encodeToString(Hashing.sha256()
-        .hashString(codeVerifier, StandardCharsets.US_ASCII)
-        .asBytes());
-
-    return UriComponentsBuilder.fromUriString(oauth.getBaseUrl())
-                               .path("/oauth2/auth")
-                               .queryParam("response_type", "code")
-                               .queryParam("client_id", oauth.getClientId())
-                               .queryParam("state", state)
-                               .queryParam("redirect_uri", redirectUri.toASCIIString())
-                               .queryParam("scope", scopes)
-                               .queryParam("code_challenge_method", "S256")
-                               .queryParam("code_challenge", codeChallenge)
-                               .build()
-                               .toUriString();
+  public Mono<DeviceCodeResponse> startDeviceLogin() {
+    log.info("Starting device authorization flow");
+    return tokenRetriever.initializeDeviceFlow();
   }
 
-  public Mono<Void> login(String code, String codeVerifier, URI redirectUri) {
-    log.info("Logging in with authorization code");
-    return tokenRetriever.loginWithAuthorizationCode(code, codeVerifier, redirectUri).then(loginToServices());
+  public Mono<Void> login(DeviceCodeResponse deviceCode) {
+    log.info("Logging in with device code");
+    return tokenRetriever.loginWithDeviceCode(deviceCode).then(loginToServices());
   }
 
   public Mono<Void> loginWithRefreshToken() {
