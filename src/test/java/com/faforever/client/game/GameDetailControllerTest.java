@@ -349,7 +349,7 @@ public class GameDetailControllerTest extends PlatformTest {
     GameInfo game = GameInfoBuilder.create().defaultValues().get();
     when(i18n.get("game.create.generatedMap")).thenReturn("text");
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(
-        succeed ? Mono.just(game.getMapFolderName()) : Mono.error(new RuntimeException("failed")));
+        succeed ? Mono.just(List.of(game.getMapFolderName())) : Mono.error(new RuntimeException("failed")));
 
     runOnFxThreadAndWait(() -> {
       instance.setGame(game);
@@ -372,7 +372,7 @@ public class GameDetailControllerTest extends PlatformTest {
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenAnswer(invocation -> {
       assertEquals(image, instance.mapImageView.getImage());
       runOnFxThreadAndWait(() -> instance.setGame(anotherGame));
-      return CompletableFuture.completedFuture(game.getMapFolderName());
+      return Mono.just(game.getMapFolderName());
     });
 
     runOnFxThreadAndWait(() -> {
