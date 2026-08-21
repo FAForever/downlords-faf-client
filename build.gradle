@@ -290,7 +290,7 @@ dependencies {
     }
     implementation("com.faforever.commons:api:${commonsVersion}")
     implementation("com.faforever.commons:lobby:${commonsVersion}")
-    implementation("com.google.guava:guava:33.6.0-jre")
+    implementation("com.google.guava:guava:33.7.1-jre")
     implementation("org.apache.commons:commons-compress:1.28.0")
     implementation("net.java.dev.jna:jna:5.19.1")
     implementation("net.java.dev.jna:jna-platform:5.19.1")
