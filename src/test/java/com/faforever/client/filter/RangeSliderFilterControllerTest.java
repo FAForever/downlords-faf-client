@@ -53,6 +53,20 @@ public class RangeSliderFilterControllerTest extends PlatformTest {
   }
 
   @Test
+  public void testFractionalSliderValuesAreTruncatedConsistently() {
+    runOnFxThreadAndWait(() -> {
+      instance.rangeSlider.setLowValue(-2.8);
+      instance.rangeSlider.setHighValue(8.8);
+      instance.root.getText();
+    });
+
+    assertEquals("-2", instance.lowValueTextField.getText());
+    assertEquals("8", instance.highValueTextField.getText());
+    assertEquals(Range.between(-2, 8), instance.valueProperty().getValue());
+    verify(i18n).get("filter.range", "text", -2, 8);
+  }
+
+  @Test
   public void testGetObservableValueWhenNoChange() {
     assertEquals(AbstractRangeSliderFilterController.NO_CHANGE, instance.valueProperty().getValue());
   }
