@@ -56,113 +56,112 @@
 
 #define MAX_GUARD_DEPTH 8
 
-static __thread jmp_buf   g_recoveryStack[MAX_GUARD_DEPTH];
-static __thread const char *g_guardSiteStack[MAX_GUARD_DEPTH];
-static __thread int       g_guardDepth = 0;
+/* One entry per currently-active guarded call on this thread. Grouping the
+ * recovery point with its site name (instead of two parallel arrays) makes
+ * "these belong to the same stack frame" the type itself, not a convention
+ * you have to remember to keep in sync. */
+typedef struct {
+    jmp_buf recoveryPoint;
+    const char *siteName;
+} GuardFrame;
+
+static __thread GuardFrame g_guardFrames[MAX_GUARD_DEPTH];
+static __thread int        g_activeGuardCount = 0;
 
 static void  *g_xactBase = NULL;
 static SIZE_T g_xactSize = 0;
 static PVOID  g_vehHandle = NULL;
 
-/* Shared "enter a guarded call" helper - every detour follows the exact
- * same shape, this just centralizes the depth/stack bookkeeping so the
- * three detours below only differ in the actual call + its argument list
- * (which C's lack of generics/variadic-safe function pointers means can't
- * be fully collapsed into one function). Returns 1 if the caller should
- * take the "call original directly, no protection" path (either because
- * of PASSTHROUGH strategy or the depth safety valve), 0 if it already
- * handled everything (CONTAIN path, including logging on recovery). */
+/* ---- +0x1D751: use-after-free / dangling-pointer teardown site ---- */
 
-/* ---- +0x1D751 hook (use-after-free / dangling-pointer teardown site) ---- */
+typedef void (__thiscall *TeardownFn)(void *this_);
+static TeardownFn s_realTeardownFn = NULL;
 
-typedef void (__thiscall *Fn_0041d751)(void *this_);
-static Fn_0041d751 fpOrig_0041d751 = NULL;
-
-static void __thiscall Detour_0041d751(void *this_)
+static void __thiscall TeardownDetour_0x1D751(void *this_)
 {
     if (g_flags.hook1D751 == STRAT_PASSTHROUGH) {
-        fpOrig_0041d751(this_);
+        s_realTeardownFn(this_);
         return;
     }
 
-    if (g_guardDepth >= MAX_GUARD_DEPTH) {
+    if (g_activeGuardCount >= MAX_GUARD_DEPTH) {
         ProxyLog("hook-1d751: guard stack full (depth=%d), calling through UNGUARDED, this=%p",
-                 g_guardDepth, this_);
-        fpOrig_0041d751(this_);
+                 g_activeGuardCount, this_);
+        s_realTeardownFn(this_);
         return;
     }
 
-    int depth = g_guardDepth++;
-    g_guardSiteStack[depth] = "1d751(UAF-teardown)";
+    int depth = g_activeGuardCount++;
+    g_guardFrames[depth].siteName = "1d751(UAF-teardown)";
 
-    if (setjmp(g_recoveryStack[depth]) == 0) {
-        fpOrig_0041d751(this_);
+    if (setjmp(g_guardFrames[depth].recoveryPoint) == 0) {
+        s_realTeardownFn(this_);
     } else {
         ProxyLog("hook-1d751: CONTAINED an access violation inside the teardown/UAF site "
                  "(this=%p, depth=%d) - one wave-bank cleanup call was skipped, game should continue",
                  this_, depth);
     }
 
-    g_guardDepth--;
+    g_activeGuardCount--;
 }
 
-/* ---- +0x1D212 hook (null pointer-chain hop, dominant repeat crash) ---- */
+/* ---- +0x1D212: null pointer-chain hop, dominant repeat crash ---- */
 
-typedef void (__thiscall *Fn_0041d212)(void *this_, unsigned char param1);
-static Fn_0041d212 fpOrig_0041d212 = NULL;
+typedef void (__thiscall *NullHopFn)(void *this_, unsigned char param1);
+static NullHopFn s_realNullHopFn = NULL;
 
-static void __thiscall Detour_0041d212(void *this_, unsigned char param1)
+static void __thiscall NullHopDetour_0x1D212(void *this_, unsigned char param1)
 {
     if (g_flags.hook1D212 == STRAT_PASSTHROUGH) {
-        fpOrig_0041d212(this_, param1);
+        s_realNullHopFn(this_, param1);
         return;
     }
 
-    if (g_guardDepth >= MAX_GUARD_DEPTH) {
+    if (g_activeGuardCount >= MAX_GUARD_DEPTH) {
         ProxyLog("hook-1d212: guard stack full (depth=%d), calling through UNGUARDED, this=%p param1=%u",
-                 g_guardDepth, this_, (unsigned)param1);
-        fpOrig_0041d212(this_, param1);
+                 g_activeGuardCount, this_, (unsigned)param1);
+        s_realNullHopFn(this_, param1);
         return;
     }
 
-    int depth = g_guardDepth++;
-    g_guardSiteStack[depth] = "1d212(null-hop)";
+    int depth = g_activeGuardCount++;
+    g_guardFrames[depth].siteName = "1d212(null-hop)";
 
-    if (setjmp(g_recoveryStack[depth]) == 0) {
-        fpOrig_0041d212(this_, param1);
+    if (setjmp(g_guardFrames[depth].recoveryPoint) == 0) {
+        s_realNullHopFn(this_, param1);
     } else {
         ProxyLog("hook-1d212: CONTAINED an access violation on the null-pointer-chain site "
                  "(this=%p, param1=%u, depth=%d) - that sound/cue lookup was skipped, game should continue",
                  this_, (unsigned)param1, depth);
     }
 
-    g_guardDepth--;
+    g_activeGuardCount--;
 }
 
-/* ---- +0x1DE46 hook (linked-list iterator invalidation, §2.7c) ---- */
+/* ---- +0x1DE46: linked-list iterator invalidation, §2.7c ---- */
 
-typedef void (__thiscall *Fn_0041de46)(void *this_);
-static Fn_0041de46 fpOrig_0041de46 = NULL;
+typedef void (__thiscall *ListWalkFn)(void *this_);
+static ListWalkFn s_realListWalkFn = NULL;
 
-static void __thiscall Detour_0041de46(void *this_)
+static void __thiscall ListWalkDetour_0x1DE46(void *this_)
 {
     if (g_flags.hook1DE46 == STRAT_PASSTHROUGH) {
-        fpOrig_0041de46(this_);
+        s_realListWalkFn(this_);
         return;
     }
 
-    if (g_guardDepth >= MAX_GUARD_DEPTH) {
+    if (g_activeGuardCount >= MAX_GUARD_DEPTH) {
         ProxyLog("hook-1de46: guard stack full (depth=%d), calling through UNGUARDED, this=%p",
-                 g_guardDepth, this_);
-        fpOrig_0041de46(this_);
+                 g_activeGuardCount, this_);
+        s_realListWalkFn(this_);
         return;
     }
 
-    int depth = g_guardDepth++;
-    g_guardSiteStack[depth] = "1de46(list-walk)";
+    int depth = g_activeGuardCount++;
+    g_guardFrames[depth].siteName = "1de46(list-walk)";
 
-    if (setjmp(g_recoveryStack[depth]) == 0) {
-        fpOrig_0041de46(this_);
+    if (setjmp(g_guardFrames[depth].recoveryPoint) == 0) {
+        s_realListWalkFn(this_);
     } else {
         /* A fault mid-walk means we abandon the rest of the list for this
          * call - the nodes already processed before the fault keep
@@ -174,31 +173,31 @@ static void __thiscall Detour_0041de46(void *this_)
                  this_, depth);
     }
 
-    g_guardDepth--;
+    g_activeGuardCount--;
 }
 
 /* ---- process-wide safety net ---- */
 
-static LONG WINAPI XactVeh(EXCEPTION_POINTERS *ep)
+static LONG WINAPI HandleXactAccessViolation(EXCEPTION_POINTERS *exceptionInfo)
 {
-    if (ep->ExceptionRecord->ExceptionCode != EXCEPTION_ACCESS_VIOLATION) {
+    if (exceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_ACCESS_VIOLATION) {
         return EXCEPTION_CONTINUE_SEARCH;
     }
 
-    void *faultAddr = (void *)(UINT_PTR)ep->ContextRecord->Eip;
+    void *faultAddr = (void *)(UINT_PTR)exceptionInfo->ContextRecord->Eip;
     BOOL inXactModule = g_xactBase &&
         (BYTE *)faultAddr >= (BYTE *)g_xactBase &&
         (BYTE *)faultAddr <  (BYTE *)g_xactBase + g_xactSize;
 
-    if (g_guardDepth > 0) {
+    if (g_activeGuardCount > 0) {
         /* We're inside one of our own guarded calls on THIS thread (TLS -
          * naturally scoped per-thread, so a fault on a different thread
          * can never mistakenly recover here even if that thread also has
          * a guard active). Recover at the innermost active guard. */
-        int depth = g_guardDepth - 1;
+        int depth = g_activeGuardCount - 1;
         ProxyLog("VEH: access violation at %p during guarded call [%s] (depth=%d) - recovering via longjmp",
-                 faultAddr, g_guardSiteStack[depth], depth);
-        longjmp(g_recoveryStack[depth], 1); /* does not return */
+                 faultAddr, g_guardFrames[depth].siteName, depth);
+        longjmp(g_guardFrames[depth].recoveryPoint, 1); /* does not return */
     }
 
     if (inXactModule) {
@@ -216,26 +215,28 @@ static LONG WINAPI XactVeh(EXCEPTION_POINTERS *ep)
                  "Esp=%08lx Ebp=%08lx Esi=%08lx Edi=%08lx - NOT contained, letting it crash "
                  "so this becomes a new hook candidate",
                  faultAddr, g_xactBase, (unsigned long)g_xactSize,
-                 ep->ContextRecord->Eax, ep->ContextRecord->Ecx, ep->ContextRecord->Edx, ep->ContextRecord->Ebx,
-                 ep->ContextRecord->Esp, ep->ContextRecord->Ebp, ep->ContextRecord->Esi, ep->ContextRecord->Edi);
+                 exceptionInfo->ContextRecord->Eax, exceptionInfo->ContextRecord->Ecx,
+                 exceptionInfo->ContextRecord->Edx, exceptionInfo->ContextRecord->Ebx,
+                 exceptionInfo->ContextRecord->Esp, exceptionInfo->ContextRecord->Ebp,
+                 exceptionInfo->ContextRecord->Esi, exceptionInfo->ContextRecord->Edi);
     }
 
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
-static void InstallOneHook(const char *name, void *target, void *detour, void **origOut, GuardStrategy strategy)
+static void InstallOneHook(const char *siteLabel, void *target, void *detour, void **originalFnOut, GuardStrategy strategy)
 {
     if (strategy == STRAT_DISABLED) {
-        ProxyLog("InstallXactGuards: %s DISABLED by config, not installing hook (target=%p)", name, target);
+        ProxyLog("InstallXactGuards: %s DISABLED by config, not installing hook (target=%p)", siteLabel, target);
         return;
     }
 
-    MH_STATUS st = MH_CreateHook(target, detour, origOut);
+    MH_STATUS hookStatus = MH_CreateHook(target, detour, originalFnOut);
     ProxyLog("InstallXactGuards: MH_CreateHook %s (target=%p, strategy=%s) -> %d",
-             name, target, strategy == STRAT_PASSTHROUGH ? "passthrough" : "contain", (int)st);
-    if (st == MH_OK) {
-        st = MH_EnableHook(target);
-        ProxyLog("InstallXactGuards: MH_EnableHook %s -> %d", name, (int)st);
+             siteLabel, target, strategy == STRAT_PASSTHROUGH ? "passthrough" : "contain", (int)hookStatus);
+    if (hookStatus == MH_OK) {
+        hookStatus = MH_EnableHook(target);
+        ProxyLog("InstallXactGuards: MH_EnableHook %s -> %d", siteLabel, (int)hookStatus);
     }
 }
 
@@ -243,10 +244,10 @@ void InstallXactGuards(HMODULE xactBase)
 {
     LoadXactFlags();
 
-    MODULEINFO mi;
-    if (GetModuleInformation(GetCurrentProcess(), xactBase, &mi, sizeof(mi))) {
-        g_xactBase = mi.lpBaseOfDll;
-        g_xactSize = mi.SizeOfImage;
+    MODULEINFO moduleInfo;
+    if (GetModuleInformation(GetCurrentProcess(), xactBase, &moduleInfo, sizeof(moduleInfo))) {
+        g_xactBase = moduleInfo.lpBaseOfDll;
+        g_xactSize = moduleInfo.SizeOfImage;
     } else {
         /* Fallback: base is what we were handed, size unknown -> treat as
          * a single point rather than a range for the "inXactModule" check. */
@@ -257,24 +258,24 @@ void InstallXactGuards(HMODULE xactBase)
     ProxyLog("InstallXactGuards: xactengine2_9.dll base=%p size=%lu",
              g_xactBase, (unsigned long)g_xactSize);
 
-    g_vehHandle = AddVectoredExceptionHandler(1 /* call first */, XactVeh);
+    g_vehHandle = AddVectoredExceptionHandler(1 /* call first */, HandleXactAccessViolation);
     if (!g_vehHandle) {
         ProxyLog("InstallXactGuards: AddVectoredExceptionHandler FAILED (GetLastError=%lu)",
                  (unsigned long)GetLastError());
     }
 
-    MH_STATUS st = MH_Initialize();
-    if (st != MH_OK && st != MH_ERROR_ALREADY_INITIALIZED) {
-        ProxyLog("InstallXactGuards: MH_Initialize failed: %d", (int)st);
+    MH_STATUS initStatus = MH_Initialize();
+    if (initStatus != MH_OK && initStatus != MH_ERROR_ALREADY_INITIALIZED) {
+        ProxyLog("InstallXactGuards: MH_Initialize failed: %d", (int)initStatus);
         return;
     }
 
-    InstallOneHook("+0x1D751", (BYTE *)g_xactBase + 0x1D751, (void *)Detour_0041d751,
-                   (void **)&fpOrig_0041d751, g_flags.hook1D751);
-    InstallOneHook("+0x1D212", (BYTE *)g_xactBase + 0x1D212, (void *)Detour_0041d212,
-                   (void **)&fpOrig_0041d212, g_flags.hook1D212);
-    InstallOneHook("+0x1DE46", (BYTE *)g_xactBase + 0x1DE46, (void *)Detour_0041de46,
-                   (void **)&fpOrig_0041de46, g_flags.hook1DE46);
+    InstallOneHook("+0x1D751", (BYTE *)g_xactBase + 0x1D751, (void *)TeardownDetour_0x1D751,
+                   (void **)&s_realTeardownFn, g_flags.hook1D751);
+    InstallOneHook("+0x1D212", (BYTE *)g_xactBase + 0x1D212, (void *)NullHopDetour_0x1D212,
+                   (void **)&s_realNullHopFn, g_flags.hook1D212);
+    InstallOneHook("+0x1DE46", (BYTE *)g_xactBase + 0x1DE46, (void *)ListWalkDetour_0x1DE46,
+                   (void **)&s_realListWalkFn, g_flags.hook1DE46);
 
     ProxyLog("InstallXactGuards: setup complete");
 }
