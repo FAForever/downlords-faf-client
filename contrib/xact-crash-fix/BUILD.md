@@ -31,7 +31,7 @@ export PATH="/c/msys64/mingw32/bin:$PATH"   # adjust to your MSYS2 install locat
 cd src
 gcc -shared -m32 -O2 -Wall \
   -o bugsplat_proxy.dll \
-  dllmain.c proxylog.c xact_guards.c flags.c \
+  dllmain.c proxylog.c logger.c debug_string_sink.c file_sink.c xact_guards.c flags.c \
   minhook/src/buffer.c minhook/src/hook.c minhook/src/trampoline.c \
   minhook/src/hde/hde32.c minhook/src/hde/hde64.c \
   bugsplat_proxy.def \
@@ -52,7 +52,7 @@ the game process) wants to inject it directly instead of via the BugSplat trick:
 ```bash
 gcc -shared -m32 -O2 -Wall \
   -o xact_guards.dll \
-  guards_dllmain.c proxylog.c xact_guards.c flags.c \
+  guards_dllmain.c proxylog.c logger.c debug_string_sink.c file_sink.c xact_guards.c flags.c \
   minhook/src/buffer.c minhook/src/hook.c minhook/src/trampoline.c \
   minhook/src/hde/hde32.c minhook/src/hde/hde64.c \
   -Iminhook/include -Iminhook/src \

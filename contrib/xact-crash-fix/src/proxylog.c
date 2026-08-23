@@ -1,12 +1,27 @@
 /*
- * proxylog.c - leveled diagnostic logging for the xactengine2_9.dll
- * crash-containment guards, with two independently-configurable sinks:
- * OutputDebugStringA (picked up natively by any attached debugger -
- * FADeepProbe, WinDbg, DebugView) and an optional file next to wherever
- * this DLL is actually loaded from. Both the minimum level and which
- * sinks are active are set via ProxyLogConfigure(), driven by
- * xact_proxy_flags.ini (see flags.c) - so logging behavior is entirely
- * config-driven, no rebuild needed to change it.
+ * proxylog.c - path resolution + the composition root for logging.
+ *
+ * The actual logging behavior (which sinks are active, what the minimum
+ * level is) now lives behind a real interface (ILogSink, see ilog_sink.h)
+ * with dependency injection: CreateDebugStringSink()/CreateFileSink()
+ * build sink objects, and ProxyLogConfigure() injects whichever ones are
+ * wanted into a Logger (logger.h) - the sinks and the Logger have no idea
+ * OutputDebugStringA or fopen() exist at the call-site level, they just
+ * implement/consume ILogSink.
+ *
+ * This ISN'T textbook parameter-passing DI, though, and that's deliberate:
+ * several call sites (xact_guards.c's MinHook detour functions) have
+ * signatures fixed by the game binary's own calling convention - a
+ * `Logger *` can't be threaded through them as an explicit parameter
+ * without breaking the ABI MinHook's trampoline relies on. So injection
+ * happens at ONE composition root instead (right here, in
+ * ProxyLogConfigure, called once after config is parsed) - the resulting
+ * Logger* is stored in a module-level static, and the free-function API
+ * below (LogInfo() etc.) looks it up internally. The actual behavior
+ * swap (which sinks, what level) still happens entirely at the
+ * composition root, not hardcoded into the logging calls - that's the
+ * part that matters for testability/swappability, even though the
+ * *lookup* is global rather than passed-in.
  *
  * ProxyGetDir() is also used by flags.c, which needs to find
  * xact_proxy_flags.ini next to wherever this code is actually loaded
@@ -17,18 +32,40 @@
 #include <stdarg.h>
 #include <string.h>
 #include "proxylog.h"
+#include "logger.h"
+#include "debug_string_sink.h"
+#include "file_sink.h"
 
 #define LOG_FLAG L"/logxactguards"
 #define DEFAULT_LOG_FILENAME "xact_proxy_runtime.log"
 
 static char g_moduleDirectory[MAX_PATH] = "";  /* directory this module loaded from, trailing backslash */
-static char g_logFilePath[MAX_PATH] = "";
 static BOOL g_pathsInitialized = FALSE;
 static BOOL g_cmdLineForceFile = FALSE;
 
-static LogLevel g_minLevel = LOG_INFO;
-static BOOL g_debugStringEnabled = TRUE;
-static BOOL g_fileLoggingEnabled = FALSE;
+/* The composition root's output. Never NULL after this file's own static
+ * initialization below - CreateDefaultLogger() runs at first use if
+ * ProxyLogConfigure() hasn't been called yet, so early startup messages
+ * (before config is parsed) still go somewhere sensible instead of
+ * vanishing. */
+static Logger *g_activeLogger = NULL;
+
+static Logger *CreateDefaultLogger(void)
+{
+    Logger *logger = CreateLogger();
+    if (!logger) return NULL;
+    LoggerSetMinLevel(logger, LOG_INFO);
+    LoggerAddSink(logger, CreateDebugStringSink()); /* file sink stays off until config says otherwise */
+    return logger;
+}
+
+static Logger *GetActiveLogger(void)
+{
+    if (!g_activeLogger) {
+        g_activeLogger = CreateDefaultLogger();
+    }
+    return g_activeLogger;
+}
 
 /* Checks THIS PROCESS's own command line (not an arbitrary string - always
  * GetCommandLineW()) for a flag, case-insensitively. Manual search to avoid
@@ -74,21 +111,36 @@ const char *ProxyGetDir(void)
 
 void ProxyLogConfigure(LogLevel minLevel, BOOL debugStringEnabled, const char *fileNameOrNull)
 {
-    g_minLevel = minLevel;
-    g_debugStringEnabled = debugStringEnabled;
+    /* Composition root: replace whatever logger was active (the default
+     * one, if this is the first real configure call) with a freshly wired
+     * one reflecting the requested sinks/level. */
+    Logger *oldLogger = g_activeLogger;
+
+    Logger *logger = CreateLogger();
+    if (!logger) return; /* leave g_activeLogger as it was rather than dropping logging entirely */
+
+    LoggerSetMinLevel(logger, minLevel);
+
+    if (debugStringEnabled) {
+        LoggerAddSink(logger, CreateDebugStringSink());
+    }
 
     const char *effectiveFileName = fileNameOrNull;
     if ((!effectiveFileName || effectiveFileName[0] == '\0') && g_cmdLineForceFile) {
-        effectiveFileName = DEFAULT_LOG_FILENAME; /* one-launch override, config left it off */
+        effectiveFileName = DEFAULT_LOG_FILENAME; /* one-launch override, config left the file sink off */
     }
 
     if (g_pathsInitialized && effectiveFileName && effectiveFileName[0] != '\0' &&
         strlen(g_moduleDirectory) + strlen(effectiveFileName) < MAX_PATH) {
-        strcpy(g_logFilePath, g_moduleDirectory);
-        strcat(g_logFilePath, effectiveFileName);
-        g_fileLoggingEnabled = TRUE;
-    } else {
-        g_fileLoggingEnabled = FALSE;
+        char fullPath[MAX_PATH];
+        strcpy(fullPath, g_moduleDirectory);
+        strcat(fullPath, effectiveFileName);
+        LoggerAddSink(logger, CreateFileSink(fullPath));
+    }
+
+    g_activeLogger = logger;
+    if (oldLogger) {
+        LoggerDestroy(oldLogger);
     }
 }
 
@@ -104,71 +156,24 @@ LogLevel ProxyLogLevelFromString(const char *s)
     return LOG_INFO; /* unrecognized -> sensible default, not silently "off" */
 }
 
-static const char *LevelTag(LogLevel level)
-{
-    switch (level) {
-        case LOG_TRACE: return "TRACE";
-        case LOG_DEBUG: return "DEBUG";
-        case LOG_INFO:  return "INFO";
-        case LOG_WARN:  return "WARN";
-        case LOG_ERROR: return "ERROR";
-        default:        return "?";
-    }
-}
-
-static void ProxyLogAtV(LogLevel level, const char *fmt, va_list ap)
-{
-    if (level < g_minLevel) return;
-    if (!g_debugStringEnabled && !g_fileLoggingEnabled) return;
-
-    char msg[1024];
-    int n = _snprintf(msg, sizeof(msg) - 2, "[xact_guards] [%s] [tid=%lu] ",
-                       LevelTag(level), (unsigned long)GetCurrentThreadId());
-    if (n < 0) n = 0;
-    if ((size_t)n >= sizeof(msg) - 2) n = (int)sizeof(msg) - 2;
-
-    int n2 = _vsnprintf(msg + n, sizeof(msg) - (size_t)n - 2, fmt, ap);
-    if (n2 < 0) n2 = 0;
-
-    size_t total = (size_t)n + (size_t)n2;
-    if (total > sizeof(msg) - 2) total = sizeof(msg) - 2;
-    msg[total] = '\n';
-    msg[total + 1] = '\0';
-
-    if (g_debugStringEnabled) {
-        OutputDebugStringA(msg);
-    }
-
-    if (g_fileLoggingEnabled) {
-        FILE *f = fopen(g_logFilePath, "a");
-        if (f) {
-            SYSTEMTIME st;
-            GetLocalTime(&st);
-            fprintf(f, "[%04d-%02d-%02d %02d:%02d:%02d.%03d] %s",
-                    st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, msg);
-            fclose(f);
-        }
-    }
-}
-
 void ProxyLogAt(LogLevel level, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    ProxyLogAtV(level, fmt, ap);
+    LoggerLogV(GetActiveLogger(), level, fmt, ap);
     va_end(ap);
 }
 
-void LogTrace(const char *fmt, ...) { va_list ap; va_start(ap, fmt); ProxyLogAtV(LOG_TRACE, fmt, ap); va_end(ap); }
-void LogDebug(const char *fmt, ...) { va_list ap; va_start(ap, fmt); ProxyLogAtV(LOG_DEBUG, fmt, ap); va_end(ap); }
-void LogInfo (const char *fmt, ...) { va_list ap; va_start(ap, fmt); ProxyLogAtV(LOG_INFO,  fmt, ap); va_end(ap); }
-void LogWarn (const char *fmt, ...) { va_list ap; va_start(ap, fmt); ProxyLogAtV(LOG_WARN,  fmt, ap); va_end(ap); }
-void LogError(const char *fmt, ...) { va_list ap; va_start(ap, fmt); ProxyLogAtV(LOG_ERROR, fmt, ap); va_end(ap); }
+void LogTrace(const char *fmt, ...) { va_list ap; va_start(ap, fmt); LoggerLogV(GetActiveLogger(), LOG_TRACE, fmt, ap); va_end(ap); }
+void LogDebug(const char *fmt, ...) { va_list ap; va_start(ap, fmt); LoggerLogV(GetActiveLogger(), LOG_DEBUG, fmt, ap); va_end(ap); }
+void LogInfo (const char *fmt, ...) { va_list ap; va_start(ap, fmt); LoggerLogV(GetActiveLogger(), LOG_INFO,  fmt, ap); va_end(ap); }
+void LogWarn (const char *fmt, ...) { va_list ap; va_start(ap, fmt); LoggerLogV(GetActiveLogger(), LOG_WARN,  fmt, ap); va_end(ap); }
+void LogError(const char *fmt, ...) { va_list ap; va_start(ap, fmt); LoggerLogV(GetActiveLogger(), LOG_ERROR, fmt, ap); va_end(ap); }
 
 void ProxyLog(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    ProxyLogAtV(LOG_INFO, fmt, ap);
+    LoggerLogV(GetActiveLogger(), LOG_INFO, fmt, ap);
     va_end(ap);
 }
