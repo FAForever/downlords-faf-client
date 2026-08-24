@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.math.RoundingMode;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -457,6 +458,7 @@ public final class JavaFxUtil {
                                                  RangeSlider rangeSlider) {
     DecimalFormat numberFormat = (DecimalFormat) DecimalFormat.getInstance();
     numberFormat.setMaximumFractionDigits(0);
+    numberFormat.setRoundingMode(RoundingMode.DOWN);
     bindTextFieldAndRangeSlider(lowValueTextField, highValueTextField, rangeSlider, numberFormat);
   }
 
