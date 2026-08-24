@@ -297,7 +297,7 @@ dependencies {
     implementation("org.jetbrains:annotations:26.1.0")
     implementation("com.neovisionaries:nv-i18n:1.29")
     implementation("org.luaj:luaj-jse:3.0.1")
-    implementation("commons-validator:commons-validator:1.10.1") {
+    implementation("commons-validator:commons-validator:1.11.0") {
         exclude module: 'commons-logging'
     }
     implementation("com.github.micheljung:JJsonRpc:01a7fba5f4")
