@@ -20,6 +20,7 @@ import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,7 @@ import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 @Lazy
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LeaderboardService {
 
   private final AssetService assetService;
@@ -202,6 +204,8 @@ public class LeaderboardService {
                                                                             .addSortingRule(
                                                                                 "leagueSeasonDivisionSubdivision.subdivisionIndex",
                                                                                 false).addSortingRule("score", false)
+                                                                            // Unique tiebreaker for stable pagination order (#3496)
+                                                                            .addSortingRule("loginId", true)
                                                                             .pageSize(fafApiAccessor.getMaxPageSize());
 
     return fafApiAccessor.getAll(navigator).index().collectList().flatMapMany(this::mapLeagueEntryDtoToBean).cache();
@@ -212,7 +216,21 @@ public class LeaderboardService {
                                                                                        .collect(Collectors.toMap(
                                                                                            tuple -> tuple.getT2()
                                                                                                          .getLoginId(),
-                                                                                           Function.identity()));
+                                                                                           Function.identity(),
+                                                                                           (first, duplicate) -> {
+                                                                                             log.warn(
+                                                                                                 "Duplicate league entry for loginId {} at rank {} (entity id {}), "
+                                                                                                     + "already had rank {} (entity id {}) for the same player - keeping the first one",
+                                                                                                 duplicate.getT2()
+                                                                                                          .getLoginId(),
+                                                                                                 duplicate.getT1(),
+                                                                                                 duplicate.getT2()
+                                                                                                          .getId(),
+                                                                                                 first.getT1(),
+                                                                                                 first.getT2()
+                                                                                                      .getId());
+                                                                                             return first;
+                                                                                           }));
     return playerService.getPlayersByIds(scoresByPlayer.keySet()).map(player -> {
       Tuple2<Long, LeagueSeasonScore> seasonScoreWithRank = scoresByPlayer.get(player.getId());
       return leaderboardMapper.map(seasonScoreWithRank.getT2(), player, seasonScoreWithRank.getT1());
