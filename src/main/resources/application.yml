@@ -59,6 +59,12 @@ faf-client:
     queryLatestVersionUrl: https://api.github.com/repos/${faf-client.faf-debugger.repoAndOwnerName}/releases/latest
     downloadUrlFormat: https://github.com/${faf-client.faf-debugger.repoAndOwnerName}/releases/download/%1$s/FADeepProbe.exe
 
+  rendering-wrapper:
+    dxvk-repo-and-owner-name: doitsujin/dxvk
+    dxvk-query-latest-version-url: https://api.github.com/repos/${faf-client.rendering-wrapper.dxvk-repo-and-owner-name}/releases/latest
+    d3d9on12-repo-and-owner-name: narzoul/ForceD3D9On12
+    d3d9on12-query-latest-version-url: https://api.github.com/repos/${faf-client.rendering-wrapper.d3d9on12-repo-and-owner-name}/releases/latest
+
   translation-project-url: https://poeditor.com/join/project/2oWfdaZQZj
   client-config-url: https://content.faforever.com/dfc-config.json
   client-config-connect-timeout: 10s
