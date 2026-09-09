@@ -28,7 +28,6 @@ import com.faforever.commons.lobby.MatchmakerState;
 import com.faforever.commons.lobby.MessageTarget;
 import com.faforever.commons.lobby.NoticeInfo;
 import com.faforever.commons.lobby.Player;
-import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.ServerMessage;
 import com.faforever.commons.lobby.VetoData;
 import javafx.application.Platform;
@@ -54,13 +53,11 @@ import reactor.function.TupleUtils;
 import reactor.util.retry.Retry;
 
 import java.io.IOException;
-import java.net.URL;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Lazy
@@ -244,14 +241,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
 
   public void removeFoe(int playerId) {
     lobbyClient.removeFoe(playerId);
-  }
-
-  public void selectAvatar(URL url) {
-    lobbyClient.selectAvatar(Optional.ofNullable(url).map(URL::toString).orElse(null));
-  }
-
-  public CompletableFuture<List<Avatar>> getAvailableAvatars() {
-    return lobbyClient.getAvailableAvatars().collectList().toFuture();
   }
 
   public void closePlayersGame(int playerId) {
