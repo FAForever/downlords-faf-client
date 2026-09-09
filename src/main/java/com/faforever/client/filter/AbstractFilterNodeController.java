@@ -1,6 +1,5 @@
 package com.faforever.client.filter;
 
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
@@ -23,7 +22,7 @@ public abstract class AbstractFilterNodeController<U, N extends Observable, T> e
   protected abstract U getValue();
 
   public void registerListener(BiFunction<U, T, Boolean> filter) {
-    JavaFxUtil.addAndTriggerListener(valueProperty(), observable -> predicate.set(item -> filter.apply(getValue(), item)));
+    valueProperty().subscribe(() -> predicate.set(item -> filter.apply(getValue(), item)));
   }
 
   public ObjectProperty<Predicate<T>> predicateProperty() {
