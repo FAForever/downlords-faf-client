@@ -84,7 +84,7 @@ public class Preferences {
   private final MapProperty<String, SortType> gameTableSorting = new SimpleMapProperty<>(observableHashMap());
   private final ObjectProperty<TilesSortingOrder> gameTileSortingOrder = new SimpleObjectProperty<>(
       TilesSortingOrder.PLAYER_DES);
-  private final ObjectProperty<UnitDataBaseType> unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.SPOOKY);
+  private final ObjectProperty<UnitDataBaseType> unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.ETFREEMAN);
   private final BooleanProperty disallowJoinsViaDiscord = new SimpleBooleanProperty();
   private final BooleanProperty showGameDetailsSidePane = new SimpleBooleanProperty(false);
   private final BooleanProperty advancedIceLogEnabled = new SimpleBooleanProperty(false);
