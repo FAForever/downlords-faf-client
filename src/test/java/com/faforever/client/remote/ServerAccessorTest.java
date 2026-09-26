@@ -9,12 +9,11 @@ import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.domain.server.PlayerInfo;
-import com.faforever.client.fa.relay.ice.IceAdapter;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.UidService;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.ServerNotification;
 import com.faforever.client.notification.Severity;
@@ -45,6 +44,7 @@ import com.faforever.commons.lobby.PartyInfo;
 import com.faforever.commons.lobby.PartyInfo.PartyMember;
 import com.faforever.commons.lobby.PartyInvite;
 import com.faforever.commons.lobby.PartyKick;
+import com.faforever.commons.lobby.Player;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.SearchInfo;
 import com.faforever.commons.lobby.ServerMessage;
@@ -74,6 +74,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
+import reactor.core.scheduler.Schedulers;
 import reactor.netty.DisposableServer;
 import reactor.netty.http.server.HttpServer;
 import reactor.test.StepVerifier;
@@ -98,12 +99,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.core.Is.is;
 import static org.instancio.Instancio.of;
 import static org.instancio.Select.all;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -132,7 +133,7 @@ public class ServerAccessorTest extends ServiceTest {
   @Mock
   private GameService gameService;
   @Mock
-  private IceAdapter iceAdapter;
+  private FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Spy
   private ClientProperties clientProperties;
   @Spy
@@ -161,6 +162,12 @@ public class ServerAccessorTest extends ServiceTest {
                 .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
 
     when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just(token));
+    lenient().when(fxApplicationThreadExecutor.asScheduler()).thenReturn(Schedulers.immediate());
+    lenient().doAnswer(invocation -> {
+      Runnable runnable = invocation.getArgument(0);
+      runnable.run();
+      return null;
+    }).when(fxApplicationThreadExecutor).execute(any());
 
     startFakeFafLobbyServer();
 
@@ -178,7 +185,8 @@ public class ServerAccessorTest extends ServiceTest {
                         .addHeader("Content-Type", "application/json;charset=utf-8"));
 
     instance = new FafServerAccessor(notificationService, i18n, taskScheduler, tokenRetriever, uidService,
-                                     clientProperties, new FafLobbyClient(objectMapper), () -> webClient);
+                                     clientProperties, new FafLobbyClient(objectMapper), fxApplicationThreadExecutor,
+                                     () -> webClient);
 
     instance.afterPropertiesSet();
     instance.getEvents(ServerMessage.class).doOnNext(serverMessage -> {
@@ -609,8 +617,7 @@ public class ServerAccessorTest extends ServiceTest {
 
     instance.selectAvatar(url);
 
-    assertMessageContainsComponents("avatar", "action",
-        url.toString()
+    assertMessageContainsComponents("avatar", "action", url.toString()
     );
   }
 
@@ -972,5 +979,22 @@ public class ServerAccessorTest extends ServiceTest {
         "set_player_vetoes",
         "vetoes"
     );
+  }
+
+  @Test
+  public void testConcurrentConnectAndLogInReturnsSameMono() {
+    Mono<Player> firstMono = instance.connectAndLogIn();
+    Mono<Player> secondMono = instance.connectAndLogIn();
+
+    assertThat(firstMono, equalTo(secondMono));
+  }
+
+  @Test
+  public void testDisconnectClearsInFlightMono() {
+    Mono<Player> firstMono = instance.connectAndLogIn();
+    instance.disconnect();
+    Mono<Player> secondMono = instance.connectAndLogIn();
+
+    assertThat(firstMono, not(equalTo(secondMono)));
   }
 }

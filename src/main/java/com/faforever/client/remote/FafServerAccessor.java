@@ -6,6 +6,7 @@ import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.domain.server.MatchmakerQueueInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.exception.UIDException;
+import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.UidService;
@@ -62,6 +63,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Lazy
 @Component
@@ -79,15 +82,17 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
   private final UidService uidService;
   private final ClientProperties clientProperties;
   private final FafLobbyClient lobbyClient;
+  private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   @Qualifier("userWebClient")
   private final ObjectFactory<WebClient> userWebClientFactory;
 
-  private boolean autoReconnect;
+  private final AtomicBoolean autoReconnect = new AtomicBoolean(false);
+  private final AtomicReference<Mono<Player>> currentLoginMono = new AtomicReference<>();
   @Getter
-  private boolean running;
+  private volatile boolean running;
   @Getter
   @Setter
-  private int timeoutLoginReconnectSeconds;
+  private volatile int timeoutLoginReconnectSeconds;
 
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -110,15 +115,15 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
                    case DISCONNECTED -> ConnectionState.DISCONNECTED;
                    case CONNECTING -> ConnectionState.CONNECTING;
                    case CONNECTED -> ConnectionState.CONNECTED;
-                 })
+                 }).publishOn(fxApplicationThreadExecutor.asScheduler())
                  .doOnNext(connectionState::set)
                  .doOnError(throwable -> log.error("Error processing connection status", throwable))
                  .retry()
                  .subscribe();
 
       connectionState.subscribe((oldValue, newValue) -> {
-        if (autoReconnect && oldValue == ConnectionState.CONNECTED && newValue == ConnectionState.DISCONNECTED) {
-          connectAndLogIn().subscribe();
+        if (autoReconnect.get() && oldValue == ConnectionState.CONNECTED && newValue == ConnectionState.DISCONNECTED) {
+          connectAndLogIn().doOnError(throwable -> log.error("Auto-reconnect to lobby failed", throwable)).subscribe();
         }
       });
       running = true;
@@ -154,19 +159,34 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
   }
 
   public Mono<Player> connectAndLogIn() {
-    autoReconnect = true;
-    return userWebClientFactory.getObject()
-                               .get()
-                               .uri("/lobby/access")
-                               .retrieve().bodyToMono(HmacAccess.class).map(HmacAccess::accessUrl)
-                               .zipWith(tokenRetriever.getRefreshedTokenValue())
-                               .map(TupleUtils.function(
-                                   (lobbyUrl, token) -> new Config(token, Version.getCurrentVersion(),
-                                                                   clientProperties.getUserAgent(), lobbyUrl,
-                                                                   this::tryGenerateUid, 1024 * 1024, false)))
-                               .flatMap(lobbyClient::connectAndLogin)
-                               .timeout(Duration.ofSeconds(timeoutLoginReconnectSeconds))
-                               .retryWhen(createRetrySpec(clientProperties.getServer()));
+    Mono<Player> existingMono = currentLoginMono.get();
+    if (existingMono != null) {
+      return existingMono;
+    }
+
+    Mono<Player> loginMono = Mono.defer(() -> {
+      autoReconnect.set(true);
+      return userWebClientFactory.getObject()
+                                 .get()
+                                 .uri("/lobby/access")
+                                 .retrieve()
+                                 .bodyToMono(HmacAccess.class)
+                                 .map(HmacAccess::accessUrl)
+                                 .zipWith(tokenRetriever.getRefreshedTokenValue())
+                                 .map(TupleUtils.function(
+                                     (lobbyUrl, token) -> new Config(token, Version.getCurrentVersion(),
+                                                                     clientProperties.getUserAgent(), lobbyUrl,
+                                                                     this::tryGenerateUid, 1024 * 1024, false)))
+                                 .flatMap(lobbyClient::connectAndLogin)
+                                 .timeout(Duration.ofSeconds(timeoutLoginReconnectSeconds))
+                                 .retryWhen(createRetrySpec(clientProperties.getServer()));
+    }).doFinally(signalType -> currentLoginMono.set(null)).cache();
+
+    if (currentLoginMono.compareAndSet(null, loginMono)) {
+      return loginMono;
+    } else {
+      return currentLoginMono.get();
+    }
   }
 
   private Retry createRetrySpec(Server server) {
@@ -201,17 +221,19 @@ public class FafServerAccessor implements InitializingBean, DisposableBean, Life
   }
 
   public void disconnect() {
-    autoReconnect = false;
+    autoReconnect.set(false);
+    currentLoginMono.set(null);
     log.info("Closing lobby server connection");
     lobbyClient.disconnect();
   }
 
   public Mono<Player> reconnect() {
-    return lobbyClient.getConnectionStatus()
-                      .filter(ConnectionStatus.DISCONNECTED::equals)
-                      .next()
-                      .take(Duration.ofSeconds(5))
-                      .then(connectAndLogIn()).doOnSubscribe(_ -> disconnect());
+    return Mono.fromRunnable(this::disconnect)
+               .then(lobbyClient.getConnectionStatus()
+                                .filter(ConnectionStatus.DISCONNECTED::equals)
+                                .next()
+                                .timeout(Duration.ofSeconds(5), Mono.just(ConnectionStatus.DISCONNECTED)))
+               .then(Mono.defer(this::connectAndLogIn));
   }
 
   public void addFriend(int playerId) {
