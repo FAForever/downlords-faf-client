@@ -5,8 +5,6 @@ import com.faforever.commons.lobby.Player;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import java.util.List;
-
 @Mapper(uses = {UrlMapper.class}, config = MapperConfiguration.class)
 public interface AvatarMapper {
 
@@ -17,6 +15,4 @@ public interface AvatarMapper {
   com.faforever.commons.api.dto.Avatar map(Avatar bean);
 
   Avatar map(Player.Avatar dto);
-
-  List<Avatar> mapDtos(List<Player.Avatar> dtos);
 }

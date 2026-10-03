@@ -5,6 +5,7 @@ import com.faforever.client.config.ClientProperties.Api;
 import com.faforever.client.io.CountingFileSystemResource;
 import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.commons.api.dto.ApiException;
+import com.faforever.commons.api.dto.AvatarAssignment;
 import com.faforever.commons.api.dto.Clan;
 import com.faforever.commons.api.dto.CoopResult;
 import com.faforever.commons.api.dto.CoopScenario;
@@ -32,8 +33,10 @@ import com.faforever.commons.api.elide.ElideEndpointBuilder;
 import com.faforever.commons.api.elide.ElideEntity;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.api.elide.ElideNavigatorOnId;
+import com.faforever.commons.api.elide.ElideNavigatorOnRelationshipLink;
 import com.faforever.commons.io.ByteCountListener;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
+import com.github.jasminb.jsonapi.annotations.Type;
 import com.github.jasminb.jsonapi.exceptions.ResourceParseException;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
@@ -45,6 +48,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -83,6 +87,7 @@ public class FafApiAccessor implements InitializingBean {
 
   @VisibleForTesting
   static final java.util.Map<Class<? extends ElideEntity>, List<String>> INCLUDES = java.util.Map.ofEntries(
+      java.util.Map.entry(AvatarAssignment.class, List.of("avatar")),
       java.util.Map.entry(CoopResult.class, List.of("game.playerStats.player")),
       java.util.Map.entry(Clan.class, List.of("leader", "founder", "memberships", "memberships.player")),
       java.util.Map.entry(LeaderboardEntry.class, List.of("player", "leaderboard")),
@@ -219,6 +224,27 @@ public class FafApiAccessor implements InitializingBean {
         .contentType(MediaType.parseMediaType(JSONAPI_MEDIA_TYPE))
         .bodyValue(request)).doOnSuccess(aVoid -> log.trace("Patched {} at {}", request, endpointPath));
   }
+
+  /**
+   * Removes the named member from a relationship via the JSON:API relationship endpoint
+   * ({@code DELETE /data/{type}/{id}/relationships/{name}}). The related resource type is derived from the
+   * navigator's entity type. Elide requires the related resource to be named in the body, so for a
+   * to-one relationship this clears it only when {@code relatedId} is the current value.
+   */
+  public Mono<Void> deleteFromRelationship(ElideNavigatorOnRelationshipLink<?> relationshipLink, String relatedId) {
+    String relatedType = relationshipLink.getDtoClass().getAnnotation(Type.class).value();
+    RelationshipDocument body = new RelationshipDocument(new ResourceIdentifier(relatedType, relatedId));
+    String endpointPath = relationshipLink.build();
+    return retrieveMonoWithErrorHandling(Void.class, apiWebClient.method(HttpMethod.DELETE)
+        .uri(endpointPath)
+        .contentType(MediaType.parseMediaType(JSONAPI_MEDIA_TYPE))
+        .bodyValue(body)).doOnSuccess(aVoid -> log.trace("Deleted relationship member {} at {}", relatedId, endpointPath));
+  }
+
+  /** Minimal JSON:API relationship payload (`{"data": {"type": ..., "id": ...}}`) for relationship endpoints. */
+  record RelationshipDocument(ResourceIdentifier data) {}
+
+  record ResourceIdentifier(String type, String id) {}
 
   public Mono<Void> delete(ElideNavigatorOnId<?> navigator) {
     String endpointPath = navigator.build();
