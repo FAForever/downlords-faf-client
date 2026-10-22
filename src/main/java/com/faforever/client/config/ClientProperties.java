@@ -180,7 +180,6 @@ public class ClientProperties {
   @Data
   public static class UnitDatabase {
     private String spookiesUrl;
-    private String rackOversUrl;
     private String etfreemanUrl;
   }
 
