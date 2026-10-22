@@ -2,7 +2,7 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.config.ClientProperties.UnitDatabase;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
-import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import com.fasterxml.jackson.annotation.JsonMerge;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -260,6 +260,7 @@ public class Preferences {
 
   public enum UnitDataBaseType {
     SPOOKY("unitDatabase.spooky", false),
+    @JsonEnumDefaultValue
     ETFREEMAN("unitDatabase.etfreeman", true);
 
     @Getter
@@ -270,16 +271,6 @@ public class Preferences {
     UnitDataBaseType(String i18nKey, boolean external) {
       this.i18nKey = i18nKey;
       this.external = external;
-    }
-
-    @JsonCreator
-    static UnitDataBaseType fromName(String name) {
-      for (UnitDataBaseType type : values()) {
-        if (type.name().equals(name)) {
-          return type;
-        }
-      }
-      return ETFREEMAN;
     }
   }
 }
