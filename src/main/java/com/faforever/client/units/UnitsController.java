@@ -96,7 +96,6 @@ public class UnitsController extends NodeController<StackPane> {
     ClientProperties.UnitDatabase db = clientProperties.getUnitDatabase();
     return switch (type) {
       case SPOOKY -> db.getSpookiesUrl();
-      case RACKOVER -> db.getRackOversUrl();
       case ETFREEMAN -> db.getEtfreemanUrl();
     };
   }

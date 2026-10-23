@@ -181,6 +181,7 @@ public class PreferencesConfig implements DisposableBean {
     ObjectMapper configuredObjectMapper = objectMapper.copy().setSerializationInclusion(Include.NON_EMPTY)
         .enable(SerializationFeature.INDENT_OUTPUT)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
         .addMixIn(Color.class, ColorMixin.class)
         .addMixIn(Faction.class, FactionMixin.class);
 
