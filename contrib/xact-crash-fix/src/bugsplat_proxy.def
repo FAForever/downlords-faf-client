@@ -1,0 +1,21 @@
+LIBRARY bugsplat_proxy
+EXPORTS
+??0MiniDmpSender@@QAE@ABV0@@Z = BugSplat_real.??0MiniDmpSender@@QAE@ABV0@@Z
+??0MiniDmpSender@@QAE@PBD000K@Z = BugSplat_real.??0MiniDmpSender@@QAE@PBD000K@Z
+??0MiniDmpSender@@QAE@PBG000K@Z = BugSplat_real.??0MiniDmpSender@@QAE@PBG000K@Z
+??1MiniDmpSender@@UAE@XZ = BugSplat_real.??1MiniDmpSender@@UAE@XZ
+??4MiniDmpSender@@QAEAAV0@ABV0@@Z = BugSplat_real.??4MiniDmpSender@@QAEAAV0@ABV0@@Z
+??_7MiniDmpSender@@6B@ = BugSplat_real.??_7MiniDmpSender@@6B@
+?SetDbghelpFlags@MiniDmpSender@@QAEXW4dbghelpFlags@1@@Z = BugSplat_real.?SetDbghelpFlags@MiniDmpSender@@QAEXW4dbghelpFlags@1@@Z
+?createReport@MiniDmpSender@@QAEXPAU_EXCEPTION_POINTERS@@@Z = BugSplat_real.?createReport@MiniDmpSender@@QAEXPAU_EXCEPTION_POINTERS@@@Z
+?createReport@MiniDmpSender@@QAEXXZ = BugSplat_real.?createReport@MiniDmpSender@@QAEXXZ
+?enableExceptionFilter@MiniDmpSender@@QAE_N_N@Z = BugSplat_real.?enableExceptionFilter@MiniDmpSender@@QAE_N_N@Z
+?getFlags@MiniDmpSender@@QBEKXZ = BugSplat_real.?getFlags@MiniDmpSender@@QBEKXZ
+?hookExceptionFilter@MiniDmpSender@@QAE_NXZ = BugSplat_real.?hookExceptionFilter@MiniDmpSender@@QAE_NXZ
+?isExceptionFilterEnabled@MiniDmpSender@@QBE_NXZ = BugSplat_real.?isExceptionFilterEnabled@MiniDmpSender@@QBE_NXZ
+?resetAppIdentifierA@MiniDmpSender@@QAEXPBD@Z = BugSplat_real.?resetAppIdentifierA@MiniDmpSender@@QAEXPBD@Z
+?resetAppIdentifierW@MiniDmpSender@@QAEXPBG@Z = BugSplat_real.?resetAppIdentifierW@MiniDmpSender@@QAEXPBG@Z
+?resetVersionStringA@MiniDmpSender@@QAEXPBD@Z = BugSplat_real.?resetVersionStringA@MiniDmpSender@@QAEXPBD@Z
+?resetVersionStringW@MiniDmpSender@@QAEXPBG@Z = BugSplat_real.?resetVersionStringW@MiniDmpSender@@QAEXPBG@Z
+?setCallback@MiniDmpSender@@QAEXP6A_NIPAX0@Z@Z = BugSplat_real.?setCallback@MiniDmpSender@@QAEXP6A_NIPAX0@Z@Z
+?setFlags@MiniDmpSender@@QAE_NK@Z = BugSplat_real.?setFlags@MiniDmpSender@@QAE_NK@Z
