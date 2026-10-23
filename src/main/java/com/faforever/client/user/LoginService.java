@@ -81,8 +81,9 @@ public class LoginService implements InitializingBean {
 
   private Mono<Player> loginToLobbyServer() {
     ConnectionState lobbyConnectionState = fafServerAccessor.getConnectionState();
-    if (lobbyConnectionState == ConnectionState.CONNECTED) {
-      return Mono.just(ownPlayer.get());
+    Player player = ownPlayer.get();
+    if (lobbyConnectionState == ConnectionState.CONNECTED && player != null) {
+      return Mono.just(player);
     }
     return fafServerAccessor.connectAndLogIn();
   }
