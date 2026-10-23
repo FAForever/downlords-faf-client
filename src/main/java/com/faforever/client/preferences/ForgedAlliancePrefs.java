@@ -11,7 +11,6 @@ import javafx.collections.ObservableSet;
 
 import java.nio.file.Path;
 
-
 public class ForgedAlliancePrefs {
 
   public static final String INIT_FILE_NAME = "init.lua";
@@ -26,11 +25,20 @@ public class ForgedAlliancePrefs {
   private final BooleanProperty allowIpv6 = new SimpleBooleanProperty(false);
 
   /**
-   * String format to use when building the launch command. Takes exact one parameter; the executable path. <p>
+   * String format to use when building the launch command. Takes exact one
+   * parameter; the executable path.
+   * <p>
    * Example:
-   * <pre>wine "%s"</pre>
+   * 
+   * <pre>
+   * wine "%s"
+   * </pre>
+   * 
    * Results in:
-   * <pre>wine "C:\Game\ForgedAlliance.exe"</pre>
+   * 
+   * <pre>
+   * wine "C:\Game\ForgedAlliance.exe"
+   * </pre>
    * </p>
    */
   private final StringProperty executableDecorator = new SimpleStringProperty();
@@ -43,6 +51,8 @@ public class ForgedAlliancePrefs {
    * Force CPU Affinity when launching the FA game process
    */
   private final BooleanProperty forceAffinity = new SimpleBooleanProperty(true);
+  private final ObjectProperty<RenderingBackend> renderingBackend = new SimpleObjectProperty<>(
+      RenderingBackend.DIRECTX_9);
 
   public Path getPreferencesFile() {
     return preferencesFile.get();
@@ -198,5 +208,17 @@ public class ForgedAlliancePrefs {
 
   public void setForceAffinity(boolean forceAffinity) {
     this.forceAffinity.set(forceAffinity);
+  }
+
+  public RenderingBackend getRenderingBackend() {
+    return renderingBackend.get();
+  }
+
+  public ObjectProperty<RenderingBackend> renderingBackendProperty() {
+    return renderingBackend;
+  }
+
+  public void setRenderingBackend(RenderingBackend renderingBackend) {
+    this.renderingBackend.set(renderingBackend);
   }
 }
