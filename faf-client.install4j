@@ -56,7 +56,10 @@
       </java>
       <vmOptionsFile mode="content" overwriteMode="3">
         <content># Enter one VM parameter per line
+-Xms32m
 -Xmx1g
+-XX:MinHeapFreeRatio=15
+-XX:MaxHeapFreeRatio=33
 -XX:+HeapDumpOnOutOfMemoryError
 -Djava.net.preferIPv4Stack=true
 -DnativeDir=natives
@@ -313,9 +316,8 @@ return console.askOkCancel(message, true);
               <action id="823" beanClass="com.install4j.runtime.beans.actions.misc.AddVmOptionsAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
                 <serializedBean>
                   <property name="launcherId" type="string">25</property>
-                  <property name="vmOptions" type="array" elementType="string" length="2">
-                    <element index="0">-XX:+UseZGC</element>
-                    <element index="1">-XX:+UseCompactObjectHeaders</element>
+                  <property name="vmOptions" type="array" elementType="string" length="1">
+                    <element index="0">-XX:+UseCompactObjectHeaders</element>
                   </property>
                 </serializedBean>
                 <condition>Double.parseDouble(System.getProperty("os.version")) &gt;= 10.0</condition>
