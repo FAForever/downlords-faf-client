@@ -1,38 +1,33 @@
 package com.faforever.client.svg;
 
+import com.faforever.client.fx.JavaFxUtil;
+import com.github.weisj.jsvg.SVGDocument;
+import com.github.weisj.jsvg.parser.LoaderContext;
+import com.github.weisj.jsvg.parser.SVGLoader;
+import com.github.weisj.jsvg.view.FloatSize;
+import com.github.weisj.jsvg.view.ViewBox;
 import com.sun.javafx.iio.ImageFrame;
 import com.sun.javafx.iio.ImageStorage;
 import com.sun.javafx.iio.common.ImageLoaderImpl;
-import de.codecentric.centerdevice.javafxsvg.BufferedImageTranscoder;
-import de.codecentric.centerdevice.javafxsvg.FixedPixelDensityImageFrame;
-import de.codecentric.centerdevice.javafxsvg.ScreenHelper;
-import de.codecentric.centerdevice.javafxsvg.dimension.Dimension;
-import de.codecentric.centerdevice.javafxsvg.dimension.DimensionProvider;
-import javafx.stage.Screen;
-import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
-import org.apache.batik.transcoder.TranscoderException;
-import org.apache.batik.transcoder.TranscoderInput;
-import org.apache.batik.util.XMLResourceDescriptor;
-import org.w3c.dom.Document;
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-import static org.apache.batik.transcoder.SVGAbstractTranscoder.KEY_HEIGHT;
-import static org.apache.batik.transcoder.SVGAbstractTranscoder.KEY_WIDTH;
-
 public class SvgImageLoader extends ImageLoaderImpl {
 
   private static final int BYTES_PER_PIXEL = 4; // RGBA
+  /** Upper bound of rendered pixels, so a tiny SVG declaring a huge size can't exhaust the heap. */
+  private static final double MAX_PIXELS = 2048 * 2048;
 
   private final InputStream input;
   private float maxPixelScale = 0;
-  private final DimensionProvider dimensionProvider;
 
 
-  protected SvgImageLoader(InputStream input, DimensionProvider dimensionProvider) {
+  protected SvgImageLoader(InputStream input) {
     super(SvgDescriptor.getInstance());
 
     if (input == null) {
@@ -40,7 +35,6 @@ public class SvgImageLoader extends ImageLoaderImpl {
     }
 
     this.input = input;
-    this.dimensionProvider = dimensionProvider;
   }
 
   @Override
@@ -50,21 +44,27 @@ public class SvgImageLoader extends ImageLoaderImpl {
       return null;
     }
 
-    Document document = createDocument();
-    Dimension fallbackDimension = (width <= 0 || height <= 0) ? dimensionProvider.getDimension(document) : null;
-
-    double imageWidth = width > 0 ? width : fallbackDimension.getWidth();
-    double imageHeight = height > 0 ? height : fallbackDimension.getHeight();
-
-    try {
-      return createImageFrame(document, (float) imageWidth, (float) imageHeight, getPixelScale());
-    } catch (TranscoderException ex) {
-      throw new IOException(ex);
+    SVGDocument document = new SVGLoader().load(input, null, LoaderContext.createDefault());
+    if (document == null) {
+      throw new IOException("Could not parse SVG");
     }
-  }
 
-  private Document createDocument() throws IOException {
-    return new SAXSVGDocumentFactory(XMLResourceDescriptor.getXMLParserClassName()).createDocument(null, this.input);
+    FloatSize intrinsicSize = document.size();
+    double imageWidth = width > 0 ? width : intrinsicSize.width;
+    double imageHeight = height > 0 ? height : intrinsicSize.height;
+    if (!Double.isFinite(imageWidth) || !Double.isFinite(imageHeight) || imageWidth <= 0 || imageHeight <= 0) {
+      throw new IOException("Invalid SVG dimensions: " + imageWidth + "x" + imageHeight);
+    }
+
+    float pixelScale = getPixelScale();
+    double pixels = imageWidth * imageHeight * pixelScale * pixelScale;
+    if (pixels > MAX_PIXELS) {
+      double downscale = Math.sqrt(MAX_PIXELS / pixels);
+      imageWidth *= downscale;
+      imageHeight *= downscale;
+    }
+
+    return createImageFrame(document, (float) imageWidth, (float) imageHeight, pixelScale);
   }
 
   public float getPixelScale() {
@@ -75,30 +75,31 @@ public class SvgImageLoader extends ImageLoaderImpl {
   }
 
   public float calculateMaxRenderScale() {
-    float maxRenderScale = 0;
-    ScreenHelper.ScreenAccessor accessor = ScreenHelper.getScreenAccessor();
-    for (Screen screen : Screen.getScreens()) {
-      maxRenderScale = Math.max(maxRenderScale, accessor.getRenderScale(screen));
-    }
-    return maxRenderScale;
+    return (float) JavaFxUtil.getMaxOutputScale();
   }
 
-  private ImageFrame createImageFrame(Document document, float width, float height,
-                                      float pixelScale) throws TranscoderException {
-    BufferedImage bufferedImage = getTranscodedImage(document, width * pixelScale, height * pixelScale);
+  private ImageFrame createImageFrame(SVGDocument document, float width, float height, float pixelScale) {
+    BufferedImage bufferedImage = renderImage(document, width, height, pixelScale);
     ByteBuffer imageData = getImageData(bufferedImage);
 
-    return new FixedPixelDensityImageFrame(ImageStorage.ImageType.RGBA, imageData, bufferedImage.getWidth(),
-                                           bufferedImage.getHeight(), getStride(bufferedImage), null, pixelScale, null);
+    return new ImageFrame(ImageStorage.ImageType.RGBA, imageData, bufferedImage.getWidth(), bufferedImage.getHeight(),
+                          getStride(bufferedImage), pixelScale, null);
   }
 
-  private BufferedImage getTranscodedImage(Document document, float width, float height) throws TranscoderException {
-    BufferedImageTranscoder trans = new BufferedImageTranscoder(BufferedImage.TYPE_INT_ARGB);
-    trans.addTranscodingHint(KEY_WIDTH, width);
-    trans.addTranscodingHint(KEY_HEIGHT, height);
-    trans.transcode(new TranscoderInput(document), null);
-
-    return trans.getBufferedImage();
+  private BufferedImage renderImage(SVGDocument document, float width, float height, float pixelScale) {
+    BufferedImage bufferedImage = new BufferedImage(Math.max(1, Math.round(width * pixelScale)),
+                                                    Math.max(1, Math.round(height * pixelScale)),
+                                                    BufferedImage.TYPE_INT_ARGB);
+    Graphics2D graphics = bufferedImage.createGraphics();
+    try {
+      graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      graphics.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+      graphics.scale(pixelScale, pixelScale);
+      document.render(null, graphics, new ViewBox(width, height));
+    } finally {
+      graphics.dispose();
+    }
+    return bufferedImage;
   }
 
   private int getStride(BufferedImage bufferedImage) {
@@ -106,33 +107,19 @@ public class SvgImageLoader extends ImageLoaderImpl {
   }
 
   private ByteBuffer getImageData(BufferedImage bufferedImage) {
-    int[] rgb = bufferedImage.getRGB(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight(), null, 0,
-                                     bufferedImage.getWidth());
+    int[] argb = bufferedImage.getRGB(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight(), null, 0,
+                                      bufferedImage.getWidth());
 
     byte[] imageData = new byte[getStride(bufferedImage) * bufferedImage.getHeight()];
-
-    copyColorToBytes(rgb, imageData);
-    return ByteBuffer.wrap(imageData);
-  }
-
-  private void copyColorToBytes(int[] rgb, byte[] imageData) {
-    if (rgb.length * BYTES_PER_PIXEL != imageData.length) {
-      throw new ArrayIndexOutOfBoundsException();
-    }
-
-    ByteBuffer byteBuffer = ByteBuffer.allocate(Integer.BYTES);
-
-    for (int i = 0; i < rgb.length; i++) {
-      byte[] bytes = byteBuffer.putInt(rgb[i]).array();
-
+    for (int i = 0; i < argb.length; i++) {
+      int pixel = argb[i];
       int dataOffset = BYTES_PER_PIXEL * i;
-      imageData[dataOffset] = bytes[1];
-      imageData[dataOffset + 1] = bytes[2];
-      imageData[dataOffset + 2] = bytes[3];
-      imageData[dataOffset + 3] = bytes[0];
-
-      byteBuffer.clear();
+      imageData[dataOffset] = (byte) (pixel >> 16);
+      imageData[dataOffset + 1] = (byte) (pixel >> 8);
+      imageData[dataOffset + 2] = (byte) pixel;
+      imageData[dataOffset + 3] = (byte) (pixel >> 24);
     }
+    return ByteBuffer.wrap(imageData);
   }
 
   @Override

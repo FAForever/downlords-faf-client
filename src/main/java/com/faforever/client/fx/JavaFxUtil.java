@@ -135,6 +135,17 @@ public final class JavaFxUtil {
     stage.setY((screenBounds.getMaxY() - screenBounds.getMinY() - height) / 2);
   }
 
+  /**
+   * Returns the highest output scale of all screens, so images can be decoded with enough pixels for HiDPI displays.
+   */
+  public static double getMaxOutputScale() {
+    double maxOutputScale = 1;
+    for (Screen screen : Screen.getScreens()) {
+      maxOutputScale = Math.max(maxOutputScale, Math.max(screen.getOutputScaleX(), screen.getOutputScaleY()));
+    }
+    return maxOutputScale;
+  }
+
   public static void assertApplicationThread() {
     Assert.state(Platform.isFxApplicationThread(), "Must run in FX Application thread");
   }
