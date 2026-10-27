@@ -114,7 +114,7 @@ public class ThemeService implements InitializingBean, DisposableBean {
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
 
   private final Set<Scene> scenes = Collections.synchronizedSet(new HashSet<>());
-  private final Set<WeakReference<WebView>> webViews = new HashSet<>();
+  private final Set<WeakReference<WebView>> webViews = Collections.synchronizedSet(new HashSet<>());
   private final ObservableMap<String, Theme> themesByFolderName = FXCollections.observableHashMap();
   private final Map<Theme, String> folderNamesByTheme = new HashMap<>();
   private final Map<Path, WatchKey> watchKeys = new HashMap<>();
@@ -375,7 +375,10 @@ public class ThemeService implements InitializingBean, DisposableBean {
    * Registers a WebView against the theme service so it can be updated whenever the theme changes.
    */
   public void registerWebView(WebView webView) {
-    webViews.add(new WeakReference<>(webView));
+    synchronized (webViews) {
+      webViews.removeIf(reference -> reference.get() == null);
+      webViews.add(new WeakReference<>(webView));
+    }
     webView.getEngine().setUserStyleSheetLocation(getWebViewStyleSheet());
   }
 
@@ -437,14 +440,13 @@ public class ThemeService implements InitializingBean, DisposableBean {
       currentTempStyleSheet = newTempStyleSheet;
       String urlString = currentTempStyleSheet.toUri().toURL().toString();
 
-      webViews.removeIf(reference -> reference.get() != null);
-      webViews.stream()
-              .map(Reference::get)
-              .filter(Objects::nonNull)
-              .forEach(webView -> fxApplicationThreadExecutor.execute(
-                  () -> {
-                    webView.getEngine().setUserStyleSheetLocation(urlString);
-                  }));
+      List<WebView> liveWebViews;
+      synchronized (webViews) {
+        webViews.removeIf(reference -> reference.get() == null);
+        liveWebViews = webViews.stream().map(Reference::get).filter(Objects::nonNull).toList();
+      }
+      liveWebViews.forEach(webView -> fxApplicationThreadExecutor.execute(
+          () -> webView.getEngine().setUserStyleSheetLocation(urlString)));
       log.info("{} created and applied to all web views", newTempStyleSheet.getFileName());
     } catch (IOException e) {
       throw new AssetLoadException("Could not load webview stylesheet", e, "theme.webview.stylesheet.couldNotLoad",

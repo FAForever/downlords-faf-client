@@ -12,16 +12,13 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.layout.VBox;
-import javafx.scene.web.WebView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
 
 /**
- * A chat tab displays messages in a {@link WebView}. The WebView is used since text on a JavaFX canvas isn't
- * selectable, but text within a WebView is. This comes with some ugly implications; some logic has to be performed in
- * interaction with JavaScript, like when the user clicks a link.
+ * A chat tab displays the messages of a {@link ChatChannel} using a {@link ChatMessageViewController}.
  */
 @Slf4j
 @RequiredArgsConstructor

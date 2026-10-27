@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.theme.UiService;
 import com.google.common.net.MediaType;
@@ -75,7 +76,8 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
 
       if (MediaType.JPEG.toString().equals(contentType)
           || MediaType.PNG.toString().equals(contentType)) {
-        imageView.setImage(new Image(guessedUrl));
+        double scale = JavaFxUtil.getMaxOutputScale();
+        imageView.setImage(new Image(guessedUrl, imageView.getFitWidth() * scale, imageView.getFitHeight() * scale, true, true, true));
       }
 
       String description = i18n.get("urlPreviewDescription", contentType, formatSize(contentLength, i18n.getUserSpecificLocale()));

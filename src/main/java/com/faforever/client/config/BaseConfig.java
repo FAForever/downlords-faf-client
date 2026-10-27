@@ -34,7 +34,7 @@ public class BaseConfig {
 
   @Bean
   public ExecutorService taskExecutor() {
-    return Executors.newCachedThreadPool();
+    return Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name("task-", 0).factory());
   }
 
   @Bean

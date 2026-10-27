@@ -1,6 +1,7 @@
 package com.faforever.client.tutorial;
 
 import com.faforever.client.domain.api.Tutorial;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -52,7 +53,8 @@ public class TutorialListItemController extends NodeController<Node> {
 
   private Image getImage(Tutorial tutorial) {
     if (!Strings.isNullOrEmpty(tutorial.imageUrl())) {
-      return new Image(tutorial.imageUrl());
+      double scale = JavaFxUtil.getMaxOutputScale();
+      return new Image(tutorial.imageUrl(), imageView.getFitWidth() * scale, imageView.getFitHeight() * scale, true, true, true);
     }
     return tutorial.mapVersion() != null ? mapService.loadPreview(tutorial.mapVersion(), PreviewSize.SMALL) : null;
   }
