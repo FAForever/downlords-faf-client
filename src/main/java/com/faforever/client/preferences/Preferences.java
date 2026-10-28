@@ -2,6 +2,7 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.config.ClientProperties.UnitDatabase;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import com.fasterxml.jackson.annotation.JsonMerge;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -84,7 +85,7 @@ public class Preferences {
   private final MapProperty<String, SortType> gameTableSorting = new SimpleMapProperty<>(observableHashMap());
   private final ObjectProperty<TilesSortingOrder> gameTileSortingOrder = new SimpleObjectProperty<>(
       TilesSortingOrder.PLAYER_DES);
-  private final ObjectProperty<UnitDataBaseType> unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.SPOOKY);
+  private final ObjectProperty<UnitDataBaseType> unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.ETFREEMAN);
   private final BooleanProperty disallowJoinsViaDiscord = new SimpleBooleanProperty();
   private final BooleanProperty showGameDetailsSidePane = new SimpleBooleanProperty(false);
   private final BooleanProperty advancedIceLogEnabled = new SimpleBooleanProperty(false);
@@ -150,7 +151,7 @@ public class Preferences {
   }
 
   public void setUnitDataBaseType(UnitDataBaseType unitDataBaseType) {
-    this.unitDataBaseType.set(unitDataBaseType);
+    this.unitDataBaseType.set(unitDataBaseType == null ? UnitDataBaseType.ETFREEMAN : unitDataBaseType);
   }
 
   public ObjectProperty<UnitDataBaseType> unitDataBaseTypeProperty() {
@@ -259,7 +260,7 @@ public class Preferences {
 
   public enum UnitDataBaseType {
     SPOOKY("unitDatabase.spooky", false),
-    RACKOVER("unitDatabase.rackover", false),
+    @JsonEnumDefaultValue
     ETFREEMAN("unitDatabase.etfreeman", true);
 
     @Getter

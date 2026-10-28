@@ -18,6 +18,7 @@ import com.faforever.client.remote.AssetService;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.elide.ElideEntity;
+import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -222,6 +223,28 @@ public class LeaderboardServiceTest extends ServiceTest {
         Flux.just(PlayerInfoBuilder.create().id(1).username("junit").get()));
 
     StepVerifier.create(instance.getActiveEntries(leagueSeason)).expectNext(leagueEntry).verifyComplete();
+
+    verify(fafApiAccessor).getAll(
+        argThat((ElideNavigatorOnCollection<?> navigator) -> navigator != null && navigator.build()
+                                                                                            .contains(",loginId")));
+  }
+
+  @Test
+  public void testGetLeagueEntriesDuplicateLoginIdKeepsFirstInsteadOfThrowing() {
+    LeagueSeason leagueSeason = Instancio.create(LeagueSeason.class);
+    LeagueEntry leagueEntry1 = Instancio.of(LeagueEntry.class)
+                                        .set(field(LeagueEntry::rank), 0L)
+                                        .set(field(LeagueEntry::player), player)
+                                        .create();
+    LeagueEntry leagueEntry2 = Instancio.of(LeagueEntry.class)
+                                        .set(field(LeagueEntry::player), player)
+                                        .create();
+    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leagueEntry1), leaderboardMapper.map(leagueEntry2));
+    when(fafApiAccessor.getAll(any())).thenReturn(resultFlux);
+    when(playerService.getPlayersByIds(anyCollection())).thenReturn(
+        Flux.just(PlayerInfoBuilder.create().id(1).username("junit").get()));
+
+    StepVerifier.create(instance.getActiveEntries(leagueSeason)).expectNext(leagueEntry1).verifyComplete();
   }
 
   @Test

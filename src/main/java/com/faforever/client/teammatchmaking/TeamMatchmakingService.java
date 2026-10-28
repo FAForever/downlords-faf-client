@@ -243,6 +243,10 @@ public class TeamMatchmakingService implements InitializingBean {
       if (newValue == ConnectionState.CONNECTED) {
         sendFactions();
         sendVetoes();
+        if (isOwner() && isSearching()) {
+          leaveQueues();
+          joinQueues();
+        }
       }
     });
 
@@ -319,7 +323,7 @@ public class TeamMatchmakingService implements InitializingBean {
       boolean searchStarted = message.getState().equals(MatchmakerState.START);
       matchmakingQueue.setMatchingStatus(searchStarted ? MatchingStatus.SEARCHING : null);
 
-      if (isSearching() && Objects.equals(party.getOwner(), playerService.getCurrentPlayer())) {
+      if (isSearching() && isOwner()) {
         matchmakingQueue.setSelected(searchStarted);
       }
     }
@@ -355,7 +359,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void onValidQueueChange(Change<? extends MatchmakerQueueInfo> change) {
-    if (!isSearching() || !Objects.equals(party.getOwner(), playerService.getCurrentPlayer())) {
+    if (!isSearching() || !isOwner()) {
       return;
     }
 
@@ -458,7 +462,7 @@ public class TeamMatchmakingService implements InitializingBean {
       return CompletableFuture.completedFuture(false);
     }
 
-    if (!Objects.equals(party.getOwner(), playerService.getCurrentPlayer())) {
+    if (!isOwner()) {
       log.debug("Not party owner cannot join queues");
       notificationService.addImmediateWarnNotification("teammatchmaking.notification.notPartyOwner.message");
       return CompletableFuture.completedFuture(false);
@@ -484,7 +488,7 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   public void leaveQueues() {
-    if (!Objects.equals(party.getOwner(), playerService.getCurrentPlayer())) {
+    if (!isOwner()) {
       log.debug("Not party owner cannot join queues");
       notificationService.addImmediateWarnNotification("teammatchmaking.notification.notPartyOwner.message");
       return;
@@ -684,5 +688,9 @@ public class TeamMatchmakingService implements InitializingBean {
 
   public void requestMatchmakerInfo() {
     fafServerAccessor.requestMatchmakerInfo();
+  }
+
+  private boolean isOwner() {
+    return Objects.equals(party.getOwner(), playerService.getCurrentPlayer());
   }
 }
