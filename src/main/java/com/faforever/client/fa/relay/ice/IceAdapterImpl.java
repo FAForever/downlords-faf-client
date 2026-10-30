@@ -225,6 +225,8 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         .toAbsolutePath()
         .toString());
 
+    cmd.addAll(List.of("-XX:+UseG1GC", "-XX:MaxGCPauseMillis=5", "-Xms128m", "-Xmx256m"));
+
     if (!forgedAlliancePrefs.isAllowIpv6()) {
       cmd.add("-Dorg.ice4j.ipv6.DISABLED=true");
     }

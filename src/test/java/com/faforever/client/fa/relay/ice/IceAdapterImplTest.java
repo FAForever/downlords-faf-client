@@ -123,27 +123,31 @@ public class IceAdapterImplTest extends ServiceTest {
     List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711, false);
 
     assertEquals(javaExecutablePath.toAbsolutePath().toString(), command.getFirst());
-    assertEquals("-Dorg.ice4j.ipv6.DISABLED=true", command.get(1));
-    assertEquals("-cp", command.get(2));
-    assertTrue(command.get(3).contains("faf-ice-adapter.jar"));
-    assertTrue(command.get(3).contains("javafx-"));
-    assertEquals("com.faforever.iceadapter.IceAdapter", command.get(4));
-    assertEquals("--id", command.get(5));
-    assertEquals(String.valueOf(currentPlayer.getId()), command.get(6));
-    assertEquals("--game-id", command.get(7));
-    assertEquals(String.valueOf(4711), command.get(8));
-    assertEquals("--login", command.get(9));
-    assertEquals(currentPlayer.getUsername(), command.get(10));
-    assertEquals("--rpc-port", command.get(11));
-    assertEquals(String.valueOf(0), command.get(12));
-    assertEquals("--gpgnet-port", command.get(13));
-    assertEquals(String.valueOf(0), command.get(14));
-    assertEquals("--access-token", command.get(15));
-    assertEquals("someToken", command.get(16));
-    assertEquals("--icebreaker-base-url", command.get(17));
-    assertEquals("http://faf-api/ice", command.get(18));
-    assertEquals("--debug-window", command.get(19));
-    assertEquals("--info-window", command.get(20));
+    assertEquals("-XX:+UseG1GC", command.get(1));
+    assertEquals("-XX:MaxGCPauseMillis=5", command.get(2));
+    assertEquals("-Xms128m", command.get(3));
+    assertEquals("-Xmx256m", command.get(4));
+    assertEquals("-Dorg.ice4j.ipv6.DISABLED=true", command.get(5));
+    assertEquals("-cp", command.get(6));
+    assertTrue(command.get(7).contains("faf-ice-adapter.jar"));
+    assertTrue(command.get(7).contains("javafx-"));
+    assertEquals("com.faforever.iceadapter.IceAdapter", command.get(8));
+    assertEquals("--id", command.get(9));
+    assertEquals(String.valueOf(currentPlayer.getId()), command.get(10));
+    assertEquals("--game-id", command.get(11));
+    assertEquals(String.valueOf(4711), command.get(12));
+    assertEquals("--login", command.get(13));
+    assertEquals(currentPlayer.getUsername(), command.get(14));
+    assertEquals("--rpc-port", command.get(15));
+    assertEquals(String.valueOf(0), command.get(16));
+    assertEquals("--gpgnet-port", command.get(17));
+    assertEquals(String.valueOf(0), command.get(18));
+    assertEquals("--access-token", command.get(19));
+    assertEquals("someToken", command.get(20));
+    assertEquals("--icebreaker-base-url", command.get(21));
+    assertEquals("http://faf-api/ice", command.get(22));
+    assertEquals("--debug-window", command.get(23));
+    assertEquals("--info-window", command.get(24));
   }
 
   @Test
