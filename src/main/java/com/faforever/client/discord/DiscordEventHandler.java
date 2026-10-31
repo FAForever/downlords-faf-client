@@ -1,5 +1,7 @@
 package com.faforever.client.discord;
 
+import com.faforever.client.discord.ipc.DiscordIpcListener;
+import com.faforever.client.discord.ipc.DiscordUser;
 import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.game.GameRunner;
 import com.faforever.client.game.GameService;
@@ -8,10 +10,6 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.replay.ReplayRunner;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import net.arikia.dev.drpc.DiscordEventHandlers;
-import net.arikia.dev.drpc.DiscordRPC;
-import net.arikia.dev.drpc.DiscordRPC.DiscordReply;
-import net.arikia.dev.drpc.DiscordUser;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +18,7 @@ import static com.faforever.client.FafClientApplication.PROFILE_MAC;
 @Slf4j
 @Component
 @Profile("!" + PROFILE_MAC)
-public class DiscordEventHandler extends DiscordEventHandlers {
+public class DiscordEventHandler implements DiscordIpcListener {
   private final NotificationService notificationService;
   private final GameRunner gameRunner;
   private final ReplayRunner replayRunner;
@@ -38,19 +36,15 @@ public class DiscordEventHandler extends DiscordEventHandlers {
     this.gameService = gameService;
     this.objectMapper = objectMapper;
     this.preferences = preferences;
-    ready = this::onDiscordReady;
-    disconnected = this::onDisconnected;
-    errored = this::onError;
-    spectateGame = this::onSpectate;
-    joinGame = this::onJoinGame;
-    joinRequest = this::onJoinRequest;
   }
 
-  private void onJoinRequest(DiscordUser discordUser) {
-    DiscordRPC.discordRespond(discordUser.userId, DiscordReply.YES);
+  @Override
+  public boolean onJoinRequest(DiscordUser discordUser) {
+    return !preferences.isDisallowJoinsViaDiscord();
   }
 
-  private void onJoinGame(String joinSecret) {
+  @Override
+  public void onJoin(String joinSecret) {
     boolean disallowJoinsViaDiscord = preferences.isDisallowJoinsViaDiscord();
     if (disallowJoinsViaDiscord) {
       log.info("Join was requested via Discord but was rejected due to it being disabled in settings");
@@ -67,7 +61,8 @@ public class DiscordEventHandler extends DiscordEventHandlers {
     }
   }
 
-  private void onSpectate(String spectateSecret) {
+  @Override
+  public void onSpectate(String spectateSecret) {
     try {
       DiscordSpectateSecret discordSpectateSecret = objectMapper.readValue(spectateSecret, DiscordSpectateSecret.class);
       GameInfo game = gameService.getByUid(discordSpectateSecret.gameId()).orElseThrow();
@@ -78,15 +73,8 @@ public class DiscordEventHandler extends DiscordEventHandlers {
     }
   }
 
-  private void onError(int errorCode, String message) {
-    log.error("Discord error with code '{}' and message '{}'", errorCode, message);
-  }
-
-  private void onDisconnected(int code, String message) {
-    log.info("Discord disconnected with code '{}' and message '{}'", code, message);
-  }
-
-  private void onDiscordReady(DiscordUser discordUser) {
-    log.info("Discord is ready with user '{}'", discordUser.username);
+  @Override
+  public void onReady(DiscordUser discordUser) {
+    log.info("Discord is ready with user '{}'", discordUser.username());
   }
 }
