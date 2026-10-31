@@ -8,3 +8,5 @@ hs_err_pid*
 build/
 out/
 src/fx2j
+
+.fake

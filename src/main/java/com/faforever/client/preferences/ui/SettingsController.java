@@ -5,6 +5,7 @@ import com.faforever.client.api.IceServer;
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
+import com.faforever.client.fa.rendering.RenderingWrapperService;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fx.FxApplicationThreadExecutor;
 import com.faforever.client.fx.JavaFxUtil;
@@ -29,6 +30,7 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.LocalizationPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.RenderingBackend;
 import com.faforever.client.preferences.Preferences.UnitDataBaseType;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
@@ -79,6 +81,7 @@ import org.springframework.stereotype.Component;
 
 import java.text.NumberFormat;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -110,6 +113,7 @@ public class SettingsController extends NodeController<Node> {
   private final ObjectFactory<MoveDirectoryTask> moveDirectoryTaskFactory;
   private final ObjectFactory<DeleteDirectoryTask> deleteDirectoryTaskFactory;
   private final ObjectFactory<DownloadFAFDebuggerTask> downloadFAFDebuggerTaskFactory;
+  private final RenderingWrapperService renderingWrapperService;
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final GamePathHandler gamePathHandler;
 
@@ -177,10 +181,11 @@ public class SettingsController extends NodeController<Node> {
   public CheckBox mapAndModAutoUpdateCheckBox;
   public ListView<IceServer> preferredCoturnListView;
   public CheckBox forceAffinityToggle;
+  public ComboBox<RenderingBackend> renderingBackendComboBox;
 
   private final SimpleChangeListener<Theme> selectedThemeChangeListener = this::onThemeChanged;
   private final SimpleChangeListener<Theme> currentThemeChangeListener = newValue -> themeComboBox.getSelectionModel()
-                                                                                                  .select(newValue);
+      .select(newValue);
   private final SimpleInvalidationListener availableLanguagesListener = this::setAvailableLanguages;
 
   @Override
@@ -237,6 +242,7 @@ public class SettingsController extends NodeController<Node> {
     initGameDataCache();
     initMapAndModAutoUpdate();
     initLogLevelComboBox();
+    initRenderingBackendSelection();
 
     bindNotificationPreferences();
     bindGamePreferences();
@@ -248,9 +254,9 @@ public class SettingsController extends NodeController<Node> {
     if (themeService.doesThemeNeedRestart(newValue)) {
       notificationService.addNotification(
           new PersistentNotification(i18n.get("theme.needsRestart.message", newValue.displayName()), Severity.WARN,
-                                                                     Collections.singletonList(
-                                                                         new Action(i18n.get("theme.needsRestart.quit"),
-                                                                                    Platform::exit))));
+              Collections.singletonList(
+                  new Action(i18n.get("theme.needsRestart.quit"),
+                      Platform::exit))));
     }
   }
 
@@ -270,7 +276,8 @@ public class SettingsController extends NodeController<Node> {
   }
 
   /**
-   * Disables preferences that should not be enabled since they are not supported yet.
+   * Disables preferences that should not be enabled since they are not supported
+   * yet.
    */
   private void temporarilyDisableUnsupportedSettings(Preferences preferences) {
     NotificationPrefs notification = preferences.getNotification();
@@ -319,11 +326,11 @@ public class SettingsController extends NodeController<Node> {
     showIceAdapterDebugWindowToggle.selectedProperty()
         .bindBidirectional(forgedAlliancePrefs.showIceAdapterDebugWindow());
     forceAffinityToggle.selectedProperty()
-                       .bindBidirectional(forgedAlliancePrefs.forceAffinityProperty());
+        .bindBidirectional(forgedAlliancePrefs.forceAffinityProperty());
     vaultLocationTextField.textProperty()
         .bindBidirectional(forgedAlliancePrefs.vaultBaseDirectoryProperty(), PATH_STRING_CONVERTER);
-    JavaFxUtil.addAndTriggerListener(vaultLocationTextField.textProperty(), (observable) ->
-        vaultLocationWarningLabel.setVisible(preferencesService.isVaultBasePathInvalidForAscii()));
+    JavaFxUtil.addAndTriggerListener(vaultLocationTextField.textProperty(),
+        (observable) -> vaultLocationWarningLabel.setVisible(preferencesService.isVaultBasePathInvalidForAscii()));
 
     useFAFDebuggerToggle.selectedProperty().addListener(((observable, oldValue, newValue) -> {
       if (newValue && !oldValue) {
@@ -338,38 +345,38 @@ public class SettingsController extends NodeController<Node> {
 
   private void initPreferredCoturnListView() {
     coturnService.getActiveCoturns()
-                 .collectList()
-                 .map(FXCollections::observableList)
-                 .publishOn(fxApplicationThreadExecutor.asScheduler())
-                 .subscribe(coturnServers -> {
-                   preferredCoturnListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-                   preferredCoturnListView.setItems(FXCollections.observableList(coturnServers));
-                   preferredCoturnListView.setCellFactory(
-                       param -> new StringListCell<>(IceServer::region, fxApplicationThreadExecutor));
-                   Map<String, IceServer> hostPortCoturnServerMap = coturnServers.stream()
-                                                                                 .collect(
-                                                                                     Collectors.toMap(IceServer::id,
-                                                                                                      Function.identity()));
+        .collectList()
+        .map(FXCollections::observableList)
+        .publishOn(fxApplicationThreadExecutor.asScheduler())
+        .subscribe(coturnServers -> {
+          preferredCoturnListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+          preferredCoturnListView.setItems(FXCollections.observableList(coturnServers));
+          preferredCoturnListView.setCellFactory(
+              param -> new StringListCell<>(IceServer::region, fxApplicationThreadExecutor));
+          Map<String, IceServer> hostPortCoturnServerMap = coturnServers.stream()
+              .collect(
+                  Collectors.toMap(IceServer::id,
+                      Function.identity()));
 
-                   ObservableSet<String> preferredCoturnServers = preferences.getForgedAlliance()
-                                                                             .getPreferredCoturnIds();
+          ObservableSet<String> preferredCoturnServers = preferences.getForgedAlliance()
+              .getPreferredCoturnIds();
 
-                   preferredCoturnServers.stream()
-                                         .filter(hostPortCoturnServerMap::containsKey)
-                                         .map(hostPortCoturnServerMap::get)
-                                         .forEach(coturnServer -> preferredCoturnListView.getSelectionModel()
-                                                                                         .select(coturnServer));
+          preferredCoturnServers.stream()
+              .filter(hostPortCoturnServerMap::containsKey)
+              .map(hostPortCoturnServerMap::get)
+              .forEach(coturnServer -> preferredCoturnListView.getSelectionModel()
+                  .select(coturnServer));
 
-                   JavaFxUtil.addAndTriggerListener(preferredCoturnListView.getSelectionModel().getSelectedItems(),
-                                                    observable -> {
-                                                      List<IceServer> selectedCoturns = preferredCoturnListView.getSelectionModel()
-                                                                                                               .getSelectedItems();
-                                                      preferredCoturnServers.clear();
-                                                      selectedCoturns.stream()
-                                                                     .map(IceServer::id)
-                                                                     .forEach(preferredCoturnServers::add);
-                                                    });
-                 });
+          JavaFxUtil.addAndTriggerListener(preferredCoturnListView.getSelectionModel().getSelectedItems(),
+              observable -> {
+                List<IceServer> selectedCoturns = preferredCoturnListView.getSelectionModel()
+                    .getSelectedItems();
+                preferredCoturnServers.clear();
+                selectedCoturns.stream()
+                    .map(IceServer::id)
+                    .forEach(preferredCoturnServers::add);
+              });
+        });
   }
 
   private void initAutoChannelListView() {
@@ -377,7 +384,8 @@ public class SettingsController extends NodeController<Node> {
     autoChannelListView.setFocusTraversable(false);
     autoChannelListView.setItems(preferences.getChat().getAutoJoinChannels());
     autoChannelListView.setCellFactory(param -> new RemovableListCell<>(uiService, fxApplicationThreadExecutor));
-    JavaFxUtil.addListener(autoChannelListView.getItems(), (InvalidationListener) observable -> autoChannelListView.setVisible(!autoChannelListView.getItems().isEmpty()));
+    JavaFxUtil.addListener(autoChannelListView.getItems(),
+        (InvalidationListener) observable -> autoChannelListView.setVisible(!autoChannelListView.getItems().isEmpty()));
   }
 
   private void bindNotificationPreferences() {
@@ -417,13 +425,14 @@ public class SettingsController extends NodeController<Node> {
   }
 
   private void initLogLevelComboBox() {
-    logLevelComboBox.setItems(FXCollections.observableArrayList(Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR));
+    logLevelComboBox
+        .setItems(FXCollections.observableArrayList(Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR));
   }
 
   private void initGameDataCache() {
     gameDataCacheCheckBox.selectedProperty()
         .bindBidirectional(preferences.gameDataCacheActivatedProperty());
-    //Binding for CacheLifeTimeInDays does not work because of some java fx bug
+    // Binding for CacheLifeTimeInDays does not work because of some java fx bug
     gameDataCacheTimeSpinner.getValueFactory().setValue(preferences.getCacheLifeTimeInDays());
     gameDataCacheTimeSpinner.getValueFactory().valueProperty()
         .addListener((observable, oldValue, newValue) -> preferences
@@ -455,13 +464,17 @@ public class SettingsController extends NodeController<Node> {
   }
 
   private void initUnitDatabaseSelection() {
-    unitDatabaseComboBox.setButtonCell(new StringListCell<>(unitDataBaseType -> i18n.get(unitDataBaseType.getI18nKey()), fxApplicationThreadExecutor));
-    unitDatabaseComboBox.setCellFactory(param -> new StringListCell<>(unitDataBaseType -> i18n.get(unitDataBaseType.getI18nKey()), fxApplicationThreadExecutor));
+    unitDatabaseComboBox.setButtonCell(
+        new StringListCell<>(unitDataBaseType -> i18n.get(unitDataBaseType.getI18nKey()), fxApplicationThreadExecutor));
+    unitDatabaseComboBox
+        .setCellFactory(param -> new StringListCell<>(unitDataBaseType -> i18n.get(unitDataBaseType.getI18nKey()),
+            fxApplicationThreadExecutor));
     unitDatabaseComboBox.setItems(FXCollections.observableArrayList(UnitDataBaseType.values()));
     unitDatabaseComboBox.setFocusTraversable(true);
 
-    ChangeListener<UnitDataBaseType> unitDataBaseTypeChangeListener = (observable, oldValue, newValue) -> unitDatabaseComboBox.getSelectionModel()
-        .select(newValue);
+    ChangeListener<UnitDataBaseType> unitDataBaseTypeChangeListener = (observable, oldValue,
+        newValue) -> unitDatabaseComboBox.getSelectionModel()
+            .select(newValue);
     unitDataBaseTypeChangeListener.changed(null, null, preferences.getUnitDataBaseType());
     JavaFxUtil.addListener(preferences.unitDataBaseTypeProperty(), unitDataBaseTypeChangeListener);
 
@@ -470,10 +483,33 @@ public class SettingsController extends NodeController<Node> {
         .addListener((SimpleChangeListener<UnitDataBaseType>) preferences::setUnitDataBaseType);
   }
 
+  private void initRenderingBackendSelection() {
+    renderingBackendComboBox
+        .setButtonCell(new StringListCell<>(backend -> i18n.get(backend.getI18nKey()), fxApplicationThreadExecutor));
+    renderingBackendComboBox.setCellFactory(
+        param -> new StringListCell<>(backend -> i18n.get(backend.getI18nKey()), fxApplicationThreadExecutor));
+    renderingBackendComboBox.setItems(FXCollections.observableArrayList(RenderingBackend.values()));
+    renderingBackendComboBox.setFocusTraversable(true);
+
+    ChangeListener<RenderingBackend> renderingBackendChangeListener = (observable, oldValue,
+        newValue) -> renderingBackendComboBox.getSelectionModel().select(newValue);
+    renderingBackendChangeListener.changed(null, null, preferences.getForgedAlliance().getRenderingBackend());
+    JavaFxUtil.addListener(preferences.getForgedAlliance().renderingBackendProperty(), renderingBackendChangeListener);
+
+    renderingBackendComboBox.getSelectionModel()
+        .selectedItemProperty()
+        .addListener((SimpleChangeListener<RenderingBackend>) newBackend -> {
+          preferences.getForgedAlliance().setRenderingBackend(newBackend);
+          CompletableFuture.runAsync(() -> renderingWrapperService.ensureWrapperAvailableAsync(newBackend));
+        });
+  }
+
   private void configureTimeSetting() {
     ChatPrefs chatPrefs = preferences.getChat();
-    timeComboBox.setButtonCell(new StringListCell<>(timeInfo -> i18n.get(timeInfo.getDisplayNameKey()), fxApplicationThreadExecutor));
-    timeComboBox.setCellFactory(param -> new StringListCell<>(timeInfo -> i18n.get(timeInfo.getDisplayNameKey()), fxApplicationThreadExecutor));
+    timeComboBox.setButtonCell(
+        new StringListCell<>(timeInfo -> i18n.get(timeInfo.getDisplayNameKey()), fxApplicationThreadExecutor));
+    timeComboBox.setCellFactory(
+        param -> new StringListCell<>(timeInfo -> i18n.get(timeInfo.getDisplayNameKey()), fxApplicationThreadExecutor));
     timeComboBox.setItems(FXCollections.observableArrayList(TimeInfo.values()));
     timeComboBox.setDisable(false);
     timeComboBox.setFocusTraversable(true);
@@ -487,8 +523,10 @@ public class SettingsController extends NodeController<Node> {
 
   private void configureDateSetting() {
     LocalizationPrefs localizationPrefs = preferences.getLocalization();
-    dateComboBox.setButtonCell(new StringListCell<>(dateInfo -> i18n.get(dateInfo.getDisplayNameKey()), fxApplicationThreadExecutor));
-    dateComboBox.setCellFactory(param -> new StringListCell<>(dateInfo -> i18n.get(dateInfo.getDisplayNameKey()), fxApplicationThreadExecutor));
+    dateComboBox.setButtonCell(
+        new StringListCell<>(dateInfo -> i18n.get(dateInfo.getDisplayNameKey()), fxApplicationThreadExecutor));
+    dateComboBox.setCellFactory(
+        param -> new StringListCell<>(dateInfo -> i18n.get(dateInfo.getDisplayNameKey()), fxApplicationThreadExecutor));
     dateComboBox.setItems(FXCollections.observableArrayList(DateInfo.values()));
     dateComboBox.setDisable(false);
     dateComboBox.setFocusTraversable(true);
@@ -526,7 +564,8 @@ public class SettingsController extends NodeController<Node> {
   }
 
   private void configureLanguageSelection() {
-    JavaFxUtil.addAndTriggerListener(i18n.getAvailableLanguages(), new WeakInvalidationListener(availableLanguagesListener));
+    JavaFxUtil.addAndTriggerListener(i18n.getAvailableLanguages(),
+        new WeakInvalidationListener(availableLanguagesListener));
   }
 
   @VisibleForTesting
@@ -543,8 +582,7 @@ public class SettingsController extends NodeController<Node> {
     // FIXME reload application (stage & application context)
     notificationService.addNotification(new PersistentNotification(
         i18n.get(locale, "settings.languages.restart.message"),
-        Severity.WARN, List.of(new Action(i18n.get(locale, "settings.languages.restart"), Platform::exit)
-        )));
+        Severity.WARN, List.of(new Action(i18n.get(locale, "settings.languages.restart"), Platform::exit))));
   }
 
   private void configureToastScreen() {
@@ -586,16 +624,16 @@ public class SettingsController extends NodeController<Node> {
 
   public void onSelectDataLocation() {
     platformService.askForPath(i18n.get("settings.data.select"))
-                   .thenAccept(possiblePath -> possiblePath.ifPresent(newDataDirectory -> {
-      log.info("User changed data directory to: `{}`", newDataDirectory);
-      DataPrefs dataPrefs = preferences.getData();
+        .thenAccept(possiblePath -> possiblePath.ifPresent(newDataDirectory -> {
+          log.info("User changed data directory to: `{}`", newDataDirectory);
+          DataPrefs dataPrefs = preferences.getData();
 
-      MoveDirectoryTask moveDirectoryTask = moveDirectoryTaskFactory.getObject();
-      moveDirectoryTask.setNewDirectory(newDataDirectory);
-      moveDirectoryTask.setOldDirectory(dataPrefs.getBaseDataDirectory());
-      moveDirectoryTask.setAfterCopyAction(() -> dataPrefs.setBaseDataDirectory(newDataDirectory));
-      taskService.submitTask(moveDirectoryTask);
-                   }));
+          MoveDirectoryTask moveDirectoryTask = moveDirectoryTaskFactory.getObject();
+          moveDirectoryTask.setNewDirectory(newDataDirectory);
+          moveDirectoryTask.setOldDirectory(dataPrefs.getBaseDataDirectory());
+          moveDirectoryTask.setAfterCopyAction(() -> dataPrefs.setBaseDataDirectory(newDataDirectory));
+          taskService.submitTask(moveDirectoryTask);
+        }));
   }
 
   public void onSelectExecutionDirectory() {
@@ -605,8 +643,7 @@ public class SettingsController extends NodeController<Node> {
   public void onPreviewToastButtonClicked() {
     notificationService.addNotification(new TransientNotification(
         i18n.get("settings.notifications.toastPreview.title"),
-        i18n.get("settings.notifications.toastPreview.text")
-    ));
+        i18n.get("settings.notifications.toastPreview.text")));
   }
 
   public void onHelpUsButtonClicked() {
@@ -616,7 +653,7 @@ public class SettingsController extends NodeController<Node> {
   public void onSelectBackgroundImage() {
     WindowPrefs windowPrefs = preferences.getMainWindow();
     platformService.askForFile(i18n.get("settings.appearance.chooseImage"), windowPrefs.getBackgroundImagePath(),
-            new ExtensionFilter(i18n.get("fileChooser.dialog.imageFiles"), "*.png", "*.jpg", "*.jpeg"))
+        new ExtensionFilter(i18n.get("fileChooser.dialog.imageFiles"), "*.png", "*.jpg", "*.jpeg"))
         .ifPresent(windowPrefs::setBackgroundImagePath);
   }
 
@@ -659,4 +696,3 @@ public class SettingsController extends NodeController<Node> {
     taskService.submitTask(deleteDirectoryTask);
   }
 }
-

@@ -32,6 +32,7 @@ public class ClientProperties {
   private UnitDatabase unitDatabase = new UnitDatabase();
   private FAFDebugger fafDebugger = new FAFDebugger();
   private MapGenerator mapGenerator = new MapGenerator();
+  private RenderingWrapper renderingWrapper = new RenderingWrapper();
   private Website website = new Website();
   private Discord discord = new Discord();
   private Statping statping = new Statping();
@@ -198,6 +199,14 @@ public class ClientProperties {
     private String downloadUrlFormat;
     private String repoAndOwnerName;
     private String queryLatestVersionUrl;
+  }
+
+  @Data
+  public static class RenderingWrapper {
+    private String dxvkRepoAndOwnerName;
+    private String dxvkQueryLatestVersionUrl;
+    private String d3d9on12RepoAndOwnerName;
+    private String d3d9on12QueryLatestVersionUrl;
   }
 
   @Data
