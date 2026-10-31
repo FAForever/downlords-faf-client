@@ -97,7 +97,6 @@ logging:
     org.springframework.security.oauth2.client.token.grant: off
 
     org.ice4j.stack: warn
-    com.nbarraille.jjsonrpc: warn
 
     com.faforever.client.FafClientApplication: info
     com.faforever.client.api: info

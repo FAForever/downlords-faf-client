@@ -4,10 +4,11 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.TrueSkill;
 import com.faforever.client.domain.api.GamePlayerStats;
 import com.faforever.client.domain.api.Replay;
-import jskills.GameInfo;
-import jskills.Rating;
-import jskills.Team;
-import jskills.TrueSkillCalculator;
+import de.gesundkrank.jskills.GameInfo;
+import de.gesundkrank.jskills.Player;
+import de.gesundkrank.jskills.Rating;
+import de.gesundkrank.jskills.Team;
+import de.gesundkrank.jskills.TrueSkillCalculator;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -43,7 +44,7 @@ public class JSkillsRatingService implements RatingService {
             stats.leaderboardRatingJournals().stream().findFirst().ifPresent(
                 ratingJournal -> {
                   if (ratingJournal.meanBefore() != null && ratingJournal.deviationBefore() != null) {
-                    team.addPlayer(new jskills.Player<>(stats.player().getId()),
+                    team.addPlayer(new Player<>(stats.player().getId()),
                                    new Rating(ratingJournal.meanBefore(), ratingJournal.deviationBefore())
                     );
                   }
