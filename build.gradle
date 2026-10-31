@@ -245,7 +245,6 @@ compileJava.dependsOn 'downloadNativeDependencies'
 
 repositories {
     mavenCentral()
-    maven { url "https://jitpack.io" }
     maven { url 'https://maven.ej-technologies.com/repository' }
 }
 
