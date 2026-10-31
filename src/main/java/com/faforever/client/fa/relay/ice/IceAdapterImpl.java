@@ -21,8 +21,6 @@ import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.HostGameGpgCommand;
 import com.faforever.commons.lobby.IceMsgGpgCommand;
 import com.faforever.commons.lobby.JoinGameGpgCommand;
-import com.nbarraille.jjsonrpc.JJsonPeer;
-import com.nbarraille.jjsonrpc.TcpClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -74,7 +72,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   private final IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
   private GameType gameType;
-  private JJsonPeer peer;
+  private volatile JsonRpcPeer peer;
 
   @Override
   public void afterPropertiesSet() {
@@ -196,8 +194,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   void initializeIceAdapterConnection(int adapterPort) {
     for (int attempt = 0; attempt < CONNECTION_ATTEMPTS; attempt++) {
       try {
-        TcpClient tcpClient = new TcpClient("localhost", adapterPort, iceAdapterCallbacksFactory.getObject());
-        peer = tcpClient.getPeer();
+        peer = JsonRpcPeer.connect("localhost", adapterPort, iceAdapterCallbacksFactory.getObject());
 
         setLobbyInitMode();
         break;
@@ -286,17 +283,21 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
           }
 
           List<Object> argList = args == null ? Collections.emptyList() : asList(args);
-          if (peer == null || !peer.isAlive() && !"quit".equals(method.getName())) {
+          JsonRpcPeer currentPeer = peer;
+          if (currentPeer == null || !currentPeer.isAlive() && !"quit".equals(method.getName())) {
             log.info("Ignoring call to ICE adapter as we are not connected: {}({})", method.getName(), argList);
             return null;
           }
           log.trace("Calling {}({})", method.getName(), argList);
+          CompletableFuture<Object> result = currentPeer.sendRequest(method.getName(), argList, method.getGenericReturnType());
           if (method.getReturnType() == void.class) {
-            peer.sendAsyncRequest(method.getName(), argList, null, true);
+            result.exceptionally(throwable -> {
+              log.warn("Call to ICE adapter failed: {}", method.getName(), throwable);
+              return null;
+            });
             return null;
-          } else {
-            return peer.sendSyncRequest(method.getName(), argList, true);
           }
+          return result.join();
         }
     );
   }
@@ -314,6 +315,10 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   @Override
   public void stop() {
     iceAdapterProxy.quit();
+    JsonRpcPeer closingPeer = peer;
     peer = null;
+    if (closingPeer != null) {
+      closingPeer.close();
+    }
   }
 }

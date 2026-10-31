@@ -300,7 +300,6 @@ dependencies {
     implementation("commons-validator:commons-validator:1.11.0") {
         exclude module: 'commons-logging'
     }
-    implementation("com.github.micheljung:JJsonRpc:01a7fba5f4")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.github.rutledgepaulv:q-builders:1.6")
