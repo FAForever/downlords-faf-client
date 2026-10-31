@@ -77,7 +77,6 @@ jacocoTestReport {
 }
 
 configurations {
-    codacy
     mockitoAgent
 }
 
@@ -244,13 +243,6 @@ tasks.register('downloadNativeDependencies') {
 
 compileJava.dependsOn 'downloadNativeDependencies'
 
-tasks.register('sendCoverageToCodacy', JavaExec) {
-    dependsOn jacocoTestReport
-    mainClass = "com.codacy.CodacyCoverageReporter"
-    classpath = configurations.codacy
-    args = ["-l", "Java", "-r", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"]
-}
-
 repositories {
     mavenCentral()
     maven { url "https://jitpack.io" }
@@ -349,8 +341,6 @@ dependencies {
     mockitoAgent("org.mockito:mockito-core") {
         transitive = false
     }
-
-    codacy("com.github.codacy:codacy-coverage-reporter:-SNAPSHOT")
 }
 
 tasks {
