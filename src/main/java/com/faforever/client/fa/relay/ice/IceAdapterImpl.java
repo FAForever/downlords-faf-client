@@ -71,6 +71,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   @Lazy
   private final GameFullNotifier gameFullNotifier;
   private final ClientProperties clientProperties;
+  private final IceService iceService;
 
   private final IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
   private GameType gameType;
@@ -132,7 +133,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   @Override
   public CompletableFuture<Integer> start(int gameId, boolean forceRelay) {
-    return CompletableFuture.supplyAsync(() -> {
+    return iceService.getNewestIceAdapter().toFuture().thenApplyAsync(iceAdapterJar -> {
       Path workDirectory = Path.of(System.getProperty("nativeDir", "lib")).toAbsolutePath();
 
       int adapterPort;
@@ -145,7 +146,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         throw new CompletionException("Unable to find open port for ICE and GPG", exception);
       }
 
-      List<String> cmd = buildCommand(workDirectory, adapterPort, gpgPort, gameId, forceRelay);
+      List<String> cmd = buildCommand(iceAdapterJar, adapterPort, gpgPort, gameId, forceRelay);
       try {
         startIceAdapterProcess(workDirectory, cmd);
       } catch (IOException e) {
@@ -215,10 +216,10 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   }
 
   @VisibleForTesting
-  List<String> buildCommand(Path workDirectory, int adapterPort, int gpgPort, int gameId, boolean forceRelay) {
+  List<String> buildCommand(Path iceAdapterJar, int adapterPort, int gpgPort, int gameId, boolean forceRelay) {
     PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
-    String classpath = getBinaryName(workDirectory) + JavaUtil.CLASSPATH_SEPARATOR + getJavaFXClassPathJars();
+    String classpath = iceAdapterJar.toAbsolutePath() + JavaUtil.CLASSPATH_SEPARATOR + getJavaFXClassPathJars();
 
     List<String> cmd = new ArrayList<>();
     cmd.add(operatingSystem.getJavaExecutablePath()
@@ -260,10 +261,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     return JavaUtil.CLASS_PATH_LIST.stream()
         .filter(s -> s.contains("javafx-"))
         .collect(Collectors.joining(JavaUtil.CLASSPATH_SEPARATOR));
-  }
-
-  private String getBinaryName(Path workDirectory) {
-    return workDirectory.resolve("faf-ice-adapter.jar").toString();
   }
 
   @Override

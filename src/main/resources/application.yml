@@ -53,6 +53,11 @@ faf-client:
     maxSupportedMajorVersion: 1
     minSupportedMajorVersion: 0
 
+  ice-adapter:
+    repoAndOwnerName: FAForever/java-ice-adapter
+    queryLatestVersionUrl: https://api.github.com/repos/${faf-client.ice-adapter.repoAndOwnerName}/releases/latest
+    downloadUrlFormat: https://github.com/${faf-client.ice-adapter.repoAndOwnerName}/releases/download/%1$s/faf-ice-adapter-%1$s-nojfx.jar
+
   faf-debugger:
     repoAndOwnerName: FAForever/FADeepProbe
     queryLatestVersionUrl: https://api.github.com/repos/${faf-client.faf-debugger.repoAndOwnerName}/releases/latest
