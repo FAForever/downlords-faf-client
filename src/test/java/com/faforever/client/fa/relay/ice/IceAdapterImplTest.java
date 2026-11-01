@@ -63,6 +63,8 @@ public class IceAdapterImplTest extends ServiceTest {
   private TokenRetriever tokenRetriever;
   @Mock
   private ObjectFactory<IceAdapterCallbacks> iceAdapterCallbacksFactory;
+  @Mock
+  private IceService iceService;
 
   @Mock
   private IceAdapterApi iceAdapterApi;
@@ -120,7 +122,7 @@ public class IceAdapterImplTest extends ServiceTest {
     when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just("someToken"));
     forgedAlliancePrefs.setShowIceAdapterDebugWindow(true);
 
-    List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711, false);
+    List<String> command = instance.buildCommand(Path.of("faf-ice-adapter-3.3.14.jar"), 0, 0, 4711, false);
 
     assertEquals(javaExecutablePath.toAbsolutePath().toString(), command.getFirst());
     assertEquals("-XX:+UseZGC", command.get(1));
@@ -128,7 +130,7 @@ public class IceAdapterImplTest extends ServiceTest {
     assertEquals("-Xmx512m", command.get(3));
     assertEquals("-Dorg.ice4j.ipv6.DISABLED=true", command.get(4));
     assertEquals("-cp", command.get(5));
-    assertTrue(command.get(6).contains("faf-ice-adapter.jar"));
+    assertTrue(command.get(6).contains("faf-ice-adapter-3.3.14.jar"));
     assertTrue(command.get(6).contains("javafx-"));
     assertEquals("com.faforever.iceadapter.IceAdapter", command.get(7));
     assertEquals("--id", command.get(8));
@@ -162,7 +164,7 @@ public class IceAdapterImplTest extends ServiceTest {
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
     when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just("someToken"));
 
-    List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711, false);
+    List<String> command = instance.buildCommand(Path.of("faf-ice-adapter-3.3.14.jar"), 0, 0, 4711, false);
 
     assertFalse(command.contains("-Dorg.ice4j.ipv6.DISABLED=true"));
   }
@@ -178,7 +180,7 @@ public class IceAdapterImplTest extends ServiceTest {
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
     when(tokenRetriever.getRefreshedTokenValue()).thenReturn(Mono.just("someToken"));
 
-    List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711, true);
+    List<String> command = instance.buildCommand(Path.of("faf-ice-adapter-3.3.14.jar"), 0, 0, 4711, true);
 
     assertTrue(command.contains("--force-relay"));
   }

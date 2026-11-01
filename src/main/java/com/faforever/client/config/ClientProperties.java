@@ -32,6 +32,7 @@ public class ClientProperties {
   private UnitDatabase unitDatabase = new UnitDatabase();
   private FAFDebugger fafDebugger = new FAFDebugger();
   private MapGenerator mapGenerator = new MapGenerator();
+  private IceAdapter iceAdapter = new IceAdapter();
   private Website website = new Website();
   private Discord discord = new Discord();
   private Statping statping = new Statping();
@@ -181,6 +182,13 @@ public class ClientProperties {
   public static class UnitDatabase {
     private String spookiesUrl;
     private String etfreemanUrl;
+  }
+
+  @Data
+  public static class IceAdapter {
+    private String downloadUrlFormat;
+    private String repoAndOwnerName;
+    private String queryLatestVersionUrl;
   }
 
   @Data
