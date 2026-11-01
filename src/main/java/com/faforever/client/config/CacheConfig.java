@@ -30,6 +30,7 @@ import static com.faforever.client.config.CacheNames.DIVISIONS;
 import static com.faforever.client.config.CacheNames.FEATURED_MODS;
 import static com.faforever.client.config.CacheNames.FEATURED_MOD_FILES;
 import static com.faforever.client.config.CacheNames.GLOBAL_LEADERBOARD;
+import static com.faforever.client.config.CacheNames.ICE_ADAPTER;
 import static com.faforever.client.config.CacheNames.IMAGES;
 import static com.faforever.client.config.CacheNames.LADDER_1V1_LEADERBOARD;
 import static com.faforever.client.config.CacheNames.LEADERBOARD;
@@ -82,6 +83,7 @@ public class CacheConfig implements CachingConfigurer {
                 new CaffeineCache(REPLAYS_RECENT, newBuilder().expireAfterWrite(10, MINUTES).buildAsync(), true),
                 new CaffeineCache(MAP_GENERATOR, newBuilder().expireAfterWrite(10, MINUTES).buildAsync(), true),
                 new CaffeineCache(MAP_GENERATOR_STYLES, newBuilder().expireAfterWrite(10, MINUTES).buildAsync(), true),
+                new CaffeineCache(ICE_ADAPTER, newBuilder().expireAfterWrite(10, MINUTES).buildAsync(), true),
                 new CaffeineCache(LEADERBOARD, newBuilder().expireAfterWrite(5, MINUTES).buildAsync(), true),
                 new CaffeineCache(LEAGUE, newBuilder().expireAfterWrite(10, MINUTES).buildAsync(), true),
                 new CaffeineCache(LEAGUE_ENTRIES, newBuilder().expireAfterWrite(1, MINUTES).buildAsync(), true),
