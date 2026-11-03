@@ -72,6 +72,7 @@ import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SystemUtils;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -113,6 +114,7 @@ public class SettingsController extends NodeController<Node> {
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final GamePathHandler gamePathHandler;
 
+  public CheckBox useFafReToggle;
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
   public ToggleGroup colorModeToggleGroup;
@@ -331,6 +333,8 @@ public class SettingsController extends NodeController<Node> {
       }
     }));
 
+    useFafReToggle.setDisable(!SystemUtils.IS_OS_WINDOWS);
+    useFafReToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.useFafReProperty());
     executableDecoratorField.textProperty().bindBidirectional(forgedAlliancePrefs.executableDecoratorProperty());
     executionDirectoryField.textProperty()
         .bindBidirectional(forgedAlliancePrefs.executionDirectoryProperty(), PATH_STRING_CONVERTER);

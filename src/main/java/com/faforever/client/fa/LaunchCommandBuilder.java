@@ -43,6 +43,7 @@ public class LaunchCommandBuilder {
   private URI replayUri;
   private Faction faction;
   private String executableDecorator;
+  private String initFile = ForgedAlliancePrefs.INIT_FILE_NAME;
   private Integer localReplayPort;
   private Integer numberOfGames;
   private Integer expectedPlayers;
@@ -208,7 +209,7 @@ public class LaunchCommandBuilder {
 
     command.addAll(split(String.format(executableDecorator, "\"" + executable.toAbsolutePath() + "\"")));
     command.addAll(Arrays.asList(
-        "/init", ForgedAlliancePrefs.INIT_FILE_NAME,
+        "/init", initFile,
         "/nobugreport"
     ));
 
@@ -312,6 +313,11 @@ public class LaunchCommandBuilder {
     }
 
     return command;
+  }
+
+  public LaunchCommandBuilder initFile(Path initFile) {
+    this.initFile = initFile.toString();
+    return this;
   }
 
   public LaunchCommandBuilder executableDecorator(String executableDecorator) {

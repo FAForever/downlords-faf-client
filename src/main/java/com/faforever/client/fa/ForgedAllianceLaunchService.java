@@ -10,6 +10,7 @@ import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Lazy;
@@ -42,11 +43,13 @@ public class ForgedAllianceLaunchService {
   private final LoggingService loggingService;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final DataPrefs dataPrefs;
+  private final FafReReleaseService fafReReleaseService;
 
   public Process launchOfflineGame(String map) {
-    List<String> launchCommand = defaultLaunchCommand().map(map).logFile(loggingService.getNewGameLogFile(0)).build();
+    LaunchCommandBuilder commandBuilder = LaunchCommandBuilder.create().map(map)
+        .logFile(loggingService.getNewGameLogFile(0));
 
-    return launch(launchCommand);
+    return launch(commandBuilder, getExecutablePath());
   }
 
   public Process launchOnlineGame(GameParameters gameParameters, int gpgPort, int replayPort) {
@@ -60,52 +63,50 @@ public class ForgedAllianceLaunchService {
 
     int uid = gameParameters.uid();
 
-    LaunchCommandBuilder commandBuilder = defaultLaunchCommand().uid(uid)
-                                                                .faction(gameParameters.faction())
-                                                                .mapPosition(gameParameters.mapPosition())
-                                                                .expectedPlayers(gameParameters.expectedPlayers())
-                                                                .team(gameParameters.team())
-                                                                .gameOptions(gameParameters.gameOptions())
-                                                                .additionalArgs(gameParameters.additionalArgs())
-                                                                .clan(currentPlayer.getClan())
-                                                                .country(currentPlayer.getCountry())
-                                                                .username(currentPlayer.getUsername())
-                                                                .numberOfGames(currentPlayer.getNumberOfGames())
-                                                                .mean(mean)
-                                                                .localGpgPort(gpgPort)
-                                                                .localReplayPort(replayPort)
-                                                                .deviation(deviation)
-                                                                .logFile(loggingService.getNewGameLogFile(uid));
+    LaunchCommandBuilder commandBuilder = LaunchCommandBuilder.create().uid(uid)
+        .faction(gameParameters.faction())
+        .mapPosition(gameParameters.mapPosition())
+        .expectedPlayers(gameParameters.expectedPlayers())
+        .team(gameParameters.team())
+        .gameOptions(gameParameters.gameOptions())
+        .additionalArgs(gameParameters.additionalArgs())
+        .clan(currentPlayer.getClan())
+        .country(currentPlayer.getCountry())
+        .username(currentPlayer.getUsername())
+        .numberOfGames(currentPlayer.getNumberOfGames())
+        .mean(mean)
+        .localGpgPort(gpgPort)
+        .localReplayPort(replayPort)
+        .deviation(deviation)
+        .logFile(loggingService.getNewGameLogFile(uid));
 
     League league = gameParameters.league();
     if (league != null) {
       commandBuilder.division(league.division()).subdivision(league.subDivision());
     }
 
-    return launch(commandBuilder.build());
+    return launch(commandBuilder, getExecutablePath());
   }
 
 
   public Process startReplay(Path path, @Nullable Integer replayId) {
     int checkedReplayId = Objects.requireNonNullElse(replayId, -1);
 
-    List<String> launchCommand = replayLaunchCommand().replayFile(path)
+    LaunchCommandBuilder commandBuilder = LaunchCommandBuilder.create().replayFile(path)
         .replayId(checkedReplayId)
-        .logFile(loggingService.getNewReplayLogFile(checkedReplayId))
-        .build();
+        .logFile(loggingService.getNewReplayLogFile(checkedReplayId));
 
-    return launch(launchCommand);
+    return launch(commandBuilder, getReplayExecutablePath());
   }
 
 
   public Process startReplay(URI replayUri, Integer replayId) {
-    List<String> launchCommand = replayLaunchCommand().replayUri(replayUri)
+    LaunchCommandBuilder commandBuilder = LaunchCommandBuilder.create().replayUri(replayUri)
         .replayId(replayId)
         .logFile(loggingService.getNewReplayLogFile(replayId))
-        .username(playerService.getCurrentPlayer().getUsername())
-        .build();
+        .username(playerService.getCurrentPlayer().getUsername());
 
-    return launch(launchCommand);
+    return launch(commandBuilder, getReplayExecutablePath());
   }
 
   public Path getExecutablePath() {
@@ -120,34 +121,32 @@ public class ForgedAllianceLaunchService {
     return dataPrefs.getBinDirectory().resolve(DEBUGGER_EXE);
   }
 
-  private LaunchCommandBuilder defaultLaunchCommand() {
-    LaunchCommandBuilder baseCommandBuilder = LaunchCommandBuilder.create()
-        .executableDecorator(forgedAlliancePrefs.getExecutableDecorator())
-        .executable(getExecutablePath());
-
-    return addDebugger(baseCommandBuilder);
-  }
-
-  private LaunchCommandBuilder replayLaunchCommand() {
-    LaunchCommandBuilder baseCommandBuilder = LaunchCommandBuilder.create()
-        .executableDecorator(forgedAlliancePrefs.getExecutableDecorator())
-        .executable(getReplayExecutablePath());
-
-    return addDebugger(baseCommandBuilder);
-  }
-
-  private LaunchCommandBuilder addDebugger(LaunchCommandBuilder baseCommandBuilder) {
-    if (forgedAlliancePrefs.isRunFAWithDebugger() && Files.exists(getDebuggerExecutablePath())) {
-      baseCommandBuilder = baseCommandBuilder.debuggerExecutable(getDebuggerExecutablePath());
-    }
-    return baseCommandBuilder;
-  }
-
   @NotNull
-  private Process launch(List<String> launchCommand) {
+  private Process launch(LaunchCommandBuilder commandBuilder, Path managedExecutable) {
+    boolean useFafRe = SystemUtils.IS_OS_WINDOWS && forgedAlliancePrefs.isUseFafRe();
     Path executeDirectory = forgedAlliancePrefs.getExecutionDirectory();
-    if (executeDirectory == null) {
-      executeDirectory = getExecutablePath().getParent();
+    commandBuilder.executableDecorator(forgedAlliancePrefs.getExecutableDecorator());
+
+    if (!useFafRe) {
+      commandBuilder.executable(managedExecutable);
+      if (forgedAlliancePrefs.isRunFAWithDebugger() && Files.exists(getDebuggerExecutablePath())) {
+        commandBuilder.debuggerExecutable(getDebuggerExecutablePath());
+      }
+      if (executeDirectory == null) {
+        executeDirectory = dataPrefs.getBinDirectory();
+      }
+    } else {
+      commandBuilder.executable(fafReReleaseService.getExecutable());
+      Path managedBinDirectory = managedExecutable.getParent();
+      if (executeDirectory == null) {
+        executeDirectory = managedBinDirectory;
+      }
+      commandBuilder.initFile(managedBinDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME).toAbsolutePath());
+    }
+
+    List<String> launchCommand = commandBuilder.build();
+    if (useFafRe) {
+      launchCommand.add("/notelemetry");
     }
 
     ProcessBuilder processBuilder = new ProcessBuilder();

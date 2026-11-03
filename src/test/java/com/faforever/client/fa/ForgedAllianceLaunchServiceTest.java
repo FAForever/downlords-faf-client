@@ -10,14 +10,18 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +33,8 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
   private PlayerService playerService ;
   @Mock
   private LoggingService loggingService;
+  @Mock
+  private FafReReleaseService fafReReleaseService;
 
   @Spy
   private ForgedAlliancePrefs forgedAlliancePrefs;
@@ -63,6 +69,25 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
 
     verify(loggingService).getNewReplayLogFile(0);
     verify(instance).getReplayExecutablePath();
+  }
+
+  @Test
+  @EnabledOnOs(OS.WINDOWS)
+  public void testStartReplayWithFafRe() {
+    forgedAlliancePrefs.setUseFafRe(true);
+    Path engine = Path.of("faf-re", "main_x64.exe").toAbsolutePath();
+    when(fafReReleaseService.getExecutable()).thenReturn(engine);
+    Path replay = Path.of("game.scfareplay");
+
+    try (var processes = mockConstruction(ProcessBuilder.class)) {
+      instance.startReplay(replay, 0);
+
+      ProcessBuilder process = processes.constructed().getFirst();
+      verify(process).directory(dataPrefs.getReplayBinDirectory().toFile());
+      verify(process).command(List.of(
+          engine.toString(), "/init", dataPrefs.getReplayBinDirectory().resolve("init.lua").toAbsolutePath().toString(),
+          "/nobugreport", "/replay", replay.toAbsolutePath().toString(), "/replayid", "0", "/notelemetry"));
+    }
   }
 
   @Test

@@ -18,6 +18,7 @@ public class ForgedAlliancePrefs {
   private static final String MAPS_SUB_FOLDER = "maps";
   private static final String MODS_SUB_FOLDER = "mods";
 
+  private final BooleanProperty useFafRe = new SimpleBooleanProperty(false);
   private final ObjectProperty<Path> installationPath = new SimpleObjectProperty<>();
   private final ObjectProperty<Path> preferencesFile = new SimpleObjectProperty<>();
   private final ObjectProperty<Path> vaultBaseDirectory = new SimpleObjectProperty<>();
@@ -43,6 +44,18 @@ public class ForgedAlliancePrefs {
    * Force CPU Affinity when launching the FA game process
    */
   private final BooleanProperty forceAffinity = new SimpleBooleanProperty(true);
+
+  public boolean isUseFafRe() {
+    return useFafRe.get();
+  }
+
+  public void setUseFafRe(boolean useFafRe) {
+    this.useFafRe.set(useFafRe);
+  }
+
+  public BooleanProperty useFafReProperty() {
+    return useFafRe;
+  }
 
   public Path getPreferencesFile() {
     return preferencesFile.get();
