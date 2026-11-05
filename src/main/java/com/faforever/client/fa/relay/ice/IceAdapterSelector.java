@@ -74,4 +74,14 @@ public class IceAdapterSelector implements IceAdapter {
   public void setIceServers(Collection<CoturnServer> coturnServers) {
     active().setIceServers(coturnServers);
   }
+
+  @Override
+  public boolean canRejoin() {
+    return active().canRejoin();
+  }
+
+  @Override
+  public List<String> rejoinArguments() {
+    return active().rejoinArguments();
+  }
 }

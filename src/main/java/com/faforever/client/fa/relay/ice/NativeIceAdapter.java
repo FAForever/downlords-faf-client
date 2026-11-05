@@ -4,6 +4,7 @@ import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.GameFullNotifier;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.commons.api.dto.CoturnServer;
 import com.faforever.commons.lobby.ConnectToPeerGpgCommand;
@@ -37,8 +38,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * The game's own network links: no adapter process, the client hosts GPGNet itself and passes messages between the game
@@ -59,8 +62,13 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
   private final ObjectMapper objectMapper;
   @Lazy
   private final GameFullNotifier gameFullNotifier;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   private final Object sendLock = new Object();
+  // What the server said about this game's peers. It says it once, and a game started again needs it once more.
+  private final List<PeerMessage> peerMessages = new CopyOnWriteArrayList<>();
+  private volatile RejoinOffer rejoinOffer;
+  private volatile boolean comingBack;
   private volatile boolean active;
   private volatile boolean forceRelay;
   private volatile String iceServersJson = "[]";
@@ -72,7 +80,8 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
   @Override
   public void afterPropertiesSet() {
     fafServerAccessor.getEvents(JoinGameGpgCommand.class)
-                     .doOnNext(message -> send("JoinGame", message.getUsername(), message.getPeerUid()))
+                     .doOnNext(message -> rememberAndSend("JoinGame", message.getPeerUid(), message.getUsername(),
+                                                          message.getPeerUid()))
                      .doOnError(throwable -> log.warn("Unable to join game", throwable))
                      .retry()
                      .subscribe();
@@ -82,13 +91,17 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
                      .retry()
                      .subscribe();
     fafServerAccessor.getEvents(ConnectToPeerGpgCommand.class)
-                     .doOnNext(message -> send("ConnectToPeer", message.getUsername(), message.getPeerUid(),
-                                               message.isOffer() ? 1 : 0))
+                     .doOnNext(message -> rememberAndSend("ConnectToPeer", message.getPeerUid(),
+                                                          message.getUsername(), message.getPeerUid(),
+                                                          message.isOffer() ? 1 : 0))
                      .doOnError(throwable -> log.warn("Unable to connect to peer", throwable))
                      .retry()
                      .subscribe();
     fafServerAccessor.getEvents(DisconnectFromPeerGpgCommand.class)
-                     .doOnNext(message -> send("DisconnectFromPeer", message.getUid()))
+                     .doOnNext(message -> {
+                       peerMessages.removeIf(known -> known.peerId() == message.getUid());
+                       send("DisconnectFromPeer", message.getUid());
+                     })
                      .doOnError(throwable -> log.warn("Unable to disconnect from peer", throwable))
                      .retry()
                      .subscribe();
@@ -120,7 +133,42 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
       gameFullNotifier.onGameFull();
       return;
     }
+    if ("RejoinOffer".equals(message.getCommand())) {
+      List<Object> args = message.getArgs();
+      rejoinOffer = RejoinOffer.parse(String.valueOf(args.get(0)), String.valueOf(args.get(1)));
+      return;
+    }
     fafServerAccessor.sendGpgMessage(message);
+  }
+
+  @Override
+  public boolean canRejoin() {
+    return rejoinOffer != null && forgedAlliancePrefs.isAllowRejoin();
+  }
+
+  /**
+   * The peers by player id: the game's links died with it, and it builds new ones from what it gets when it connects.
+   */
+  @Override
+  public List<String> rejoinArguments() {
+    RejoinOffer offer = rejoinOffer;
+    if (offer == null) {
+      return List.of();
+    }
+    StringJoiner peers = new StringJoiner(",");
+    for (PeerMessage known : peerMessages) {
+      Integer source = offer.sourceByPlayerId().get(known.peerId());
+      if (source != null) {
+        peers.add(known.peerId() + "=" + source);
+      }
+    }
+    if (peers.length() == 0) {
+      return List.of();
+    }
+    comingBack = true;
+    List<String> arguments = new ArrayList<>(gameArguments());
+    arguments.addAll(List.of("/rejoin", peers.toString(), String.valueOf(offer.localSource()), "0"));
+    return arguments;
   }
 
   @Override
@@ -128,6 +176,9 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
     this.forceRelay = forceRelay;
     return CompletableFuture.supplyAsync(() -> {
       stop();
+      peerMessages.clear();
+      rejoinOffer = null;
+      comingBack = false;
       try {
         listener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
       } catch (IOException e) {
@@ -165,11 +216,26 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
 
   private void serveGame() {
     ServerSocket openListener = listener;
+    // One game at a time, and another after a crash if the player goes back to the match.
+    while (active && !openListener.isClosed()) {
+      serveOneGame(openListener);
+    }
+  }
+
+  private void serveOneGame(ServerSocket openListener) {
+    OutputStream out = null;
     try (Socket socket = openListener.accept()) {
       socket.setTcpNoDelay(true);
       gameSocket = socket;
+      out = new BufferedOutputStream(socket.getOutputStream());
       synchronized (sendLock) {
-        toGame = new BufferedOutputStream(socket.getOutputStream());
+        toGame = out;
+      }
+      if (comingBack) {
+        comingBack = false;
+        // It reports no lobby states, as the server would take them for a new lobby, so this can't wait for Idle.
+        sendLobbySetup();
+        peerMessages.forEach(known -> send(known.command(), known.args()));
       }
       DataInputStream fromGame = new DataInputStream(socket.getInputStream());
       while (active) {
@@ -191,7 +257,21 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
       if (active) {
         log.warn("Native network: GPGNet failed", e);
       }
+    } finally {
+      synchronized (sendLock) {
+        if (toGame == out) {
+          toGame = null;
+        }
+      }
     }
+  }
+
+  private void rememberAndSend(String command, int peerId, Object... args) {
+    if (active) {
+      peerMessages.removeIf(known -> known.peerId() == peerId);
+      peerMessages.add(new PeerMessage(command, peerId, args));
+    }
+    send(command, args);
   }
 
   private void sendLobbySetup() {
@@ -234,6 +314,8 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
       throw new IllegalArgumentException("Unable to write an ICE message", e);
     }
   }
+
+  private record PeerMessage(String command, int peerId, Object[] args) {}
 
   private static int readInt(DataInputStream in) throws IOException {
     return Integer.reverseBytes(in.readInt());

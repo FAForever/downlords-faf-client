@@ -4,9 +4,11 @@ import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.GameFullNotifier;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.lobby.ConnectToPeerGpgCommand;
+import com.faforever.commons.lobby.DisconnectFromPeerGpgCommand;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
@@ -26,6 +29,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -33,6 +37,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.lenient;
@@ -52,11 +59,15 @@ public class NativeIceAdapterTest extends ServiceTest {
   private FafServerAccessor fafServerAccessor;
   @Mock
   private GameFullNotifier gameFullNotifier;
+  @Spy
+  private ForgedAlliancePrefs forgedAlliancePrefs;
 
   private final Sinks.Many<ConnectToPeerGpgCommand> connectToPeer = Sinks.many().multicast().onBackpressureBuffer();
   private final Sinks.Many<IceMsgGpgCommand> iceMsg = Sinks.many().multicast().onBackpressureBuffer();
+  private final Sinks.Many<DisconnectFromPeerGpgCommand> disconnectFromPeer = Sinks.many().multicast().onBackpressureBuffer();
   private NativeIceAdapter instance;
   private Socket game;
+  private int gamePort;
   private DataInputStream fromClient;
 
   @BeforeEach
@@ -64,13 +75,14 @@ public class NativeIceAdapterTest extends ServiceTest {
     lenient().when(fafServerAccessor.getEvents(any())).thenReturn(Flux.never());
     lenient().when(fafServerAccessor.getEvents(ConnectToPeerGpgCommand.class)).thenReturn(connectToPeer.asFlux());
     lenient().when(fafServerAccessor.getEvents(IceMsgGpgCommand.class)).thenReturn(iceMsg.asFlux());
+    lenient().when(fafServerAccessor.getEvents(DisconnectFromPeerGpgCommand.class)).thenReturn(disconnectFromPeer.asFlux());
     PlayerInfo player = mock(PlayerInfo.class);
     lenient().when(player.getUsername()).thenReturn("junit");
     lenient().when(player.getId()).thenReturn(5);
     lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
 
     instance = new NativeIceAdapter(playerService, fafServerAccessor, Mappers.getMapper(IceServerMapper.class),
-                                    new ObjectMapper(), gameFullNotifier);
+                                    new ObjectMapper(), gameFullNotifier, forgedAlliancePrefs);
     instance.afterPropertiesSet();
 
     GameLaunchResponse launch = mock(GameLaunchResponse.class);
@@ -183,6 +195,97 @@ public class NativeIceAdapterTest extends ServiceTest {
     iceMsg.tryEmitNext(command);
 
     assertEquals(List.of("IceMsg", 9, "{\"a\":1}"), readMessage());
+  }
+
+  private void connectToPeer(String login, int id, boolean offer) {
+    ConnectToPeerGpgCommand command = mock(ConnectToPeerGpgCommand.class);
+    when(command.getUsername()).thenReturn(login);
+    when(command.getPeerUid()).thenReturn(id);
+    when(command.isOffer()).thenReturn(offer);
+    connectToPeer.tryEmitNext(command);
+  }
+
+  /** A game with two peers crashes, and the client gets ready to start it again. */
+  private void crashWithTwoPeers() throws Exception {
+    forgedAlliancePrefs.setAllowRejoin(true);
+    sendFromGame("GameState", "Lobby");
+    verify(fafServerAccessor, timeout(WAIT_MILLIS)).sendGpgMessage(any());
+    connectToPeer("first", 9, true);
+    assertEquals(List.of("ConnectToPeer", "first", 9, 1), readMessage());
+    connectToPeer("second", 3, false);
+    assertEquals(List.of("ConnectToPeer", "second", 3, 0), readMessage());
+    sendFromGame("RejoinOffer", "1", "5=1,9=0,3=2");
+    for (int i = 0; i < 500 && !instance.canRejoin(); i++) {
+      Thread.sleep(10);
+    }
+    assertTrue(instance.canRejoin());
+    gamePort = game.getPort();
+    game.close();
+  }
+
+  private void gameConnectsAgain() throws IOException {
+    game = new Socket(InetAddress.getLoopbackAddress(), gamePort);
+    fromClient = new DataInputStream(game.getInputStream());
+  }
+
+  @Test
+  public void testAGameComingBackGetsItsPeersAgainWithoutAskingForIdle() throws Exception {
+    crashWithTwoPeers();
+
+    assertEquals(List.of("/nativenet", "/rejoin", "9=0,3=2", "1", "0"), instance.rejoinArguments());
+    gameConnectsAgain();
+
+    assertEquals(List.of("IceServers", "[]"), readMessage());
+    assertEquals(List.of("CreateLobby", 1, 0, "junit", 5, 1), readMessage());
+    assertEquals(List.of("ConnectToPeer", "first", 9, 1), readMessage());
+    assertEquals(List.of("ConnectToPeer", "second", 3, 0), readMessage());
+  }
+
+  @Test
+  public void testAPeerWhoLeftIsNotAskedForAgain() throws Exception {
+    DisconnectFromPeerGpgCommand left = mock(DisconnectFromPeerGpgCommand.class);
+    when(left.getUid()).thenReturn(9);
+    crashWithTwoPeers();
+    disconnectFromPeer.tryEmitNext(left);
+
+    assertEquals(List.of("/nativenet", "/rejoin", "3=2", "1", "0"), instance.rejoinArguments());
+    gameConnectsAgain();
+
+    assertEquals(List.of("IceServers", "[]"), readMessage());
+    assertEquals(List.of("CreateLobby", 1, 0, "junit", 5, 1), readMessage());
+    assertEquals(List.of("ConnectToPeer", "second", 3, 0), readMessage());
+  }
+
+  @Test
+  public void testAGameNotAskedBackGetsNoPeers() throws Exception {
+    crashWithTwoPeers();
+    gameConnectsAgain();
+
+    sendFromGame("GameState", "Idle");
+
+    assertEquals(List.of("IceServers", "[]"), readMessage());
+    assertEquals(List.of("CreateLobby", 1, 0, "junit", 5, 1), readMessage());
+    assertThrows(SocketTimeoutException.class, this::shortRead);
+  }
+
+  private void shortRead() throws IOException {
+    game.setSoTimeout(200);
+    fromClient.readInt();
+  }
+
+  @Test
+  public void testAnOfferIsNotForTheServer() throws Exception {
+    sendFromGame("RejoinOffer", "1", "5=1,9=0");
+
+    verify(fafServerAccessor, after(200).never()).sendGpgMessage(any());
+  }
+
+  @Test
+  public void testNoOfferMeansNoReturn() {
+    forgedAlliancePrefs.setAllowRejoin(true);
+
+    assertFalse(instance.canRejoin());
+    assertEquals(List.of(), instance.rejoinArguments());
   }
 
   @Test
