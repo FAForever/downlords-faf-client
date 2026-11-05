@@ -186,7 +186,8 @@ public class ClientProperties {
 
   @Data
   public static class IceAdapter {
-    private String downloadUrlFormat;
+    /** URL formats to download the ICE adapter from, tried in order until one succeeds. */
+    private List<String> downloadUrlFormats = new ArrayList<>();
     private String repoAndOwnerName;
     private String queryLatestVersionUrl;
   }

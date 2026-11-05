@@ -22,6 +22,7 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.Objects;
 
 @Component
@@ -57,11 +58,34 @@ public class DownloadIceAdapterTask extends CompletableTask<Void> {
 
     updateTitle(i18n.get("iceAdapter.download.title", version));
 
-    URL url = URI.create(String.format(clientProperties.getIceAdapter().getDownloadUrlFormat(), version)).toURL();
-
-    URLConnection urlConnection = url.openConnection();
+    List<String> downloadUrlFormats = clientProperties.getIceAdapter().getDownloadUrlFormats();
+    if (downloadUrlFormats.isEmpty()) {
+      throw new IllegalStateException("No ICE adapter download URLs configured");
+    }
 
     Files.createDirectories(targetFile.getParent());
+
+    IOException lastException = null;
+    for (String downloadUrlFormat : downloadUrlFormats) {
+      URL url = URI.create(String.format(downloadUrlFormat, version)).toURL();
+      try {
+        downloadTo(url);
+        return null;
+      } catch (IOException e) {
+        log.warn("Could not download ICE adapter version `{}` from `{}`: {}", version, url, e.toString());
+        if (lastException != null) {
+          e.addSuppressed(lastException);
+        }
+        lastException = e;
+      }
+    }
+
+    throw lastException;
+  }
+
+  private void downloadTo(URL url) throws IOException {
+    log.info("Downloading ICE adapter from `{}`", url);
+    URLConnection urlConnection = url.openConnection();
     Path tempFile = Files.createTempFile(targetFile.getParent(), "ice-adapter", null);
 
     try (
@@ -73,9 +97,7 @@ public class DownloadIceAdapterTask extends CompletableTask<Void> {
                 .totalBytes(urlConnection.getContentLength())
                 .listener(this::updateProgress)
                 .copy();
-    }
 
-    try {
       Files.move(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
     } finally {
       try {
@@ -84,7 +106,5 @@ public class DownloadIceAdapterTask extends CompletableTask<Void> {
         log.warn("Could not delete temporary file: `{}`", tempFile, e);
       }
     }
-
-    return null;
   }
 }

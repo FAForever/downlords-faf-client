@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -51,7 +52,7 @@ public class DownloadIceAdapterTaskTest extends PlatformTest {
   public void testCall() throws Exception {
     Path sourceDirectory = Files.createDirectories(tempDirectory.resolve("source"));
     Path sourceFile = Files.writeString(sourceDirectory.resolve("ice-adapter-3.3.14.jar"), "ice adapter content");
-    clientProperties.getIceAdapter().setDownloadUrlFormat(sourceDirectory.toUri() + "ice-adapter-%s.jar");
+    clientProperties.getIceAdapter().setDownloadUrlFormats(List.of(sourceDirectory.toUri() + "ice-adapter-%s.jar"));
 
     Path targetFile = tempDirectory.resolve("download").resolve("faf-ice-adapter-3.3.14.jar");
     instance.setVersion("3.3.14");
@@ -62,6 +63,44 @@ public class DownloadIceAdapterTaskTest extends PlatformTest {
     assertEquals(Files.readString(sourceFile), Files.readString(targetFile));
     try (Stream<Path> files = Files.list(targetFile.getParent())) {
       assertEquals(List.of(targetFile), files.toList());
+    }
+  }
+
+  @Test
+  public void testCallFallsBackToNextUrlWhenFirstFails() throws Exception {
+    Path sourceDirectory = Files.createDirectories(tempDirectory.resolve("source"));
+    Path sourceFile = Files.writeString(sourceDirectory.resolve("ice-adapter-3.3.14.jar"), "ice adapter content");
+    clientProperties.getIceAdapter()
+                    .setDownloadUrlFormats(List.of(sourceDirectory.toUri() + "missing/ice-adapter-%s.jar",
+                                                   sourceDirectory.toUri() + "ice-adapter-%s.jar"));
+
+    Path targetFile = tempDirectory.resolve("download").resolve("faf-ice-adapter-3.3.14.jar");
+    instance.setVersion("3.3.14");
+    instance.setTargetFile(targetFile);
+
+    instance.call();
+
+    assertEquals(Files.readString(sourceFile), Files.readString(targetFile));
+    try (Stream<Path> files = Files.list(targetFile.getParent())) {
+      assertEquals(List.of(targetFile), files.toList());
+    }
+  }
+
+  @Test
+  public void testCallThrowsWhenAllUrlsFail() throws Exception {
+    Path sourceDirectory = Files.createDirectories(tempDirectory.resolve("source"));
+    clientProperties.getIceAdapter()
+                    .setDownloadUrlFormats(List.of(sourceDirectory.toUri() + "missing1/ice-adapter-%s.jar",
+                                                   sourceDirectory.toUri() + "missing2/ice-adapter-%s.jar"));
+
+    Path targetFile = tempDirectory.resolve("download").resolve("faf-ice-adapter-3.3.14.jar");
+    instance.setVersion("3.3.14");
+    instance.setTargetFile(targetFile);
+
+    IOException exception = assertThrows(IOException.class, () -> instance.call());
+    assertEquals(1, exception.getSuppressed().length);
+    try (Stream<Path> files = Files.list(targetFile.getParent())) {
+      assertEquals(List.of(), files.toList());
     }
   }
 }
