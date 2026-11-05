@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -104,6 +105,7 @@ public class NotificationServiceQuestionTest extends PlatformTest {
     answer.complete(false);
 
     WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !dialogIsOpen());
+    assertFalse(dialogIsOpen());
   }
 
   @Test
@@ -129,5 +131,6 @@ public class NotificationServiceQuestionTest extends PlatformTest {
     clickNextToTheDialog();
 
     WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !dialogIsOpen());
+    assertFalse(dialogIsOpen());
   }
 }
