@@ -38,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -259,7 +260,7 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
       }
     } finally {
       synchronized (sendLock) {
-        if (toGame == out) {
+        if (Objects.equals(toGame, out)) {
           toGame = null;
         }
       }
