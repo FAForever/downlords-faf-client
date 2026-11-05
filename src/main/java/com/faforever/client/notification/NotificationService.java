@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.TreeSet;
+import java.util.concurrent.CompletionStage;
 
 import static com.faforever.client.notification.Severity.ERROR;
 import static com.faforever.client.notification.Severity.INFO;
@@ -47,7 +48,7 @@ public class NotificationService {
 
   public void addNotification(Notification notification) {
     switch (notification) {
-      case ImmediateNotification immediateNotification -> displayImmediateNotification(immediateNotification);
+      case ImmediateNotification immediateNotification -> displayImmediateNotification(immediateNotification, null);
       case ServerNotification serverNotification -> displayServerNotification(serverNotification);
       case PersistentNotification persistentNotification -> persistentNotifications.add(persistentNotification);
       case TransientNotification transientNotification -> toastDisplayer.addNotification(transientNotification);
@@ -98,7 +99,7 @@ public class NotificationService {
     addNotification(new ImmediateNotification("", i18n.get(messageKey, args), INFO, List.of(new OkAction(i18n))));
   }
 
-  private void displayImmediateNotification(ImmediateNotification notification) {
+  private void displayImmediateNotification(ImmediateNotification notification, CompletionStage<?> closeWhen) {
     ImmediateNotificationController controller = uiService.loadFxml("theme/immediate_notification.fxml");
 
     controller.setNotification(notification);
@@ -110,8 +111,24 @@ public class NotificationService {
 
       dialog.setContent(controller.getDialogLayout());
       dialog.setAnimation(AlertAnimation.TOP_ANIMATION);
+      if (closeWhen != null) {
+        dialog.setOverlayClose(false);
+        dialog.setHideOnEscape(false);
+      }
       dialog.show();
+      if (closeWhen != null) {
+        closeWhen.thenRunAsync(controller::dismiss, fxApplicationThreadExecutor);
+      }
     });
+  }
+
+  /**
+   * Shows a question that has to be answered: a click next to it or the escape key doesn't close it. It closes when one
+   * of its actions is used or when {@code closeWhen} completes, so an answer that no longer counts doesn't stay on
+   * screen.
+   */
+  public void addImmediateQuestion(ImmediateNotification notification, CompletionStage<?> closeWhen) {
+    displayImmediateNotification(notification, closeWhen);
   }
 
   private void displayServerNotification(ServerNotification notification) {

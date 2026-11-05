@@ -83,6 +83,7 @@ import java.util.function.Supplier;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.game.KnownFeaturedMod.TUTORIALS;
+import static com.faforever.client.notification.Severity.INFO;
 import static com.faforever.client.notification.Severity.WARN;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
@@ -123,7 +124,7 @@ public class GameRunner implements InitializingBean {
   private final TaskService taskService;
 
   /** The other players' dialogs eject a silent player about this long after their dialog opens. */
-  private static final int REJOIN_ANSWER_SECONDS = 150;
+  private static final long REJOIN_ANSWER_MILLIS = 150_000;
 
   private final MaskPatternLayout logMasker = new MaskPatternLayout();
   private final SimpleObjectProperty<Integer> runningGameId = new SimpleObjectProperty<>();
@@ -137,6 +138,8 @@ public class GameRunner implements InitializingBean {
   private boolean gameKilled;
   private GameParameters launchedParameters;
   private int launchedGpgPort;
+  @VisibleForTesting
+  long rejoinAnswerMillis = REJOIN_ANSWER_MILLIS;
 
   @Override
   public void afterPropertiesSet() {
@@ -251,11 +254,17 @@ public class GameRunner implements InitializingBean {
 
   private CompletableFuture<Boolean> askToReturnToMatch() {
     CompletableFuture<Boolean> answer = new CompletableFuture<>();
-    notificationService.addNotification(
+    notificationService.addImmediateQuestion(
         new ImmediateNotification(i18n.get("game.rejoin.title"), i18n.get("game.rejoin.text"), WARN,
                                   List.of(new Action(i18n.get("game.rejoin.return"), () -> answer.complete(true)),
-                                          new Action(i18n.get("game.rejoin.leave"), () -> answer.complete(false)))));
-    return answer.completeOnTimeout(false, REJOIN_ANSWER_SECONDS, TimeUnit.SECONDS);
+                                          new Action(i18n.get("game.rejoin.leave"), () -> answer.complete(false)))),
+        answer);
+    CompletableFuture.delayedExecutor(rejoinAnswerMillis, TimeUnit.MILLISECONDS).execute(() -> {
+      if (answer.complete(false)) {
+        notificationService.addNotification(new PersistentNotification(i18n.get("game.rejoin.timedOut"), INFO));
+      }
+    });
+    return answer;
   }
 
   @VisibleForTesting

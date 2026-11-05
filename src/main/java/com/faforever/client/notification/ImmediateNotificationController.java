@@ -37,6 +37,7 @@ public class ImmediateNotificationController extends NodeController<Node> {
   public Label helpText;
   public VBox immediateNotificationRoot;
   private Runnable closeListener;
+  private boolean dismissed;
 
   @Override
   protected void onInitialize() {
@@ -90,8 +91,11 @@ public class ImmediateNotificationController extends NodeController<Node> {
     return button;
   }
 
-  private void dismiss() {
-    closeListener.run();
+  public void dismiss() {
+    if (!dismissed) {
+      dismissed = true;
+      closeListener.run();
+    }
   }
 
   @Override
