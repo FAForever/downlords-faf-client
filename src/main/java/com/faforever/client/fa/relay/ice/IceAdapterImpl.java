@@ -60,6 +60,9 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private static final int CONNECTION_ATTEMPTS = 50;
   private static final int CONNECTION_ATTEMPT_DELAY_MILLIS = 250;
 
+  /** A little longer than the client waits for the player to answer, so the links are still there. */
+  private static final int KEEP_SESSION_SECONDS = 180;
+
   private static final Logger advancedLogger = LoggerFactory.getLogger("faf-ice-adapter-advanced");
 
   private final OperatingSystem operatingSystem;
@@ -167,9 +170,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
       return gpgPort;
     });
   }
-
-  /** A little longer than the client waits for the player to answer, so the links are still there. */
-  private static final int KEEP_SESSION_SECONDS = 180;
 
   private void startIceAdapterProcess(Path workDirectory, List<String> cmd) throws IOException {
     ProcessBuilder processBuilder = new ProcessBuilder();
