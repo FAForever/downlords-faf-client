@@ -18,20 +18,27 @@ import com.faforever.commons.lobby.JoinGameGpgCommand;
 import com.faforever.commons.lobby.MessageTarget;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.codec.CorruptedFrameException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
+import reactor.netty.Connection;
+import reactor.netty.DisposableServer;
+import reactor.netty.NettyInbound;
+import reactor.netty.NettyOutbound;
+import reactor.netty.tcp.TcpServer;
 
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -41,7 +48,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -56,6 +62,8 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
 
   private static final byte ARG_INT = 0;
   private static final byte ARG_STRING = 1;
+  // Far above any GPGNet message; a larger length means the stream is not GPGNet.
+  private static final int MAX_FIELD_BYTES = 16 * 1024 * 1024;
 
   private final PlayerService playerService;
   private final FafServerAccessor fafServerAccessor;
@@ -73,10 +81,10 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
   private volatile boolean active;
   private volatile boolean forceRelay;
   private volatile String iceServersJson = "[]";
+  private volatile DisposableServer server;
+  private volatile Connection gameConnection;
   private GameType gameType;
-  private ServerSocket listener;
-  private Socket gameSocket;
-  private OutputStream toGame;
+  private Sinks.Many<byte[]> toGame;
 
   @Override
   public void afterPropertiesSet() {
@@ -175,32 +183,41 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
   @Override
   public CompletableFuture<Integer> start(int gameId, boolean forceRelay) {
     this.forceRelay = forceRelay;
-    return CompletableFuture.supplyAsync(() -> {
-      stop();
-      peerMessages.clear();
-      rejoinOffer = null;
-      comingBack = false;
-      try {
-        listener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
-      } catch (IOException e) {
-        throw new CompletionException("Unable to open the GPGNet port", e);
-      }
-      active = true;
-      Thread reader = new Thread(this::serveGame, "NativeGpgNet");
-      reader.setDaemon(true);
-      reader.start();
-      log.info("Native network: GPGNet on port {} for game {}", listener.getLocalPort(), gameId);
-      return listener.getLocalPort();
-    });
+    stop();
+    peerMessages.clear();
+    rejoinOffer = null;
+    comingBack = false;
+    active = true;
+    // The server stays up for the whole match, so a game started again after a crash connects to the same port.
+    return TcpServer.create()
+                    .bindAddress(() -> new InetSocketAddress(InetAddress.getLoopbackAddress(), 0))
+                    .doOnBound(bound -> {
+                      server = bound;
+                      log.info("Native network: GPGNet on port {} for game {}", bound.port(), gameId);
+                    })
+                    .doOnUnbound(bound -> log.debug("Native network: GPGNet port {} closed", bound.port()))
+                    .handle(this::serveGame)
+                    .bind()
+                    .map(DisposableServer::port)
+                    .toFuture();
   }
 
   @Override
   public void stop() {
     active = false;
-    closeQuietly(gameSocket);
-    closeQuietly(listener);
     synchronized (sendLock) {
-      toGame = null;
+      if (toGame != null) {
+        toGame.tryEmitComplete();
+        toGame = null;
+      }
+    }
+    Connection connection = gameConnection;
+    if (connection != null) {
+      connection.dispose();
+    }
+    DisposableServer openServer = server;
+    if (openServer != null) {
+      openServer.dispose();
     }
   }
 
@@ -215,56 +232,52 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
     send("IceServers", iceServersJson);
   }
 
-  private void serveGame() {
-    ServerSocket openListener = listener;
-    // One game at a time, and another after a crash if the player goes back to the match.
-    while (active && !openListener.isClosed()) {
-      serveOneGame(openListener);
+  /** One game's connection. The newest one is the game: a game started again after a crash takes over. */
+  private Publisher<Void> serveGame(NettyInbound inbound, NettyOutbound outbound) {
+    Sinks.Many<byte[]> toThisGame = Sinks.many().unicast().onBackpressureBuffer();
+    synchronized (sendLock) {
+      toGame = toThisGame;
     }
+    if (comingBack) {
+      comingBack = false;
+      // It reports no lobby states, as the server would take them for a new lobby, so this can't wait for Idle.
+      sendLobbySetup();
+      peerMessages.forEach(known -> send(known.command(), known.args()));
+    }
+
+    Mono<Void> fromGame = inbound.withConnection(connection -> {
+                                   gameConnection = connection;
+                                   connection.addHandlerLast("gpgnet", new GpgNetDecoder());
+                                 })
+                                 .receiveObject()
+                                 .cast(GpgGameOutboundMessage.class)
+                                 .doOnNext(this::onMessageFromGame)
+                                 .doOnComplete(() -> log.info("Native network: the game closed GPGNet"))
+                                 .doOnError(throwable -> {
+                                   if (active) {
+                                     log.warn("Native network: GPGNet failed", throwable);
+                                   }
+                                 })
+                                 .onErrorComplete()
+                                 .doFinally(_ -> {
+                                   synchronized (sendLock) {
+                                     if (Objects.equals(toGame, toThisGame)) {
+                                       toGame = null;
+                                     }
+                                   }
+                                   toThisGame.tryEmitComplete();
+                                 })
+                                 .then();
+
+    return Mono.when(fromGame, outbound.sendByteArray(toThisGame.asFlux()).then());
   }
 
-  private void serveOneGame(ServerSocket openListener) {
-    OutputStream out = null;
-    try (Socket socket = openListener.accept()) {
-      socket.setTcpNoDelay(true);
-      gameSocket = socket;
-      out = new BufferedOutputStream(socket.getOutputStream());
-      synchronized (sendLock) {
-        toGame = out;
-      }
-      if (comingBack) {
-        comingBack = false;
-        // It reports no lobby states, as the server would take them for a new lobby, so this can't wait for Idle.
-        sendLobbySetup();
-        peerMessages.forEach(known -> send(known.command(), known.args()));
-      }
-      DataInputStream fromGame = new DataInputStream(socket.getInputStream());
-      while (active) {
-        String command = readString(fromGame);
-        List<Object> args = new ArrayList<>();
-        int argCount = readInt(fromGame);
-        for (int i = 0; i < argCount; i++) {
-          args.add(fromGame.readByte() == ARG_INT ? (Object) readInt(fromGame) : readString(fromGame));
-        }
-        log.debug("Message from game: '{}' '{}'", command, args);
-        if ("GameState".equals(command) && args.contains("Idle")) {
-          sendLobbySetup();
-        }
-        onGpgGameMessage(new GpgGameOutboundMessage(command, args, MessageTarget.GAME));
-      }
-    } catch (EOFException e) {
-      log.info("Native network: the game closed GPGNet");
-    } catch (IOException e) {
-      if (active) {
-        log.warn("Native network: GPGNet failed", e);
-      }
-    } finally {
-      synchronized (sendLock) {
-        if (Objects.equals(toGame, out)) {
-          toGame = null;
-        }
-      }
+  private void onMessageFromGame(GpgGameOutboundMessage message) {
+    log.debug("Message from game: '{}' '{}'", message.getCommand(), message.getArgs());
+    if ("GameState".equals(message.getCommand()) && message.getArgs().contains("Idle")) {
+      sendLobbySetup();
     }
+    onGpgGameMessage(message);
   }
 
   private void rememberAndSend(String command, int peerId, Object... args) {
@@ -282,25 +295,14 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
   }
 
   private void send(String command, Object... args) {
+    byte[] frame = encode(command, args);
     synchronized (sendLock) {
       if (!active || toGame == null) {
         return;
       }
-      try {
-        writeString(toGame, command);
-        writeInt(toGame, args.length);
-        for (Object arg : args) {
-          if (arg instanceof Number number) {
-            toGame.write(ARG_INT);
-            writeInt(toGame, number.intValue());
-          } else {
-            toGame.write(ARG_STRING);
-            writeString(toGame, String.valueOf(arg));
-          }
-        }
-        toGame.flush();
-      } catch (IOException e) {
-        log.warn("Native network: unable to send {} to the game", command, e);
+      Sinks.EmitResult result = toGame.tryEmitNext(frame);
+      if (result.isFailure()) {
+        log.warn("Native network: unable to send {} to the game: {}", command, result);
       }
     }
   }
@@ -318,33 +320,94 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
 
   private record PeerMessage(String command, int peerId, Object[] args) {}
 
-  private static int readInt(DataInputStream in) throws IOException {
-    return Integer.reverseBytes(in.readInt());
+  /** A GPGNet message: little-endian lengths and ints, each argument tagged as an int or a string. */
+  private static byte[] encode(String command, Object... args) {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    writeString(out, command);
+    writeInt(out, args.length);
+    for (Object arg : args) {
+      if (arg instanceof Number number) {
+        out.write(ARG_INT);
+        writeInt(out, number.intValue());
+      } else {
+        out.write(ARG_STRING);
+        writeString(out, String.valueOf(arg));
+      }
+    }
+    return out.toByteArray();
   }
 
-  private static String readString(DataInputStream in) throws IOException {
-    byte[] bytes = new byte[readInt(in)];
-    in.readFully(bytes);
-    return new String(bytes, StandardCharsets.UTF_8);
+  private static void writeInt(ByteArrayOutputStream out, int value) {
+    out.writeBytes(ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.LITTLE_ENDIAN).putInt(value).array());
   }
 
-  private static void writeInt(OutputStream out, int value) throws IOException {
-    out.write(ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.LITTLE_ENDIAN).putInt(value).array());
-  }
-
-  private static void writeString(OutputStream out, String value) throws IOException {
+  private static void writeString(ByteArrayOutputStream out, String value) {
     byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
     writeInt(out, bytes.length);
-    out.write(bytes);
+    out.writeBytes(bytes);
   }
 
-  private static void closeQuietly(AutoCloseable closeable) {
-    if (closeable != null) {
-      try {
-        closeable.close();
-      } catch (Exception e) {
-        log.debug("Native network: close failed", e);
+  /** Cuts the game's byte stream into GPGNet messages; a message split across reads waits for the rest. */
+  private static final class GpgNetDecoder extends ByteToMessageDecoder {
+
+    @Override
+    protected void decode(ChannelHandlerContext context, ByteBuf in, List<Object> out) {
+      if (frameEnd(in) < 0) {
+        return;
       }
+      String command = readString(in);
+      int argCount = in.readIntLE();
+      List<Object> args = new ArrayList<>(argCount);
+      for (int i = 0; i < argCount; i++) {
+        args.add(in.readByte() == ARG_INT ? (Object) in.readIntLE() : readString(in));
+      }
+      out.add(new GpgGameOutboundMessage(command, args, MessageTarget.GAME));
+    }
+
+    /** Where the next whole message ends, or -1 while part of it has yet to arrive. */
+    private static int frameEnd(ByteBuf in) {
+      int end = in.writerIndex();
+      int at = stringEnd(in, in.readerIndex(), end);
+      if (at < 0 || end - at < Integer.BYTES) {
+        return -1;
+      }
+      int argCount = checkedLength(in.getIntLE(at));
+      at += Integer.BYTES;
+      for (int i = 0; i < argCount && at >= 0; i++) {
+        if (at >= end) {
+          return -1;
+        }
+        byte type = in.getByte(at);
+        at = type == ARG_INT ? fixedEnd(at + 1, end) : stringEnd(in, at + 1, end);
+      }
+      return at;
+    }
+
+    private static int fixedEnd(int at, int end) {
+      return end - at >= Integer.BYTES ? at + Integer.BYTES : -1;
+    }
+
+    private static int stringEnd(ByteBuf in, int at, int end) {
+      if (end - at < Integer.BYTES) {
+        return -1;
+      }
+      int length = checkedLength(in.getIntLE(at));
+      long next = (long) at + Integer.BYTES + length;
+      return next <= end ? (int) next : -1;
+    }
+
+    private static int checkedLength(int length) {
+      if (length < 0 || length > MAX_FIELD_BYTES) {
+        throw new CorruptedFrameException("Not a GPGNet message: length " + length);
+      }
+      return length;
+    }
+
+    private static String readString(ByteBuf in) {
+      int length = in.readIntLE();
+      String text = in.toString(in.readerIndex(), length, StandardCharsets.UTF_8);
+      in.skipBytes(length);
+      return text;
     }
   }
 }

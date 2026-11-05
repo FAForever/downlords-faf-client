@@ -163,6 +163,27 @@ public class NativeIceAdapterTest extends ServiceTest {
   }
 
   @Test
+  public void testMessagesCutAnywhereInTheStreamArriveWhole() throws Exception {
+    byte[] first = frame("IceMsg", 7, "{\"a\":1}");
+    byte[] second = frame("GameState", "Lobby");
+    byte[] stream = new byte[first.length + second.length];
+    System.arraycopy(first, 0, stream, 0, first.length);
+    System.arraycopy(second, 0, stream, first.length, second.length);
+    int cut = first.length + 6;
+    game.getOutputStream().write(stream, 0, cut);
+    game.getOutputStream().flush();
+    Thread.sleep(200);
+    game.getOutputStream().write(stream, cut, stream.length - cut);
+    game.getOutputStream().flush();
+
+    ArgumentCaptor<GpgGameOutboundMessage> captor = ArgumentCaptor.forClass(GpgGameOutboundMessage.class);
+    verify(fafServerAccessor, timeout(WAIT_MILLIS).times(2)).sendGpgMessage(captor.capture());
+    assertEquals(List.of(7, "{\"a\":1}"), captor.getAllValues().get(0).getArgs());
+    assertEquals("GameState", captor.getAllValues().get(1).getCommand());
+    assertEquals(List.of("Lobby"), captor.getAllValues().get(1).getArgs());
+  }
+
+  @Test
   public void testGameFullStaysInTheClient() throws Exception {
     sendFromGame("GameFull");
 
