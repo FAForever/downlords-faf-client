@@ -14,7 +14,9 @@ import java.util.concurrent.CompletableFuture;
 public interface IceAdapter {
 
   /** Called with a game's launch message, before {@link #start}. */
-  default void prepare(GameLaunchResponse gameLaunchResponse) {}
+  default void prepare(GameLaunchResponse gameLaunchResponse) {
+    // Only a network chosen per game needs it.
+  }
 
   /** What the game's command line needs for this network. */
   default List<String> gameArguments() {
