@@ -122,6 +122,9 @@ public class GameRunner implements InitializingBean {
   private final LogAnalyzerService logAnalyzerService;
   private final TaskService taskService;
 
+  /** The other players' dialogs eject a silent player about this long after their dialog opens. */
+  private static final int REJOIN_ANSWER_SECONDS = 150;
+
   private final MaskPatternLayout logMasker = new MaskPatternLayout();
   private final SimpleObjectProperty<Integer> runningGameId = new SimpleObjectProperty<>();
   private final ObjectProperty<Process> process = new SimpleObjectProperty<>();
@@ -133,6 +136,8 @@ public class GameRunner implements InitializingBean {
   private CompletableFuture<Void> matchmakerFuture;
   private CompletableFuture<Void> customGameFuture;
   private boolean gameKilled;
+  private GameParameters launchedParameters;
+  private int launchedGpgPort;
 
   @Override
   public void afterPropertiesSet() {
@@ -197,15 +202,18 @@ public class GameRunner implements InitializingBean {
 
     return CompletableFuture.allOf(downloadMapFuture, loadLeagueInfoFuture, runReplayServerFuture, runIceAdapterFuture)
                             .thenApply(_ -> gameMapper.map(gameLaunchResponse, loadLeagueInfoFuture.join()))
-                            .thenApply(parameters -> launchOnlineGame(parameters, runIceAdapterFuture.join(),
-                                                                      runReplayServerFuture.join()))
+                            .thenApply(parameters -> {
+                              launchedParameters = parameters;
+                              launchedGpgPort = runIceAdapterFuture.join();
+                              return launchOnlineGame(parameters, launchedGpgPort, runReplayServerFuture.join());
+                            })
                             .whenCompleteAsync((process, _) -> {
                               if (process != null) {
                                 this.process.set(process);
                                 runningGameId.set(uid);
                               }
                             }, fxApplicationThreadExecutor)
-                            .thenCompose(Process::onExit)
+                            .thenCompose(this::waitForGameToEnd)
                             .thenAccept(this::handleTermination)
                             .whenComplete((_, _) -> {
                               iceAdapter.stop();
@@ -216,6 +224,42 @@ public class GameRunner implements InitializingBean {
                               process.set(null);
                               runningGameId.set(null);
                             }, fxApplicationThreadExecutor);
+  }
+
+  /**
+   * Waits for the game's exit. A game that crashed in a match it can come back to is offered that, and is watched
+   * again if it is started: the player stays in the match until then, so nothing is torn down.
+   *
+   * @return the process that ended the game for this client
+   */
+  private CompletableFuture<Process> waitForGameToEnd(Process gameProcess) {
+    return gameProcess.onExit().thenCompose(finished -> {
+      if (gameKilled || finished.exitValue() == 0 || !iceAdapter.canRejoin()) {
+        return completedFuture(finished);
+      }
+      return askToReturnToMatch().thenCompose(wantsToReturn -> {
+        if (!wantsToReturn) {
+          return completedFuture(finished);
+        }
+        List<String> rejoinArguments = iceAdapter.rejoinArguments();
+        if (rejoinArguments.isEmpty()) {
+          log.warn("The ICE adapter no longer has the links to the other players");
+          return completedFuture(finished);
+        }
+        Process relaunched = forgedAllianceLaunchService.relaunchOnlineGame(launchedParameters, launchedGpgPort, rejoinArguments);
+        fxApplicationThreadExecutor.execute(() -> process.set(relaunched));
+        return waitForGameToEnd(relaunched);
+      });
+    });
+  }
+
+  private CompletableFuture<Boolean> askToReturnToMatch() {
+    CompletableFuture<Boolean> answer = new CompletableFuture<>();
+    notificationService.addNotification(
+        new ImmediateNotification(i18n.get("game.rejoin.title"), i18n.get("game.rejoin.text"), WARN,
+                                  List.of(new Action(i18n.get("game.rejoin.return"), () -> answer.complete(true)),
+                                          new Action(i18n.get("game.rejoin.leave"), () -> answer.complete(false)))));
+    return answer.completeOnTimeout(false, REJOIN_ANSWER_SECONDS, TimeUnit.SECONDS);
   }
 
   @VisibleForTesting
