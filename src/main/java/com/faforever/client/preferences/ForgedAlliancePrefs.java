@@ -24,6 +24,7 @@ public class ForgedAlliancePrefs {
   private final BooleanProperty warnNonAsciiVaultPath = new SimpleBooleanProperty(true);
   private final BooleanProperty autoDownloadMaps = new SimpleBooleanProperty(true);
   private final BooleanProperty allowIpv6 = new SimpleBooleanProperty(false);
+  private final BooleanProperty nativeNetwork = new SimpleBooleanProperty(false);
 
   /**
    * String format to use when building the launch command. Takes exact one parameter; the executable path. <p>
@@ -142,6 +143,18 @@ public class ForgedAlliancePrefs {
 
   public ObjectProperty<Path> vaultBaseDirectoryProperty() {
     return vaultBaseDirectory;
+  }
+
+  public boolean isNativeNetwork() {
+    return nativeNetwork.get();
+  }
+
+  public BooleanProperty nativeNetworkProperty() {
+    return nativeNetwork;
+  }
+
+  public void setNativeNetwork(boolean nativeNetwork) {
+    this.nativeNetwork.set(nativeNetwork);
   }
 
   public boolean isAllowIpv6() {

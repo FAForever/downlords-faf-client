@@ -83,7 +83,7 @@ public class ForgedAllianceLaunchService {
                    "net_PeerFeatures=1;net_RejoinAccept=1");
   }
 
-  public Process launchOnlineGame(GameParameters gameParameters, int gpgPort, int replayPort) {
+  public Process launchOnlineGame(GameParameters gameParameters, int gpgPort, int replayPort, List<String> networkArgs) {
     PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
     Optional<LeaderboardRating> leaderboardRating = Optional.ofNullable(currentPlayer.getLeaderboardRatings()).map(
@@ -100,7 +100,7 @@ public class ForgedAllianceLaunchService {
                                                                 .expectedPlayers(gameParameters.expectedPlayers())
                                                                 .team(gameParameters.team())
                                                                 .gameOptions(gameParameters.gameOptions())
-                                                                .additionalArgs(withRejoinOffer(gameParameters.additionalArgs()))
+                                                                .additionalArgs(withRejoinOffer(gameParameters.additionalArgs(), networkArgs))
                                                                 .clan(currentPlayer.getClan())
                                                                 .country(currentPlayer.getCountry())
                                                                 .username(currentPlayer.getUsername())
@@ -120,8 +120,9 @@ public class ForgedAllianceLaunchService {
   }
 
 
-  private List<String> withRejoinOffer(@Nullable List<String> additionalArgs) {
+  private List<String> withRejoinOffer(@Nullable List<String> additionalArgs, List<String> networkArgs) {
     List<String> arguments = new ArrayList<>(additionalArgs == null ? List.of() : additionalArgs);
+    arguments.addAll(networkArgs);
     arguments.addAll(rejoinOfferArguments());
     return arguments;
   }

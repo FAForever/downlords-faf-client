@@ -188,6 +188,7 @@ public class GameRunner implements InitializingBean {
   @VisibleForTesting
   CompletableFuture<Void> startOnlineGame(GameLaunchResponse gameLaunchResponse) {
     int uid = gameLaunchResponse.getUid();
+    iceAdapter.prepare(gameLaunchResponse);
     String leaderboard = gameLaunchResponse.getLeaderboard();
     boolean hasLeague = leaderboard == null || "global".equals(leaderboard);
 
@@ -443,7 +444,7 @@ public class GameRunner implements InitializingBean {
     fafServerAccessor.setPingIntervalSeconds(5);
     fafServerAccessor.setTimeoutLoginReconnectSeconds(5);
     gameKilled = false;
-    return forgedAllianceLaunchService.launchOnlineGame(gameParameters, gpgPort, replayPort);
+    return forgedAllianceLaunchService.launchOnlineGame(gameParameters, gpgPort, replayPort, iceAdapter.gameArguments());
   }
 
   private CompletableFuture<Integer> startIceAdapter(int uid) {
