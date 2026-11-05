@@ -43,6 +43,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
@@ -75,6 +77,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private final IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
   private GameType gameType;
   private JJsonPeer peer;
+  private volatile RejoinOffer rejoinOffer;
 
   @Override
   public void afterPropertiesSet() {
@@ -113,7 +116,8 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   @Override
   public void onIceAdapterStateChanged(String newState) {
-    if ("Disconnected".equals(newState)) {
+    // With an offer, whoever watches the game's exit decides: a game started again needs these links.
+    if ("Disconnected".equals(newState) && !canRejoin()) {
       stop();
     }
   }
@@ -124,6 +128,12 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
     if (command.equals("GameFull")) {
       gameFullNotifier.onGameFull();
+      return;
+    }
+
+    if (command.equals("RejoinOffer")) {
+      List<Object> args = message.getArgs();
+      rejoinOffer = RejoinOffer.parse(String.valueOf(args.get(0)), String.valueOf(args.get(1)));
       return;
     }
 
@@ -157,6 +167,9 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
       return gpgPort;
     });
   }
+
+  /** A little longer than the client waits for the player to answer, so the links are still there. */
+  private static final int KEEP_SESSION_SECONDS = 180;
 
   private void startIceAdapterProcess(Path workDirectory, List<String> cmd) throws IOException {
     ProcessBuilder processBuilder = new ProcessBuilder();
@@ -200,6 +213,9 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         peer = tcpClient.getPeer();
 
         setLobbyInitMode();
+        if (forgedAlliancePrefs.isAllowRejoin()) {
+          iceAdapterProxy.setKeepSessionOnGameExit(KEEP_SESSION_SECONDS);
+        }
         break;
       } catch (IOException e) {
         log.warn("Could not connect to ICE adapter (attempt {}/{})", attempt + 1, CONNECTION_ATTEMPTS);
@@ -315,7 +331,33 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   @Override
   public void stop() {
+    rejoinOffer = null;
     iceAdapterProxy.quit();
     peer = null;
+  }
+
+  @Override
+  public boolean canRejoin() {
+    return rejoinOffer != null && forgedAlliancePrefs.isAllowRejoin();
+  }
+
+  @Override
+  public List<String> rejoinArguments() {
+    RejoinOffer offer = rejoinOffer;
+    if (offer == null) {
+      return List.of();
+    }
+    Map<String, Object> ports = iceAdapterProxy.peerPorts();
+    if (ports == null || !(ports.get("peers") instanceof Map<?, ?> peers) || peers.isEmpty()) {
+      return List.of();
+    }
+    StringJoiner addresses = new StringJoiner(",");
+    peers.forEach((id, port) -> {
+      Integer source = offer.sourceByPlayerId().get(Integer.valueOf(String.valueOf(id)));
+      if (source != null) {
+        addresses.add("127.0.0.1:" + port + "=" + source);
+      }
+    });
+    return List.of("/rejoin", addresses.toString(), String.valueOf(offer.localSource()), String.valueOf(ports.get("lobbyPort")));
   }
 }
