@@ -190,6 +190,8 @@ public class ClientProperties {
     private List<String> downloadUrlFormats = new ArrayList<>();
     private String repoAndOwnerName;
     private String queryLatestVersionUrl;
+    /** Lists all releases including pre-releases, used when the user opted into ICE adapter pre-releases. */
+    private String queryReleasesUrl;
   }
 
   @Data

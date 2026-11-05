@@ -19,7 +19,9 @@ import reactor.test.StepVerifier;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,6 +53,8 @@ public class IceServiceTest extends ServiceTest {
     clientProperties.getIceAdapter()
                     .setQueryLatestVersionUrl(
                         String.format("http://localhost:%s/releases/latest", mockGitHub.getPort()));
+    clientProperties.getIceAdapter()
+                    .setQueryReleasesUrl(String.format("http://localhost:%s/releases", mockGitHub.getPort()));
 
     DataPrefs dataPrefs = new DataPrefs();
     dataPrefs.setBaseDataDirectory(tempDirectory);
@@ -67,6 +71,13 @@ public class IceServiceTest extends ServiceTest {
   private void prepareLatestReleaseResponse(String tagName) {
     mockGitHub.enqueue(new MockResponse().setBody(String.format("{\"tag_name\":\"%s\"}", tagName))
                                          .addHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE));
+  }
+
+  private void prepareReleasesResponse(String... tagNames) {
+    String body = Arrays.stream(tagNames)
+                        .map(tagName -> String.format("{\"tag_name\":\"%s\"}", tagName))
+                        .collect(Collectors.joining(",", "[", "]"));
+    mockGitHub.enqueue(new MockResponse().setBody(body).addHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE));
   }
 
   private void prepareErrorResponse() {
@@ -99,11 +110,60 @@ public class IceServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testQueryLatestVersionIncludingPreReleasesReturnsHighestVersion() throws Exception {
+    prepareReleasesResponse("3.3.14", "3.4.0-rc1", "3.3.15");
+
+    StepVerifier.create(instance.queryLatestVersionIncludingPreReleases()).expectNext("3.4.0-rc1").verifyComplete();
+    assertEquals("/releases", mockGitHub.takeRequest().getPath());
+  }
+
+  @Test
+  public void testQueryLatestVersionIncludingPreReleasesPrefersFinalOverPreRelease() {
+    prepareReleasesResponse("3.4.0-rc1", "3.4.0");
+
+    StepVerifier.create(instance.queryLatestVersionIncludingPreReleases()).expectNext("3.4.0").verifyComplete();
+  }
+
+  @Test
+  public void testQueryLatestVersionIncludingPreReleasesWithNoReleasesFails() {
+    prepareReleasesResponse();
+
+    StepVerifier.create(instance.queryLatestVersionIncludingPreReleases())
+                .expectError(IllegalStateException.class)
+                .verify();
+  }
+
+  @Test
+  public void testGetNewestIceAdapterWithPreReleaseDownloadsPreRelease() throws Exception {
+    prepareReleasesResponse("3.3.14", "3.4.0-rc1");
+    prepareDownloadTask();
+
+    StepVerifier.create(instance.getNewestIceAdapter(true))
+                .expectNext(instance.getIceAdapterJarPath("3.4.0-rc1"))
+                .verifyComplete();
+
+    assertEquals("/releases", mockGitHub.takeRequest().getPath());
+    verify(downloadIceAdapterTask).setVersion("3.4.0-rc1");
+  }
+
+  @Test
+  public void testGetNewestIceAdapterWithoutPreReleaseQueriesLatestRelease() throws Exception {
+    prepareLatestReleaseResponse("3.3.14");
+    prepareDownloadTask();
+
+    StepVerifier.create(instance.getNewestIceAdapter(false))
+                .expectNext(instance.getIceAdapterJarPath("3.3.14"))
+                .verifyComplete();
+
+    assertEquals("/releases/latest", mockGitHub.takeRequest().getPath());
+  }
+
+  @Test
   public void testGetNewestIceAdapterDownloadsLatestVersion() {
     prepareLatestReleaseResponse("3.3.14");
     prepareDownloadTask();
 
-    StepVerifier.create(instance.getNewestIceAdapter())
+    StepVerifier.create(instance.getNewestIceAdapter(false))
                 .expectNext(instance.getIceAdapterJarPath("3.3.14"))
                 .verifyComplete();
 
@@ -116,7 +176,7 @@ public class IceServiceTest extends ServiceTest {
     prepareLatestReleaseResponse("3.3.14");
     Path iceAdapterJar = createLocalIceAdapterJar("3.3.14");
 
-    StepVerifier.create(instance.getNewestIceAdapter()).expectNext(iceAdapterJar).verifyComplete();
+    StepVerifier.create(instance.getNewestIceAdapter(false)).expectNext(iceAdapterJar).verifyComplete();
 
     verify(downloadIceAdapterTaskFactory, never()).getObject();
     verify(taskService, never()).submitTask(any());
@@ -128,7 +188,7 @@ public class IceServiceTest extends ServiceTest {
     createLocalIceAdapterJar("3.3.9");
     Path newestJar = createLocalIceAdapterJar("3.3.14");
 
-    StepVerifier.create(instance.getNewestIceAdapter()).expectNext(newestJar).verifyComplete();
+    StepVerifier.create(instance.getNewestIceAdapter(false)).expectNext(newestJar).verifyComplete();
 
     verify(taskService, never()).submitTask(any());
   }
@@ -137,7 +197,7 @@ public class IceServiceTest extends ServiceTest {
   public void testGetNewestIceAdapterFailsWithoutLocalJar() {
     prepareErrorResponse();
 
-    StepVerifier.create(instance.getNewestIceAdapter()).verifyError();
+    StepVerifier.create(instance.getNewestIceAdapter(false)).verifyError();
   }
 
   @Test

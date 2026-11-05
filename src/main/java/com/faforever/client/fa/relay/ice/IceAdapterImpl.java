@@ -133,7 +133,9 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   @Override
   public CompletableFuture<Integer> start(int gameId, boolean forceRelay) {
-    return iceService.getNewestIceAdapter().toFuture().thenApplyAsync(iceAdapterJar -> {
+    return iceService.getNewestIceAdapter(forgedAlliancePrefs.isUseIceAdapterPreRelease())
+                     .toFuture()
+                     .thenApplyAsync(iceAdapterJar -> {
       Path workDirectory = Path.of(System.getProperty("nativeDir", "lib")).toAbsolutePath();
 
       int adapterPort;

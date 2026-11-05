@@ -45,10 +45,13 @@ public class IceService {
    * Resolves the jar of the latest ICE adapter release, downloading it if necessary. If the latest version cannot be
    * determined or downloaded (e.g. GitHub is unreachable or rate limited), falls back to the newest locally available
    * jar.
+   *
+   * @param usePreRelease whether pre-releases should be considered when determining the latest version
    */
   @Cacheable(value = CacheNames.ICE_ADAPTER, sync = true)
-  public Mono<Path> getNewestIceAdapter() {
-    return queryLatestVersion().flatMap(version -> {
+  public Mono<Path> getNewestIceAdapter(boolean usePreRelease) {
+    Mono<String> latestVersion = usePreRelease ? queryLatestVersionIncludingPreReleases() : queryLatestVersion();
+    return latestVersion.flatMap(version -> {
       Path iceAdapterJar = getIceAdapterJarPath(version);
       return downloadIceAdapterIfNecessary(version, iceAdapterJar).thenReturn(iceAdapterJar);
     }).onErrorResume(throwable -> findNewestLocalIceAdapterJar().map(iceAdapterJar -> {
@@ -65,6 +68,22 @@ public class IceService {
                            .retrieve()
                            .bodyToMono(GitHubRelease.class)
                            .map(GitHubRelease::getTagName)
+                           .switchIfEmpty(Mono.error(new IllegalStateException("No ICE adapter release found")));
+  }
+
+  /**
+   * Queries all releases (including pre-releases) and returns the highest version among them.
+   */
+  @VisibleForTesting
+  Mono<String> queryLatestVersionIncludingPreReleases() {
+    return defaultWebClient.get()
+                           .uri(clientProperties.getIceAdapter().getQueryReleasesUrl())
+                           .accept(MediaType.parseMediaType("application/vnd.github.v3+json"))
+                           .retrieve()
+                           .bodyToFlux(GitHubRelease.class)
+                           .map(GitHubRelease::getTagName)
+                           .reduce((first, second) -> new ComparableVersion(first).compareTo(
+                               new ComparableVersion(second)) >= 0 ? first : second)
                            .switchIfEmpty(Mono.error(new IllegalStateException("No ICE adapter release found")));
   }
 

@@ -37,6 +37,7 @@ public class ForgedAlliancePrefs {
   private final ObjectProperty<Path> executionDirectory = new SimpleObjectProperty<>();
   private final BooleanProperty runFAWithDebugger = new SimpleBooleanProperty(false);
   private final BooleanProperty showIceAdapterDebugWindow = new SimpleBooleanProperty(false);
+  private final BooleanProperty useIceAdapterPreRelease = new SimpleBooleanProperty(false);
   private final BooleanProperty relativeGamePaths = new SimpleBooleanProperty(false);
   private final ObservableSet<String> preferredCoturnIds = FXCollections.observableSet();
   /**
@@ -170,6 +171,18 @@ public class ForgedAlliancePrefs {
 
   public BooleanProperty showIceAdapterDebugWindow() {
     return showIceAdapterDebugWindow;
+  }
+
+  public boolean isUseIceAdapterPreRelease() {
+    return useIceAdapterPreRelease.get();
+  }
+
+  public void setUseIceAdapterPreRelease(boolean useIceAdapterPreRelease) {
+    this.useIceAdapterPreRelease.set(useIceAdapterPreRelease);
+  }
+
+  public BooleanProperty useIceAdapterPreReleaseProperty() {
+    return useIceAdapterPreRelease;
   }
 
   public ObservableSet<String> getPreferredCoturnIds() {
