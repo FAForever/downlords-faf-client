@@ -1,7 +1,8 @@
 package com.faforever.client.fa.relay.ice;
 
+import com.faforever.client.fa.FafReExecutable;
+import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.commons.api.dto.CoturnServer;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
@@ -16,8 +17,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Picks the network for each game: the game's own links on the fafdevelop mod when the player turned them on, the Java
- * adapter otherwise. All players of a fafdevelop game run the same exe, so nobody else's client needs to know.
+ * Picks the network for each game: the game's own links on the fafdevelop mod when its exe is faf-re, the Java adapter
+ * otherwise. All players of a fafdevelop game run the same exe, so nobody else's client needs to know, and the original
+ * exe on fafdevelop keeps the adapter.
  */
 @Component
 @Primary
@@ -28,7 +30,7 @@ public class IceAdapterSelector implements IceAdapter {
 
   private final IceAdapterImpl javaAdapter;
   private final NativeIceAdapter nativeAdapter;
-  private final ForgedAlliancePrefs forgedAlliancePrefs;
+  private final ForgedAllianceLaunchService forgedAllianceLaunchService;
 
   private volatile IceAdapter active;
 
@@ -38,8 +40,8 @@ public class IceAdapterSelector implements IceAdapter {
 
   @Override
   public void prepare(GameLaunchResponse gameLaunchResponse) {
-    boolean useNative = forgedAlliancePrefs.isNativeNetwork() && KnownFeaturedMod.FAF_DEVELOP.getTechnicalName()
-                                                                                             .equals(gameLaunchResponse.getFeatureMod());
+    boolean useNative = KnownFeaturedMod.FAF_DEVELOP.getTechnicalName().equals(gameLaunchResponse.getFeatureMod())
+        && FafReExecutable.isFafRe(forgedAllianceLaunchService.getExecutablePath());
     active = useNative ? nativeAdapter : javaAdapter;
     log.info("Network for game {}: {}", gameLaunchResponse.getUid(), useNative ? "native" : "Java adapter");
     active.prepare(gameLaunchResponse);
