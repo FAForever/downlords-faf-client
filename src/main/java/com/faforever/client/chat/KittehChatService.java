@@ -387,6 +387,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   public void onConnect(ClientNegotiationCompleteEvent event) {
     connectionState.set(ConnectionState.CONNECTED);
     channels.keySet().forEach(this::joinChannel);
+    joinAutoChannels();
     joinSavedAutoChannels();
     joinBufferedChannels();
 
