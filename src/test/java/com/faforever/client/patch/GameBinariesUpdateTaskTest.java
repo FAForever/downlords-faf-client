@@ -8,6 +8,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.test.PlatformTest;
+import com.faforever.commons.fa.ForgedAllianceExePatcher;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -129,6 +130,20 @@ public class GameBinariesUpdateTaskTest extends PlatformTest {
     instance.call();
 
     assertArrayEquals(before, Files.readAllBytes(exePath));
+  }
+
+  @Test
+  public void testOriginalExeIsPatched() throws Exception {
+    Path exePath = TestExecutables.write(fafBinDirectory.resolve("ForgedAlliance.exe"), false, "Supreme Commander Forged Alliance");
+    try (RandomAccessFile file = new RandomAccessFile(exePath.toFile(), "rw")) {
+      file.setLength(0x480000);
+    }
+    when(forgedAllianceLaunchService.getExecutablePath()).thenReturn(exePath);
+
+    instance.setVersion(new ComparableVersion("3840"));
+    instance.call();
+
+    assertThat(ForgedAllianceExePatcher.readVersion(exePath), is(3840));
   }
 
   private void createFileWithSize(Path file, int size) throws IOException {

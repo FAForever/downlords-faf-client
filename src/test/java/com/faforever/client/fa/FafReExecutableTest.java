@@ -40,8 +40,44 @@ public class FafReExecutableTest {
   }
 
   @Test
+  public void testVarFileInfoBeforeStringFileInfo() throws Exception {
+    Path executable = TestExecutables.writeVarFileInfoFirst(tempDirectory.resolve("ForgedAlliance.exe"), "faf-re");
+
+    assertTrue(FafReExecutable.isFafRe(executable));
+  }
+
+  @Test
+  public void testNoProductName() throws Exception {
+    Path executable = TestExecutables.writeWithoutProductName(tempDirectory.resolve("ForgedAlliance.exe"));
+
+    assertEquals(Optional.empty(), FafReExecutable.readProductName(executable));
+  }
+
+  @Test
+  public void testResourcesWithoutVersion() throws Exception {
+    assertFalse(FafReExecutable.isFafRe(TestExecutables.writeIconOnly(tempDirectory.resolve("ForgedAlliance.exe"))));
+  }
+
+  @Test
+  public void testResourceOutsideSections() throws Exception {
+    assertFalse(FafReExecutable.isFafRe(TestExecutables.writeResourceOutsideSections(tempDirectory.resolve("ForgedAlliance.exe"))));
+  }
+
+  @Test
+  public void testNoPeSignature() throws Exception {
+    assertFalse(FafReExecutable.isFafRe(TestExecutables.writeWithoutPeSignature(tempDirectory.resolve("ForgedAlliance.exe"))));
+  }
+
+  @Test
   public void testNotAnExecutable() throws Exception {
     Path file = Files.writeString(tempDirectory.resolve("ForgedAlliance.exe"), "not an executable");
+
+    assertFalse(FafReExecutable.isFafRe(file));
+  }
+
+  @Test
+  public void testNoDosHeader() throws Exception {
+    Path file = Files.writeString(tempDirectory.resolve("ForgedAlliance.exe"), "x".repeat(256));
 
     assertFalse(FafReExecutable.isFafRe(file));
   }
