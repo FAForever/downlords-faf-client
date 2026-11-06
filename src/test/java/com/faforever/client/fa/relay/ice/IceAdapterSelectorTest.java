@@ -1,12 +1,15 @@
 package com.faforever.client.fa.relay.ice;
 
-import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.fa.ForgedAllianceLaunchService;
+import com.faforever.client.fa.TestExecutables;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,31 +22,39 @@ import static org.mockito.Mockito.verify;
 
 public class IceAdapterSelectorTest extends ServiceTest {
 
+  @TempDir
+  public Path tempDirectory;
+
   @Mock
   private IceAdapterImpl javaAdapter;
   @Mock
   private NativeIceAdapter nativeAdapter;
+  @Mock
+  private ForgedAllianceLaunchService forgedAllianceLaunchService;
 
-  private ForgedAlliancePrefs forgedAlliancePrefs;
   private IceAdapterSelector instance;
 
   @BeforeEach
   public void setUp() {
-    forgedAlliancePrefs = new ForgedAlliancePrefs();
-    instance = new IceAdapterSelector(javaAdapter, nativeAdapter, forgedAlliancePrefs);
+    instance = new IceAdapterSelector(javaAdapter, nativeAdapter, forgedAllianceLaunchService);
     lenient().when(nativeAdapter.gameArguments()).thenReturn(List.of("/nativenet"));
   }
 
   private GameLaunchResponse launchOf(String featuredMod) {
     GameLaunchResponse response = mock(GameLaunchResponse.class);
-    // With the setting off the selector never reads the mod.
     lenient().when(response.getFeatureMod()).thenReturn(featuredMod);
     return response;
   }
 
+  private void useExe(String productName) throws Exception {
+    Path exe = TestExecutables.write(tempDirectory.resolve("ForgedAlliance.exe"), true, productName);
+    // On any other mod the selector never reads the exe.
+    lenient().when(forgedAllianceLaunchService.getExecutablePath()).thenReturn(exe);
+  }
+
   @Test
-  public void testNativeWhenTurnedOnAndFafDevelop() {
-    forgedAlliancePrefs.setNativeNetwork(true);
+  public void testNativeOnFafDevelopWithFafReExe() throws Exception {
+    useExe("faf-re");
 
     instance.prepare(launchOf("fafdevelop"));
     instance.start(1, false);
@@ -54,10 +65,10 @@ public class IceAdapterSelectorTest extends ServiceTest {
   }
 
   @Test
-  public void testJavaAdapterOnAnyOtherMod() {
-    forgedAlliancePrefs.setNativeNetwork(true);
+  public void testJavaAdapterOnFafDevelopWithOriginalExe() throws Exception {
+    useExe("Supreme Commander Forged Alliance");
 
-    instance.prepare(launchOf("faf"));
+    instance.prepare(launchOf("fafdevelop"));
     instance.start(1, false);
 
     verify(javaAdapter).start(1, false);
@@ -65,8 +76,10 @@ public class IceAdapterSelectorTest extends ServiceTest {
   }
 
   @Test
-  public void testJavaAdapterWhenTurnedOff() {
-    instance.prepare(launchOf("fafdevelop"));
+  public void testJavaAdapterOnAnyOtherMod() throws Exception {
+    useExe("faf-re");
+
+    instance.prepare(launchOf("faf"));
     instance.start(1, false);
 
     verify(javaAdapter).start(1, false);
