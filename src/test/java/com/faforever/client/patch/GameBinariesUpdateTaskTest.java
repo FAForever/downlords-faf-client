@@ -1,11 +1,15 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fa.ForgedAllianceLaunchService;
+import com.faforever.client.fa.TestExecutables;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.test.ServiceTest;
+import com.faforever.client.test.PlatformTest;
+import com.faforever.commons.fa.ForgedAllianceExePatcher;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -22,16 +26,20 @@ import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
-public class GameBinariesUpdateTaskTest extends ServiceTest {
+public class GameBinariesUpdateTaskTest extends PlatformTest {
   @TempDir
   public Path tempDirectory;
   private Path fafBinDirectory;
   private Path fafReplayBinDirectory;
   private Path faDirectory;
 
+  @Mock
+  private ForgedAllianceLaunchService forgedAllianceLaunchService;
   @Mock
   private PlatformService platformService;
   @Mock
@@ -47,7 +55,7 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new GameBinariesUpdateTaskImpl(null, i18n, platformService, null, dataPrefs, forgedAlliancePrefs, clientProperties);
+    instance = new GameBinariesUpdateTaskImpl(forgedAllianceLaunchService, i18n, platformService, null, dataPrefs, forgedAlliancePrefs, clientProperties);
 
     Path faPath = tempDirectory.resolve("fa");
 
@@ -110,6 +118,32 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
     Path faExePath = Files.createFile(fafBinDirectory.resolve("ForgedAlliance.exe"));
     instance.downloadFafExeIfNecessary(faExePath);
     Mockito.verify(platformService).setUnixExecutableAndWritableBits(faExePath);
+  }
+
+  @Test
+  public void testFafReExeIsNotPatched() throws Exception {
+    Path exePath = TestExecutables.write(fafBinDirectory.resolve("ForgedAlliance.exe"), true, "faf-re");
+    byte[] before = Files.readAllBytes(exePath);
+    when(forgedAllianceLaunchService.getExecutablePath()).thenReturn(exePath);
+
+    instance.setVersion(new ComparableVersion("3840"));
+    instance.call();
+
+    assertArrayEquals(before, Files.readAllBytes(exePath));
+  }
+
+  @Test
+  public void testOriginalExeIsPatched() throws Exception {
+    Path exePath = TestExecutables.write(fafBinDirectory.resolve("ForgedAlliance.exe"), false, "Supreme Commander Forged Alliance");
+    try (RandomAccessFile file = new RandomAccessFile(exePath.toFile(), "rw")) {
+      file.setLength(0x480000);
+    }
+    when(forgedAllianceLaunchService.getExecutablePath()).thenReturn(exePath);
+
+    instance.setVersion(new ComparableVersion("3840"));
+    instance.call();
+
+    assertThat(ForgedAllianceExePatcher.readVersion(exePath), is(3840));
   }
 
   private void createFileWithSize(Path file, int size) throws IOException {
