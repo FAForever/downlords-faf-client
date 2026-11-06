@@ -58,22 +58,25 @@ public class FafReExecutable {
     for (int section = 0; section < sectionCount; section++) {
       int virtualAddress = sections.getInt(section * 40 + 12);
       int rawSize = sections.getInt(section * 40 + 16);
-      if (resourceRva < virtualAddress || resourceRva >= virtualAddress + rawSize) {
-        continue;
+      if (resourceRva >= virtualAddress && resourceRva < virtualAddress + rawSize) {
+        ByteBuffer resources = read(channel, sections.getInt(section * 40 + 20), rawSize);
+        return findVersionInfo(resources, resourceRva - virtualAddress, virtualAddress);
       }
-      ByteBuffer resources = read(channel, sections.getInt(section * 40 + 20), rawSize);
-      int entry = findDirectoryEntry(resources, resourceRva - virtualAddress, RT_VERSION);
-      for (int level = 0; entry >= 0 && level < 2; level++) {
-        entry = findDirectoryEntry(resources, entry, -1);
-      }
-      if (entry < 0) {
-        return null;
-      }
-      int dataRva = resources.getInt(entry);
-      int dataSize = resources.getInt(entry + 4);
-      return resources.slice(dataRva - virtualAddress, dataSize).order(ByteOrder.LITTLE_ENDIAN);
     }
     return null;
+  }
+
+  private ByteBuffer findVersionInfo(ByteBuffer resources, int rootDirectory, int virtualAddress) {
+    int entry = findDirectoryEntry(resources, rootDirectory, RT_VERSION);
+    for (int level = 0; entry >= 0 && level < 2; level++) {
+      entry = findDirectoryEntry(resources, entry, -1);
+    }
+    if (entry < 0) {
+      return null;
+    }
+    int dataRva = resources.getInt(entry);
+    int dataSize = resources.getInt(entry + 4);
+    return resources.slice(dataRva - virtualAddress, dataSize).order(ByteOrder.LITTLE_ENDIAN);
   }
 
   /**
