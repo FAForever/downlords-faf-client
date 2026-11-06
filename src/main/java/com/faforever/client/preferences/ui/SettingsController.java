@@ -128,6 +128,7 @@ public class SettingsController extends NodeController<Node> {
   public CheckBox useFAFDebuggerToggle;
   public CheckBox allowIpv6Toggle;
   public CheckBox showIceAdapterDebugWindowToggle;
+  public CheckBox useIceAdapterPreReleaseToggle;
   public TextField maxMessagesTextField;
   public CheckBox imagePreviewToggle;
   public CheckBox enableNotificationsToggle;
@@ -318,6 +319,8 @@ public class SettingsController extends NodeController<Node> {
     allowIpv6Toggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.allowIpv6Property());
     showIceAdapterDebugWindowToggle.selectedProperty()
         .bindBidirectional(forgedAlliancePrefs.showIceAdapterDebugWindow());
+    useIceAdapterPreReleaseToggle.selectedProperty()
+                                 .bindBidirectional(forgedAlliancePrefs.useIceAdapterPreReleaseProperty());
     forceAffinityToggle.selectedProperty()
                        .bindBidirectional(forgedAlliancePrefs.forceAffinityProperty());
     vaultLocationTextField.textProperty()

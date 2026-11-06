@@ -26,6 +26,7 @@ public final class CacheNames {
   public static final String REPLAYS_LIKED = "replaysLiked";
   public static final String MAP_GENERATOR = "mapGenerator";
   public static final String MAP_GENERATOR_STYLES = "mapGeneratorStyles";
+  public static final String ICE_ADAPTER = "iceAdapter";
   public static final String THEME_IMAGES = "themeImages";
   public static final String THEME_URLS = "themeURLs";
   public static final String IMAGES = "images";

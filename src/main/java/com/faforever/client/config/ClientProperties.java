@@ -32,6 +32,7 @@ public class ClientProperties {
   private UnitDatabase unitDatabase = new UnitDatabase();
   private FAFDebugger fafDebugger = new FAFDebugger();
   private MapGenerator mapGenerator = new MapGenerator();
+  private IceAdapter iceAdapter = new IceAdapter();
   private Website website = new Website();
   private Discord discord = new Discord();
   private Statping statping = new Statping();
@@ -181,6 +182,16 @@ public class ClientProperties {
   public static class UnitDatabase {
     private String spookiesUrl;
     private String etfreemanUrl;
+  }
+
+  @Data
+  public static class IceAdapter {
+    /** URL formats to download the ICE adapter from, tried in order until one succeeds. */
+    private List<String> downloadUrlFormats = new ArrayList<>();
+    private String repoAndOwnerName;
+    private String queryLatestVersionUrl;
+    /** Lists all releases including pre-releases, used when the user opted into ICE adapter pre-releases. */
+    private String queryReleasesUrl;
   }
 
   @Data
