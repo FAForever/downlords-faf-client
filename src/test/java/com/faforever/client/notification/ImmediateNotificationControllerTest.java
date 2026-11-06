@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -60,6 +61,17 @@ public class ImmediateNotificationControllerTest extends PlatformTest {
   public void testGetRoot() throws Exception {
     assertThat(instance.getRoot(), is(instance.immediateNotificationRoot));
     assertThat(instance.getRoot().getParent(), is(instance.getDialogLayout().getBody().getFirst().getParent()));
+  }
+
+  @Test
+  public void dismissingTwiceClosesOnce() {
+    AtomicInteger closes = new AtomicInteger();
+    instance.setCloseListener(closes::incrementAndGet);
+
+    instance.dismiss();
+    instance.dismiss();
+
+    assertEquals(1, closes.get());
   }
 
   @Test

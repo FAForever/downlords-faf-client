@@ -64,6 +64,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
@@ -84,6 +85,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -256,6 +258,149 @@ public class GameRunnerTest extends ServiceTest {
     assertFalse(instance.isRunning());
     assertNull(instance.getRunningProcessId());
     assertNull(instance.getRunningGame());
+  }
+
+  private ImmediateNotification crashInAMatchThatCanBeRejoined(GameLaunchResponse gameLaunchResponse) throws Exception {
+    mockStartGameProcess(gameLaunchResponse);
+    CompletableFuture<Process> exitFuture = new CompletableFuture<>();
+    when(process.onExit()).thenReturn(exitFuture);
+    when(process.exitValue()).thenReturn(1);
+    when(iceAdapter.canRejoin()).thenReturn(true);
+
+    instance.startOnlineGame(gameLaunchResponse);
+    exitFuture.complete(process);
+
+    verify(iceAdapter, never()).stop();
+    verify(replayServer, never()).stop();
+    verify(fafServerAccessor, never()).notifyGameEnded();
+
+    ArgumentCaptor<ImmediateNotification> question = ArgumentCaptor.forClass(ImmediateNotification.class);
+    verify(notificationService).addImmediateQuestion(question.capture(), any());
+    return question.getValue();
+  }
+
+  @Test
+  public void aCrashInAMatchCanBeRecoveredFromThenEndsAsUsual() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    ImmediateNotification question = crashInAMatchThatCanBeRejoined(gameLaunchResponse);
+
+    List<String> rejoinArguments = List.of("/rejoin", "127.0.0.1:5000=0", "1", "6000");
+    when(iceAdapter.rejoinArguments()).thenReturn(rejoinArguments);
+    Process relaunched = mock(Process.class);
+    CompletableFuture<Process> relaunchedExit = new CompletableFuture<>();
+    when(relaunched.onExit()).thenReturn(relaunchedExit);
+    when(relaunched.exitValue()).thenReturn(0);
+    when(forgedAllianceLaunchService.relaunchOnlineGame(any(), eq(GPG_PORT), eq(rejoinArguments))).thenReturn(relaunched);
+
+    question.actions().get(0).run();
+
+    verify(forgedAllianceLaunchService).relaunchOnlineGame(any(), eq(GPG_PORT), eq(rejoinArguments));
+    verify(iceAdapter, never()).stop();
+    verify(fafServerAccessor, never()).notifyGameEnded();
+
+    relaunchedExit.complete(relaunched);
+
+    verify(iceAdapter).stop();
+    verify(replayServer).stop();
+    verify(fafServerAccessor).notifyGameEnded();
+  }
+
+  @Test
+  public void leavingAfterACrashEndsTheGameAsUsual() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    ImmediateNotification question = crashInAMatchThatCanBeRejoined(gameLaunchResponse);
+
+    question.actions().get(1).run();
+
+    verify(forgedAllianceLaunchService, never()).relaunchOnlineGame(any(), anyInt(), any());
+    verify(notificationService, never()).addNotification(any(PersistentNotification.class));
+    verify(iceAdapter).stop();
+    verify(replayServer).stop();
+    verify(fafServerAccessor).notifyGameEnded();
+  }
+
+  @Test
+  public void aQuestionNobodyAnswersClosesAndEndsTheGame() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    mockStartGameProcess(gameLaunchResponse);
+    CompletableFuture<Process> exitFuture = new CompletableFuture<>();
+    when(process.onExit()).thenReturn(exitFuture);
+    when(process.exitValue()).thenReturn(1);
+    when(iceAdapter.canRejoin()).thenReturn(true);
+    instance.rejoinAnswerMillis = 1;
+
+    instance.startOnlineGame(gameLaunchResponse);
+    exitFuture.complete(process);
+
+    verify(fafServerAccessor, timeout(5000)).notifyGameEnded();
+    verify(iceAdapter).stop();
+    verify(forgedAllianceLaunchService, never()).relaunchOnlineGame(any(), anyInt(), any());
+    verify(notificationService).addNotification(any(PersistentNotification.class));
+
+    ArgumentCaptor<CompletionStage<?>> closeWhen = ArgumentCaptor.captor();
+    verify(notificationService).addImmediateQuestion(any(), closeWhen.capture());
+    assertTrue(closeWhen.getValue().toCompletableFuture().isDone());
+  }
+
+  @Test
+  public void answeringTheQuestionClosesIt() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    ImmediateNotification question = crashInAMatchThatCanBeRejoined(gameLaunchResponse);
+
+    ArgumentCaptor<CompletionStage<?>> closeWhen = ArgumentCaptor.captor();
+    verify(notificationService).addImmediateQuestion(any(), closeWhen.capture());
+    assertFalse(closeWhen.getValue().toCompletableFuture().isDone());
+
+    question.actions().get(1).run();
+
+    assertTrue(closeWhen.getValue().toCompletableFuture().isDone());
+  }
+
+  @Test
+  public void aCrashEndsTheGameIfTheAdapterHasLostItsLinks() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    ImmediateNotification question = crashInAMatchThatCanBeRejoined(gameLaunchResponse);
+    when(iceAdapter.rejoinArguments()).thenReturn(List.of());
+
+    question.actions().get(0).run();
+
+    verify(forgedAllianceLaunchService, never()).relaunchOnlineGame(any(), anyInt(), any());
+    verify(iceAdapter).stop();
+    verify(fafServerAccessor).notifyGameEnded();
+  }
+
+  @Test
+  public void aCleanExitNeverAsksToReturn() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    mockStartGameProcess(gameLaunchResponse);
+    CompletableFuture<Process> exitFuture = new CompletableFuture<>();
+    when(process.onExit()).thenReturn(exitFuture);
+    when(process.exitValue()).thenReturn(0);
+    lenient().when(iceAdapter.canRejoin()).thenReturn(true);
+
+    instance.startOnlineGame(gameLaunchResponse);
+    exitFuture.complete(process);
+
+    verify(notificationService, never()).addImmediateQuestion(any(), any());
+    verify(iceAdapter).stop();
+    verify(fafServerAccessor).notifyGameEnded();
+  }
+
+  @Test
+  public void aCrashWithNoOfferEndsTheGameAsUsual() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    mockStartGameProcess(gameLaunchResponse);
+    CompletableFuture<Process> exitFuture = new CompletableFuture<>();
+    when(process.onExit()).thenReturn(exitFuture);
+    when(process.exitValue()).thenReturn(1);
+    when(iceAdapter.canRejoin()).thenReturn(false);
+
+    instance.startOnlineGame(gameLaunchResponse);
+    exitFuture.complete(process);
+
+    verify(forgedAllianceLaunchService, never()).relaunchOnlineGame(any(), anyInt(), any());
+    verify(iceAdapter).stop();
+    verify(fafServerAccessor).notifyGameEnded();
   }
 
   @Test

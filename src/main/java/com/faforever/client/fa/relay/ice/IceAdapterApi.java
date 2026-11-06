@@ -45,4 +45,10 @@ interface IceAdapterApi {
    * @param iceServers A list of IceServers, each IceServer maps from key (e.g. username, credential, url(s)) -> value where value can can be a string or list of strings
    */
   void setIceServers(List<Map<String, Object>> iceServers);
+
+  /** Keep the links to the other players this long after a running game exits, for a game started again. */
+  void setKeepSessionOnGameExit(int seconds);
+
+  /** The lobby port as {@code lobbyPort}, and the local port of each peer by player id as {@code peers}. */
+  Map<String, Object> peerPorts();
 }
