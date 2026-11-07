@@ -1,6 +1,7 @@
 package com.faforever.client.fa;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
@@ -51,6 +52,30 @@ public class FafReExecutableTest {
     Path executable = TestExecutables.writeWithoutProductName(tempDirectory.resolve("ForgedAlliance.exe"));
 
     assertEquals(Optional.empty(), FafReExecutable.readProductName(executable));
+  }
+
+  @Test
+  public void testProductNameValueLengthWithoutTerminator() throws Exception {
+    Path executable = TestExecutables.writeProductNameValueLength(tempDirectory.resolve("ForgedAlliance.exe"), "faf-re", 6);
+
+    assertTrue(FafReExecutable.isFafRe(executable));
+  }
+
+  @Test
+  @Timeout(10)
+  public void testZeroLengthEntryEndsTheWalk() throws Exception {
+    Path executable = TestExecutables.writeZeroLengthEntry(tempDirectory.resolve("ForgedAlliance.exe"), "faf-re");
+
+    assertEquals(Optional.empty(), FafReExecutable.readProductName(executable));
+  }
+
+  @Test
+  public void testVersionInfoEndingInsideTheProductName() throws Exception {
+    // "faf-re" is followed by its terminating zero and two bytes of padding; 6 bytes less also drops the "e".
+    Path executable = TestExecutables.writeVersionInfoCut(tempDirectory.resolve("ForgedAlliance.exe"), "faf-re", 6);
+
+    assertEquals(Optional.of("faf-r"), FafReExecutable.readProductName(executable));
+    assertFalse(FafReExecutable.isFafRe(executable));
   }
 
   @Test

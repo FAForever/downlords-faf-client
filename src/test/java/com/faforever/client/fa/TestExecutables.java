@@ -49,6 +49,38 @@ public final class TestExecutables {
   }
 
   /**
+   * An exe whose ProductName gives this value length, which may leave out the terminating zero or be shorter still.
+   */
+  public static Path writeProductNameValueLength(Path file, String productName, int valueLength) throws IOException {
+    byte[] string = node("ProductName", 1, text(productName), valueLength);
+    byte[] stringFileInfo = node("StringFileInfo", 1, new byte[0], 0, node("040904b0", 1, new byte[0], 0, string));
+    return write(file, true, resourceSection(RT_VERSION, node("VS_VERSION_INFO", 0, new byte[52], 52, stringFileInfo)));
+  }
+
+  /**
+   * An exe whose version resource holds a zero-length entry between its VarFileInfo and StringFileInfo, as a damaged
+   * or zero-padded file may.
+   */
+  public static Path writeZeroLengthEntry(Path file, String productName) throws IOException {
+    byte[] varFileInfo = node("VarFileInfo", 1, new byte[0], 0, node("Translation", 0, new byte[]{9, 4, (byte) 0xB0, 4}, 4));
+    byte[] stringFileInfo = node("StringFileInfo", 1, new byte[0], 0, node("040904b0", 1, new byte[0], 0, string("ProductName", productName)));
+    byte[] versionInfo = node("VS_VERSION_INFO", 0, new byte[52], 52, varFileInfo, new byte[8], stringFileInfo);
+    return write(file, true, resourceSection(RT_VERSION, versionInfo));
+  }
+
+  /**
+   * An exe whose version resource is declared `cut` bytes shorter than it was written, so its last string runs to the
+   * end of the data.
+   */
+  public static Path writeVersionInfoCut(Path file, String productName, int cut) throws IOException {
+    Path written = write(file, true, productName);
+    byte[] exe = Files.readAllBytes(written);
+    ByteBuffer buffer = ByteBuffer.wrap(exe).order(ByteOrder.LITTLE_ENDIAN);
+    buffer.putInt(SECTION_OFFSET + 76, buffer.getInt(SECTION_OFFSET + 76) - cut);
+    return Files.write(written, exe);
+  }
+
+  /**
    * An exe with resources, but only an icon.
    */
   public static Path writeIconOnly(Path file) throws IOException {

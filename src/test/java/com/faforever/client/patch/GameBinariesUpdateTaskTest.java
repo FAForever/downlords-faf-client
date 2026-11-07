@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -144,6 +145,24 @@ public class GameBinariesUpdateTaskTest extends PlatformTest {
     instance.call();
 
     assertThat(ForgedAllianceExePatcher.readVersion(exePath), is(3840));
+  }
+
+  @Test
+  public void testOriginalExeAlreadyAtVersionIsNotWritten() throws Exception {
+    Path exePath = TestExecutables.write(fafBinDirectory.resolve("ForgedAlliance.exe"), false, "Supreme Commander Forged Alliance");
+    try (RandomAccessFile file = new RandomAccessFile(exePath.toFile(), "rw")) {
+      file.setLength(0x480000);
+    }
+    ForgedAllianceExePatcher.patchVersion(exePath, 3840);
+    FileTime written = FileTime.fromMillis(1_000_000_000_000L);
+    Files.setLastModifiedTime(exePath, written);
+    when(forgedAllianceLaunchService.getExecutablePath()).thenReturn(exePath);
+
+    instance.setVersion(new ComparableVersion("3840"));
+    instance.call();
+
+    assertThat(ForgedAllianceExePatcher.readVersion(exePath), is(3840));
+    assertThat(Files.getLastModifiedTime(exePath), is(written));
   }
 
   private void createFileWithSize(Path file, int size) throws IOException {
