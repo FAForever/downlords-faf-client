@@ -148,6 +148,18 @@ public class GameBinariesUpdateTaskTest extends PlatformTest {
   }
 
   @Test
+  public void testFafReExeWithResourceDirectoryInsideSectionIsNotPatched() throws Exception {
+    Path exePath = TestExecutables.writeResourceDirectoryInsideSection(fafBinDirectory.resolve("ForgedAlliance.exe"), "faf-re", 32);
+    byte[] before = Files.readAllBytes(exePath);
+    when(forgedAllianceLaunchService.getExecutablePath()).thenReturn(exePath);
+
+    instance.setVersion(new ComparableVersion("3840"));
+    instance.call();
+
+    assertArrayEquals(before, Files.readAllBytes(exePath));
+  }
+
+  @Test
   public void testOriginalExeAlreadyAtVersionIsNotWritten() throws Exception {
     Path exePath = TestExecutables.write(fafBinDirectory.resolve("ForgedAlliance.exe"), false, "Supreme Commander Forged Alliance");
     try (RandomAccessFile file = new RandomAccessFile(exePath.toFile(), "rw")) {

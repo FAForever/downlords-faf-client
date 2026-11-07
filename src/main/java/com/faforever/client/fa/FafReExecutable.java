@@ -67,9 +67,9 @@ public class FafReExecutable {
   }
 
   private ByteBuffer findVersionInfo(ByteBuffer resources, int rootDirectory, int virtualAddress) {
-    int entry = findDirectoryEntry(resources, rootDirectory, RT_VERSION);
+    int entry = findDirectoryEntry(resources, rootDirectory, rootDirectory, RT_VERSION);
     for (int level = 0; entry >= 0 && level < 2; level++) {
-      entry = findDirectoryEntry(resources, entry, -1);
+      entry = findDirectoryEntry(resources, rootDirectory, entry, -1);
     }
     if (entry < 0) {
       return null;
@@ -80,15 +80,16 @@ public class FafReExecutable {
   }
 
   /**
-   * The offset of what the directory entry with this id points to, or of the first entry's for id -1; -1 if there is none.
+   * The offset in the section of what the directory entry with this id points to, or of the first entry's for id -1; -1
+   * if there is none. Entries point relative to the root directory, which need not start the section.
    */
-  private int findDirectoryEntry(ByteBuffer resources, int directory, int id) {
+  private int findDirectoryEntry(ByteBuffer resources, int rootDirectory, int directory, int id) {
     int entryCount = Short.toUnsignedInt(resources.getShort(directory + 12))
         + Short.toUnsignedInt(resources.getShort(directory + 14));
     for (int i = 0; i < entryCount; i++) {
       int entry = directory + 16 + i * 8;
       if (id == -1 || resources.getInt(entry) == id) {
-        return resources.getInt(entry + 4) & 0x7FFFFFFF;
+        return rootDirectory + (resources.getInt(entry + 4) & 0x7FFFFFFF);
       }
     }
     return -1;

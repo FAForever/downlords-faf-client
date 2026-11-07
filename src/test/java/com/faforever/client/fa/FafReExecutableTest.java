@@ -79,6 +79,13 @@ public class FafReExecutableTest {
   }
 
   @Test
+  public void testResourceDirectoryInsideSection() throws Exception {
+    Path executable = TestExecutables.writeResourceDirectoryInsideSection(tempDirectory.resolve("ForgedAlliance.exe"), "faf-re", 32);
+
+    assertEquals(Optional.of("faf-re"), FafReExecutable.readProductName(executable));
+  }
+
+  @Test
   public void testResourcesWithoutVersion() throws Exception {
     assertFalse(FafReExecutable.isFafRe(TestExecutables.writeIconOnly(tempDirectory.resolve("ForgedAlliance.exe"))));
   }

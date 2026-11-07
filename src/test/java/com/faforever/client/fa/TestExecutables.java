@@ -7,6 +7,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 /**
  * Writes the smallest Windows executable {@link FafReExecutable} can read: headers, one resource section and a version
@@ -107,7 +108,23 @@ public final class TestExecutables {
     return Files.write(written, exe);
   }
 
+  /**
+   * An exe whose resource directory starts this many bytes into its section, after other data, so the directory's
+   * entries, which point relative to the directory, don't point relative to the section.
+   */
+  public static Path writeResourceDirectoryInsideSection(Path file, String productName, int rootOffset) throws IOException {
+    byte[] resources = resourceSection(RT_VERSION, versionInfo(productName), rootOffset);
+    byte[] section = new byte[rootOffset + resources.length];
+    Arrays.fill(section, 0, rootOffset, (byte) 0xCC);
+    System.arraycopy(resources, 0, section, rootOffset, resources.length);
+    return write(file, true, section, rootOffset);
+  }
+
   private static Path write(Path file, boolean pe32Plus, byte[] resources) throws IOException {
+    return write(file, pe32Plus, resources, 0);
+  }
+
+  private static Path write(Path file, boolean pe32Plus, byte[] resources, int rootOffset) throws IOException {
     byte[] section = resources == null ? new byte[0] : resources;
     int optionalHeaderSize = pe32Plus ? 240 : 224;
 
@@ -121,7 +138,7 @@ public final class TestExecutables {
     exe.putShort(optionalHeader, (short) (pe32Plus ? 0x20B : 0x10B));
     if (resources != null) {
       int resourceDirectory = optionalHeader + (pe32Plus ? 112 : 96) + 2 * 8;
-      exe.putInt(resourceDirectory, SECTION_RVA).putInt(resourceDirectory + 4, section.length);
+      exe.putInt(resourceDirectory, SECTION_RVA + rootOffset).putInt(resourceDirectory + 4, section.length - rootOffset);
     }
     int sectionHeader = optionalHeader + optionalHeaderSize;
     exe.put(sectionHeader, ".rsrc".getBytes(StandardCharsets.US_ASCII))
@@ -137,11 +154,19 @@ public final class TestExecutables {
    * One resource of this type, id 1, language 0x409, followed by its data.
    */
   private static byte[] resourceSection(int type, byte[] data) {
+    return resourceSection(type, data, 0);
+  }
+
+  /**
+   * As above, for a resource directory that starts `rootOffset` bytes into its section: the directory entries point
+   * relative to the directory, the data entry by its address in the image.
+   */
+  private static byte[] resourceSection(int type, byte[] data, int rootOffset) {
     ByteBuffer section = ByteBuffer.allocate(88 + data.length).order(ByteOrder.LITTLE_ENDIAN);
     directory(section, 0, type, 0x80000000 | 24);
     directory(section, 24, 1, 0x80000000 | 48);
     directory(section, 48, 0x409, 72);
-    section.putInt(72, SECTION_RVA + 88).putInt(76, data.length);
+    section.putInt(72, SECTION_RVA + rootOffset + 88).putInt(76, data.length);
     section.put(88, data);
     return section.array();
   }
