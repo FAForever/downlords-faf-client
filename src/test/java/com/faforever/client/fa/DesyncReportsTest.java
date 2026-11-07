@@ -62,9 +62,22 @@ public class DesyncReportsTest extends ServiceTest {
   private void agreeWithToken(String token) {
     forgedAlliancePrefs.setAskedSendDesyncReports(true);
     forgedAlliancePrefs.setSendDesyncReports(true);
-    when(fafApiAccessor.postJsonForObject(eq("/ice/session/token"), eq(Map.of("gameId", 42)),
-                                          eq(DesyncReports.TokenResponse.class)))
+    when(fafApiAccessor.postJsonForObject(eq("/ice/session/token"), any(), eq(DesyncReports.TokenResponse.class)))
         .thenReturn(Mono.just(new DesyncReports.TokenResponse(token)));
+  }
+
+  @Test
+  public void testPreparedArgumentsAreReusedForTheSameGame() throws Exception {
+    useExe("faf-re");
+    agreeWithToken("t");
+
+    List<String> prepared = instance.prepare(42).get();
+    assertEquals(List.of("/telemetry", "/telemetrytoken", "t"), prepared);
+    // The launch, and a return to the same game after a crash, take that result without asking icebreaker again.
+    assertEquals(prepared, instance.launchArguments(42));
+    assertEquals(prepared, instance.launchArguments(42));
+    verify(fafApiAccessor).postJsonForObject(eq("/ice/session/token"), eq(Map.of("gameId", 42)),
+                                             eq(DesyncReports.TokenResponse.class));
   }
 
   @Test
@@ -88,7 +101,7 @@ public class DesyncReportsTest extends ServiceTest {
     ServerEndpoints other = new ServerEndpoints();
     other.setName("Main server");
     clientProperties.updateFromEndpoint(other);
-    assertEquals(List.of("/telemetry", "/telemetrytoken", "t"), instance.launchArguments(42));
+    assertEquals(List.of("/telemetry", "/telemetrytoken", "t"), instance.launchArguments(43));
   }
 
   private void useExe(String productName) throws Exception {

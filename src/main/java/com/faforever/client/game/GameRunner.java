@@ -7,6 +7,7 @@ import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.exception.NotifiableException;
+import com.faforever.client.fa.DesyncReports;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameParameters;
 import com.faforever.client.fa.GameParameters.League;
@@ -122,6 +123,7 @@ public class GameRunner implements InitializingBean {
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final LogAnalyzerService logAnalyzerService;
   private final TaskService taskService;
+  private final DesyncReports desyncReports;
 
   /** The other players' dialogs eject a silent player about this long after their dialog opens. */
   private static final long REJOIN_ANSWER_MILLIS = 150_000;
@@ -203,8 +205,11 @@ public class GameRunner implements InitializingBean {
                                                                                     () -> replayServer.start(uid));
     CompletableFuture<Integer> runIceAdapterFuture = taskService.submitFutureTask("iceAdapter.connecting",
                                                                                   () -> startIceAdapter(uid));
+    // The token for desync reports comes from icebreaker; fetched now, the launch below doesn't wait for it.
+    CompletableFuture<List<String>> desyncReportsFuture = desyncReports.prepare(uid);
 
-    return CompletableFuture.allOf(downloadMapFuture, loadLeagueInfoFuture, runReplayServerFuture, runIceAdapterFuture)
+    return CompletableFuture.allOf(downloadMapFuture, loadLeagueInfoFuture, runReplayServerFuture, runIceAdapterFuture,
+                                   desyncReportsFuture)
                             .thenApply(_ -> gameMapper.map(gameLaunchResponse, loadLeagueInfoFuture.join()))
                             .thenApply(parameters -> {
                               launchedParameters = parameters;

@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Desync reports from a faf-re game: when the game desyncs it can send a small record and its dump file, so its
@@ -45,12 +46,40 @@ public class DesyncReports {
   /** Icebreaker's answer to {@code POST /ice/session/token} on the API's address. */
   record TokenResponse(String jwt) {}
 
+  /** The last game's arguments, so a game that comes back after a crash doesn't fetch its token again. */
+  private record Prepared(int gameId, CompletableFuture<List<String>> arguments) {}
+
+  private volatile Prepared prepared;
+
+  /**
+   * Starts working out game {@code gameId}'s arguments on another thread, as fetching the token can take seconds and
+   * the game is launched on the UI thread. The future never fails.
+   */
+  public CompletableFuture<List<String>> prepare(int gameId) {
+    Prepared current = prepared;
+    if (current != null && current.gameId() == gameId) {
+      return current.arguments();
+    }
+    CompletableFuture<List<String>> arguments = CompletableFuture.supplyAsync(() -> fetchArguments(gameId))
+                                                                 .exceptionally(e -> {
+                                                                   log.warn("No desync report arguments for game {}", gameId, e);
+                                                                   return List.of();
+                                                                 });
+    prepared = new Prepared(gameId, arguments);
+    return arguments;
+  }
+
   /**
    * The game's arguments for desync reports in game {@code gameId}: none unless the exe is faf-re and the player
    * agreed. A player who wasn't asked yet is asked once, and this game sends nothing. Without a token (icebreaker
-   * didn't answer) the game sends nothing either.
+   * didn't answer) the game sends nothing either. Takes what {@link #prepare} worked out for this game; without that,
+   * works it out here and waits for it.
    */
   public List<String> launchArguments(int gameId) {
+    return prepare(gameId).join();
+  }
+
+  private List<String> fetchArguments(int gameId) {
     Path executable = dataPrefs.getBinDirectory().resolve(PreferencesService.FORGED_ALLIANCE_EXE);
     if (!FafReExecutable.isFafRe(executable)) {
       return List.of();

@@ -11,6 +11,7 @@ import com.faforever.client.domain.api.LeagueEntry;
 import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.domain.server.PlayerInfo;
+import com.faforever.client.fa.DesyncReports;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameParameters;
 import com.faforever.client.fa.relay.ice.CoturnService;
@@ -144,6 +145,8 @@ public class GameRunnerTest extends ServiceTest {
   private TaskService taskService;
   @Mock
   private GamePathHandler gamePathHandler;
+  @Mock
+  private DesyncReports desyncReports;
   @Spy
   private GameMapper gameMapper = Mappers.getMapper(GameMapper.class);
   @Spy
@@ -179,6 +182,7 @@ public class GameRunnerTest extends ServiceTest {
     lenient().when(iceAdapter.start(anyInt(), anyBoolean())).thenReturn(completedFuture(GPG_PORT));
     lenient().when(playerService.getCurrentPlayer()).thenReturn(junitPlayer);
     lenient().when(process.pid()).thenReturn(10L);
+    lenient().when(desyncReports.prepare(anyInt())).thenReturn(completedFuture(List.of()));
 
     lenient().doAnswer(invocation -> {
       try {
