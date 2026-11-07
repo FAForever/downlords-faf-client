@@ -1,6 +1,9 @@
 package com.faforever.client.fa;
 
 import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.update.ClientConfiguration.ServerEndpoints;
+import com.faforever.client.update.ClientConfiguration.UrlEndpoint;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -43,14 +46,49 @@ public class DesyncReportsTest extends ServiceTest {
   private I18n i18n;
 
   private ForgedAlliancePrefs forgedAlliancePrefs;
+  private ClientProperties clientProperties;
   private DesyncReports instance;
 
   @BeforeEach
   public void setUp() {
     forgedAlliancePrefs = new ForgedAlliancePrefs();
+    clientProperties = new ClientProperties();
     lenient().when(dataPrefs.getBinDirectory()).thenReturn(binDirectory);
     lenient().when(i18n.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
-    instance = new DesyncReports(fafApiAccessor, forgedAlliancePrefs, dataPrefs, notificationService, i18n);
+    instance = new DesyncReports(fafApiAccessor, forgedAlliancePrefs, dataPrefs, notificationService, i18n,
+                                 clientProperties);
+  }
+
+  private void agreeWithToken(String token) {
+    forgedAlliancePrefs.setAskedSendDesyncReports(true);
+    forgedAlliancePrefs.setSendDesyncReports(true);
+    when(fafApiAccessor.postJsonForObject(eq("/ice/session/token"), eq(Map.of("gameId", 42)),
+                                          eq(DesyncReports.TokenResponse.class)))
+        .thenReturn(Mono.just(new DesyncReports.TokenResponse(token)));
+  }
+
+  @Test
+  public void testTheServersEndpointsArePassed() throws Exception {
+    useExe("faf-re");
+    agreeWithToken("t");
+    ServerEndpoints server = new ServerEndpoints();
+    server.setName("Test server");
+    UrlEndpoint records = new UrlEndpoint();
+    records.setUrl("https://reports.example/v1/logs");
+    UrlEndpoint dumps = new UrlEndpoint();
+    dumps.setUrl("https://reports.example/dumps");
+    server.setDesyncRecords(records);
+    server.setDesyncDumps(dumps);
+    clientProperties.updateFromEndpoint(server);
+
+    assertEquals(List.of("/telemetry", "/telemetrytoken", "t", "/telemetryendpoint", "https://reports.example/v1/logs",
+                         "/telemetrydumpendpoint", "https://reports.example/dumps"), instance.launchArguments(42));
+
+    // Another server without them: the game's own default again.
+    ServerEndpoints other = new ServerEndpoints();
+    other.setName("Main server");
+    clientProperties.updateFromEndpoint(other);
+    assertEquals(List.of("/telemetry", "/telemetrytoken", "t"), instance.launchArguments(42));
   }
 
   private void useExe(String productName) throws Exception {

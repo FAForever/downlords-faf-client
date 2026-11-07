@@ -1,6 +1,7 @@
 package com.faforever.client.fa;
 
 import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
@@ -23,7 +24,8 @@ import java.util.Map;
  * Desync reports from a faf-re game: when the game desyncs it can send a small record and its dump file, so its
  * developers can find the cause. It sends them only when the player agreed ({@code /telemetry}), and each upload
  * carries a token icebreaker issued for this game and player ({@code /telemetrytoken}), which the report server
- * checks. The game keeps the token from other players, and this client keeps it out of its logs.
+ * checks. The game keeps the token from other players, and this client keeps it out of its logs. The chosen server's
+ * endpoints ({@code desyncRecords}, {@code desyncDumps}) say where the reports go; without them the game's default.
  */
 @Slf4j
 @Component
@@ -38,8 +40,9 @@ public class DesyncReports {
   private final DataPrefs dataPrefs;
   private final NotificationService notificationService;
   private final I18n i18n;
+  private final ClientProperties clientProperties;
 
-  /** Icebreaker's answer to {@code POST /session/token}. */
+  /** Icebreaker's answer to {@code POST /ice/session/token} on the API's address. */
   record TokenResponse(String jwt) {}
 
   /**
@@ -72,8 +75,16 @@ public class DesyncReports {
       log.warn("No desync report token for game {}, so the game sends none", gameId);
       return List.of();
     }
+    List<String> arguments = new ArrayList<>(List.of("/telemetry", TOKEN_ARGUMENT, token));
+    ClientProperties.DesyncReports endpoints = clientProperties.getDesyncReports();
+    if (endpoints.getRecordsUrl() != null && !endpoints.getRecordsUrl().isBlank()) {
+      arguments.addAll(List.of("/telemetryendpoint", endpoints.getRecordsUrl()));
+    }
+    if (endpoints.getDumpsUrl() != null && !endpoints.getDumpsUrl().isBlank()) {
+      arguments.addAll(List.of("/telemetrydumpendpoint", endpoints.getDumpsUrl()));
+    }
     log.info("Game {} sends desync reports (the player agreed)", gameId);
-    return List.of("/telemetry", TOKEN_ARGUMENT, token);
+    return arguments;
   }
 
   private void askOnce() {
