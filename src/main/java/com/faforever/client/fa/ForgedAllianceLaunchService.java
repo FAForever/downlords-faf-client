@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -49,7 +50,40 @@ public class ForgedAllianceLaunchService {
     return launch(launchCommand);
   }
 
-  public Process launchOnlineGame(GameParameters gameParameters, int gpgPort, int replayPort) {
+  /**
+   * Starts the game again so that it takes its seat back. The replay stream ended with the crash, so this game keeps
+   * its replay locally.
+   */
+  public Process relaunchOnlineGame(GameParameters gameParameters, int gpgPort, List<String> rejoinArguments) {
+    List<String> arguments = new ArrayList<>(gameParameters.additionalArgs() == null ? List.of() : gameParameters.additionalArgs());
+    arguments.addAll(rejoinOfferArguments());
+    arguments.addAll(rejoinArguments);
+    return launch(defaultLaunchCommand().uid(gameParameters.uid())
+                                        .faction(gameParameters.faction())
+                                        .mapPosition(gameParameters.mapPosition())
+                                        .expectedPlayers(gameParameters.expectedPlayers())
+                                        .team(gameParameters.team())
+                                        .gameOptions(gameParameters.gameOptions())
+                                        .additionalArgs(arguments)
+                                        .username(playerService.getCurrentPlayer().getUsername())
+                                        .localGpgPort(gpgPort)
+                                        .logFile(loggingService.getNewGameLogFile(gameParameters.uid()))
+                                        .build());
+  }
+
+  /**
+   * What the game needs to come back later: to say it can, and where its key for its seat is. The key only ever signs
+   * a challenge from the other players, and it has nothing to do with the player's account.
+   */
+  private List<String> rejoinOfferArguments() {
+    if (!forgedAlliancePrefs.isAllowRejoin()) {
+      return List.of();
+    }
+    return List.of("/rejoinoffer", "/rejoinkeyfile", dataPrefs.getBaseDataDirectory().resolve("rejoin_seat.key").toString(), "/con",
+                   "net_PeerFeatures=1;net_RejoinAccept=1");
+  }
+
+  public Process launchOnlineGame(GameParameters gameParameters, int gpgPort, int replayPort, List<String> networkArgs) {
     PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
     Optional<LeaderboardRating> leaderboardRating = Optional.ofNullable(currentPlayer.getLeaderboardRatings()).map(
@@ -66,7 +100,7 @@ public class ForgedAllianceLaunchService {
                                                                 .expectedPlayers(gameParameters.expectedPlayers())
                                                                 .team(gameParameters.team())
                                                                 .gameOptions(gameParameters.gameOptions())
-                                                                .additionalArgs(gameParameters.additionalArgs())
+                                                                .additionalArgs(withRejoinOffer(gameParameters.additionalArgs(), networkArgs))
                                                                 .clan(currentPlayer.getClan())
                                                                 .country(currentPlayer.getCountry())
                                                                 .username(currentPlayer.getUsername())
@@ -85,6 +119,13 @@ public class ForgedAllianceLaunchService {
     return launch(commandBuilder.build());
   }
 
+
+  private List<String> withRejoinOffer(@Nullable List<String> additionalArgs, List<String> networkArgs) {
+    List<String> arguments = new ArrayList<>(additionalArgs == null ? List.of() : additionalArgs);
+    arguments.addAll(networkArgs);
+    arguments.addAll(rejoinOfferArguments());
+    return arguments;
+  }
 
   public Process startReplay(Path path, @Nullable Integer replayId) {
     int checkedReplayId = Objects.requireNonNullElse(replayId, -1);

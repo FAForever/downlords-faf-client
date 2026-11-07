@@ -44,6 +44,22 @@ public class ForgedAlliancePrefs {
    * Force CPU Affinity when launching the FA game process
    */
   private final BooleanProperty forceAffinity = new SimpleBooleanProperty(true);
+  /**
+   * Offer to return to a match when the game crashes in it. Takes an engine that can do it, in every player's game.
+   */
+  private final BooleanProperty allowRejoin = new SimpleBooleanProperty(false);
+
+  public boolean isAllowRejoin() {
+    return allowRejoin.get();
+  }
+
+  public void setAllowRejoin(boolean allowRejoin) {
+    this.allowRejoin.set(allowRejoin);
+  }
+
+  public BooleanProperty allowRejoinProperty() {
+    return allowRejoin;
+  }
 
   public Path getPreferencesFile() {
     return preferencesFile.get();
