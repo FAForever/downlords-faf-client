@@ -29,6 +29,8 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
   private PlayerService playerService ;
   @Mock
   private LoggingService loggingService;
+  @Mock
+  private DesyncReports desyncReports; // returns no arguments: the original exe in these tests
 
   @Spy
   private ForgedAlliancePrefs forgedAlliancePrefs;

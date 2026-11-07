@@ -1,0 +1,124 @@
+package com.faforever.client.fa;
+
+import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.preferences.DataPrefs;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.test.ServiceTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import reactor.core.publisher.Mono;
+
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+public class DesyncReportsTest extends ServiceTest {
+
+  @TempDir
+  public Path binDirectory;
+
+  @Mock
+  private FafApiAccessor fafApiAccessor;
+  @Mock
+  private DataPrefs dataPrefs;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private I18n i18n;
+
+  private ForgedAlliancePrefs forgedAlliancePrefs;
+  private DesyncReports instance;
+
+  @BeforeEach
+  public void setUp() {
+    forgedAlliancePrefs = new ForgedAlliancePrefs();
+    lenient().when(dataPrefs.getBinDirectory()).thenReturn(binDirectory);
+    lenient().when(i18n.get(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
+    instance = new DesyncReports(fafApiAccessor, forgedAlliancePrefs, dataPrefs, notificationService, i18n);
+  }
+
+  private void useExe(String productName) throws Exception {
+    TestExecutables.write(binDirectory.resolve("ForgedAlliance.exe"), true, productName);
+  }
+
+  @Test
+  public void testOriginalExeGetsNothingAndNobodyIsAsked() throws Exception {
+    useExe("Supreme Commander Forged Alliance");
+    forgedAlliancePrefs.setAskedSendDesyncReports(true);
+    forgedAlliancePrefs.setSendDesyncReports(true);
+
+    assertEquals(List.of(), instance.launchArguments(42));
+    verify(fafApiAccessor, never()).postJsonForObject(anyString(), any(), any());
+  }
+
+  @Test
+  public void testFirstFafReGameAsksOnceAndSendsNothing() throws Exception {
+    useExe("faf-re");
+
+    assertEquals(List.of(), instance.launchArguments(42));
+    assertTrue(forgedAlliancePrefs.isAskedSendDesyncReports());
+    ArgumentCaptor<PersistentNotification> asked = ArgumentCaptor.forClass(PersistentNotification.class);
+    verify(notificationService).addNotification(asked.capture());
+    assertEquals("game.desyncReports.ask", asked.getValue().text());
+
+    // The second game doesn't ask again; the player hasn't agreed, so it sends nothing.
+    assertEquals(List.of(), instance.launchArguments(43));
+    verify(notificationService).addNotification(any(PersistentNotification.class));
+    verify(fafApiAccessor, never()).postJsonForObject(anyString(), any(), any());
+  }
+
+  @Test
+  public void testAgreedPlayerGetsConsentAndTheGamesToken() throws Exception {
+    useExe("faf-re");
+    forgedAlliancePrefs.setAskedSendDesyncReports(true);
+    forgedAlliancePrefs.setSendDesyncReports(true);
+    when(fafApiAccessor.postJsonForObject(eq("/ice/session/token"), eq(Map.of("gameId", 42)),
+                                          eq(DesyncReports.TokenResponse.class)))
+        .thenReturn(Mono.just(new DesyncReports.TokenResponse("header.payload.signature")));
+
+    assertEquals(List.of("/telemetry", "/telemetrytoken", "header.payload.signature"), instance.launchArguments(42));
+  }
+
+  @Test
+  public void testNoTokenMeansNoReports() throws Exception {
+    useExe("faf-re");
+    forgedAlliancePrefs.setAskedSendDesyncReports(true);
+    forgedAlliancePrefs.setSendDesyncReports(true);
+    when(fafApiAccessor.postJsonForObject(anyString(), any(), eq(DesyncReports.TokenResponse.class)))
+        .thenReturn(Mono.error(new IllegalStateException("icebreaker is down")));
+
+    assertEquals(List.of(), instance.launchArguments(42));
+  }
+
+  @Test
+  public void testDeclinedPlayerSendsNothing() throws Exception {
+    useExe("faf-re");
+    forgedAlliancePrefs.setAskedSendDesyncReports(true);
+    forgedAlliancePrefs.setSendDesyncReports(false);
+
+    assertEquals(List.of(), instance.launchArguments(42));
+    verify(fafApiAccessor, never()).postJsonForObject(anyString(), any(), any());
+  }
+
+  @Test
+  public void testTheLoggedCommandHidesTheToken() {
+    assertEquals(List.of("game.exe", "/telemetry", "/telemetrytoken", "<token>", "/nativenet"),
+                 DesyncReports.withTokenHidden(List.of("game.exe", "/telemetry", "/telemetrytoken", "secret", "/nativenet")));
+  }
+}

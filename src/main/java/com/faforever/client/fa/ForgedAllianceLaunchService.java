@@ -43,6 +43,7 @@ public class ForgedAllianceLaunchService {
   private final LoggingService loggingService;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final DataPrefs dataPrefs;
+  private final DesyncReports desyncReports;
 
   public Process launchOfflineGame(String map) {
     List<String> launchCommand = defaultLaunchCommand().map(map).logFile(loggingService.getNewGameLogFile(0)).build();
@@ -58,6 +59,7 @@ public class ForgedAllianceLaunchService {
     List<String> arguments = new ArrayList<>(gameParameters.additionalArgs() == null ? List.of() : gameParameters.additionalArgs());
     arguments.addAll(rejoinOfferArguments());
     arguments.addAll(rejoinArguments);
+    arguments.addAll(desyncReports.launchArguments(gameParameters.uid()));
     return launch(defaultLaunchCommand().uid(gameParameters.uid())
                                         .faction(gameParameters.faction())
                                         .mapPosition(gameParameters.mapPosition())
@@ -100,7 +102,7 @@ public class ForgedAllianceLaunchService {
                                                                 .expectedPlayers(gameParameters.expectedPlayers())
                                                                 .team(gameParameters.team())
                                                                 .gameOptions(gameParameters.gameOptions())
-                                                                .additionalArgs(withRejoinOffer(gameParameters.additionalArgs(), networkArgs))
+                                                                .additionalArgs(withDesyncReports(withRejoinOffer(gameParameters.additionalArgs(), networkArgs), uid))
                                                                 .clan(currentPlayer.getClan())
                                                                 .country(currentPlayer.getCountry())
                                                                 .username(currentPlayer.getUsername())
@@ -119,6 +121,12 @@ public class ForgedAllianceLaunchService {
     return launch(commandBuilder.build());
   }
 
+
+  private List<String> withDesyncReports(List<String> arguments, int gameId) {
+    List<String> withReports = new ArrayList<>(arguments);
+    withReports.addAll(desyncReports.launchArguments(gameId));
+    return withReports;
+  }
 
   private List<String> withRejoinOffer(@Nullable List<String> additionalArgs, List<String> networkArgs) {
     List<String> arguments = new ArrayList<>(additionalArgs == null ? List.of() : additionalArgs);
@@ -196,7 +204,9 @@ public class ForgedAllianceLaunchService {
     processBuilder.directory(executeDirectory.toFile());
     processBuilder.command(launchCommand);
 
-    log.info("Starting Forged Alliance with command: {} in directory: {}", processBuilder.command(), executeDirectory);
+    // The desync report token is this player's alone (it goes to the game, never to the log, which players share).
+    log.info("Starting Forged Alliance with command: {} in directory: {}",
+             DesyncReports.withTokenHidden(processBuilder.command()), executeDirectory);
 
     try {
       return processBuilder.start();

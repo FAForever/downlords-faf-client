@@ -48,6 +48,36 @@ public class ForgedAlliancePrefs {
    * Offer to return to a match when the game crashes in it. Takes an engine that can do it, in every player's game.
    */
   private final BooleanProperty allowRejoin = new SimpleBooleanProperty(false);
+  /**
+   * Whether the player agreed that a faf-re game sends its desync reports to FAF, and whether they were asked yet.
+   * Nothing is sent until they agree.
+   */
+  private final BooleanProperty sendDesyncReports = new SimpleBooleanProperty(false);
+  private final BooleanProperty askedSendDesyncReports = new SimpleBooleanProperty(false);
+
+  public boolean isSendDesyncReports() {
+    return sendDesyncReports.get();
+  }
+
+  public void setSendDesyncReports(boolean sendDesyncReports) {
+    this.sendDesyncReports.set(sendDesyncReports);
+  }
+
+  public BooleanProperty sendDesyncReportsProperty() {
+    return sendDesyncReports;
+  }
+
+  public boolean isAskedSendDesyncReports() {
+    return askedSendDesyncReports.get();
+  }
+
+  public void setAskedSendDesyncReports(boolean askedSendDesyncReports) {
+    this.askedSendDesyncReports.set(askedSendDesyncReports);
+  }
+
+  public BooleanProperty askedSendDesyncReportsProperty() {
+    return askedSendDesyncReports;
+  }
 
   public boolean isAllowRejoin() {
     return allowRejoin.get();
