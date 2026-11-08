@@ -35,9 +35,8 @@ import com.faforever.client.util.IdenticonUtil;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -75,6 +74,7 @@ import org.kitteh.irc.client.library.event.channel.ChannelTagMessageEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelTopicEvent;
 import org.kitteh.irc.client.library.event.client.ClientNegotiationCompleteEvent;
 import org.kitteh.irc.client.library.event.connection.ClientConnectionEndedEvent;
+import org.kitteh.irc.client.library.event.connection.ClientConnectionEstablishedEvent;
 import org.kitteh.irc.client.library.event.connection.ClientConnectionFailedEvent;
 import org.kitteh.irc.client.library.event.helper.ActorEvent;
 import org.kitteh.irc.client.library.event.helper.ActorMessageEvent;
@@ -166,10 +166,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private final List<String> autoChannels = new ArrayList<>();
   private final Queue<String> bufferedChannels = new ArrayDeque<>();
 
-  private boolean autoReconnect;
-
   @VisibleForTesting
-  ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
+  ReadOnlyObjectWrapper<ConnectionState> connectionState = new ReadOnlyObjectWrapper<>(ConnectionState.DISCONNECTED);
   @VisibleForTesting
   String defaultChannelName;
   @VisibleForTesting
@@ -200,9 +198,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                                .forEach(channel -> channel.setMaxNumMessages(maxMessages.intValue())));
     connectionState.subscribe((oldValue, newValue) -> {
       log.debug("Connection state changed from {} to {}", oldValue, newValue);
-      if (autoReconnect && oldValue == ConnectionState.CONNECTED && newValue == ConnectionState.DISCONNECTED) {
-        connect();
-      }
     });
   }
 
@@ -381,6 +376,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
             .forEach(chatChannel -> chatChannel.getUser(username)
                                                .ifPresent(chatUser -> fxApplicationThreadExecutor.execute(
                                                    () -> chatUser.setAway(event.isAway()))));
+  }
+
+  @Handler
+  public void onConnecting(ClientConnectionEstablishedEvent event) {
+    connectionState.set(ConnectionState.CONNECTING);
   }
 
   @Handler
@@ -669,29 +669,33 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     chatChannel.removeUser(username);
   }
 
-  private void onMessage(String message) {
-    ircLog.debug(message);
-  }
-
   private void onException(Throwable throwable) {
     log.warn("Exception in message processing", throwable);
   }
 
   @Handler
   public void onDisconnect(ClientConnectionEndedEvent event) {
-    client.getEventManager().unregisterEventListener(this);
     channels.values().forEach(ChatChannel::clearUsers);
     List.copyOf(channels.keySet()).forEach(this::removeChannel);
-    connectionState.set(ConnectionState.DISCONNECTED);
-    client.shutdown();
-    event.getCause().ifPresent(throwable -> log.error("Chat disconnected with cause", throwable));
+    if (!event.willAttemptReconnect()) {
+      connectionState.set(ConnectionState.DISCONNECTED);
+      client.getEventManager().unregisterEventListener(this);
+      client.shutdown();
+    } else {
+      connectionState.set(ConnectionState.CONNECTING);
+    }
+    event.getCause().ifPresent(throwable -> log.warn("Chat disconnected with cause", throwable));
   }
 
   @Handler
   public void onFailedConnect(ClientConnectionFailedEvent event) {
-    connectionState.set(ConnectionState.DISCONNECTED);
-    client.shutdown();
-    event.getCause().ifPresent(throwable -> log.error("Chat disconnected with cause", throwable));
+    if (!event.willAttemptReconnect()) {
+      connectionState.set(ConnectionState.DISCONNECTED);
+      client.shutdown();
+    } else {
+      connectionState.set(ConnectionState.CONNECTING);
+    }
+    event.getCause().ifPresent(throwable -> log.warn("Chat disconnected with cause", throwable));
   }
 
   private void onSocialMessage(SocialInfo socialMessage) {
@@ -721,7 +725,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void connect() {
-    autoReconnect = true;
     if (connectionState.get() != ConnectionState.DISCONNECTED) {
       return;
     }
@@ -749,8 +752,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                     .port(irc.getPort(), irc.isSecure() ? SecurityType.SECURE : SecurityType.INSECURE)
                                     .then()
                                     .listeners()
-                                    .input(this::onMessage)
-                                    .output(this::onMessage)
+                                    .input(message -> ircLog.debug(" IN: {}", message))
+                                    .output(message -> ircLog.debug("OUT: {}", message))
                                     .exception(this::onException)
                                     .then()
                                     .management()
@@ -774,6 +777,9 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                                 .addProtocol(
                                     new SaslPlain(client, "%s@FAF".formatted(username), "token:%s".formatted(token)));
                           client.connect();
+                        }, throwable -> {
+                          log.warn("Unable to connect to irc", throwable);
+                          connectionState.setValue(ConnectionState.DISCONNECTED);
                         });
   }
 
@@ -786,7 +792,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void disconnect() {
-    autoReconnect = false;
     if (client != null) {
       log.info("Disconnecting from IRC");
       client.shutdown("Goodbye");
@@ -923,7 +928,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
-    return connectionState;
+    return connectionState.getReadOnlyProperty();
   }
 
   @Override

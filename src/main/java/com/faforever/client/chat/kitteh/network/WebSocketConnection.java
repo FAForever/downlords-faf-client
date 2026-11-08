@@ -67,8 +67,7 @@ public final class WebSocketConnection implements ClientConnection {
                 this.client.beginMessageSendingImmediate(
                     message -> outboundSink.emitNext(message, EmitFailureHandler.busyLooping(Duration.ofMinutes(1))));
                 this.alive = true;
-              })
-              .doOnDisconnected(connection -> {
+              }).doOnDisconnected(_ -> {
                 this.client.getEventManager()
                            .callEvent(new ClientConnectionClosedEvent(this.client, reconnect, null, lastMessage));
                 this.client.pauseMessageSending();
@@ -82,12 +81,28 @@ public final class WebSocketConnection implements ClientConnection {
                 if (event.willAttemptReconnect()) {
                   this.scheduleReconnect(event.getReconnectionDelay());
                 }
-              })
-              .doOnResolveError((connection, throwable) -> {
-                this.client.getEventManager()
-                           .callEvent(new ClientConnectionFailedEvent(this.client, reconnect, throwable));
+              }).doOnResolveError((_, throwable) -> {
+                ClientConnectionFailedEvent event = new ClientConnectionFailedEvent(this.client, reconnect, throwable);
+                this.client.getEventManager().callEvent(event);
                 this.client.getExceptionListener().queue(new KittehConnectionException(throwable, false));
-              })
+                if (event.willAttemptReconnect()) {
+                  this.scheduleReconnect(event.getReconnectionDelay());
+                }
+              }).doOnError(((_, throwable) -> {
+                ClientConnectionFailedEvent event = new ClientConnectionFailedEvent(this.client, reconnect, throwable);
+                this.client.getEventManager().callEvent(event);
+                this.client.getExceptionListener().queue(new KittehConnectionException(throwable, false));
+                if (event.willAttemptReconnect()) {
+                  this.scheduleReconnect(event.getReconnectionDelay());
+                }
+              }), ((_, throwable) -> {
+                ClientConnectionFailedEvent event = new ClientConnectionFailedEvent(this.client, reconnect, throwable);
+                this.client.getEventManager().callEvent(event);
+                this.client.getExceptionListener().queue(new KittehConnectionException(throwable, false));
+                if (event.willAttemptReconnect()) {
+                  this.scheduleReconnect(event.getReconnectionDelay());
+                }
+              }))
               .websocket()
               .uri(URI.create(("%s://%s:%d").formatted(scheme, serverAddress.getHost(), serverAddress.getPort())))
               .handle((inbound, outbound) -> {
