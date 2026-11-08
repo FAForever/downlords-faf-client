@@ -203,7 +203,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
   }
 
   private void scrollToEnd() {
-    fxApplicationThreadExecutor.execute(() -> messageListView.showAsLast(filteredMessages.size() - 1));
+    fxApplicationThreadExecutor.runLater(() -> messageListView.showAsLast(filteredMessages.size() - 1));
   }
 
   private void onMessageChange(SetChangeListener.Change<? extends ChatMessage> change) {

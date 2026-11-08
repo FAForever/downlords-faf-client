@@ -54,6 +54,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -143,7 +145,10 @@ public class ChatMessageController extends NodeController<VBox> {
     });
     timeLabel.textProperty()
              .bind(chatMessage.map(message -> message.getType() != Type.PENDING ? message.getTime() : null)
-                              .map(timeService::asShortTime)
+                              .map(time -> time.isBefore(OffsetDateTime.now()
+                                                                       .truncatedTo(ChronoUnit.DAYS)
+                                                                       .toInstant()) ? timeService.asDateTime(
+                                  time) : timeService.asShortTime(time))
                               .orElse(i18n.get("pending"))
                               .when(showing));
     chatMessage.map(ChatMessage::getContent).map(this::convertMessageToNodes).when(showing).subscribe(messageNodes -> {
