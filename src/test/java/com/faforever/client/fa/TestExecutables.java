@@ -10,10 +10,13 @@ import java.nio.file.Path;
 import java.util.Arrays;
 
 /**
- * Writes the smallest Windows executable {@link FafReExecutable} can read: headers, one resource section and a version
- * resource that holds only a product name. The other methods write the same file with one part missing or moved.
+ * Writes the smallest Windows executable {@link RebuiltEngineExecutable} can read: headers, one resource section and a
+ * version resource that holds only a product name. The other methods write the same file with one part missing or
+ * moved.
  */
 public final class TestExecutables {
+
+  private static final String PRODUCT_NAME = RebuiltEngineExecutable.PRODUCT_NAME;
 
   private static final int RT_VERSION = 16;
   private static final int RT_ICON = 3;
@@ -92,7 +95,7 @@ public final class TestExecutables {
    * An exe whose resource directory points outside its only section.
    */
   public static Path writeResourceOutsideSections(Path file) throws IOException {
-    Path written = write(file, true, "faf-re");
+    Path written = write(file, true, PRODUCT_NAME);
     byte[] exe = Files.readAllBytes(written);
     ByteBuffer.wrap(exe).order(ByteOrder.LITTLE_ENDIAN).putInt(PE_HEADER + 24 + 112 + 2 * 8, 0x9000);
     return Files.write(written, exe);
@@ -102,7 +105,7 @@ public final class TestExecutables {
    * A file that starts like an exe (MZ), but has no PE header where the DOS header points.
    */
   public static Path writeWithoutPeSignature(Path file) throws IOException {
-    Path written = write(file, true, "faf-re");
+    Path written = write(file, true, PRODUCT_NAME);
     byte[] exe = Files.readAllBytes(written);
     ByteBuffer.wrap(exe).order(ByteOrder.LITTLE_ENDIAN).putInt(PE_HEADER, 0);
     return Files.write(written, exe);

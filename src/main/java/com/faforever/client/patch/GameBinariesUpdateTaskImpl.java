@@ -1,8 +1,8 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.fa.FafReExecutable;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
+import com.faforever.client.fa.RebuiltEngineExecutable;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.error.GameUpdateException;
 import com.faforever.client.i18n.I18n;
@@ -104,8 +104,8 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
 
     copyGameFilesToFafBinDirectory();
     downloadFafExeIfNecessary(exePath);
-    if (FafReExecutable.isFafRe(exePath)) {
-      log.debug("Not writing the version into `{}`: the faf-re engine reads it from the game files", exePath);
+    if (RebuiltEngineExecutable.isRebuiltEngine(exePath)) {
+      log.debug("Not writing the version into `{}`: the rebuilt engine reads it from the game files", exePath);
     } else if (ForgedAllianceExePatcher.readVersion(exePath) != version) {
       ForgedAllianceExePatcher.patchVersion(exePath, version);
     }

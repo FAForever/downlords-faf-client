@@ -2,6 +2,7 @@ package com.faforever.client.patch;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
+import com.faforever.client.fa.RebuiltEngineExecutable;
 import com.faforever.client.fa.TestExecutables;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
@@ -33,6 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class GameBinariesUpdateTaskTest extends PlatformTest {
+
+  private static final String PRODUCT_NAME = RebuiltEngineExecutable.PRODUCT_NAME;
+
   @TempDir
   public Path tempDirectory;
   private Path fafBinDirectory;
@@ -122,8 +126,8 @@ public class GameBinariesUpdateTaskTest extends PlatformTest {
   }
 
   @Test
-  public void testFafReExeIsNotPatched() throws Exception {
-    Path exePath = TestExecutables.write(fafBinDirectory.resolve("ForgedAlliance.exe"), true, "faf-re");
+  public void testRebuiltEngineExeIsNotPatched() throws Exception {
+    Path exePath = TestExecutables.write(fafBinDirectory.resolve("ForgedAlliance.exe"), true, PRODUCT_NAME);
     byte[] before = Files.readAllBytes(exePath);
     when(forgedAllianceLaunchService.getExecutablePath()).thenReturn(exePath);
 
@@ -148,8 +152,8 @@ public class GameBinariesUpdateTaskTest extends PlatformTest {
   }
 
   @Test
-  public void testFafReExeWithResourceDirectoryInsideSectionIsNotPatched() throws Exception {
-    Path exePath = TestExecutables.writeResourceDirectoryInsideSection(fafBinDirectory.resolve("ForgedAlliance.exe"), "faf-re", 32);
+  public void testRebuiltEngineExeWithResourceDirectoryInsideSectionIsNotPatched() throws Exception {
+    Path exePath = TestExecutables.writeResourceDirectoryInsideSection(fafBinDirectory.resolve("ForgedAlliance.exe"), PRODUCT_NAME, 32);
     byte[] before = Files.readAllBytes(exePath);
     when(forgedAllianceLaunchService.getExecutablePath()).thenReturn(exePath);
 

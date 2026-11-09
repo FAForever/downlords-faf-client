@@ -12,19 +12,20 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 /**
- * Tells the faf-re engine (https://github.com/Draiget/faf-re) from the original ForgedAlliance.exe. Both are named
- * ForgedAlliance.exe and both can be 32-bit, so this reads the product name from the exe's version resource: "faf-re"
- * there, "Supreme Commander Forged Alliance" in the original. The file is parsed here rather than through Windows,
- * as the client also runs on Linux.
+ * Tells the rebuilt engine from the original ForgedAlliance.exe. Both are named ForgedAlliance.exe and both can be
+ * 32-bit, so this reads the product name from the exe's version resource: {@link #PRODUCT_NAME} in the rebuilt engine,
+ * "Supreme Commander Forged Alliance" in the original. The file is parsed here rather than through Windows, as the
+ * client also runs on Linux.
  */
 @Slf4j
 @UtilityClass
-public class FafReExecutable {
+public class RebuiltEngineExecutable {
 
-  private final String PRODUCT_NAME = "faf-re";
+  /** The product name the rebuilt engine writes into its version resource. */
+  public final String PRODUCT_NAME = "faf-re";
   private final int RT_VERSION = 16;
 
-  public boolean isFafRe(Path executable) {
+  public boolean isRebuiltEngine(Path executable) {
     return readProductName(executable).filter(PRODUCT_NAME::equals).isPresent();
   }
 
