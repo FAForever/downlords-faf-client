@@ -1,6 +1,7 @@
 package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.fa.ForgedAllianceLaunchService;
+import com.faforever.client.fa.RebuiltEngineExecutable;
 import com.faforever.client.fa.TestExecutables;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.lobby.GameLaunchResponse;
@@ -21,6 +22,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 public class IceAdapterSelectorTest extends ServiceTest {
+
+  private static final String PRODUCT_NAME = RebuiltEngineExecutable.PRODUCT_NAME;
 
   @TempDir
   public Path tempDirectory;
@@ -53,8 +56,8 @@ public class IceAdapterSelectorTest extends ServiceTest {
   }
 
   @Test
-  public void testNativeOnFafDevelopWithFafReExe() throws Exception {
-    useExe("faf-re");
+  public void testNativeOnFafDevelopWithRebuiltEngineExe() throws Exception {
+    useExe(PRODUCT_NAME);
 
     instance.prepare(launchOf("fafdevelop"));
     instance.start(1, false);
@@ -77,7 +80,7 @@ public class IceAdapterSelectorTest extends ServiceTest {
 
   @Test
   public void testJavaAdapterOnAnyOtherMod() throws Exception {
-    useExe("faf-re");
+    useExe(PRODUCT_NAME);
 
     instance.prepare(launchOf("faf"));
     instance.start(1, false);

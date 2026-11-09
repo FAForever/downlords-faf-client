@@ -38,7 +38,8 @@ public class ClientConfiguration {
     private UrlEndpoint api;
     private OAuthEndpoint oauth;
     /**
-     * Where a faf-re game sends its desync records and dumps when the player agreed. Absent: the game's own default.
+     * Where a game on the rebuilt engine sends its desync records and dumps when the player agreed. Absent: the game's
+     * own default.
      */
     private UrlEndpoint desyncRecords;
     private UrlEndpoint desyncDumps;

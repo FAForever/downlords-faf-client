@@ -49,7 +49,8 @@ public class ForgedAlliancePrefs {
    */
   private final BooleanProperty allowRejoin = new SimpleBooleanProperty(false);
   /**
-   * Whether the player agreed that a faf-re game sends its desync reports to FAF, and whether they were asked yet.
+   * Whether the player agreed that a game on the rebuilt engine sends its desync reports to FAF, and whether they were
+   * asked yet.
    * Nothing is sent until they agree.
    */
   private final BooleanProperty sendDesyncReports = new SimpleBooleanProperty(false);

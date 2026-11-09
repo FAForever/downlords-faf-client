@@ -324,7 +324,7 @@ public class SettingsController extends NodeController<Node> {
                                  .bindBidirectional(forgedAlliancePrefs.useIceAdapterPreReleaseProperty());
     forceAffinityToggle.selectedProperty()
                        .bindBidirectional(forgedAlliancePrefs.forceAffinityProperty());
-    // Issue #337 in faf-re: the player's answer to the desync report question, changed here. Changing it counts as asked.
+    // The player's answer to the desync report question, changed here. Changing it counts as asked.
     sendDesyncReportsToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.sendDesyncReportsProperty());
     sendDesyncReportsToggle.selectedProperty().addListener((observable, oldValue, newValue) -> forgedAlliancePrefs.setAskedSendDesyncReports(true));
     vaultLocationTextField.textProperty()

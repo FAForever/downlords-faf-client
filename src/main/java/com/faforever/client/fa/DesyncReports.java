@@ -22,11 +22,12 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Desync reports from a faf-re game: when the game desyncs it can send a small record and its dump file, so its
- * developers can find the cause. It sends them only when the player agreed ({@code /telemetry}), and each upload
- * carries a token icebreaker issued for this game and player ({@code /telemetrytoken}), which the report server
- * checks. The game keeps the token from other players, and this client keeps it out of its logs. The chosen server's
- * endpoints ({@code desyncRecords}, {@code desyncDumps}) say where the reports go; without them the game's default.
+ * Desync reports from a game on the rebuilt engine: when the game desyncs it can send a small record and its dump
+ * file, so the engine's developers can find the cause. It sends them only when the player agreed
+ * ({@code /telemetry}), and each upload carries a token icebreaker issued for this game and player
+ * ({@code /telemetrytoken}), which the report server checks. The game keeps the token from other players, and this
+ * client keeps it out of its logs. The chosen server's endpoints ({@code desyncRecords}, {@code desyncDumps}) say
+ * where the reports go; without them the game's default.
  */
 @Slf4j
 @Component
@@ -70,10 +71,10 @@ public class DesyncReports {
   }
 
   /**
-   * The game's arguments for desync reports in game {@code gameId}: none unless the exe is faf-re and the player
-   * agreed. A player who wasn't asked yet is asked once, and this game sends nothing. Without a token (icebreaker
-   * didn't answer) the game sends nothing either. Takes what {@link #prepare} worked out for this game; without that,
-   * works it out here and waits for it.
+   * The game's arguments for desync reports in game {@code gameId}: none unless the exe is the rebuilt engine and the
+   * player agreed. A player who wasn't asked yet is asked once, and this game sends nothing. Without a token
+   * (icebreaker didn't answer) the game sends nothing either. Takes what {@link #prepare} worked out for this game;
+   * without that, works it out here and waits for it.
    */
   public List<String> launchArguments(int gameId) {
     return prepare(gameId).join();
@@ -81,7 +82,7 @@ public class DesyncReports {
 
   private List<String> fetchArguments(int gameId) {
     Path executable = dataPrefs.getBinDirectory().resolve(PreferencesService.FORGED_ALLIANCE_EXE);
-    if (!FafReExecutable.isFafRe(executable)) {
+    if (!RebuiltEngineExecutable.isRebuiltEngine(executable)) {
       return List.of();
     }
     if (!forgedAlliancePrefs.isAskedSendDesyncReports()) {

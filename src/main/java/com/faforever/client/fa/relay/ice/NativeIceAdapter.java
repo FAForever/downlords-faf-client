@@ -52,7 +52,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * The game's own network links: no adapter process, the client hosts GPGNet itself and passes messages between the game
- * and the lobby server. The contract is docs/LAUNCHER_NATIVE_NETWORK.md in faf-re.
+ * and the lobby server.
  */
 @Component
 @Lazy

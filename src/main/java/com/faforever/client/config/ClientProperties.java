@@ -186,7 +186,8 @@ public class ClientProperties {
   }
 
   /**
-   * Where a faf-re game sends desync reports, from the chosen server's endpoints. Null: the game's own default.
+   * Where a game on the rebuilt engine sends desync reports, from the chosen server's endpoints. Null: the game's own
+   * default.
    */
   @Data
   public static class DesyncReports {

@@ -33,6 +33,8 @@ import static org.mockito.Mockito.when;
 
 public class DesyncReportsTest extends ServiceTest {
 
+  private static final String PRODUCT_NAME = RebuiltEngineExecutable.PRODUCT_NAME;
+
   @TempDir
   public Path binDirectory;
 
@@ -68,7 +70,7 @@ public class DesyncReportsTest extends ServiceTest {
 
   @Test
   public void testPreparedArgumentsAreReusedForTheSameGame() throws Exception {
-    useExe("faf-re");
+    useExe(PRODUCT_NAME);
     agreeWithToken("t");
 
     List<String> prepared = instance.prepare(42).get();
@@ -82,7 +84,7 @@ public class DesyncReportsTest extends ServiceTest {
 
   @Test
   public void testTheServersEndpointsArePassed() throws Exception {
-    useExe("faf-re");
+    useExe(PRODUCT_NAME);
     agreeWithToken("t");
     ServerEndpoints server = new ServerEndpoints();
     server.setName("Test server");
@@ -119,8 +121,8 @@ public class DesyncReportsTest extends ServiceTest {
   }
 
   @Test
-  public void testFirstFafReGameAsksOnceAndSendsNothing() throws Exception {
-    useExe("faf-re");
+  public void testFirstRebuiltEngineGameAsksOnceAndSendsNothing() throws Exception {
+    useExe(PRODUCT_NAME);
 
     assertEquals(List.of(), instance.launchArguments(42));
     assertTrue(forgedAlliancePrefs.isAskedSendDesyncReports());
@@ -136,7 +138,7 @@ public class DesyncReportsTest extends ServiceTest {
 
   @Test
   public void testAgreedPlayerGetsConsentAndTheGamesToken() throws Exception {
-    useExe("faf-re");
+    useExe(PRODUCT_NAME);
     forgedAlliancePrefs.setAskedSendDesyncReports(true);
     forgedAlliancePrefs.setSendDesyncReports(true);
     when(fafApiAccessor.postJsonForObject(eq("/ice/session/token"), eq(Map.of("gameId", 42)),
@@ -148,7 +150,7 @@ public class DesyncReportsTest extends ServiceTest {
 
   @Test
   public void testNoTokenMeansNoReports() throws Exception {
-    useExe("faf-re");
+    useExe(PRODUCT_NAME);
     forgedAlliancePrefs.setAskedSendDesyncReports(true);
     forgedAlliancePrefs.setSendDesyncReports(true);
     when(fafApiAccessor.postJsonForObject(anyString(), any(), eq(DesyncReports.TokenResponse.class)))
@@ -159,7 +161,7 @@ public class DesyncReportsTest extends ServiceTest {
 
   @Test
   public void testDeclinedPlayerSendsNothing() throws Exception {
-    useExe("faf-re");
+    useExe(PRODUCT_NAME);
     forgedAlliancePrefs.setAskedSendDesyncReports(true);
     forgedAlliancePrefs.setSendDesyncReports(false);
 
