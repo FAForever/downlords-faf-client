@@ -41,7 +41,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class IceAdapterImplTest extends ServiceTest {
@@ -85,26 +84,6 @@ public class IceAdapterImplTest extends ServiceTest {
     instance.onIceAdapterStateChanged("Disconnected");
     instance.onIceAdapterStateChanged("Connected");
     verify(iceAdapterApi, times(1)).quit();
-  }
-
-  @Test
-  public void aRejoinOfferStaysWithTheClient() throws Exception {
-    forgedAlliancePrefs.setAllowRejoin(true);
-    assertFalse(instance.canRejoin());
-
-    instance.onGpgGameMessage(new GpgGameOutboundMessage("RejoinOffer", List.of("1", "101=0,102=1,103=2"), MessageTarget.GAME));
-
-    verifyNoInteractions(fafServerAccessor);
-    assertTrue(instance.canRejoin());
-  }
-
-  @Test
-  public void aRejoinOfferMeansNothingWithThePreferenceOff() throws Exception {
-    forgedAlliancePrefs.setAllowRejoin(false);
-
-    instance.onGpgGameMessage(new GpgGameOutboundMessage("RejoinOffer", List.of("1", "101=0,102=1"), MessageTarget.GAME));
-
-    assertFalse(instance.canRejoin());
   }
 
   @Test

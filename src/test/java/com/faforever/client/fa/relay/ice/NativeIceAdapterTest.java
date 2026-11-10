@@ -4,7 +4,7 @@ import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.GameFullNotifier;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.lobby.ConnectToPeerGpgCommand;
@@ -60,7 +60,7 @@ public class NativeIceAdapterTest extends ServiceTest {
   @Mock
   private GameFullNotifier gameFullNotifier;
   @Spy
-  private ForgedAlliancePrefs forgedAlliancePrefs;
+  private DataPrefs dataPrefs;
 
   private final Sinks.Many<ConnectToPeerGpgCommand> connectToPeer = Sinks.many().multicast().onBackpressureBuffer();
   private final Sinks.Many<IceMsgGpgCommand> iceMsg = Sinks.many().multicast().onBackpressureBuffer();
@@ -80,9 +80,10 @@ public class NativeIceAdapterTest extends ServiceTest {
     lenient().when(player.getUsername()).thenReturn("junit");
     lenient().when(player.getId()).thenReturn(5);
     lenient().when(playerService.getCurrentPlayer()).thenReturn(player);
+    dataPrefs.setBaseDataDirectory(java.nio.file.Path.of("."));
 
     instance = new NativeIceAdapter(playerService, fafServerAccessor, Mappers.getMapper(IceServerMapper.class),
-                                    new ObjectMapper(), gameFullNotifier, forgedAlliancePrefs);
+                                    new ObjectMapper(), gameFullNotifier, dataPrefs);
     instance.afterPropertiesSet();
 
     GameLaunchResponse launch = mock(GameLaunchResponse.class);
@@ -228,7 +229,6 @@ public class NativeIceAdapterTest extends ServiceTest {
 
   /** A game with two peers crashes, and the client gets ready to start it again. */
   private void crashWithTwoPeers() throws Exception {
-    forgedAlliancePrefs.setAllowRejoin(true);
     sendFromGame("GameState", "Lobby");
     verify(fafServerAccessor, timeout(WAIT_MILLIS)).sendGpgMessage(any());
     connectToPeer("first", 9, true);
@@ -249,11 +249,25 @@ public class NativeIceAdapterTest extends ServiceTest {
     fromClient = new DataInputStream(game.getInputStream());
   }
 
+  /** The game's own network arguments, the offer to come back included, then {@code more}. */
+  private List<String> withNetwork(String... more) {
+    List<String> arguments = new java.util.ArrayList<>(List.of("/nativenet", "/rejoinoffer", "/rejoinkeyfile",
+        dataPrefs.getBaseDataDirectory().resolve("rejoin_seat.key").toString(), "/con",
+        "net_PeerFeatures=1;net_RejoinAccept=1"));
+    arguments.addAll(List.of(more));
+    return arguments;
+  }
+
+  @Test
+  public void testEveryGameOnThisNetworkCanOfferToComeBack() {
+    assertEquals(withNetwork(), instance.gameArguments());
+  }
+
   @Test
   public void testAGameComingBackGetsItsPeersAgainWithoutAskingForIdle() throws Exception {
     crashWithTwoPeers();
 
-    assertEquals(List.of("/nativenet", "/rejoin", "9=0,3=2", "1", "0"), instance.rejoinArguments());
+    assertEquals(withNetwork("/rejoin", "9=0,3=2", "1", "0"), instance.rejoinArguments());
     gameConnectsAgain();
 
     assertEquals(List.of("IceServers", "[]"), readMessage());
@@ -269,7 +283,7 @@ public class NativeIceAdapterTest extends ServiceTest {
     crashWithTwoPeers();
     disconnectFromPeer.tryEmitNext(left);
 
-    assertEquals(List.of("/nativenet", "/rejoin", "3=2", "1", "0"), instance.rejoinArguments());
+    assertEquals(withNetwork("/rejoin", "3=2", "1", "0"), instance.rejoinArguments());
     gameConnectsAgain();
 
     assertEquals(List.of("IceServers", "[]"), readMessage());
@@ -303,8 +317,6 @@ public class NativeIceAdapterTest extends ServiceTest {
 
   @Test
   public void testNoOfferMeansNoReturn() {
-    forgedAlliancePrefs.setAllowRejoin(true);
-
     assertFalse(instance.canRejoin());
     assertEquals(List.of(), instance.rejoinArguments());
   }

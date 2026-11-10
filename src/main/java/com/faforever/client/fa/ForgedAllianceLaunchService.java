@@ -57,7 +57,6 @@ public class ForgedAllianceLaunchService {
    */
   public Process relaunchOnlineGame(GameParameters gameParameters, int gpgPort, List<String> rejoinArguments) {
     List<String> arguments = new ArrayList<>(gameParameters.additionalArgs() == null ? List.of() : gameParameters.additionalArgs());
-    arguments.addAll(rejoinOfferArguments());
     arguments.addAll(rejoinArguments);
     arguments.addAll(desyncReports.launchArguments(gameParameters.uid()));
     return launch(defaultLaunchCommand().uid(gameParameters.uid())
@@ -71,18 +70,6 @@ public class ForgedAllianceLaunchService {
                                         .localGpgPort(gpgPort)
                                         .logFile(loggingService.getNewGameLogFile(gameParameters.uid()))
                                         .build());
-  }
-
-  /**
-   * What the game needs to come back later: to say it can, and where its key for its seat is. The key only ever signs
-   * a challenge from the other players, and it has nothing to do with the player's account.
-   */
-  private List<String> rejoinOfferArguments() {
-    if (!forgedAlliancePrefs.isAllowRejoin()) {
-      return List.of();
-    }
-    return List.of("/rejoinoffer", "/rejoinkeyfile", dataPrefs.getBaseDataDirectory().resolve("rejoin_seat.key").toString(), "/con",
-                   "net_PeerFeatures=1;net_RejoinAccept=1");
   }
 
   public Process launchOnlineGame(GameParameters gameParameters, int gpgPort, int replayPort, List<String> networkArgs) {
@@ -102,7 +89,7 @@ public class ForgedAllianceLaunchService {
                                                                 .expectedPlayers(gameParameters.expectedPlayers())
                                                                 .team(gameParameters.team())
                                                                 .gameOptions(gameParameters.gameOptions())
-                                                                .additionalArgs(withDesyncReports(withRejoinOffer(gameParameters.additionalArgs(), networkArgs), uid))
+                                                                .additionalArgs(withDesyncReports(withNetwork(gameParameters.additionalArgs(), networkArgs), uid))
                                                                 .clan(currentPlayer.getClan())
                                                                 .country(currentPlayer.getCountry())
                                                                 .username(currentPlayer.getUsername())
@@ -128,10 +115,9 @@ public class ForgedAllianceLaunchService {
     return withReports;
   }
 
-  private List<String> withRejoinOffer(@Nullable List<String> additionalArgs, List<String> networkArgs) {
+  private List<String> withNetwork(@Nullable List<String> additionalArgs, List<String> networkArgs) {
     List<String> arguments = new ArrayList<>(additionalArgs == null ? List.of() : additionalArgs);
     arguments.addAll(networkArgs);
-    arguments.addAll(rejoinOfferArguments());
     return arguments;
   }
 

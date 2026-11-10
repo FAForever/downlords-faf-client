@@ -34,14 +34,17 @@ public interface IceAdapter {
   void setIceServers(Collection<CoturnServer> coturnServers);
 
   /**
-   * Whether the game running now could come back to its match if it crashed: the preference is on, and the game said
-   * every player's engine can do it.
+   * Whether the game running now could come back to its match if it crashed: only the game's own network can bring it
+   * back, and only when the game said every player's engine can do it.
    */
-  boolean canRejoin();
+  default boolean canRejoin() {
+    return false;
+  }
 
   /**
-   * The arguments that start the game so that it takes its seat back, through this adapter's links to the other
-   * players. Empty when the adapter no longer has them.
+   * The arguments that start the game so that it takes its seat back in its match. Empty when this network can't.
    */
-  List<String> rejoinArguments();
+  default List<String> rejoinArguments() {
+    return List.of();
+  }
 }

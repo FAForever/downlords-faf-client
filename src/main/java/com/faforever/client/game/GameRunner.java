@@ -252,7 +252,7 @@ public class GameRunner implements InitializingBean {
         }
         List<String> rejoinArguments = iceAdapter.rejoinArguments();
         if (rejoinArguments.isEmpty()) {
-          log.warn("The ICE adapter no longer has the links to the other players");
+          log.warn("No players to return to: the game's network no longer knows them");
           return completedFuture(finished);
         }
         Process relaunched = forgedAllianceLaunchService.relaunchOnlineGame(launchedParameters, launchedGpgPort, rejoinArguments);

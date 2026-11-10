@@ -4,7 +4,7 @@ import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.GameFullNotifier;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.commons.api.dto.CoturnServer;
 import com.faforever.commons.lobby.ConnectToPeerGpgCommand;
@@ -71,7 +71,7 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
   private final ObjectMapper objectMapper;
   @Lazy
   private final GameFullNotifier gameFullNotifier;
-  private final ForgedAlliancePrefs forgedAlliancePrefs;
+  private final DataPrefs dataPrefs;
 
   private final Object sendLock = new Object();
   // What the server said about this game's peers. It says it once, and a game started again needs it once more.
@@ -128,7 +128,19 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
 
   @Override
   public List<String> gameArguments() {
-    return forceRelay ? List.of("/nativenet", "/nativenetrelay") : List.of("/nativenet");
+    List<String> arguments = new ArrayList<>(forceRelay ? List.of("/nativenet", "/nativenetrelay") : List.of("/nativenet"));
+    arguments.addAll(rejoinOfferArguments());
+    return arguments;
+  }
+
+  /**
+   * What the game needs to come back to its match after a crash: to say it can, and where its key for its seat is. The
+   * key only ever signs a challenge from the other players, and it has nothing to do with the player's account. The game
+   * offers a return only when every player's engine can take one.
+   */
+  private List<String> rejoinOfferArguments() {
+    return List.of("/rejoinoffer", "/rejoinkeyfile", dataPrefs.getBaseDataDirectory().resolve("rejoin_seat.key").toString(),
+                   "/con", "net_PeerFeatures=1;net_RejoinAccept=1");
   }
 
   @Override
@@ -152,7 +164,7 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
 
   @Override
   public boolean canRejoin() {
-    return rejoinOffer != null && forgedAlliancePrefs.isAllowRejoin();
+    return rejoinOffer != null;
   }
 
   /**

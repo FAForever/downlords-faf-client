@@ -45,10 +45,6 @@ public class ForgedAlliancePrefs {
    */
   private final BooleanProperty forceAffinity = new SimpleBooleanProperty(true);
   /**
-   * Offer to return to a match when the game crashes in it. Takes an engine that can do it, in every player's game.
-   */
-  private final BooleanProperty allowRejoin = new SimpleBooleanProperty(false);
-  /**
    * Whether the player agreed that a game on the rebuilt engine sends its desync reports to FAF, and whether they were
    * asked yet.
    * Nothing is sent until they agree.
@@ -80,17 +76,6 @@ public class ForgedAlliancePrefs {
     return askedSendDesyncReports;
   }
 
-  public boolean isAllowRejoin() {
-    return allowRejoin.get();
-  }
-
-  public void setAllowRejoin(boolean allowRejoin) {
-    this.allowRejoin.set(allowRejoin);
-  }
-
-  public BooleanProperty allowRejoinProperty() {
-    return allowRejoin;
-  }
 
   public Path getPreferencesFile() {
     return preferencesFile.get();
