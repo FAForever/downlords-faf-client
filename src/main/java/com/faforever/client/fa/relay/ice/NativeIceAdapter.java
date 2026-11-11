@@ -156,7 +156,15 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
     }
     if ("RejoinOffer".equals(message.getCommand())) {
       List<Object> args = message.getArgs();
-      rejoinOffer = RejoinOffer.parse(String.valueOf(args.get(0)), String.valueOf(args.get(1)));
+      if (args.size() < 2) {
+        log.warn("Native network: ignoring a rejoin offer without its seats: {}", args);
+        return;
+      }
+      try {
+        rejoinOffer = RejoinOffer.parse(String.valueOf(args.get(0)), String.valueOf(args.get(1)));
+      } catch (IllegalArgumentException e) {
+        log.warn("Native network: ignoring a malformed rejoin offer {}", args, e);
+      }
       return;
     }
     fafServerAccessor.sendGpgMessage(message);

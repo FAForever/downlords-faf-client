@@ -36,6 +36,7 @@ public class LaunchCommandBuilder {
   private Integer uid;
   private Path executable;
   private List<String> additionalArgs;
+  private List<String> clientArgs;
   private Integer localGpgPort;
   private Path logFile;
   private Path replayFile;
@@ -126,6 +127,15 @@ public class LaunchCommandBuilder {
 
   public LaunchCommandBuilder logFile(Path logFile) {
     this.logFile = logFile;
+    return this;
+  }
+
+  /**
+   * Arguments the client builds itself, after {@link #additionalArgs}: one entry is one argument, so a path with a
+   * space stays whole.
+   */
+  public LaunchCommandBuilder clientArgs(List<String> clientArgs) {
+    this.clientArgs = clientArgs == null ? null : List.copyOf(clientArgs);
     return this;
   }
 
@@ -309,6 +319,10 @@ public class LaunchCommandBuilder {
 
     if (additionalArgs != null) {
       command.addAll(additionalArgs);
+    }
+
+    if (clientArgs != null) {
+      command.addAll(clientArgs);
     }
 
     return command;

@@ -352,7 +352,8 @@ public class GameRunnerTest extends ServiceTest {
     verify(fafServerAccessor, timeout(5000)).notifyGameEnded();
     verify(iceAdapter).stop();
     verify(forgedAllianceLaunchService, never()).relaunchOnlineGame(any(), anyInt(), any());
-    verify(notificationService).addNotification(any(PersistentNotification.class));
+    // The timeout ends the game before it adds its notice, so wait for the notice itself.
+    verify(notificationService, timeout(5000)).addNotification(any(PersistentNotification.class));
 
     ArgumentCaptor<CompletionStage<?>> closeWhen = ArgumentCaptor.captor();
     verify(notificationService).addImmediateQuestion(any(), closeWhen.capture());
@@ -467,6 +468,32 @@ public class GameRunnerTest extends ServiceTest {
     assertNotNull(gameParameters.league());
     assertEquals(leagueEntry.subdivision().division().nameKey(), gameParameters.league().division());
     assertEquals(leagueEntry.subdivision().nameKey(), gameParameters.league().subDivision());
+  }
+
+  @Test
+  public void whileTheQuestionIsOpenTheGameStillCountsAsRunning() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    ImmediateNotification question = crashInAMatchThatCanBeRejoined(gameLaunchResponse);
+
+    assertTrue(instance.isRunning());
+
+    question.actions().get(1).run();
+    // The test's executor runs the game's clean-up at once.
+    assertFalse(instance.isRunning());
+  }
+
+  @Test
+  public void aLobbyReconnectWhileTheQuestionIsOpenRestoresTheSession() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    SimpleObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();
+    when(fafServerAccessor.connectionStateProperty()).thenReturn(connectionState);
+    instance.afterPropertiesSet();
+    crashInAMatchThatCanBeRejoined(gameLaunchResponse);
+
+    connectionState.set(ConnectionState.DISCONNECTED);
+    connectionState.set(ConnectionState.CONNECTED);
+
+    verify(fafServerAccessor).restoreGameSession(gameLaunchResponse.getUid());
   }
 
   @Test

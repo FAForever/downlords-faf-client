@@ -112,6 +112,36 @@ public class DesyncReportsTest extends ServiceTest {
   }
 
   @Test
+  public void testConsentWithdrawnAfterPreparingSendsNothing() throws Exception {
+    useExe(PRODUCT_NAME);
+    agreeWithToken("t");
+    assertEquals(List.of("/telemetry", "/telemetrytoken", "t"), instance.prepare(42).get());
+
+    forgedAlliancePrefs.setSendDesyncReports(false);
+
+    // A return to the same game after a crash, with the setting now off.
+    assertEquals(List.of(), instance.launchArguments(42));
+  }
+
+  @Test
+  public void testATokenRequestPastTheDeadlineSendsNothing() throws Exception {
+    useExe(PRODUCT_NAME);
+    forgedAlliancePrefs.setAskedSendDesyncReports(true);
+    forgedAlliancePrefs.setSendDesyncReports(true);
+    instance.deadlineMillis = 200;
+    // As when the request first waits for the client's sign-in.
+    when(fafApiAccessor.postJsonForObject(eq("/ice/session/token"), any(), eq(DesyncReports.TokenResponse.class)))
+        .thenAnswer(invocation -> {
+          Thread.sleep(3000);
+          return Mono.just(new DesyncReports.TokenResponse("late"));
+        });
+
+    long start = System.nanoTime();
+    assertEquals(List.of(), instance.prepare(42).get(2, java.util.concurrent.TimeUnit.SECONDS));
+    assertTrue(System.nanoTime() - start < 2_000_000_000L);
+  }
+
+  @Test
   public void testAFailureWhilePreparingSendsNothing() throws Exception {
     when(dataPrefs.getBinDirectory()).thenThrow(new IllegalStateException("no data folder"));
 

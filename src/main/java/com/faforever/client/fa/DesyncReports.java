@@ -10,6 +10,7 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.google.common.annotations.VisibleForTesting;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Desync reports from a game on the rebuilt engine: when the game desyncs it can send a small record and its dump
@@ -51,6 +53,9 @@ public class DesyncReports {
   private record Prepared(int gameId, CompletableFuture<List<String>> arguments) {}
 
   private volatile Prepared prepared;
+  /** Past this, the launch goes on without reports: the token request can first wait for the client's sign-in. */
+  @VisibleForTesting
+  long deadlineMillis = TOKEN_TIMEOUT.toMillis() + 1000;
 
   /**
    * Starts working out game {@code gameId}'s arguments on another thread, as fetching the token can take seconds and
@@ -65,7 +70,9 @@ public class DesyncReports {
                                                                  .exceptionally(e -> {
                                                                    log.warn("No desync report arguments for game {}", gameId, e);
                                                                    return List.of();
-                                                                 });
+                                                                 })
+                                                                 .completeOnTimeout(List.of(), deadlineMillis,
+                                                                                    TimeUnit.MILLISECONDS);
     prepared = new Prepared(gameId, arguments);
     return arguments;
   }
@@ -77,7 +84,9 @@ public class DesyncReports {
    * without that, works it out here and waits for it.
    */
   public List<String> launchArguments(int gameId) {
-    return prepare(gameId).join();
+    List<String> arguments = prepare(gameId).join();
+    // The player may have withdrawn consent since these were prepared, for example before returning to the match.
+    return forgedAlliancePrefs.isSendDesyncReports() ? arguments : List.of();
   }
 
   private List<String> fetchArguments(int gameId) {

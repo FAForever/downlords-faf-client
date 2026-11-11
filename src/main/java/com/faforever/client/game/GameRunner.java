@@ -139,6 +139,9 @@ public class GameRunner implements InitializingBean {
   private CompletableFuture<Void> matchmakerFuture;
   private CompletableFuture<Void> customGameFuture;
   private boolean gameKilled;
+  // From a crash with the question to return open until the match ends for this client: the old session is still
+  // up, so no other game may start, and a lobby reconnect restores it.
+  private volatile boolean returnPending;
   private GameParameters launchedParameters;
   private int launchedGpgPort;
   @VisibleForTesting
@@ -232,6 +235,7 @@ public class GameRunner implements InitializingBean {
                             .whenCompleteAsync((_, _) -> {
                               process.set(null);
                               runningGameId.set(null);
+                              returnPending = false;
                             }, fxApplicationThreadExecutor);
   }
 
@@ -246,6 +250,7 @@ public class GameRunner implements InitializingBean {
       if (gameKilled || finished.exitValue() == 0 || !iceAdapter.canRejoin()) {
         return completedFuture(finished);
       }
+      returnPending = true;
       return askToReturnToMatch().thenCompose(wantsToReturn -> {
         if (!wantsToReturn) {
           return completedFuture(finished);
@@ -459,8 +464,9 @@ public class GameRunner implements InitializingBean {
     }
   }
 
+  /** The game's process is alive, or it crashed and the question to return to the match is still open. */
   public boolean isRunning() {
-    return running.get();
+    return running.get() || returnPending;
   }
 
   private boolean waitingForMatchMakerGame() {

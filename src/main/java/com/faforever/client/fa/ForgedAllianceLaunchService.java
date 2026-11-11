@@ -56,16 +56,16 @@ public class ForgedAllianceLaunchService {
    * its replay locally.
    */
   public Process relaunchOnlineGame(GameParameters gameParameters, int gpgPort, List<String> rejoinArguments) {
-    List<String> arguments = new ArrayList<>(gameParameters.additionalArgs() == null ? List.of() : gameParameters.additionalArgs());
-    arguments.addAll(rejoinArguments);
-    arguments.addAll(desyncReports.launchArguments(gameParameters.uid()));
+    List<String> clientArguments = new ArrayList<>(rejoinArguments);
+    clientArguments.addAll(desyncReports.launchArguments(gameParameters.uid()));
     return launch(defaultLaunchCommand().uid(gameParameters.uid())
                                         .faction(gameParameters.faction())
                                         .mapPosition(gameParameters.mapPosition())
                                         .expectedPlayers(gameParameters.expectedPlayers())
                                         .team(gameParameters.team())
                                         .gameOptions(gameParameters.gameOptions())
-                                        .additionalArgs(arguments)
+                                        .additionalArgs(gameParameters.additionalArgs())
+                                        .clientArgs(clientArguments)
                                         .username(playerService.getCurrentPlayer().getUsername())
                                         .localGpgPort(gpgPort)
                                         .logFile(loggingService.getNewGameLogFile(gameParameters.uid()))
@@ -89,7 +89,8 @@ public class ForgedAllianceLaunchService {
                                                                 .expectedPlayers(gameParameters.expectedPlayers())
                                                                 .team(gameParameters.team())
                                                                 .gameOptions(gameParameters.gameOptions())
-                                                                .additionalArgs(withDesyncReports(withNetwork(gameParameters.additionalArgs(), networkArgs), uid))
+                                                                .additionalArgs(gameParameters.additionalArgs())
+                                                                .clientArgs(withDesyncReports(networkArgs, uid))
                                                                 .clan(currentPlayer.getClan())
                                                                 .country(currentPlayer.getCountry())
                                                                 .username(currentPlayer.getUsername())
@@ -115,11 +116,6 @@ public class ForgedAllianceLaunchService {
     return withReports;
   }
 
-  private List<String> withNetwork(@Nullable List<String> additionalArgs, List<String> networkArgs) {
-    List<String> arguments = new ArrayList<>(additionalArgs == null ? List.of() : additionalArgs);
-    arguments.addAll(networkArgs);
-    return arguments;
-  }
 
   public Process startReplay(Path path, @Nullable Integer replayId) {
     int checkedReplayId = Objects.requireNonNullElse(replayId, -1);

@@ -511,6 +511,17 @@ public class NativeIceAdapterTest extends ServiceTest {
   }
 
   @Test
+  public void testAMalformedOfferIsIgnoredAndTheConnectionStays() throws Exception {
+    sendFromGame("RejoinOffer", "1", "5");
+    sendFromGame("RejoinOffer", "x", "5=1");
+    sendFromGame("RejoinOffer", "1");
+    sendFromGame("GameState", "Lobby");
+
+    verify(fafServerAccessor, timeout(WAIT_MILLIS)).sendGpgMessage(any());
+    assertFalse(instance.canRejoin());
+  }
+
+  @Test
   public void testNothingIsSentAfterStop() throws Exception {
     instance.stop();
 
