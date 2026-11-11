@@ -3,17 +3,20 @@ package com.faforever.client.fa.relay.ice;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.RebuiltEngineExecutable;
 import com.faforever.client.fa.TestExecutables;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.lenient;
@@ -34,12 +37,14 @@ public class IceAdapterSelectorTest extends ServiceTest {
   private NativeIceAdapter nativeAdapter;
   @Mock
   private ForgedAllianceLaunchService forgedAllianceLaunchService;
+  @Spy
+  private ForgedAlliancePrefs forgedAlliancePrefs;
 
   private IceAdapterSelector instance;
 
   @BeforeEach
   public void setUp() {
-    instance = new IceAdapterSelector(javaAdapter, nativeAdapter, forgedAllianceLaunchService);
+    instance = new IceAdapterSelector(javaAdapter, nativeAdapter, forgedAllianceLaunchService, forgedAlliancePrefs);
     lenient().when(nativeAdapter.gameArguments()).thenReturn(List.of("/nativenet"));
   }
 
@@ -65,6 +70,23 @@ public class IceAdapterSelectorTest extends ServiceTest {
     verify(nativeAdapter).start(1, false);
     verify(javaAdapter, never()).start(anyInt(), anyBoolean());
     assertEquals(List.of("/nativenet"), instance.gameArguments());
+  }
+
+  @Test
+  public void testTheSettingIsOnByDefault() {
+    assertTrue(new ForgedAlliancePrefs().isUseNativeNetwork());
+  }
+
+  @Test
+  public void testJavaAdapterOnFafDevelopWhenTheSettingIsOff() throws Exception {
+    useExe(PRODUCT_NAME);
+    forgedAlliancePrefs.setUseNativeNetwork(false);
+
+    instance.prepare(launchOf("fafdevelop"));
+    instance.start(1, false);
+
+    verify(javaAdapter).start(1, false);
+    verify(nativeAdapter, never()).start(anyInt(), anyBoolean());
   }
 
   @Test

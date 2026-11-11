@@ -52,6 +52,24 @@ public class ForgedAlliancePrefs {
   private final BooleanProperty sendDesyncReports = new SimpleBooleanProperty(false);
   private final BooleanProperty askedSendDesyncReports = new SimpleBooleanProperty(false);
 
+  /**
+   * On FAF Develop with the rebuilt engine, let the game run its own network links instead of starting the Java ICE
+   * adapter. Off falls back to the adapter, which the rebuilt engine also supports.
+   */
+  private final BooleanProperty useNativeNetwork = new SimpleBooleanProperty(true);
+
+  public boolean isUseNativeNetwork() {
+    return useNativeNetwork.get();
+  }
+
+  public void setUseNativeNetwork(boolean useNativeNetwork) {
+    this.useNativeNetwork.set(useNativeNetwork);
+  }
+
+  public BooleanProperty useNativeNetworkProperty() {
+    return useNativeNetwork;
+  }
+
   public boolean isSendDesyncReports() {
     return sendDesyncReports.get();
   }
