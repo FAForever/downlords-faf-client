@@ -72,8 +72,11 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
     verify(desyncReports).launchArguments(gameParameters.uid());
     verify(loggingService).getNewGameLogFile(gameParameters.uid());
     // The command it tried to start, as logged just before: the return arguments are in it, in order. Tests run in
-    // parallel and share the logger, so other launches can be logged too; this one is the command with /rejoin.
+    // parallel and share the logger, so only this thread's events count (the launch logs on the calling thread),
+    // and of those the command with /rejoin.
+    String thisThread = Thread.currentThread().getName();
     java.util.List<?> command = logged.list.stream()
+        .filter(event -> thisThread.equals(event.getThreadName()))
         .filter(event -> event.getMessage().startsWith("Starting Forged Alliance with command"))
         .map(event -> (java.util.List<?>) event.getArgumentArray()[0])
         .filter(logged1 -> logged1.contains("/rejoin"))
