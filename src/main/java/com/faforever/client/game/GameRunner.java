@@ -146,6 +146,11 @@ public class GameRunner implements InitializingBean {
   private final BooleanProperty returnPending = new SimpleBooleanProperty();
   // The open question's answer, so a kill can answer it with Leave.
   private volatile CompletableFuture<Boolean> pendingAnswer;
+  // Orders a kill against a relaunch after a crash: either the kill comes first and nothing is relaunched, or the
+  // relaunch comes first and the kill destroys the relaunched process.
+  private final Object killLock = new Object();
+  // The relaunched game's process, set under killLock; the process property follows on the FX thread.
+  private Process relaunchedProcess;
   private GameParameters launchedParameters;
   private int launchedGpgPort;
   @VisibleForTesting
@@ -242,6 +247,9 @@ public class GameRunner implements InitializingBean {
                               process.set(null);
                               runningGameId.set(null);
                               returnPending.set(false);
+                              synchronized (killLock) {
+                                relaunchedProcess = null;
+                              }
                             }, fxApplicationThreadExecutor);
   }
 
@@ -267,7 +275,15 @@ public class GameRunner implements InitializingBean {
           log.warn("No players to return to: the game's network no longer knows them");
           return completedFuture(finished);
         }
-        Process relaunched = forgedAllianceLaunchService.relaunchOnlineGame(launchedParameters, launchedGpgPort, rejoinArguments);
+        Process relaunched;
+        synchronized (killLock) {
+          if (gameKilled) {
+            log.info("Game close requested before the game was started again: leaving the match");
+            return completedFuture(finished);
+          }
+          relaunched = forgedAllianceLaunchService.relaunchOnlineGame(launchedParameters, launchedGpgPort, rejoinArguments);
+          relaunchedProcess = relaunched;
+        }
         fxApplicationThreadExecutor.execute(() -> process.set(relaunched));
         return waitForGameToEnd(relaunched);
       });
@@ -593,17 +609,23 @@ public class GameRunner implements InitializingBean {
 
 
   private void killGame() {
-    CompletableFuture<Boolean> answer = pendingAnswer;
-    if (answer != null) {
-      gameKilled = true;
-      log.info("Game close requested while the question to return was open: leaving the match");
-      answer.complete(false);
-      return;
-    }
-    if (isRunning()) {
-      gameKilled = true;
-      log.info("ForgedAlliance still running, destroying process");
-      process.get().destroy();
+    synchronized (killLock) {
+      CompletableFuture<Boolean> answer = pendingAnswer;
+      if (answer != null) {
+        gameKilled = true;
+        log.info("Game close requested while the question to return was open: leaving the match");
+        answer.complete(false);
+        return;
+      }
+      if (isRunning()) {
+        gameKilled = true;
+        log.info("ForgedAlliance still running, destroying process");
+        // After a relaunch the property may not have caught up yet; the relaunched process is the live one.
+        Process live = relaunchedProcess != null ? relaunchedProcess : process.get();
+        if (live != null) {
+          live.destroy();
+        }
+      }
     }
   }
 

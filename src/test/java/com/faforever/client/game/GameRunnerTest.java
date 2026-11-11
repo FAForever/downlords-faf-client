@@ -501,6 +501,47 @@ public class GameRunnerTest extends ServiceTest {
   }
 
   @Test
+  public void aKillAfterReturnIsChosenButBeforeTheRestartStopsTheRestart() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    ImmediateNotification question = crashInAMatchThatCanBeRejoined(gameLaunchResponse);
+    // The kill arrives between the answer and the restart: while the return's arguments are worked out.
+    when(iceAdapter.rejoinArguments()).thenAnswer(invocation -> {
+      testNoticePublisher.next(new NoticeInfo("kill", "test"));
+      return List.of("/rejoin", "9=0", "1", "0");
+    });
+
+    question.actions().get(0).run();
+
+    verify(forgedAllianceLaunchService, never()).relaunchOnlineGame(any(), anyInt(), any());
+    verify(fafServerAccessor).notifyGameEnded();
+    assertFalse(instance.isRunning());
+  }
+
+  @Test
+  public void aKillAfterTheRestartEndsTheRestartedGame() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    ImmediateNotification question = crashInAMatchThatCanBeRejoined(gameLaunchResponse);
+    List<String> rejoinArguments = List.of("/rejoin", "9=0", "1", "0");
+    when(iceAdapter.rejoinArguments()).thenReturn(rejoinArguments);
+    Process relaunched = mock(Process.class);
+    CompletableFuture<Process> relaunchedExit = new CompletableFuture<>();
+    when(relaunched.onExit()).thenReturn(relaunchedExit);
+    when(relaunched.isAlive()).thenReturn(true);
+    when(relaunched.exitValue()).thenReturn(1);
+    doAnswer(invocation -> {
+      relaunchedExit.complete(relaunched);
+      return null;
+    }).when(relaunched).destroy();
+    when(forgedAllianceLaunchService.relaunchOnlineGame(any(), eq(GPG_PORT), eq(rejoinArguments))).thenReturn(relaunched);
+    question.actions().get(0).run();
+
+    testNoticePublisher.next(new NoticeInfo("kill", "test"));
+
+    verify(relaunched).destroy();
+    verify(fafServerAccessor).notifyGameEnded();
+  }
+
+  @Test
   public void aLobbyReconnectWhileTheQuestionIsOpenRestoresTheSession() throws Exception {
     GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
     SimpleObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();
