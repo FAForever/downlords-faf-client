@@ -495,7 +495,7 @@ public class GameRunner implements InitializingBean {
   }
 
 
-  private void killGame() {
+  public void killGame() {
     if (isRunning()) {
       gameKilled = true;
       log.info("ForgedAlliance still running, destroying process");
