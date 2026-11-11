@@ -87,6 +87,8 @@ public class IceAdapterSelectorTest extends ServiceTest {
 
     verify(javaAdapter).start(1, false);
     verify(nativeAdapter, never()).start(anyInt(), anyBoolean());
+    // Still takes other players back after their crash.
+    assertEquals(List.of("/con", "net_PeerFeatures=1;net_RejoinAccept=1"), instance.gameArguments());
   }
 
   @Test
@@ -109,6 +111,7 @@ public class IceAdapterSelectorTest extends ServiceTest {
 
     verify(javaAdapter).start(1, false);
     verify(nativeAdapter, never()).start(anyInt(), anyBoolean());
+    assertEquals(List.of(), instance.gameArguments());
   }
 
   @Test

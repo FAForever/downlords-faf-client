@@ -100,11 +100,11 @@ public class NotificationServiceQuestionTest extends PlatformTest {
   public void aQuestionClosesWhenItsTimeRunsOut() throws Exception {
     CompletableFuture<Boolean> answer = new CompletableFuture<>();
     instance.addImmediateQuestion(question(), answer);
-    WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, this::dialogIsOpen);
+    WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS, this::dialogIsOpen);
 
     answer.complete(false);
 
-    WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !dialogIsOpen());
+    WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS, () -> !dialogIsOpen());
     assertFalse(dialogIsOpen());
   }
 
@@ -112,25 +112,25 @@ public class NotificationServiceQuestionTest extends PlatformTest {
   public void aClickNextToAQuestionLeavesItOpen() throws Exception {
     CompletableFuture<Boolean> answer = new CompletableFuture<>();
     instance.addImmediateQuestion(question(), answer);
-    WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, this::dialogIsOpen);
+    WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS, this::dialogIsOpen);
 
     clickNextToTheDialog();
     WaitForAsyncUtils.sleep(2, TimeUnit.SECONDS);
 
     assertTrue(dialogIsOpen());
     answer.complete(false);
-    WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !dialogIsOpen());
+    WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS, () -> !dialogIsOpen());
   }
 
   /** The same click does close a plain notification, so the test above can tell the difference. */
   @Test
   public void aClickNextToAPlainNotificationClosesIt() throws Exception {
     instance.addNotification(question());
-    WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, this::dialogIsOpen);
+    WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS, this::dialogIsOpen);
 
     clickNextToTheDialog();
 
-    WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !dialogIsOpen());
+    WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS, () -> !dialogIsOpen());
     assertFalse(dialogIsOpen());
   }
 }

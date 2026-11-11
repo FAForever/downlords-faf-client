@@ -35,6 +35,8 @@ public class IceAdapterSelector implements IceAdapter {
   private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   private volatile IceAdapter active;
+  // The rebuilt engine on fafdevelop with the setting off: the Java adapter, but the game still takes others back.
+  private volatile boolean rebuiltEngineOnAdapter;
 
   private IceAdapter active() {
     return active != null ? active : javaAdapter;
@@ -42,9 +44,10 @@ public class IceAdapterSelector implements IceAdapter {
 
   @Override
   public void prepare(GameLaunchResponse gameLaunchResponse) {
-    boolean useNative = forgedAlliancePrefs.isUseNativeNetwork()
-        && KnownFeaturedMod.FAF_DEVELOP.getTechnicalName().equals(gameLaunchResponse.getFeatureMod())
+    boolean rebuiltEngineOnFafDevelop = KnownFeaturedMod.FAF_DEVELOP.getTechnicalName().equals(gameLaunchResponse.getFeatureMod())
         && RebuiltEngineExecutable.isRebuiltEngine(forgedAllianceLaunchService.getExecutablePath());
+    boolean useNative = rebuiltEngineOnFafDevelop && forgedAlliancePrefs.isUseNativeNetwork();
+    rebuiltEngineOnAdapter = rebuiltEngineOnFafDevelop && !useNative;
     active = useNative ? nativeAdapter : javaAdapter;
     log.info("Network for game {}: {}", gameLaunchResponse.getUid(), useNative ? "native" : "Java adapter");
     active.prepare(gameLaunchResponse);
@@ -52,6 +55,11 @@ public class IceAdapterSelector implements IceAdapter {
 
   @Override
   public List<String> gameArguments() {
+    if (rebuiltEngineOnAdapter) {
+      // A game offers a crashed player a return only when every player's engine announces it takes returning players;
+      // this one can't come back itself on the adapter, but it mustn't take the return away from everyone else.
+      return List.of("/con", "net_PeerFeatures=1;net_RejoinAccept=1");
+    }
     return active().gameArguments();
   }
 
