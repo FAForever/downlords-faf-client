@@ -13,6 +13,11 @@ import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.IceMsgGpgCommand;
+import com.faforever.commons.lobby.JoinGameGpgCommand;
+import com.faforever.commons.api.dto.CoturnServer;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.DecoderException;
 import com.faforever.commons.lobby.MessageTarget;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -38,6 +43,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -63,8 +69,10 @@ public class NativeIceAdapterTest extends ServiceTest {
   private DataPrefs dataPrefs;
 
   private final Sinks.Many<ConnectToPeerGpgCommand> connectToPeer = Sinks.many().multicast().onBackpressureBuffer();
-  private final Sinks.Many<IceMsgGpgCommand> iceMsg = Sinks.many().multicast().onBackpressureBuffer();
+  // No auto-cancel: after a message it can't handle, the adapter subscribes again, as the client's lobby events allow.
+  private final Sinks.Many<IceMsgGpgCommand> iceMsg = Sinks.many().multicast().onBackpressureBuffer(256, false);
   private final Sinks.Many<DisconnectFromPeerGpgCommand> disconnectFromPeer = Sinks.many().multicast().onBackpressureBuffer();
+  private final Sinks.Many<JoinGameGpgCommand> joinGame = Sinks.many().multicast().onBackpressureBuffer();
   private NativeIceAdapter instance;
   private Socket game;
   private int gamePort;
@@ -76,6 +84,7 @@ public class NativeIceAdapterTest extends ServiceTest {
     lenient().when(fafServerAccessor.getEvents(ConnectToPeerGpgCommand.class)).thenReturn(connectToPeer.asFlux());
     lenient().when(fafServerAccessor.getEvents(IceMsgGpgCommand.class)).thenReturn(iceMsg.asFlux());
     lenient().when(fafServerAccessor.getEvents(DisconnectFromPeerGpgCommand.class)).thenReturn(disconnectFromPeer.asFlux());
+    lenient().when(fafServerAccessor.getEvents(JoinGameGpgCommand.class)).thenReturn(joinGame.asFlux());
     PlayerInfo player = mock(PlayerInfo.class);
     lenient().when(player.getUsername()).thenReturn("junit");
     lenient().when(player.getId()).thenReturn(5);
@@ -319,6 +328,119 @@ public class NativeIceAdapterTest extends ServiceTest {
   public void testNoOfferMeansNoReturn() {
     assertFalse(instance.canRejoin());
     assertEquals(List.of(), instance.rejoinArguments());
+  }
+
+  /** The game is connected once the client has passed one of its messages on. */
+  private void gameConnected() throws Exception {
+    sendFromGame("GameState", "Lobby");
+    verify(fafServerAccessor, timeout(WAIT_MILLIS)).sendGpgMessage(any());
+  }
+
+  @Test
+  public void testJoinGameGoesToTheGameWithThePeersId() throws Exception {
+    gameConnected();
+    JoinGameGpgCommand command = mock(JoinGameGpgCommand.class);
+    when(command.getUsername()).thenReturn("host");
+    when(command.getPeerUid()).thenReturn(3);
+    joinGame.tryEmitNext(command);
+
+    assertEquals(List.of("JoinGame", "host", 3), readMessage());
+  }
+
+  @Test
+  public void testIceServersGoToTheGameAsJsonText() throws Exception {
+    gameConnected();
+    CoturnServer server = new CoturnServer();
+    server.setUsername("0:1234");
+    server.setCredential("secret");
+    server.setUrls(java.util.Set.of(java.net.URI.create("turn://relay.example:3478?transport=udp")));
+
+    instance.setIceServers(List.of(server));
+
+    List<Object> message = readMessage();
+    assertEquals("IceServers", message.get(0));
+    String json = (String) message.get(1);
+    assertTrue(json.contains("turn://relay.example:3478?transport=udp"), json);
+    assertTrue(json.contains("0:1234"), json);
+  }
+
+  @Test
+  public void testTheAdapterStateChangesNothing() throws Exception {
+    instance.onIceAdapterStateChanged("Disconnected");
+
+    verify(fafServerAccessor, after(200).never()).sendGpgMessage(any());
+    assertFalse(instance.canRejoin());
+  }
+
+  @Test
+  public void testAnOfferWithNoKnownPeerGivesNoReturn() throws Exception {
+    sendFromGame("RejoinOffer", "1", "5=1,9=0");
+    for (int i = 0; i < 500 && !instance.canRejoin(); i++) {
+      Thread.sleep(10);
+    }
+    assertTrue(instance.canRejoin());
+
+    assertEquals(List.of(), instance.rejoinArguments());
+  }
+
+  @Test
+  public void testAnIceMessageGivenAsTextIsPassedAsIs() throws Exception {
+    gameConnected();
+    IceMsgGpgCommand command = mock(IceMsgGpgCommand.class);
+    when(command.getSender()).thenReturn(9);
+    when(command.getRecord()).thenReturn("{\"b\":2}");
+    iceMsg.tryEmitNext(command);
+
+    assertEquals(List.of("IceMsg", 9, "{\"b\":2}"), readMessage());
+  }
+
+  @Test
+  public void testAnIceMessageThatCantBeWrittenIsDroppedAndTheNextOneArrives() throws Exception {
+    gameConnected();
+    IceMsgGpgCommand broken = mock(IceMsgGpgCommand.class);
+    when(broken.getSender()).thenReturn(9);
+    when(broken.getRecord()).thenReturn(new Object());
+    iceMsg.tryEmitNext(broken);
+    IceMsgGpgCommand fine = mock(IceMsgGpgCommand.class);
+    when(fine.getSender()).thenReturn(9);
+    when(fine.getRecord()).thenReturn("{}");
+    iceMsg.tryEmitNext(fine);
+
+    assertEquals(List.of("IceMsg", 9, "{}"), readMessage());
+  }
+
+  @Test
+  public void testAStreamThatIsntGpgNetClosesTheConnection() throws Exception {
+    game.getOutputStream().write(new byte[] {(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF});
+    game.getOutputStream().flush();
+    game.setSoTimeout(WAIT_MILLIS);
+
+    assertEquals(-1, fromClient.read());
+    verify(fafServerAccessor, never()).sendGpgMessage(any());
+  }
+
+  @Test
+  public void testTheDecoderWaitsForEveryPartOfAMessage() {
+    byte[] whole = frame("Cmd", 7, "text", 8);
+    EmbeddedChannel channel = new EmbeddedChannel(new NativeIceAdapter.GpgNetDecoder());
+    for (int i = 0; i < whole.length - 1; i++) {
+      channel.writeInbound(Unpooled.wrappedBuffer(whole, i, 1));
+      assertNull(channel.readInbound(), "a message out after byte " + i);
+    }
+    channel.writeInbound(Unpooled.wrappedBuffer(whole, whole.length - 1, 1));
+
+    GpgGameOutboundMessage message = channel.readInbound();
+    assertEquals("Cmd", message.getCommand());
+    assertEquals(List.of(7, "text", 8), message.getArgs());
+  }
+
+  @Test
+  public void testTheDecoderRefusesANegativeArgumentCount() {
+    byte[] bad = ByteBuffer.allocate(11).order(ByteOrder.LITTLE_ENDIAN).putInt(3).put("Cmd".getBytes(StandardCharsets.UTF_8))
+        .putInt(-1).array();
+    EmbeddedChannel channel = new EmbeddedChannel(new NativeIceAdapter.GpgNetDecoder());
+
+    assertThrows(DecoderException.class, () -> channel.writeInbound(Unpooled.wrappedBuffer(bad)));
   }
 
   @Test

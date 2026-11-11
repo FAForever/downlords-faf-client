@@ -29,6 +29,18 @@ public class ForgedAlliancePrefsTest {
   }
 
   @Test
+  public void theSettingsPropertiesFollowTheirValues() {
+    ForgedAlliancePrefs prefs = new ForgedAlliancePrefs();
+    prefs.setUseNativeNetwork(false);
+    prefs.setSendDesyncReports(true);
+    prefs.setAskedSendDesyncReports(true);
+
+    assertFalse(prefs.useNativeNetworkProperty().get());
+    assertTrue(prefs.sendDesyncReportsProperty().get());
+    assertTrue(prefs.askedSendDesyncReportsProperty().get());
+  }
+
+  @Test
   public void theNativeNetworkSettingIsOnWhenPrefsDontNameIt() throws Exception {
     assertTrue(objectMapper.readValue("{}", ForgedAlliancePrefs.class).isUseNativeNetwork());
   }

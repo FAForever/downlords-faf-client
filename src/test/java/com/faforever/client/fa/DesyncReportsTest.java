@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -108,6 +109,62 @@ public class DesyncReportsTest extends ServiceTest {
 
   private void useExe(String productName) throws Exception {
     TestExecutables.write(binDirectory.resolve("ForgedAlliance.exe"), true, productName);
+  }
+
+  @Test
+  public void testAFailureWhilePreparingSendsNothing() throws Exception {
+    when(dataPrefs.getBinDirectory()).thenThrow(new IllegalStateException("no data folder"));
+
+    assertEquals(List.of(), instance.prepare(42).get());
+  }
+
+  @Test
+  public void testNoAnswerFromIcebreakerSendsNothing() throws Exception {
+    useExe(PRODUCT_NAME);
+    forgedAlliancePrefs.setAskedSendDesyncReports(true);
+    forgedAlliancePrefs.setSendDesyncReports(true);
+    when(fafApiAccessor.postJsonForObject(eq("/ice/session/token"), any(), eq(DesyncReports.TokenResponse.class)))
+        .thenReturn(Mono.empty());
+
+    assertEquals(List.of(), instance.launchArguments(42));
+  }
+
+  @Test
+  public void testABlankTokenSendsNothing() throws Exception {
+    useExe(PRODUCT_NAME);
+    agreeWithToken(" ");
+
+    assertEquals(List.of(), instance.launchArguments(42));
+  }
+
+  @Test
+  public void testBlankEndpointsLeaveTheGamesDefault() throws Exception {
+    useExe(PRODUCT_NAME);
+    agreeWithToken("t");
+    ServerEndpoints server = new ServerEndpoints();
+    server.setName("Test server");
+    UrlEndpoint records = new UrlEndpoint();
+    records.setUrl(" ");
+    UrlEndpoint dumps = new UrlEndpoint();
+    dumps.setUrl("");
+    server.setDesyncRecords(records);
+    server.setDesyncDumps(dumps);
+    clientProperties.updateFromEndpoint(server);
+
+    assertEquals(List.of("/telemetry", "/telemetrytoken", "t"), instance.launchArguments(42));
+  }
+
+  @Test
+  public void testTheQuestionsAnswersAreStored() throws Exception {
+    useExe(PRODUCT_NAME);
+    instance.launchArguments(42);
+    ArgumentCaptor<PersistentNotification> asked = ArgumentCaptor.forClass(PersistentNotification.class);
+    verify(notificationService).addNotification(asked.capture());
+
+    asked.getValue().actions().get(0).run();
+    assertTrue(forgedAlliancePrefs.isSendDesyncReports());
+    asked.getValue().actions().get(1).run();
+    assertFalse(forgedAlliancePrefs.isSendDesyncReports());
   }
 
   @Test

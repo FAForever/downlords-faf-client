@@ -360,7 +360,7 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
   }
 
   /** Cuts the game's byte stream into GPGNet messages; a message split across reads waits for the rest. */
-  private static final class GpgNetDecoder extends ByteToMessageDecoder {
+  static final class GpgNetDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext context, ByteBuf in, List<Object> out) {

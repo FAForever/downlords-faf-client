@@ -5,7 +5,10 @@ import com.faforever.client.fa.RebuiltEngineExecutable;
 import com.faforever.client.fa.TestExecutables;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.commons.api.dto.CoturnServer;
 import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GpgGameOutboundMessage;
+import com.faforever.commons.lobby.MessageTarget;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -23,6 +26,8 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 public class IceAdapterSelectorTest extends ServiceTest {
 
@@ -112,6 +117,27 @@ public class IceAdapterSelectorTest extends ServiceTest {
     verify(javaAdapter).start(1, false);
     verify(nativeAdapter, never()).start(anyInt(), anyBoolean());
     assertEquals(List.of(), instance.gameArguments());
+  }
+
+  @Test
+  public void testEveryOtherCallGoesToTheChosenAdapter() throws Exception {
+    useExe(PRODUCT_NAME);
+    instance.prepare(launchOf("fafdevelop"));
+    GpgGameOutboundMessage message = new GpgGameOutboundMessage("GameState", List.of("Idle"), MessageTarget.GAME);
+    List<CoturnServer> servers = List.of(new CoturnServer());
+    when(nativeAdapter.canRejoin()).thenReturn(true);
+    when(nativeAdapter.rejoinArguments()).thenReturn(List.of("/rejoin", "9=0", "1", "0"));
+
+    instance.onIceAdapterStateChanged("Connected");
+    instance.onGpgGameMessage(message);
+    instance.setIceServers(servers);
+
+    verify(nativeAdapter).onIceAdapterStateChanged("Connected");
+    verify(nativeAdapter).onGpgGameMessage(message);
+    verify(nativeAdapter).setIceServers(servers);
+    assertTrue(instance.canRejoin());
+    assertEquals(List.of("/rejoin", "9=0", "1", "0"), instance.rejoinArguments());
+    verifyNoInteractions(javaAdapter);
   }
 
   @Test
