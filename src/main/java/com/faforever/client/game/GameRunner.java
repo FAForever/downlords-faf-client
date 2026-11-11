@@ -50,6 +50,7 @@ import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.NoticeInfo;
 import com.google.common.annotations.VisibleForTesting;
 import jakarta.annotation.Nullable;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -58,6 +59,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.layout.Region;
@@ -140,8 +142,10 @@ public class GameRunner implements InitializingBean {
   private CompletableFuture<Void> customGameFuture;
   private boolean gameKilled;
   // From a crash with the question to return open until the match ends for this client: the old session is still
-  // up, so no other game may start, and a lobby reconnect restores it.
-  private volatile boolean returnPending;
+  // up, so the game counts as running: no other game may start, and a lobby reconnect restores it.
+  private final BooleanProperty returnPending = new SimpleBooleanProperty();
+  // The open question's answer, so a kill can answer it with Leave.
+  private volatile CompletableFuture<Boolean> pendingAnswer;
   private GameParameters launchedParameters;
   private int launchedGpgPort;
   @VisibleForTesting
@@ -151,11 +155,13 @@ public class GameRunner implements InitializingBean {
   public void afterPropertiesSet() {
     runningGame.bind(runningGameId.flatMap(gameService::observeByUid));
 
-    running.bind(process.flatMap(process -> {
+    ObservableValue<Boolean> processAlive = process.flatMap(process -> {
       BooleanProperty isAlive = new SimpleBooleanProperty(process.isAlive());
       process.onExit().thenRunAsync(() -> isAlive.set(false), fxApplicationThreadExecutor);
       return isAlive;
-    }));
+    });
+    running.bind(Bindings.createBooleanBinding(() -> Boolean.TRUE.equals(processAlive.getValue()) || returnPending.get(),
+                                               processAlive, returnPending));
 
     pid.bind(process.flatMap(process -> {
       ObjectProperty<Long> pid = new SimpleObjectProperty<>(process.isAlive() ? process.pid() : null);
@@ -235,7 +241,7 @@ public class GameRunner implements InitializingBean {
                             .whenCompleteAsync((_, _) -> {
                               process.set(null);
                               runningGameId.set(null);
-                              returnPending = false;
+                              returnPending.set(false);
                             }, fxApplicationThreadExecutor);
   }
 
@@ -250,9 +256,10 @@ public class GameRunner implements InitializingBean {
       if (gameKilled || finished.exitValue() == 0 || !iceAdapter.canRejoin()) {
         return completedFuture(finished);
       }
-      returnPending = true;
+      fxApplicationThreadExecutor.execute(() -> returnPending.set(true));
       return askToReturnToMatch().thenCompose(wantsToReturn -> {
-        if (!wantsToReturn) {
+        // A kill (the server's, or a cancelled matchmaker search) while the question was open means leaving.
+        if (!wantsToReturn || gameKilled) {
           return completedFuture(finished);
         }
         List<String> rejoinArguments = iceAdapter.rejoinArguments();
@@ -269,6 +276,8 @@ public class GameRunner implements InitializingBean {
 
   private CompletableFuture<Boolean> askToReturnToMatch() {
     CompletableFuture<Boolean> answer = new CompletableFuture<>();
+    pendingAnswer = answer;
+    answer.whenComplete((_, _) -> pendingAnswer = null);
     notificationService.addImmediateQuestion(
         new ImmediateNotification(i18n.get("game.rejoin.title"), i18n.get("game.rejoin.text"), WARN,
                                   List.of(new Action(i18n.get("game.rejoin.return"), () -> answer.complete(true)),
@@ -466,7 +475,7 @@ public class GameRunner implements InitializingBean {
 
   /** The game's process is alive, or it crashed and the question to return to the match is still open. */
   public boolean isRunning() {
-    return running.get() || returnPending;
+    return running.get();
   }
 
   private boolean waitingForMatchMakerGame() {
@@ -584,6 +593,13 @@ public class GameRunner implements InitializingBean {
 
 
   private void killGame() {
+    CompletableFuture<Boolean> answer = pendingAnswer;
+    if (answer != null) {
+      gameKilled = true;
+      log.info("Game close requested while the question to return was open: leaving the match");
+      answer.complete(false);
+      return;
+    }
     if (isRunning()) {
       gameKilled = true;
       log.info("ForgedAlliance still running, destroying process");

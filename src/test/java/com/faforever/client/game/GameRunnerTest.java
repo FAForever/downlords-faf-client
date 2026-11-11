@@ -476,10 +476,28 @@ public class GameRunnerTest extends ServiceTest {
     ImmediateNotification question = crashInAMatchThatCanBeRejoined(gameLaunchResponse);
 
     assertTrue(instance.isRunning());
+    // What the Create Game button and the live replays watch.
+    assertTrue(instance.runningProperty().get());
 
     question.actions().get(1).run();
     // The test's executor runs the game's clean-up at once.
     assertFalse(instance.isRunning());
+    assertFalse(instance.runningProperty().get());
+  }
+
+  @Test
+  public void aKillWhileTheQuestionIsOpenLeavesTheMatch() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    ImmediateNotification question = crashInAMatchThatCanBeRejoined(gameLaunchResponse);
+
+    testNoticePublisher.next(new NoticeInfo("kill", "test"));
+
+    verify(fafServerAccessor).notifyGameEnded();
+    verify(iceAdapter).stop();
+    assertFalse(instance.isRunning());
+    // Return pressed afterwards does nothing: the question was already answered.
+    question.actions().get(0).run();
+    verify(forgedAllianceLaunchService, never()).relaunchOnlineGame(any(), anyInt(), any());
   }
 
   @Test
