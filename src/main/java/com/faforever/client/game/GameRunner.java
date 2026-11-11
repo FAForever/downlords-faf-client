@@ -46,6 +46,7 @@ import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.lobby.GameJoinFailedException;
 import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.NoticeInfo;
 import com.google.common.annotations.VisibleForTesting;
 import jakarta.annotation.Nullable;
@@ -78,6 +79,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
@@ -121,6 +123,8 @@ public class GameRunner implements InitializingBean {
   private final LogAnalyzerService logAnalyzerService;
   private final TaskService taskService;
 
+  private static final int REJOIN_TIMEOUT_SECONDS = 10;
+
   private final MaskPatternLayout logMasker = new MaskPatternLayout();
   private final SimpleObjectProperty<Integer> runningGameId = new SimpleObjectProperty<>();
   private final ObjectProperty<Process> process = new SimpleObjectProperty<>();
@@ -131,6 +135,7 @@ public class GameRunner implements InitializingBean {
 
   private CompletableFuture<Void> matchmakerFuture;
   private boolean gameKilled;
+  private volatile Supplier<CompletableFuture<GameLaunchResponse>> rejoinRequest;
 
   @Override
   public void afterPropertiesSet() {
@@ -203,6 +208,7 @@ public class GameRunner implements InitializingBean {
                             .thenCompose(Process::onExit)
                             .thenAccept(this::handleTermination)
                             .whenComplete((_, _) -> {
+                              rejoinRequest = null;
                               iceAdapter.stop();
                               replayServer.stop();
                               fafServerAccessor.notifyGameEnded();
@@ -299,8 +305,12 @@ public class GameRunner implements InitializingBean {
     log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
 
     Set<String> simModUIds = game.getSimMods().keySet();
-    prepareAndLaunchGameWhenReady(game.getFeaturedMod(), simModUIds, game.getMapFolderName(),
-                                  () -> fafServerAccessor.requestJoinGame(game.getId(), password)).exceptionally(
+    Supplier<CompletableFuture<GameLaunchResponse>> joinRequest = () -> fafServerAccessor.requestJoinGame(game.getId(),
+                                                                                                         password);
+    prepareAndLaunchGameWhenReady(game.getFeaturedMod(), simModUIds, game.getMapFolderName(), () -> {
+      rejoinRequest = joinRequest;
+      return joinRequest.get();
+    }).exceptionally(
         throwable -> {
           if (throwable.getCause() instanceof GameJoinFailedException e) {
             log.warn("Game with id '{}' could not be joined. Reason: {}", e.getGameId(), e.getFailureReason(), e);
@@ -494,6 +504,27 @@ public class GameRunner implements InitializingBean {
     });
   }
 
+
+  /**
+   * Asks the server to let the already running game join its lobby again. The server gives up on a game that takes too
+   * long to start and from then on ignores it. To the server a new join request followed by the game's state messages
+   * looks like any other join, so this gets the game connected without having to restart it.
+   *
+   * @return empty if there is no joined game running or if this has already been tried for it
+   */
+  public Optional<CompletableFuture<Void>> rejoinRunningGame() {
+    Supplier<CompletableFuture<GameLaunchResponse>> request = rejoinRequest;
+    if (request == null || !isRunning()) {
+      return Optional.empty();
+    }
+    rejoinRequest = null;
+
+    log.info("Requesting to join the game again for the already running game");
+    return Optional.of(request.get().orTimeout(REJOIN_TIMEOUT_SECONDS, TimeUnit.SECONDS).thenRun(() -> {
+      fafServerAccessor.sendGpgMessage(GpgGameOutboundMessage.Companion.gameStateMessage("Idle"));
+      fafServerAccessor.sendGpgMessage(GpgGameOutboundMessage.Companion.gameStateMessage("Lobby"));
+    }));
+  }
 
   public void killGame() {
     if (isRunning()) {

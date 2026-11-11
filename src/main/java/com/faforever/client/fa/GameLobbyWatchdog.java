@@ -20,12 +20,15 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 
 /**
  * Once the game has entered its lobby it waits for the server to tell it to either host or join a game. If the server
  * has given up on the game in the meantime, e.g. because the game took too long to start, that instruction never
- * arrives and the game shows "Connecting..." forever. This watchdog tells the user when that happens.
+ * arrives and the game shows "Connecting..." forever. When that happens this watchdog first tries to join the game
+ * again, and tells the user if that is not possible or does not help either.
  */
 @Component
 @RequiredArgsConstructor
@@ -33,7 +36,7 @@ import java.util.concurrent.ScheduledFuture;
 public class GameLobbyWatchdog implements InitializingBean {
 
   @VisibleForTesting
-  static final Duration SERVER_RESPONSE_TIMEOUT = Duration.ofSeconds(20);
+  static final Duration SERVER_RESPONSE_TIMEOUT = Duration.ofSeconds(10);
 
   private final FafServerAccessor fafServerAccessor;
   private final NotificationService notificationService;
@@ -85,6 +88,24 @@ public class GameLobbyWatchdog implements InitializingBean {
 
     log.warn("Game entered the lobby but the server sent neither a host nor a join command within {} seconds",
              SERVER_RESPONSE_TIMEOUT.toSeconds());
+
+    Optional<CompletableFuture<Void>> rejoin = gameRunner.rejoinRunningGame();
+    if (rejoin.isPresent()) {
+      rejoin.get().whenComplete((_, throwable) -> {
+        if (throwable != null) {
+          log.warn("Could not join the game again", throwable);
+          notifyUser();
+        } else {
+          onGameEnteredLobby();
+        }
+      });
+      return;
+    }
+
+    notifyUser();
+  }
+
+  private void notifyUser() {
     notificationService.addNotification(
         new ImmediateNotification(i18n.get("game.lobbyTimeout.title"), i18n.get("game.lobbyTimeout.message"),
                                   Severity.WARN,

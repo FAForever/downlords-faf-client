@@ -17,13 +17,18 @@ import org.springframework.scheduling.TaskScheduler;
 import reactor.test.publisher.TestPublisher;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
+
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -58,14 +63,43 @@ public class GameLobbyWatchdogTest extends ServiceTest {
 
   private Runnable enterLobbyAndCaptureTimeout() {
     instance.onGameEnteredLobby();
+    return captureTimeout(1);
+  }
+
+  private Runnable captureTimeout(int scheduledTimes) {
     ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
-    verify(taskScheduler).schedule(captor.capture(), any(Instant.class));
+    verify(taskScheduler, times(scheduledTimes)).schedule(captor.capture(), any(Instant.class));
     return captor.getValue();
+  }
+
+  @Test
+  public void testRejoinsBeforeNotifying() {
+    when(gameRunner.isRunning()).thenReturn(true);
+    when(gameRunner.rejoinRunningGame()).thenReturn(Optional.of(completedFuture(null)), Optional.empty());
+
+    enterLobbyAndCaptureTimeout().run();
+
+    // The server gets another chance to respond to the game
+    verifyNoInteractions(notificationService);
+    captureTimeout(2).run();
+
+    verify(notificationService).addNotification(any(ImmediateNotification.class));
+  }
+
+  @Test
+  public void testNotifiesWhenRejoinFails() {
+    when(gameRunner.isRunning()).thenReturn(true);
+    when(gameRunner.rejoinRunningGame()).thenReturn(Optional.of(failedFuture(new RuntimeException("test"))));
+
+    enterLobbyAndCaptureTimeout().run();
+
+    verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 
   @Test
   public void testNotifiesWhenServerDoesNotRespond() {
     when(gameRunner.isRunning()).thenReturn(true);
+    when(gameRunner.rejoinRunningGame()).thenReturn(Optional.empty());
 
     enterLobbyAndCaptureTimeout().run();
 
