@@ -26,7 +26,7 @@ public class RebuiltEngineExecutable {
   private final int RT_VERSION = 16;
 
   public boolean isRebuiltEngine(Path executable) {
-    return readProductName(executable).filter(PRODUCT_NAME::equals).isPresent();
+    return readProductName(executable).map(PRODUCT_NAME::equals).orElse(false);
   }
 
   public Optional<String> readProductName(Path executable) {
