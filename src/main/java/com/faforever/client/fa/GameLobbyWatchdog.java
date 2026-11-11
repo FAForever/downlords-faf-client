@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
@@ -45,6 +46,11 @@ public class GameLobbyWatchdog implements InitializingBean {
   private final TaskScheduler taskScheduler;
 
   private ScheduledFuture<?> pendingTimeout;
+  /**
+   * The process id of the game that is waiting for the server to respond to its lobby, or {@code null} if no game is
+   * waiting.
+   */
+  private Long awaitingProcessId;
 
   @Override
   public void afterPropertiesSet() {
@@ -60,16 +66,44 @@ public class GameLobbyWatchdog implements InitializingBean {
                      .subscribe();
   }
 
+  /**
+   * Starts waiting for the server to respond to the lobby of the running game.
+   */
   public synchronized void onGameEnteredLobby() {
     cancelPendingTimeout();
-    pendingTimeout = taskScheduler.schedule(this::onServerDidNotRespond, Instant.now().plus(SERVER_RESPONSE_TIMEOUT));
+    awaitingProcessId = gameRunner.getRunningProcessId();
+    if (awaitingProcessId != null) {
+      scheduleTimeout(awaitingProcessId);
+    }
   }
 
+  /**
+   * Called when the server told the game to host or to join, which is the response the game was waiting for.
+   */
   @VisibleForTesting
   synchronized void onServerResponded() {
+    awaitingProcessId = null;
     cancelPendingTimeout();
   }
 
+  /**
+   * Schedules the check for whether the server has responded to the given game.
+   */
+  private void scheduleTimeout(long processId) {
+    pendingTimeout = taskScheduler.schedule(() -> onServerDidNotRespond(processId),
+                                            Instant.now().plus(SERVER_RESPONSE_TIMEOUT));
+  }
+
+  /**
+   * Whether the game with the given process id is still running and still has not heard back from the server.
+   */
+  private synchronized boolean isAwaitingResponse(long processId) {
+    return Objects.equals(awaitingProcessId, processId) && Objects.equals(gameRunner.getRunningProcessId(), processId);
+  }
+
+  /**
+   * Cancels the scheduled check, if there is one.
+   */
   private void cancelPendingTimeout() {
     if (pendingTimeout != null) {
       pendingTimeout.cancel(false);
@@ -77,13 +111,15 @@ public class GameLobbyWatchdog implements InitializingBean {
     }
   }
 
-  private void onServerDidNotRespond() {
+  /**
+   * Tries to join the game again if that is possible, and otherwise tells the user that the game is stuck.
+   */
+  private void onServerDidNotRespond(long processId) {
     synchronized (this) {
       pendingTimeout = null;
-    }
-
-    if (!gameRunner.isRunning()) {
-      return;
+      if (!isAwaitingResponse(processId)) {
+        return;
+      }
     }
 
     log.warn("Game entered the lobby but the server sent neither a host nor a join command within {} seconds",
@@ -94,22 +130,40 @@ public class GameLobbyWatchdog implements InitializingBean {
       rejoin.get().whenComplete((_, throwable) -> {
         if (throwable != null) {
           log.warn("Could not join the game again", throwable);
-          notifyUser();
+          notifyUser(processId);
         } else {
-          onGameEnteredLobby();
+          waitAgain(processId);
         }
       });
       return;
     }
 
-    notifyUser();
+    notifyUser(processId);
   }
 
-  private void notifyUser() {
+  /**
+   * Gives the server another chance to respond, unless it already has or the game is gone.
+   */
+  private synchronized void waitAgain(long processId) {
+    if (isAwaitingResponse(processId)) {
+      cancelPendingTimeout();
+      scheduleTimeout(processId);
+    }
+  }
+
+  /**
+   * Tells the user that the game is not going to connect and offers to close it.
+   */
+  private void notifyUser(long processId) {
+    if (!isAwaitingResponse(processId)) {
+      return;
+    }
+
     notificationService.addNotification(
         new ImmediateNotification(i18n.get("game.lobbyTimeout.title"), i18n.get("game.lobbyTimeout.message"),
                                   Severity.WARN,
-                                  List.of(new Action(i18n.get("game.lobbyTimeout.close"), gameRunner::killGame),
+                                  List.of(new Action(i18n.get("game.lobbyTimeout.close"),
+                                                     () -> gameRunner.killGame(processId)),
                                           new DismissAction(i18n))));
   }
 }

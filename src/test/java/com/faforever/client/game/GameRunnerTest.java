@@ -42,6 +42,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
+import com.faforever.commons.lobby.GameJoinFailedException;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.GameType;
@@ -69,6 +70,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -470,6 +472,56 @@ public class GameRunnerTest extends ServiceTest {
 
     // Only one attempt per game
     assertTrue(instance.rejoinRunningGame().isEmpty());
+  }
+
+  @Test
+  public void testRejoinDoesNotSendGameStateWhenGameExited() throws Exception {
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
+
+    mockJoinGame(game);
+    when(process.onExit()).thenReturn(new CompletableFuture<>());
+
+    instance.join(game);
+
+    CompletableFuture<GameLaunchResponse> rejoinResponse = new CompletableFuture<>();
+    when(fafServerAccessor.requestJoinGame(anyInt(), any())).thenReturn(rejoinResponse);
+    CompletableFuture<Void> rejoin = instance.rejoinRunningGame().orElseThrow();
+
+    when(process.isAlive()).thenReturn(false);
+    rejoinResponse.complete(GameLaunchMessageBuilder.create().defaultValues().get());
+    rejoin.join();
+
+    verify(fafServerAccessor, never()).sendGpgMessage(any());
+  }
+
+  @Test
+  public void testRejoinNotPossibleAfterFailedJoin() throws Exception {
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
+
+    mockJoinGame(game);
+    when(fafServerAccessor.requestJoinGame(anyInt(), any())).thenReturn(
+        failedFuture(new GameJoinFailedException(game.getId(), "game_full")));
+
+    instance.join(game);
+
+    assertTrue(instance.rejoinRunningGame().isEmpty());
+    verify(fafServerAccessor).requestJoinGame(anyInt(), any());
+  }
+
+  @Test
+  public void testKillGameOnlyKillsGivenProcess() throws Exception {
+    GameInfo game = GameInfoBuilder.create().defaultValues().get();
+
+    mockJoinGame(game);
+    when(process.onExit()).thenReturn(new CompletableFuture<>());
+
+    instance.join(game);
+
+    instance.killGame(process.pid() + 1);
+    verify(process, never()).destroy();
+
+    instance.killGame(process.pid());
+    verify(process).destroy();
   }
 
   @Test

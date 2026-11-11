@@ -18,6 +18,7 @@ import reactor.test.publisher.TestPublisher;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -47,6 +48,8 @@ public class GameLobbyWatchdogTest extends ServiceTest {
   @Mock
   private TaskScheduler taskScheduler;
 
+  private static final long PROCESS_ID = 1L;
+
   private final TestPublisher<HostGameGpgCommand> hostGamePublisher = TestPublisher.create();
   private final TestPublisher<JoinGameGpgCommand> joinGamePublisher = TestPublisher.create();
   private final ScheduledFuture<?> scheduledFuture = mock(ScheduledFuture.class);
@@ -74,7 +77,7 @@ public class GameLobbyWatchdogTest extends ServiceTest {
 
   @Test
   public void testRejoinsBeforeNotifying() {
-    when(gameRunner.isRunning()).thenReturn(true);
+    when(gameRunner.getRunningProcessId()).thenReturn(PROCESS_ID);
     when(gameRunner.rejoinRunningGame()).thenReturn(Optional.of(completedFuture(null)), Optional.empty());
 
     enterLobbyAndCaptureTimeout().run();
@@ -88,7 +91,7 @@ public class GameLobbyWatchdogTest extends ServiceTest {
 
   @Test
   public void testNotifiesWhenRejoinFails() {
-    when(gameRunner.isRunning()).thenReturn(true);
+    when(gameRunner.getRunningProcessId()).thenReturn(PROCESS_ID);
     when(gameRunner.rejoinRunningGame()).thenReturn(Optional.of(failedFuture(new RuntimeException("test"))));
 
     enterLobbyAndCaptureTimeout().run();
@@ -98,7 +101,7 @@ public class GameLobbyWatchdogTest extends ServiceTest {
 
   @Test
   public void testNotifiesWhenServerDoesNotRespond() {
-    when(gameRunner.isRunning()).thenReturn(true);
+    when(gameRunner.getRunningProcessId()).thenReturn(PROCESS_ID);
     when(gameRunner.rejoinRunningGame()).thenReturn(Optional.empty());
 
     enterLobbyAndCaptureTimeout().run();
@@ -107,12 +110,12 @@ public class GameLobbyWatchdogTest extends ServiceTest {
     verify(notificationService).addNotification(captor.capture());
 
     captor.getValue().actions().getFirst().run();
-    verify(gameRunner).killGame();
+    verify(gameRunner).killGame(PROCESS_ID);
   }
 
   @Test
   public void testDoesNotNotifyWhenGameIsNoLongerRunning() {
-    when(gameRunner.isRunning()).thenReturn(false);
+    when(gameRunner.getRunningProcessId()).thenReturn(PROCESS_ID, (Long) null);
 
     enterLobbyAndCaptureTimeout().run();
 
@@ -120,7 +123,57 @@ public class GameLobbyWatchdogTest extends ServiceTest {
   }
 
   @Test
+  public void testDoesNothingWhenAnotherGameIsRunning() {
+    when(gameRunner.getRunningProcessId()).thenReturn(PROCESS_ID, PROCESS_ID + 1);
+
+    enterLobbyAndCaptureTimeout().run();
+
+    verify(gameRunner, never()).rejoinRunningGame();
+    verifyNoInteractions(notificationService);
+  }
+
+  @Test
+  public void testDoesNothingWhenServerRespondedJustBeforeTimeout() {
+    when(gameRunner.getRunningProcessId()).thenReturn(PROCESS_ID);
+
+    Runnable timeout = enterLobbyAndCaptureTimeout();
+    instance.onServerResponded();
+    timeout.run();
+
+    verify(gameRunner, never()).rejoinRunningGame();
+    verifyNoInteractions(notificationService);
+  }
+
+  @Test
+  public void testDoesNotWaitAgainWhenServerRespondedDuringRejoin() {
+    when(gameRunner.getRunningProcessId()).thenReturn(PROCESS_ID);
+    CompletableFuture<Void> rejoinFuture = new CompletableFuture<>();
+    when(gameRunner.rejoinRunningGame()).thenReturn(Optional.of(rejoinFuture));
+
+    enterLobbyAndCaptureTimeout().run();
+    joinGamePublisher.next(mock(JoinGameGpgCommand.class));
+    rejoinFuture.complete(null);
+
+    captureTimeout(1);
+    verifyNoInteractions(notificationService);
+  }
+
+  @Test
+  public void testDoesNotNotifyWhenServerRespondedDuringFailedRejoin() {
+    when(gameRunner.getRunningProcessId()).thenReturn(PROCESS_ID);
+    CompletableFuture<Void> rejoinFuture = new CompletableFuture<>();
+    when(gameRunner.rejoinRunningGame()).thenReturn(Optional.of(rejoinFuture));
+
+    enterLobbyAndCaptureTimeout().run();
+    joinGamePublisher.next(mock(JoinGameGpgCommand.class));
+    rejoinFuture.completeExceptionally(new RuntimeException("test"));
+
+    verifyNoInteractions(notificationService);
+  }
+
+  @Test
   public void testJoinGameCommandCancelsTimeout() {
+    when(gameRunner.getRunningProcessId()).thenReturn(PROCESS_ID);
     instance.onGameEnteredLobby();
     verify(scheduledFuture, never()).cancel(false);
 
@@ -131,6 +184,7 @@ public class GameLobbyWatchdogTest extends ServiceTest {
 
   @Test
   public void testHostGameCommandCancelsTimeout() {
+    when(gameRunner.getRunningProcessId()).thenReturn(PROCESS_ID);
     instance.onGameEnteredLobby();
 
     hostGamePublisher.next(mock(HostGameGpgCommand.class));
