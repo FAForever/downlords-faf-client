@@ -167,7 +167,7 @@ public class FafApiAccessorTest extends ServiceTest {
   public void testPostJsonForObject() throws Exception {
     mockApi.enqueue(new MockResponse().setBody("{\"jwt\":\"abc\"}").addHeader("Content-Type", "application/json"));
 
-    StepVerifier.create(instance.postJsonForObject("/ice/session/token", java.util.Map.of("gameId", 7), TokenAnswer.class))
+    StepVerifier.create(instance.postJsonForObject("/ice/session/token", Map.of("gameId", 7), TokenAnswer.class))
         .expectNext(new TokenAnswer("abc"))
         .verifyComplete();
     okhttp3.mockwebserver.RecordedRequest request = mockApi.takeRequest();
@@ -180,7 +180,7 @@ public class FafApiAccessorTest extends ServiceTest {
   public void testPostJson() throws Exception {
     prepareVoidResponse();
 
-    StepVerifier.create(instance.postJson("/ice/session/report", java.util.Map.of("gameId", 7))).verifyComplete();
+    StepVerifier.create(instance.postJson("/ice/session/report", Map.of("gameId", 7))).verifyComplete();
     okhttp3.mockwebserver.RecordedRequest request = mockApi.takeRequest();
     assertEquals("POST", request.getMethod());
     assertEquals("{\"gameId\":7}", request.getBody().readUtf8());

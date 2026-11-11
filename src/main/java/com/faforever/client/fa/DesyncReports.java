@@ -101,6 +101,18 @@ public class DesyncReports {
     if (!forgedAlliancePrefs.isSendDesyncReports()) {
       return List.of();
     }
+    String token = fetchToken(gameId);
+    if (token == null) {
+      return List.of();
+    }
+    List<String> arguments = new ArrayList<>(List.of("/telemetry", TOKEN_ARGUMENT, token));
+    arguments.addAll(endpointArguments());
+    log.info("Game {} sends desync reports (the player agreed)", gameId);
+    return arguments;
+  }
+
+  /** Icebreaker's token for this game and player, or null (logged) when there is none. */
+  private String fetchToken(int gameId) {
     String token;
     try {
       TokenResponse response = fafApiAccessor.postJsonForObject("/ice/session/token", Map.of("gameId", gameId),
@@ -108,21 +120,25 @@ public class DesyncReports {
       token = response == null ? null : response.jwt();
     } catch (RuntimeException e) {
       log.warn("No desync report token for game {}, so the game sends none", gameId, e);
-      return List.of();
+      return null;
     }
     if (token == null || token.isBlank()) {
       log.warn("No desync report token for game {}, so the game sends none", gameId);
-      return List.of();
+      return null;
     }
-    List<String> arguments = new ArrayList<>(List.of("/telemetry", TOKEN_ARGUMENT, token));
+    return token;
+  }
+
+  /** Where the chosen server wants the reports; nothing for the game's own default. */
+  private List<String> endpointArguments() {
     ClientProperties.DesyncReports endpoints = clientProperties.getDesyncReports();
+    List<String> arguments = new ArrayList<>();
     if (endpoints.getRecordsUrl() != null && !endpoints.getRecordsUrl().isBlank()) {
       arguments.addAll(List.of("/telemetryendpoint", endpoints.getRecordsUrl()));
     }
     if (endpoints.getDumpsUrl() != null && !endpoints.getDumpsUrl().isBlank()) {
       arguments.addAll(List.of("/telemetrydumpendpoint", endpoints.getDumpsUrl()));
     }
-    log.info("Game {} sends desync reports (the player agreed)", gameId);
     return arguments;
   }
 

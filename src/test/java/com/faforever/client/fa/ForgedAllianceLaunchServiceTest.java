@@ -71,11 +71,13 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
 
     verify(desyncReports).launchArguments(gameParameters.uid());
     verify(loggingService).getNewGameLogFile(gameParameters.uid());
-    // The command it tried to start, as logged just before: the return arguments are in it, in order.
+    // The command it tried to start, as logged just before: the return arguments are in it, in order. Tests run in
+    // parallel and share the logger, so other launches can be logged too; this one is the command with /rejoin.
     java.util.List<?> command = logged.list.stream()
         .filter(event -> event.getMessage().startsWith("Starting Forged Alliance with command"))
         .map(event -> (java.util.List<?>) event.getArgumentArray()[0])
-        .findFirst().orElseThrow();
+        .filter(logged1 -> logged1.contains("/rejoin"))
+        .findFirst().orElseThrow(() -> new AssertionError("no launch command with /rejoin was logged"));
     int at = command.indexOf("/rejoin");
     org.junit.jupiter.api.Assertions.assertTrue(at >= 0, String.valueOf(command));
     org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of("/rejoin", "9=0", "1", "0"), command.subList(at, at + 4));

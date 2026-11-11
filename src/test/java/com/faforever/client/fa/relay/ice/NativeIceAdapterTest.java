@@ -260,7 +260,7 @@ public class NativeIceAdapterTest extends ServiceTest {
 
   /** The game's own network arguments, the offer to come back included, then {@code more}. */
   private List<String> withNetwork(String... more) {
-    List<String> arguments = new java.util.ArrayList<>(List.of("/nativenet", "/rejoinoffer", "/rejoinkeyfile",
+    List<String> arguments = new ArrayList<>(List.of("/nativenet", "/rejoinoffer", "/rejoinkeyfile",
         dataPrefs.getBaseDataDirectory().resolve("rejoin_seat.key").toString(), "/con",
         "net_PeerFeatures=1;net_RejoinAccept=1"));
     arguments.addAll(List.of(more));

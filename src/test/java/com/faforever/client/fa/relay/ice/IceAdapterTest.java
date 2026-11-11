@@ -18,10 +18,14 @@ public class IceAdapterTest {
   /** Only what every adapter must implement; the rest comes from the interface's defaults. */
   private final IceAdapter plain = new IceAdapter() {
     @Override
-    public void onIceAdapterStateChanged(String newState) {}
+    public void onIceAdapterStateChanged(String newState) {
+      // Not part of the defaults under test.
+    }
 
     @Override
-    public void onGpgGameMessage(GpgGameOutboundMessage message) {}
+    public void onGpgGameMessage(GpgGameOutboundMessage message) {
+      // Not part of the defaults under test.
+    }
 
     @Override
     public CompletableFuture<Integer> start(int gameId, boolean forceRelay) {
@@ -29,10 +33,14 @@ public class IceAdapterTest {
     }
 
     @Override
-    public void stop() {}
+    public void stop() {
+      // Not part of the defaults under test.
+    }
 
     @Override
-    public void setIceServers(Collection<CoturnServer> coturnServers) {}
+    public void setIceServers(Collection<CoturnServer> coturnServers) {
+      // Not part of the defaults under test.
+    }
   };
 
   @Test
