@@ -177,6 +177,16 @@ public class FafApiAccessorTest extends ServiceTest {
   }
 
   @Test
+  public void testPostJson() throws Exception {
+    prepareVoidResponse();
+
+    StepVerifier.create(instance.postJson("/ice/session/report", java.util.Map.of("gameId", 7))).verifyComplete();
+    okhttp3.mockwebserver.RecordedRequest request = mockApi.takeRequest();
+    assertEquals("POST", request.getMethod());
+    assertEquals("{\"gameId\":7}", request.getBody().readUtf8());
+  }
+
+  @Test
   public void testPatch() throws Exception {
     ReplayReview reviewBean = Instancio.create(ReplayReview.class);
     GameReview review = reviewMapper.map(reviewBean);

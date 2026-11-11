@@ -324,6 +324,19 @@ public class GameRunnerTest extends ServiceTest {
   }
 
   @Test
+  public void anAnswerBeforeTheTimeRunsOutLeavesNoTimedOutNotice() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    instance.rejoinAnswerMillis = 200;
+    ImmediateNotification question = crashInAMatchThatCanBeRejoined(gameLaunchResponse);
+
+    question.actions().get(1).run();
+    Thread.sleep(600);
+
+    verify(fafServerAccessor).notifyGameEnded();
+    verify(notificationService, never()).addNotification(any(PersistentNotification.class));
+  }
+
+  @Test
   public void aQuestionNobodyAnswersClosesAndEndsTheGame() throws Exception {
     GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
     mockStartGameProcess(gameLaunchResponse);

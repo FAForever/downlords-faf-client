@@ -444,6 +444,73 @@ public class NativeIceAdapterTest extends ServiceTest {
   }
 
   @Test
+  public void testRelayOnlyIsPassedToTheGame() throws Exception {
+    instance.start(2001, true).get();
+
+    assertTrue(instance.gameArguments().contains("/nativenetrelay"), String.valueOf(instance.gameArguments()));
+  }
+
+  @Test
+  public void testACustomGamesLobbyIsNotInMatchmakerMode() throws Exception {
+    GameLaunchResponse custom = mock(GameLaunchResponse.class);
+    when(custom.getGameType()).thenReturn(GameType.CUSTOM);
+    instance.prepare(custom);
+
+    sendFromGame("GameState", "Idle");
+
+    assertEquals(List.of("IceServers", "[]"), readMessage());
+    assertEquals(List.of("CreateLobby", 0, 0, "junit", 5, 1), readMessage());
+  }
+
+  @Test
+  public void testAPeerTheOfferDoesntNameIsLeftOut() throws Exception {
+    sendFromGame("GameState", "Lobby");
+    verify(fafServerAccessor, timeout(WAIT_MILLIS)).sendGpgMessage(any());
+    connectToPeer("first", 9, true);
+    assertEquals(List.of("ConnectToPeer", "first", 9, 1), readMessage());
+    connectToPeer("second", 3, false);
+    assertEquals(List.of("ConnectToPeer", "second", 3, 0), readMessage());
+    // Peer 3 joined after the game's offer was made, so the offer has no seat for it.
+    sendFromGame("RejoinOffer", "1", "5=1,9=0");
+    for (int i = 0; i < 500 && !instance.canRejoin(); i++) {
+      Thread.sleep(10);
+    }
+
+    assertEquals(withNetwork("/rejoin", "9=0", "1", "0"), instance.rejoinArguments());
+  }
+
+  @Test
+  public void testAPeerConnectedTwiceIsRememberedOnce() throws Exception {
+    sendFromGame("GameState", "Lobby");
+    verify(fafServerAccessor, timeout(WAIT_MILLIS)).sendGpgMessage(any());
+    connectToPeer("first", 9, true);
+    assertEquals(List.of("ConnectToPeer", "first", 9, 1), readMessage());
+    connectToPeer("first", 9, false);
+    assertEquals(List.of("ConnectToPeer", "first", 9, 0), readMessage());
+    sendFromGame("RejoinOffer", "1", "5=1,9=0");
+    for (int i = 0; i < 500 && !instance.canRejoin(); i++) {
+      Thread.sleep(10);
+    }
+    instance.rejoinArguments();
+    gamePort = game.getPort();
+    game.close();
+    gameConnectsAgain();
+
+    assertEquals(List.of("IceServers", "[]"), readMessage());
+    assertEquals(List.of("CreateLobby", 1, 0, "junit", 5, 1), readMessage());
+    assertEquals(List.of("ConnectToPeer", "first", 9, 0), readMessage());
+    assertThrows(SocketTimeoutException.class, this::shortRead);
+  }
+
+  @Test
+  public void testTheDecoderRefusesAnOversizedField() {
+    byte[] bad = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(Integer.MAX_VALUE).array();
+    EmbeddedChannel channel = new EmbeddedChannel(new NativeIceAdapter.GpgNetDecoder());
+
+    assertThrows(DecoderException.class, () -> channel.writeInbound(Unpooled.wrappedBuffer(bad)));
+  }
+
+  @Test
   public void testNothingIsSentAfterStop() throws Exception {
     instance.stop();
 

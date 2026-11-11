@@ -56,11 +56,29 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
     GameParameters gameParameters = GameParametersBuilder.create().defaultValues().get();
 
     // No exe in the test's data folder, so the start fails after the command is built.
-    assertThrows(GameLaunchException.class,
-                 () -> instance.relaunchOnlineGame(gameParameters, 0, java.util.List.of("/rejoin", "9=0", "1", "0")));
+    ch.qos.logback.classic.Logger logger =
+        (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ForgedAllianceLaunchService.class);
+    ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> logged =
+        new ch.qos.logback.core.read.ListAppender<>();
+    logged.start();
+    logger.addAppender(logged);
+    try {
+      assertThrows(GameLaunchException.class,
+                   () -> instance.relaunchOnlineGame(gameParameters, 0, java.util.List.of("/rejoin", "9=0", "1", "0")));
+    } finally {
+      logger.detachAppender(logged);
+    }
 
     verify(desyncReports).launchArguments(gameParameters.uid());
     verify(loggingService).getNewGameLogFile(gameParameters.uid());
+    // The command it tried to start, as logged just before: the return arguments are in it, in order.
+    java.util.List<?> command = logged.list.stream()
+        .filter(event -> event.getMessage().startsWith("Starting Forged Alliance with command"))
+        .map(event -> (java.util.List<?>) event.getArgumentArray()[0])
+        .findFirst().orElseThrow();
+    int at = command.indexOf("/rejoin");
+    org.junit.jupiter.api.Assertions.assertTrue(at >= 0, String.valueOf(command));
+    org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of("/rejoin", "9=0", "1", "0"), command.subList(at, at + 4));
   }
 
   @Test
