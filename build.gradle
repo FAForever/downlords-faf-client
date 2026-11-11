@@ -250,7 +250,7 @@ repositories {
 }
 
 javafx {
-    version = "25"
+    version = "27.0.1"
     modules = [
             "javafx.base", "javafx.controls", "javafx.graphics", "javafx.swing", "javafx.fxml", "javafx.web", "javafx.media"
     ]
