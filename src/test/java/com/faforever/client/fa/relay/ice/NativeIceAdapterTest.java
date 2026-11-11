@@ -522,6 +522,32 @@ public class NativeIceAdapterTest extends ServiceTest {
   }
 
   @Test
+  public void testAnIceServerListThatCantBeWrittenIsNotSent() throws Exception {
+    ObjectMapper failing = mock(ObjectMapper.class);
+    when(failing.writeValueAsString(any())).thenThrow(new com.fasterxml.jackson.core.JsonGenerationException("broken", (com.fasterxml.jackson.core.JsonGenerator) null));
+    NativeIceAdapter adapter = new NativeIceAdapter(playerService, fafServerAccessor, Mappers.getMapper(IceServerMapper.class),
+                                                    failing, gameFullNotifier, dataPrefs);
+    GameLaunchResponse launch = mock(GameLaunchResponse.class);
+    when(launch.getGameType()).thenReturn(GameType.CUSTOM);
+    adapter.prepare(launch);
+    int port = adapter.start(2002, false).get();
+    try (Socket other = new Socket(InetAddress.getLoopbackAddress(), port)) {
+      DataInputStream in = new DataInputStream(other.getInputStream());
+      other.setSoTimeout(500);
+
+      CoturnServer server = new CoturnServer();
+      server.setUsername("0:1234");
+      server.setCredential("secret");
+      server.setUrls(java.util.Set.of(java.net.URI.create("turn://relay.example:3478")));
+      adapter.setIceServers(List.of(server));
+
+      assertThrows(SocketTimeoutException.class, in::readInt);
+    } finally {
+      adapter.stop();
+    }
+  }
+
+  @Test
   public void testNothingIsSentAfterStop() throws Exception {
     instance.stop();
 

@@ -44,6 +44,11 @@ public class LaunchCommandBuilderTest extends ServiceTest {
   }
 
   @Test
+  public void testNoClientArgsAddNothing() {
+    assertEquals(defaultBuilder().build(), defaultBuilder().clientArgs(null).build());
+  }
+
+  @Test
   public void testAllSet() throws Exception {
     assertNotNull(defaultBuilder().build());
   }
