@@ -495,6 +495,20 @@ public class GameRunnerTest extends ServiceTest {
   }
 
   @Test
+  public void testRejoinNotPossibleWhenAnotherGameIsRunning() throws Exception {
+    GameInfo game = GameInfoBuilder.create().defaultValues().id(2).get();
+
+    // The running game is not the one the saved request is for
+    mockJoinGame(game);
+    when(process.onExit()).thenReturn(new CompletableFuture<>());
+
+    instance.join(game);
+
+    assertTrue(instance.rejoinRunningGame().isEmpty());
+    verify(fafServerAccessor).requestJoinGame(anyInt(), any());
+  }
+
+  @Test
   public void testRejoinNotPossibleAfterFailedJoin() throws Exception {
     GameInfo game = GameInfoBuilder.create().defaultValues().get();
 

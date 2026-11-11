@@ -126,6 +126,11 @@ public class GameRunner implements InitializingBean {
 
   private static final int REJOIN_TIMEOUT_SECONDS = 10;
 
+  /**
+   * The request that joined a game, kept so that it can be sent again for that same game.
+   */
+  private record RejoinRequest(int gameId, Supplier<CompletableFuture<GameLaunchResponse>> request) {}
+
   private final MaskPatternLayout logMasker = new MaskPatternLayout();
   private final SimpleObjectProperty<Integer> runningGameId = new SimpleObjectProperty<>();
   private final ObjectProperty<Process> process = new SimpleObjectProperty<>();
@@ -136,7 +141,7 @@ public class GameRunner implements InitializingBean {
 
   private CompletableFuture<Void> matchmakerFuture;
   private boolean gameKilled;
-  private final AtomicReference<Supplier<CompletableFuture<GameLaunchResponse>>> rejoinRequest = new AtomicReference<>();
+  private final AtomicReference<RejoinRequest> rejoinRequest = new AtomicReference<>();
 
   @Override
   public void afterPropertiesSet() {
@@ -305,11 +310,11 @@ public class GameRunner implements InitializingBean {
     log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
 
     Set<String> simModUIds = game.getSimMods().keySet();
-    Supplier<CompletableFuture<GameLaunchResponse>> joinRequest = () -> fafServerAccessor.requestJoinGame(game.getId(),
-                                                                                                         password);
+    RejoinRequest joinRequest = new RejoinRequest(game.getId(),
+                                                  () -> fafServerAccessor.requestJoinGame(game.getId(), password));
     prepareAndLaunchGameWhenReady(game.getFeaturedMod(), simModUIds, game.getMapFolderName(), () -> {
       rejoinRequest.set(joinRequest);
-      return joinRequest.get();
+      return joinRequest.request().get();
     }).whenComplete((_, _) -> {
       // Whether the game has exited or was never launched, this join is over. Leave the request of a newer game alone.
       rejoinRequest.compareAndSet(joinRequest, null);
@@ -516,14 +521,21 @@ public class GameRunner implements InitializingBean {
    * @return empty if there is no joined game running or if this has already been tried for it
    */
   public Optional<CompletableFuture<Void>> rejoinRunningGame() {
-    Supplier<CompletableFuture<GameLaunchResponse>> request = rejoinRequest.getAndSet(null);
+    RejoinRequest request = rejoinRequest.getAndSet(null);
     Process gameProcess = process.get();
     if (request == null || gameProcess == null || !gameProcess.isAlive()) {
       return Optional.empty();
     }
 
+    if (!Objects.equals(runningGameId.get(), request.gameId())) {
+      // The request was saved by a join other than the one that launched the running game
+      log.warn("Not joining again as the saved request is for game '{}' but game '{}' is running", request.gameId(),
+               runningGameId.get());
+      return Optional.empty();
+    }
+
     log.info("Requesting to join the game again for the already running game");
-    return Optional.of(request.get().orTimeout(REJOIN_TIMEOUT_SECONDS, TimeUnit.SECONDS).thenRun(() -> {
+    return Optional.of(request.request().get().orTimeout(REJOIN_TIMEOUT_SECONDS, TimeUnit.SECONDS).thenRun(() -> {
       if (process.get() != gameProcess || !gameProcess.isAlive()) {
         log.info("The game was closed while waiting for the server, not sending its state");
         return;
