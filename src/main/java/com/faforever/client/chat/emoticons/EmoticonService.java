@@ -39,7 +39,12 @@ public class EmoticonService implements InitializingBean {
 
   @Override
   public void afterPropertiesSet() {
-    CompletableFuture.runAsync(this::loadAndVerifyEmoticons);
+    CompletableFuture.runAsync(this::loadAndVerifyEmoticons).exceptionally(throwable -> {
+      if (throwable != null) {
+        log.warn("Unable to load emoticons", throwable);
+      }
+      return null;
+    });
   }
 
   @VisibleForTesting

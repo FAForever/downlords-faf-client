@@ -428,7 +428,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   public void onWhoAway(WhoAwayMessageEvent event) {
     ChatChannel chatChannel = channels.get(event.channel());
     if (chatChannel != null) {
-      chatChannel.getUser(event.userName()).ifPresent(chatUser -> chatUser.setAway(event.isAway()));
+      chatChannel.getUser(event.userName()).ifPresent(chatUser -> {
+        if (chatChannel.isOpen()) {
+          chatUser.setAway(event.isAway());
+        } else {
+          fxApplicationThreadExecutor.execute(() -> chatUser.setAway(event.isAway()));
+        }
+      });
     }
   }
 
