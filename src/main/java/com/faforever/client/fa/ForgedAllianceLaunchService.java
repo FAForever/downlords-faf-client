@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -42,6 +43,7 @@ public class ForgedAllianceLaunchService {
   private final LoggingService loggingService;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final DataPrefs dataPrefs;
+  private final DesyncReports desyncReports;
 
   public Process launchOfflineGame(String map) {
     List<String> launchCommand = defaultLaunchCommand().map(map).logFile(loggingService.getNewGameLogFile(0)).build();
@@ -49,7 +51,28 @@ public class ForgedAllianceLaunchService {
     return launch(launchCommand);
   }
 
-  public Process launchOnlineGame(GameParameters gameParameters, int gpgPort, int replayPort) {
+  /**
+   * Starts the game again so that it takes its seat back. The replay stream ended with the crash, so this game keeps
+   * its replay locally.
+   */
+  public Process relaunchOnlineGame(GameParameters gameParameters, int gpgPort, List<String> rejoinArguments) {
+    List<String> clientArguments = new ArrayList<>(rejoinArguments);
+    clientArguments.addAll(desyncReports.launchArguments(gameParameters.uid()));
+    return launch(defaultLaunchCommand().uid(gameParameters.uid())
+                                        .faction(gameParameters.faction())
+                                        .mapPosition(gameParameters.mapPosition())
+                                        .expectedPlayers(gameParameters.expectedPlayers())
+                                        .team(gameParameters.team())
+                                        .gameOptions(gameParameters.gameOptions())
+                                        .additionalArgs(gameParameters.additionalArgs())
+                                        .clientArgs(clientArguments)
+                                        .username(playerService.getCurrentPlayer().getUsername())
+                                        .localGpgPort(gpgPort)
+                                        .logFile(loggingService.getNewGameLogFile(gameParameters.uid()))
+                                        .build());
+  }
+
+  public Process launchOnlineGame(GameParameters gameParameters, int gpgPort, int replayPort, List<String> networkArgs) {
     PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
     Optional<LeaderboardRating> leaderboardRating = Optional.ofNullable(currentPlayer.getLeaderboardRatings()).map(
@@ -67,6 +90,7 @@ public class ForgedAllianceLaunchService {
                                                                 .team(gameParameters.team())
                                                                 .gameOptions(gameParameters.gameOptions())
                                                                 .additionalArgs(gameParameters.additionalArgs())
+                                                                .clientArgs(withDesyncReports(networkArgs, uid))
                                                                 .clan(currentPlayer.getClan())
                                                                 .country(currentPlayer.getCountry())
                                                                 .username(currentPlayer.getUsername())
@@ -83,6 +107,13 @@ public class ForgedAllianceLaunchService {
     }
 
     return launch(commandBuilder.build());
+  }
+
+
+  private List<String> withDesyncReports(List<String> arguments, int gameId) {
+    List<String> withReports = new ArrayList<>(arguments);
+    withReports.addAll(desyncReports.launchArguments(gameId));
+    return withReports;
   }
 
 
@@ -155,7 +186,9 @@ public class ForgedAllianceLaunchService {
     processBuilder.directory(executeDirectory.toFile());
     processBuilder.command(launchCommand);
 
-    log.info("Starting Forged Alliance with command: {} in directory: {}", processBuilder.command(), executeDirectory);
+    // The desync report token is this player's alone (it goes to the game, never to the log, which players share).
+    log.info("Starting Forged Alliance with command: {} in directory: {}",
+             DesyncReports.withTokenHidden(processBuilder.command()), executeDirectory);
 
     try {
       return processBuilder.start();

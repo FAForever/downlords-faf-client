@@ -29,6 +29,7 @@ public class ClientProperties {
   private Api api = new Api();
   private User user = new User();
   private Oauth oauth = new Oauth();
+  private DesyncReports desyncReports = new DesyncReports();
   private UnitDatabase unitDatabase = new UnitDatabase();
   private FAFDebugger fafDebugger = new FAFDebugger();
   private MapGenerator mapGenerator = new MapGenerator();
@@ -176,6 +177,22 @@ public class ClientProperties {
     if (oauth != null) {
       this.oauth.setBaseUrl(oauth.getUrl());
     }
+
+    // These belong to the chosen server: one without them clears what another server set.
+    UrlEndpoint desyncRecords = serverEndpoints.getDesyncRecords();
+    this.desyncReports.setRecordsUrl(desyncRecords == null ? null : desyncRecords.getUrl());
+    UrlEndpoint desyncDumps = serverEndpoints.getDesyncDumps();
+    this.desyncReports.setDumpsUrl(desyncDumps == null ? null : desyncDumps.getUrl());
+  }
+
+  /**
+   * Where a game on the rebuilt engine sends desync reports, from the chosen server's endpoints. Null: the game's own
+   * default.
+   */
+  @Data
+  public static class DesyncReports {
+    private String recordsUrl;
+    private String dumpsUrl;
   }
 
   @Data
