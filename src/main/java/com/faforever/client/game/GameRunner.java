@@ -82,7 +82,7 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
@@ -152,10 +152,11 @@ public class GameRunner implements InitializingBean {
   private final Object killLock = new Object();
   // The relaunched game's process, set under killLock; the process property follows on the FX thread.
   private Process relaunchedProcess;
-  // The games started from a launch response, until each is over. Requests waiting for a launch response all get the
-  // same one (a second host or join before the server answered the first), and the game and its network adapter must
-  // start only once for it: a second start would close the first one's connection.
-  private final Set<Integer> launchingGameIds = ConcurrentHashMap.newKeySet();
+  // Set from a launch response until that game is over. Launch requests aren't exclusive while they wait for the
+  // server: two host or join requests get the same response, and a matchmaker match or a late answer to an earlier
+  // request can arrive while another game is starting or running. The game and its network adapter start once: a
+  // second start would close the first game's connection.
+  private final AtomicBoolean launching = new AtomicBoolean();
   private GameParameters launchedParameters;
   private int launchedGpgPort;
   @VisibleForTesting
@@ -207,18 +208,17 @@ public class GameRunner implements InitializingBean {
     return running.getReadOnlyProperty();
   }
 
-  /** A launch response for a game that another request already started; it starts nothing more. */
+  /** A launch response that arrived while a game was being started or played; it starts nothing. */
   static final class GameAlreadyStartingException extends IllegalStateException {
     GameAlreadyStartingException(int uid) {
-      super("Game " + uid + " is already being started by another request");
+      super("A game is already being started or played, not starting game " + uid);
     }
   }
 
   @VisibleForTesting
   CompletableFuture<Void> startOnlineGame(GameLaunchResponse gameLaunchResponse) {
-    int uid = gameLaunchResponse.getUid();
-    if (!launchingGameIds.add(uid)) {
-      GameAlreadyStartingException refused = new GameAlreadyStartingException(uid);
+    if (!launching.compareAndSet(false, true)) {
+      GameAlreadyStartingException refused = new GameAlreadyStartingException(gameLaunchResponse.getUid());
       log.info(refused.getMessage());
       return CompletableFuture.failedFuture(refused);
     }
@@ -226,10 +226,10 @@ public class GameRunner implements InitializingBean {
     try {
       game = launchGame(gameLaunchResponse);
     } catch (RuntimeException e) {
-      launchingGameIds.remove(uid);
+      launching.set(false);
       throw e;
     }
-    return game.whenComplete((_, _) -> launchingGameIds.remove(uid));
+    return game.whenComplete((_, _) -> launching.set(false));
   }
 
   private CompletableFuture<Void> launchGame(GameLaunchResponse gameLaunchResponse) {
@@ -385,7 +385,7 @@ public class GameRunner implements InitializingBean {
             case NotifiableException notifiableException ->
                 notificationService.addErrorNotification(notifiableException);
             case CancellationException e -> log.info("Hosting Game cancelled");
-            case GameAlreadyStartingException e -> log.info("Hosted game is started by another request");
+            case GameAlreadyStartingException e -> log.info("Hosted game not started: {}", e.getMessage());
             case null, default -> notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
           }
           return null;
@@ -446,7 +446,7 @@ public class GameRunner implements InitializingBean {
                 log.warn("Game with id '{}' could not be joined. Reason: {}", e.getGameId(), e.getFailureReason(), e);
             case CancellationException e -> log.info("Joining Game with id '{}' cancelled", game.getId());
             case GameAlreadyStartingException e ->
-                log.info("Game with id '{}' is started by another request", game.getId());
+                log.info("Game with id '{}' not joined: {}", game.getId(), e.getMessage());
             case null, default -> {
               log.error("Game could not be joined", throwable);
               notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
@@ -505,6 +505,8 @@ public class GameRunner implements InitializingBean {
                                        Severity.INFO));
             killGame();
           }
+        } else if (throwable instanceof GameAlreadyStartingException) {
+          log.info("Matchmade game not started: {}", throwable.getMessage());
         } else {
           log.warn("Matchmade game could not be started", throwable);
         }
@@ -643,7 +645,9 @@ public class GameRunner implements InitializingBean {
   private void killGame() {
     synchronized (killLock) {
       CompletableFuture<Boolean> answer = pendingAnswer;
-      if (answer != null) {
+      // Only an unanswered question: after Return the game may already be started again, before the answer is cleared,
+      // and that game is destroyed below. A Return given meanwhile finds gameKilled under this lock and starts nothing.
+      if (answer != null && !answer.isDone()) {
         gameKilled = true;
         log.info("Game close requested while the question to return was open: leaving the match");
         answer.complete(false);

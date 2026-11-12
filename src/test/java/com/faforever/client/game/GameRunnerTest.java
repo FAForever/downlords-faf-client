@@ -284,12 +284,29 @@ public class GameRunnerTest extends ServiceTest {
     verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
     assertFalse(first.isDone());
 
-    // Once that game is over, its id can start a game again.
+    // Once that game is over, a game can start again.
     exitFuture.complete(process);
     first.get(5, java.util.concurrent.TimeUnit.SECONDS);
     when(process.onExit()).thenReturn(new CompletableFuture<>());
     instance.startOnlineGame(gameLaunchResponse);
     verify(iceAdapter, times(2)).start(anyInt(), anyBoolean());
+  }
+
+  @Test
+  public void anotherGamesLaunchResponseWhileAGameRunsStartsNothing() throws Exception {
+    GameLaunchResponse running = GameLaunchMessageBuilder.create().defaultValues().uid(1).get();
+    GameLaunchResponse late = GameLaunchMessageBuilder.create().defaultValues().uid(2).get();
+    mockStartGameProcess(running);
+    instance.startOnlineGame(running);
+
+    CompletableFuture<Void> refused = instance.startOnlineGame(late);
+
+    assertTrue(refused.isCompletedExceptionally());
+    verify(iceAdapter).prepare(running);
+    verify(iceAdapter, never()).prepare(late);
+    verify(iceAdapter).start(anyInt(), anyBoolean());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
+    assertTrue(instance.isRunning());
   }
 
   @Test
@@ -599,6 +616,42 @@ public class GameRunnerTest extends ServiceTest {
     while (!fxQueue.isEmpty()) {
       fxQueue.poll().run();
     }
+    assertFalse(instance.isRunning());
+  }
+
+  @Test
+  public void aKillRightAfterTheRestartBeforeTheAnswerIsClearedEndsTheRestartedGame() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    ImmediateNotification question = crashInAMatchThatCanBeRejoined(gameLaunchResponse);
+    List<String> rejoinArguments = List.of("/rejoin", "9=0", "1", "0");
+    when(iceAdapter.rejoinArguments()).thenReturn(rejoinArguments);
+    Process relaunched = mock(Process.class);
+    CompletableFuture<Process> relaunchedExit = new CompletableFuture<>();
+    when(relaunched.onExit()).thenReturn(relaunchedExit);
+    lenient().when(relaunched.isAlive()).thenReturn(true);
+    when(relaunched.exitValue()).thenReturn(1);
+    doAnswer(invocation -> {
+      relaunchedExit.complete(relaunched);
+      return null;
+    }).when(relaunched).destroy();
+    when(forgedAllianceLaunchService.relaunchOnlineGame(any(), eq(GPG_PORT), eq(rejoinArguments))).thenReturn(relaunched);
+    // The restart hands the new process to the FX thread while Return's answer is still being completed, before the
+    // answered question is cleared: the kill arrives then.
+    java.util.concurrent.atomic.AtomicBoolean killSent = new java.util.concurrent.atomic.AtomicBoolean();
+    doAnswer(invocation -> {
+      if (killSent.compareAndSet(false, true)) {
+        testNoticePublisher.next(new NoticeInfo("kill", "test"));
+      }
+      ((Runnable) invocation.getArgument(0)).run();
+      return null;
+    }).when(fxApplicationThreadExecutor).execute(any());
+
+    question.actions().get(0).run();
+
+    assertTrue(killSent.get());
+    verify(forgedAllianceLaunchService).relaunchOnlineGame(any(), eq(GPG_PORT), eq(rejoinArguments));
+    verify(relaunched).destroy();
+    verify(fafServerAccessor).notifyGameEnded();
     assertFalse(instance.isRunning());
   }
 
