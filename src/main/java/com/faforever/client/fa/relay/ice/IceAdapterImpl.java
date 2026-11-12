@@ -278,7 +278,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   private IceAdapterApi newIceAdapterProxy() {
     return (IceAdapterApi) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{IceAdapterApi.class},
-        (Object proxy, Method method, Object[] args) -> {
+                                                  (Object _, Method method, Object[] args) -> {
           if ("toString".equals(method.getName())) {
             return "ICE adapter proxy";
           }

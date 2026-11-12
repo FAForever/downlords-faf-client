@@ -69,7 +69,7 @@ class JsonRpcPeer implements AutoCloseable {
     CompletableFuture<JsonNode> response = new CompletableFuture<>();
     pendingRequests.put(id, response);
     response.orTimeout(REQUEST_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)
-        .whenComplete((result, throwable) -> pendingRequests.remove(id));
+            .whenComplete((_, _) -> pendingRequests.remove(id));
 
     ObjectNode request = objectMapper.createObjectNode()
         .put("jsonrpc", "2.0")
