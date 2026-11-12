@@ -129,16 +129,22 @@ public class DesyncReportsTest extends ServiceTest {
     forgedAlliancePrefs.setAskedSendDesyncReports(true);
     forgedAlliancePrefs.setSendDesyncReports(true);
     instance.deadlineMillis = 200;
-    // As when the request first waits for the client's sign-in.
+    // As when the request first waits for the client's sign-in: it doesn't return before the test ends.
+    java.util.concurrent.CountDownLatch signedIn = new java.util.concurrent.CountDownLatch(1);
     when(fafApiAccessor.postJsonForObject(eq("/ice/session/token"), any(), eq(DesyncReports.TokenResponse.class)))
         .thenAnswer(invocation -> {
-          Thread.sleep(3000);
+          signedIn.await(60, java.util.concurrent.TimeUnit.SECONDS);
           return Mono.just(new DesyncReports.TokenResponse("late"));
         });
 
-    long start = System.nanoTime();
-    assertEquals(List.of(), instance.prepare(42).get(2, java.util.concurrent.TimeUnit.SECONDS));
-    assertTrue(System.nanoTime() - start < 2_000_000_000L);
+    try {
+      // No arguments while the token request still waits: the deadline gave the answer, not the token. (Not timed by
+      // the clock: a parallel test thread may run other tests while it waits in get.)
+      assertEquals(List.of(), instance.prepare(42).get(20, java.util.concurrent.TimeUnit.SECONDS));
+      assertEquals(1, signedIn.getCount());
+    } finally {
+      signedIn.countDown();
+    }
   }
 
   @Test

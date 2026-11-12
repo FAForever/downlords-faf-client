@@ -656,6 +656,36 @@ public class GameRunnerTest extends ServiceTest {
   }
 
   @Test
+  public void aKillAnswersTheQuestionAfterTheRestartedGameCrashedAtOnce() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    ImmediateNotification question = crashInAMatchThatCanBeRejoined(gameLaunchResponse);
+    List<String> rejoinArguments = List.of("/rejoin", "9=0", "1", "0");
+    when(iceAdapter.rejoinArguments()).thenReturn(rejoinArguments);
+    // The restarted game has already crashed when it is watched: Return asks the question again at once, before
+    // the first answer's own callback has run.
+    Process relaunched = mock(Process.class);
+    when(relaunched.onExit()).thenReturn(completedFuture(relaunched));
+    when(relaunched.exitValue()).thenReturn(1);
+    lenient().when(relaunched.isAlive()).thenReturn(false);
+    when(forgedAllianceLaunchService.relaunchOnlineGame(any(), eq(GPG_PORT), eq(rejoinArguments))).thenReturn(relaunched);
+
+    question.actions().get(0).run();
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    ArgumentCaptor<CompletableFuture<Boolean>> answers = ArgumentCaptor.forClass((Class) CompletableFuture.class);
+    verify(notificationService, times(2)).addImmediateQuestion(any(), answers.capture());
+    CompletableFuture<Boolean> secondAnswer = answers.getAllValues().get(1);
+    assertFalse(secondAnswer.isDone());
+
+    testNoticePublisher.next(new NoticeInfo("kill", "test"));
+
+    assertEquals(Boolean.FALSE, secondAnswer.getNow(null));
+    verify(forgedAllianceLaunchService).relaunchOnlineGame(any(), anyInt(), any());
+    verify(fafServerAccessor).notifyGameEnded();
+    assertFalse(instance.isRunning());
+  }
+
+  @Test
   public void aLobbyReconnectWhileTheQuestionIsOpenRestoresTheSession() throws Exception {
     GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
     SimpleObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();

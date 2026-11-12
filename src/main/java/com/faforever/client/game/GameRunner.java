@@ -83,6 +83,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
@@ -145,8 +146,9 @@ public class GameRunner implements InitializingBean {
   // From a crash with the question to return open until the match ends for this client: the old session is still
   // up, so the game counts as running: no other game may start, and a lobby reconnect restores it.
   private final BooleanProperty returnPending = new SimpleBooleanProperty();
-  // The open question's answer, so a kill can answer it with Leave.
-  private volatile CompletableFuture<Boolean> pendingAnswer;
+  // The open question's answer, so a kill can answer it with Leave. A Return can ask again (the restarted game crashed
+  // at once) before the first answer's callback runs, so each answer clears only itself.
+  private final AtomicReference<CompletableFuture<Boolean>> pendingAnswer = new AtomicReference<>();
   // Orders a kill against a relaunch after a crash: either the kill comes first and nothing is relaunched, or the
   // relaunch comes first and the kill destroys the relaunched process.
   private final Object killLock = new Object();
@@ -321,8 +323,8 @@ public class GameRunner implements InitializingBean {
 
   private CompletableFuture<Boolean> askToReturnToMatch() {
     CompletableFuture<Boolean> answer = new CompletableFuture<>();
-    pendingAnswer = answer;
-    answer.whenComplete((_, _) -> pendingAnswer = null);
+    pendingAnswer.set(answer);
+    answer.whenComplete((_, _) -> pendingAnswer.compareAndSet(answer, null));
     notificationService.addImmediateQuestion(
         new ImmediateNotification(i18n.get("game.rejoin.title"), i18n.get("game.rejoin.text"), WARN,
                                   List.of(new Action(i18n.get("game.rejoin.return"), () -> answer.complete(true)),
@@ -644,7 +646,7 @@ public class GameRunner implements InitializingBean {
 
   private void killGame() {
     synchronized (killLock) {
-      CompletableFuture<Boolean> answer = pendingAnswer;
+      CompletableFuture<Boolean> answer = pendingAnswer.get();
       // Only an unanswered question: after Return the game may already be started again, before the answer is cleared,
       // and that game is destroyed below. A Return given meanwhile finds gameKilled under this lock and starts nothing.
       if (answer != null && !answer.isDone()) {
