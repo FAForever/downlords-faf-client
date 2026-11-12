@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -29,6 +30,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -138,10 +140,12 @@ public class DesyncReportsTest extends ServiceTest {
         });
 
     try {
-      // No arguments while the token request still waits: the deadline gave the answer, not the token. (Not timed by
-      // the clock: a parallel test thread may run other tests while it waits in get.)
-      assertEquals(List.of(), instance.prepare(42).get(20, java.util.concurrent.TimeUnit.SECONDS));
-      assertEquals(1, signedIn.getCount());
+      // The deadline (200 ms) answers while the token request still waits. get's limit is not a stopwatch: a parallel
+      // test thread may run other tests while it waits, but it fails only if the answer isn't there by then.
+      CompletableFuture<List<String>> arguments = instance.prepare(42);
+      assertEquals(List.of(), arguments.get(5, java.util.concurrent.TimeUnit.SECONDS));
+      verify(fafApiAccessor, timeout(5000)).postJsonForObject(eq("/ice/session/token"), any(),
+                                                               eq(DesyncReports.TokenResponse.class));
     } finally {
       signedIn.countDown();
     }

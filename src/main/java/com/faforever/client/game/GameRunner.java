@@ -142,7 +142,8 @@ public class GameRunner implements InitializingBean {
 
   private CompletableFuture<Void> matchmakerFuture;
   private CompletableFuture<Void> customGameFuture;
-  private boolean gameKilled;
+  // Written under killLock by a kill, read on the threads that see the game exit and the question answered.
+  private volatile boolean gameKilled;
   // From a crash with the question to return open until the match ends for this client: the old session is still
   // up, so the game counts as running: no other game may start, and a lobby reconnect restores it.
   private final BooleanProperty returnPending = new SimpleBooleanProperty();

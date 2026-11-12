@@ -686,6 +686,42 @@ public class GameRunnerTest extends ServiceTest {
   }
 
   @Test
+  public void aKillAfterASecondReturnEndsTheGameStartedLast() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    ImmediateNotification question = crashInAMatchThatCanBeRejoined(gameLaunchResponse);
+    List<String> rejoinArguments = List.of("/rejoin", "9=0", "1", "0");
+    when(iceAdapter.rejoinArguments()).thenReturn(rejoinArguments);
+    // The first restart crashes at once; the second one runs until it is killed.
+    Process crashedAgain = mock(Process.class);
+    when(crashedAgain.onExit()).thenReturn(completedFuture(crashedAgain));
+    when(crashedAgain.exitValue()).thenReturn(1);
+    lenient().when(crashedAgain.isAlive()).thenReturn(false);
+    Process lastStarted = mock(Process.class);
+    CompletableFuture<Process> lastExit = new CompletableFuture<>();
+    when(lastStarted.onExit()).thenReturn(lastExit);
+    lenient().when(lastStarted.isAlive()).thenReturn(true);
+    when(lastStarted.exitValue()).thenReturn(1);
+    doAnswer(invocation -> {
+      lastExit.complete(lastStarted);
+      return null;
+    }).when(lastStarted).destroy();
+    when(forgedAllianceLaunchService.relaunchOnlineGame(any(), eq(GPG_PORT), eq(rejoinArguments)))
+        .thenReturn(crashedAgain, lastStarted);
+
+    question.actions().get(0).run();
+    ArgumentCaptor<ImmediateNotification> questions = ArgumentCaptor.forClass(ImmediateNotification.class);
+    verify(notificationService, times(2)).addImmediateQuestion(questions.capture(), any());
+    questions.getAllValues().get(1).actions().get(0).run();
+
+    testNoticePublisher.next(new NoticeInfo("kill", "test"));
+
+    verify(forgedAllianceLaunchService, times(2)).relaunchOnlineGame(any(), anyInt(), any());
+    verify(lastStarted).destroy();
+    verify(fafServerAccessor).notifyGameEnded();
+    assertFalse(instance.isRunning());
+  }
+
+  @Test
   public void aLobbyReconnectWhileTheQuestionIsOpenRestoresTheSession() throws Exception {
     GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
     SimpleObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();
