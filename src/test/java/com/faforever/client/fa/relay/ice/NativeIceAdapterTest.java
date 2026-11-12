@@ -132,25 +132,29 @@ public class NativeIceAdapterTest extends ServiceTest {
     return bytes;
   }
 
-  private int readInt() throws IOException {
-    return Integer.reverseBytes(fromClient.readInt());
+  private static int readInt(DataInputStream in) throws IOException {
+    return Integer.reverseBytes(in.readInt());
   }
 
-  private String readString() throws IOException {
-    byte[] bytes = new byte[readInt()];
-    fromClient.readFully(bytes);
+  private static String readString(DataInputStream in) throws IOException {
+    byte[] bytes = new byte[readInt(in)];
+    in.readFully(bytes);
     return new String(bytes, StandardCharsets.UTF_8);
   }
 
-  private List<Object> readMessage() throws IOException {
-    game.setSoTimeout(WAIT_MILLIS);
+  private static List<Object> readMessage(Socket socket, DataInputStream in) throws IOException {
+    socket.setSoTimeout(WAIT_MILLIS);
     List<Object> message = new ArrayList<>();
-    message.add(readString());
-    int argCount = readInt();
+    message.add(readString(in));
+    int argCount = readInt(in);
     for (int i = 0; i < argCount; i++) {
-      message.add(fromClient.readByte() == 0 ? (Object) readInt() : readString());
+      message.add(in.readByte() == 0 ? (Object) readInt(in) : readString(in));
     }
     return message;
+  }
+
+  private List<Object> readMessage() throws IOException {
+    return readMessage(game, fromClient);
   }
 
   @Test
@@ -533,7 +537,12 @@ public class NativeIceAdapterTest extends ServiceTest {
     int port = adapter.start(2002, false).get();
     try (Socket other = new Socket(InetAddress.getLoopbackAddress(), port)) {
       DataInputStream in = new DataInputStream(other.getInputStream());
-      other.setSoTimeout(500);
+      // The connection to the game works first: Idle gets the lobby setup back, so a frame from the list below
+      // would arrive.
+      other.getOutputStream().write(frame("GameState", "Idle"));
+      other.getOutputStream().flush();
+      assertEquals(List.of("IceServers", "[]"), readMessage(other, in));
+      assertEquals("CreateLobby", readMessage(other, in).get(0));
 
       CoturnServer server = new CoturnServer();
       server.setUsername("0:1234");
@@ -541,6 +550,7 @@ public class NativeIceAdapterTest extends ServiceTest {
       server.setUrls(java.util.Set.of(java.net.URI.create("turn://relay.example:3478")));
       adapter.setIceServers(List.of(server));
 
+      other.setSoTimeout(500);
       assertThrows(SocketTimeoutException.class, in::readInt);
     } finally {
       adapter.stop();

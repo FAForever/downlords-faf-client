@@ -74,6 +74,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -262,6 +263,56 @@ public class GameRunnerTest extends ServiceTest {
     assertFalse(instance.isRunning());
     assertNull(instance.getRunningProcessId());
     assertNull(instance.getRunningGame());
+  }
+
+  @Test
+  public void twoRequestsGivenTheSameLaunchResponseStartTheGameOnce() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    mockStartGameProcess(gameLaunchResponse);
+    CompletableFuture<Process> exitFuture = new CompletableFuture<>();
+    when(process.onExit()).thenReturn(exitFuture);
+
+    CompletableFuture<Void> first = instance.startOnlineGame(gameLaunchResponse);
+    CompletableFuture<Void> second = instance.startOnlineGame(gameLaunchResponse);
+
+    java.util.concurrent.ExecutionException refused =
+        assertThrows(java.util.concurrent.ExecutionException.class, () -> second.get(5, java.util.concurrent.TimeUnit.SECONDS));
+    org.junit.jupiter.api.Assertions.assertInstanceOf(GameRunner.GameAlreadyStartingException.class, refused.getCause());
+    verify(iceAdapter).prepare(gameLaunchResponse);
+    verify(iceAdapter).start(anyInt(), anyBoolean());
+    verify(replayServer).start(anyInt());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
+    assertFalse(first.isDone());
+
+    // Once that game is over, its id can start a game again.
+    exitFuture.complete(process);
+    first.get(5, java.util.concurrent.TimeUnit.SECONDS);
+    when(process.onExit()).thenReturn(new CompletableFuture<>());
+    instance.startOnlineGame(gameLaunchResponse);
+    verify(iceAdapter, times(2)).start(anyInt(), anyBoolean());
+  }
+
+  @Test
+  public void aHostRequestWhoseGameAnotherRequestStartedShowsNoError() throws Exception {
+    NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
+    mockHostGame(newGameInfo);
+    // Both requests wait for the server, which answers once: both get that answer.
+    CompletableFuture<GameLaunchResponse> launchResponse = new CompletableFuture<>();
+    when(fafServerAccessor.requestHostGame(any())).thenReturn(launchResponse);
+
+    instance.host(newGameInfo);
+    instance.host(newGameInfo);
+    launchResponse.complete(GameLaunchMessageBuilder.create()
+                                                   .defaultValues()
+                                                   .featuredMod(newGameInfo.featuredModName())
+                                                   .mapName(newGameInfo.map())
+                                                   .gameType(GameType.CUSTOM)
+                                                   .get());
+
+    verify(fafServerAccessor, times(2)).requestHostGame(newGameInfo);
+    verify(iceAdapter).start(anyInt(), anyBoolean());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
+    verify(notificationService, never()).addImmediateErrorNotification(any(), anyString());
   }
 
   private ImmediateNotification crashInAMatchThatCanBeRejoined(GameLaunchResponse gameLaunchResponse) throws Exception {
@@ -526,19 +577,29 @@ public class GameRunnerTest extends ServiceTest {
     Process relaunched = mock(Process.class);
     CompletableFuture<Process> relaunchedExit = new CompletableFuture<>();
     when(relaunched.onExit()).thenReturn(relaunchedExit);
-    when(relaunched.isAlive()).thenReturn(true);
+    lenient().when(relaunched.isAlive()).thenReturn(true);
     when(relaunched.exitValue()).thenReturn(1);
     doAnswer(invocation -> {
       relaunchedExit.complete(relaunched);
       return null;
     }).when(relaunched).destroy();
     when(forgedAllianceLaunchService.relaunchOnlineGame(any(), eq(GPG_PORT), eq(rejoinArguments))).thenReturn(relaunched);
+    // From here the FX thread lags: the `process` property still holds the crashed game when the kill arrives.
+    java.util.Deque<Runnable> fxQueue = new java.util.ArrayDeque<>();
+    doAnswer(invocation -> fxQueue.add(invocation.getArgument(0))).when(fxApplicationThreadExecutor).execute(any());
     question.actions().get(0).run();
+    verify(forgedAllianceLaunchService).relaunchOnlineGame(any(), eq(GPG_PORT), eq(rejoinArguments));
+    assertFalse(fxQueue.isEmpty());
 
     testNoticePublisher.next(new NoticeInfo("kill", "test"));
 
     verify(relaunched).destroy();
+    verify(process, never()).destroy();
     verify(fafServerAccessor).notifyGameEnded();
+    while (!fxQueue.isEmpty()) {
+      fxQueue.poll().run();
+    }
+    assertFalse(instance.isRunning());
   }
 
   @Test
