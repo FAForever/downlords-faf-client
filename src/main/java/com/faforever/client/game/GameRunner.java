@@ -140,6 +140,7 @@ public class GameRunner implements InitializingBean {
   private final ReadOnlyObjectWrapper<Long> pid = new ReadOnlyObjectWrapper<>();
 
   private CompletableFuture<Void> matchmakerFuture;
+  private CompletableFuture<Void> customGameFuture;
   private boolean gameKilled;
   private final AtomicReference<RejoinRequest> rejoinRequest = new AtomicReference<>();
 
@@ -197,9 +198,12 @@ public class GameRunner implements InitializingBean {
     CompletableFuture<Void> downloadMapFuture = mapFolderName == null ? completedFuture(
         null) : mapService.downloadIfNecessary(mapFolderName).toFuture();
 
-    CompletableFuture<League> loadLeagueInfoFuture = hasLeague ? completedFuture(null) : taskService.submitFutureTask("league.loadInfo", () -> getDivisionInfo(leaderboard).toFuture());
-    CompletableFuture<Integer> runReplayServerFuture = taskService.submitFutureTask("replayServer.connecting", () -> replayServer.start(uid));
-    CompletableFuture<Integer> runIceAdapterFuture = taskService.submitFutureTask("iceAdapter.connecting", () -> startIceAdapter(uid));
+    CompletableFuture<League> loadLeagueInfoFuture = hasLeague ? completedFuture(null) : taskService.submitFutureTask(
+        "league.loadInfo", () -> getDivisionInfo(leaderboard).toFuture());
+    CompletableFuture<Integer> runReplayServerFuture = taskService.submitFutureTask("replayServer.connecting",
+                                                                                    () -> replayServer.start(uid));
+    CompletableFuture<Integer> runIceAdapterFuture = taskService.submitFutureTask("iceAdapter.connecting",
+                                                                                  () -> startIceAdapter(uid));
 
     return CompletableFuture.allOf(downloadMapFuture, loadLeagueInfoFuture, runReplayServerFuture, runIceAdapterFuture)
                             .thenApply(_ -> gameMapper.map(gameLaunchResponse, loadLeagueInfoFuture.join()))
@@ -241,6 +245,10 @@ public class GameRunner implements InitializingBean {
   }
 
   public void host(NewGameInfo newGameInfo) {
+    if (customGameFuture != null) {
+      customGameFuture.cancel(true);
+    }
+
     if (isRunning()) {
       log.info("Game is running, ignoring host request");
       notificationService.addImmediateWarnNotification("game.gameRunning");
@@ -257,17 +265,22 @@ public class GameRunner implements InitializingBean {
       return;
     }
 
-    prepareAndLaunchGameWhenReady(newGameInfo.featuredModName(), newGameInfo.simMods(), newGameInfo.map(),
-                                  () -> fafServerAccessor.requestHostGame(newGameInfo)).exceptionally(throwable -> {
-      throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-      log.error("Game could not be hosted", throwable);
-      if (throwable instanceof NotifiableException notifiableException) {
-        notificationService.addErrorNotification(notifiableException);
-      } else {
-        notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
-      }
-      return null;
-    });
+    customGameFuture = prepareAndLaunchGameWhenReady(newGameInfo.featuredModName(), newGameInfo.simMods(),
+                                                     newGameInfo.map(),
+                                                     () -> fafServerAccessor.requestHostGame(newGameInfo)
+                                                                            .orTimeout(2,
+                                                                                       TimeUnit.MINUTES)).exceptionally(
+        throwable -> {
+          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+          log.error("Game could not be hosted", throwable);
+          switch (throwable) {
+            case NotifiableException notifiableException ->
+                notificationService.addErrorNotification(notifiableException);
+            case CancellationException e -> log.info("Hosting Game cancelled");
+            case null, default -> notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
+          }
+          return null;
+        });
   }
 
   public void join(GameInfo gameInfo) {
@@ -275,6 +288,10 @@ public class GameRunner implements InitializingBean {
   }
 
   private void join(GameInfo game, String password, boolean ignoreRating) {
+    if (customGameFuture != null) {
+      customGameFuture.cancel(true);
+    }
+
     if (isRunning()) {
       log.info("Game is running, ignoring join request");
       notificationService.addImmediateWarnNotification("game.gameRunning");
@@ -312,19 +329,22 @@ public class GameRunner implements InitializingBean {
     Set<String> simModUIds = game.getSimMods().keySet();
     RejoinRequest joinRequest = new RejoinRequest(game.getId(),
                                                   () -> fafServerAccessor.requestJoinGame(game.getId(), password));
-    prepareAndLaunchGameWhenReady(game.getFeaturedMod(), simModUIds, game.getMapFolderName(), () -> {
+    customGameFuture = prepareAndLaunchGameWhenReady(game.getFeaturedMod(), simModUIds, game.getMapFolderName(), () -> {
       rejoinRequest.set(joinRequest);
-      return joinRequest.request().get();
+      return joinRequest.request().get().orTimeout(2, TimeUnit.MINUTES);
     }).whenComplete((_, _) -> {
       // Whether the game has exited or was never launched, this join is over. Leave the request of a newer game alone.
       rejoinRequest.compareAndSet(joinRequest, null);
     }).exceptionally(
         throwable -> {
-          if (throwable.getCause() instanceof GameJoinFailedException e) {
-            log.warn("Game with id '{}' could not be joined. Reason: {}", e.getGameId(), e.getFailureReason(), e);
-          } else {
-            log.error("Game could not be joined", throwable);
-            notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
+          switch (ConcurrentUtil.unwrapIfCompletionException(throwable)) {
+            case GameJoinFailedException e ->
+                log.warn("Game with id '{}' could not be joined. Reason: {}", e.getGameId(), e.getFailureReason(), e);
+            case CancellationException e -> log.info("Joining Game with id '{}' cancelled", game.getId());
+            case null, default -> {
+              log.error("Game could not be joined", throwable);
+              notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
+            }
           }
           return null;
         });
