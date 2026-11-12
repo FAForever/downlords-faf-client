@@ -82,6 +82,7 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
@@ -151,6 +152,10 @@ public class GameRunner implements InitializingBean {
   private final Object killLock = new Object();
   // The relaunched game's process, set under killLock; the process property follows on the FX thread.
   private Process relaunchedProcess;
+  // The games started from a launch response, until each is over. Requests waiting for a launch response all get the
+  // same one (a second host or join before the server answered the first), and the game and its network adapter must
+  // start only once for it: a second start would close the first one's connection.
+  private final Set<Integer> launchingGameIds = ConcurrentHashMap.newKeySet();
   private GameParameters launchedParameters;
   private int launchedGpgPort;
   @VisibleForTesting
@@ -202,8 +207,32 @@ public class GameRunner implements InitializingBean {
     return running.getReadOnlyProperty();
   }
 
+  /** A launch response for a game that another request already started; it starts nothing more. */
+  static final class GameAlreadyStartingException extends IllegalStateException {
+    GameAlreadyStartingException(int uid) {
+      super("Game " + uid + " is already being started by another request");
+    }
+  }
+
   @VisibleForTesting
   CompletableFuture<Void> startOnlineGame(GameLaunchResponse gameLaunchResponse) {
+    int uid = gameLaunchResponse.getUid();
+    if (!launchingGameIds.add(uid)) {
+      GameAlreadyStartingException refused = new GameAlreadyStartingException(uid);
+      log.info(refused.getMessage());
+      return CompletableFuture.failedFuture(refused);
+    }
+    CompletableFuture<Void> game;
+    try {
+      game = launchGame(gameLaunchResponse);
+    } catch (RuntimeException e) {
+      launchingGameIds.remove(uid);
+      throw e;
+    }
+    return game.whenComplete((_, _) -> launchingGameIds.remove(uid));
+  }
+
+  private CompletableFuture<Void> launchGame(GameLaunchResponse gameLaunchResponse) {
     int uid = gameLaunchResponse.getUid();
     iceAdapter.prepare(gameLaunchResponse);
     String leaderboard = gameLaunchResponse.getLeaderboard();
@@ -356,6 +385,7 @@ public class GameRunner implements InitializingBean {
             case NotifiableException notifiableException ->
                 notificationService.addErrorNotification(notifiableException);
             case CancellationException e -> log.info("Hosting Game cancelled");
+            case GameAlreadyStartingException e -> log.info("Hosted game is started by another request");
             case null, default -> notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
           }
           return null;
@@ -415,6 +445,8 @@ public class GameRunner implements InitializingBean {
             case GameJoinFailedException e ->
                 log.warn("Game with id '{}' could not be joined. Reason: {}", e.getGameId(), e.getFailureReason(), e);
             case CancellationException e -> log.info("Joining Game with id '{}' cancelled", game.getId());
+            case GameAlreadyStartingException e ->
+                log.info("Game with id '{}' is started by another request", game.getId());
             case null, default -> {
               log.error("Game could not be joined", throwable);
               notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
