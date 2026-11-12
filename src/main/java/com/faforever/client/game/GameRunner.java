@@ -46,6 +46,7 @@ import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.lobby.GameJoinFailedException;
 import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.NoticeInfo;
 import com.google.common.annotations.VisibleForTesting;
 import jakarta.annotation.Nullable;
@@ -79,6 +80,7 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
@@ -122,6 +124,13 @@ public class GameRunner implements InitializingBean {
   private final LogAnalyzerService logAnalyzerService;
   private final TaskService taskService;
 
+  private static final int REJOIN_TIMEOUT_SECONDS = 10;
+
+  /**
+   * The request that joined a game, kept so that it can be sent again for that same game.
+   */
+  private record RejoinRequest(int gameId, Supplier<CompletableFuture<GameLaunchResponse>> request) {}
+
   private final MaskPatternLayout logMasker = new MaskPatternLayout();
   private final SimpleObjectProperty<Integer> runningGameId = new SimpleObjectProperty<>();
   private final ObjectProperty<Process> process = new SimpleObjectProperty<>();
@@ -133,6 +142,7 @@ public class GameRunner implements InitializingBean {
   private CompletableFuture<Void> matchmakerFuture;
   private CompletableFuture<Void> customGameFuture;
   private boolean gameKilled;
+  private final AtomicReference<RejoinRequest> rejoinRequest = new AtomicReference<>();
 
   @Override
   public void afterPropertiesSet() {
@@ -317,10 +327,15 @@ public class GameRunner implements InitializingBean {
     log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
 
     Set<String> simModUIds = game.getSimMods().keySet();
-    customGameFuture = prepareAndLaunchGameWhenReady(game.getFeaturedMod(), simModUIds, game.getMapFolderName(),
-                                                     () -> fafServerAccessor.requestJoinGame(game.getId(), password)
-                                                                            .orTimeout(2,
-                                                                                       TimeUnit.MINUTES)).exceptionally(
+    RejoinRequest joinRequest = new RejoinRequest(game.getId(),
+                                                  () -> fafServerAccessor.requestJoinGame(game.getId(), password));
+    customGameFuture = prepareAndLaunchGameWhenReady(game.getFeaturedMod(), simModUIds, game.getMapFolderName(), () -> {
+      rejoinRequest.set(joinRequest);
+      return joinRequest.request().get().orTimeout(2, TimeUnit.MINUTES);
+    }).whenComplete((_, _) -> {
+      // Whether the game has exited or was never launched, this join is over. Leave the request of a newer game alone.
+      rejoinRequest.compareAndSet(joinRequest, null);
+    }).exceptionally(
         throwable -> {
           switch (ConcurrentUtil.unwrapIfCompletionException(throwable)) {
             case GameJoinFailedException e ->
@@ -517,6 +532,49 @@ public class GameRunner implements InitializingBean {
     });
   }
 
+
+  /**
+   * Asks the server to let the already running game join its lobby again. The server gives up on a game that takes too
+   * long to start and from then on ignores it. To the server a new join request followed by the game's state messages
+   * looks like any other join, so this gets the game connected without having to restart it.
+   *
+   * @return empty if there is no joined game running or if this has already been tried for it
+   */
+  public Optional<CompletableFuture<Void>> rejoinRunningGame() {
+    RejoinRequest request = rejoinRequest.getAndSet(null);
+    Process gameProcess = process.get();
+    if (request == null || gameProcess == null || !gameProcess.isAlive()) {
+      return Optional.empty();
+    }
+
+    if (!Objects.equals(runningGameId.get(), request.gameId())) {
+      // The request was saved by a join other than the one that launched the running game
+      log.warn("Not joining again as the saved request is for game '{}' but game '{}' is running", request.gameId(),
+               runningGameId.get());
+      return Optional.empty();
+    }
+
+    log.info("Requesting to join the game again for the already running game");
+    return Optional.of(request.request().get().orTimeout(REJOIN_TIMEOUT_SECONDS, TimeUnit.SECONDS).thenRun(() -> {
+      if (process.get() != gameProcess || !gameProcess.isAlive()) {
+        log.info("The game was closed while waiting for the server, not sending its state");
+        return;
+      }
+      fafServerAccessor.sendGpgMessage(GpgGameOutboundMessage.Companion.gameStateMessage("Idle"));
+      fafServerAccessor.sendGpgMessage(GpgGameOutboundMessage.Companion.gameStateMessage("Lobby"));
+    }));
+  }
+
+  /**
+   * Closes the running game, but only if it is the process with the given id. This keeps an action that was offered
+   * for one game from closing another one that has been started since.
+   */
+  public void killGame(long processId) {
+    Process gameProcess = process.get();
+    if (gameProcess != null && gameProcess.pid() == processId) {
+      killGame();
+    }
+  }
 
   private void killGame() {
     if (isRunning()) {

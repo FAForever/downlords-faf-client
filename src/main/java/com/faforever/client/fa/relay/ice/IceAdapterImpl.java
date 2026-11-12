@@ -4,6 +4,7 @@ import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.GameFullNotifier;
+import com.faforever.client.fa.GameLobbyWatchdog;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsUtils;
@@ -68,6 +69,8 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private final ObjectFactory<IceAdapterCallbacks> iceAdapterCallbacksFactory;
   @Lazy
   private final GameFullNotifier gameFullNotifier;
+  @Lazy
+  private final GameLobbyWatchdog gameLobbyWatchdog;
   private final ClientProperties clientProperties;
   private final IceService iceService;
 
@@ -124,6 +127,10 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     if (command.equals("GameFull")) {
       gameFullNotifier.onGameFull();
       return;
+    }
+
+    if (command.equals("GameState") && !message.getArgs().isEmpty() && "Lobby".equals(message.getArgs().getFirst())) {
+      gameLobbyWatchdog.onGameEnteredLobby();
     }
 
     fafServerAccessor.sendGpgMessage(message);

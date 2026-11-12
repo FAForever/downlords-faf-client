@@ -6,6 +6,7 @@ import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.GameFullNotifier;
+import com.faforever.client.fa.GameLobbyWatchdog;
 import com.faforever.client.game.GameService;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.mapstruct.MapperSetup;
@@ -39,6 +40,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,6 +59,8 @@ public class IceAdapterImplTest extends ServiceTest {
   private FafServerAccessor fafServerAccessor;
   @Mock
   private GameFullNotifier gameFullNotifier;
+  @Mock
+  private GameLobbyWatchdog gameLobbyWatchdog;
   @Mock
   private GameService gameService;
   @Mock
@@ -93,6 +97,16 @@ public class IceAdapterImplTest extends ServiceTest {
 
     GpgGameOutboundMessage message = new GpgGameOutboundMessage("Test", List.of(), MessageTarget.GAME);
     instance.onGpgGameMessage(message);
+    verify(fafServerAccessor).sendGpgMessage(message);
+    verify(gameLobbyWatchdog, never()).onGameEnteredLobby();
+  }
+
+  @Test
+  public void onGpgGameMessageLobbyStateStartsWatchdog() throws Exception {
+    GpgGameOutboundMessage message = new GpgGameOutboundMessage("GameState", List.of("Lobby"), MessageTarget.GAME);
+    instance.onGpgGameMessage(message);
+
+    verify(gameLobbyWatchdog).onGameEnteredLobby();
     verify(fafServerAccessor).sendGpgMessage(message);
   }
 
