@@ -1,6 +1,7 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.domain.api.FeaturedMod;
+import com.faforever.client.fa.RebuiltEngineExecutable;
 import com.faforever.client.featuredmod.FeaturedModService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ChecksumMismatchException;
@@ -137,7 +138,11 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
       // Make a copy of the currently installed ForgedAlliance.exe
       Files.copy(targetPath, tempFile, StandardCopyOption.REPLACE_EXISTING);
       int version = Integer.parseInt(featuredModFile.getVersion());
-      ForgedAllianceExePatcher.patchVersion(tempFile, version);
+      if (RebuiltEngineExecutable.isRebuiltEngine(tempFile)) {
+        log.debug("Not writing the version into `{}`: the rebuilt engine reads it from the game files", tempFile);
+      } else {
+        ForgedAllianceExePatcher.patchVersion(tempFile, version);
+      }
 
       if (fileAlreadyLoaded(featuredModFile, tempFile)) {
         // Hash matches so use the patched version

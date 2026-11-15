@@ -58,7 +58,7 @@ public class DownloadService {
       // want to be running unverified executables!
       String checksum = HexFormat.of().formatHex(messageDigest.digest()).toLowerCase();
       if (!Objects.equals(md5sum, checksum)) {
-        throw new ChecksumMismatchException(url, checksum, md5sum);
+        throw new ChecksumMismatchException(url, md5sum, checksum);
       }
 
       Files.move(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
