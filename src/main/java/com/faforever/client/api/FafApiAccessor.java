@@ -195,6 +195,13 @@ public class FafApiAccessor implements InitializingBean {
         .bodyValue(request)).doOnSuccess(aVoid -> log.trace("Posted {} to {}", request, endpointPath));
   }
 
+  public <T, R> Mono<R> postJsonForObject(String endpointPath, T request, Class<R> responseType) {
+    return retrieveMonoWithErrorHandling(responseType, apiWebClient.post()
+                                                                   .uri(endpointPath)
+                                                                   .contentType(MediaType.APPLICATION_JSON)
+                                                                   .bodyValue(request));
+  }
+
   public <T> Mono<Void> postJson(String endpointPath, T request) {
     return retrieveMonoWithErrorHandling(Void.class, apiWebClient.post()
                                                                  .uri(endpointPath)
