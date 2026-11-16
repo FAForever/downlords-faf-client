@@ -54,6 +54,7 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -81,6 +82,7 @@ import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -197,7 +199,7 @@ public class GameRunnerTest extends ServiceTest {
     if (mapName != null) {
       lenient().when(mapService.downloadIfNecessary(any())).thenReturn(Mono.empty());
     }
-    lenient().when(forgedAllianceLaunchService.launchOnlineGame(any(), anyInt(), anyInt())).thenReturn(process);
+    lenient().when(forgedAllianceLaunchService.launchOnlineGame(any(), anyInt(), anyInt(), any())).thenReturn(process);
     lenient().when(replayServer.start(anyInt())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     lenient().when(iceAdapter.start(anyInt(), anyBoolean())).thenReturn(completedFuture(GPG_PORT));
     lenient().when(coturnService.getIceSession(anyInt()))
@@ -215,6 +217,22 @@ public class GameRunnerTest extends ServiceTest {
   }
 
   @Test
+  public void testTheNetworkIsPreparedFirstAndItsArgumentsReachTheGame() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    mockStartGameProcess(gameLaunchResponse);
+    when(process.onExit()).thenReturn(new CompletableFuture<>());
+    when(iceAdapter.gameArguments()).thenReturn(List.of("/nativenet"));
+
+    instance.startOnlineGame(gameLaunchResponse);
+
+    InOrder inOrder = inOrder(iceAdapter);
+    inOrder.verify(iceAdapter).prepare(gameLaunchResponse);
+    inOrder.verify(iceAdapter).start(anyInt(), anyBoolean());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), eq(GPG_PORT), eq(LOCAL_REPLAY_PORT),
+                                                         eq(List.of("/nativenet")));
+  }
+
+  @Test
   public void testStartOnlineGlobalGame() throws Exception {
     GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
     mockStartGameProcess(gameLaunchResponse);
@@ -226,7 +244,7 @@ public class GameRunnerTest extends ServiceTest {
     instance.startOnlineGame(gameLaunchResponse);
 
     ArgumentCaptor<GameParameters> captor = ArgumentCaptor.forClass(GameParameters.class);
-    verify(forgedAllianceLaunchService).launchOnlineGame(captor.capture(), eq(GPG_PORT), eq(LOCAL_REPLAY_PORT));
+    verify(forgedAllianceLaunchService).launchOnlineGame(captor.capture(), eq(GPG_PORT), eq(LOCAL_REPLAY_PORT), any());
     GameParameters gameParameters = captor.getValue();
     Integer uid = gameParameters.uid();
 
@@ -271,7 +289,7 @@ public class GameRunnerTest extends ServiceTest {
     instance.startOnlineGame(gameLaunchResponse);
 
     ArgumentCaptor<GameParameters> captor = ArgumentCaptor.forClass(GameParameters.class);
-    verify(forgedAllianceLaunchService).launchOnlineGame(captor.capture(), eq(GPG_PORT), eq(LOCAL_REPLAY_PORT));
+    verify(forgedAllianceLaunchService).launchOnlineGame(captor.capture(), eq(GPG_PORT), eq(LOCAL_REPLAY_PORT), any());
     GameParameters gameParameters = captor.getValue();
 
     verify(leaderboardService).getActiveLeagueEntryForPlayer(any(), eq(gameParameters.leaderboard()));
@@ -296,7 +314,7 @@ public class GameRunnerTest extends ServiceTest {
     instance.startOnlineGame(gameLaunchResponse);
 
     ArgumentCaptor<GameParameters> captor = ArgumentCaptor.forClass(GameParameters.class);
-    verify(forgedAllianceLaunchService).launchOnlineGame(captor.capture(), eq(GPG_PORT), eq(LOCAL_REPLAY_PORT));
+    verify(forgedAllianceLaunchService).launchOnlineGame(captor.capture(), eq(GPG_PORT), eq(LOCAL_REPLAY_PORT), any());
     GameParameters gameParameters = captor.getValue();
 
     verify(leaderboardService).getActiveLeagueEntryForPlayer(any(), eq(gameParameters.leaderboard()));
@@ -447,7 +465,7 @@ public class GameRunnerTest extends ServiceTest {
 
     instance.join(game);
 
-    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
     verify(fafServerAccessor).requestJoinGame(anyInt(), any());
   }
 
@@ -462,7 +480,7 @@ public class GameRunnerTest extends ServiceTest {
     instance.join(game);
 
     verify(notificationService).addImmediateWarnNotification(anyString());
-    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
     verify(fafServerAccessor).requestJoinGame(eq(game.getId()), any());
   }
 
@@ -483,7 +501,7 @@ public class GameRunnerTest extends ServiceTest {
     when(preferencesService.hasValidGamePath()).thenReturn(true);
     pathChosenFuture.complete(null);
 
-    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
     verify(fafServerAccessor).requestJoinGame(anyInt(), any());
   }
 
@@ -560,7 +578,7 @@ public class GameRunnerTest extends ServiceTest {
     PasswordEnteredListener listener = captor.getValue();
     listener.onPasswordEntered(game, "test", false);
 
-    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
     verify(fafServerAccessor).requestJoinGame(game.getId(), "test");
   }
 
@@ -589,7 +607,7 @@ public class GameRunnerTest extends ServiceTest {
     instance.host(newGameInfo);
 
     verify(fafServerAccessor).requestHostGame(newGameInfo);
-    verify(forgedAllianceLaunchService).launchOnlineGame(any(), eq(GPG_PORT), eq(LOCAL_REPLAY_PORT));
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), eq(GPG_PORT), eq(LOCAL_REPLAY_PORT), any());
   }
 
   @Test
@@ -602,7 +620,7 @@ public class GameRunnerTest extends ServiceTest {
     instance.host(newGameInfo);
 
     verify(notificationService).addImmediateWarnNotification(anyString());
-    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
     verify(fafServerAccessor).requestHostGame(newGameInfo);
   }
 
@@ -622,7 +640,7 @@ public class GameRunnerTest extends ServiceTest {
     when(preferencesService.hasValidGamePath()).thenReturn(true);
     pathChosenFuture.complete(null);
 
-    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
     verify(fafServerAccessor).requestHostGame(newGameInfo);
   }
 
@@ -654,7 +672,7 @@ public class GameRunnerTest extends ServiceTest {
     instance.startSearchMatchmaker();
 
     verify(fafServerAccessor).startSearchMatchmaker();
-    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
   }
 
   @Test
@@ -666,7 +684,7 @@ public class GameRunnerTest extends ServiceTest {
     instance.startSearchMatchmaker();
 
     verify(notificationService).addImmediateWarnNotification(anyString());
-    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
     verify(fafServerAccessor).startSearchMatchmaker();
   }
 
@@ -685,7 +703,7 @@ public class GameRunnerTest extends ServiceTest {
     when(preferencesService.hasValidGamePath()).thenReturn(true);
     pathChosenFuture.complete(null);
 
-    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
     verify(fafServerAccessor).startSearchMatchmaker();
   }
 

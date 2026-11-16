@@ -178,6 +178,7 @@ public class SettingsController extends NodeController<Node> {
   public CheckBox mapAndModAutoUpdateCheckBox;
   public ListView<IceServer> preferredCoturnListView;
   public CheckBox forceAffinityToggle;
+  public CheckBox useNativeNetworkToggle;
 
   private final SimpleChangeListener<Theme> selectedThemeChangeListener = this::onThemeChanged;
   private final SimpleChangeListener<Theme> currentThemeChangeListener = newValue -> themeComboBox.getSelectionModel()
@@ -323,6 +324,7 @@ public class SettingsController extends NodeController<Node> {
                                  .bindBidirectional(forgedAlliancePrefs.useIceAdapterPreReleaseProperty());
     forceAffinityToggle.selectedProperty()
                        .bindBidirectional(forgedAlliancePrefs.forceAffinityProperty());
+    useNativeNetworkToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.useNativeNetworkProperty());
     vaultLocationTextField.textProperty()
         .bindBidirectional(forgedAlliancePrefs.vaultBaseDirectoryProperty(), PATH_STRING_CONVERTER);
     JavaFxUtil.addAndTriggerListener(vaultLocationTextField.textProperty(), (observable) ->

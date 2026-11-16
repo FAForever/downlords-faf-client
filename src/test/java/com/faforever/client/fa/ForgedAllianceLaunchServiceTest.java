@@ -51,7 +51,7 @@ public class ForgedAllianceLaunchServiceTest extends ServiceTest {
   public void testStartGameOnline() throws Exception {
     when(playerService.getCurrentPlayer()).thenReturn(PlayerInfoBuilder.create().defaultValues().get());
     GameParameters gameParameters = GameParametersBuilder.create().defaultValues().get();
-    assertThrows(GameLaunchException.class, () -> instance.launchOnlineGame(gameParameters, 0, 0));
+    assertThrows(GameLaunchException.class, () -> instance.launchOnlineGame(gameParameters, 0, 0, java.util.List.of()));
 
     verify(playerService).getCurrentPlayer();
     verify(loggingService).getNewGameLogFile(gameParameters.uid());
