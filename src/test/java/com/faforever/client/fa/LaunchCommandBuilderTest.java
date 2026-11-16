@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class LaunchCommandBuilderTest extends ServiceTest {
 
@@ -26,6 +27,25 @@ public class LaunchCommandBuilderTest extends ServiceTest {
         .executableDecorator("%s")
         .logFile(Path.of("preferences.log"))
         .username("junit");
+  }
+
+  @Test
+  public void testClientArgsStayWholeWhileAdditionalArgsAreSplit() {
+    List<String> command = defaultBuilder()
+        .additionalArgs(List.of("/a b"))
+        .clientArgs(List.of("/nativenet", "/some path with spaces"))
+        .build();
+
+    int a = command.indexOf("/a");
+    assertEquals("b", command.get(a + 1));
+    int whole = command.indexOf("/some path with spaces");
+    assertEquals("/nativenet", command.get(whole - 1));
+    assertTrue(whole > a, "the client's arguments come after the player's");
+  }
+
+  @Test
+  public void testNoClientArgsAddNothing() {
+    assertEquals(defaultBuilder().build(), defaultBuilder().clientArgs(null).build());
   }
 
   @Test
