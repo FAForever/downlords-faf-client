@@ -225,14 +225,6 @@ public class NativeIceAdapterTest extends ServiceTest {
     assertEquals(List.of("IceMsg", 9, "{\"a\":1}"), readMessage());
   }
 
-  private void connectToPeer(String login, int id, boolean offer) {
-    ConnectToPeerGpgCommand command = mock(ConnectToPeerGpgCommand.class);
-    when(command.getUsername()).thenReturn(login);
-    when(command.getPeerUid()).thenReturn(id);
-    when(command.isOffer()).thenReturn(offer);
-    connectToPeer.tryEmitNext(command);
-  }
-
   @Test
   public void testTheGameRunsItsOwnNetwork() {
     assertEquals(List.of("/nativenet", "/con", "net_PeerFeatures=1;net_RejoinAccept=1"), instance.gameArguments());
