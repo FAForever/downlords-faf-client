@@ -73,6 +73,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -230,6 +231,73 @@ public class GameRunnerTest extends ServiceTest {
     inOrder.verify(iceAdapter).start(anyInt(), anyBoolean());
     verify(forgedAllianceLaunchService).launchOnlineGame(any(), eq(GPG_PORT), eq(LOCAL_REPLAY_PORT),
                                                          eq(List.of("/nativenet")));
+  }
+
+  @Test
+  public void twoRequestsGivenTheSameLaunchResponseStartTheGameOnce() throws Exception {
+    GameLaunchResponse gameLaunchResponse = GameLaunchMessageBuilder.create().defaultValues().get();
+    mockStartGameProcess(gameLaunchResponse);
+    CompletableFuture<Process> exitFuture = new CompletableFuture<>();
+    when(process.onExit()).thenReturn(exitFuture);
+
+    CompletableFuture<Void> first = instance.startOnlineGame(gameLaunchResponse);
+    CompletableFuture<Void> second = instance.startOnlineGame(gameLaunchResponse);
+
+    java.util.concurrent.ExecutionException refused =
+        assertThrows(java.util.concurrent.ExecutionException.class, () -> second.get(5, java.util.concurrent.TimeUnit.SECONDS));
+    org.junit.jupiter.api.Assertions.assertInstanceOf(GameRunner.GameAlreadyStartingException.class, refused.getCause());
+    verify(iceAdapter).prepare(gameLaunchResponse);
+    verify(iceAdapter).start(anyInt(), anyBoolean());
+    verify(replayServer).start(anyInt());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
+    assertFalse(first.isDone());
+
+    // Once that game is over, a game can start again.
+    exitFuture.complete(process);
+    first.get(5, java.util.concurrent.TimeUnit.SECONDS);
+    when(process.onExit()).thenReturn(new CompletableFuture<>());
+    instance.startOnlineGame(gameLaunchResponse);
+    verify(iceAdapter, times(2)).start(anyInt(), anyBoolean());
+  }
+
+  @Test
+  public void anotherGamesLaunchResponseWhileAGameRunsStartsNothing() throws Exception {
+    GameLaunchResponse running = GameLaunchMessageBuilder.create().defaultValues().uid(1).get();
+    GameLaunchResponse late = GameLaunchMessageBuilder.create().defaultValues().uid(2).get();
+    mockStartGameProcess(running);
+    instance.startOnlineGame(running);
+
+    CompletableFuture<Void> refused = instance.startOnlineGame(late);
+
+    assertTrue(refused.isCompletedExceptionally());
+    verify(iceAdapter).prepare(running);
+    verify(iceAdapter, never()).prepare(late);
+    verify(iceAdapter).start(anyInt(), anyBoolean());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
+    assertTrue(instance.isRunning());
+  }
+
+  @Test
+  public void aHostRequestWhoseGameAnotherRequestStartedShowsNoError() throws Exception {
+    NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
+    mockHostGame(newGameInfo);
+    // Both requests wait for the server, which answers once: both get that answer.
+    CompletableFuture<GameLaunchResponse> launchResponse = new CompletableFuture<>();
+    when(fafServerAccessor.requestHostGame(any())).thenReturn(launchResponse);
+
+    instance.host(newGameInfo);
+    instance.host(newGameInfo);
+    launchResponse.complete(GameLaunchMessageBuilder.create()
+                                                   .defaultValues()
+                                                   .featuredMod(newGameInfo.featuredModName())
+                                                   .mapName(newGameInfo.map())
+                                                   .gameType(GameType.CUSTOM)
+                                                   .get());
+
+    verify(fafServerAccessor, times(2)).requestHostGame(newGameInfo);
+    verify(iceAdapter).start(anyInt(), anyBoolean());
+    verify(forgedAllianceLaunchService).launchOnlineGame(any(), anyInt(), anyInt(), any());
+    verify(notificationService, never()).addImmediateErrorNotification(any(), anyString());
   }
 
   @Test
