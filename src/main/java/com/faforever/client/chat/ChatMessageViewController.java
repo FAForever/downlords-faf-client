@@ -91,7 +91,7 @@ public class ChatMessageViewController extends NodeController<VBox> {
   private final ObservableList<ChatMessage> rawMessages = FXCollections.synchronizedObservableList(
       FXCollections.observableArrayList(chatMessage -> new Observable[]{chatMessage.getSender().categoryProperty()}));
   private final FilteredList<ChatMessage> filteredMessages = new FilteredList<>(
-      new SortedList<>(rawMessages, Comparator.comparing(ChatMessage::getType).thenComparing(ChatMessage::getTime)));
+      new SortedList<>(rawMessages, Comparator.comparing(ChatMessage::getTime)));
 
   private final SetChangeListener<ChatMessage> chatMessageListener = this::onMessageChange;
 
