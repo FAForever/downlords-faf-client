@@ -3,7 +3,9 @@ package com.faforever.client.fa.relay.ice;
 import com.faforever.client.api.TokenRetriever;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.server.PlayerInfo;
+import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameFullNotifier;
+import com.faforever.client.fa.RebuiltEngineExecutable;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsUtils;
@@ -13,21 +15,15 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.util.JavaUtil;
 import com.faforever.commons.api.dto.CoturnServer;
-import com.faforever.commons.lobby.ConnectToPeerGpgCommand;
-import com.faforever.commons.lobby.DisconnectFromPeerGpgCommand;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
-import com.faforever.commons.lobby.HostGameGpgCommand;
-import com.faforever.commons.lobby.IceMsgGpgCommand;
-import com.faforever.commons.lobby.JoinGameGpgCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -51,7 +47,7 @@ import static java.util.Arrays.asList;
 @Lazy
 @Slf4j
 @RequiredArgsConstructor
-public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableBean {
+public class IceAdapterImpl implements IceAdapter, DisposableBean {
 
   private static final int CONNECTION_ATTEMPTS = 50;
   private static final int CONNECTION_ATTEMPT_DELAY_MILLIS = 250;
@@ -70,44 +66,48 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private final GameFullNotifier gameFullNotifier;
   private final ClientProperties clientProperties;
   private final IceService iceService;
+  private final ForgedAllianceLaunchService forgedAllianceLaunchService;
 
   private final IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
   private GameType gameType;
+  private volatile boolean rebuiltEngine;
   private volatile JsonRpcPeer peer;
 
   @Override
-  public void afterPropertiesSet() {
-    fafServerAccessor.getEvents(JoinGameGpgCommand.class)
-                     .doOnNext(message -> iceAdapterProxy.joinGame(message.getUsername(), message.getPeerUid()))
-                     .doOnError(throwable -> log.warn("Unable to join game", throwable))
-                     .retry()
-                     .subscribe();
-    fafServerAccessor.getEvents(HostGameGpgCommand.class)
-                     .doOnNext(message -> iceAdapterProxy.hostGame(message.getMap()))
-                     .doOnError(throwable -> log.warn("Unable to host game", throwable))
-                     .retry()
-                     .subscribe();
-    fafServerAccessor.getEvents(ConnectToPeerGpgCommand.class)
-                     .doOnNext(message -> iceAdapterProxy.connectToPeer(message.getUsername(), message.getPeerUid(),
-                                                                        message.isOffer()))
-                     .doOnError(throwable -> log.warn("Unable to connect to peer", throwable))
-                     .retry()
-                     .subscribe();
-    fafServerAccessor.getEvents(GameLaunchResponse.class)
-                     .doOnNext(this::updateGameTypeFromGameInfo)
-                     .doOnError(throwable -> log.warn("Unable to update game type", throwable))
-                     .retry()
-                     .subscribe();
-    fafServerAccessor.getEvents(DisconnectFromPeerGpgCommand.class)
-                     .doOnNext(message -> iceAdapterProxy.disconnectFromPeer(message.getUid()))
-                     .doOnError(throwable -> log.warn("Unable to disconnect from peer", throwable))
-                     .retry()
-                     .subscribe();
-    fafServerAccessor.getEvents(IceMsgGpgCommand.class)
-                     .doOnNext(message -> iceAdapterProxy.iceMsg(message.getSender(), message.getRecord()))
-                     .doOnError(throwable -> log.warn("Unable to ice msg", throwable))
-                     .retry()
-                     .subscribe();
+  public void prepare(GameLaunchResponse gameLaunchResponse) {
+    gameType = gameLaunchResponse.getGameType();
+    rebuiltEngine = RebuiltEngineExecutable.isRebuiltEngine(forgedAllianceLaunchService.getExecutablePath());
+  }
+
+  /** The rebuilt engine on this adapter still takes back players whose game crashed. */
+  @Override
+  public List<String> gameArguments() {
+    return rebuiltEngine ? RebuiltEngineExecutable.TAKES_RETURNING_PLAYERS : List.of();
+  }
+
+  @Override
+  public void hostGame(String mapName) {
+    iceAdapterProxy.hostGame(mapName);
+  }
+
+  @Override
+  public void joinGame(String remotePlayerLogin, int remotePlayerId) {
+    iceAdapterProxy.joinGame(remotePlayerLogin, remotePlayerId);
+  }
+
+  @Override
+  public void connectToPeer(String remotePlayerLogin, int remotePlayerId, boolean offer) {
+    iceAdapterProxy.connectToPeer(remotePlayerLogin, remotePlayerId, offer);
+  }
+
+  @Override
+  public void disconnectFromPeer(int remotePlayerId) {
+    iceAdapterProxy.disconnectFromPeer(remotePlayerId);
+  }
+
+  @Override
+  public void iceMsg(int remotePlayerId, Object message) {
+    iceAdapterProxy.iceMsg(remotePlayerId, message);
   }
 
   @Override
@@ -301,11 +301,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
           return result.join();
         }
     );
-  }
-
-  @VisibleForTesting
-  void updateGameTypeFromGameInfo(GameLaunchResponse gameLaunchMessage) {
-    gameType = gameLaunchMessage.getGameType();
   }
 
   @Override

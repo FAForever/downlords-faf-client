@@ -2,18 +2,14 @@ package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.fa.GameFullNotifier;
+import com.faforever.client.fa.RebuiltEngineExecutable;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.commons.api.dto.CoturnServer;
-import com.faforever.commons.lobby.ConnectToPeerGpgCommand;
-import com.faforever.commons.lobby.DisconnectFromPeerGpgCommand;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
-import com.faforever.commons.lobby.HostGameGpgCommand;
-import com.faforever.commons.lobby.IceMsgGpgCommand;
-import com.faforever.commons.lobby.JoinGameGpgCommand;
 import com.faforever.commons.lobby.MessageTarget;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +20,6 @@ import io.netty.handler.codec.CorruptedFrameException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -55,12 +50,23 @@ import java.util.concurrent.CompletableFuture;
 @Lazy
 @Slf4j
 @RequiredArgsConstructor
-public class NativeIceAdapter implements IceAdapter, InitializingBean {
+public class NativeIceAdapter implements IceAdapter {
 
   private static final byte ARG_INT = 0;
   private static final byte ARG_STRING = 1;
   // Far above any GPGNet message; a larger length means the stream is not GPGNet.
   private static final int MAX_FIELD_BYTES = 16 * 1024 * 1024;
+  // CreateLobby's first argument, as the Java adapter's LobbyInitMode ids: the normal lobby screen, or none for a
+  // matchmaker game.
+  private static final int LOBBY_INIT_NORMAL = 0;
+  private static final int LOBBY_INIT_AUTO = 1;
+  // CreateLobby's lobby port: the game binds a free one itself.
+  private static final int LOBBY_PORT_ANY = 0;
+  // CreateLobby's last argument, which the Java adapter also sends as 1.
+  private static final int LOBBY_NAT_TRAVERSAL = 1;
+  // ConnectToPeer's last argument: this side offers the connection, or answers the other side's offer.
+  private static final int CONNECT_OFFER = 1;
+  private static final int CONNECT_ANSWER = 0;
 
   private final PlayerService playerService;
   private final FafServerAccessor fafServerAccessor;
@@ -79,33 +85,28 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
   private Sinks.Many<byte[]> toGame;
 
   @Override
-  public void afterPropertiesSet() {
-    fafServerAccessor.getEvents(JoinGameGpgCommand.class)
-                     .doOnNext(message -> send("JoinGame", message.getUsername(), message.getPeerUid()))
-                     .doOnError(throwable -> log.warn("Unable to join game", throwable))
-                     .retry()
-                     .subscribe();
-    fafServerAccessor.getEvents(HostGameGpgCommand.class)
-                     .doOnNext(message -> send("HostGame", message.getMap()))
-                     .doOnError(throwable -> log.warn("Unable to host game", throwable))
-                     .retry()
-                     .subscribe();
-    fafServerAccessor.getEvents(ConnectToPeerGpgCommand.class)
-                     .doOnNext(message -> send("ConnectToPeer", message.getUsername(), message.getPeerUid(),
-                                               message.isOffer() ? 1 : 0))
-                     .doOnError(throwable -> log.warn("Unable to connect to peer", throwable))
-                     .retry()
-                     .subscribe();
-    fafServerAccessor.getEvents(DisconnectFromPeerGpgCommand.class)
-                     .doOnNext(message -> send("DisconnectFromPeer", message.getUid()))
-                     .doOnError(throwable -> log.warn("Unable to disconnect from peer", throwable))
-                     .retry()
-                     .subscribe();
-    fafServerAccessor.getEvents(IceMsgGpgCommand.class)
-                     .doOnNext(message -> send("IceMsg", message.getSender(), iceMessageText(message.getRecord())))
-                     .doOnError(throwable -> log.warn("Unable to ice msg", throwable))
-                     .retry()
-                     .subscribe();
+  public void hostGame(String mapName) {
+    send("HostGame", mapName);
+  }
+
+  @Override
+  public void joinGame(String remotePlayerLogin, int remotePlayerId) {
+    send("JoinGame", remotePlayerLogin, remotePlayerId);
+  }
+
+  @Override
+  public void connectToPeer(String remotePlayerLogin, int remotePlayerId, boolean offer) {
+    send("ConnectToPeer", remotePlayerLogin, remotePlayerId, offer ? CONNECT_OFFER : CONNECT_ANSWER);
+  }
+
+  @Override
+  public void disconnectFromPeer(int remotePlayerId) {
+    send("DisconnectFromPeer", remotePlayerId);
+  }
+
+  @Override
+  public void iceMsg(int remotePlayerId, Object message) {
+    send("IceMsg", remotePlayerId, iceMessageText(message));
   }
 
   @Override
@@ -116,7 +117,7 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
   @Override
   public List<String> gameArguments() {
     List<String> arguments = new ArrayList<>(forceRelay ? List.of("/nativenet", "/nativenetrelay") : List.of("/nativenet"));
-    arguments.addAll(IceAdapterSelector.TAKES_RETURNING_PLAYERS);
+    arguments.addAll(RebuiltEngineExecutable.TAKES_RETURNING_PLAYERS);
     return arguments;
   }
 
@@ -227,7 +228,8 @@ public class NativeIceAdapter implements IceAdapter, InitializingBean {
   private void sendLobbySetup() {
     PlayerInfo player = playerService.getCurrentPlayer();
     send("IceServers", iceServersJson);
-    send("CreateLobby", gameType == GameType.MATCHMAKER ? 1 : 0, 0, player.getUsername(), player.getId(), 1);
+    send("CreateLobby", gameType == GameType.MATCHMAKER ? LOBBY_INIT_AUTO : LOBBY_INIT_NORMAL, LOBBY_PORT_ANY,
+         player.getUsername(), player.getId(), LOBBY_NAT_TRAVERSAL);
   }
 
   private void send(String command, Object... args) {

@@ -40,6 +40,31 @@ public class IceAdapterTest {
     public void setIceServers(Collection<CoturnServer> coturnServers) {
       // Not part of the defaults under test.
     }
+
+    @Override
+    public void hostGame(String mapName) {
+      // Not part of the defaults under test.
+    }
+
+    @Override
+    public void joinGame(String remotePlayerLogin, int remotePlayerId) {
+      // Not part of the defaults under test.
+    }
+
+    @Override
+    public void connectToPeer(String remotePlayerLogin, int remotePlayerId, boolean offer) {
+      // Not part of the defaults under test.
+    }
+
+    @Override
+    public void disconnectFromPeer(int remotePlayerId) {
+      // Not part of the defaults under test.
+    }
+
+    @Override
+    public void iceMsg(int remotePlayerId, Object message) {
+      // Not part of the defaults under test.
+    }
   };
 
   @Test

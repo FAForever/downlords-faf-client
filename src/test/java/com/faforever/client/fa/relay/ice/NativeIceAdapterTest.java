@@ -6,13 +6,9 @@ import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.commons.lobby.ConnectToPeerGpgCommand;
-import com.faforever.commons.lobby.DisconnectFromPeerGpgCommand;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
-import com.faforever.commons.lobby.IceMsgGpgCommand;
-import com.faforever.commons.lobby.JoinGameGpgCommand;
 import com.faforever.commons.api.dto.CoturnServer;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -25,8 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -63,22 +57,12 @@ public class NativeIceAdapterTest extends ServiceTest {
   @Mock
   private GameFullNotifier gameFullNotifier;
 
-  private final Sinks.Many<ConnectToPeerGpgCommand> connectToPeer = Sinks.many().multicast().onBackpressureBuffer();
-  // No auto-cancel: after a message it can't handle, the adapter subscribes again, as the client's lobby events allow.
-  private final Sinks.Many<IceMsgGpgCommand> iceMsg = Sinks.many().multicast().onBackpressureBuffer(256, false);
-  private final Sinks.Many<DisconnectFromPeerGpgCommand> disconnectFromPeer = Sinks.many().multicast().onBackpressureBuffer();
-  private final Sinks.Many<JoinGameGpgCommand> joinGame = Sinks.many().multicast().onBackpressureBuffer();
   private NativeIceAdapter instance;
   private Socket game;
   private DataInputStream fromClient;
 
   @BeforeEach
   public void setUp() throws Exception {
-    lenient().when(fafServerAccessor.getEvents(any())).thenReturn(Flux.never());
-    lenient().when(fafServerAccessor.getEvents(ConnectToPeerGpgCommand.class)).thenReturn(connectToPeer.asFlux());
-    lenient().when(fafServerAccessor.getEvents(IceMsgGpgCommand.class)).thenReturn(iceMsg.asFlux());
-    lenient().when(fafServerAccessor.getEvents(DisconnectFromPeerGpgCommand.class)).thenReturn(disconnectFromPeer.asFlux());
-    lenient().when(fafServerAccessor.getEvents(JoinGameGpgCommand.class)).thenReturn(joinGame.asFlux());
     PlayerInfo player = mock(PlayerInfo.class);
     lenient().when(player.getUsername()).thenReturn("junit");
     lenient().when(player.getId()).thenReturn(5);
@@ -86,7 +70,6 @@ public class NativeIceAdapterTest extends ServiceTest {
 
     instance = new NativeIceAdapter(playerService, fafServerAccessor, Mappers.getMapper(IceServerMapper.class),
                                     new ObjectMapper(), gameFullNotifier);
-    instance.afterPropertiesSet();
 
     GameLaunchResponse launch = mock(GameLaunchResponse.class);
     when(launch.getGameType()).thenReturn(GameType.MATCHMAKER);
@@ -200,29 +183,31 @@ public class NativeIceAdapterTest extends ServiceTest {
 
   @Test
   public void testConnectToPeerSendsOfferAsInt() throws Exception {
-    sendFromGame("GameState", "Lobby");
-    verify(fafServerAccessor, timeout(WAIT_MILLIS)).sendGpgMessage(any());
+    gameConnected();
 
-    ConnectToPeerGpgCommand command = mock(ConnectToPeerGpgCommand.class);
-    when(command.getUsername()).thenReturn("other");
-    when(command.getPeerUid()).thenReturn(9);
-    when(command.isOffer()).thenReturn(true);
-    connectToPeer.tryEmitNext(command);
+    instance.connectToPeer("other", 9, true);
+    instance.connectToPeer("third", 10, false);
 
     assertEquals(List.of("ConnectToPeer", "other", 9, 1), readMessage());
+    assertEquals(List.of("ConnectToPeer", "third", 10, 0), readMessage());
   }
 
   @Test
   public void testIceMessageObjectIsSentAsJsonText() throws Exception {
-    sendFromGame("GameState", "Lobby");
-    verify(fafServerAccessor, timeout(WAIT_MILLIS)).sendGpgMessage(any());
+    gameConnected();
 
-    IceMsgGpgCommand command = mock(IceMsgGpgCommand.class);
-    when(command.getSender()).thenReturn(9);
-    when(command.getRecord()).thenReturn(java.util.Map.of("a", 1));
-    iceMsg.tryEmitNext(command);
+    instance.iceMsg(9, java.util.Map.of("a", 1));
 
     assertEquals(List.of("IceMsg", 9, "{\"a\":1}"), readMessage());
+  }
+
+  @Test
+  public void testHostGameGoesToTheGameWithTheMap() throws Exception {
+    gameConnected();
+
+    instance.hostGame("scmp_009");
+
+    assertEquals(List.of("HostGame", "scmp_009"), readMessage());
   }
 
   @Test
@@ -233,9 +218,8 @@ public class NativeIceAdapterTest extends ServiceTest {
   @Test
   public void testDisconnectFromPeerGoesToTheGame() throws Exception {
     gameConnected();
-    DisconnectFromPeerGpgCommand left = mock(DisconnectFromPeerGpgCommand.class);
-    when(left.getUid()).thenReturn(9);
-    disconnectFromPeer.tryEmitNext(left);
+
+    instance.disconnectFromPeer(9);
 
     assertEquals(List.of("DisconnectFromPeer", 9), readMessage());
   }
@@ -249,10 +233,8 @@ public class NativeIceAdapterTest extends ServiceTest {
   @Test
   public void testJoinGameGoesToTheGameWithThePeersId() throws Exception {
     gameConnected();
-    JoinGameGpgCommand command = mock(JoinGameGpgCommand.class);
-    when(command.getUsername()).thenReturn("host");
-    when(command.getPeerUid()).thenReturn(3);
-    joinGame.tryEmitNext(command);
+
+    instance.joinGame("host", 3);
 
     assertEquals(List.of("JoinGame", "host", 3), readMessage());
   }
@@ -284,25 +266,18 @@ public class NativeIceAdapterTest extends ServiceTest {
   @Test
   public void testAnIceMessageGivenAsTextIsPassedAsIs() throws Exception {
     gameConnected();
-    IceMsgGpgCommand command = mock(IceMsgGpgCommand.class);
-    when(command.getSender()).thenReturn(9);
-    when(command.getRecord()).thenReturn("{\"b\":2}");
-    iceMsg.tryEmitNext(command);
+
+    instance.iceMsg(9, "{\"b\":2}");
 
     assertEquals(List.of("IceMsg", 9, "{\"b\":2}"), readMessage());
   }
 
   @Test
-  public void testAnIceMessageThatCantBeWrittenIsDroppedAndTheNextOneArrives() throws Exception {
+  public void testAnIceMessageThatCantBeWrittenIsRefusedAndTheNextOneArrives() throws Exception {
     gameConnected();
-    IceMsgGpgCommand broken = mock(IceMsgGpgCommand.class);
-    when(broken.getSender()).thenReturn(9);
-    when(broken.getRecord()).thenReturn(new Object());
-    iceMsg.tryEmitNext(broken);
-    IceMsgGpgCommand fine = mock(IceMsgGpgCommand.class);
-    when(fine.getSender()).thenReturn(9);
-    when(fine.getRecord()).thenReturn("{}");
-    iceMsg.tryEmitNext(fine);
+
+    assertThrows(IllegalArgumentException.class, () -> instance.iceMsg(9, new Object()));
+    instance.iceMsg(9, "{}");
 
     assertEquals(List.of("IceMsg", 9, "{}"), readMessage());
   }
@@ -402,10 +377,12 @@ public class NativeIceAdapterTest extends ServiceTest {
 
   @Test
   public void testNothingIsSentAfterStop() throws Exception {
+    gameConnected();
     instance.stop();
 
-    connectToPeer.tryEmitNext(mock(ConnectToPeerGpgCommand.class));
+    instance.connectToPeer("other", 9, true);
 
-    verify(fafServerAccessor, never()).sendGpgMessage(any());
+    game.setSoTimeout(WAIT_MILLIS);
+    assertEquals(-1, fromClient.read());
   }
 }

@@ -261,6 +261,23 @@ public class GameRunnerTest extends ServiceTest {
   }
 
   @Test
+  public void aLaunchThatFailsBeforeItsChainStartsStopsTheNetworkAndTheNextGameStarts() throws Exception {
+    GameLaunchResponse failing = GameLaunchMessageBuilder.create().defaultValues().uid(1).mapName("scmp_009").get();
+    GameLaunchResponse next = GameLaunchMessageBuilder.create().defaultValues().uid(2).mapName("scmp_009").get();
+    mockStartGameProcess(next);
+    when(process.onExit()).thenReturn(new CompletableFuture<>());
+    when(mapService.downloadIfNecessary(any())).thenThrow(new IllegalStateException("broken"))
+                                               .thenReturn(Mono.empty());
+
+    assertThrows(IllegalStateException.class, () -> instance.startOnlineGame(failing));
+    verify(iceAdapter).stop();
+
+    instance.startOnlineGame(next);
+    verify(iceAdapter).prepare(next);
+    verify(iceAdapter).start(anyInt(), anyBoolean());
+  }
+
+  @Test
   public void anotherGamesLaunchResponseWhileAGameRunsStartsNothing() throws Exception {
     GameLaunchResponse running = GameLaunchMessageBuilder.create().defaultValues().uid(1).get();
     GameLaunchResponse late = GameLaunchMessageBuilder.create().defaultValues().uid(2).get();

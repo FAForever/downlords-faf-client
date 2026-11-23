@@ -202,7 +202,14 @@ public class GameRunner implements InitializingBean {
     try {
       game = launchGame(gameLaunchResponse);
     } catch (RuntimeException e) {
-      launching.set(false);
+      // No chain runs to stop the adapter; the next game can only prepare one after this one's is stopped.
+      try {
+        iceAdapter.stop();
+      } catch (RuntimeException stopFailure) {
+        e.addSuppressed(stopFailure);
+      } finally {
+        launching.set(false);
+      }
       throw e;
     }
     return game.whenComplete((_, _) -> launching.set(false));

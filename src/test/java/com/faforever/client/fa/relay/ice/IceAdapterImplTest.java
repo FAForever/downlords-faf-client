@@ -5,7 +5,10 @@ import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.PlayerInfoBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.server.PlayerInfo;
+import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameFullNotifier;
+import com.faforever.client.fa.RebuiltEngineExecutable;
+import com.faforever.client.fa.TestExecutables;
 import com.faforever.client.game.GameService;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.mapstruct.MapperSetup;
@@ -21,6 +24,7 @@ import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.MessageTarget;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -65,6 +69,10 @@ public class IceAdapterImplTest extends ServiceTest {
   private ObjectFactory<IceAdapterCallbacks> iceAdapterCallbacksFactory;
   @Mock
   private IceService iceService;
+  @Mock
+  private ForgedAllianceLaunchService forgedAllianceLaunchService;
+  @TempDir
+  public Path tempDirectory;
 
   @Mock
   private IceAdapterApi iceAdapterApi;
@@ -98,16 +106,67 @@ public class IceAdapterImplTest extends ServiceTest {
 
   @Test
   public void testSetMatchmaker() throws Exception {
-    instance.updateGameTypeFromGameInfo(GameLaunchMessageBuilder.create().defaultValues().gameType(GameType.MATCHMAKER).get());
+    instance.prepare(GameLaunchMessageBuilder.create().defaultValues().gameType(GameType.MATCHMAKER).get());
     instance.setLobbyInitMode();
     verify(iceAdapterApi).setLobbyInitMode("auto");
   }
 
   @Test
   public void testSetCustom() throws Exception {
-    instance.updateGameTypeFromGameInfo(GameLaunchMessageBuilder.create().defaultValues().get());
+    instance.prepare(GameLaunchMessageBuilder.create().defaultValues().get());
     instance.setLobbyInitMode();
     verify(iceAdapterApi).setLobbyInitMode("normal");
+  }
+
+  private void useExe(String productName) throws Exception {
+    Path exe = TestExecutables.write(tempDirectory.resolve("ForgedAlliance.exe"), true, productName);
+    when(forgedAllianceLaunchService.getExecutablePath()).thenReturn(exe);
+  }
+
+  @Test
+  public void testTheRebuiltEngineOnTheAdapterStillTakesReturningPlayers() throws Exception {
+    useExe(RebuiltEngineExecutable.PRODUCT_NAME);
+
+    instance.prepare(GameLaunchMessageBuilder.create().defaultValues().get());
+
+    assertEquals(List.of("/con", "net_PeerFeatures=1;net_RejoinAccept=1"), instance.gameArguments());
+  }
+
+  @Test
+  public void testTheOriginalExeGetsNoArguments() throws Exception {
+    useExe("Supreme Commander Forged Alliance");
+
+    instance.prepare(GameLaunchMessageBuilder.create().defaultValues().get());
+
+    assertEquals(List.of(), instance.gameArguments());
+  }
+
+  @Test
+  public void testEachGameReadsTheExeAgain() throws Exception {
+    useExe(RebuiltEngineExecutable.PRODUCT_NAME);
+    instance.prepare(GameLaunchMessageBuilder.create().defaultValues().get());
+    useExe("Supreme Commander Forged Alliance");
+
+    instance.prepare(GameLaunchMessageBuilder.create().defaultValues().get());
+
+    assertEquals(List.of(), instance.gameArguments());
+  }
+
+  @Test
+  public void testTheServersCommandsGoToTheAdapterProcess() {
+    Object record = Map.of("a", 1);
+
+    instance.hostGame("map");
+    instance.joinGame("host", 3);
+    instance.connectToPeer("other", 9, true);
+    instance.disconnectFromPeer(9);
+    instance.iceMsg(9, record);
+
+    verify(iceAdapterApi).hostGame("map");
+    verify(iceAdapterApi).joinGame("host", 3);
+    verify(iceAdapterApi).connectToPeer("other", 9, true);
+    verify(iceAdapterApi).disconnectFromPeer(9);
+    verify(iceAdapterApi).iceMsg(9, record);
   }
 
   @Test

@@ -46,7 +46,7 @@ public class ForgedAlliancePrefs {
   private final BooleanProperty forceAffinity = new SimpleBooleanProperty(true);
 
   /**
-   * On FAF Develop with the rebuilt engine, let the game run its own network links instead of starting the Java ICE
+   * When the game exe is the rebuilt engine, let the game run its own network links instead of starting the Java ICE
    * adapter. Off falls back to the adapter, which the rebuilt engine also supports.
    */
   private final BooleanProperty useNativeNetwork = new SimpleBooleanProperty(true);
