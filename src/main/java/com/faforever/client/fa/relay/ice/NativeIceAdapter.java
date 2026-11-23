@@ -19,6 +19,7 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.CorruptedFrameException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.reactivestreams.Publisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -79,10 +80,13 @@ public class NativeIceAdapter implements IceAdapter {
   private volatile boolean active;
   private volatile boolean forceRelay;
   private volatile String iceServersJson = "[]";
-  private volatile DisposableServer server;
-  private volatile Connection gameConnection;
-  private GameType gameType;
+  // Under sendLock: the current start's server, the game's connection and what goes to it.
+  private DisposableServer server;
+  private Connection gameConnection;
   private Sinks.Many<byte[]> toGame;
+  // Under sendLock: counts starts and stops, so a server or connection of an earlier start can't become the game's.
+  private int generation;
+  private GameType gameType;
 
   @Override
   public void hostGame(String mapName) {
@@ -139,15 +143,24 @@ public class NativeIceAdapter implements IceAdapter {
   public CompletableFuture<Integer> start(int gameId, boolean forceRelay) {
     this.forceRelay = forceRelay;
     stop();
-    active = true;
+    int thisStart;
+    synchronized (sendLock) {
+      thisStart = ++generation;
+      active = true;
+    }
     return TcpServer.create()
                     .bindAddress(() -> new InetSocketAddress(InetAddress.getLoopbackAddress(), 0))
                     .doOnBound(bound -> {
-                      server = bound;
-                      log.info("Native network: GPGNet on port {} for game {}", bound.port(), gameId);
+                      if (keepServer(bound, thisStart)) {
+                        log.info("Native network: GPGNet on port {} for game {}", bound.port(), gameId);
+                      } else {
+                        log.info("Native network: GPGNet port {} opened after game {} stopped; closing it",
+                                 bound.port(), gameId);
+                        bound.dispose();
+                      }
                     })
                     .doOnUnbound(bound -> log.debug("Native network: GPGNet port {} closed", bound.port()))
-                    .handle(this::serveGame)
+                    .handle((inbound, outbound) -> serveGame(inbound, outbound, thisStart))
                     .bind()
                     .map(DisposableServer::port)
                     .toFuture();
@@ -155,20 +168,36 @@ public class NativeIceAdapter implements IceAdapter {
 
   @Override
   public void stop() {
-    active = false;
+    Connection connection;
+    DisposableServer openServer;
     synchronized (sendLock) {
+      active = false;
+      generation++;
       if (toGame != null) {
         toGame.tryEmitComplete();
         toGame = null;
       }
+      connection = gameConnection;
+      gameConnection = null;
+      openServer = server;
+      server = null;
     }
-    Connection connection = gameConnection;
     if (connection != null) {
       connection.dispose();
     }
-    DisposableServer openServer = server;
     if (openServer != null) {
       openServer.dispose();
+    }
+  }
+
+  /** The server bound for that start becomes the current one, unless the game stopped or started again meanwhile. */
+  private boolean keepServer(DisposableServer bound, int start) {
+    synchronized (sendLock) {
+      if (!active || generation != start) {
+        return false;
+      }
+      server = bound;
+      return true;
     }
   }
 
@@ -187,15 +216,18 @@ public class NativeIceAdapter implements IceAdapter {
    * One game's connection. The newest one is the game: it closes the one before, and what the one before still sends is
    * dropped, so it can't get a lobby set up on the new connection.
    */
-  private Publisher<Void> serveGame(NettyInbound inbound, NettyOutbound outbound) {
+  private Publisher<Void> serveGame(NettyInbound inbound, NettyOutbound outbound, int start) {
     Sinks.Many<byte[]> toThisGame = Sinks.many().unicast().onBackpressureBuffer();
 
     Mono<Void> fromGame = inbound.withConnection(connection -> {
                                    connection.addHandlerLast("gpgnet", new GpgNetDecoder());
-                                   Connection replaced = becomeTheGame(connection, toThisGame);
-                                   if (replaced != null && replaced != connection) {
+                                   Connection toClose = becomeTheGame(connection, toThisGame, start);
+                                   if (toClose == connection) {
+                                     log.info("Native network: a game connection arrived after its game stopped; closing it");
+                                     toClose.dispose();
+                                   } else if (toClose != null) {
                                      log.info("Native network: a new game connection replaces the previous one");
-                                     replaced.dispose();
+                                     toClose.dispose();
                                    }
                                  })
                                  .receiveObject()
@@ -221,9 +253,16 @@ public class NativeIceAdapter implements IceAdapter {
     return Mono.when(fromGame, outbound.sendByteArray(toThisGame.asFlux()).then());
   }
 
-  /** Makes this connection the game's; returns the connection it replaces, if any. */
-  private Connection becomeTheGame(Connection connection, Sinks.Many<byte[]> toThisGame) {
+  /**
+   * Makes this connection the game's. Returns the connection to close: the one it replaces, or this one itself when its
+   * start's game has stopped or started again; null when there is none.
+   */
+  @VisibleForTesting
+  Connection becomeTheGame(Connection connection, Sinks.Many<byte[]> toThisGame, int start) {
     synchronized (sendLock) {
+      if (!active || generation != start) {
+        return connection;
+      }
       Connection replaced = gameConnection;
       gameConnection = connection;
       toGame = toThisGame;
@@ -237,7 +276,8 @@ public class NativeIceAdapter implements IceAdapter {
     }
   }
 
-  private void onMessageFromGame(GpgGameOutboundMessage message, Sinks.Many<byte[]> from) {
+  @VisibleForTesting
+  void onMessageFromGame(GpgGameOutboundMessage message, Sinks.Many<byte[]> from) {
     if (!isTheGame(from)) {
       log.debug("Dropping a message from a replaced game connection: '{}' '{}'", message.getCommand(),
                 message.getArgs());

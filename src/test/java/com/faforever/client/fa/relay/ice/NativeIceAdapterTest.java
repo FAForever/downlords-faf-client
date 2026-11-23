@@ -21,6 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import reactor.core.publisher.Sinks;
+import reactor.netty.Connection;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -401,6 +403,42 @@ public class NativeIceAdapterTest extends ServiceTest {
       replacement.setSoTimeout(500);
       assertThrows(SocketTimeoutException.class, toReplacement::readInt);
     }
+  }
+
+  @Test
+  public void testAMessageFromAConnectionThatIsNoLongerTheGamesIsDropped() throws Exception {
+    gameConnected();
+    Sinks.Many<byte[]> replaced = Sinks.many().unicast().onBackpressureBuffer();
+
+    instance.onMessageFromGame(new GpgGameOutboundMessage("GameState", List.of("Idle"), MessageTarget.GAME), replaced);
+
+    // Neither passed on to the server nor a lobby set up on the game's connection.
+    verify(fafServerAccessor, after(300).times(1)).sendGpgMessage(any());
+    game.setSoTimeout(500);
+    assertThrows(SocketTimeoutException.class, fromClient::readInt);
+  }
+
+  @Test
+  public void testAConnectionOfAStoppedOrEarlierStartIsClosedAndNotTheGames() throws Exception {
+    gameConnected();
+    Connection late = mock(Connection.class);
+    Sinks.Many<byte[]> toLate = Sinks.many().unicast().onBackpressureBuffer();
+
+    // A connection accepted for an earlier start (or after stop, which also ends a start) is closed by its caller,
+    // and the game's connection stays the game's.
+    assertEquals(late, instance.becomeTheGame(late, toLate, Integer.MIN_VALUE));
+    instance.hostGame("scmp_009");
+    assertEquals(List.of("HostGame", "scmp_009"), readMessage());
+  }
+
+  @Test
+  public void testStopClosesAConnectionThatArrivedJustBefore() throws Exception {
+    gameConnected();
+
+    instance.stop();
+
+    game.setSoTimeout(WAIT_MILLIS);
+    assertEquals(-1, fromClient.read());
   }
 
   @Test
