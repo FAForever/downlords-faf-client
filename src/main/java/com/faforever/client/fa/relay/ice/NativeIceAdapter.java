@@ -183,20 +183,24 @@ public class NativeIceAdapter implements IceAdapter {
     send("IceServers", iceServersJson);
   }
 
-  /** One game's connection. The newest one is the game. */
+  /**
+   * One game's connection. The newest one is the game: it closes the one before, and what the one before still sends is
+   * dropped, so it can't get a lobby set up on the new connection.
+   */
   private Publisher<Void> serveGame(NettyInbound inbound, NettyOutbound outbound) {
     Sinks.Many<byte[]> toThisGame = Sinks.many().unicast().onBackpressureBuffer();
-    synchronized (sendLock) {
-      toGame = toThisGame;
-    }
 
     Mono<Void> fromGame = inbound.withConnection(connection -> {
-                                   gameConnection = connection;
                                    connection.addHandlerLast("gpgnet", new GpgNetDecoder());
+                                   Connection replaced = becomeTheGame(connection, toThisGame);
+                                   if (replaced != null && replaced != connection) {
+                                     log.info("Native network: a new game connection replaces the previous one");
+                                     replaced.dispose();
+                                   }
                                  })
                                  .receiveObject()
                                  .cast(GpgGameOutboundMessage.class)
-                                 .doOnNext(this::onMessageFromGame)
+                                 .doOnNext(message -> onMessageFromGame(message, toThisGame))
                                  .doOnComplete(() -> log.info("Native network: the game closed GPGNet"))
                                  .doOnError(throwable -> {
                                    if (active) {
@@ -217,25 +221,53 @@ public class NativeIceAdapter implements IceAdapter {
     return Mono.when(fromGame, outbound.sendByteArray(toThisGame.asFlux()).then());
   }
 
-  private void onMessageFromGame(GpgGameOutboundMessage message) {
+  /** Makes this connection the game's; returns the connection it replaces, if any. */
+  private Connection becomeTheGame(Connection connection, Sinks.Many<byte[]> toThisGame) {
+    synchronized (sendLock) {
+      Connection replaced = gameConnection;
+      gameConnection = connection;
+      toGame = toThisGame;
+      return replaced;
+    }
+  }
+
+  private boolean isTheGame(Sinks.Many<byte[]> toThisGame) {
+    synchronized (sendLock) {
+      return toGame == toThisGame;
+    }
+  }
+
+  private void onMessageFromGame(GpgGameOutboundMessage message, Sinks.Many<byte[]> from) {
+    if (!isTheGame(from)) {
+      log.debug("Dropping a message from a replaced game connection: '{}' '{}'", message.getCommand(),
+                message.getArgs());
+      return;
+    }
     log.debug("Message from game: '{}' '{}'", message.getCommand(), message.getArgs());
     if ("GameState".equals(message.getCommand()) && message.getArgs().contains("Idle")) {
-      sendLobbySetup();
+      sendLobbySetup(from);
     }
     onGpgGameMessage(message);
   }
 
-  private void sendLobbySetup() {
+  /** To the connection that went Idle, and only while it is still the game's. */
+  private void sendLobbySetup(Sinks.Many<byte[]> to) {
     PlayerInfo player = playerService.getCurrentPlayer();
-    send("IceServers", iceServersJson);
-    send("CreateLobby", gameType == GameType.MATCHMAKER ? LOBBY_INIT_AUTO : LOBBY_INIT_NORMAL, LOBBY_PORT_ANY,
-         player.getUsername(), player.getId(), LOBBY_NAT_TRAVERSAL);
+    sendTo(to, "IceServers", iceServersJson);
+    sendTo(to, "CreateLobby", gameType == GameType.MATCHMAKER ? LOBBY_INIT_AUTO : LOBBY_INIT_NORMAL, LOBBY_PORT_ANY,
+           player.getUsername(), player.getId(), LOBBY_NAT_TRAVERSAL);
   }
 
+  /** To the game's current connection. */
   private void send(String command, Object... args) {
+    sendTo(null, command, args);
+  }
+
+  /** To the game's current connection; with {@code to}, only while that is still it. */
+  private void sendTo(Sinks.Many<byte[]> to, String command, Object... args) {
     byte[] frame = encode(command, args);
     synchronized (sendLock) {
-      if (!active || toGame == null) {
+      if (!active || toGame == null || to != null && toGame != to) {
         return;
       }
       Sinks.EmitResult result = toGame.tryEmitNext(frame);

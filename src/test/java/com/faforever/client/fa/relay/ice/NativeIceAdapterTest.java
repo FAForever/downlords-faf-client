@@ -376,6 +376,34 @@ public class NativeIceAdapterTest extends ServiceTest {
   }
 
   @Test
+  public void testANewConnectionClosesTheOldOneAndTheOldOneCantSetUpItsLobby() throws Exception {
+    gameConnected();
+    try (Socket replacement = new Socket(InetAddress.getLoopbackAddress(), game.getPort())) {
+      DataInputStream toReplacement = new DataInputStream(replacement.getInputStream());
+
+      // The old connection is closed once the new one is the game's.
+      game.setSoTimeout(WAIT_MILLIS);
+      assertEquals(-1, fromClient.read());
+      // What it sent last is not passed on, and gets nothing sent to the new connection.
+      try {
+        sendFromGame("GameState", "Idle");
+      } catch (IOException closedAlready) {
+        // The client may have reset it already: nothing arrived either way.
+      }
+      verify(fafServerAccessor, after(300).times(1)).sendGpgMessage(any());
+
+      replacement.getOutputStream().write(frame("GameState", "Idle"));
+      replacement.getOutputStream().flush();
+      assertEquals(List.of("IceServers", "[]"), readMessage(replacement, toReplacement));
+      assertEquals("CreateLobby", readMessage(replacement, toReplacement).get(0));
+      verify(fafServerAccessor, timeout(WAIT_MILLIS).times(2)).sendGpgMessage(any());
+      // One lobby setup, the new connection's own: none for the old connection's Idle.
+      replacement.setSoTimeout(500);
+      assertThrows(SocketTimeoutException.class, toReplacement::readInt);
+    }
+  }
+
+  @Test
   public void testNothingIsSentAfterStop() throws Exception {
     gameConnected();
     instance.stop();
