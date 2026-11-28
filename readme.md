@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://faforever.com" rel="noopener" target="_blank"><img width="250" src="https://faforever.com/images/faf-logo.png" alt="FAF logo"></a></p>
+  <a href="https://faforever.com" rel="noopener" target="_blank"><img width="250" src="https://faforever.com/images/faf-logo.png" alt="FAF logo"></a>
 </p>
 
 
