@@ -61,7 +61,7 @@ checker-qual = { module = "org.checkerframework:checker-qual", version = "4.4.0"
 fx2j-api = { module = "io.github.sheikah45.fx2j:fx2j-api", version.ref = "fx2j" }
 install4j-runtime = { module = "com.install4j:install4j-runtime", version.ref = "install4j" }
 
-instancio-junit = { module = "org.instancio:instancio-junit", version = "6.2.1" }
+instancio-junit = { module = "org.instancio:instancio-junit", version = "6.2.2" }
 okhttp-client = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp-mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp" }
 testfx-core = { module = "org.testfx:testfx-core", version.ref = "testfx" }
