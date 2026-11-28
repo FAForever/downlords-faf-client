@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -23,6 +24,12 @@ public class RebuiltEngineExecutable {
 
   /** The product name the rebuilt engine writes into its version resource. */
   public final String PRODUCT_NAME = "faf-re";
+
+  /**
+   * The rebuilt engine says it takes back a player whose game crashed. A game offers that player a return only when every
+   * player's engine says so, so every rebuilt engine passes it, on any network, also one that can't come back itself.
+   */
+  public final List<String> TAKES_RETURNING_PLAYERS = List.of("/con", "net_PeerFeatures=1;net_RejoinAccept=1");
   private final int RT_VERSION = 16;
 
   public boolean isRebuiltEngine(Path executable) {

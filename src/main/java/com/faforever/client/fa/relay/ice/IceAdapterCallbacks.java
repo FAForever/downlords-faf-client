@@ -22,7 +22,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class IceAdapterCallbacks {
 
-  private final IceAdapter iceAdapter;
+  // The adapter process this connection belongs to, not the selector: its last messages still arrive after the
+  // selector has ended the game.
+  private final IceAdapterImpl iceAdapter;
   private final FafServerAccessor fafServerAccessor;
 
   public void onConnectionStateChanged(String newState) {

@@ -49,7 +49,7 @@ public class ForgedAllianceLaunchService {
     return launch(launchCommand);
   }
 
-  public Process launchOnlineGame(GameParameters gameParameters, int gpgPort, int replayPort) {
+  public Process launchOnlineGame(GameParameters gameParameters, int gpgPort, int replayPort, List<String> networkArgs) {
     PlayerInfo currentPlayer = playerService.getCurrentPlayer();
 
     Optional<LeaderboardRating> leaderboardRating = Optional.ofNullable(currentPlayer.getLeaderboardRatings()).map(
@@ -67,6 +67,7 @@ public class ForgedAllianceLaunchService {
                                                                 .team(gameParameters.team())
                                                                 .gameOptions(gameParameters.gameOptions())
                                                                 .additionalArgs(gameParameters.additionalArgs())
+                                                                .clientArgs(networkArgs)
                                                                 .clan(currentPlayer.getClan())
                                                                 .country(currentPlayer.getCountry())
                                                                 .username(currentPlayer.getUsername())

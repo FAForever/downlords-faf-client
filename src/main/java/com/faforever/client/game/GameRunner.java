@@ -79,6 +79,7 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
@@ -133,6 +134,11 @@ public class GameRunner implements InitializingBean {
   private CompletableFuture<Void> matchmakerFuture;
   private CompletableFuture<Void> customGameFuture;
   private boolean gameKilled;
+  // Set from a launch response until that game is over. Launch requests aren't exclusive while they wait for the
+  // server: two host or join requests get the same response, and a matchmaker match or a late answer to an earlier
+  // request can arrive while another game is starting or running. The game and its network adapter start once: a
+  // second start would replace the first game's network choice and close its connection.
+  private final AtomicBoolean launching = new AtomicBoolean();
 
   @Override
   public void afterPropertiesSet() {
@@ -178,9 +184,40 @@ public class GameRunner implements InitializingBean {
     return running.getReadOnlyProperty();
   }
 
+  /** A launch response that arrived while a game was being started or played; it starts nothing. */
+  static final class GameAlreadyStartingException extends IllegalStateException {
+    GameAlreadyStartingException(int uid) {
+      super("A game is already being started or played, not starting game " + uid);
+    }
+  }
+
   @VisibleForTesting
   CompletableFuture<Void> startOnlineGame(GameLaunchResponse gameLaunchResponse) {
+    if (!launching.compareAndSet(false, true)) {
+      GameAlreadyStartingException refused = new GameAlreadyStartingException(gameLaunchResponse.getUid());
+      log.info(refused.getMessage());
+      return CompletableFuture.failedFuture(refused);
+    }
+    CompletableFuture<Void> game;
+    try {
+      game = launchGame(gameLaunchResponse);
+    } catch (RuntimeException e) {
+      // No chain runs to stop the adapter; the next game can only prepare one after this one's is stopped.
+      try {
+        iceAdapter.stop();
+      } catch (RuntimeException stopFailure) {
+        e.addSuppressed(stopFailure);
+      } finally {
+        launching.set(false);
+      }
+      throw e;
+    }
+    return game.whenComplete((_, _) -> launching.set(false));
+  }
+
+  private CompletableFuture<Void> launchGame(GameLaunchResponse gameLaunchResponse) {
     int uid = gameLaunchResponse.getUid();
+    iceAdapter.prepare(gameLaunchResponse);
     String leaderboard = gameLaunchResponse.getLeaderboard();
     boolean hasLeague = leaderboard == null || "global".equals(leaderboard);
 
@@ -267,6 +304,7 @@ public class GameRunner implements InitializingBean {
             case NotifiableException notifiableException ->
                 notificationService.addErrorNotification(notifiableException);
             case CancellationException e -> log.info("Hosting Game cancelled");
+            case GameAlreadyStartingException e -> log.info("Hosted game not started: {}", e.getMessage());
             case null, default -> notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
           }
           return null;
@@ -326,6 +364,8 @@ public class GameRunner implements InitializingBean {
             case GameJoinFailedException e ->
                 log.warn("Game with id '{}' could not be joined. Reason: {}", e.getGameId(), e.getFailureReason(), e);
             case CancellationException e -> log.info("Joining Game with id '{}' cancelled", game.getId());
+            case GameAlreadyStartingException e ->
+                log.info("Game with id '{}' not joined: {}", game.getId(), e.getMessage());
             case null, default -> {
               log.error("Game could not be joined", throwable);
               notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
@@ -384,6 +424,8 @@ public class GameRunner implements InitializingBean {
                                        Severity.INFO));
             killGame();
           }
+        } else if (throwable instanceof GameAlreadyStartingException) {
+          log.info("Matchmade game not started: {}", throwable.getMessage());
         } else {
           log.warn("Matchmade game could not be started", throwable);
         }
@@ -412,7 +454,7 @@ public class GameRunner implements InitializingBean {
     fafServerAccessor.setPingIntervalSeconds(5);
     fafServerAccessor.setTimeoutLoginReconnectSeconds(5);
     gameKilled = false;
-    return forgedAllianceLaunchService.launchOnlineGame(gameParameters, gpgPort, replayPort);
+    return forgedAllianceLaunchService.launchOnlineGame(gameParameters, gpgPort, replayPort, iceAdapter.gameArguments());
   }
 
   private CompletableFuture<Integer> startIceAdapter(int uid) {
