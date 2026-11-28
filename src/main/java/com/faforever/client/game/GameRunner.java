@@ -7,6 +7,7 @@ import com.faforever.client.domain.api.MapVersion;
 import com.faforever.client.domain.server.GameInfo;
 import com.faforever.client.domain.server.PlayerInfo;
 import com.faforever.client.exception.NotifiableException;
+import com.faforever.client.fa.DesyncReports;
 import com.faforever.client.fa.ForgedAllianceLaunchService;
 import com.faforever.client.fa.GameParameters;
 import com.faforever.client.fa.GameParameters.League;
@@ -49,6 +50,7 @@ import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.NoticeInfo;
 import com.google.common.annotations.VisibleForTesting;
 import jakarta.annotation.Nullable;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -57,6 +59,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.layout.Region;
@@ -79,10 +82,13 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.game.KnownFeaturedMod.TUTORIALS;
+import static com.faforever.client.notification.Severity.INFO;
 import static com.faforever.client.notification.Severity.WARN;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
@@ -121,6 +127,10 @@ public class GameRunner implements InitializingBean {
   private final FxApplicationThreadExecutor fxApplicationThreadExecutor;
   private final LogAnalyzerService logAnalyzerService;
   private final TaskService taskService;
+  private final DesyncReports desyncReports;
+
+  /** The other players' dialogs eject a silent player about this long after their dialog opens. */
+  private static final long REJOIN_ANSWER_MILLIS = 150_000;
 
   private final MaskPatternLayout logMasker = new MaskPatternLayout();
   private final SimpleObjectProperty<Integer> runningGameId = new SimpleObjectProperty<>();
@@ -132,17 +142,40 @@ public class GameRunner implements InitializingBean {
 
   private CompletableFuture<Void> matchmakerFuture;
   private CompletableFuture<Void> customGameFuture;
-  private boolean gameKilled;
+  // Written under killLock by a kill, read on the threads that see the game exit and the question answered.
+  private volatile boolean gameKilled;
+  // From a crash with the question to return open until the match ends for this client: the old session is still
+  // up, so the game counts as running: no other game may start, and a lobby reconnect restores it.
+  private final BooleanProperty returnPending = new SimpleBooleanProperty();
+  // The open question's answer, so a kill can answer it with Leave. A Return can ask again (the restarted game crashed
+  // at once) before the first answer's callback runs, so each answer clears only itself.
+  private final AtomicReference<CompletableFuture<Boolean>> pendingAnswer = new AtomicReference<>();
+  // Orders a kill against a relaunch after a crash: either the kill comes first and nothing is relaunched, or the
+  // relaunch comes first and the kill destroys the relaunched process.
+  private final Object killLock = new Object();
+  // The relaunched game's process, set under killLock; the process property follows on the FX thread.
+  private Process relaunchedProcess;
+  // Set from a launch response until that game is over. Launch requests aren't exclusive while they wait for the
+  // server: two host or join requests get the same response, and a matchmaker match or a late answer to an earlier
+  // request can arrive while another game is starting or running. The game and its network adapter start once: a
+  // second start would close the first game's connection.
+  private final AtomicBoolean launching = new AtomicBoolean();
+  private GameParameters launchedParameters;
+  private int launchedGpgPort;
+  @VisibleForTesting
+  long rejoinAnswerMillis = REJOIN_ANSWER_MILLIS;
 
   @Override
   public void afterPropertiesSet() {
     runningGame.bind(runningGameId.flatMap(gameService::observeByUid));
 
-    running.bind(process.flatMap(process -> {
+    ObservableValue<Boolean> processAlive = process.flatMap(process -> {
       BooleanProperty isAlive = new SimpleBooleanProperty(process.isAlive());
       process.onExit().thenRunAsync(() -> isAlive.set(false), fxApplicationThreadExecutor);
       return isAlive;
-    }));
+    });
+    running.bind(Bindings.createBooleanBinding(() -> Boolean.TRUE.equals(processAlive.getValue()) || returnPending.get(),
+                                               processAlive, returnPending));
 
     pid.bind(process.flatMap(process -> {
       ObjectProperty<Long> pid = new SimpleObjectProperty<>(process.isAlive() ? process.pid() : null);
@@ -178,9 +211,33 @@ public class GameRunner implements InitializingBean {
     return running.getReadOnlyProperty();
   }
 
+  /** A launch response that arrived while a game was being started or played; it starts nothing. */
+  static final class GameAlreadyStartingException extends IllegalStateException {
+    GameAlreadyStartingException(int uid) {
+      super("A game is already being started or played, not starting game " + uid);
+    }
+  }
+
   @VisibleForTesting
   CompletableFuture<Void> startOnlineGame(GameLaunchResponse gameLaunchResponse) {
+    if (!launching.compareAndSet(false, true)) {
+      GameAlreadyStartingException refused = new GameAlreadyStartingException(gameLaunchResponse.getUid());
+      log.info(refused.getMessage());
+      return CompletableFuture.failedFuture(refused);
+    }
+    CompletableFuture<Void> game;
+    try {
+      game = launchGame(gameLaunchResponse);
+    } catch (RuntimeException e) {
+      launching.set(false);
+      throw e;
+    }
+    return game.whenComplete((_, _) -> launching.set(false));
+  }
+
+  private CompletableFuture<Void> launchGame(GameLaunchResponse gameLaunchResponse) {
     int uid = gameLaunchResponse.getUid();
+    iceAdapter.prepare(gameLaunchResponse);
     String leaderboard = gameLaunchResponse.getLeaderboard();
     boolean hasLeague = leaderboard == null || "global".equals(leaderboard);
 
@@ -194,18 +251,24 @@ public class GameRunner implements InitializingBean {
                                                                                     () -> replayServer.start(uid));
     CompletableFuture<Integer> runIceAdapterFuture = taskService.submitFutureTask("iceAdapter.connecting",
                                                                                   () -> startIceAdapter(uid));
+    // The token for desync reports comes from icebreaker; fetched now, the launch below doesn't wait for it.
+    CompletableFuture<List<String>> desyncReportsFuture = desyncReports.prepare(uid);
 
-    return CompletableFuture.allOf(downloadMapFuture, loadLeagueInfoFuture, runReplayServerFuture, runIceAdapterFuture)
+    return CompletableFuture.allOf(downloadMapFuture, loadLeagueInfoFuture, runReplayServerFuture, runIceAdapterFuture,
+                                   desyncReportsFuture)
                             .thenApply(_ -> gameMapper.map(gameLaunchResponse, loadLeagueInfoFuture.join()))
-                            .thenApply(parameters -> launchOnlineGame(parameters, runIceAdapterFuture.join(),
-                                                                      runReplayServerFuture.join()))
+                            .thenApply(parameters -> {
+                              launchedParameters = parameters;
+                              launchedGpgPort = runIceAdapterFuture.join();
+                              return launchOnlineGame(parameters, launchedGpgPort, runReplayServerFuture.join());
+                            })
                             .whenCompleteAsync((process, _) -> {
                               if (process != null) {
                                 this.process.set(process);
                                 runningGameId.set(uid);
                               }
                             }, fxApplicationThreadExecutor)
-                            .thenCompose(Process::onExit)
+                            .thenCompose(this::waitForGameToEnd)
                             .thenAccept(this::handleTermination)
                             .whenComplete((_, _) -> {
                               iceAdapter.stop();
@@ -215,7 +278,65 @@ public class GameRunner implements InitializingBean {
                             .whenCompleteAsync((_, _) -> {
                               process.set(null);
                               runningGameId.set(null);
+                              returnPending.set(false);
+                              synchronized (killLock) {
+                                relaunchedProcess = null;
+                              }
                             }, fxApplicationThreadExecutor);
+  }
+
+  /**
+   * Waits for the game's exit. A game that crashed in a match it can come back to is offered that, and is watched
+   * again if it is started: the player stays in the match until then, so nothing is torn down.
+   *
+   * @return the process that ended the game for this client
+   */
+  private CompletableFuture<Process> waitForGameToEnd(Process gameProcess) {
+    return gameProcess.onExit().thenCompose(finished -> {
+      if (gameKilled || finished.exitValue() == 0 || !iceAdapter.canRejoin()) {
+        return completedFuture(finished);
+      }
+      fxApplicationThreadExecutor.execute(() -> returnPending.set(true));
+      return askToReturnToMatch().thenCompose(wantsToReturn -> {
+        // A kill (the server's, or a cancelled matchmaker search) while the question was open means leaving.
+        if (!wantsToReturn || gameKilled) {
+          return completedFuture(finished);
+        }
+        List<String> rejoinArguments = iceAdapter.rejoinArguments();
+        if (rejoinArguments.isEmpty()) {
+          log.warn("No players to return to: the game's network no longer knows them");
+          return completedFuture(finished);
+        }
+        Process relaunched;
+        synchronized (killLock) {
+          if (gameKilled) {
+            log.info("Game close requested before the game was started again: leaving the match");
+            return completedFuture(finished);
+          }
+          relaunched = forgedAllianceLaunchService.relaunchOnlineGame(launchedParameters, launchedGpgPort, rejoinArguments);
+          relaunchedProcess = relaunched;
+        }
+        fxApplicationThreadExecutor.execute(() -> process.set(relaunched));
+        return waitForGameToEnd(relaunched);
+      });
+    });
+  }
+
+  private CompletableFuture<Boolean> askToReturnToMatch() {
+    CompletableFuture<Boolean> answer = new CompletableFuture<>();
+    pendingAnswer.set(answer);
+    answer.whenComplete((_, _) -> pendingAnswer.compareAndSet(answer, null));
+    notificationService.addImmediateQuestion(
+        new ImmediateNotification(i18n.get("game.rejoin.title"), i18n.get("game.rejoin.text"), WARN,
+                                  List.of(new Action(i18n.get("game.rejoin.return"), () -> answer.complete(true)),
+                                          new Action(i18n.get("game.rejoin.leave"), () -> answer.complete(false)))),
+        answer);
+    CompletableFuture.delayedExecutor(rejoinAnswerMillis, TimeUnit.MILLISECONDS).execute(() -> {
+      if (answer.complete(false)) {
+        notificationService.addNotification(new PersistentNotification(i18n.get("game.rejoin.timedOut"), INFO));
+      }
+    });
+    return answer;
   }
 
   @VisibleForTesting
@@ -267,6 +388,7 @@ public class GameRunner implements InitializingBean {
             case NotifiableException notifiableException ->
                 notificationService.addErrorNotification(notifiableException);
             case CancellationException e -> log.info("Hosting Game cancelled");
+            case GameAlreadyStartingException e -> log.info("Hosted game not started: {}", e.getMessage());
             case null, default -> notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
           }
           return null;
@@ -326,6 +448,8 @@ public class GameRunner implements InitializingBean {
             case GameJoinFailedException e ->
                 log.warn("Game with id '{}' could not be joined. Reason: {}", e.getGameId(), e.getFailureReason(), e);
             case CancellationException e -> log.info("Joining Game with id '{}' cancelled", game.getId());
+            case GameAlreadyStartingException e ->
+                log.info("Game with id '{}' not joined: {}", game.getId(), e.getMessage());
             case null, default -> {
               log.error("Game could not be joined", throwable);
               notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
@@ -384,6 +508,8 @@ public class GameRunner implements InitializingBean {
                                        Severity.INFO));
             killGame();
           }
+        } else if (throwable instanceof GameAlreadyStartingException) {
+          log.info("Matchmade game not started: {}", throwable.getMessage());
         } else {
           log.warn("Matchmade game could not be started", throwable);
         }
@@ -400,6 +526,7 @@ public class GameRunner implements InitializingBean {
     }
   }
 
+  /** The game's process is alive, or it crashed and the question to return to the match is still open. */
   public boolean isRunning() {
     return running.get();
   }
@@ -412,7 +539,7 @@ public class GameRunner implements InitializingBean {
     fafServerAccessor.setPingIntervalSeconds(5);
     fafServerAccessor.setTimeoutLoginReconnectSeconds(5);
     gameKilled = false;
-    return forgedAllianceLaunchService.launchOnlineGame(gameParameters, gpgPort, replayPort);
+    return forgedAllianceLaunchService.launchOnlineGame(gameParameters, gpgPort, replayPort, iceAdapter.gameArguments());
   }
 
   private CompletableFuture<Integer> startIceAdapter(int uid) {
@@ -519,10 +646,25 @@ public class GameRunner implements InitializingBean {
 
 
   private void killGame() {
-    if (isRunning()) {
-      gameKilled = true;
-      log.info("ForgedAlliance still running, destroying process");
-      process.get().destroy();
+    synchronized (killLock) {
+      CompletableFuture<Boolean> answer = pendingAnswer.get();
+      // Only an unanswered question: after Return the game may already be started again, before the answer is cleared,
+      // and that game is destroyed below. A Return given meanwhile finds gameKilled under this lock and starts nothing.
+      if (answer != null && !answer.isDone()) {
+        gameKilled = true;
+        log.info("Game close requested while the question to return was open: leaving the match");
+        answer.complete(false);
+        return;
+      }
+      if (isRunning()) {
+        gameKilled = true;
+        log.info("ForgedAlliance still running, destroying process");
+        // After a relaunch the property may not have caught up yet; the relaunched process is the live one.
+        Process live = relaunchedProcess != null ? relaunchedProcess : process.get();
+        if (live != null) {
+          live.destroy();
+        }
+      }
     }
   }
 

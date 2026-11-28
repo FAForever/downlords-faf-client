@@ -44,6 +44,56 @@ public class ForgedAlliancePrefs {
    * Force CPU Affinity when launching the FA game process
    */
   private final BooleanProperty forceAffinity = new SimpleBooleanProperty(true);
+  /**
+   * Whether the player agreed that a game on the rebuilt engine sends its desync reports to FAF, and whether they were
+   * asked yet.
+   * Nothing is sent until they agree.
+   */
+  private final BooleanProperty sendDesyncReports = new SimpleBooleanProperty(false);
+  private final BooleanProperty askedSendDesyncReports = new SimpleBooleanProperty(false);
+
+  /**
+   * On FAF Develop with the rebuilt engine, let the game run its own network links instead of starting the Java ICE
+   * adapter. Off falls back to the adapter, which the rebuilt engine also supports.
+   */
+  private final BooleanProperty useNativeNetwork = new SimpleBooleanProperty(true);
+
+  public boolean isUseNativeNetwork() {
+    return useNativeNetwork.get();
+  }
+
+  public void setUseNativeNetwork(boolean useNativeNetwork) {
+    this.useNativeNetwork.set(useNativeNetwork);
+  }
+
+  public BooleanProperty useNativeNetworkProperty() {
+    return useNativeNetwork;
+  }
+
+  public boolean isSendDesyncReports() {
+    return sendDesyncReports.get();
+  }
+
+  public void setSendDesyncReports(boolean sendDesyncReports) {
+    this.sendDesyncReports.set(sendDesyncReports);
+  }
+
+  public BooleanProperty sendDesyncReportsProperty() {
+    return sendDesyncReports;
+  }
+
+  public boolean isAskedSendDesyncReports() {
+    return askedSendDesyncReports.get();
+  }
+
+  public void setAskedSendDesyncReports(boolean askedSendDesyncReports) {
+    this.askedSendDesyncReports.set(askedSendDesyncReports);
+  }
+
+  public BooleanProperty askedSendDesyncReportsProperty() {
+    return askedSendDesyncReports;
+  }
+
 
   public Path getPreferencesFile() {
     return preferencesFile.get();

@@ -37,6 +37,12 @@ public class ClientConfiguration {
     private SocketEndpoint chat;
     private UrlEndpoint api;
     private OAuthEndpoint oauth;
+    /**
+     * Where a game on the rebuilt engine sends its desync records and dumps when the player agreed. Absent: the game's
+     * own default.
+     */
+    private UrlEndpoint desyncRecords;
+    private UrlEndpoint desyncDumps;
   }
 
   @Data

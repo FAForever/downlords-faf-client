@@ -160,6 +160,32 @@ public class FafApiAccessorTest extends ServiceTest {
         .verifyComplete();
   }
 
+  /** A plain JSON answer, as icebreaker's token endpoint gives. */
+  record TokenAnswer(String jwt) {}
+
+  @Test
+  public void testPostJsonForObject() throws Exception {
+    mockApi.enqueue(new MockResponse().setBody("{\"jwt\":\"abc\"}").addHeader("Content-Type", "application/json"));
+
+    StepVerifier.create(instance.postJsonForObject("/ice/session/token", Map.of("gameId", 7), TokenAnswer.class))
+        .expectNext(new TokenAnswer("abc"))
+        .verifyComplete();
+    okhttp3.mockwebserver.RecordedRequest request = mockApi.takeRequest();
+    assertEquals("POST", request.getMethod());
+    assertEquals("/ice/session/token", request.getPath());
+    assertEquals("{\"gameId\":7}", request.getBody().readUtf8());
+  }
+
+  @Test
+  public void testPostJson() throws Exception {
+    prepareVoidResponse();
+
+    StepVerifier.create(instance.postJson("/ice/session/report", Map.of("gameId", 7))).verifyComplete();
+    okhttp3.mockwebserver.RecordedRequest request = mockApi.takeRequest();
+    assertEquals("POST", request.getMethod());
+    assertEquals("{\"gameId\":7}", request.getBody().readUtf8());
+  }
+
   @Test
   public void testPatch() throws Exception {
     ReplayReview reviewBean = Instancio.create(ReplayReview.class);

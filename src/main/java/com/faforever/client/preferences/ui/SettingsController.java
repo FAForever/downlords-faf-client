@@ -178,6 +178,8 @@ public class SettingsController extends NodeController<Node> {
   public CheckBox mapAndModAutoUpdateCheckBox;
   public ListView<IceServer> preferredCoturnListView;
   public CheckBox forceAffinityToggle;
+  public CheckBox sendDesyncReportsToggle;
+  public CheckBox useNativeNetworkToggle;
 
   private final SimpleChangeListener<Theme> selectedThemeChangeListener = this::onThemeChanged;
   private final SimpleChangeListener<Theme> currentThemeChangeListener = newValue -> themeComboBox.getSelectionModel()
@@ -323,6 +325,10 @@ public class SettingsController extends NodeController<Node> {
                                  .bindBidirectional(forgedAlliancePrefs.useIceAdapterPreReleaseProperty());
     forceAffinityToggle.selectedProperty()
                        .bindBidirectional(forgedAlliancePrefs.forceAffinityProperty());
+    // The player's answer to the desync report question, changed here. Changing it counts as asked.
+    useNativeNetworkToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.useNativeNetworkProperty());
+    sendDesyncReportsToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.sendDesyncReportsProperty());
+    sendDesyncReportsToggle.selectedProperty().addListener((observable, oldValue, newValue) -> forgedAlliancePrefs.setAskedSendDesyncReports(true));
     vaultLocationTextField.textProperty()
         .bindBidirectional(forgedAlliancePrefs.vaultBaseDirectoryProperty(), PATH_STRING_CONVERTER);
     JavaFxUtil.addAndTriggerListener(vaultLocationTextField.textProperty(), (observable) ->
